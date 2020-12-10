@@ -2,17 +2,20 @@
     <div id="app">
         <h1 v-t="'nicephore'"></h1>
         <file-selector />
-        <canvas />
+        <document-canvas />
     </div>
 </template>
 
 <script>
-import Vue from 'vue';
-import VueI18n from 'vue-i18n';
-import FileSelector from '@/components/file-selector/file-selector';
-import Canvas from '@/components/canvas/canvas';
-import messages from './messages.json';
+import Vue            from "vue";
+import Vuex           from "vuex";
+import VueI18n        from "vue-i18n";
+import FileSelector   from "@/components/file-selector/file-selector";
+import DocumentCanvas from "@/components/document-canvas/document-canvas";
+import store          from "./store";
+import messages       from "./messages.json";
 
+Vue.use( Vuex );
 Vue.use( VueI18n );
 
 // Create VueI18n instance with options
@@ -22,9 +25,10 @@ const i18n = new VueI18n({
 
 export default {
     i18n,
+    store: new Vuex.Store( store ),
     components: {
         FileSelector,
-        Canvas,
+        DocumentCanvas,
     },
 };
 </script>

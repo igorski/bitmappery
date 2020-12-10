@@ -25,5 +25,16 @@ npm run test
 npm run lint
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+# TODO / Roadmap
+
+* Load Blobs when about to use image in document
+* Unload Blobs when images are no longer used in document
+* Change layer order
+* Save output to file
+* Use magnification (document size is relative to available screen size)
+* Add zoom
+* Restore project by selecting folder from file system
+* Transformation matrix (old Cropbox)
+* Paint brush
+* Clone brush
+* Full screen mode

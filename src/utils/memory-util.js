@@ -10,14 +10,14 @@ const { URL } = window;
  *
  * @param {HTMLImageElement} imageElement fully loaded image
  * @param {String=} type optional mime type, defaults to JPEG for photographic content
- * @param {Number=} optQuality optional JPEG compression to use (when mime is JPEG)
+ * @param {Number=} optQuality optional JPEG compression to use (when mime is JPEG) between 0 - 1
  * @return {String} Blob URL
  */
-export const imageToSource = async ( imageElement, type = "image/jpeg", optQuality = 90 ) => {
+export const imageToSource = ( imageElement, type = "image/jpeg", optQuality = .9 ) => {
     const { cvs, ctx } = createCanvas();
 
-    cvs.width  = imageElement.clientWidth;
-    cvs.height = imageElement.clientHeight;
+    cvs.width  = imageElement.naturalWidth  || imageElement.width;
+    cvs.height = imageElement.naturalHeight || imageElement.height;
 
     ctx.drawImage( imageElement, 0, 0 );
 

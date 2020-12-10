@@ -1,6 +1,11 @@
 import Vue from 'vue';
 import { imageToSource, disposeSource } from '@/utils/memory-util';
 
+/**
+ * Image module maintains a list of local image resources (selected from file system)
+ * that can be used within the application. It is separate from the document-module
+ * as the images are not necessarily used within the document (yet)
+ */
 export default {
     state: {
         images: [],
@@ -26,9 +31,11 @@ export default {
         /**
          * Registers an image for use in the application.
          */
-        async addImage( state, { file, imageElement, size }) {
-            const source = await imageToSource( imageElement );
-            state.images.push({ file, size, source });
+        async addImage({ state }, { file, image, size }) {
+            const source    = await imageToSource( image, file.type );
+            const imageData = { file, size, source };
+            state.images.push( imageData );
+            return imageData;
         },
     }
 };

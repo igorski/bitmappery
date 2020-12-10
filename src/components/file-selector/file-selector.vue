@@ -9,8 +9,9 @@
 </template>
 
 <script>
-import { loader } from 'zcanvas';
-import messages from './messages.json';
+import { mapGetters, mapMutations, mapActions } from "vuex";
+import { loader } from "zcanvas";
+import messages   from "./messages.json";
 
 const ACCEPTED_IMAGE_TYPES = [ "image/png", "image/gif", "image/jpeg" ];
 
@@ -19,7 +20,19 @@ export default {
     data: () => ({
         acceptedImageTypes: ACCEPTED_IMAGE_TYPES,
     }),
+    computed: {
+        ...mapGetters([
+            'layers',
+        ]),
+    },
     methods: {
+        ...mapMutations([
+            "addLayer",
+            "addGraphicToLayer",
+        ]),
+        ...mapActions([
+            "addImage",
+        ]),
         async handleFileSelect({ target }) {
             const files = target?.files;
             if ( !files || files.length === 0 ) {
@@ -33,9 +46,13 @@ export default {
                 // load the image contents using the zCanvas.loader
                 // which will also provide the image dimensions
                 try {
-                    const imageElement = reader.result;
-                    const { image, size } = await loader.loadImage( imageElement);
-                    this.addImage({ file, imageElement, size });
+                    const imageSource = reader.result;
+                    const { image, size } = await loader.loadImage( imageSource );
+                    const { source }      = await this.addImage({ file, image, size });
+                    // TODO: the below is test code
+                    image.src = source;
+                    this.addLayer();
+                    this.addGraphicToLayer({ index: this.layers.length - 1, bitmap: image });
                 } catch {
                     // TODO: show warning
                 }

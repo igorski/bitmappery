@@ -1,12 +1,10 @@
-import Vue from 'vue';
-import Vuex from 'vuex';
-import image from './modules/image-module';
+import documentModule from './modules/document-module';
+import imageModule    from './modules/image-module';
 
-Vue.use( Vuex );
-
-export default new Vuex.Store({
+export default {
     modules: {
-        image,
+        documentModule,
+        imageModule,
     },
     state: {
 
@@ -17,7 +15,4 @@ export default new Vuex.Store({
     actions: {
 
     },
-    modules: {
-
-    }
-});
+};
