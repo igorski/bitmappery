@@ -25,16 +25,17 @@ export default {
             if ( !files || files.length === 0 ) {
                 return;
             }
-            // load file data into memory
+            // load file data into memory so we can validate its contents, cache
+            // the image properties upfront, and convert it to a Blob resource in the store
             const file = files[ 0 ];
             const reader = new FileReader();
             reader.onload = async ( event ) => {
                 // load the image contents using the zCanvas.loader
                 // which will also provide the image dimensions
                 try {
-                    const { image, size } = await loader.loadImage( reader.result );
-                    // TODO: make Blob from image source
-                    this.addImage({ file, size });
+                    const imageElement = reader.result;
+                    const { image, size } = await loader.loadImage( imageElement);
+                    this.addImage({ file, imageElement, size });
                 } catch {
                     // TODO: show warning
                 }
