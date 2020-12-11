@@ -51,6 +51,10 @@ export default {
                 if ( !document?.layers ) {
                     return;
                 }
+                const { width, height } = document;
+                if ( zCanvas.width !== width || zCanvas.height !== height ) {
+                    zCanvas.setDimensions( width, height );
+                }
                 document.layers.forEach( layer => {
                     if ( !layer.visible ) {
                         return;
@@ -73,6 +77,7 @@ export default {
             height,
             animate: true,
             smoothing: true,
+            backgroundColor: "#FFFFFF",
             stretchToFit: false,
             fps: 60
         });

@@ -1,6 +1,11 @@
 @import "_variables";
 @import "colors";
 
+@mixin customFont() {
+    // loaded from Google fonts, see index.html
+    font-family: 'Nunito', sans-serif;
+}
+
 body {
     color: #b7babe;
     font-size: $spacing-medium;
@@ -9,7 +14,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Nunito', sans-serif;
+    @include customFont();
     font-weight: normal;
     color: $color-1;
 }

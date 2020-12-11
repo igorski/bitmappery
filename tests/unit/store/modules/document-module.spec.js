@@ -37,6 +37,22 @@ describe( "Vuex document module", () => {
             expect( state.activeIndex ).toEqual( 2 );
         });
 
+        it( "should be able to update the active Document size", () => {
+            const state = {
+                documents: [
+                    { name: "foo", width: 30, height: 30 },
+                    { name: "bar", width: 50, height: 50 }
+                ],
+                activeIndex : 1,
+            };
+            const size = { width: 75, height: 40 };
+            mutations.setActiveDocumentSize( state, size );
+            expect( state.documents ).toEqual([
+                { name: "foo", width: 30, height: 30 },
+                { name: "bar", width: size.width, height: size.height },
+            ]);
+        });
+
         it( "should be able to add a new Document to the list", () => {
             const state = {
                 documents: [ { name: "foo" } ],

@@ -1,0 +1,13 @@
+@import "_mixins";
+
+.form {
+    .wrapper {
+        margin: $spacing-small 0;
+        
+        label,
+        input, textarea, .select {
+            display: inline-block;
+            width: 50%;
+        }
+    }
+}

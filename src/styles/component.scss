@@ -1,7 +1,22 @@
 @import "_mixins";
 
 @mixin component {
-    padding: $spacing-medium;
-    border: 1px solid #000;
-    border-bottom-width: 3px;
+    box-shadow: 0 0 5px rgba(0,0,0,.5);
+    background-color: #666;
+
+    h2 {
+        display: block;
+        margin: 0;
+        padding: $spacing-small $spacing-medium;
+        @include boxSize();
+        color: #FFF;
+        background-image: $color-window-bg;
+        height: 40px;
+    }
+
+    .content {
+        padding: $spacing-medium;
+        @include boxSize();
+        height: calc(100% - 40px);
+    }
 }

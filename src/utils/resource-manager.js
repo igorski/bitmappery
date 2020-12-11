@@ -13,7 +13,7 @@ const { URL } = window;
  * @param {Number=} optQuality optional JPEG compression to use (when mime is JPEG) between 0 - 1
  * @return {String} Blob URL
  */
-export const imageToSource = ( imageElement, type = "image/jpeg", optQuality = .9 ) => {
+export const imageToResource = ( imageElement, type = "image/jpeg", optQuality = .9 ) => {
     const { cvs, ctx } = createCanvas();
 
     cvs.width  = imageElement.naturalWidth  || imageElement.width;
@@ -32,6 +32,6 @@ export const imageToSource = ( imageElement, type = "image/jpeg", optQuality = .
     });
 };
 
-export const disposeSource = imageBlobURL => {
+export const disposeResource = imageBlobURL => {
     URL.revokeObjectURL( imageBlobURL );
 };

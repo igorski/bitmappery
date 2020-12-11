@@ -23,7 +23,6 @@
 <template>
     <div id="app">
         <application-menu />
-        <file-selector />
         <section class="main">
             <toolbox class="toolbox"/>
             <div class="document-container">
@@ -47,7 +46,6 @@ import Vue                from "vue";
 import Vuex, { mapState } from "vuex";
 import VueI18n            from "vue-i18n";
 import ApplicationMenu    from "@/components/application-menu/application-menu";
-import FileSelector       from "@/components/file-selector/file-selector";
 import DocumentCanvas     from "@/components/document-canvas/document-canvas";
 import OptionsPanel       from "@/components/options-panel/options-panel";
 import Toolbox            from "@/components/toolbox/toolbox";
@@ -68,7 +66,6 @@ export default {
     store: new Vuex.Store( store ),
     components: {
         ApplicationMenu,
-        FileSelector,
         DocumentCanvas,
         Toolbox,
         DialogWindow,

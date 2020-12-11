@@ -40,6 +40,11 @@ export default {
         setActiveDocument( state, index ) {
             state.activeIndex = index;
         },
+        setActiveDocumentSize( state, { width, height }) {
+            const document = state.documents[ state.activeIndex ];
+            document.width = width;
+            document.height = height;
+        },
         addNewDocument( state, name = "" ) {
             state.documents.push( DocumentFactory.create( name ));
             state.activeIndex = state.documents.length - 1;

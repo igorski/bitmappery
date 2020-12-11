@@ -1,0 +1,155 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Igor Zinken 2020 - https://www.igorski.nl
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+<template>
+    <div class="form">
+        <label v-t="'selectLocalImageFile'"
+               for="file"
+               class="file-label"
+        ></label>
+        <input type="file"
+               id="file"
+               multiple
+               :accept="acceptedImageTypes"
+               @change="handleFileSelect"
+        />
+        <div class="wrapper input">
+            <label v-t="'openImageAs'"></label>
+            <select-box :options="fileTargetOptions"
+                         v-model="fileTarget"
+            />
+        </div>
+    </div>
+</template>
+
+<script>
+import { mapGetters, mapMutations, mapActions } from "vuex";
+import { loader }           from "zcanvas";
+import { mapSelectOptions } from "@/utils/search-select-util"
+import SelectBox from '@/components/ui/select-box/select-box';
+import messages  from "./messages.json";
+
+const ACCEPTED_IMAGE_TYPES = [ "image/png", "image/gif", "image/jpeg" ];
+
+export default {
+    i18n: { messages },
+    components: {
+        SelectBox,
+    },
+    data: () => ({
+        acceptedImageTypes: ACCEPTED_IMAGE_TYPES,
+        fileTarget: 'layer',
+    }),
+    computed: {
+        ...mapGetters([
+            "documents",
+            "layers",
+        ]),
+        fileTargetOptions() {
+            return mapSelectOptions(["layer", "document"]);
+        },
+    },
+    methods: {
+        ...mapMutations([
+            "addLayer",
+            "addGraphicToLayer",
+            "addNewDocument",
+            "setActiveDocumentSize",
+        ]),
+        ...mapActions([
+            "addImage",
+        ]),
+        async handleFileSelect({ target }) {
+            const files = target?.files;
+            if ( !files || files.length === 0 ) {
+                return;
+            }
+            // load file data into memory so we can validate its contents, cache
+            // the image properties upfront, and convert it to a Blob resource in the store
+            files.forEach( async file => {
+                const reader = new FileReader();
+                reader.onload = async ( event ) => {
+                    // load the image contents using the zCanvas.loader
+                    // which will also provide the image dimensions
+                    try {
+                        const imageSource = reader.result;
+                        const { image, size } = await loader.loadImage( imageSource );
+                        const { source }      = await this.addImage({ file, image, size });
+                        // TODO: the below is test code
+                        image.src = source;
+
+                        switch ( this.fileTarget) {
+                            default:
+                            case "layer":
+                                // if this is the first content of an existing document, scale document to image size
+                                if ( this.layers.length === 1 && !this.layers[ 0 ].graphics.length ) {
+                                    this.setActiveDocumentSize( size );
+                                }
+                                this.addLayer();
+                                break;
+                            case "document":
+                                this.addNewDocument( this.$t( "newDocumentNum", { num: this.documents.length }));
+                                this.setActiveDocumentSize( size );
+                                break;
+                        }
+                        this.addGraphicToLayer({ index: this.layers.length - 1, bitmap: image });
+                    } catch {
+                        // TODO: show warning
+                    }
+                };
+                reader.readAsDataURL( file );
+            });
+        },
+    }
+};
+</script>
+
+<style lang="scss" scoped>
+@import "@/styles/_mixins";
+@import "@/styles/typography";
+@import "@/styles/form";
+
+.file-label {
+    display: block;
+    text-align: center;
+    cursor: pointer;
+    border: $spacing-xsmall solid #b6b6b6;
+    border-radius: $spacing-medium;
+    padding: $spacing-medium $spacing-xlarge;
+    font-weight: bold;
+    color: #FFF;
+    @include customFont();
+    @include boxSize();
+
+    &:hover {
+        border-style: dashed;
+        border-color: #FFF;
+    }
+}
+
+#file {
+    /* hide this ugly thing, use the label as interaction */
+    position: absolute;
+    top: 0;
+    left: -9999px;
+}
+</style>

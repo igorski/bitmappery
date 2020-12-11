@@ -33,7 +33,6 @@ npm run lint
 
 # TODO / Roadmap
 
-* Import file to new document or new layer
 * Implement confirmations for destructive actions (e.g. document close)
 * Load Blobs when about to use image in document
 * Unload Blobs when images are no longer used in document
@@ -51,3 +50,4 @@ npm run lint
 * Controls for rotation and scaling
 * Paint brush
 * Clone brush
+* Dropbox integration?

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Copyright (c) 2019-2020 Igor Zinken - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,35 +20,34 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-<template>
-    <div>
-        <div class="options-panel-wrapper">
-            <h2 v-t="'optionsPanel'"></h2>
-            <div class="content">
-                <file-selector />
-            </div>
-        </div>
-    </div>
-</template>
 
-<script>
-import FileSelector from "./components/file-selector/file-selector";
-import messages     from "./messages.json";
+/**
+ * Format select options for use with vue-search-select component
+ *
+ * @param {Array} items
+ * @return {Array<{value: *, text: string }>}
+ */
+export const mapSelectOptions = items => {
+    return items.map(value => {
+        if (typeof value === 'object') {
+            return value;
+        }
 
-export default {
-    i18n: { messages },
-    components: {
-        FileSelector,
-    },
+        let text = ucFirst(value.toString());
+
+        // NOTE: values and text MUST be different due to bug described in
+        // https://github.com/moreta/vue-search-select/issues/112
+        if (text === value) {
+            text += ' ';
+        }
+
+        return { value, text };
+    });
 };
-</script>
 
-<style lang="scss" scoped>
-@import "@/styles/component";
+/* internal methods */
 
-.options-panel-wrapper {
-    @include component();
-    width: 100%;
-    height: 100%;
-}
-</style>
+const ucFirst = text => text.toLowerCase()
+    .split(' ')
+    .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
+    .join(' ');

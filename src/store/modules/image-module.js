@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Vue from "vue";
-import { imageToSource, disposeSource } from "@/utils/memory-util";
+import { imageToResource, disposeResource } from "@/utils/resource-manager";
 
 /**
  * Image module maintains a list of local image resources (selected from file system)
@@ -37,12 +37,12 @@ export default {
     },
     mutations: {
         /**
-         * Invoke when we"re done using an image in the applications life cycle.
+         * Invoke when we're done using an image in the applications life cycle.
          * This also frees memory allocated in addImage()
          */
         removeImage( state, image ) {
             const index = state.images.indexOf( image );
-            disposeSource( image.source );
+            disposeResource( image.source );
             if ( index === -1 ) {
                 return;
             }
@@ -54,7 +54,7 @@ export default {
          * Registers an image for use in the application.
          */
         async addImage({ state }, { file, image, size }) {
-            const source    = await imageToSource( image, file.type );
+            const source    = await imageToResource( image, file.type );
             const imageData = { file, size, source };
             state.images.push( imageData );
             return imageData;

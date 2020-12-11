@@ -3,9 +3,9 @@ import storeModule from "@/store/modules/image-module";
 const { getters, mutations, actions } = storeModule;
 
 let mockUpdateFn;
-jest.mock("@/utils/memory-util", () => ({
-    imageToSource: (...args) => mockUpdateFn?.( "imageToSource", ...args ),
-    disposeSource: (...args) => mockUpdateFn?.( "disposeSource", ...args ),
+jest.mock("@/utils/resource-manager", () => ({
+    imageToResource: (...args) => mockUpdateFn?.( "imageToResource", ...args ),
+    disposeResource: (...args) => mockUpdateFn?.( "disposeResource", ...args ),
 }));
 
 describe( "Vuex image module", () => {
@@ -28,7 +28,7 @@ describe( "Vuex image module", () => {
             // assert image has been removed from list
             expect( state.images ).toEqual([ image2 ]);
             // assert allocated Blob memory has been freed
-            expect( mockUpdateFn ).toHaveBeenCalledWith( "disposeSource", image1.source );
+            expect( mockUpdateFn ).toHaveBeenCalledWith( "disposeResource", image1.source );
         });
     });
 
@@ -46,7 +46,7 @@ describe( "Vuex image module", () => {
             // assert image has been added to list
             expect( state.images ).toEqual([ { file: input.file, size: input.size, source: blobURL } ]);
             // assert image data has been allocated as Blob
-            expect( mockUpdateFn ).toHaveBeenCalledWith( "imageToSource", input.image );
+            expect( mockUpdateFn ).toHaveBeenCalledWith( "imageToResource", input.image );
             // assert return data contains allocated Blob resource
             expect( image ).toEqual( state.images[ 0 ]);
         });

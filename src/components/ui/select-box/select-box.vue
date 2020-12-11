@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2019-2020 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,34 +21,61 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div>
-        <div class="options-panel-wrapper">
-            <h2 v-t="'optionsPanel'"></h2>
-            <div class="content">
-                <file-selector />
-            </div>
-        </div>
-    </div>
+    <model-select :options="options"
+                  v-model="internalValue"
+                  class="select"
+    />
 </template>
 
 <script>
-import FileSelector from "./components/file-selector/file-selector";
-import messages     from "./messages.json";
+import { ModelSelect } from 'vue-search-select';
+import 'semantic-ui-css/components/dropdown.min.css'
+import 'vue-search-select/dist/VueSearchSelect.css';
 
 export default {
-    i18n: { messages },
+    props: {
+        value: {
+            type: String,
+            default: null,
+        },
+        options: {
+            type: Array,
+            default: () => ([]),
+        },
+    },
     components: {
-        FileSelector,
+        ModelSelect,
+    },
+    computed: {
+        internalValue: {
+            get() {
+                return this.value;
+            },
+            set( value ) {
+                this.$emit( 'input', value );
+            }
+        },
     },
 };
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/component";
-
-.options-panel-wrapper {
-    @include component();
-    width: 100%;
-    height: 100%;
+.select {
+    display: inline-block !important; // semantic-ui-css override
+    &.small-list {
+        max-width: 65px;
+    }
+    &.medium-list {
+        max-width: 100px;
+    }
+    &.large-list {
+        max-width: 200px;
+    }
+    .text {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        width: 100%;
+    }
 }
 </style>
