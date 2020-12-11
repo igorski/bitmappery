@@ -34,9 +34,13 @@
 <script>
 import { mapGetters }     from "vuex";
 import { canvas, sprite } from "zcanvas";
+import {
+    createSpriteForGraphic, flushSpritesInLayer, flushCache,
+} from "@/utils/canvas-util";
 
-const width = 400, height = 300;
-let zCanvas;
+/* internal methods */
+
+let lastDocument, zCanvas;
 
 export default {
     computed: {
@@ -51,21 +55,21 @@ export default {
                 if ( !document?.layers ) {
                     return;
                 }
-                const { width, height } = document;
+                const { name, width, height } = document;
+                if ( name !== lastDocument ) {
+                    lastDocument = name;
+                    flushCache(); // switching between documents
+                }
                 if ( zCanvas.width !== width || zCanvas.height !== height ) {
                     zCanvas.setDimensions( width, height );
                 }
                 document.layers.forEach( layer => {
                     if ( !layer.visible ) {
+                        flushSpritesInLayer( layer );
                         return;
                     }
-                    // TODO: change detection
-                    layer.graphics.forEach(({ bitmap, x, y, width, height }) => {
-                        const graphic = new sprite({
-                            bitmap, x, y, width, height
-                        });
-                        graphic.setDraggable( true )
-                        zCanvas.addChild( graphic );
+                    layer.graphics.forEach( graphic => {
+                        const sprite = createSpriteForGraphic( zCanvas, graphic );
                     });
                 });
             },
@@ -73,8 +77,8 @@ export default {
     },
     mounted() {
         zCanvas = new canvas({
-            width,
-            height,
+            width: 160,
+            height: 90,
             animate: true,
             smoothing: true,
             backgroundColor: "#FFFFFF",

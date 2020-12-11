@@ -25,6 +25,7 @@ import Vue from "vue";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory    from "@/factories/layer-factory";
 import GraphicFactory  from "@/factories/graphic-factory";
+import { flushSpritesInLayer } from "@/utils/canvas-util";
 
 export default {
     state: {
@@ -50,9 +51,14 @@ export default {
             state.activeIndex = state.documents.length - 1;
         },
         closeActiveDocument( state ) {
+            const document = state.documents[ state.activeIndex ];
+            if ( !document ) {
+                return;
+            }
+            // free allocated resources
+            document.layers.forEach( layer => flushSpritesInLayer( layer ));
             Vue.delete( state.documents, state.activeIndex );
             state.activeIndex = Math.min( state.documents.length - 1, state.activeIndex );
-            // TODO: free resources
         },
         addLayer( state ) {
             state.documents[ state.activeIndex ].layers.push( LayerFactory.create() );

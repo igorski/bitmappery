@@ -36,9 +36,9 @@ describe( "Vuex image module", () => {
         it("should be able to store an image object in the images list", async () => {
             const state = { images: [] };
             const input = {
-                file: new Blob(),
+                file: { type: "image/png" },
                 image: new Image(),
-                size: { width: 100, height: 100 }
+                size: { width: 100, height: 100 },
             };
             mockUpdateFn = jest.fn(() => blobURL );
             const blobURL = "blob://foo";
@@ -46,7 +46,7 @@ describe( "Vuex image module", () => {
             // assert image has been added to list
             expect( state.images ).toEqual([ { file: input.file, size: input.size, source: blobURL } ]);
             // assert image data has been allocated as Blob
-            expect( mockUpdateFn ).toHaveBeenCalledWith( "imageToResource", input.image );
+            expect( mockUpdateFn ).toHaveBeenCalledWith( "imageToResource", input.image, input.file.type );
             // assert return data contains allocated Blob resource
             expect( image ).toEqual( state.images[ 0 ]);
         });

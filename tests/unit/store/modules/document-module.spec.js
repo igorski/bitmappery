@@ -4,6 +4,11 @@ import LayerFactory   from "@/factories/layer-factory";
 
 const { getters, mutations } = DocumentModule;
 
+let mockUpdateFn;
+jest.mock("@/utils/canvas-util", () => ({
+    flushSpritesInLayer: (...args) => mockUpdateFn?.( "flushSpritesInLayer", ...args ),
+}));
+
 describe( "Vuex document module", () => {
     describe( "getters", () => {
         it( "should be able to retrieve all open Documents", () => {
@@ -63,13 +68,22 @@ describe( "Vuex document module", () => {
         });
 
         it( "should be able to close the active Document", () => {
+            const layer1 = LayerFactory.create();
+            const layer2 = LayerFactory.create();
+            const layer3 = LayerFactory.create();
             const state = {
-                documents: [ { name: "foo" }, { name: "bar" } ],
+                documents: [
+                    { name: "foo", layers: [ layer1 ] },
+                    { name: "bar", layers: [ layer2, layer3 ] }
+                ],
                 activeIndex: 1
             };
+            mockUpdateFn = jest.fn();
             mutations.closeActiveDocument( state );
-            expect( state.documents ).toEqual([ { name: "foo" }]);
+            expect( state.documents ).toEqual([ { name: "foo", layers: [ layer1 ] }]);
             expect( state.activeIndex ).toEqual( 0 );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushSpritesInLayer", layer2 );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "flushSpritesInLayer", layer3 );
         });
 
         it( "it should be able to add a Layer to the active Document", () => {
@@ -92,9 +106,7 @@ describe( "Vuex document module", () => {
             const index  = 1;
             const bitmap = { name: "bar" };
             mutations.addGraphicToLayer( state, { index, bitmap });
-            expect( state.documents[ 0 ].layers[ index ].graphics ).toEqual([
-                GraphicFactory.create( bitmap )
-            ]);
+            expect( state.documents[ 0 ].layers[ index ].graphics ).toEqual( expect.any( Object ));
         });
     });
 });

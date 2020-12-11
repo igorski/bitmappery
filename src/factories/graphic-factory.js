@@ -20,6 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+let UID_COUNTER = 0;
+
 export default {
     /**
      * Creates a graphic to be displayed within a layer of a Document
@@ -36,6 +38,7 @@ export default {
         }
         const transparent = true; // TODO: MIME check
         return {
+            id: `graphic_${( ++UID_COUNTER )}`,
             bitmap, x, y, width, height, transparent
         };
     },

@@ -33,9 +33,8 @@ npm run lint
 
 # TODO / Roadmap
 
-* Implement confirmations for destructive actions (e.g. document close)
-* Load Blobs when about to use image in document
-* Unload Blobs when images are no longer used in document
+* Load Blobs when about to use image in document, not upfront (unless source is base64)
+* Unload Blobs when images are no longer used in document (see canvas-util disposeSprite)
 * Change layer order
 * Undo history
 * Free resources on document close
@@ -51,3 +50,4 @@ npm run lint
 * Paint brush
 * Clone brush
 * Dropbox integration?
+* Implement document crop / resize
