@@ -35,7 +35,7 @@ export const flushSpritesInLayer = layer => {
  */
 export const flushCache = () => {
     console.warn("flushing cache");
-    spriteCache.values( disposeSprite );
+    spriteCache.forEach( disposeSprite );
     spriteCache.clear();
 }
 

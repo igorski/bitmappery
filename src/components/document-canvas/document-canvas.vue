@@ -23,17 +23,15 @@
 <template>
     <div class="canvas-wrapper">
         <template v-if="activeDocument">
-            <div class="document-name">
-                {{ activeDocument.name }}
-            </div>
-            <div ref="canvasContainer" />
+            <h2>{{ activeDocument.name }}</h2>
+            <div class="content" ref="canvasContainer"></div>
         </template>
     </div>
 </template>
 
 <script>
-import { mapGetters }     from "vuex";
-import { canvas, sprite } from "zcanvas";
+import { mapState, mapGetters } from "vuex";
+import { canvas, sprite }       from "zcanvas";
 import {
     createSpriteForGraphic, flushSpritesInLayer, flushCache,
 } from "@/utils/canvas-util";
@@ -44,11 +42,17 @@ let lastDocument, zCanvas;
 
 export default {
     computed: {
+        ...mapState([
+            "windowSize"
+        ]),
         ...mapGetters([
             "activeDocument",
         ]),
     },
     watch: {
+        windowSize() {
+            this.scaleCanvas();
+        },
         activeDocument: {
             deep: true,
             handler( document ) {
@@ -62,6 +66,7 @@ export default {
                 }
                 if ( zCanvas.width !== width || zCanvas.height !== height ) {
                     zCanvas.setDimensions( width, height );
+                    this.scaleCanvas();
                 }
                 document.layers.forEach( layer => {
                     if ( !layer.visible ) {
@@ -87,21 +92,31 @@ export default {
         });
         zCanvas.insertInPage( this.$refs.canvasContainer );
     },
+    methods: {
+        scaleCanvas() {
+            const { width, height } = this.activeDocument;
+            const size = this.$el.parentNode?.getBoundingClientRect();
+            if ( !size || ( size.width > width && size.height > height )) {
+                console.warn("canvas fits");
+                return;
+            }
+            console.warn("canvas must be resized");
+            zCanvas.scale( size.width / width );
+        },
+    },
 };
 </script>
 
 <style lang="scss" scoped>
 @import "@/styles/_mixins";
+@import "@/styles/component";
 
 .canvas-wrapper {
     display: inline-block;
-    box-shadow: 0 0 5px rgba(0,0,0,.5);
-}
+    @include component();
 
-.document-name {
-    background-image: $color-window-bg;
-    padding: $spacing-small $spacing-medium;
-    @include boxSize();
-    cursor: grab;
+    .content {
+        padding: 0;
+    }
 }
 </style>

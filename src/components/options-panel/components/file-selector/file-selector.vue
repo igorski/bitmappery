@@ -57,7 +57,7 @@ export default {
     },
     data: () => ({
         acceptedImageTypes: ACCEPTED_IMAGE_TYPES,
-        fileTarget: 'layer',
+        fileTarget: "document",
     }),
     computed: {
         ...mapGetters([
@@ -94,20 +94,24 @@ export default {
                         const imageSource = reader.result;
                         const { image, size } = await loader.loadImage( imageSource );
                         const { source }      = await this.addImage({ file, image, size });
-                        // TODO: the below is test code
+
                         image.src = source;
+
+                        const currentDocumentIsEmpty = this.layers.length === 1 && !this.layers[ 0 ].graphics.length;
 
                         switch ( this.fileTarget) {
                             default:
                             case "layer":
                                 // if this is the first content of an existing document, scale document to image size
-                                if ( this.layers.length === 1 && !this.layers[ 0 ].graphics.length ) {
+                                if ( currentDocumentIsEmpty ) {
                                     this.setActiveDocumentSize( size );
                                 }
                                 this.addLayer();
                                 break;
                             case "document":
-                                this.addNewDocument( this.$t( "newDocumentNum", { num: this.documents.length }));
+                                if ( !currentDocumentIsEmpty ) {
+                                    this.addNewDocument( this.$t( "newDocumentNum", { num: this.documents.length }));
+                                }
                                 this.setActiveDocumentSize( size );
                                 break;
                         }

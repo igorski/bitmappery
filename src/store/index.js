@@ -10,6 +10,7 @@ export default {
         menuOpened: false,
         blindActive: false,
         dialog: null,
+        windowSize: { width: window.innerWidth, height: window.innerHeight },
     },
     mutations: {
         setMenuOpened( state, value ) {
@@ -28,6 +29,13 @@ export default {
         },
         closeDialog( state ) {
             state.dialog = null;
+        },
+        /**
+         * cache the resize in the store so components can react to these values
+         * instead of maintaining multiple listeners at the expense of DOM trashing/performance hits
+         */
+        setWindowSize( state, { width, height }) {
+            state.windowSize = { width, height };
         },
     },
     actions: {

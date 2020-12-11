@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div class="toolbox">
+    <div class="toolbox-wrapper">
         <h2 v-t="'toolbox'"></h2>
         <div class="content">
         </div>
@@ -38,7 +38,7 @@ export default {
 <style lang="scss" scoped>
 @import "@/styles/component";
 
-.toolbox {
+.toolbox-wrapper {
     @include component();
 }
 </style>

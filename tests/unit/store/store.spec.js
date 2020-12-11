@@ -48,5 +48,13 @@ describe( "Vuex store", () => {
                 expect( state.dialog ).toBeNull();
             });
         });
+
+        it( "should be able to set the window size", () => {
+            const state = { windowSize: { width: 0, height: 0 }};
+            const width = 500;
+            const height = 400;
+            mutations.setWindowSize( state, { width, height });
+            expect( state.windowSize ).toEqual({ width, height });
+        });
     });
 });

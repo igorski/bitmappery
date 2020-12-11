@@ -33,12 +33,12 @@ npm run lint
 
 # TODO / Roadmap
 
+* Document container must be fixed, pan image inside the fixed container !
+* Scale image on dominant side
+* Toolbox and options panel should be collapsible (keyboard shortcuts)
 * Load Blobs when about to use image in document, not upfront (unless source is base64)
 * Unload Blobs when images are no longer used in document (see canvas-util disposeSprite)
 * Change layer order
-* Undo history
-* Free resources on document close
-* Generate UIDs for each document entry making it easier to detect changes
 * Export output to image file
 * Import / export documents from/to disk
 * Use magnification (document size is relative to available screen size)
@@ -49,5 +49,8 @@ npm run lint
 * Controls for rotation and scaling
 * Paint brush
 * Clone brush
-* Dropbox integration?
+* Implement masking layers
+* Implement selections
 * Implement document crop / resize
+* Implement change history
+* Dropbox integration?
