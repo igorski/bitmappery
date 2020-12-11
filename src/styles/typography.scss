@@ -1,5 +1,5 @@
-@import "_variables.scss";
-@import "colors.scss";
+@import "_variables";
+@import "colors";
 
 body {
     color: #b7babe;
@@ -9,7 +9,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: Montserrat, Helvetica, Verdana, sans-serif;
+    font-family: 'Nunito', sans-serif;
     font-weight: normal;
     color: $color-1;
 }

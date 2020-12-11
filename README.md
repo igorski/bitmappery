@@ -1,4 +1,4 @@
-# nicephore
+# PhotoMound
 
 ## So you are rebuilding Photoshop in the browser ?
 

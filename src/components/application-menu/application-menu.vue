@@ -27,7 +27,9 @@
         <div class="toggle" @click="setMenuOpened(!menuOpened)">
             <span>&#9776;</span>
         </div>
-        <h1 v-t="'title'"></h1>
+        <h1>
+            Photo<span class="emphasis">Mound</span>
+        </h1>
         <ul class="menu-list">
             <li>
                 <a v-t="'file'" class="title" @click.prevent></a>
@@ -254,6 +256,11 @@ h1 {
     padding: 0;
     padding-right: $spacing-medium;
     font-size: 110%;
+    font-weight: bold;
+
+    .emphasis {
+        color: #FFF;
+    }
 }
 
 .menu-list {

@@ -21,7 +21,7 @@
 * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 <template>
-    <div id="dialogWindow">
+    <div class="dialog-window">
         <h4>{{ title }}</h4>
         <p>{{ message }}</p>
         <button v-t="'ok'"
@@ -87,7 +87,7 @@ export default {
 <style lang="scss" scoped>
 @import "@/styles/_mixins.scss";
 
-#dialogWindow {
+.dialog-window {
     @include overlay();
     @include noSelect();
     @include boxSize();

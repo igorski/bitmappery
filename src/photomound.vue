@@ -24,7 +24,13 @@
     <div id="app">
         <application-menu />
         <file-selector />
-        <document-canvas />
+        <section class="main">
+            <toolbox class="toolbox"/>
+            <div class="document-container">
+                <document-canvas />
+            </div>
+            <options-panel class="options-panel" />
+        </section>
         <!-- dialog window used for information messages, alerts and confirmations -->
         <dialog-window v-if="dialog"
             :type="dialog.type"
@@ -43,6 +49,8 @@ import VueI18n            from "vue-i18n";
 import ApplicationMenu    from "@/components/application-menu/application-menu";
 import FileSelector       from "@/components/file-selector/file-selector";
 import DocumentCanvas     from "@/components/document-canvas/document-canvas";
+import OptionsPanel       from "@/components/options-panel/options-panel";
+import Toolbox            from "@/components/toolbox/toolbox";
 import DialogWindow       from "@/components/dialog-window/dialog-window";
 import store              from "./store";
 import messages           from "./messages.json";
@@ -62,7 +70,9 @@ export default {
         ApplicationMenu,
         FileSelector,
         DocumentCanvas,
+        Toolbox,
         DialogWindow,
+        OptionsPanel,
     },
     computed: {
         ...mapState([
@@ -73,15 +83,42 @@ export default {
 </script>
 
 <style lang="scss">
-/* note child components use scoped styling, here we set the global typography */
+/*
+ * note child components use scoped styling
+ * here we set the global typography and layout styles
+*/
+@import "@/styles/_mixins";
 @import "@/styles/typography";
 
-body {
+html, body {
     margin: 0;
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior-x: none; /* disable navigation back/forward swipe on Chrome */
 }
-
 #app {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-image: linear-gradient(to bottom, #282828 35%, #383838 90%);
+    height: 100%;
+
+    .main {
+        display: flex;
+        height: calc(100% - $menu-height);
+        padding: $spacing-medium;
+        @include boxSize();
+    }
+
+    .toolbox {
+        flex: 1;
+    }
+    .document-container {
+        flex: 3;
+        padding: $spacing-medium;
+        @include boxSize();
+    }
+    .options-panel {
+        flex: 2;
+    }
 }
 </style>

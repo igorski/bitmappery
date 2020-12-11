@@ -1,0 +1,7 @@
+@import "_mixins";
+
+@mixin component {
+    padding: $spacing-medium;
+    border: 1px solid #000;
+    border-bottom-width: 3px;
+}
