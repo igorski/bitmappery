@@ -76,6 +76,10 @@ export default {
 /* note child components use scoped styling, here we set the global typography */
 @import "@/styles/typography";
 
+body {
+    margin: 0;
+}
+
 #app {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

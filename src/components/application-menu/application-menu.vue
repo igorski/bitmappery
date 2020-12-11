@@ -130,9 +130,104 @@ $toggle-width: 50px;
     color: #b6b6b6;
     display: block;
     margin: 0 auto;
-    padding: 0 $spacing-medium $spacing-small;
+    padding: $spacing-small $spacing-medium;
     width: 100%;
+    background-image: $color-window-bg;
     @include boxSize();
+
+    @include mobile() {
+        height: $menu-height;
+        position: fixed;
+        z-index: 2;
+        overflow: hidden;
+        width: 100%;
+        top: 0;
+        left: 0;
+
+        &.opened {
+            position: absolute;
+            overflow-y: auto;
+            height: 100%;
+
+            .menu-list {
+                left: 0;
+                display: block;
+                height: 100%;
+            }
+        }
+
+        .toggle {
+            display: block;
+        }
+
+        h1 {
+            display: none;
+        }
+
+        ul {
+            display: block;
+            width: 100%;
+            padding: 0;
+
+            li {
+                display: block;
+                width: 100%;
+
+                a {
+                    width: 100%;
+                }
+            }
+        }
+
+        ul {
+            h1 {
+               display: none;
+            }
+
+            li {
+                padding: $spacing-small $spacing-large;
+
+                .submenu li {
+                    padding: $spacing-small 0;
+                }
+
+                a {
+                    display: block;
+                    width: 100%;
+                    padding: $spacing-medium $spacing-large;
+                    color: #000;
+
+                    &:hover {
+                        color: #000;
+                    }
+                }
+
+                &.active a {
+                    border-bottom: none;
+                    color: #FFF;
+                    font-weight: bold;
+                    font-style: italic;
+                    background-color: $color-1;
+                }
+
+                &.fullscreen-button {
+                    float: left;
+                }
+            }
+        }
+
+        .menu-list {
+            position: absolute;
+            top: $menu-height;
+            background-image: linear-gradient(to bottom,#fff 35%,#eee 90%);
+            background-repeat: repeat-x;
+            display: none;
+
+            .title {
+                display: none;
+            }
+        }
+    }
 }
 
 .toggle {
@@ -257,98 +352,4 @@ h1 {
     }
 }
 
-@include mobile() {
-    .menu {
-        position: fixed;
-        z-index: 2; // above transport controls
-        overflow: hidden;
-        width: 100%;
-        height: inherit;
-        top: 0;
-        left: 0;
-
-        &.opened {
-            position: absolute;
-            overflow-y: auto;
-            .menu-list {
-                left: 0;
-                display: block;
-                height: 100%;
-            }
-        }
-
-        .toggle {
-            display: block;
-        }
-
-        h1 {
-            display: none;
-        }
-
-        ul {
-            display: block;
-            width: 100%;
-
-            padding: 0;
-
-            li {
-                display: block;
-                width: 100%;
-
-                    a {
-                        width: 100%;
-                    }
-                }
-            }
-
-            ul {
-                h1 {
-                   display: none;
-                }
-
-                li {
-                    padding: $spacing-small $spacing-large;
-
-                    .submenu li {
-                        padding: $spacing-small 0;
-                    }
-
-                    a {
-                        display: block;
-                        width: 100%;
-                        padding: $spacing-medium $spacing-large;
-                        color: #000;
-
-                        &:hover {
-                            color: #000;
-                        }
-                    }
-
-                    &.active a {
-                        border-bottom: none;
-                        color: #FFF;
-                        font-weight: bold;
-                        font-style: italic;
-                        background-color: $color-1;
-                    }
-
-                    &.fullscreen-button {
-                        float: left;
-                    }
-                }
-            }
-
-            .menu-list {
-                position: absolute;
-                top: $menu-height;
-                background-image: linear-gradient(to bottom,#fff 35%,#eee 90%);
-                background-repeat: repeat-x;
-                display: none;
-
-                .title {
-                    display: none;
-                }
-            }
-        }
-    }
 </style>
