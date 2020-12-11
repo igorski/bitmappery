@@ -115,7 +115,7 @@ export default {
                                 this.setActiveDocumentSize( size );
                                 break;
                         }
-                        this.addGraphicToLayer({ index: this.layers.length - 1, bitmap: image });
+                        this.addGraphicToLayer({ index: this.layers.length - 1, bitmap: image, size });
                     } catch {
                         // TODO: show warning
                     }

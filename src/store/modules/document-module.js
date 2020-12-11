@@ -63,9 +63,9 @@ export default {
         addLayer( state ) {
             state.documents[ state.activeIndex ].layers.push( LayerFactory.create() );
         },
-        addGraphicToLayer( state, { index, bitmap }) {
+        addGraphicToLayer( state, { index, bitmap, size = {} }) {
             state.documents[ state.activeIndex ].layers[ index ]?.graphics.push(
-                GraphicFactory.create( bitmap )
+                GraphicFactory.create( bitmap, 0, 0, size.width, size.height )
             );
         },
     },

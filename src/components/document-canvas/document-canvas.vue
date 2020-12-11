@@ -31,7 +31,7 @@
 
 <script>
 import { mapState, mapGetters } from "vuex";
-import { canvas, sprite }       from "zcanvas";
+import { canvas } from "zcanvas";
 import {
     createSpriteForGraphic, flushSpritesInLayer, flushCache,
 } from "@/utils/canvas-util";

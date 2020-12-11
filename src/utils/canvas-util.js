@@ -53,7 +53,7 @@ export const createSpriteForGraphic = ( zCanvasInstance, { id, bitmap, x, y, wid
         output = new sprite({
             bitmap, x, y, width, height
         });
-        output.setDraggable( true )
+        output.setDraggable( true );
         zCanvasInstance.addChild( output );
         spriteCache.set( id, output );
     }
