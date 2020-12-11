@@ -43,7 +43,7 @@
 
 <script>
 import { mapGetters, mapMutations, mapActions } from "vuex";
-import { loader }           from "zcanvas";
+import { loadImageFiles }   from "@/services/file-loader-queue";
 import { mapSelectOptions } from "@/utils/search-select-util"
 import SelectBox from '@/components/ui/select-box/select-box';
 import messages  from "./messages.json";
@@ -83,46 +83,33 @@ export default {
             if ( !files || files.length === 0 ) {
                 return;
             }
-            // load file data into memory so we can validate its contents, cache
-            // the image properties upfront, and convert it to a Blob resource in the store
-            files.forEach( async file => {
-                const reader = new FileReader();
-                reader.onload = async ( event ) => {
-                    // load the image contents using the zCanvas.loader
-                    // which will also provide the image dimensions
-                    try {
-                        const imageSource = reader.result;
-                        const { image, size } = await loader.loadImage( imageSource );
-                        const { source }      = await this.addImage({ file, image, size });
-
-                        image.src = source;
-
-                        const currentDocumentIsEmpty = this.layers.length === 1 && !this.layers[ 0 ].graphics.length;
-
-                        switch ( this.fileTarget) {
-                            default:
-                            case "layer":
-                                // if this is the first content of an existing document, scale document to image size
-                                if ( currentDocumentIsEmpty ) {
-                                    this.setActiveDocumentSize( size );
-                                }
-                                this.addLayer();
-                                break;
-                            case "document":
-                                if ( !currentDocumentIsEmpty ) {
-                                    this.addNewDocument( this.$t( "newDocumentNum", { num: this.documents.length }));
-                                }
-                                this.setActiveDocumentSize( size );
-                                break;
-                        }
-                        this.addGraphicToLayer({ index: this.layers.length - 1, bitmap: image, size });
-                    } catch {
-                        // TODO: show warning
-                    }
-                };
-                reader.readAsDataURL( file );
-            });
+            await loadImageFiles( files, this.addLoadedFile.bind( this ), this );
         },
+        async addLoadedFile( file, { image, size }) {
+            const { source } = await this.addImage({ file, image, size });
+
+            image.src = source;
+
+            const currentDocumentIsEmpty = this.layers.length === 1 && !this.layers[ 0 ].graphics.length;
+
+            switch ( this.fileTarget) {
+                default:
+                case "layer":
+                    // if this is the first content of an existing document, scale document to image size
+                    if ( currentDocumentIsEmpty ) {
+                        this.setActiveDocumentSize( size );
+                    }
+                    this.addLayer();
+                    break;
+                case "document":
+                    if ( !currentDocumentIsEmpty ) {
+                        this.addNewDocument( this.$t( "newDocumentNum", { num: this.documents.length }));
+                    }
+                    this.setActiveDocumentSize( size );
+                    break;
+            }
+            this.addGraphicToLayer({ index: this.layers.length - 1, bitmap: image, size });
+        }
     }
 };
 </script>
