@@ -1,5 +1,5 @@
-import Vue from 'vue';
-import { imageToSource, disposeSource } from '@/utils/memory-util';
+import Vue from "vue";
+import { imageToSource, disposeSource } from "@/utils/memory-util";
 
 /**
  * Image module maintains a list of local image resources (selected from file system)
@@ -15,7 +15,7 @@ export default {
     },
     mutations: {
         /**
-         * Invoke when we're done using an image in the applications life cycle.
+         * Invoke when we"re done using an image in the applications life cycle.
          * This also frees memory allocated in addImage()
          */
         removeImage( state, image ) {

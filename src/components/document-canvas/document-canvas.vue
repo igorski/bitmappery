@@ -14,11 +14,11 @@ let zCanvas;
 export default {
     computed: {
         ...mapGetters([
-            'document',
+            'activeDocument',
         ]),
     },
     watch: {
-        document: {
+        activeDocument: {
             deep: true,
             handler({ layers }) {
                 if ( !layers ) {

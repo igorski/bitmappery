@@ -14,8 +14,9 @@ export default {
         if ( width === -1 || height === -1 ) {
             ({ width, height } = bitmap);
         }
+        const transparent = true; // TODO: MIME check
         return {
-            bitmap, x, y, width, height
+            bitmap, x, y, width, height, transparent
         };
     },
 };

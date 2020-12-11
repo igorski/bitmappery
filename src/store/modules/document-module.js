@@ -1,22 +1,27 @@
-import Vue from 'vue';
-import DocumentFactory from '@/factories/document-factory';
-import LayerFactory    from '@/factories/layer-factory';
-import GraphicFactory  from '@/factories/graphic-factory';
+import DocumentFactory from "@/factories/document-factory";
+import LayerFactory    from "@/factories/layer-factory";
+import GraphicFactory  from "@/factories/graphic-factory";
 
 export default {
     state: {
-        document: DocumentFactory.create(),
+        documents : [ DocumentFactory.create() ],
+        activeIndex: 0,
     },
     getters: {
-        document: state => state.document,
-        layers: state => state.document.layers,
+        activeDocument: state => state.documents[ state.activeIndex ],
+        layers: ( state, getters ) => getters.activeDocument.layers,
     },
     mutations: {
+        setActiveDocument( state, index ) {
+            state.activeIndex = index;
+        },
         addLayer( state ) {
-            state.document.layers.push( LayerFactory.create() );
+            state.documents[ state.activeIndex ].layers.push( LayerFactory.create() );
         },
         addGraphicToLayer( state, { index, bitmap }) {
-            state.document.layers[ index ]?.graphics.push( GraphicFactory.create( bitmap ));
+            state.documents[ state.activeIndex ].layers[ index ]?.graphics.push(
+                GraphicFactory.create( bitmap )
+            );
         },
     },
     actions: {

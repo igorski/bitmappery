@@ -5,8 +5,11 @@ import LayerFactory from './layer-factory';
  * all layers and image content)
  */
 export default {
-    create() {
+    create( name = 'New document', width = 400, height = 300 ) {
         return {
+            name,
+            width,
+            height,
             layers: [ LayerFactory.create() ],
         };
     },

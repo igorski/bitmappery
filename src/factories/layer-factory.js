@@ -6,6 +6,7 @@ export default {
         return {
             name,
             graphics,
+            masks: [],
             visible: true
         }
     },
