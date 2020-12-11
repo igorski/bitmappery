@@ -1,0 +1,102 @@
+@import "_variables";
+@import "_colors";
+
+/* responsiveness mixins */
+
+// phones
+@mixin mobile {
+    @media (max-width: #{$mobile-width}) {
+        @content;
+    }
+}
+
+// anything above phone resolution (e.g. tablet/laptop/desktop)
+@mixin large {
+    @media (min-width: #{$mobile-width}) {
+        @content;
+    }
+}
+
+/* element behaviours */
+
+@mixin noSelect {
+    -webkit-touch-callout: none;
+      -webkit-user-select: none;
+       -khtml-user-select: none;
+         -moz-user-select: none;
+          -ms-user-select: none;
+              user-select: none;
+}
+
+@mixin noEvents {
+    pointer-events: none;
+}
+
+@mixin overlay {
+    // mobile first, override in custom inheriting classes
+    // what the desktop / tablet views should look like
+    position: fixed;
+    z-index: 500;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    .header {
+        width: 100%;
+        display: inline-block;
+
+        h2 {
+            float: left;
+            margin: 0;
+        }
+
+        .help-button {
+            position: absolute;
+            top: $spacing-medium;
+            right: ($spacing-xlarge + $spacing-medium);
+        }
+
+        .close-button {
+            position: absolute;
+            top: $spacing-medium;
+            right: $spacing-large;
+            cursor: pointer;
+            background-color: $color-1;
+        }
+    }
+}
+
+/* generic styles */
+
+@mixin boxSize {
+    -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+       -moz-box-sizing: border-box; /* Firefox, other Gecko */
+            box-sizing: border-box;
+}
+
+@mixin textOverflow {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@mixin flex {
+    display: -webkit-flex;
+    display: flex;
+}
+
+@mixin inlineFlex {
+    display: -webkit-inline-flex;
+    display: inline-flex;
+}
+
+@mixin animate($property: all, $delay: .5s) {
+    transition: $property $delay cubic-bezier(0.455, 0.030, 0.515, 0.955);
+}
+
+@mixin verticalScrollOnMobile() {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden; /* we should never want this in modal windows */
+}

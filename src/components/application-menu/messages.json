@@ -1,0 +1,18 @@
+{
+    "en-US": {
+        "title": "Nicéphore",
+        "file": "File",
+        "newDocument": "New document",
+        "newDocumentNum": "New document #{num}",
+        "closeDocument": "Close document",
+        "loadDocument": "Load document",
+        "saveDocument": "Save document",
+        "exportImage": "Export image",
+        "window": "Window",
+        "windowNumName": "Window #{num}: {name}",
+        "maximize": "Maximize",
+        "minimize": "Minimize",
+        "areYouSure": "Are you sure?",
+        "closeDocumentWarning": "Closing the document cannot be undone, are you sure?"
+    }
+}

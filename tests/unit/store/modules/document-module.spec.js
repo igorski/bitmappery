@@ -6,6 +6,11 @@ const { getters, mutations } = DocumentModule;
 
 describe( "Vuex document module", () => {
     describe( "getters", () => {
+        it( "should be able to retrieve all open Documents", () => {
+            const state = { documents: [ { name: "foo" }, { name: "bar" } ] };
+            expect( getters.documents( state )).toEqual( state.documents );
+        });
+
         it( "should be able to retrieve the active Document", () => {
             const state = {
                 documents: [ { name: "foo" }, { name: "bar" } ],
@@ -30,6 +35,25 @@ describe( "Vuex document module", () => {
             const state = { activeIndex: 0 };
             mutations.setActiveDocument( state, 2 );
             expect( state.activeIndex ).toEqual( 2 );
+        });
+
+        it( "should be able to add a new Document to the list", () => {
+            const state = {
+                documents: [ { name: "foo" } ],
+            };
+            mutations.addNewDocument( state, "bar" );
+            expect( state.documents ).toHaveLength( 2 );
+            expect( state.documents[ 1 ].name ).toEqual( "bar" );
+        });
+
+        it( "should be able to close the active Document", () => {
+            const state = {
+                documents: [ { name: "foo" }, { name: "bar" } ],
+                activeIndex: 1
+            };
+            mutations.closeActiveDocument( state );
+            expect( state.documents ).toEqual([ { name: "foo" }]);
+            expect( state.activeIndex ).toEqual( 0 );
         });
 
         it( "it should be able to add a Layer to the active Document", () => {

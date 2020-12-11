@@ -1,0 +1,354 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Igor Zinken 2020 - https://www.igorski.nl
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+<template>
+    <nav class="menu"
+         :class="{ opened: menuOpened }"
+    >
+        <div class="toggle" @click="setMenuOpened(!menuOpened)">
+            <span>&#9776;</span>
+        </div>
+        <h1 v-t="'title'"></h1>
+        <ul class="menu-list">
+            <li>
+                <a v-t="'file'" class="title" @click.prevent></a>
+                <ul class="submenu">
+                    <li>
+                        <button v-t="'newDocument'"
+                                @click="addNewDocument( $t( 'newDocumentNum', { num: documents.length }))"
+                        ></button>
+                    </li>
+                    <li>
+                        <button v-t="'closeDocument'"
+                                :disabled="!documents.length"
+                                @click="requestDocumentClose()"
+                        >
+                        </button>
+                    </li>
+                    <li><button v-t="'loadDocument'"></button></li>
+                    <li><button v-t="'saveDocument'"></button></li>
+                    <li><button v-t="'exportImage'"></button></li>
+                </ul>
+            </li>
+            <li>
+                <a v-t="'window'" class="title" @click.prevent></a>
+                <ul class="submenu">
+                    <li v-for="(doc, index) in documents"
+                        :key="`doc_${index}`"
+                    >
+                        <button @click="setActiveDocument( index )">
+                            {{ $t( "windowNumName", { num: index + 1, name: doc.name }) }}
+                        </button>
+                    </li>
+                </ul>
+            </li>
+            <!-- fullscreen button -->
+            <li v-if="supportsFullscreen"
+                v-t="'maximize'"
+                ref="fullscreenBtn"
+                class="fullscreen-button"
+                data-api-fullscreen
+            ></li>
+        </ul>
+    </nav>
+</template>
+
+<script>
+import { mapState, mapGetters, mapMutations }  from "vuex";
+import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
+import messages from "./messages.json";
+
+export default {
+    i18n: { messages },
+    computed: {
+        ...mapState([
+            "menuOpened",
+            "blindActive"
+        ]),
+        ...mapGetters([
+            "documents",
+        ]),
+        supportsFullscreen,
+    },
+    watch: {
+        blindActive( isOpen, wasOpen ) {
+            if ( !isOpen && wasOpen === true ) {
+                this.setMenuOpened( false );
+            }
+        }
+    },
+    mounted() {
+        if ( this.$refs.fullscreenBtn ) {
+            setToggleButton( this.$refs.fullscreenBtn, this.$t( "maximize" ), this.$t( "minimize" ));
+        }
+    },
+    methods: {
+        ...mapMutations([
+            "setMenuOpened",
+            "openDialog",
+            "setActiveDocument",
+            "addNewDocument",
+            "closeActiveDocument"
+        ]),
+        requestDocumentClose() {
+            this.openDialog({
+                type: "confirm",
+                title: this.$t( "areYouSure" ),
+                message: this.$t( "closeDocumentWarning" ),
+                confirm: this.closeActiveDocument,
+                cancel: () => true
+            });
+        },
+    }
+};
+</script>
+
+<style lang="scss" scoped>
+@import "@/styles/_mixins.scss";
+$toggle-width: 50px;
+
+.menu {
+    color: #b6b6b6;
+    display: block;
+    margin: 0 auto;
+    padding: 0 $spacing-medium $spacing-small;
+    width: 100%;
+    @include boxSize();
+}
+
+.toggle {
+    position: absolute;
+    display: none;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    width: $toggle-width;
+    height: $menu-height;
+
+    span {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-top: -$spacing-medium;
+        margin-left: -$spacing-medium;
+    }
+}
+
+h1 {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    padding-right: $spacing-medium;
+    font-size: 110%;
+}
+
+.menu-list {
+    display: inline;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    @include boxSize();
+
+    li {
+        display: inline-block;
+        padding: 0 $spacing-medium 0 0;
+        margin: 0;
+        font-family: Montserrat, Helvetica, Verdana;
+        cursor: pointer;
+
+        a {
+            color: #b6b6b6;
+            text-decoration: none;
+            padding-bottom: $spacing-large;
+        }
+
+        &:hover,
+        &:hover a {
+            color: $color-1;
+            border-bottom: none;
+            text-decoration: none;
+        }
+
+        &.active {
+            a {
+                border-bottom: 3px solid #555;
+            }
+        }
+
+        button {
+            background: none;
+            cursor: pointer;
+            border: none;
+            color: #b6b6b6;
+            margin: 0;
+            padding: 0;
+
+            &:disabled {
+                color: #666;
+            }
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        &.fullscreen-button {
+            float: right;
+            margin-right: $spacing-medium;
+        }
+    }
+}
+
+@include large() {
+    .menu {
+        min-width: 100%;
+        max-width: $ideal-width;
+        margin: 0 auto;
+        padding-left: $spacing-large;
+    }
+
+    .menu-list li {
+        &:hover, &:focus {
+            a {
+                color: $color-1;
+            }
+            ul {
+                display: block;
+                z-index: 2;
+            }
+        }
+        ul {
+            display: none;
+            position: absolute;
+            box-shadow: 0 0 5px rgba(0,0,0,.5);
+            padding: $spacing-medium;
+            background-image: $color-window-bg;
+            background-repeat: repeat-x;
+            @include boxSize();
+        }
+    }
+    .submenu li {
+        display: block;
+        color: #b6b6b6;
+        padding: $spacing-xsmall $spacing-medium;
+
+        &:hover {
+            color: #FFF;
+        }
+    }
+}
+
+@include mobile() {
+    .menu {
+        position: fixed;
+        z-index: 2; // above transport controls
+        overflow: hidden;
+        width: 100%;
+        height: inherit;
+        top: 0;
+        left: 0;
+
+        &.opened {
+            position: absolute;
+            overflow-y: auto;
+            .menu-list {
+                left: 0;
+                display: block;
+                height: 100%;
+            }
+        }
+
+        .toggle {
+            display: block;
+        }
+
+        h1 {
+            display: none;
+        }
+
+        ul {
+            display: block;
+            width: 100%;
+
+            padding: 0;
+
+            li {
+                display: block;
+                width: 100%;
+
+                    a {
+                        width: 100%;
+                    }
+                }
+            }
+
+            ul {
+                h1 {
+                   display: none;
+                }
+
+                li {
+                    padding: $spacing-small $spacing-large;
+
+                    .submenu li {
+                        padding: $spacing-small 0;
+                    }
+
+                    a {
+                        display: block;
+                        width: 100%;
+                        padding: $spacing-medium $spacing-large;
+                        color: #000;
+
+                        &:hover {
+                            color: #000;
+                        }
+                    }
+
+                    &.active a {
+                        border-bottom: none;
+                        color: #FFF;
+                        font-weight: bold;
+                        font-style: italic;
+                        background-color: $color-1;
+                    }
+
+                    &.fullscreen-button {
+                        float: left;
+                    }
+                }
+            }
+
+            .menu-list {
+                position: absolute;
+                top: $menu-height;
+                background-image: linear-gradient(to bottom,#fff 35%,#eee 90%);
+                background-repeat: repeat-x;
+                display: none;
+
+                .title {
+                    display: none;
+                }
+            }
+        }
+    }
+</style>
