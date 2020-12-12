@@ -113,7 +113,7 @@ html, body {
 
     .main {
         display: flex;
-        height: calc(100% - $menu-height);
+        height: calc(100% - #{$menu-height});
         padding: $spacing-medium;
         @include boxSize();
     }
