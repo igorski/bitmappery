@@ -103,7 +103,7 @@ export default {
                     break;
                 case "document":
                     if ( !currentDocumentIsEmpty ) {
-                        this.addNewDocument( this.$t( "newDocumentNum", { num: this.documents.length }));
+                        this.addNewDocument( file.name );
                     }
                     this.setActiveDocumentSize( size );
                     break;
