@@ -61,6 +61,7 @@ export default {
     }),
     computed: {
         ...mapGetters([
+            "activeDocument",
             "documents",
             "layers",
         ]),
@@ -98,6 +99,8 @@ export default {
                     // if this is the first content of an existing document, scale document to image size
                     if ( currentDocumentIsEmpty ) {
                         this.setActiveDocumentSize( size );
+                    } else if ( !this.activeDocument ) {
+                        this.addNewDocument( file.name );
                     }
                     this.addLayer();
                     break;
