@@ -15,6 +15,9 @@
     "vue": "^2.6.11",
     "vuex": "^3.4.0"
   },
+  "optionalDependencies": {
+    "canvas": "^2.6.1",
+  },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
@@ -25,7 +28,6 @@
     "@vue/test-utils": "^1.0.3",
     "babel-eslint": "^10.1.0",
     "bowser": "^2.11.0",
-    "canvas": "^2.6.1",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
     "node-sass": "^4.12.0",
