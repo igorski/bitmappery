@@ -31,14 +31,15 @@
 
 <script>
 import { mapState, mapGetters } from "vuex";
-import { canvas } from "zcanvas";
+import { canvas }    from "zcanvas";
+import DrawableLayer from "@/components/ui/sprites/drawable-layer";
 import {
     createSpriteForGraphic, runSpriteFn, flushSpritesInLayer, flushCache,
 } from "@/utils/canvas-util";
 
 /* internal methods */
 
-let lastDocument, zCanvas;
+let lastDocument, zCanvas, drawableLayer;
 
 export default {
     computed: {
@@ -89,9 +90,13 @@ export default {
                     isDraggable = true;
                     break;
                 case "brush":
+                    if ( !drawableLayer ) {
+                        drawableLayer = new DrawableLayer( this.activeDocument );
+                        zCanvas.addChild( drawableLayer );
+                    }
                     break;
             }
-            runSpriteFn( sprite => sprite.setDraggable( isDraggable ));
+            runSpriteFn( sprite => sprite.setDraggable( isDraggable || sprite instanceof DrawableLayer ));
         }
     },
     mounted() {

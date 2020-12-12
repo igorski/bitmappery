@@ -10,9 +10,14 @@ const spriteCache = new Map();
  * Creates a new HTMLCanvasElement, returning both
  * the element and its CanvasRenderingContext2D
  */
-export const createCanvas = () => {
+export const createCanvas = ( optWidth = 0, optHeight = 0 ) => {
     const cvs = document.createElement( "canvas" );
     const ctx = cvs.getContext( "2d" );
+
+    if ( optWidth !== 0 && optHeight !== 0 ) {
+        cvs.width  = optWidth;
+        cvs.height = optHeight;
+    }    
     return { cvs, ctx };
 };
 
