@@ -16,7 +16,7 @@
     "vuex": "^3.4.0"
   },
   "optionalDependencies": {
-    "canvas": "^2.6.1",
+    "canvas": "^2.6.1"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",
