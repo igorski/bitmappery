@@ -117,7 +117,6 @@ export default {
 <style lang="scss" scoped>
 @import "@/styles/_mixins";
 @import "@/styles/typography";
-@import "@/styles/form";
 
 .file-label {
     display: block;

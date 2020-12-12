@@ -7,6 +7,8 @@
         "loadDocument": "Load document",
         "saveDocument": "Save document",
         "exportImage": "Export image",
+        "edit": "Edit",
+        "resizeDocument": "Resize document",
         "window": "Window",
         "windowNumName": "Window #{num}: {name}",
         "maximize": "Maximize",

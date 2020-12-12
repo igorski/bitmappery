@@ -12,6 +12,7 @@ export default {
         menuOpened: false,
         blindActive: false,
         dialog: null,
+        modal: null,
         windowSize: { width: window.innerWidth, height: window.innerHeight },
     },
     mutations: {
@@ -31,6 +32,14 @@ export default {
         },
         closeDialog( state ) {
             state.dialog = null;
+        },
+        openModal( state, modalName ) {
+            state.blindActive = !!modalName;
+            state.modal = modalName;
+        },
+        closeModal( state ) {
+            state.blindActive = false;
+            state.modal = null;
         },
         /**
          * cache the resize in the store so components can react to these values

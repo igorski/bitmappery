@@ -49,6 +49,26 @@ describe( "Vuex store", () => {
             });
         });
 
+        describe( "when toggling the modal window", () => {
+            it( "should be able to set the opened modal", () => {
+                const state = { blindActive: false, modal: null };
+                mutations.openModal(state, "foo");
+                expect(state).toEqual({ blindActive: true, modal: "foo" });
+            });
+
+            it( "should be able to unset the opened modal", () => {
+                const state = { blindActive: true, modal: "foo" };
+                mutations.openModal(state, null);
+                expect(state).toEqual({ blindActive: false, modal: null });
+            });
+
+            it( "should be able to close the currently opened modal, if existing", () => {
+                const state = { blindActive: true, modal: "foo" };
+                mutations.closeModal(state);
+                expect(state).toEqual({ blindActive: false, modal: null });
+            });
+        });
+
         it( "should be able to set the window size", () => {
             const state = { windowSize: { width: 0, height: 0 }};
             const width = 500;

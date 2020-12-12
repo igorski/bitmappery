@@ -43,12 +43,22 @@
                         <button v-t="'closeDocument'"
                                 :disabled="!documents.length"
                                 @click="requestDocumentClose()"
-                        >
-                        </button>
+                        ></button>
                     </li>
                     <li><button v-t="'loadDocument'"></button></li>
                     <li><button v-t="'saveDocument'"></button></li>
                     <li><button v-t="'exportImage'"></button></li>
+                </ul>
+            </li>
+            <li>
+                <a v-t="'edit'" class="title" @click.prevent></a>
+                <ul class="submenu">
+                    <li>
+                        <button v-t="'resizeDocument'"
+                                :disabled="!documents.length"
+                                @click="requestDocumentResize()"
+                        ></button>
+                    </li>
                 </ul>
             </li>
             <li>
@@ -76,6 +86,7 @@
 
 <script>
 import { mapState, mapGetters, mapMutations }  from "vuex";
+import { RESIZE_DOCUMENT } from "@/definitions/modal-windows";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import messages from "./messages.json";
 
@@ -107,6 +118,7 @@ export default {
         ...mapMutations([
             "setMenuOpened",
             "openDialog",
+            "openModal",
             "setActiveDocument",
             "addNewDocument",
             "closeActiveDocument"
@@ -119,6 +131,9 @@ export default {
                 confirm: this.closeActiveDocument,
                 cancel: () => true
             });
+        },
+        requestDocumentResize() {
+            this.openModal( RESIZE_DOCUMENT );
         },
     }
 };

@@ -38,6 +38,13 @@
             :confirm-handler="dialog.confirm"
             :cancel-handler="dialog.cancel"
         />
+        <!-- overlays -->
+        <div v-if="blindActive" class="blind">
+            <component
+                :is="activeModal"
+                @close="closeModal()"
+            />
+        </div>
     </div>
 </template>
 
@@ -50,6 +57,7 @@ import DocumentCanvas     from "@/components/document-canvas/document-canvas";
 import OptionsPanel       from "@/components/options-panel/options-panel";
 import Toolbox            from "@/components/toolbox/toolbox";
 import DialogWindow       from "@/components/dialog-window/dialog-window";
+import { RESIZE_DOCUMENT } from "@/definitions/modal-windows";
 import store              from "./store";
 import messages           from "./messages.json";
 
@@ -73,8 +81,18 @@ export default {
     },
     computed: {
         ...mapState([
+            "blindActive",
             "dialog",
+            "modal"
         ]),
+        activeModal() {
+            switch ( this.modal ) {
+                default:
+                    return null;
+                case RESIZE_DOCUMENT:
+                    return () => import( "@/components/edit-menu/resize-document/resize-document" );
+            }
+        },
     },
     created() {
         // no need to remove as we will require it throughout the application lifteimte
@@ -83,6 +101,7 @@ export default {
     methods: {
         ...mapMutations([
             "setWindowSize",
+            "closeModal",
         ]),
         handleResize() {
             this.setWindowSize({ width: window.innerWidth, height: window.innerHeight });
@@ -92,11 +111,13 @@ export default {
 </script>
 
 <style lang="scss">
-/*
+/**
  * note child components use scoped styling
  * here we set the global typography and layout styles
-*/
+ * we expect to use throughout
+ */
 @import "@/styles/_mixins";
+@import "@/styles/form";
 @import "@/styles/typography";
 
 html, body {
@@ -116,6 +137,16 @@ html, body {
         height: calc(100% - #{$menu-height});
         padding: $spacing-medium;
         @include boxSize();
+    }
+
+    .blind {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,.5);
+        z-index: 400; // below overlays (see _variables.scss)
     }
 
     .toolbox {

@@ -43,7 +43,7 @@ export default {
         },
         setActiveDocumentSize( state, { width, height }) {
             const document = state.documents[ state.activeIndex ];
-            document.width = width;
+            document.width  = width;
             document.height = height;
         },
         addNewDocument( state, name = "" ) {
