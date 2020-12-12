@@ -29,13 +29,13 @@ import { flushSpritesInLayer } from "@/utils/canvas-util";
 
 export default {
     state: {
-        documents : [ DocumentFactory.create() ],
+        documents : [],
         activeIndex: 0,
     },
     getters: {
         documents: state => state.documents,
         activeDocument: state => state.documents[ state.activeIndex ],
-        layers: ( state, getters ) => getters.activeDocument.layers,
+        layers: ( state, getters ) => getters.activeDocument?.layers,
     },
     mutations: {
         setActiveDocument( state, index ) {

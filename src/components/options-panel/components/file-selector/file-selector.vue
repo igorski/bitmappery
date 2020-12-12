@@ -90,7 +90,7 @@ export default {
 
             image.src = source;
 
-            const currentDocumentIsEmpty = this.layers.length === 1 && !this.layers[ 0 ].graphics.length;
+            const currentDocumentIsEmpty = this.layers?.length === 1 && !this.layers[ 0 ].graphics.length;
 
             switch ( this.fileTarget) {
                 default:

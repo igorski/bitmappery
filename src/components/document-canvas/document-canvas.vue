@@ -57,9 +57,19 @@ export default {
         },
         activeDocument: {
             deep: true,
-            handler( document ) {
+            handler( document, oldValue = null ) {
                 if ( !document?.layers ) {
+                    if ( zCanvas ) {
+                        zCanvas.dispose();
+                        zCanvas = null;
+                    }
                     return;
+                }
+                if ( !zCanvas ) {
+                    this.createCanvas();
+                    this.$nextTick(() => {
+                        zCanvas.insertInPage( this.$refs.canvasContainer );
+                    });
                 }
                 const { name, width, height } = document;
                 if ( name !== lastDocument ) {
@@ -99,19 +109,18 @@ export default {
             runSpriteFn( sprite => sprite.setDraggable( isDraggable || sprite instanceof DrawableLayer ));
         }
     },
-    mounted() {
-        zCanvas = new canvas({
-            width: 160,
-            height: 90,
-            animate: true,
-            smoothing: true,
-            backgroundColor: "#FFFFFF",
-            stretchToFit: false,
-            fps: 60
-        });
-        zCanvas.insertInPage( this.$refs.canvasContainer );
-    },
     methods: {
+        createCanvas() {
+            zCanvas = new canvas({
+                width: 160,
+                height: 90,
+                animate: true,
+                smoothing: true,
+                backgroundColor: "#FFFFFF",
+                stretchToFit: false,
+                fps: 60
+            });
+        },
         scaleCanvas() {
             const { width, height } = this.activeDocument;
             const size = this.$el.parentNode?.getBoundingClientRect();
@@ -120,7 +129,7 @@ export default {
                 return;
             }
             console.warn("canvas must be resized");
-            zCanvas.scale( size.width / width );
+            zCanvas?.scale( size.width / width );
         },
     },
 };

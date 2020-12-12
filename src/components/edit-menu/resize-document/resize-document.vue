@@ -50,6 +50,7 @@ export default {
         width: 0,
         height: 0,
         ratio: 0,
+        syncLock: false,
         maintainRatio: true,
     }),
     computed: {
@@ -57,29 +58,37 @@ export default {
             "activeDocument",
         ]),
     },
-    watch: {
-        width( value ) {
-            if ( !this.maintainRatio || this.ratio === 0 ) {
-                return;
-            }
-            this.height = Math.round( value * this.ratio );
-        },
-        height( value ) {
-            if ( !this.maintainRatio || this.ratio === 0 ) {
-                return;
-            }
-            this.width = Math.round( value / this.ratio );
-        },
-    },
     created() {
         this.width  = this.activeDocument.width;
         this.height = this.activeDocument.height;
         this.ratio  = this.width / this.height;
+
+        this.$watch( "width", function( value ) {
+            if ( !this.maintainRatio || this.syncLock ) {
+                return;
+            }
+            this.lockSync();
+            this.height = Math.round( value / this.ratio );
+        });
+
+        this.$watch( "height", function( value ) {
+            if ( !this.maintainRatio || this.syncLock ) {
+                return;
+            }
+            this.lockSync();
+            this.width = Math.round( value * this.ratio );
+        });
     },
     methods: {
         ...mapMutations([
             "setActiveDocumentSize",
         ]),
+        lockSync() {
+            this.syncLock = true;
+            this.$nextTick(() => {
+                this.syncLock = false;
+            });
+        },
         save() {
             this.setActiveDocumentSize({ width: this.width, height: this.height });
             this.close();
