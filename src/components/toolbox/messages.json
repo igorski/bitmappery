@@ -1,5 +1,7 @@
 {
     "en-US": {
-        "toolbox": "Toolbox"
+        "toolbox": "Toolbox",
+        "move": "Move",
+        "brush": "Brush"
     }
 }

@@ -25,6 +25,7 @@
     "@vue/test-utils": "^1.0.3",
     "babel-eslint": "^10.1.0",
     "bowser": "^2.11.0",
+    "canvas": "^2.6.1",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
     "node-sass": "^4.12.0",

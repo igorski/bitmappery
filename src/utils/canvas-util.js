@@ -17,6 +17,13 @@ export const createCanvas = () => {
 };
 
 /**
+ * Runs given fn on each Sprite in the cache
+ */
+export const runSpriteFn = fn => {
+    spriteCache.forEach( fn );
+};
+
+/**
  * If a layer were to be removed / set to invisible, we
  * flush all its cached Sprites.
  */
@@ -28,7 +35,7 @@ export const flushSpritesInLayer = layer => {
             spriteCache.delete( id );
         }
     });
-}
+};
 
 /**
  * Clears the entire cache and disposes all Sprites.
@@ -37,7 +44,7 @@ export const flushCache = () => {
     console.warn("flushing cache");
     spriteCache.forEach( disposeSprite );
     spriteCache.clear();
-}
+};
 
 /**
  * Lazily retrieve / create a cached sprite to represent given
@@ -58,7 +65,7 @@ export const createSpriteForGraphic = ( zCanvasInstance, { id, bitmap, x, y, wid
         spriteCache.set( id, output );
     }
     return output;
-}
+};
 
 /* internal methods */
 

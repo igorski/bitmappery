@@ -33,7 +33,7 @@
 import { mapState, mapGetters } from "vuex";
 import { canvas } from "zcanvas";
 import {
-    createSpriteForGraphic, flushSpritesInLayer, flushCache,
+    createSpriteForGraphic, runSpriteFn, flushSpritesInLayer, flushCache,
 } from "@/utils/canvas-util";
 
 /* internal methods */
@@ -47,6 +47,7 @@ export default {
         ]),
         ...mapGetters([
             "activeDocument",
+            "activeTool",
         ]),
     },
     watch: {
@@ -79,6 +80,19 @@ export default {
                 });
             },
         },
+        activeTool( tool ) {
+            let isDraggable = false; // sprites only draggable for move tool
+            switch ( tool ) {
+                default:
+                    break;
+                case "move":
+                    isDraggable = true;
+                    break;
+                case "brush":
+                    break;
+            }
+            runSpriteFn( sprite => sprite.setDraggable( isDraggable ));
+        }
     },
     mounted() {
         zCanvas = new canvas({

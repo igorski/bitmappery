@@ -1,10 +1,12 @@
-import documentModule from './modules/document-module';
-import imageModule    from './modules/image-module';
+import documentModule from "./modules/document-module";
+import imageModule    from "./modules/image-module";
+import toolModule     from "./modules/tool-module";
 
 export default {
     modules: {
         documentModule,
         imageModule,
+        toolModule,
     },
     state: {
         menuOpened: false,

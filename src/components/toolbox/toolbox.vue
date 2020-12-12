@@ -24,21 +24,62 @@
     <div class="toolbox-wrapper">
         <h2 v-t="'toolbox'"></h2>
         <div class="content">
+            <button v-for="(button, index) in tools"
+                    :key="button.type"
+                    v-t="button.i18n"
+                    class="tool-button"
+                    :class="{ 'active': activeTool === button.type }"
+                    @click="setActiveTool( button.type )"
+            ></button>
         </div>
     </div>
 </template>
 
 <script>
-import messages from './messages.json';
+import { mapGetters, mapMutations } from "vuex";
+import messages from "./messages.json";
+
 export default {
     i18n: { messages },
+    computed: {
+        ...mapGetters([
+            "activeTool",
+        ]),
+        tools() {
+            return [
+                { type: "move", i18n: "move" }, { type: "brush", i18n: "brush" }
+            ]
+        },
+    },
+    methods: {
+        ...mapMutations([
+            "setActiveTool",
+        ]),
+    },
 };
 </script>
 
 <style lang="scss" scoped>
 @import "@/styles/component";
+@import "@/styles/typography";
 
 .toolbox-wrapper {
     @include component();
+}
+
+.tool-button {
+    margin: $spacing-small;
+    cursor: pointer;
+    border-radius: $spacing-xsmall;
+    border: none;
+    padding: $spacing-medium;
+    font-weight: bold;
+    @include customFont();
+
+    &:hover,
+    &.active {
+        background-color: $color-1;
+        color: #FFF;
+    }
 }
 </style>
