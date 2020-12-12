@@ -50,7 +50,7 @@
 
 <script>
 import Vue                from "vue";
-import Vuex, { mapState, mapMutations } from "vuex";
+import Vuex, { mapState, mapMutations, mapActions } from "vuex";
 import VueI18n            from "vue-i18n";
 import ApplicationMenu    from "@/components/application-menu/application-menu";
 import DocumentCanvas     from "@/components/document-canvas/document-canvas";
@@ -94,14 +94,18 @@ export default {
             }
         },
     },
-    created() {
-        // no need to remove as we will require it throughout the application lifteimte
+    async created() {
+        await this.setupServices();
+        // no need to remove the below as we will require it throughout the application lifteimte
         window.addEventListener( "resize", this.handleResize.bind( this ));
     },
     methods: {
         ...mapMutations([
             "setWindowSize",
             "closeModal",
+        ]),
+        ...mapActions([
+            "setupServices",
         ]),
         handleResize() {
             this.setWindowSize({ width: window.innerWidth, height: window.innerHeight });

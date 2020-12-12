@@ -5,6 +5,7 @@
             <div class="wrapper input">
                 <label v-t="'width'"></label>
                 <input
+                    ref="first"
                     v-model="width"
                     type="number"
                     name="width"
@@ -58,7 +59,7 @@ export default {
             "activeDocument",
         ]),
     },
-    created() {
+    mounted() {
         this.width  = this.activeDocument.width;
         this.height = this.activeDocument.height;
         this.ratio  = this.width / this.height;
@@ -78,6 +79,7 @@ export default {
             this.lockSync();
             this.width = Math.round( value * this.ratio );
         });
+        this.$refs.first.focus();
     },
     methods: {
         ...mapMutations([

@@ -1,6 +1,7 @@
-import documentModule from "./modules/document-module";
-import imageModule    from "./modules/image-module";
-import toolModule     from "./modules/tool-module";
+import KeyboardService from "@/services/keyboard-service";
+import documentModule  from "./modules/document-module";
+import imageModule     from "./modules/image-module";
+import toolModule      from "./modules/tool-module";
 
 export default {
     modules: {
@@ -50,6 +51,15 @@ export default {
         },
     },
     actions: {
-
+        /**
+         * Install the services that will listen to global hardware events
+         */
+        setupServices() {
+            const storeReference = this;
+            return new Promise( resolve => {
+                KeyboardService.init( storeReference );
+                resolve();
+            });
+        }
     },
 };
