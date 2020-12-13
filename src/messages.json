@@ -1,5 +1,7 @@
 {
     "en-US": {
-        "photomound": "PhotoMound"
+        "photomound": "PhotoMound",
+        "areYouSure": "Are you sure?",
+        "closeDocumentWarning": "Closing the document cannot be undone, are you sure?"
     }
 }

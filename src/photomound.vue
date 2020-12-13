@@ -95,7 +95,7 @@ export default {
         },
     },
     async created() {
-        await this.setupServices();
+        await this.setupServices( i18n );
         // no need to remove the below as we will require it throughout the application lifteimte
         window.addEventListener( "resize", this.handleResize.bind( this ));
     },
@@ -121,6 +121,7 @@ export default {
  * we expect to use throughout
  */
 @import "@/styles/_mixins";
+@import "@/styles/ui";
 @import "@/styles/form";
 @import "@/styles/typography";
 

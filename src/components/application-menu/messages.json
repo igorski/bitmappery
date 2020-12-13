@@ -12,8 +12,6 @@
         "window": "Window",
         "windowNumName": "Window #{num}: {name}",
         "maximize": "Maximize",
-        "minimize": "Minimize",
-        "areYouSure": "Are you sure?",
-        "closeDocumentWarning": "Closing the document cannot be undone, are you sure?"
+        "minimize": "Minimize"
     }
 }

@@ -27,13 +27,18 @@
     >
         <template v-if="activeDocument">
             <h2>{{ activeDocument.name }}</h2>
+            <button
+                type="button"
+                class="close-button"
+                @click="requestDocumentClose()"
+            >x</button>
             <div class="content" ref="canvasContainer"></div>
         </template>
     </div>
 </template>
 
 <script>
-import { mapState, mapGetters } from "vuex";
+import { mapState, mapGetters, mapActions } from "vuex";
 import ZoomableCanvas   from "@/components/ui/zcanvas/zoomable-canvas";
 import DrawableLayer    from "@/components/ui/zcanvas/drawable-layer";
 import { scaleToRatio } from "@/utils/image-math";
@@ -116,6 +121,9 @@ export default {
         }
     },
     methods: {
+        ...mapActions([
+            "requestDocumentClose",
+        ]),
         createCanvas() {
             zCanvas = new ZoomableCanvas({
                 width: 160,
@@ -151,7 +159,14 @@ export default {
 
 .canvas-wrapper {
     display: inline-block;
+    position: relative;
     @include component();
+
+    .close-button {
+        position: absolute;
+        top: $spacing-small;
+        right: $spacing-small;
+    }
 
     .content {
         padding: 0;

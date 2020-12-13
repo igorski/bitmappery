@@ -26,11 +26,13 @@
         <p>{{ message }}</p>
         <button v-t="'ok'"
                 type="button"
+                class="button"
                 @click="handleConfirm"
         ></button>
         <button v-t="'cancel'"
                 v-if="type === 'confirm'"
                 type="button"
+                class="button"
                 @click="handleCancel"
         ></button>
     </div>
@@ -97,6 +99,7 @@ export default {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
+    background-image: $color-window-bg;
 
     padding: $spacing-small $spacing-large;
     border-radius: $spacing-small;
@@ -109,9 +112,9 @@ export default {
     }
 
     button {
-        display: inline;
-        width: 48%;
-        padding: $spacing-medium $spacing-large;
+        display: inline-block;
+        width: 45%;
+        margin-right: $spacing-medium;
     }
 
     @include mobile() {

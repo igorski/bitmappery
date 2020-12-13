@@ -85,7 +85,7 @@
 </template>
 
 <script>
-import { mapState, mapGetters, mapMutations }  from "vuex";
+import { mapState, mapGetters, mapMutations, mapActions }  from "vuex";
 import { RESIZE_DOCUMENT } from "@/definitions/modal-windows";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import messages from "./messages.json";
@@ -117,21 +117,14 @@ export default {
     methods: {
         ...mapMutations([
             "setMenuOpened",
-            "openDialog",
             "openModal",
             "setActiveDocument",
             "addNewDocument",
             "closeActiveDocument"
         ]),
-        requestDocumentClose() {
-            this.openDialog({
-                type: "confirm",
-                title: this.$t( "areYouSure" ),
-                message: this.$t( "closeDocumentWarning" ),
-                confirm: this.closeActiveDocument,
-                cancel: () => true
-            });
-        },
+        ...mapActions([
+            "requestDocumentClose",
+        ]),
         requestDocumentResize() {
             this.openModal( RESIZE_DOCUMENT );
         },

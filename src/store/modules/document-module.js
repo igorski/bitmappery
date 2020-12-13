@@ -70,6 +70,14 @@ export default {
         },
     },
     actions: {
-
+        requestDocumentClose({ commit, getters }) {
+            commit( "openDialog", {
+                type: "confirm",
+                title: getters.t( "areYouSure" ),
+                message: getters.t( "closeDocumentWarning" ),
+                confirm: () => commit( "closeActiveDocument" ),
+                cancel: () => true
+            });
+        },
     }
 }

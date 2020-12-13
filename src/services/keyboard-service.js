@@ -211,6 +211,11 @@ function handleKeyDown( event ) {
             break;
 
         case 87: // W
+            // close document
+            if ( hasOption ) {
+                store.dispatch( "requestDocumentClose" );
+                preventDefault( event );
+            }
             break;
 
         case 88: // X
@@ -267,6 +272,6 @@ function handleFocus() {
 }
 
 function preventDefault( event ) {
-    event.preventDefault();
     event.stopPropagation();
+    event.preventDefault();
 }
