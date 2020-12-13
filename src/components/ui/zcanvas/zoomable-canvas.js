@@ -26,6 +26,8 @@ function ZoomableCanvas( opts ) {
     ZoomableCanvas.super( this, "constructor", opts ); // zCanvas inheritance
 
     this.setZoomFactor = function( xScale, yScale ) {
+        this.zoomFactor = xScale;
+        
         // we debounce this as setDimensions() is only updating size
         // on render. This zoom factor logic should move into the zCanvas
         // library where updateCanvasSize() takes this additional factor into account

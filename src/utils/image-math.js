@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
- 
+
 /**
  * Calculates the appropriate dimensions for fitting an image of dimensions
  * described by imageWidth x imageHeight in a destination area described by
@@ -43,6 +43,12 @@ export const scaleToRatio = ( imageWidth, imageHeight, destWidth, destHeight ) =
     else if ( imageHeight === imageWidth ) {
 		height = destWidth;
 	}
+
+    if ( height < destHeight ) {
+        destWidth  *= ( destHeight / height );
+        height = destHeight;
+    }
+
     return {
         width: destWidth, height
     };

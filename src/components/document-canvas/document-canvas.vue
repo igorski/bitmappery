@@ -21,7 +21,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div class="canvas-wrapper">
+    <div
+        class="canvas-wrapper"
+        :style="{ 'height': wrapperHeight }"
+    >
         <template v-if="activeDocument">
             <h2>{{ activeDocument.name }}</h2>
             <div class="content" ref="canvasContainer"></div>
@@ -43,6 +46,9 @@ import {
 let lastDocument, zCanvas, drawableLayer;
 
 export default {
+    data: () => ({
+        wrapperHeight: "auto",
+    }),
     computed: {
         ...mapState([
             "windowSize"
@@ -114,11 +120,10 @@ export default {
             zCanvas = new ZoomableCanvas({
                 width: 160,
                 height: 90,
-                animate: true,
+                animate: false,
                 smoothing: true,
                 backgroundColor: "red",
-                stretchToFit: false,
-                fps: 60
+                stretchToFit: false
             });
         },
         /**
@@ -132,7 +137,7 @@ export default {
             let { width, height } = this.activeDocument;
             const containerSize = this.$el.parentNode?.getBoundingClientRect();
             ({ width, height } = scaleToRatio( width, height, containerSize.width, containerSize.height ));
-            this.$el.style.height = `${window.innerHeight - containerSize.top - 20}px`;
+            this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
             zCanvas.setDimensions( width, height );
             zCanvas.setZoomFactor( width / this.activeDocument.width, height / this.activeDocument.height );
         },

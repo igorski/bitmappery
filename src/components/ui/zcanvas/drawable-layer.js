@@ -56,6 +56,9 @@ function DrawableLayer({ width, height }) {
     brushCtx.fill();
 
     this.handleMove = function( x, y ) {
+        // TODO: this zoomFactor should be taken into account by handleInteraction of zCanvas !!
+        x /= this.canvas.zoomFactor;
+        y /= this.canvas.zoomFactor;
         ctx.drawImage( brush, x - radius / 2, y - radius / 2 );
     }
 }
