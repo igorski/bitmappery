@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import ModalWindows               from '@/definitions/modal-windows';
+import ModalWindows from '@/definitions/modal-windows';
 
 let store, state, listener,
     suspended = false, blockDefaults = true, optionDown = false, shiftDown = false;

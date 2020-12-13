@@ -21,7 +21,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Vue from "vue";
-import { imageToResource, disposeResource } from "@/utils/resource-manager";
+import {
+    imageToResource, disposeResource, isResource
+} from "@/utils/resource-manager";
 
 /**
  * Image module maintains a list of local image resources (selected from file system)
@@ -51,10 +53,14 @@ export default {
     },
     actions: {
         /**
-         * Registers an image for use in the application.
+         * Registers an image for use in the application. Internally images are
+         * handled as Blob resources (or remote URLs). Base64 strings are
+         * converted to binary as registered as a Blob URL.
          */
         async addImage({ state }, { file, image, size }) {
-            const source    = await imageToResource( image, file.type );
+            const isValidResource = isResource( image ) || image.src.startsWith( "http" );
+
+            const source    = isValidResource ? image.src : await imageToResource( image, file.type );
             const imageData = { file, size, source };
             state.images.push( imageData );
             return imageData;

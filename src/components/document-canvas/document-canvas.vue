@@ -116,7 +116,7 @@ export default {
                 height: 90,
                 animate: true,
                 smoothing: true,
-                backgroundColor: "#FFFFFF",
+                backgroundColor: "red",
                 stretchToFit: false,
                 fps: 60
             });
@@ -131,9 +131,6 @@ export default {
             }
             let { width, height } = this.activeDocument;
             const containerSize = this.$el.parentNode?.getBoundingClientRect();
-            if ( !containerSize || ( containerSize.width > width && containerSize.height > height )) {
-                return;
-            }
             ({ width, height } = scaleToRatio( width, height, containerSize.width, containerSize.height ));
             zCanvas.setDimensions( width, height );
             zCanvas.setZoomFactor( width / this.activeDocument.width, height / this.activeDocument.height );

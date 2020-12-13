@@ -33,22 +33,56 @@ describe( "Vuex image module", () => {
     });
 
     describe( "actions", () => {
-        it("should be able to store an image object in the images list", async () => {
-            const state = { images: [] };
-            const input = {
-                file: { type: "image/png" },
-                image: new Image(),
-                size: { width: 100, height: 100 },
-            };
-            mockUpdateFn = jest.fn(() => blobURL );
-            const blobURL = "blob://foo";
-            const image = await actions.addImage({ state }, input );
-            // assert image has been added to list
-            expect( state.images ).toEqual([ { file: input.file, size: input.size, source: blobURL } ]);
-            // assert image data has been allocated as Blob
-            expect( mockUpdateFn ).toHaveBeenCalledWith( "imageToResource", input.image, input.file.type );
-            // assert return data contains allocated Blob resource
-            expect( image ).toEqual( state.images[ 0 ]);
+        describe( "adding an image object to the images list", () => {
+            it("should directly add images with a Blob source", async () => {
+                const state = { images: [] };
+                const input = {
+                    file: { type: "image/png" },
+                    image: { src: "blob:http://foo" },
+                    size: { width: 100, height: 100 },
+                };
+                const image = await actions.addImage({ state }, input );
+                // assert image has been added to list
+                expect( state.images ).toEqual([ { file: input.file, size: input.size, source: input.image.src } ]);
+                // assert image data has been allocated as Blob
+                expect( mockUpdateFn ).not.toHaveBeenCalledWith( "imageToResource" );
+                // assert return data contains allocated Blob resource
+                expect( image ).toEqual( state.images[ 0 ]);
+            });
+
+            it("should directly add images with a remote source", async () => {
+                const state = { images: [] };
+                const input = {
+                    file: { type: "image/png" },
+                    image: { src: "http://localhost/foo.png" },
+                    size: { width: 100, height: 100 },
+                };
+                const image = await actions.addImage({ state }, input );
+                // assert image has been added to list
+                expect( state.images ).toEqual([ { file: input.file, size: input.size, source: input.image.src } ]);
+                // assert image data has been allocated as Blob
+                expect( mockUpdateFn ).not.toHaveBeenCalledWith( "imageToResource" );
+                // assert return data contains allocated Blob resource
+                expect( image ).toEqual( state.images[ 0 ]);
+            });
+
+            it("should convert images with any other source to Blob", async () => {
+                const state = { images: [] };
+                const input = {
+                    file: { type: "image/png" },
+                    image: new Image(),
+                    size: { width: 100, height: 100 },
+                };
+                const blobURL = "blob:http://foo";
+                mockUpdateFn = jest.fn(() => blobURL );
+                const image = await actions.addImage({ state }, input );
+                // assert image has been added to list
+                expect( state.images ).toEqual([ { file: input.file, size: input.size, source: blobURL } ]);
+                // assert image data has been allocated as Blob
+                expect( mockUpdateFn ).toHaveBeenCalledWith( "imageToResource", input.image, input.file.type );
+                // assert return data contains allocated Blob resource
+                expect( image ).toEqual( state.images[ 0 ]);
+            });
         });
     });
 });

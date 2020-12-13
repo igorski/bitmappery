@@ -19,10 +19,17 @@ module.exports = {
         }
     },
     configureWebpack: {
-        plugins: [
-            new CopyWebpackPlugin([
-                { from: `${dirAssets}`, to: 'assets', flatten: false }
-            ]),
-        ]
-    }
+        module: {
+            rules: [{
+                // inline Workers as Blobs
+                test: /\.worker\.js$/,
+                use: { loader: 'worker-loader', options: { inline: true, fallback: false } }
+            }]
+       },
+       plugins: [
+           new CopyWebpackPlugin([
+               { from: `${dirAssets}`, to: 'assets', flatten: false }
+           ]),
+       ]
+   }
 };

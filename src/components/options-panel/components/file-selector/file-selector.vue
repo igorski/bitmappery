@@ -84,7 +84,10 @@ export default {
             if ( !files || files.length === 0 ) {
                 return;
             }
-            await loadImageFiles( files, this.addLoadedFile.bind( this ), this );
+            const start = Date.now();
+            await loadImageFiles( files, this.addLoadedFile.bind( this ));
+            const elapsed = Date.now() - start;
+            console.warn( "Total time for load: " + ( elapsed / 1000 ) + " seconds" );
         },
         async addLoadedFile( file, { image, size }) {
             const { source } = await this.addImage({ file, image, size });
