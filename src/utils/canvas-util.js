@@ -17,7 +17,7 @@ export const createCanvas = ( optWidth = 0, optHeight = 0 ) => {
     if ( optWidth !== 0 && optHeight !== 0 ) {
         cvs.width  = optWidth;
         cvs.height = optHeight;
-    }    
+    }
     return { cvs, ctx };
 };
 
@@ -60,7 +60,7 @@ export const createSpriteForGraphic = ( zCanvasInstance, { id, bitmap, x, y, wid
     if ( spriteCache.has( id )) {
         output = spriteCache.get( id );
     }
-    // laily create sprite
+    // lazily create sprite
     if ( !output ) {
         output = new sprite({
             bitmap, x, y, width, height

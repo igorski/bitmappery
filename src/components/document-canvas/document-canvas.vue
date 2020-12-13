@@ -31,8 +31,9 @@
 
 <script>
 import { mapState, mapGetters } from "vuex";
-import { canvas }    from "zcanvas";
-import DrawableLayer from "@/components/ui/sprites/drawable-layer";
+import ZoomableCanvas   from "@/components/ui/zcanvas/zoomable-canvas";
+import DrawableLayer    from "@/components/ui/zcanvas/drawable-layer";
+import { scaleToRatio } from "@/utils/image-math";
 import {
     createSpriteForGraphic, runSpriteFn, flushSpritesInLayer, flushCache,
 } from "@/utils/canvas-util";
@@ -77,7 +78,6 @@ export default {
                     flushCache(); // switching between documents
                 }
                 if ( zCanvas.width !== width || zCanvas.height !== height ) {
-                    zCanvas.setDimensions( width, height );
                     this.scaleCanvas();
                 }
                 document.layers.forEach( layer => {
@@ -111,7 +111,7 @@ export default {
     },
     methods: {
         createCanvas() {
-            zCanvas = new canvas({
+            zCanvas = new ZoomableCanvas({
                 width: 160,
                 height: 90,
                 animate: true,
@@ -121,15 +121,22 @@ export default {
                 fps: 60
             });
         },
+        /**
+         * Ensure the canvas fills out the available space while also maintaining
+         * the ratio of the document is is representing.
+         */
         scaleCanvas() {
-            const { width, height } = this.activeDocument;
-            const size = this.$el.parentNode?.getBoundingClientRect();
-            if ( !size || ( size.width > width && size.height > height )) {
-                console.warn("canvas fits");
+            if ( !this.activeDocument ) {
                 return;
             }
-            console.warn("canvas must be resized");
-            zCanvas?.scale( size.width / width );
+            let { width, height } = this.activeDocument;
+            const containerSize = this.$el.parentNode?.getBoundingClientRect();
+            if ( !containerSize || ( containerSize.width > width && containerSize.height > height )) {
+                return;
+            }
+            ({ width, height } = scaleToRatio( width, height, containerSize.width, containerSize.height ));
+            zCanvas.setDimensions( width, height );
+            zCanvas.setZoomFactor( width / this.activeDocument.width, height / this.activeDocument.height );
         },
     },
 };
