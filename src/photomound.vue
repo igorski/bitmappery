@@ -158,7 +158,6 @@ html, body {
     }
     .document-container {
         flex: 3;
-        overflow: scroll;
     }
     .options-panel {
         flex: 2;

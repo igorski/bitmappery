@@ -132,6 +132,7 @@ export default {
             let { width, height } = this.activeDocument;
             const containerSize = this.$el.parentNode?.getBoundingClientRect();
             ({ width, height } = scaleToRatio( width, height, containerSize.width, containerSize.height ));
+            this.$el.style.height = `${window.innerHeight - containerSize.top - 20}px`;
             zCanvas.setDimensions( width, height );
             zCanvas.setZoomFactor( width / this.activeDocument.width, height / this.activeDocument.height );
         },
@@ -149,6 +150,8 @@ export default {
 
     .content {
         padding: 0;
+        overflow: scroll;
+        display: block;
     }
 }
 </style>
