@@ -37,22 +37,17 @@ npm run lint
 * Drawable layers must be added to document (and thus be recalled when switching documents)
 * Add brush options > size, transparency
 * Image position must be made persistent (now isn't on document switch)
+* Add layer view to options-panel: allow naming, repositioning, set as mask
+* Implement selections
 * Toolbox and options panel should be collapsible (keyboard shortcuts)
-* Load Blobs when about to use image in document, not upfront (unless source is base64)
 * Unload Blobs when images are no longer used in document (see canvas-util disposeSprite)
-* Change layer order
 * Export output to image file
 * Import / export documents from/to disk
-* Use magnification (document size is relative to available screen size)
-* Add zoom
 * Restore project by selecting folder from file system
 * Use hand cursor when draggable
 * Use paint brush cursor when painting
-* Controls for rotation and scaling
-* Paint brush
-* Clone brush
-* Implement masking layers
-* Implement selections
-* Implement document crop / resize
+* Add tools for layer rotation and scaling
+* Implement clone brush
+* Implement document crop
 * Implement change history
 * Dropbox integration?
