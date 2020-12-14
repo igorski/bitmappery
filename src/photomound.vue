@@ -154,14 +154,17 @@ html, body {
         z-index: 400; // below overlays (see _variables.scss)
     }
 
+    $toolbox-width: 150px;
+    $options-width: 300px;
     .toolbox {
-        flex: 1;
+        width: $toolbox-width;
     }
     .document-container {
-        flex: 3;
+        width: calc(100% - (#{$toolbox-width + $options-width + ($spacing-medium * 2)}));
+        margin: 0 $spacing-medium;
     }
     .options-panel {
-        flex: 2;
+        width: $options-width;
     }
 }
 </style>

@@ -159,6 +159,7 @@ export default {
 
 .canvas-wrapper {
     display: inline-block;
+    width: 100%;
     position: relative;
     @include component();
 
@@ -170,7 +171,7 @@ export default {
 
     .content {
         padding: 0;
-        overflow: scroll;
+        overflow: auto;
         display: block;
     }
 }
