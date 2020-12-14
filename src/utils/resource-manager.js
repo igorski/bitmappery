@@ -58,4 +58,4 @@ export const disposeResource = imageBlobURL => {
     URL.revokeObjectURL( imageBlobURL );
 };
 
-export const isResource = imageElement => imageElement.src.startsWith( "blob:" );
+export const verifyIfResource = imageElement => imageElement.src.startsWith( "blob:" );
