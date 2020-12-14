@@ -6,6 +6,7 @@ let mockUpdateFn;
 jest.mock("@/utils/resource-manager", () => ({
     imageToResource: (...args) => mockUpdateFn?.( "imageToResource", ...args ),
     disposeResource: (...args) => mockUpdateFn?.( "disposeResource", ...args ),
+    isResource: (...args) => mockUpdateFn?.( "isResource", ...args ),
 }));
 
 describe( "Vuex image module", () => {
@@ -41,6 +42,7 @@ describe( "Vuex image module", () => {
                     image: { src: "blob:http://foo" },
                     size: { width: 100, height: 100 },
                 };
+                mockUpdateFn = jest.fn(fn => fn === "isResource" ? true : false );
                 const image = await actions.addImage({ state }, input );
                 // assert image has been added to list
                 expect( state.images ).toEqual([ { file: input.file, size: input.size, source: input.image.src } ]);
@@ -70,14 +72,13 @@ describe( "Vuex image module", () => {
                 const state = { images: [] };
                 const input = {
                     file: { type: "image/png" },
-                    image: new Image(),
+                    image: { src: "base64" },
                     size: { width: 100, height: 100 },
                 };
-                const blobURL = "blob:http://foo";
-                mockUpdateFn = jest.fn(() => blobURL );
+                mockUpdateFn = jest.fn( fn => fn === "isResource" ? false : "" );
                 const image = await actions.addImage({ state }, input );
                 // assert image has been added to list
-                expect( state.images ).toEqual([ { file: input.file, size: input.size, source: blobURL } ]);
+                expect( state.images ).toEqual([ { file: input.file, size: input.size, source: expect.any( String ) } ]);
                 // assert image data has been allocated as Blob
                 expect( mockUpdateFn ).toHaveBeenCalledWith( "imageToResource", input.image, input.file.type );
                 // assert return data contains allocated Blob resource

@@ -22,7 +22,7 @@
  */
 import Vue from "vue";
 import {
-    imageToResource, disposeResource, verifyIfResource
+    imageToResource, disposeResource, isResource
 } from "@/utils/resource-manager";
 
 /**
@@ -58,7 +58,7 @@ export default {
          * converted to binary as registered as a Blob URL.
          */
         async addImage({ state }, { file, image, size }) {
-            const isValidResource = verifyIfResource( image ) || image.src.startsWith( "http" );
+            const isValidResource = isResource( image ) || image.src.startsWith( "http" );
 
             const source    = isValidResource ? image.src : await imageToResource( image, file.type );
             const imageData = { file, size, source };
