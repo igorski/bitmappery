@@ -25,9 +25,9 @@
         <h3 v-t="'zoomLevel'"></h3>
         <slider
             v-model="zoomLevel"
-            :min="1"
-            :max="10"
-            :interval=".1"
+            :min="min"
+            :max="max"
+            :tooltip="'none'"
         />
     </div>
 </template>
@@ -43,19 +43,23 @@ export default {
     components: {
         Slider,
     },
+    data: () => ({
+        min: 10,
+        max: 30,
+    }),
     computed: {
         ...mapGetters([
             "zoomOptions",
         ]),
         zoomLevel: {
             get() {
-                return this.zoomOptions.level;
+                return this.zoomOptions.level * this.min;
             },
             set( value ) {
                 this.setToolOptionValue({
                     tool: tools.ZOOM,
                     option: "level",
-                    value
+                    value: value / this.min,
                 });
             }
         }

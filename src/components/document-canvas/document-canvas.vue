@@ -31,7 +31,7 @@
                 type="button"
                 class="close-button"
                 @click="requestDocumentClose()"
-            >x</button>
+            >&#215;</button>
             <div class="content" ref="canvasContainer"></div>
         </template>
     </div>
@@ -50,13 +50,11 @@ import {
 
 let lastDocument, zCanvas, drawableLayer;
 // scale of the on-screen canvas relative to the document
-let xScale = 1, yScale = 1, containerSize;
+let xScale = 1, yScale = 1, zoom = 1, containerSize;
 
 export default {
     data: () => ({
-        wrapperHeight: "auto",
-        xScale: 1,
-        yScale: 1,
+        wrapperHeight: "auto"
     }),
     computed: {
         ...mapState([
@@ -87,6 +85,7 @@ export default {
                     this.createCanvas();
                     this.$nextTick(() => {
                         zCanvas.insertInPage( this.$refs.canvasContainer );
+                        this.cacheContainerSize();
                     });
                 }
                 const { name, width, height } = document;
@@ -128,15 +127,19 @@ export default {
         zoomOptions: {
             deep: true,
             handler({ level }) {
-                this.xScale = level;
-                this.yScale = level;
+                zoom = level;
+
+                // cache the current scroll offset so we can zoom from the current offset
                 let { scrollLeft, scrollTop, scrollWidth, scrollHeight } = this.$refs.canvasContainer;
                 let ratioX = scrollLeft / scrollWidth;
                 let ratioY = scrollTop / scrollHeight;
+
                 this.scaleCanvas();
+
+                // maintain relative scroll offset after rescale
                 ({ scrollWidth, scrollHeight } = this.$refs.canvasContainer );
-                this.$refs.canvasContainer.scrollLeft *= ratioX;
-                this.$refs.canvasContainer.scrollTop *= ratioY;
+                this.$refs.canvasContainer.scrollLeft = scrollWidth  * ratioX;
+                this.$refs.canvasContainer.scrollTop  = scrollHeight * ratioY;
             }
         },
     },
@@ -171,8 +174,11 @@ export default {
             let { width, height } = this.activeDocument;
             ({ width, height } = scaleToRatio( width, height, containerSize.width, containerSize.height ));
             this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
-            zCanvas.setDimensions( width * this.xScale, height * this.yScale );
-            zCanvas.setZoomFactor(( width / this.activeDocument.width ) * this.xScale, ( height / this.activeDocument.height ) * this.yScale );
+            zCanvas.setDimensions( width * zoom, height * zoom, true, true );
+            xScale = width / this.activeDocument.width;
+            yScale = height / this.activeDocument.height;
+            zCanvas.setZoomFactor( xScale * zoom, yScale * zoom );
+        //    zCanvas.setZoomFactor(( width / this.activeDocument.width ) * this.xScale, ( height / this.activeDocument.height ) * this.yScale );
         },
     },
 };
@@ -185,14 +191,7 @@ export default {
 .canvas-wrapper {
     display: inline-block;
     width: 100%;
-    position: relative;
     @include component();
-
-    .close-button {
-        position: absolute;
-        top: $spacing-small;
-        right: $spacing-small;
-    }
 
     .content {
         padding: 0;

@@ -73,14 +73,14 @@
                     </li>
                 </ul>
             </li>
-            <!-- fullscreen button -->
-            <li v-if="supportsFullscreen"
-                v-t="'maximize'"
-                ref="fullscreenBtn"
-                class="fullscreen-button"
-                data-api-fullscreen
-            ></li>
         </ul>
+        <!-- fullscreen button -->
+        <div v-if="supportsFullscreen"
+            v-t="'maximize'"
+            ref="fullscreenBtn"
+            class="fullscreen-button"
+            data-api-fullscreen
+        ></div>
     </nav>
 </template>
 
@@ -144,6 +144,13 @@ $toggle-width: 50px;
     width: 100%;
     background-image: $color-window-bg;
     @include boxSize();
+
+    @include large() {
+        min-width: 100%;
+        max-width: $ideal-width;
+        margin: 0 auto;
+        padding-left: $spacing-large;
+    }
 
     @include mobile() {
         height: $menu-height;
@@ -219,22 +226,6 @@ $toggle-width: 50px;
                     font-style: italic;
                     background-color: $color-1;
                 }
-
-                &.fullscreen-button {
-                    float: left;
-                }
-            }
-        }
-
-        .menu-list {
-            position: absolute;
-            top: $menu-height;
-            background-image: linear-gradient(to bottom,#fff 35%,#eee 90%);
-            background-repeat: repeat-x;
-            display: none;
-
-            .title {
-                display: none;
             }
         }
     }
@@ -321,50 +312,63 @@ h1 {
             list-style: none;
         }
 
-        &.fullscreen-button {
-            float: right;
-            margin-right: $spacing-medium;
-        }
-    }
-}
-
-@include large() {
-    .menu {
-        min-width: 100%;
-        max-width: $ideal-width;
-        margin: 0 auto;
-        padding-left: $spacing-large;
-    }
-
-    .menu-list li {
-        &:hover, &:focus {
-            a {
-                color: $color-1;
+        @include large() {
+            &:hover, &:focus {
+                a {
+                    color: $color-1;
+                }
+                ul {
+                    display: block;
+                    z-index: 2;
+                }
             }
             ul {
-                display: block;
-                z-index: 2;
+                display: none;
+                position: absolute;
+                box-shadow: 0 0 5px rgba(0,0,0,.5);
+                padding: $spacing-medium;
+                background-image: $color-window-bg;
+                background-repeat: repeat-x;
+                @include boxSize();
             }
         }
-        ul {
-            display: none;
-            position: absolute;
-            box-shadow: 0 0 5px rgba(0,0,0,.5);
-            padding: $spacing-medium;
-            background-image: $color-window-bg;
-            background-repeat: repeat-x;
-            @include boxSize();
-        }
     }
-    .submenu li {
-        display: block;
-        color: #b6b6b6;
-        padding: $spacing-xsmall $spacing-medium;
 
-        &:hover {
-            color: #FFF;
+    @include mobile() {
+        position: absolute;
+        top: $menu-height;
+        background-image: linear-gradient(to bottom,#fff 35%,#eee 90%);
+        background-repeat: repeat-x;
+        display: none;
+
+        .title {
+            display: none;
         }
     }
 }
 
+.submenu {
+    @include large() {
+        li {
+            display: block;
+            color: #b6b6b6;
+            padding: $spacing-xsmall $spacing-medium;
+
+            &:hover {
+                color: #FFF;
+            }
+        }
+    }
+}
+
+.fullscreen-button {
+    position: absolute;
+    top: $spacing-small;
+    right: $spacing-medium;
+    cursor: pointer;
+
+    &:hover {
+        color: $color-1;
+    }
+}
 </style>

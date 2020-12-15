@@ -1,6 +1,7 @@
 @import "_mixins";
 
 @mixin component {
+    position: relative;
     box-shadow: 0 0 5px rgba(0,0,0,.5);
     background-color: #666;
 
@@ -18,5 +19,11 @@
         padding: $spacing-medium;
         @include boxSize();
         height: calc(100% - 40px);
+    }
+
+    .close-button {
+        position: absolute;
+        top: $spacing-small;
+        right: $spacing-small;
     }
 }

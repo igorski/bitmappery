@@ -17,6 +17,8 @@ export default {
     },
     state: {
         menuOpened: false,
+        toolboxOpened: false,
+        optionsPanelOpened: true,
         blindActive: false,
         dialog: null,
         modal: null,
@@ -29,6 +31,12 @@ export default {
     mutations: {
         setMenuOpened( state, value ) {
             state.menuOpened = !!value;
+        },
+        setToolboxOpened( state, value ) {
+            state.toolboxOpened = !!value;
+        },
+        setOptionsPanelOpened( state, value ) {
+            state.optionsPanelOpened = !!value;
         },
         setBlindActive( state, active ) {
             state.blindActive = !!active;

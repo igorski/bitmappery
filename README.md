@@ -33,13 +33,14 @@ npm run lint
 
 # TODO / Roadmap
 
-* Add zoom control to control zoom factor. Tool options should go to options-panel (duh)
+* When adding new document, window needs resize/options need collapse/expand before ideal size is displayed (this is solved once there has been a document embedded in the page before)
+* Default canvas background is transparency blocks (requires zCanvas bg pattern update)
+* Zoom in should be center based
 * Drawable layers must be added to document (and thus be recalled when switching documents)
 * Add brush options > size, transparency
 * Image position must be made persistent (now isn't on document switch)
 * Add layer view to options-panel: allow naming, repositioning, set as mask
 * Implement selections
-* Toolbox and options panel should be collapsible (keyboard shortcuts)
 * Unload Blobs when images are no longer used in document (see canvas-util disposeSprite)
 * Export output to image file
 * Import / export documents from/to disk

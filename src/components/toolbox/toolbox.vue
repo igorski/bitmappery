@@ -22,8 +22,16 @@
  */
 <template>
     <div class="toolbox-wrapper">
-        <h2 v-t="'toolbox'"></h2>
-        <div class="content">
+        <h2 v-if="!collapsed" v-t="'toolbox'"></h2>
+        <button
+            type="button"
+            class="close-button"
+            @click="collapsed = !collapsed"
+        >{{ collapsed ? '&rarr;' : '&larr;' }}</button>
+        <div
+            v-if="!collapsed"
+            class="content"
+        >
             <button v-for="(button, index) in tools"
                     :key="button.type"
                     v-t="button.i18n"
@@ -36,15 +44,26 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from "vuex";
+import { mapState, mapGetters, mapMutations } from "vuex";
 import messages from "./messages.json";
 
 export default {
     i18n: { messages },
     computed: {
+        ...mapState([
+            "toolboxOpened",
+        ]),
         ...mapGetters([
             "activeTool",
         ]),
+        collapsed: {
+            get() {
+                return !this.toolboxOpened;
+            },
+            set( value ) {
+                this.setToolboxOpened( !value );
+            }
+        },
         tools() {
             return [
                 { type: "move", i18n: "move" }, { type: "zoom", i18n: "zoom" },
@@ -55,6 +74,7 @@ export default {
     methods: {
         ...mapMutations([
             "setActiveTool",
+            "setToolboxOpened",
         ]),
     },
 };

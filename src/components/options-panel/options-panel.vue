@@ -21,21 +21,27 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div>
-        <div class="options-panel-wrapper">
-            <h2 v-t="'optionsPanel'"></h2>
-            <div class="content">
-                <file-selector />
-                <component :is="activeToolOptions" />
-            </div>
+    <div class="options-panel-wrapper">
+        <h2 v-if="!collapsed" v-t="'optionsPanel'"></h2>
+        <button
+            type="button"
+            class="close-button"
+            @click="collapsed = !collapsed"
+        >{{ collapsed ? '&larr;' : '&rarr;' }}</button>
+        <div
+            v-if="!collapsed"
+            class="content"
+        >
+            <file-selector />
+            <component :is="activeToolOptions" />
         </div>
     </div>
 </template>
 
 <script>
-import { mapGetters } from "vuex";
-import FileSelector   from "./components/file-selector/file-selector";
-import messages       from "./messages.json";
+import { mapState, mapGetters, mapMutations } from "vuex";
+import FileSelector from "./components/file-selector/file-selector";
+import messages     from "./messages.json";
 
 export default {
     i18n: { messages },
@@ -43,9 +49,20 @@ export default {
         FileSelector,
     },
     computed: {
+        ...mapState([
+            "optionsPanelOpened",
+        ]),
         ...mapGetters([
             "activeTool",
         ]),
+        collapsed: {
+            get() {
+                return !this.optionsPanelOpened;
+            },
+            set( value ) {
+                this.setOptionsPanelOpened( !value );
+            }
+        },
         activeToolOptions() {
             switch ( this.activeTool ) {
                 default:
@@ -56,6 +73,11 @@ export default {
                     return () => import( "./components/tool-options-brush/tool-options-brush" );
             }
         },
+    },
+    methods: {
+        ...mapMutations([
+            "setOptionsPanelOpened",
+        ]),
     }
 };
 </script>
