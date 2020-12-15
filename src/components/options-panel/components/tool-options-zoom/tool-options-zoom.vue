@@ -20,4 +20,54 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-export const RESIZE_DOCUMENT = 1;
+<template>
+    <div class="tool-option">
+        <h3 v-t="'zoomLevel'"></h3>
+        <slider
+            v-model="zoomLevel"
+            :min="1"
+            :max="10"
+            :interval=".1"
+        />
+    </div>
+</template>
+
+<script>
+import { mapGetters, mapMutations } from "vuex";
+import Slider   from "@/components/ui/slider/slider";
+import tools    from "@/definitions/tools";
+import messages from "./messages.json";
+
+export default {
+    i18n: { messages },
+    components: {
+        Slider,
+    },
+    computed: {
+        ...mapGetters([
+            "zoomOptions",
+        ]),
+        zoomLevel: {
+            get() {
+                return this.zoomOptions.level;
+            },
+            set( value ) {
+                this.setToolOptionValue({
+                    tool: tools.ZOOM,
+                    option: "level",
+                    value
+                });
+            }
+        }
+    },
+    methods: {
+        ...mapMutations([
+            "setToolOptionValue",
+        ]),
+    },
+};
+</script>
+
+<style lang="scss" scoped>
+@import "@/styles/tool-option";
+</style>

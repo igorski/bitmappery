@@ -20,4 +20,19 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-export const RESIZE_DOCUMENT = 1;
+<template>
+    <div class="tool-option">
+        <h3 v-t="'brush'"></h3>
+    </div>
+</template>
+
+<script>
+import messages from "./messages.json";
+export default {
+    i18n: { messages },
+};
+</script>
+
+<style lang="scss" scoped>
+@import "@/styles/tool-option";
+</style>

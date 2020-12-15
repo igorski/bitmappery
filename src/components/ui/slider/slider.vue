@@ -20,4 +20,56 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-export const RESIZE_DOCUMENT = 1;
+<template>
+    <vue-slider
+        v-model="internalValue"
+        :direction="orientation === 'vertical' ? 'ttb' : 'ltr'"
+        :dot-size="24"
+        :min="min"
+        :max="max"
+    />
+</template>
+
+<script>
+import VueSlider from "vue-slider-component";
+import "vue-slider-component/theme/antd.css";
+
+export default {
+    components: {
+        VueSlider
+    },
+    props: {
+        value: {
+            type: Number,
+            default: 0
+        },
+        orientation: {
+            type: String,
+            default: "horizontal",
+            validator: value => /horizontal|vertical/.test( value )
+        },
+        min: {
+            type: Number,
+            default: 0,
+        },
+        max: {
+            type: Number,
+            default: 100,
+        },
+        interval: {
+            type: Number,
+            default: 1,
+        },
+    },
+    computed: {
+        internalValue: {
+            get() {
+                return this.value;
+            },
+            set( value ) {
+                this.$emit( "input", value );
+            }
+        },
+    }
+};
+</script>

@@ -26,20 +26,37 @@
             <h2 v-t="'optionsPanel'"></h2>
             <div class="content">
                 <file-selector />
+                <component :is="activeToolOptions" />
             </div>
         </div>
     </div>
 </template>
 
 <script>
-import FileSelector from "./components/file-selector/file-selector";
-import messages     from "./messages.json";
+import { mapGetters } from "vuex";
+import FileSelector   from "./components/file-selector/file-selector";
+import messages       from "./messages.json";
 
 export default {
     i18n: { messages },
     components: {
         FileSelector,
     },
+    computed: {
+        ...mapGetters([
+            "activeTool",
+        ]),
+        activeToolOptions() {
+            switch ( this.activeTool ) {
+                default:
+                    return null;
+                case "zoom":
+                    return () => import( "./components/tool-options-zoom/tool-options-zoom" );
+                case "brush":
+                    return () => import( "./components/tool-options-brush/tool-options-brush" );
+            }
+        },
+    }
 };
 </script>
 

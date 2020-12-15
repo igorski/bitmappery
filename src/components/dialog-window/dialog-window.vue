@@ -101,7 +101,7 @@ export default {
     transform: translate(-50%, -50%);
     background-image: $color-window-bg;
 
-    padding: $spacing-small $spacing-large;
+    padding: $spacing-small $spacing-large $spacing-large;
     border-radius: $spacing-small;
     box-shadow: 0 0 25px rgba(0,0,0,.5);
 

@@ -128,7 +128,7 @@ export default {
     display: block;
     text-align: center;
     cursor: pointer;
-    border: $spacing-xsmall solid #b6b6b6;
+    border: $spacing-xsmall solid $color-lines;
     border-radius: $spacing-medium;
     padding: $spacing-medium $spacing-xlarge;
     font-weight: bold;

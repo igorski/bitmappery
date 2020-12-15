@@ -28,9 +28,9 @@
 </template>
 
 <script>
-import { ModelSelect } from 'vue-search-select';
-import 'semantic-ui-css/components/dropdown.min.css'
-import 'vue-search-select/dist/VueSearchSelect.css';
+import { ModelSelect } from "vue-search-select";
+import "semantic-ui-css/components/dropdown.min.css"
+import "vue-search-select/dist/VueSearchSelect.css";
 
 export default {
     props: {
@@ -52,7 +52,7 @@ export default {
                 return this.value;
             },
             set( value ) {
-                this.$emit( 'input', value );
+                this.$emit( "input", value );
             }
         },
     },

@@ -47,7 +47,8 @@ export default {
         ]),
         tools() {
             return [
-                { type: "move", i18n: "move" }, { type: "brush", i18n: "brush" }
+                { type: "move", i18n: "move" }, { type: "zoom", i18n: "zoom" },
+                { type: "brush", i18n: "brush" }
             ]
         },
     },

@@ -2,6 +2,7 @@
     "en-US": {
         "toolbox": "Toolbox",
         "move": "Move",
+        "zoom": "Zoom",
         "brush": "Brush"
     }
 }

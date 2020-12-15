@@ -1,0 +1,12 @@
+@import "_mixins";
+
+.tool-option {
+    border-top: 1px dashed $color-lines;
+    border-bottom: 1px dashed $color-lines;
+    margin: $spacing-medium 0;
+    padding: $spacing-small 0;
+
+    h3 {
+        color: #FFF;
+    }
+}

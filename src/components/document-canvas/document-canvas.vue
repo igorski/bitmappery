@@ -46,13 +46,17 @@ import {
     createSpriteForGraphic, runSpriteFn, flushSpritesInLayer, flushCache,
 } from "@/utils/canvas-util";
 
-/* internal methods */
+/* internal non-reactive properties */
 
 let lastDocument, zCanvas, drawableLayer;
+// scale of the on-screen canvas relative to the document
+let xScale = 1, yScale = 1, containerSize;
 
 export default {
     data: () => ({
         wrapperHeight: "auto",
+        xScale: 1,
+        yScale: 1,
     }),
     computed: {
         ...mapState([
@@ -61,10 +65,12 @@ export default {
         ...mapGetters([
             "activeDocument",
             "activeTool",
+            "zoomOptions",
         ]),
     },
     watch: {
         windowSize() {
+            this.cacheContainerSize();
             this.scaleCanvas();
         },
         activeDocument: {
@@ -118,7 +124,24 @@ export default {
                     break;
             }
             runSpriteFn( sprite => sprite.setDraggable( isDraggable || sprite instanceof DrawableLayer ));
-        }
+        },
+        zoomOptions: {
+            deep: true,
+            handler({ level }) {
+                this.xScale = level;
+                this.yScale = level;
+                let { scrollLeft, scrollTop, scrollWidth, scrollHeight } = this.$refs.canvasContainer;
+                let ratioX = scrollLeft / scrollWidth;
+                let ratioY = scrollTop / scrollHeight;
+                this.scaleCanvas();
+                ({ scrollWidth, scrollHeight } = this.$refs.canvasContainer );
+                this.$refs.canvasContainer.scrollLeft *= ratioX;
+                this.$refs.canvasContainer.scrollTop *= ratioY;
+            }
+        },
+    },
+    mounted() {
+        this.cacheContainerSize();
     },
     methods: {
         ...mapActions([
@@ -134,6 +157,9 @@ export default {
                 stretchToFit: false
             });
         },
+        cacheContainerSize() {
+            containerSize = this.$el.parentNode?.getBoundingClientRect();
+        },
         /**
          * Ensure the canvas fills out the available space while also maintaining
          * the ratio of the document is is representing.
@@ -143,11 +169,10 @@ export default {
                 return;
             }
             let { width, height } = this.activeDocument;
-            const containerSize = this.$el.parentNode?.getBoundingClientRect();
             ({ width, height } = scaleToRatio( width, height, containerSize.width, containerSize.height ));
             this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
-            zCanvas.setDimensions( width, height );
-            zCanvas.setZoomFactor( width / this.activeDocument.width, height / this.activeDocument.height );
+            zCanvas.setDimensions( width * this.xScale, height * this.yScale );
+            zCanvas.setZoomFactor(( width / this.activeDocument.width ) * this.xScale, ( height / this.activeDocument.height ) * this.yScale );
         },
     },
 };
