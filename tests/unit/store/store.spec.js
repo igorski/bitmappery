@@ -10,6 +10,18 @@ describe( "Vuex store", () => {
             expect( state.menuOpened ).toBe( true );
         });
 
+        it("should be able to toggle the opened state of the toolbox", () => {
+            const state = { toolboxOpened: false };
+            mutations.setToolboxOpened( state, true );
+            expect( state.toolboxOpened ).toBe( true );
+        });
+
+        it("should be able to toggle the opened state of the options panel", () => {
+            const state = { optionsPanelOpened: false };
+            mutations.setOptionsPanelOpened( state, true );
+            expect( state.optionsPanelOpened ).toBe( true );
+        });
+
         it("should be able to toggle the active state of the blinding layer", () => {
             const state = { blindActive: false };
             mutations.setBlindActive( state, true );

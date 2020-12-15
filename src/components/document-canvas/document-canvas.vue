@@ -31,7 +31,7 @@
                 type="button"
                 class="close-button"
                 @click="requestDocumentClose()"
-            >x</button>
+            >&#215;</button>
             <div class="content" ref="canvasContainer"></div>
         </template>
     </div>
@@ -160,14 +160,7 @@ export default {
 .canvas-wrapper {
     display: inline-block;
     width: 100%;
-    position: relative;
     @include component();
-
-    .close-button {
-        position: absolute;
-        top: $spacing-small;
-        right: $spacing-small;
-    }
 
     .content {
         padding: 0;

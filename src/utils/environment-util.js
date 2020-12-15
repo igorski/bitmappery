@@ -26,6 +26,8 @@ const d = window.document;
 let fsToggle;
 let maximizeText, minimizeText;
 
+export const isMobile = () => window.screen.availWidth <= 640; // see _variables.scss
+
 export const supportsFullscreen = () => !Bowser.ios;
 
 export const setToggleButton = ( element, maximizeCopy, minimizeCopy ) => {

@@ -21,17 +21,24 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div>
-        <div class="options-panel-wrapper">
-            <h2 v-t="'optionsPanel'"></h2>
-            <div class="content">
-                <file-selector />
-            </div>
+    <div class="options-panel-wrapper">
+        <h2 v-if="!collapsed" v-t="'optionsPanel'"></h2>
+        <button
+            type="button"
+            class="close-button"
+            @click="collapsed = !collapsed"
+        >{{ collapsed ? '&larr;' : '&rarr;' }}</button>
+        <div
+            v-if="!collapsed"
+            class="content"
+        >
+            <file-selector />
         </div>
     </div>
 </template>
 
 <script>
+import { mapState, mapMutations } from "vuex";
 import FileSelector from "./components/file-selector/file-selector";
 import messages     from "./messages.json";
 
@@ -40,6 +47,24 @@ export default {
     components: {
         FileSelector,
     },
+    computed: {
+        ...mapState([
+            "optionsPanelOpened",
+        ]),
+        collapsed: {
+            get() {
+                return !this.optionsPanelOpened;
+            },
+            set( value ) {
+                this.setOptionsPanelOpened( !value );
+            }
+        },
+    },
+    methods: {
+        ...mapMutations([
+            "setOptionsPanelOpened",
+        ]),
+    }
 };
 </script>
 

@@ -24,11 +24,22 @@
     <div id="app">
         <application-menu />
         <section class="main">
-            <toolbox class="toolbox"/>
-            <div class="document-container">
-                <document-canvas />
+            <toolbox
+                ref="toolbox"
+                class="toolbox"
+                :class="{ 'collapsed': !toolboxOpened }"
+            />
+            <div
+                class="document-container"
+                :style="{ 'width': docWidth }"
+            >
+                <document-canvas ref="documentCanvas" />
             </div>
-            <options-panel class="options-panel" />
+            <options-panel
+                ref="optionsPanel"
+                class="options-panel"
+                :class="{ 'collapsed': !optionsPanelOpened }"
+            />
         </section>
         <!-- dialog window used for information messages, alerts and confirmations -->
         <dialog-window v-if="dialog"
@@ -49,17 +60,18 @@
 </template>
 
 <script>
-import Vue                from "vue";
+import Vue                 from "vue";
 import Vuex, { mapState, mapMutations, mapActions } from "vuex";
-import VueI18n            from "vue-i18n";
-import ApplicationMenu    from "@/components/application-menu/application-menu";
-import DocumentCanvas     from "@/components/document-canvas/document-canvas";
-import OptionsPanel       from "@/components/options-panel/options-panel";
-import Toolbox            from "@/components/toolbox/toolbox";
-import DialogWindow       from "@/components/dialog-window/dialog-window";
+import VueI18n             from "vue-i18n";
+import ApplicationMenu     from "@/components/application-menu/application-menu";
+import DocumentCanvas      from "@/components/document-canvas/document-canvas";
+import OptionsPanel        from "@/components/options-panel/options-panel";
+import Toolbox             from "@/components/toolbox/toolbox";
+import DialogWindow        from "@/components/dialog-window/dialog-window";
 import { RESIZE_DOCUMENT } from "@/definitions/modal-windows";
-import store              from "./store";
-import messages           from "./messages.json";
+import { isMobile }        from "@/utils/environment-util";
+import store               from "./store";
+import messages            from "./messages.json";
 
 Vue.use( Vuex );
 Vue.use( VueI18n );
@@ -79,11 +91,17 @@ export default {
         DialogWindow,
         OptionsPanel,
     },
+    data: () => ({
+        docWidth: "100%",
+    }),
     computed: {
         ...mapState([
             "blindActive",
+            "toolboxOpened",
+            "optionsPanelOpened",
             "dialog",
-            "modal"
+            "modal",
+            "windowSize",
         ]),
         activeModal() {
             switch ( this.modal ) {
@@ -94,21 +112,48 @@ export default {
             }
         },
     },
+    watch: {
+        toolboxOpened() {
+            this.$nextTick( this.scaleContainer );
+        },
+        optionsPanelOpened() {
+            this.$nextTick( this.scaleContainer );
+        },
+    },
     async created() {
         await this.setupServices( i18n );
         // no need to remove the below as we will require it throughout the application lifteimte
         window.addEventListener( "resize", this.handleResize.bind( this ));
+        // 640 declared in _variables.scss to be mobile threshold
+        if ( !isMobile() ) {
+            this.setToolboxOpened( true );
+        }
     },
     methods: {
         ...mapMutations([
             "setWindowSize",
             "closeModal",
+            "setToolboxOpened",
         ]),
         ...mapActions([
             "setupServices",
         ]),
         handleResize() {
             this.setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+        },
+        /**
+         * Ensure the document container has optimal size. Ideally we'd like a pure
+         * CSS solution, but the toolbox and options panel widths are dynamic (and
+         * in both cases fixed), making flexbox cumbersome.
+         */
+        scaleContainer() {
+            if ( isMobile() ) {
+                return;
+            }
+            const toolboxWidth      = this.$refs.toolbox?.$el.clientWidth;
+            const optionsPanelWidth = this.$refs.optionsPanel?.$el.clientWidth;
+            this.docWidth = `calc(100% - ${toolboxWidth + optionsPanelWidth + 32}px)`;
+            this.$nextTick(() => this.$refs.documentCanvas?.scaleCanvas());
         },
     }
 };
@@ -138,10 +183,13 @@ html, body {
     height: 100%;
 
     .main {
-        display: flex;
-        height: calc(100% - #{$menu-height});
-        padding: $spacing-medium;
         @include boxSize();
+        height: calc(100% - #{$menu-height});
+        position: relative;
+
+        @include large() {
+            padding: $spacing-medium;
+        }
     }
 
     .blind {
@@ -154,17 +202,37 @@ html, body {
         z-index: 400; // below overlays (see _variables.scss)
     }
 
-    $toolbox-width: 150px;
-    $options-width: 300px;
+    .toolbox,
+    .document-container,
+    .options-panel {
+        display: inline-block;
+        vertical-align: top;
+    }
+    .toolbox,
+    .options-panel {
+        @include mobile() {
+            position: absolute;
+            top: $menu-height;
+            z-index: 2;
+        }
+        &.collapsed {
+            width: 45px;
+            min-height: 40px;
+        }
+    }
+
     .toolbox {
-        width: $toolbox-width;
+        width: 150px;
     }
     .document-container {
-        width: calc(100% - (#{$toolbox-width + $options-width + ($spacing-medium * 2)}));
+        width: 100%;
         margin: 0 $spacing-medium;
     }
     .options-panel {
-        width: $options-width;
+        width: 300px;
+        @include mobile() {
+            right: 0;
+        }
     }
 }
 </style>

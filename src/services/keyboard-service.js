@@ -195,10 +195,24 @@ function handleKeyDown( event ) {
             }
             break;
 
+        case 79: // O
+            if ( hasOption ) {
+                store.commit( "setOptionsPanelOpened", !store.state.optionsPanelOpened );
+                preventDefault( event );
+            }
+            break;
+
         case 83: // S
             if ( hasOption ) {
                 // ...
                 preventDefault( event ); // page save
+            }
+            break;
+
+        case 84: // T
+            if ( hasOption ) {
+                store.commit( "setToolboxOpened", !store.state.toolboxOpened );
+                preventDefault( event );
             }
             break;
 

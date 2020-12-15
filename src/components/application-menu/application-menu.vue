@@ -365,5 +365,10 @@ h1 {
     position: absolute;
     top: $spacing-small;
     right: $spacing-medium;
+    cursor: pointer;
+
+    &:hover {
+        color: $color-1;
+    }
 }
 </style>

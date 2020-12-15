@@ -27,14 +27,14 @@ function ZoomableCanvas( opts ) {
 
     this.setZoomFactor = function( xScale, yScale ) {
         this.zoomFactor = xScale;
-        
+
         // we debounce this as setDimensions() is only updating size
         // on render. This zoom factor logic should move into the zCanvas
         // library where updateCanvasSize() takes this additional factor into account
         window.requestAnimationFrame(() => {
             this._canvasContext.scale( xScale, yScale );
+            this.invalidate(); // TODO: zCanvas.scale must invalidate() !
         });
-        this.invalidate();
     };
     this.setZoomFactor( 1 );
 }
