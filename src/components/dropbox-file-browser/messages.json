@@ -1,0 +1,7 @@
+{
+    "en-US": {
+        "files": "Files",
+        "loading": "Loading...",
+        "couldNotRetrieveFilesForPath": "Could not retrieve files for \"{path}\""
+    }
+}

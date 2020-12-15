@@ -6,6 +6,10 @@ No, I'm building a tool that does the bare minimum what I require and what I don
 find in other open source tools. That doesn't mean of course that contributions
 related to Photoshop-esque features aren't welcomed.
 
+## Dropbox integration
+
+Requires you to [register a client id or access token](https://www.dropbox.com/developers/apps).
+
 ## Project setup
 ```
 npm install
@@ -52,4 +56,3 @@ npm run lint
 * Implement clone brush
 * Implement document crop
 * Implement change history
-* Dropbox integration?

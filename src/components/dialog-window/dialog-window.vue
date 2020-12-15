@@ -72,11 +72,11 @@ export default {
             'closeDialog',
         ]),
         handleConfirm() {
-            this?.confirmHandler();
+            this.confirmHandler?.();
             this.close();
         },
         handleCancel() {
-            this?.cancelHandler();
+            this.cancelHandler?.();
             this.close();
         },
         close() {

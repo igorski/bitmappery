@@ -33,6 +33,11 @@
             class="content"
         >
             <file-selector />
+            <input
+                v-model="dropbox"
+                type="checkbox"
+            />
+            <component :is="importType" />
             <component :is="activeToolOptions" />
         </div>
     </div>
@@ -48,6 +53,9 @@ export default {
     components: {
         FileSelector,
     },
+    data: () => ({
+        dropbox: false,
+    }),
     computed: {
         ...mapState([
             "optionsPanelOpened",
@@ -61,6 +69,14 @@ export default {
             },
             set( value ) {
                 this.setOptionsPanelOpened( !value );
+            }
+        },
+        importType() {
+            switch ( this.dropbox ) {
+                default:
+                    return null;
+                case true:
+                    return () => import( "./components/dropbox-file-selector/dropbox-file-selector" );
             }
         },
         activeToolOptions() {

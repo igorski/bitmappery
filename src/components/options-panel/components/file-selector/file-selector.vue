@@ -42,9 +42,9 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations, mapActions } from "vuex";
 import { loadImageFiles }   from "@/services/file-loader-queue";
 import { mapSelectOptions } from "@/utils/search-select-util"
+import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import SelectBox from '@/components/ui/select-box/select-box';
 import messages  from "./messages.json";
 
@@ -55,30 +55,17 @@ export default {
     components: {
         SelectBox,
     },
+    mixins: [ ImageToDocumentManager ],
     data: () => ({
         acceptedImageTypes: ACCEPTED_IMAGE_TYPES,
         fileTarget: "document",
     }),
     computed: {
-        ...mapGetters([
-            "activeDocument",
-            "documents",
-            "layers",
-        ]),
         fileTargetOptions() {
             return mapSelectOptions(["layer", "document"]);
         },
     },
     methods: {
-        ...mapMutations([
-            "addLayer",
-            "addGraphicToLayer",
-            "addNewDocument",
-            "setActiveDocumentSize",
-        ]),
-        ...mapActions([
-            "addImage",
-        ]),
         async handleFileSelect({ target }) {
             const files = target?.files;
             if ( !files || files.length === 0 ) {
@@ -89,33 +76,6 @@ export default {
             const elapsed = Date.now() - start;
             console.warn( "Total time for load: " + ( elapsed / 1000 ) + " seconds" );
         },
-        async addLoadedFile( file, { image, size }) {
-            const { source } = await this.addImage({ file, image, size });
-
-            image.src = source;
-
-            const currentDocumentIsEmpty = this.layers?.length === 1 && !this.layers[ 0 ].graphics.length;
-
-            switch ( this.fileTarget) {
-                default:
-                case "layer":
-                    // if this is the first content of an existing document, scale document to image size
-                    if ( currentDocumentIsEmpty ) {
-                        this.setActiveDocumentSize( size );
-                    } else if ( !this.activeDocument ) {
-                        this.addNewDocument( file.name );
-                    }
-                    this.addLayer();
-                    break;
-                case "document":
-                    if ( !currentDocumentIsEmpty ) {
-                        this.addNewDocument( file.name );
-                    }
-                    this.setActiveDocumentSize( size );
-                    break;
-            }
-            this.addGraphicToLayer({ index: this.layers.length - 1, bitmap: image, size });
-        }
     }
 };
 </script>

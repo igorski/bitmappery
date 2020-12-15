@@ -1,0 +1,9 @@
+{
+    "en-US": {
+        "connectingToDropbox": "Connecting to Dropbox",
+        "loginToDropbox": "Log into Dropbox",
+        "connectedToDropbox": "Connected to Dropbox",
+        "login": "Login",
+        "selectFiles": "Select files"
+    }
+}

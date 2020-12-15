@@ -68,10 +68,12 @@ import DocumentCanvas      from "@/components/document-canvas/document-canvas";
 import OptionsPanel        from "@/components/options-panel/options-panel";
 import Toolbox             from "@/components/toolbox/toolbox";
 import DialogWindow        from "@/components/dialog-window/dialog-window";
-import { RESIZE_DOCUMENT } from "@/definitions/modal-windows";
 import { isMobile }        from "@/utils/environment-util";
 import store               from "./store";
 import messages            from "./messages.json";
+import {
+    RESIZE_DOCUMENT, DROPBOX_FILE_BROWSER
+} from "@/definitions/modal-windows";
 
 Vue.use( Vuex );
 Vue.use( VueI18n );
@@ -109,6 +111,8 @@ export default {
                     return null;
                 case RESIZE_DOCUMENT:
                     return () => import( "@/components/edit-menu/resize-document/resize-document" );
+                case DROPBOX_FILE_BROWSER:
+                    return () => import( "@/components/dropbox-file-browser/dropbox-file-browser" );
             }
         },
     },
