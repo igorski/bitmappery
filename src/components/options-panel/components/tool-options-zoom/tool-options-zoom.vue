@@ -38,14 +38,16 @@ import Slider   from "@/components/ui/slider/slider";
 import tools    from "@/definitions/tools";
 import messages from "./messages.json";
 
+const MAX_ZOOM = 3;
+
 export default {
     i18n: { messages },
     components: {
         Slider,
     },
     data: () => ({
-        min: 10,
-        max: 30,
+        min: 1,
+        max: 10,
     }),
     computed: {
         ...mapGetters([
@@ -53,13 +55,13 @@ export default {
         ]),
         zoomLevel: {
             get() {
-                return this.zoomOptions.level * this.min;
+                return ( this.zoomOptions.level / MAX_ZOOM ) * this.max;
             },
             set( value ) {
                 this.setToolOptionValue({
                     tool: tools.ZOOM,
                     option: "level",
-                    value: value / this.min,
+                    value: ( value / this.max ) * MAX_ZOOM
                 });
             }
         }

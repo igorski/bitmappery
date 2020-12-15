@@ -34,7 +34,8 @@ npm run lint
 # TODO / Roadmap
 
 * When adding new document, window needs resize/options need collapse/expand before ideal size is displayed (this is solved once there has been a document embedded in the page before)
-* Default canvas background is transparency blocks (requires zCanvas bg pattern update)
+* scale logic should move from zoomable-canvas into zCanvas (as handleInteraction needs to transform offsets by zoom ratio, see drawable-layer!)
+* Default canvas background should be transparency blocks (requires zCanvas bg pattern update or just a lowest render layer that isn't part of the document)
 * Zoom in should be center based
 * Drawable layers must be added to document (and thus be recalled when switching documents)
 * Add brush options > size, transparency

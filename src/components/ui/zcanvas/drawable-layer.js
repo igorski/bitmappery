@@ -57,6 +57,7 @@ function DrawableLayer({ width, height }) {
 
     this.handleMove = function( x, y ) {
         // TODO: this zoomFactor should be taken into account by handleInteraction of zCanvas !!
+        // BECAUSE IT DOES NOT WORK FOR HANDLEPRESS CURRENTLY
         x /= this.canvas.zoomFactor;
         y /= this.canvas.zoomFactor;
         ctx.drawImage( brush, x - radius / 2, y - radius / 2 );

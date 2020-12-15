@@ -32,7 +32,11 @@
                 class="close-button"
                 @click="requestDocumentClose()"
             >&#215;</button>
-            <div class="content" ref="canvasContainer"></div>
+            <div
+                ref="canvasContainer"
+                class="content"
+                :class="{ 'center': centerCanvas }"
+            ></div>
         </template>
     </div>
 </template>
@@ -54,7 +58,8 @@ let xScale = 1, yScale = 1, zoom = 1, containerSize;
 
 export default {
     data: () => ({
-        wrapperHeight: "auto"
+        wrapperHeight: "auto",
+        centerCanvas: false,
     }),
     computed: {
         ...mapState([
@@ -178,13 +183,15 @@ export default {
             xScale = width / this.activeDocument.width;
             yScale = height / this.activeDocument.height;
             zCanvas.setZoomFactor( xScale * zoom, yScale * zoom );
+
+            this.centerCanvas = zCanvas.getWidth() < containerSize.width;
         //    zCanvas.setZoomFactor(( width / this.activeDocument.width ) * this.xScale, ( height / this.activeDocument.height ) * this.yScale );
         },
     },
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import "@/styles/_mixins";
 @import "@/styles/component";
 
@@ -194,9 +201,17 @@ export default {
     @include component();
 
     .content {
+        position: relative;
         padding: 0;
         overflow: auto;
         display: block;
+
+        &.center canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
     }
 }
 </style>
