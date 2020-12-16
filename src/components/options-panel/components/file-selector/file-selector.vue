@@ -32,39 +32,22 @@
                :accept="acceptedImageTypes"
                @change="handleFileSelect"
         />
-        <div class="wrapper input">
-            <label v-t="'openImageAs'"></label>
-            <select-box :options="fileTargetOptions"
-                         v-model="fileTarget"
-            />
-        </div>
     </div>
 </template>
 
 <script>
-import { loadImageFiles }   from "@/services/file-loader-queue";
-import { mapSelectOptions } from "@/utils/search-select-util"
+import { loadImageFiles }     from "@/services/file-loader-queue";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
-import SelectBox from '@/components/ui/select-box/select-box';
-import messages  from "./messages.json";
+import messages               from "./messages.json";
 
 const ACCEPTED_IMAGE_TYPES = [ "image/png", "image/gif", "image/jpeg" ];
 
 export default {
     i18n: { messages },
-    components: {
-        SelectBox,
-    },
     mixins: [ ImageToDocumentManager ],
     data: () => ({
         acceptedImageTypes: ACCEPTED_IMAGE_TYPES,
-        fileTarget: "document",
     }),
-    computed: {
-        fileTargetOptions() {
-            return mapSelectOptions(["layer", "document"]);
-        },
-    },
     methods: {
         async handleFileSelect({ target }) {
             const files = target?.files;

@@ -33,11 +33,16 @@ import {
 export default {
     state: {
         images: [],
+        fileTarget: "document", // whether a newly selected file should go to new document or layer
     },
     getters: {
         images: state => state.images,
+        fileTarget: state => state.fileTarget,
     },
     mutations: {
+        setFileTarget( state, target ) {
+            state.fileTarget = target;
+        },
         /**
          * Invoke when we're done using an image in the applications life cycle.
          * This also frees memory allocated in addImage()

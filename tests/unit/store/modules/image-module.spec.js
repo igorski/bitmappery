@@ -10,15 +10,26 @@ jest.mock("@/utils/resource-manager", () => ({
 }));
 
 describe( "Vuex image module", () => {
-    describe("getters", () => {
-        it("should be able to retrieve the registered images", () => {
+    describe( "getters", () => {
+        it( "should be able to retrieve the registered images", () => {
             const state = { images: [ { foo: "bar" }, { baz: "qux" } ] };
             expect( getters.images( state )).toEqual( state.images );
+        });
+
+        it( "should be able to retrieve the file target", () => {
+            const state = { fileTarget: "layer" };
+            expect( getters.fileTarget( state )).toEqual( state.fileTarget );
         });
     });
 
     describe( "mutations", () => {
-        it("should be able to remove an image object from the images list", () => {
+        it( "should be able to set the file target", () => {
+            const state = { fileTarget: "document" };
+            mutations.setFileTarget( state, "layer" );
+            expect( state.fileTarget ).toEqual( "layer" );
+        });
+
+        it( "should be able to remove an image object from the images list", () => {
             const image1 = { file: new Blob(), source: "blob://1", size: { width: 50, height: 50 } };
             const image2 = { file: new Blob(), source: "blob://2", size: { width: 75, height: 75 } };
             const state = {

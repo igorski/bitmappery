@@ -1,6 +1,7 @@
 {
     "en-US": {
         "optionsPanel": "Options panel",
-        "importFromDropbox": "Import from Dropbox"
+        "importFromDropbox": "Import from Dropbox",
+        "openImageAs": "Open image as new"
     }
 }

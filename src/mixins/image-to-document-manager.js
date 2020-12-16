@@ -26,6 +26,7 @@ export default {
     computed: {
         ...mapGetters([
             "activeDocument",
+            "fileTarget",
             "layers",
         ])
     },

@@ -43,7 +43,7 @@
 
 <script>
 import { mapMutations } from "vuex";
-import { DROPBOX_FILE_BROWSER } from "@/definitions/modal-windows";
+import { DROPBOX_FILE_SELECTOR } from "@/definitions/modal-windows";
 import {
     isAuthenticated, requestLogin, registerAccessToken
 } from "@/services/dropbox-service";
@@ -94,7 +94,7 @@ export default {
             }
         },
         openFileBrowser() {
-            this.openModal( DROPBOX_FILE_BROWSER );
+            this.openModal( DROPBOX_FILE_SELECTOR );
         },
         showConnectionMessage() {
             this.showNotification({ message: this.$t( "connectedToDropbox" ) });

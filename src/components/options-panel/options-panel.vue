@@ -32,6 +32,7 @@
             v-if="!collapsed"
             class="content"
         >
+            <!-- file import section -->
             <file-selector />
             <button
                 v-if="!dropbox"
@@ -41,7 +42,16 @@
                 @click="dropbox = true"
             ></button>
             <component :is="cloudImportType" />
+            <div class="wrapper input">
+                <label v-t="'openImageAs'"></label>
+                <select-box :options="fileTargetOptions"
+                             v-model="importTarget"
+                />
+            </div>
+            <!-- active tool section -->
             <component :is="activeToolOptions" />
+            <!-- layer section -->
+            <!-- TODO -->
         </div>
     </div>
 </template>
@@ -49,12 +59,15 @@
 <script>
 import { mapState, mapGetters, mapMutations } from "vuex";
 import FileSelector from "./components/file-selector/file-selector";
+import SelectBox    from '@/components/ui/select-box/select-box';
+import { mapSelectOptions } from "@/utils/search-select-util"
 import messages     from "./messages.json";
 
 export default {
     i18n: { messages },
     components: {
         FileSelector,
+        SelectBox,
     },
     data: () => ({
         dropbox: false,
@@ -65,6 +78,7 @@ export default {
         ]),
         ...mapGetters([
             "activeTool",
+            "fileTarget",
         ]),
         collapsed: {
             get() {
@@ -72,6 +86,17 @@ export default {
             },
             set( value ) {
                 this.setOptionsPanelOpened( !value );
+            }
+        },
+        fileTargetOptions() {
+            return mapSelectOptions([ "layer", "document" ]);
+        },
+        importTarget: {
+            get() {
+                return this.fileTarget;
+            },
+            set( value ) {
+                this.setFileTarget( value );
             }
         },
         /**
@@ -100,6 +125,7 @@ export default {
     methods: {
         ...mapMutations([
             "setOptionsPanelOpened",
+            "setFileTarget",
         ]),
     }
 };
