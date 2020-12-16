@@ -30,11 +30,9 @@ function ZoomableCanvas( opts ) {
 
         // This zoom factor logic should move into the zCanvas
         // library where updateCanvasSize() takes this additional factor into account
-    //    window.requestAnimationFrame(() => {
 
             this._canvasContext.scale( xScale, yScale );
             this.invalidate();
-    //    });
     };
     this.setZoomFactor( 1 );
 }

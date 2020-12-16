@@ -62,8 +62,8 @@
 </template>
 
 <script>
-import Vue                 from "vue";
 import Vuex, { mapState, mapMutations, mapActions } from "vuex";
+import Vue             from "vue";
 import VueI18n         from "vue-i18n";
 import ApplicationMenu from "@/components/application-menu/application-menu";
 import DocumentCanvas  from "@/components/document-canvas/document-canvas";
@@ -189,6 +189,7 @@ html, body {
     -moz-osx-font-smoothing: grayscale;
     background-image: linear-gradient(to bottom, #282828 35%, #383838 90%);
     height: 100%;
+    @include noSelect();
 
     .main {
         @include boxSize();

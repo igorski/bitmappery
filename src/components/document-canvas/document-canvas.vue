@@ -32,12 +32,12 @@
                 class="close-button"
                 @click="requestDocumentClose()"
             >&#215;</button>
-            <div
-                ref="canvasContainer"
-                class="content"
-                :class="{ 'center': centerCanvas }"
-            ></div>
         </template>
+        <div
+            ref="canvasContainer"
+            class="content"
+            :class="{ 'center': centerCanvas }"
+        ></div>
     </div>
 </template>
 
@@ -91,6 +91,7 @@ export default {
                     this.$nextTick(() => {
                         zCanvas.insertInPage( this.$refs.canvasContainer );
                         this.cacheContainerSize();
+                        this.scaleCanvas();
                     });
                 }
                 const { name, width, height } = document;
@@ -179,13 +180,12 @@ export default {
             let { width, height } = this.activeDocument;
             ({ width, height } = scaleToRatio( width, height, containerSize.width, containerSize.height ));
             this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
-            zCanvas.setDimensions( width * zoom, height * zoom, true, true );
+            zCanvas.setDimensions( width * zoom, height * zoom, true, true ); // replace to not multiply by zoom
             xScale = width / this.activeDocument.width;
             yScale = height / this.activeDocument.height;
-            zCanvas.setZoomFactor( xScale * zoom, yScale * zoom );
+            zCanvas.setZoomFactor( xScale * zoom, yScale * zoom ); // replace with zCanvas.setZoom()
 
-            this.centerCanvas = zCanvas.getWidth() < containerSize.width;
-        //    zCanvas.setZoomFactor(( width / this.activeDocument.width ) * this.xScale, ( height / this.activeDocument.height ) * this.yScale );
+            this.centerCanvas = zCanvas.getWidth() < containerSize.width || zCanvas.getHeight() < containerSize.height ;
         },
     },
 };

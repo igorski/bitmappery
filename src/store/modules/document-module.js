@@ -46,7 +46,7 @@ export default {
             document.width  = width;
             document.height = height;
         },
-        addNewDocument( state, name = "" ) {
+        addNewDocument( state, name ) {
             state.documents.push( DocumentFactory.create( name ));
             state.activeIndex = state.documents.length - 1;
         },
