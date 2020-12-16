@@ -24,16 +24,29 @@
     <div class="dropbox-file-modal">
         <h2 v-t="'files'"></h2>
         <div v-if="loading" v-t="'loading'"></div>
-        <div v-else
-             class="content"
-        >
+        <div class="content">
             <div v-if="leaf">
-                {{ leaf.name }}
-                <button v-for="node in leaf.children"
-                        :key="node.path"
+                <div class="breadcrumbs">
+                    <!-- parent folders -->
+                    <button v-for="parent in breadcrumbs"
+                            :key="parent.path"
+                            type="button"
+                            @click="handleNodeClick( parent )"
+                    >{{ parent.name || "./" }}</button>
+                    <!-- current folder -->
+                    <button
                         type="button"
-                        @click="handleNodeClick( node )"
-                >{{ node.name }}</button>
+                        class="active"
+                    >{{ leaf.name }}</button>
+                </div>
+                <template v-if="!loading">
+                    <!-- files and folders within current leaf -->
+                    <button v-for="node in filesAndFolders"
+                            :key="node.path"
+                            type="button"
+                            @click="handleNodeClick( node )"
+                    >{{ node.name }}</button>
+                </template>
             </div>
         </div>
     </div>
@@ -48,13 +61,14 @@ import messages from "./messages.json";
 
 const ACCEPTED_FILE_EXTENSIONS = [ ".jpg", ".jpeg", "gif", "png" ];
 
-function mapEntry( entry, children = [] ) {
+function mapEntry( entry, children = [], parent = null ) {
     return {
         type: entry[ ".tag" ], // folder/file
         name: entry.name,
         id: entry.id,
         path: entry.path_lower,
         children,
+        parent,
     }
 }
 
@@ -104,6 +118,26 @@ export default {
         },
         leaf: null,
     }),
+    computed: {
+        breadcrumbs() {
+            let parent = this.leaf.parent;
+            const out = [];
+            while ( parent ) {
+                out.push( parent );
+                parent = parent.parent;
+            }
+            return out.reverse();
+        },
+        filesAndFolders() {
+            return this.leaf.children.filter( entry => {
+                // only show folders and image files
+                if ( entry.type === "file" ) {
+                    return ACCEPTED_FILE_EXTENSIONS.some( ext => entry.name.includes( ext ));
+                }
+                return true;
+            });
+        },
+    },
     created() {
         this.retrieveFiles( this.tree.path );
     },
@@ -116,16 +150,10 @@ export default {
             this.loading = true;
             try {
                 const { result } = await listFolder( path );
-                const leaf = findLeafByPath( this.tree, path );
+                const leaf   = findLeafByPath( this.tree, path );
+                const parent = { type: "folder", name: leaf.name, parent: leaf.parent, path };
                 // populate leaf with fetched children
-                leaf.children = ( result?.entries?.map( mapEntry ) ?? [])
-                    .filter( entry => {
-                        // only show folders and image files
-                        if ( entry.type === "file" ) {
-                            return ACCEPTED_FILE_EXTENSIONS.some( ext => entry.name.includes( ext ));
-                        }
-                        return true;
-                    });
+                leaf.children = result?.entries?.map( entry => mapEntry( entry, [], parent )) ?? [];
                 this.leaf = leaf;
             } catch {
                 this.openDialog({ type: "error", message: this.$t( "couldNotRetrieveFilesForPath", { path } ) });
@@ -152,6 +180,7 @@ export default {
 
 <style lang="scss" scoped>
 @import "@/styles/component";
+@import "@/styles/typography";
 
 .dropbox-file-modal {
     @include overlay();
@@ -169,6 +198,23 @@ export default {
         height: $height;
         left: calc(50% - #{$width / 2});
         top: calc(50% - #{$height / 2});
+    }
+}
+
+.breadcrumbs {
+    button {
+        display: inline;
+        position: relative;
+        margin-right: $spacing-small;
+        border: none;
+        background: none;
+        padding: 0 $spacing-small;
+        border-left: 1px solid $color-lines;
+        @include customFont();
+
+        &:hover, &.active {
+            color: $color-1;
+        }
     }
 }
 </style>
