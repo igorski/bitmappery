@@ -53,11 +53,28 @@ export const isAuthenticated = async () => {
     } catch ( error ) {
         return false;
     }
-}
+};
 
 export const listFolder = ( path = "" ) => {
-    return dbx.filesListFolder({ path });
-}
+    return dbx.filesListFolder({
+        path,
+        include_media_info: true,
+        include_deleted: false
+    });
+};
+
+export const getThumbnail = async ( path ) => {
+    try {
+        const { result } = await dbx.filesGetThumbnail({
+            path,
+            format: "jpeg",
+            size: "w64h64"
+        });
+        return URL.createObjectURL( result.fileBlob );
+    } catch {
+        return null;
+    }
+};
 
 export const downloadFileAsBlob = async path => {
     try {

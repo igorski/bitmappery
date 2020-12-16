@@ -62,7 +62,9 @@ export default {
     async created() {
         this.loading = true;
         this.authenticated = await isAuthenticated();
-        if ( !this.authenticated ) {
+        if ( this.authenticated ) {
+            this.openFileBrowser();
+        } else {
             this.authUrl = requestLogin(
                 window.dropboxClientId || localStorage?.getItem( "dropboxClientId" ),
                 window.dropboxRedirect || `${window.location.href}login.html`
@@ -87,6 +89,7 @@ export default {
                 loginWindow = null;
 
                 this.authenticated = true;
+                this.openFileBrowser();
             }
         },
         openFileBrowser() {

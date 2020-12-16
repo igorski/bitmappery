@@ -41,11 +41,19 @@
                 </div>
                 <template v-if="!loading">
                     <!-- files and folders within current leaf -->
-                    <button v-for="node in filesAndFolders"
-                            :key="node.path"
+                    <template v-for="node in filesAndFolders">
+                        <button
+                            v-if="node.type === 'folder'"
                             type="button"
+                            class="folder"
                             @click="handleNodeClick( node )"
-                    >{{ node.name }}</button>
+                        >{{ node.name }}</button>
+                        <dropbox-image-preview
+                            v-else
+                            :path="node.path"
+                            @click="handleNodeClick( node )"
+                        />
+                    </template>
                 </template>
             </div>
         </div>
@@ -57,7 +65,8 @@ import { mapMutations } from "vuex";
 import { loader }       from "zcanvas";
 import ImageToDocumentManager             from "@/mixins/image-to-document-manager";
 import { listFolder, downloadFileAsBlob } from "@/services/dropbox-service";
-import messages from "./messages.json";
+import DropboxImagePreview from "./dropbox-image-preview";
+import messages            from "./messages.json";
 
 const ACCEPTED_FILE_EXTENSIONS = [ ".jpg", ".jpeg", "gif", "png" ];
 
@@ -107,6 +116,9 @@ function recurseChildren( node, path ) {
 
 export default {
     i18n: { messages },
+    components: {
+        DropboxImagePreview,
+    },
     mixins: [ ImageToDocumentManager ],
     data: () => ({
         loading: false,
@@ -216,5 +228,12 @@ export default {
             color: $color-1;
         }
     }
+}
+
+.folder {
+    width: 64px;
+    height: 64px;
+    vertical-align: top;
+    @include textOverflow();
 }
 </style>
