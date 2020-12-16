@@ -50,7 +50,6 @@ import {
 } from "@/services/dropbox-service";
 import messages from "./messages.json";
 
-const REDIRECT_URI = `${window.location.href}login.html`;
 let loginWindow, boundHandler;
 
 export default {
@@ -66,7 +65,7 @@ export default {
         if ( !this.authenticated ) {
             this.authUrl = requestLogin(
                 window.dropboxClientId || localStorage?.getItem( "dropboxClientId" ),
-                REDIRECT_URI
+                window.dropboxRedirect || `${window.location.href}login.html`
             );
         }
         this.loading = false;
