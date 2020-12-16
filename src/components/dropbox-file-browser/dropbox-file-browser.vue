@@ -46,6 +46,8 @@ import ImageToDocumentManager             from "@/mixins/image-to-document-manag
 import { listFolder, downloadFileAsBlob } from "@/services/dropbox-service";
 import messages from "./messages.json";
 
+const ACCEPTED_FILE_EXTENSIONS = [ ".jpg", ".jpeg", "gif", "png" ];
+
 function mapEntry( entry, children = [] ) {
     return {
         type: entry[ ".tag" ], // folder/file
@@ -116,7 +118,14 @@ export default {
                 const { result } = await listFolder( path );
                 const leaf = findLeafByPath( this.tree, path );
                 // populate leaf with fetched children
-                leaf.children = result?.entries?.map( mapEntry ) ?? [];
+                leaf.children = ( result?.entries?.map( mapEntry ) ?? [])
+                    .filter( entry => {
+                        // only show folders and image files
+                        if ( entry.type === "file" ) {
+                            return ACCEPTED_FILE_EXTENSIONS.some( ext => entry.name.includes( ext ));
+                        }
+                        return true;
+                    });
                 this.leaf = leaf;
             } catch {
                 this.openDialog({ type: "error", message: this.$t( "couldNotRetrieveFilesForPath", { path } ) });
@@ -132,7 +141,7 @@ export default {
                     // TODO: loader, error handling and background load (for bulk selection)
                     const url = await downloadFileAsBlob( node.path );
                     const { image, size } = await loader.loadImage( url );
-                    this.addLoadedFile({ name: node.name }, { image, size });
+                    this.addLoadedFile({ type: "dropbox", name: node.name }, { image, size });
                     this.closeModal();
                     break;
             }
