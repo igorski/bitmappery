@@ -22,6 +22,7 @@ export default {
         blindActive: false,
         dialog: null,
         modal: null,
+        notifications: [],
         windowSize: { width: window.innerWidth, height: window.innerHeight },
     },
     getters: {
@@ -59,6 +60,16 @@ export default {
         closeModal( state ) {
             state.blindActive = false;
             state.modal = null;
+        },
+        /**
+         * shows a notification containing given title and message.
+         * multiple notifications can be stacked.
+         */
+        showNotification( state, { message = "", title = null }) {
+            state.notifications.push({ title: title || translate( "title.success" ), message });
+        },
+        clearNotifications( state ) {
+            state.notifications = [];
         },
         /**
          * cache the resize in the store so components can react to these values

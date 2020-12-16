@@ -56,21 +56,24 @@
                 @close="closeModal()"
             />
         </div>
+        <!-- notifications -->
+        <notifications />
     </div>
 </template>
 
 <script>
 import Vue                 from "vue";
 import Vuex, { mapState, mapMutations, mapActions } from "vuex";
-import VueI18n             from "vue-i18n";
-import ApplicationMenu     from "@/components/application-menu/application-menu";
-import DocumentCanvas      from "@/components/document-canvas/document-canvas";
-import OptionsPanel        from "@/components/options-panel/options-panel";
-import Toolbox             from "@/components/toolbox/toolbox";
-import DialogWindow        from "@/components/dialog-window/dialog-window";
-import { isMobile }        from "@/utils/environment-util";
-import store               from "./store";
-import messages            from "./messages.json";
+import VueI18n         from "vue-i18n";
+import ApplicationMenu from "@/components/application-menu/application-menu";
+import DocumentCanvas  from "@/components/document-canvas/document-canvas";
+import OptionsPanel    from "@/components/options-panel/options-panel";
+import Toolbox         from "@/components/toolbox/toolbox";
+import DialogWindow    from "@/components/dialog-window/dialog-window";
+import Notifications   from '@/components/notifications/notifications';
+import { isMobile }    from "@/utils/environment-util";
+import store           from "./store";
+import messages        from "./messages.json";
 import {
     RESIZE_DOCUMENT, DROPBOX_FILE_BROWSER
 } from "@/definitions/modal-windows";
@@ -92,6 +95,7 @@ export default {
         Toolbox,
         DialogWindow,
         OptionsPanel,
+        Notifications,
     },
     data: () => ({
         docWidth: "100%",

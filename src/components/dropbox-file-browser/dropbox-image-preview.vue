@@ -21,8 +21,18 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div class="image-preview">
-        <img v-if="src" :src="src" v-on="$listeners" />
+    <div
+        class="image-preview"
+        :class="{ 'loading': isLoading }"
+    >
+        <img v-if="isLoading"
+             src="@/assets/animations/loader.svg"
+             class="loader"
+        />
+        <img v-else
+             :src="src"
+             v-on="$listeners"
+        />
     </div>
 </template>
 
@@ -38,6 +48,11 @@ export default {
     data: () => ({
         src: null,
     }),
+    computed: {
+        isLoading() {
+            return !this.src;
+        },
+    },
     async mounted() {
         this.src = await getThumbnail( this.path );
     },
@@ -49,6 +64,19 @@ export default {
 
 .image-preview {
     display: inline-block;
-    margin: 0 $spacing-xsmall;
+    margin: 0 $spacing-xxsmall;
+    overflow: hidden;
+    cursor: pointer;
+
+    &.loading {
+        width: 64px;
+        height: 64px;
+    }
+}
+
+.loader {
+    margin: #{(64 - 30) / 2 }px;
+    width: 30px;
+    height: 30px;
 }
 </style>

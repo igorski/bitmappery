@@ -32,9 +32,8 @@
             ></button>
         </template>
         <template v-else>
-            <h3 v-t="'connectedToDropbox'"></h3>
             <button
-                v-t="'selectFiles'"
+                v-t="'importFromDropbox'"
                 type="button"
                 @click="openFileBrowser"
             ></button>
@@ -63,6 +62,7 @@ export default {
         this.loading = true;
         this.authenticated = await isAuthenticated();
         if ( this.authenticated ) {
+            this.showConnectionMessage();
             this.openFileBrowser();
         } else {
             this.authUrl = requestLogin(
@@ -75,6 +75,7 @@ export default {
     methods: {
         ...mapMutations([
             "openModal",
+            "showNotification",
         ]),
         login() {
             loginWindow  = window.open( this.authUrl );
@@ -87,13 +88,16 @@ export default {
                 window.removeEventListener( "message", boundHandler );
                 loginWindow.close();
                 loginWindow = null;
-
+                this.showConnectionMessage();
                 this.authenticated = true;
                 this.openFileBrowser();
             }
         },
         openFileBrowser() {
             this.openModal( DROPBOX_FILE_BROWSER );
+        },
+        showConnectionMessage() {
+            this.showNotification({ message: this.$t( "connectedToDropbox" ) });
         },
     },
 };

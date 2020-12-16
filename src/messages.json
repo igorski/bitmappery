@@ -2,6 +2,10 @@
     "en-US": {
         "photomound": "PhotoMound",
         "areYouSure": "Are you sure?",
-        "closeDocumentWarning": "Closing the document cannot be undone, are you sure?"
+        "closeDocumentWarning": "Closing the document cannot be undone, are you sure?",
+        "title": {
+            "success": "Success",
+            "error": "Error"
+        }
     }
 }

@@ -81,6 +81,36 @@ describe( "Vuex store", () => {
             });
         });
 
+        describe("when showing notification messages", () => {
+            it("should be able to show a notification displaying its title and message", () => {
+                const state = { notifications: [] };
+                mutations.showNotification(state, { title: "foo", message: "bar" });
+                expect(state.notifications).toEqual([{ title: "foo", message: "bar" }]);
+            });
+
+            it("should be able to show a notification using a default title when none was specified", () => {
+                const state = { notifications: [] };
+                mutations.showNotification(state, { message: "foo" });
+                expect(state.notifications).toEqual([{ title: "title.success", message: "foo" }]);
+            });
+
+            it("should be able to queue multiple notifications", () => {
+                const state = { notifications: [] };
+                mutations.showNotification(state, { message: "foo" });
+                mutations.showNotification(state, { message: "bar" });
+                expect(state.notifications).toEqual([
+                    { title: "title.success", message: "foo" },
+                    { title: "title.success", message: "bar" }
+                ]);
+            });
+
+            it("should be able to clear all queued notifications", () => {
+                const state = { notifications: [{ foo: "bar" }, { baz: "qux" }]};
+                mutations.clearNotifications(state);
+                expect(state.notifications).toEqual([]);
+            });
+        });
+
         it( "should be able to set the window size", () => {
             const state = { windowSize: { width: 0, height: 0 }};
             const width = 500;

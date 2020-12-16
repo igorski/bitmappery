@@ -1,5 +1,6 @@
 {
     "en-US": {
-        "optionsPanel": "Options panel"
+        "optionsPanel": "Options panel",
+        "importFromDropbox": "Import from Dropbox"
     }
 }

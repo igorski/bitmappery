@@ -33,11 +33,14 @@
             class="content"
         >
             <file-selector />
-            <input
-                v-model="dropbox"
-                type="checkbox"
-            />
-            <component :is="importType" />
+            <button
+                v-if="!dropbox"
+                v-t="'importFromDropbox'"
+                type="button"
+                class="dropbox"
+                @click="dropbox = true"
+            ></button>
+            <component :is="cloudImportType" />
             <component :is="activeToolOptions" />
         </div>
     </div>
@@ -71,12 +74,16 @@ export default {
                 this.setOptionsPanelOpened( !value );
             }
         },
-        importType() {
+        /**
+         * Cloud import are loaded at runtime to omit packaging
+         * third party SDK within the core bundle.
+         */
+        cloudImportType() {
             switch ( this.dropbox ) {
                 default:
                     return null;
                 case true:
-                    return () => import( "./components/dropbox-file-selector/dropbox-file-selector" );
+                    return () => import( "./components/dropbox-connector/dropbox-connector" );
             }
         },
         activeToolOptions() {

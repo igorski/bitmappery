@@ -157,6 +157,7 @@ export default {
         ...mapMutations([
             "openDialog",
             "closeModal",
+            "showNotification",
         ]),
         async retrieveFiles( path ) {
             this.loading = true;
@@ -182,6 +183,7 @@ export default {
                     const url = await downloadFileAsBlob( node.path );
                     const { image, size } = await loader.loadImage( url );
                     this.addLoadedFile({ type: "dropbox", name: node.name }, { image, size });
+                    this.showNotification({ message: this.$t( "importedFileSuccessfully", { file: node.name }) });
                     this.closeModal();
                     break;
             }
