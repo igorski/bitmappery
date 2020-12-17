@@ -42,6 +42,7 @@ npm run lint
 * Add brush options > size, transparency
 * opening image as new layer doesn't do proper sizing
 * scale logic should move from zoomable-canvas into zCanvas (as handleInteraction needs to transform offsets by zoom ratio, see drawable-layer!)
+* adjust scaling (on widescreen images scale in the width, rather than go for full height and zoomed out mode)
 * Default canvas background should be transparency blocks (requires zCanvas bg pattern update or just a lowest render layer that isn't part of the document)
 * Zoom in should be center based
 * Image position must be made persistent (now isn't on document switch)

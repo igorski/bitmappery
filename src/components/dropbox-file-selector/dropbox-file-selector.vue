@@ -66,7 +66,8 @@ import { loader }       from "zcanvas";
 import ImageToDocumentManager             from "@/mixins/image-to-document-manager";
 import { listFolder, downloadFileAsBlob } from "@/services/dropbox-service";
 import DropboxImagePreview from "./dropbox-image-preview";
-import messages            from "./messages.json";
+import { truncate } from "@/utils/string-util";
+import messages     from "./messages.json";
 
 const ACCEPTED_FILE_EXTENSIONS = [ ".jpg", ".jpeg", "gif", "png" ];
 
@@ -183,7 +184,9 @@ export default {
                     const url = await downloadFileAsBlob( node.path );
                     const { image, size } = await loader.loadImage( url );
                     this.addLoadedFile({ type: "dropbox", name: node.name }, { image, size });
-                    this.showNotification({ message: this.$t( "importedFileSuccessfully", { file: node.name }) });
+                    this.showNotification({
+                        message: this.$t( "importedFileSuccessfully", { file: truncate( node.name, 35 ) })
+                    });
                     this.closeModal();
                     break;
             }

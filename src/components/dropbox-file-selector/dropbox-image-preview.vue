@@ -32,6 +32,7 @@
         <img v-else
              :src="src"
              v-on="$listeners"
+             @load="handleImageLoad"
         />
     </div>
 </template>
@@ -55,6 +56,12 @@ export default {
     },
     async mounted() {
         this.src = await getThumbnail( this.path );
+    },
+    methods: {
+        handleImageLoad() {
+            // free memory allocated by dropbox-service#getThumbnail()
+            URL.revokeObjectURL( this.src );
+        },
     },
 };
 </script>
