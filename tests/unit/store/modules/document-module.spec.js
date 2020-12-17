@@ -1,12 +1,14 @@
-import DocumentModule from "@/store/modules/document-module";
-import GraphicFactory from "@/factories/graphic-factory";
-import LayerFactory   from "@/factories/layer-factory";
+import DocumentModule  from "@/store/modules/document-module";
+import { LAYER_IMAGE } from "@/definitions/layer-types";
 
 const { getters, mutations } = DocumentModule;
 
 let mockUpdateFn;
-jest.mock("@/utils/canvas-util", () => ({
-    flushSpritesInLayer: (...args) => mockUpdateFn?.( "flushSpritesInLayer", ...args ),
+jest.mock( "@/factories/sprite-factory", () => ({
+    flushLayerSprites: (...args) => mockUpdateFn?.( "flushLayerSprites", ...args ),
+}));
+jest.mock( "@/factories/layer-factory", () => ({
+    create: (...args) => mockUpdateFn?.( "create", ...args ),
 }));
 
 describe( "Vuex document module", () => {
@@ -81,9 +83,9 @@ describe( "Vuex document module", () => {
         });
 
         it( "should be able to close the active Document", () => {
-            const layer1 = LayerFactory.create();
-            const layer2 = LayerFactory.create();
-            const layer3 = LayerFactory.create();
+            const layer1 = { name: "layer1" };
+            const layer2 = { name: "layer2" };
+            const layer3 = { name: "layer3" };
             const state = {
                 documents: [
                     { name: "foo", layers: [ layer1 ] },
@@ -95,8 +97,8 @@ describe( "Vuex document module", () => {
             mutations.closeActiveDocument( state );
             expect( state.documents ).toEqual([ { name: "foo", layers: [ layer1 ] }]);
             expect( state.activeIndex ).toEqual( 0 );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushSpritesInLayer", layer2 );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "flushSpritesInLayer", layer3 );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushLayerSprites", layer2 );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "flushLayerSprites", layer3 );
         });
 
         describe( "when adding layers", () => {
@@ -105,8 +107,13 @@ describe( "Vuex document module", () => {
                     documents: [ { name: "foo", layers: [] } ],
                     activeIndex: 0
                 };
-                mutations.addLayer( state );
-                expect( state.documents[ 0 ].layers ).toEqual([ LayerFactory.create() ]);
+                const mockLayer = { name: "bar" };
+                mockUpdateFn = jest.fn(() => mockLayer );
+                const opts = { name: "baz", width: 50, height: 100 };
+                mutations.addLayer( state, opts );
+                // assert LayerFactory is invoked with provided opts when calling addLayer()
+                expect( mockUpdateFn ).toHaveBeenCalledWith( "create", opts );
+                expect( state.documents[ 0 ].layers ).toEqual([ mockLayer ]);
             });
 
             it( "should update the active layer index to the last added layers index", () => {
@@ -124,9 +131,9 @@ describe( "Vuex document module", () => {
                     documents: [ { name: "foo", layers: [{ name: "layer1" }] }],
                     activeIndex: 0
                 };
-                mutations.addLayer( state, "layer2" );
+                mutations.addLayer( state, { name: "layer2" });
                 expect( state.documents[ 0 ].layers ).toEqual([
-                    LayerFactory.create( "layer2" ), { name: "layer1" }
+                    expect.any( Object ), { name: "layer1" }
                 ]);
             });
         });
@@ -145,7 +152,7 @@ describe( "Vuex document module", () => {
             expect( state.documents[ 0 ].layers ).toEqual([
                 { name: "layer1" }, { name: "layer3" }
             ]);
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushSpritesInLayer", layer );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushLayerSprites", layer );
         });
 
         it( "should be able to set the active layer index", () => {
@@ -157,18 +164,32 @@ describe( "Vuex document module", () => {
             expect( state.activeLayerIndex ).toEqual( 1 );
         });
 
-        it( "should be able to add a Graphic to a specific layer within the active Document", () => {
+        it( "should be able to update the options of a specific layer within the active Document", () => {
+            const layer1 = { name: "layer1" };
+            const layer2 = { name: "layer2" };
             const state = {
                 documents: [{
                     name: "foo",
-                    layers: [ LayerFactory.create( "layer1" ), LayerFactory.create( "layer2" ) ]
+                    layers: [ layer1, layer2 ]
                 }],
                 activeIndex: 0
             };
-            const index  = 1;
-            const bitmap = { name: "bar" };
-            mutations.addGraphicToLayer( state, { index, bitmap });
-            expect( state.documents[ 0 ].layers[ index ].graphics ).toEqual( expect.any( Object ));
+            const index = 1;
+            const opts  = {
+                name: "layer2 updated",
+                x: 100,
+                y: 200,
+                bitmap: new Image(),
+                width: 100,
+                height: 150,
+                type: LAYER_IMAGE
+            };
+            mutations.updateLayer( state, { index, opts });
+            expect( state.documents[ 0 ].layers[ index ] ).toEqual({
+                id: layer2.id,
+                visible: layer2.visible,
+                ...opts
+            });
         });
     });
 });

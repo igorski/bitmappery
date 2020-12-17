@@ -73,7 +73,11 @@ export default {
             "setActiveLayerIndex",
         ]),
         requestLayerAdd() {
-            this.addLayer( this.$t( "newLayerNum", { num: this.layers.length + 1 }));
+            this.addLayer({
+                name: this.$t( "newLayerNum", { num: this.layers.length + 1 }),
+                width: this.activeDocument.width,
+                height: this.activeDocument.height
+            });
         },
         requestLayerRemove() {
             this.removeLayer( this.activeLayer );
@@ -93,6 +97,7 @@ h3 {
 .layer-list {
     padding: $spacing-small 0;
     @include boxSize();
+    @include truncate();
     border-top: 1px solid $color-lines;
     border-bottom: 1px solid $color-lines;
 }

@@ -20,7 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import{ mapGetters, mapMutations, mapActions } from "vuex";
+import { mapGetters, mapMutations, mapActions } from "vuex";
+import { LAYER_IMAGE }       from "@/definitions/layer-types";
 
 export default {
     computed: {
@@ -35,7 +36,7 @@ export default {
             "setActiveDocumentSize",
             "addNewDocument",
             "addLayer",
-            "addGraphicToLayer",
+            "updateLayer",
         ]),
         ...mapActions([
             "addImage",
@@ -45,27 +46,36 @@ export default {
 
             image.src = source;
 
-            const currentDocumentIsEmpty = this.layers?.length === 1 && !this.layers[ 0 ].graphics.length;
-
+            const currentDocumentIsEmpty = this.layers?.length <= 1 && this.layers?.[0]?.bitmap === null;
+            const layerOpts = {
+                bitmap: image,
+                type: LAYER_IMAGE,
+                name: file.name,
+                ...size,
+            };
             switch ( this.fileTarget) {
                 default:
                 case "layer":
                     // if this is the first content of an existing document, scale document to image size
-                    if ( currentDocumentIsEmpty ) {
-                        this.setActiveDocumentSize( size );
-                    } else if ( !this.activeDocument ) {
+                    if ( !this.activeDocument ) {
                         this.addNewDocument( file.name );
+                        return this.updateSizeAndLayer( size, layerOpts );
+                    } else if ( currentDocumentIsEmpty ) {
+                        this.setActiveDocumentSize( size );
                     }
-                    this.addLayer( file.name );
+                    this.addLayer( layerOpts );
                     break;
                 case "document":
                     if ( !currentDocumentIsEmpty ) {
                         this.addNewDocument( file.name );
                     }
-                    this.setActiveDocumentSize( size );
+                    this.updateSizeAndLayer( size, layerOpts );
                     break;
             }
-            this.addGraphicToLayer({ index: this.layers.length - 1, bitmap: image, size });
         },
-    }
+        updateSizeAndLayer( size, opts ) {
+            this.setActiveDocumentSize( size );
+            this.updateLayer({ index: this.layers.length - 1, opts });
+        },
+     }
 };

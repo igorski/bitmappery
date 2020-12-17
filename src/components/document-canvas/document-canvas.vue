@@ -47,12 +47,13 @@ import ZoomableCanvas   from "@/components/ui/zcanvas/zoomable-canvas";
 import DrawableLayer    from "@/components/ui/zcanvas/drawable-layer";
 import { scaleToRatio } from "@/utils/image-math";
 import {
-    createSpriteForGraphic, runSpriteFn, flushSpritesInLayer, flushCache,
-} from "@/utils/canvas-util";
+    createSpriteForLayer, runSpriteFn, flushLayerSprites, flushCache,
+} from "@/factories/sprite-factory";
 
 /* internal non-reactive properties */
 
-let lastDocument, drawableLayer;
+let lastDocument;
+const layerPool = new Map();
 // scale of the on-screen canvas relative to the document
 let xScale = 1, yScale = 1, zoom = 1, containerSize;
 
@@ -68,6 +69,7 @@ export default {
         ]),
         ...mapGetters([
             "activeDocument",
+            "layers",
             "activeTool",
             "zoomOptions",
         ]),
@@ -78,7 +80,6 @@ export default {
             this.scaleCanvas();
         },
         activeDocument: {
-            deep: true,
             handler( document, oldValue = null ) {
                 if ( !document?.layers ) {
                     if ( this.zCanvas ) {
@@ -95,22 +96,35 @@ export default {
                         this.scaleCanvas();
                     });
                 }
-                const { name, width, height } = document;
-                if ( name !== lastDocument ) {
-                    lastDocument = name;
+                const { id, width, height } = document;
+                if ( id !== lastDocument ) {
+                    lastDocument = id;
                     flushCache(); // switching between documents
                 }
                 if ( this.zCanvas.width !== width || this.zCanvas.height !== height ) {
                     this.scaleCanvas();
                 }
-                document.layers.forEach( layer => {
+            },
+        },
+        layers: {
+            deep: true,
+            handler( layers ) {
+                const seen = [];
+                layers?.forEach( layer => {
                     if ( !layer.visible ) {
-                        flushSpritesInLayer( layer );
+                        flushLayerSprites( layer );
                         return;
                     }
-                    layer.graphics.forEach( graphic => {
-                        const sprite = createSpriteForGraphic( this.zCanvas, graphic );
-                    });
+                    if ( !layerPool.has( layer.id )) {
+                        const sprite = createSpriteForLayer( this.zCanvas, layer );
+                        layerPool.set( layer.id, sprite );
+                    }
+                    seen.push( layer.id );
+                });
+                [ ...layerPool.keys() ].filter( id => !seen.includes( id )).forEach( id => {
+                    console.warn("remove" + id);
+                    flushLayerSprites( layerPool.get( id ));
+                    layerPool.delete( id );
                 });
             },
         },
@@ -123,10 +137,6 @@ export default {
                     isDraggable = true;
                     break;
                 case "brush":
-                    if ( !drawableLayer ) {
-                        drawableLayer = new DrawableLayer( this.activeDocument );
-                        this.zCanvas.addChild( drawableLayer );
-                    }
                     break;
             }
             runSpriteFn( sprite => sprite.setDraggable( isDraggable || sprite instanceof DrawableLayer ));

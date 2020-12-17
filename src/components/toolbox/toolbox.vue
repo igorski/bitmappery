@@ -36,7 +36,10 @@
                     :key="button.type"
                     v-t="button.i18n"
                     class="tool-button"
-                    :class="{ 'active': activeTool === button.type }"
+                    :class="{
+                        'active': activeTool === button.type
+                    }"
+                    :disabled="button.disabled"
                     @click="setActiveTool( button.type )"
             ></button>
         </div>
@@ -45,6 +48,8 @@
 
 <script>
 import { mapState, mapGetters, mapMutations } from "vuex";
+import { LAYER_GRAPHIC } from "@/definitions/image-types";
+import ToolTypes         from "@/definitions/tool-types";
 import messages from "./messages.json";
 
 export default {
@@ -55,6 +60,8 @@ export default {
         ]),
         ...mapGetters([
             "activeTool",
+            "activeDocument",
+            "activeLayer",
         ]),
         collapsed: {
             get() {
@@ -66,9 +73,32 @@ export default {
         },
         tools() {
             return [
-                { type: "move", i18n: "move" }, { type: "zoom", i18n: "zoom" },
-                { type: "brush", i18n: "brush" }
+                { type: ToolTypes.MOVE,  i18n: "move", disabled: !this.activeDocument },
+                { type: ToolTypes.ZOOM,  i18n: "zoom", disabled: !this.activeDocument },
+                { type: ToolTypes.BRUSH, i18n: "brush", disabled: !this.activeLayer || this.activeLayer.type !== LAYER_GRAPHIC }
             ]
+        },
+    },
+    watch: {
+        activeDocument( document ) {
+            if ( !document ) {
+                this.setActiveTool( null );
+            }
+        },
+        activeLayer( layer ) {
+            if ( !layer ) {
+                return;
+            }
+            switch ( layer.type ) {
+                default:
+                    // brushing only allowed on graphic type layers
+                    if ( this.activeTool === ToolTypes.BRUSH ) {
+                        this.setActiveTool( ToolTypes.MOVE );
+                    }
+                    break;
+                case LAYER_GRAPHIC:
+                    break;
+            }
         },
     },
     methods: {

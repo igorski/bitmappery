@@ -20,20 +20,20 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import Vue   from "vue";
-import tools from "@/definitions/tools";
+import Vue       from "vue";
+import ToolTypes from "@/definitions/tool-types";
 
 export default {
     state: {
-        activeTool: tools.MOVE,
+        activeTool: null,
         options: {
-            [ tools.ZOOM ] : { level: 1 },
-            [ tools.BRUSH ]: { },
+            [ ToolTypes.ZOOM ] : { level: 1 },
+            [ ToolTypes.BRUSH ]: { },
         }
     },
     getters: {
         activeTool: state => state.activeTool,
-        zoomOptions: state => state.options[ tools.ZOOM ],
+        zoomOptions: state => state.options[ ToolTypes.ZOOM ],
     },
     mutations: {
         setActiveTool( state, tool ) {

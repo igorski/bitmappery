@@ -20,6 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+let UID_COUNTER = 0;
+
 import LayerFactory from "./layer-factory";
 
 export default {
@@ -27,12 +29,15 @@ export default {
      * Creates a new Document (project which contains
      * all layers and image content)
      */
-    create( name = "New document", width = 400, height = 300 ) {
+    create({
+        name = "New document", width = 400, height = 300
+    } = {}) {
         return {
+            id: `doc_${( ++UID_COUNTER )}`,
             name,
             width,
             height,
-            layers: [ LayerFactory.create() ],
+            layers: [ LayerFactory.create({ width, height }) ],
         };
     },
 };

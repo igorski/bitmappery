@@ -243,6 +243,6 @@ export default {
     width: 64px;
     height: 64px;
     vertical-align: top;
-    @include textOverflow();
+    @include truncate();
 }
 </style>

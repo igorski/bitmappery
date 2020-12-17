@@ -24,8 +24,7 @@ import Vue from "vue";
 
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory    from "@/factories/layer-factory";
-import GraphicFactory  from "@/factories/graphic-factory";
-import { flushSpritesInLayer } from "@/utils/canvas-util";
+import { flushLayerSprites } from "@/factories/sprite-factory";
 
 export default {
     state: {
@@ -50,7 +49,7 @@ export default {
             document.height = height;
         },
         addNewDocument( state, name ) {
-            state.documents.push( DocumentFactory.create( name ));
+            state.documents.push( DocumentFactory.create({ name }));
             state.activeIndex = state.documents.length - 1;
         },
         closeActiveDocument( state ) {
@@ -59,13 +58,13 @@ export default {
                 return;
             }
             // free allocated resources
-            document.layers.forEach( layer => flushSpritesInLayer( layer ));
+            document.layers.forEach( layer => flushLayerSprites( layer ));
             Vue.delete( state.documents, state.activeIndex );
             state.activeIndex = Math.min( state.documents.length - 1, state.activeIndex );
         },
-        addLayer( state, optName ) {
+        addLayer( state, opts ) {
             const layers = state.documents[ state.activeIndex ].layers;
-            layers.unshift( LayerFactory.create( optName ) );
+            layers.unshift( LayerFactory.create( opts ) );
             state.activeLayerIndex = 0;
         },
         removeLayer( state, layer ) {
@@ -73,16 +72,18 @@ export default {
             if ( index < 0 ) {
                 return;
             }
-            flushSpritesInLayer( layer );
+            flushLayerSprites( layer );
             Vue.delete( state.documents[ state.activeIndex ].layers, index );
         },
         setActiveLayerIndex( state, index ) {
             state.activeLayerIndex = index;
         },
-        addGraphicToLayer( state, { index, bitmap, size = {} }) {
-            state.documents[ state.activeIndex ].layers[ index ]?.graphics.push(
-                GraphicFactory.create( bitmap, 0, 0, size.width, size.height )
-            );
+        updateLayer( state, { index, opts = {} }) {
+            const layer = state.documents[ state.activeIndex ].layers[ index ];
+            Vue.set( state.documents[ state.activeIndex ].layers, index, {
+                ...layer,
+                ...opts
+            });
         },
     },
     actions: {

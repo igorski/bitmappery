@@ -34,9 +34,9 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import Slider   from "@/components/ui/slider/slider";
-import tools    from "@/definitions/tools";
-import messages from "./messages.json";
+import Slider    from "@/components/ui/slider/slider";
+import ToolTypes from "@/definitions/tool-types";
+import messages  from "./messages.json";
 
 const MAX_ZOOM = 3;
 
@@ -59,7 +59,7 @@ export default {
             },
             set( value ) {
                 this.setToolOptionValue({
-                    tool: tools.ZOOM,
+                    tool: ToolTypes.ZOOM,
                     option: "level",
                     value: ( value / this.max ) * MAX_ZOOM
                 });

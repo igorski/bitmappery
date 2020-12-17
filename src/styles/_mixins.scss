@@ -75,7 +75,7 @@
             box-sizing: border-box;
 }
 
-@mixin textOverflow {
+@mixin truncate {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

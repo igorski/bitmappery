@@ -24,6 +24,7 @@ import { sprite }       from "zcanvas";
 import { createCanvas } from "@/utils/canvas-util";
 
 function DrawableLayer({ width, height }) {
+    console.warn(width,height);
     const { cvs, ctx } = createCanvas( width, height );
     const opts = {
         bitmap: cvs, x: 0, y: 0, width, height

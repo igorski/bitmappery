@@ -20,26 +20,6 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-let UID_COUNTER = 0;
-
-export default {
-    /**
-     * Creates a graphic to be displayed within a layer of a Document
-     *
-     * @param {HTMLImageElement} bitmap
-     * @param {Number=} x position of the bitmap within the layer
-     * @param {Number=} y position of the bitmap within the layer
-     * @param {Number=} width of the bitmap, defaults to actual bitmap width
-     * @param {Number=} height of the bitmap, defaults to actual bitmap width
-     */
-    create( bitmap, x = 0, y = 0, width = -1, height = -1 ) {
-        if ( width === -1 || height === -1 ) {
-            ({ width, height } = bitmap);
-        }
-        const transparent = true; // TODO: MIME check
-        return {
-            id: `graphic_${( ++UID_COUNTER )}`,
-            bitmap, x, y, width, height, transparent
-        };
-    },
-};
+export const LAYER_GRAPHIC = "graphic";
+export const LAYER_IMAGE   = "image";
+export const LAYER_MASK    = "mask";

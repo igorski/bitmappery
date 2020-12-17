@@ -28,7 +28,7 @@
                 v-t="'loginToDropbox'"
                 type="button"
                 class="button dropbox"
-                @click="login"
+                @click="login()"
             ></button>
         </template>
         <template v-if="authenticated || awaitingConnection">
@@ -37,7 +37,7 @@
                 type="button"
                 class="button dropbox"
                 :disabled="awaitingConnection"
-                @click="openFileBrowser"
+                @click="openFileBrowser()"
             ></button>
         </template>
     </div>
@@ -62,7 +62,7 @@ export default {
     }),
     computed: {
         awaitingConnection() {
-            return !this.isauthenticated && !this.authUrl;
+            return !this.authenticated && !this.authUrl;
         },
     },
     async created() {
@@ -76,6 +76,7 @@ export default {
                 window.dropboxClientId || localStorage?.getItem( "dropboxClientId" ),
                 window.dropboxRedirect || `${window.location.href}login.html`
             );
+            this.login();
         }
         this.loading = false;
     },
@@ -101,6 +102,7 @@ export default {
             }
         },
         openFileBrowser() {
+            console.warn("alstu?");
             this.openModal( DROPBOX_FILE_SELECTOR );
         },
         showConnectionMessage() {
