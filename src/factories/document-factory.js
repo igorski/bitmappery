@@ -22,22 +22,56 @@
  */
 let UID_COUNTER = 0;
 
-import LayerFactory from "./layer-factory";
+import LayerFactory from "@/factories/layer-factory";
 
-export default {
+const DocumentFactory = {
     /**
      * Creates a new Document (project which contains
      * all layers and image content)
      */
     create({
-        name = "New document", width = 400, height = 300
+        name = "New document", width = 400, height = 300, layers = []
     } = {}) {
+        if ( !layers.length ) {
+            layers = [ LayerFactory.create({ width, height }) ];
+        }
         return {
             id: `doc_${( ++UID_COUNTER )}`,
+            layers,
             name,
             width,
             height,
-            layers: [ LayerFactory.create({ width, height }) ],
         };
     },
+
+    /**
+     * Saving a document instance properties into a simplifie
+     * JSON structure for project storage
+     */
+    save( document ) {
+        const layers = document.layers.map( LayerFactory.save );
+        return {
+            n: document.name,
+            w: document.width,
+            h: document.height,
+            l: layers
+        };
+    },
+
+     /**
+      * Creating a new document instance from a stored JSON structure
+      */
+    async load( document ) {
+        const layers = [];
+        for ( let i = 0, l = ( document.l ?? [] ).length; i < l; ++i ) {
+            layers.push( await LayerFactory.load( document.l[ i ]));
+        }
+        return DocumentFactory.create({
+            name: document.n,
+            width: document.w,
+            height: document.h,
+            layers
+        });
+    }
 };
+export default DocumentFactory;

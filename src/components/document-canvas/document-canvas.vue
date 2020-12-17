@@ -53,6 +53,9 @@ import {
 /* internal non-reactive properties */
 
 let lastDocument;
+// maintain a pool of sprites representing the layers within the active document
+// the sprites themselves are cached within the sprite-factory, this is merely
+// used for change detection in the current editing session (see watchers)
 const layerPool = new Map();
 // scale of the on-screen canvas relative to the document
 let xScale = 1, yScale = 1, zoom = 1, containerSize;
@@ -81,6 +84,7 @@ export default {
         },
         activeDocument: {
             handler( document, oldValue = null ) {
+                // no active document or no document content
                 if ( !document?.layers ) {
                     if ( this.zCanvas ) {
                         this.zCanvas.dispose();
@@ -97,9 +101,11 @@ export default {
                     });
                 }
                 const { id, width, height } = document;
+                // switching between documents
                 if ( id !== lastDocument ) {
                     lastDocument = id;
-                    flushCache(); // switching between documents
+                    flushCache();
+                    layerPool.clear();
                 }
                 if ( this.zCanvas.width !== width || this.zCanvas.height !== height ) {
                     this.scaleCanvas();
@@ -122,7 +128,6 @@ export default {
                     seen.push( layer.id );
                 });
                 [ ...layerPool.keys() ].filter( id => !seen.includes( id )).forEach( id => {
-                    console.warn("remove" + id);
                     flushLayerSprites( layerPool.get( id ));
                     layerPool.delete( id );
                 });

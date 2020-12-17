@@ -23,14 +23,18 @@
 import { sprite }       from "zcanvas";
 import { createCanvas } from "@/utils/canvas-util";
 
-function DrawableLayer({ width, height }) {
-    console.warn(width,height);
-    const { cvs, ctx } = createCanvas( width, height );
-    const opts = {
-        bitmap: cvs, x: 0, y: 0, width, height
-    };
-    DrawableLayer.super( this, "constructor", opts ); // zCanvas inheritance
+function DrawableLayer( layer ) {
+    if ( !layer.bitmap ) {
+        // create a Bitmap on which this layer will render its drawable content.
+        // assign this Bitmap to the layer
+        const { cvs } = createCanvas( layer.width, layer.height );
+        layer.bitmap = cvs;
+    }
+    let { bitmap, x, y, width, height } = layer;
+    const ctx = bitmap.getContext( "2d" );
 
+    // zCanvas inheritance
+    DrawableLayer.super( this, "constructor", { bitmap, x, y, width, height } );
     this.setDraggable( true );
 
     // TODO: setters and cache for these
@@ -45,9 +49,9 @@ function DrawableLayer({ width, height }) {
     // Radii of the white glow.
     // Radius of the entire circle.
 
-    const x = radius;
-    const y = radius;
-    const gradient = ctx.createRadialGradient( x, y, innerRadius, x, y, outerRadius );
+    x = radius;
+    y = radius;
+    const gradient = brushCtx.createRadialGradient( x, y, innerRadius, x, y, outerRadius );
     gradient.addColorStop( 0, 'rgba(255,0,0,1)' );
     gradient.addColorStop( 1, 'rgba(255,255,255,1)' );
 

@@ -38,3 +38,35 @@ export const saveBlobAsFile = ( blob, fileName ) => {
     document.body.removeChild( anchor );
     URL.revokeObjectURL( blobURL );
 };
+
+export const selectFile = ( acceptedTypes, multiple = false ) => {
+    const fileBrowser = document.createElement( "input" );
+    fileBrowser.setAttribute( "type",   "file" );
+    fileBrowser.setAttribute( "accept", acceptedTypes );
+    if ( multiple ) {
+        fileBrowser.setAttribute( "multiple", "multiple" );
+    }
+
+    const simulatedEvent = document.createEvent( "MouseEvent" );
+    simulatedEvent.initMouseEvent(
+        "click", true, true, window, 1,
+        0, 0, 0, 0, false,
+        false, false, false, 0, null
+    );
+    fileBrowser.dispatchEvent( simulatedEvent );
+    return new Promise(( resolve, reject ) => {
+        fileBrowser.onchange = ({ target }) => resolve( target.files );
+        fileBrowser.onerror  = reject;
+    });
+};
+
+export const readFile = file => {
+    const reader = new FileReader();
+    return new Promise(( resolve, reject ) => {
+        reader.onload = readerEvent => {
+            resolve( readerEvent.target.result );
+        };
+        reader.onerror = reject;
+        reader.readAsText( file );
+    });
+};

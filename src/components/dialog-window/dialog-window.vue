@@ -21,19 +21,23 @@
 * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 <template>
-    <div class="dialog-window">
+    <div
+        class="dialog-window"
+        @keyup.enter="handleConfirm()"
+        @keyup.esc="handleCancel()"
+    >
         <h4>{{ title }}</h4>
         <p>{{ message }}</p>
         <button v-t="'ok'"
                 type="button"
                 class="button"
-                @click="handleConfirm"
+                @click="handleConfirm()"
         ></button>
         <button v-t="'cancel'"
                 v-if="type === 'confirm'"
                 type="button"
                 class="button"
-                @click="handleCancel"
+                @click="handleCancel()"
         ></button>
     </div>
 </template>

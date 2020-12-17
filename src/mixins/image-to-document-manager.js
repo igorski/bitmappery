@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { mapGetters, mapMutations, mapActions } from "vuex";
-import { LAYER_IMAGE }       from "@/definitions/layer-types";
+import { LAYER_IMAGE } from "@/definitions/layer-types";
 
 export default {
     computed: {

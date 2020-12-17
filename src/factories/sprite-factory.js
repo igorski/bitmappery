@@ -66,9 +66,10 @@ export const flushCache = () => {
  * Lazily retrieve / create a cached sprite to represent given
  * layer content on given zCanvas instance
  */
-export const createSpriteForLayer = ( zCanvasInstance, { id, type, bitmap, x, y, width, height }) => {
+export const createSpriteForLayer = ( zCanvasInstance, layer ) => {
+    const { id, type, bitmap, x, y, width, height } = layer;
     let output;
-    if ( hasSpriteForLayer({ id })) {
+    if ( hasSpriteForLayer( layer )) {
         output = spriteCache.get( id );
     }
     // lazily create sprite
@@ -76,12 +77,10 @@ export const createSpriteForLayer = ( zCanvasInstance, { id, type, bitmap, x, y,
         switch ( type ) {
             default:
             case LAYER_GRAPHIC:
-                output = new DrawableLayer({ width, height });
+                output = new DrawableLayer( layer );
                 break;
             case LAYER_IMAGE:
-                output = new sprite({
-                    bitmap, x, y, width, height
-                });
+                output = new sprite({ bitmap, x, y, width, height });
                 break;
         }
         output.setDraggable( true );

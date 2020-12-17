@@ -40,27 +40,28 @@
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'closeDocument'"
-                                :disabled="!documents.length"
-                                @click="requestDocumentClose()"
-                        ></button>
-                    </li>
-                    <li>
                         <button v-t="'loadDocument'"
                                 type="button"
-                                disabled
+                                @click="loadDocument()"
                         ></button>
                     </li>
                     <li>
                         <button v-t="'saveDocument'"
                                 type="button"
-                                :disabled="true/*!documents.length*/"
+                                :disabled="noDocumentsAvailable"
+                                @click="requestDocumentSave()"
+                        ></button>
+                    </li>
+                    <li>
+                        <button v-t="'closeDocument'"
+                                :disabled="noDocumentsAvailable"
+                                @click="requestDocumentClose()"
                         ></button>
                     </li>
                     <li>
                         <button v-t="'exportImage'"
                                 type="button"
-                                :disabled="!documents.length"
+                                :disabled="noDocumentsAvailable"
                                 @click="requestImageExport()"
                         ></button>
                     </li>
@@ -72,7 +73,7 @@
                     <li>
                         <button v-t="'resizeDocument'"
                                 type="button"
-                                :disabled="!documents.length"
+                                :disabled="noDocumentsAvailable"
                                 @click="requestDocumentResize()"
                         ></button>
                     </li>
@@ -103,7 +104,7 @@
 
 <script>
 import { mapState, mapGetters, mapMutations, mapActions }  from "vuex";
-import { RESIZE_DOCUMENT, EXPORT_IMAGE } from "@/definitions/modal-windows";
+import { RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_IMAGE } from "@/definitions/modal-windows";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import messages from "./messages.json";
 
@@ -115,9 +116,13 @@ export default {
             "blindActive"
         ]),
         ...mapGetters([
+            "activeDocument",
             "documents",
         ]),
         supportsFullscreen,
+        noDocumentsAvailable() {
+            return !this.activeDocument;
+        },
     },
     watch: {
         blindActive( isOpen, wasOpen ) {
@@ -137,17 +142,22 @@ export default {
             "openModal",
             "setActiveDocument",
             "addNewDocument",
-            "closeActiveDocument"
+            "closeActiveDocument",
+            "showNotification",
         ]),
         ...mapActions([
             "requestNewDocument",
             "requestDocumentClose",
+            "loadDocument",
         ]),
         requestImageExport() {
             this.openModal( EXPORT_IMAGE );
         },
         requestDocumentResize() {
             this.openModal( RESIZE_DOCUMENT );
+        },
+        requestDocumentSave() {
+            this.openModal( SAVE_DOCUMENT );
         },
     }
 };

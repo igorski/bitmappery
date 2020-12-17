@@ -1,7 +1,35 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Igor Zinken 2020 - https://www.igorski.nl
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+import LZString from "lz-string";
 import KeyboardService from "@/services/keyboard-service";
+import DocumentFactory from "@/factories/document-factory";
 import documentModule  from "./modules/document-module";
 import imageModule     from "./modules/image-module";
 import toolModule      from "./modules/tool-module";
+import { saveBlobAsFile, selectFile, readFile } from "@/utils/file-util";
+import { truncate } from "@/utils/string-util";
+
+const PROJECT_FILE_EXTENSION = ".pmp";
 
 // cheat a little by exposing the vue-i18n translations directly to the
 // store so we can commit translated error/success messages from actions
@@ -89,6 +117,39 @@ export default {
         },
     },
     actions: {
+        async loadDocument({ commit }) {
+            const fileList = await selectFile( PROJECT_FILE_EXTENSION, false );
+            if ( !fileList?.length ) {
+                return;
+            }
+            const file = fileList[ 0 ];
+            try {
+                const fileData = await readFile( file );
+                const data     = JSON.parse( LZString.decompressFromUTF16( fileData ));
+                const document = await DocumentFactory.load( data );
+                commit( "addNewDocument", document );
+                commit( "showNotification", {
+                    message: translate( "loadedFileSuccessfully", { file: truncate( file.name, 35 ) })
+                });
+            } catch {
+                commit( "showNotification", {
+                    message: translate( "errorLoadingFile", { file: truncate( file.name, 35 ) })
+                });
+            }
+        },
+        saveDocument({ commit, getters }, name = null ) {
+            if ( !name ) {
+                name = getters.activeDocument.name;
+            }
+            const data   = DocumentFactory.save( getters.activeDocument );
+            const binary = new Blob([
+                LZString.compressToUTF16( JSON.stringify( data ))
+            ], { type: "text/plain" });
+            saveBlobAsFile( binary, `${name.split( "." )[ 0 ]}${PROJECT_FILE_EXTENSION}` );
+            commit( "showNotification", {
+                message: translate( "savedFileSuccessfully" )
+            });
+        },
         /**
          * Install the services that will listen to global hardware events
          *
@@ -102,6 +163,6 @@ export default {
                 KeyboardService.init( storeReference );
                 resolve();
             });
-        }
+        },
     },
 };

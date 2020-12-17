@@ -21,5 +21,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 export const RESIZE_DOCUMENT       = 1;
-export const EXPORT_IMAGE          = 2;
-export const DROPBOX_FILE_SELECTOR = 3;
+export const SAVE_DOCUMENT         = 2;
+export const EXPORT_IMAGE          = 3;
+export const DROPBOX_FILE_SELECTOR = 4;

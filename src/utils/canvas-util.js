@@ -20,6 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { JPEG, PNG } from "@/definitions/image-types";
 
 /**
  * Creates a new HTMLCanvasElement, returning both
@@ -34,4 +35,17 @@ export const createCanvas = ( optWidth = 0, optHeight = 0 ) => {
         cvs.height = optHeight;
     }
     return { cvs, ctx };
+};
+
+export const imageToBase64 = ( bitmap, width, height ) => {
+    let cvs;
+    if ( bitmap instanceof Image ) {
+        ({ cvs } = createCanvas( width, height ));
+        cvs.getContext( "2d" ).drawImage( bitmap, 0, 0 );
+        return cvs.toDataURL( JPEG ); // assume photographic content TODO: check transparency
+    } else if ( bitmap instanceof HTMLCanvasElement ) {
+        cvs = bitmap;
+        return cvs.toDataURL( PNG ); // assume transparent content
+    }
+    return "";
 };

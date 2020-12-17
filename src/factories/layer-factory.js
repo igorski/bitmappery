@@ -20,10 +20,9 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import {
-    LAYER_GRAPHIC, LAYER_IMAGE, LAYER_MASK
-} from "@/definitions/layer-types";
-
+import { loader } from "zcanvas";
+import { LAYER_GRAPHIC, LAYER_IMAGE, LAYER_MASK } from "@/definitions/layer-types";
+import { createCanvas, imageToBase64 } from "@/utils/canvas-util";
 let UID_COUNTER = 0;
 
 const LayerFactory = {
@@ -56,7 +55,7 @@ const LayerFactory = {
         return {
             n: layer.name,
             t: layer.type,
-            b: null, // TODO how to serialize layer Bitmap data?
+            b: imageToBase64( layer.bitmap, layer.width, layer.height ),
             x: layer.x,
             y: layer.y,
             w: layer.width,
@@ -69,15 +68,37 @@ const LayerFactory = {
      * Creating a new layer instance from a stored layer structure
      * inside a stored project
      */
-    load( layer ) {
-        // TODO how to deserialize layer Bitmap data?
+    async load( layer ) {
+        const bitmap = await restoreImageForType( layer.b, layer.t, layer.w, layer.h );
         return LayerFactory.create({
-            name: layer.n, type: layer.t,
-            bitmap: layer.b,
-            x: layer.x, y: layer.y,
-            width: layer.w, height: layer.h,
+            name: layer.n,
+            type: layer.t,
+            bitmap,
+            x: layer.x,
+            y: layer.y,
+            width: layer.w,
+            height: layer.h,
             visible: layer.v
         });
     }
 };
 export default LayerFactory;
+
+/* internal methods */
+
+async function restoreImageForType( base64, type, width, height ) {
+    const { image, size } = await loader.loadImage( base64 );
+    switch ( type ) {
+        default:
+        case LAYER_GRAPHIC:
+        case LAYER_MASK:
+            const { cvs, ctx } = createCanvas( width, height );
+            ctx.drawImage( image, 0, 0 );
+            return cvs;
+
+        case LAYER_IMAGE:
+            // TODO: make Blob
+            return image;
+    }
+    return null;
+}
