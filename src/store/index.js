@@ -60,10 +60,12 @@ export default {
         openModal( state, modalName ) {
             state.blindActive = !!modalName;
             state.modal = modalName;
+            KeyboardService.setSuspended( !!state.modal );
         },
         closeModal( state ) {
             state.blindActive = false;
             state.modal = null;
+            KeyboardService.setSuspended( false );
         },
         /**
          * shows a notification containing given title and message.

@@ -21,14 +21,14 @@
 * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 <template>
-    <div class="modal">
+    <div class="modal" @keyup.esc="closeModal()">
         <slot name="header" />
         <button
             type="button"
             class="close-button"
             @click="closeModal()"
         >&#215;</button>
-        <div class="content">
+        <div ref="content" class="content">
             <slot name="content" />
             <div class="actions">
                 <slot name="actions" />
@@ -44,6 +44,9 @@ export default {
         ...mapMutations([
             "closeModal",
         ]),
+    },
+    mounted() {
+        this.$refs.content?.focus();
     },
 };
 </script>

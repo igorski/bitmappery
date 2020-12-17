@@ -2,6 +2,11 @@ import store from "@/store";
 
 const { mutations } = store;
 
+let mockUpdateFn;
+jest.mock("@/services/keyboard-service", () => ({
+    setSuspended: (...args) => mockUpdateFn?.( "setSuspended", ...args ),
+}));
+
 describe( "Vuex store", () => {
     describe( "mutations", () => {
         it("should be able to toggle the opened state of the menu", () => {
@@ -64,20 +69,34 @@ describe( "Vuex store", () => {
         describe( "when toggling the modal window", () => {
             it( "should be able to set the opened modal", () => {
                 const state = { blindActive: false, modal: null };
-                mutations.openModal(state, "foo");
-                expect(state).toEqual({ blindActive: true, modal: "foo" });
+                mutations.openModal( state, "foo" );
+                expect( state ).toEqual({ blindActive: true, modal: "foo" });
             });
 
             it( "should be able to unset the opened modal", () => {
                 const state = { blindActive: true, modal: "foo" };
-                mutations.openModal(state, null);
-                expect(state).toEqual({ blindActive: false, modal: null });
+                mutations.openModal( state, null );
+                expect( state ).toEqual({ blindActive: false, modal: null });
             });
 
             it( "should be able to close the currently opened modal, if existing", () => {
                 const state = { blindActive: true, modal: "foo" };
-                mutations.closeModal(state);
-                expect(state).toEqual({ blindActive: false, modal: null });
+                mutations.closeModal( state );
+                expect( state ).toEqual({ blindActive: false, modal: null });
+            });
+
+            it( "should suspend the keyboard service on open to not conflict with form inputs", () => {
+                const state = { blindActive: false, modal: null };
+                mockUpdateFn = jest.fn();
+                mutations.openModal( state, "foo" );
+                expect( mockUpdateFn ).toHaveBeenCalledWith( "setSuspended", true );
+            });
+
+            it( "should unsuspend the keyboard service on close", () => {
+                const state = { blindActive: true, modal: "foo" };
+                mockUpdateFn = jest.fn();
+                mutations.closeModal( state );
+                expect( mockUpdateFn ).toHaveBeenCalledWith( "setSuspended", false );
             });
         });
 
