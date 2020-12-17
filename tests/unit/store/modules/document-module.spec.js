@@ -123,17 +123,17 @@ describe( "Vuex document module", () => {
                     activeLayerIndex: 1
                 };
                 mutations.addLayer( state );
-                expect( state.activeLayerIndex ).toEqual( 0 ); // is always 0 (newest == first)
+                expect( state.activeLayerIndex ).toEqual( 2 );
             });
 
-            it( "should add new layers at the beginning of the list (to have them appear on top)", () => {
+            it( "should add new layers at the end of the list (to have them appear on top)", () => {
                 const state = {
                     documents: [ { name: "foo", layers: [{ name: "layer1" }] }],
                     activeIndex: 0
                 };
                 mutations.addLayer( state, { name: "layer2" });
                 expect( state.documents[ 0 ].layers ).toEqual([
-                    expect.any( Object ), { name: "layer1" }
+                    { name: "layer1" }, expect.any( Object )
                 ]);
             });
         });

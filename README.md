@@ -37,7 +37,8 @@ npm run lint
 
 # TODO / Roadmap
 
-* Unit test for documentLoad() and documentSave()
+* Unit tests for documentLoad() and documentSave() and factories
+* DrawableLayer should only draw when brush too lis active
 * Layer view in options-panel: allow naming, repositioning, toggle visibility, set as mask
 * Drawable layer bitmap content (canvas) must be added to layer.bitmap (and thus be recalled when switching documents)
 * Canvas util : store transparency of images

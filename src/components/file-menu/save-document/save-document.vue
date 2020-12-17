@@ -21,12 +21,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <modal @keyup.enter="requestSave()">
+    <modal>
         <template #header>
             <h2 v-t="'saveDocument'"></h2>
         </template>
         <template #content>
-            <div class="form">
+            <div class="form" @keyup.enter="requestSave()">
                 <div class="wrapper input">
                     <label v-t="'documentTitle'"></label>
                     <input ref="nameInput"

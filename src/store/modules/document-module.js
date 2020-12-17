@@ -65,8 +65,8 @@ export default {
         },
         addLayer( state, opts ) {
             const layers = state.documents[ state.activeIndex ].layers;
-            layers.unshift( LayerFactory.create( opts ) );
-            state.activeLayerIndex = 0;
+            layers.push( LayerFactory.create( opts ) );
+            state.activeLayerIndex = layers.length - 1;
         },
         removeLayer( state, layer ) {
             const index = state.documents[ state.activeIndex ]?.layers.indexOf( layer );

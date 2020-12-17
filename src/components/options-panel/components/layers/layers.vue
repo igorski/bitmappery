@@ -25,13 +25,13 @@
         <h3 v-t="'layers'"></h3>
         <div class="layer-list">
             <div
-                v-for="(layer, index) in layers"
+                v-for="(layer, index) in reverseLayers"
                 :key="`layer_${index}`"
                 class="layer"
                 :class="{
-                    'active': index === activeLayerIndex
+                    'active': layer.index === activeLayerIndex
                 }"
-                @click="setActiveLayerIndex( index )"
+                @click="setActiveLayerIndex( layer.index )"
             >{{ layer.name }}</div>
         </div>
         <div class="actions">
@@ -65,6 +65,9 @@ export default {
             "activeLayerIndex",
             "layers",
         ]),
+        reverseLayers() {
+            return this.layers?.slice().map(( layer, index ) => ({ ...layer, index })).reverse() ?? [];
+        },
     },
     methods: {
         ...mapMutations([
