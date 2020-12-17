@@ -138,21 +138,25 @@ describe( "Vuex document module", () => {
             });
         });
 
-        it( "should be able to remove a layer by reference", () => {
-            const state = {
-                documents: [{
-                    name: "foo",
-                    layers: [ { name: "layer1" }, { name: "layer2" }, { name: "layer3" } ]
-                }],
-                activeIndex: 0,
-            };
-            mockUpdateFn = jest.fn();
-            const layer = state.documents[ 0 ].layers[ 1 ];
-            mutations.removeLayer( state, layer );
-            expect( state.documents[ 0 ].layers ).toEqual([
-                { name: "layer1" }, { name: "layer3" }
-            ]);
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushLayerSprites", layer );
+        describe( "when removing layers", () => {
+            it( "should be able to remove a layer by reference", () => {
+                const state = {
+                    documents: [{
+                        name: "foo",
+                        layers: [ { name: "layer1" }, { name: "layer2" }, { name: "layer3" } ]
+                    }],
+                    activeIndex: 0,
+                    activeLayerIndex: 1,
+                };
+                mockUpdateFn = jest.fn();
+                const layer = state.documents[ 0 ].layers[ 1 ];
+                mutations.removeLayer( state, layer );
+                expect( state.documents[ 0 ].layers ).toEqual([
+                    { name: "layer1" }, { name: "layer3" }
+                ]);
+                expect( state.activeLayerIndex ).toEqual( 0 );
+                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushLayerSprites", layer );
+            });
         });
 
         it( "should be able to set the active layer index", () => {

@@ -75,6 +75,9 @@ export default {
             }
             flushLayerSprites( layer );
             Vue.delete( state.documents[ state.activeIndex ].layers, index );
+            if ( state.activeLayerIndex === index ) {
+                state.activeLayerIndex = Math.max( 0, index - 1 );
+            }
         },
         setActiveLayerIndex( state, index ) {
             state.activeLayerIndex = index;

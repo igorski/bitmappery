@@ -73,6 +73,7 @@ export default {
         ...mapGetters([
             "activeDocument",
             "layers",
+            "activeLayer",
             "activeTool",
             "zoomOptions",
         ]),
@@ -122,7 +123,7 @@ export default {
                         return;
                     }
                     if ( !layerPool.has( layer.id )) {
-                        const sprite = createSpriteForLayer( this.zCanvas, layer );
+                        const sprite = createSpriteForLayer( this.zCanvas, layer, layer === this.activeLayer );
                         layerPool.set( layer.id, sprite );
                     }
                     seen.push( layer.id );
@@ -131,6 +132,15 @@ export default {
                     flushLayerSprites( layerPool.get( id ));
                     layerPool.delete( id );
                 });
+            },
+        },
+        activeLayer: {
+            handler( layer ) {
+                if ( !layer ) {
+                    return;
+                }
+                const { id } = layer;
+                [ ...layerPool.entries() ].forEach(([ key, sprite ]) => sprite.setInteractive( key === id ));
             },
         },
         activeTool( tool ) {
