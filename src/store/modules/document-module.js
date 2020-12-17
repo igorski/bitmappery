@@ -29,13 +29,16 @@ import { flushSpritesInLayer } from "@/utils/canvas-util";
 
 export default {
     state: {
-        documents : [],
-        activeIndex: 0,
+        documents : [], // opened documents
+        activeIndex: 0, // the currently active document
+        activeLayerIndex: 0, // the currently active layer within the currently active document
     },
     getters: {
         documents: state => state.documents,
         activeDocument: state => state.documents[ state.activeIndex ],
         layers: ( state, getters ) => getters.activeDocument?.layers,
+        activeLayer: ( state, getters ) => getters.layers?.[ state.activeLayerIndex ],
+        activeLayerIndex: state => state.activeLayerIndex,
     },
     mutations: {
         setActiveDocument( state, index ) {
@@ -60,8 +63,21 @@ export default {
             Vue.delete( state.documents, state.activeIndex );
             state.activeIndex = Math.min( state.documents.length - 1, state.activeIndex );
         },
-        addLayer( state ) {
-            state.documents[ state.activeIndex ].layers.push( LayerFactory.create() );
+        addLayer( state, optName ) {
+            const layers = state.documents[ state.activeIndex ].layers;
+            layers.unshift( LayerFactory.create( optName ) );
+            state.activeLayerIndex = 0;
+        },
+        removeLayer( state, layer ) {
+            const index = state.documents[ state.activeIndex ]?.layers.indexOf( layer );
+            if ( index < 0 ) {
+                return;
+            }
+            flushSpritesInLayer( layer );
+            Vue.delete( state.documents[ state.activeIndex ].layers, index );
+        },
+        setActiveLayerIndex( state, index ) {
+            state.activeLayerIndex = index;
         },
         addGraphicToLayer( state, { index, bitmap, size = {} }) {
             state.documents[ state.activeIndex ].layers[ index ]?.graphics.push(
@@ -70,6 +86,9 @@ export default {
         },
     },
     actions: {
+        requestNewDocument({ commit, getters }) {
+            commit( "addNewDocument", getters.t( "newDocumentNum", { num: getters.documents.length + 1 }));
+        },
         requestDocumentClose({ commit, getters }) {
             commit( "openDialog", {
                 type: "confirm",

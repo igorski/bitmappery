@@ -47,7 +47,7 @@ npm run lint
 * Zoom in should be center based
 * Image position must be made persistent (now isn't on document switch)
 * Implement selections
-* Unload Blobs when images are no longer used in document (see canvas-util disposeSprite)
+* Unload Blobs when images are no longer used in document (see canvas-util disposeSprite, keep instance count of usages)
 * Export output to image file
 * Import / export documents from/to disk|Dropbox
 * Restore project by selecting folder from file system

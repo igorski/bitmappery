@@ -33,6 +33,19 @@ describe( "Vuex document module", () => {
             };
             expect( getters.layers( state, mockedGetters )).toEqual( mockedGetters.activeDocument.layers );
         });
+
+        it( "should be able to retrieve the active Layer for the active Document", () => {
+            const state = { activeLayerIndex: 1 };
+            const mockedGetters = {
+                layers: [ { name: "layer1" }, { name: "layer2" }, { name: "layer3" } ]
+            };
+            expect( getters.activeLayer( state, mockedGetters )).toEqual( mockedGetters.layers[ 1 ]);
+        });
+
+        it( "should be able to retrieve the active Layer index", () => {
+            const state = { activeLayerIndex: 2 };
+            expect( getters.activeLayerIndex( state )).toEqual( 2 );
+        });
     });
 
     describe( "mutations", () => {
@@ -86,20 +99,69 @@ describe( "Vuex document module", () => {
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "flushSpritesInLayer", layer3 );
         });
 
-        it( "it should be able to add a Layer to the active Document", () => {
-            const state = {
-                documents: [ { name: "foo", layers: [] } ],
-                activeIndex: 0
-            };
-            mutations.addLayer( state );
-            expect( state.documents[ 0 ].layers ).toEqual([ LayerFactory.create() ]);
+        describe( "when adding layers", () => {
+            it( "should be able to add a Layer to the active Document", () => {
+                const state = {
+                    documents: [ { name: "foo", layers: [] } ],
+                    activeIndex: 0
+                };
+                mutations.addLayer( state );
+                expect( state.documents[ 0 ].layers ).toEqual([ LayerFactory.create() ]);
+            });
+
+            it( "should update the active layer index to the last added layers index", () => {
+                const state = {
+                    documents: [ { name: "foo", layers: [ { name: "layer1" }, { name: "layer2" } ] } ],
+                    activeIndex: 0,
+                    activeLayerIndex: 1
+                };
+                mutations.addLayer( state );
+                expect( state.activeLayerIndex ).toEqual( 0 ); // is always 0 (newest == first)
+            });
+
+            it( "should add new layers at the beginning of the list (to have them appear on top)", () => {
+                const state = {
+                    documents: [ { name: "foo", layers: [{ name: "layer1" }] }],
+                    activeIndex: 0
+                };
+                mutations.addLayer( state, "layer2" );
+                expect( state.documents[ 0 ].layers ).toEqual([
+                    LayerFactory.create( "layer2" ), { name: "layer1" }
+                ]);
+            });
         });
 
-        it( "it should be able to add a Graphic to a specific layer within the active Document", () => {
+        it( "should be able to remove a layer by reference", () => {
             const state = {
                 documents: [{
                     name: "foo",
-                    layers: [ LayerFactory.create( "Layer 1" ), LayerFactory.create( "Layer 2" ) ]
+                    layers: [ { name: "layer1" }, { name: "layer2" }, { name: "layer3" } ]
+                }],
+                activeIndex: 0,
+            };
+            mockUpdateFn = jest.fn();
+            const layer = state.documents[ 0 ].layers[ 1 ];
+            mutations.removeLayer( state, layer );
+            expect( state.documents[ 0 ].layers ).toEqual([
+                { name: "layer1" }, { name: "layer3" }
+            ]);
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushSpritesInLayer", layer );
+        });
+
+        it( "should be able to set the active layer index", () => {
+            const state = {
+                documents: [ { name: "foo", layers: [{ name: "layer1" }, { name: "layer2" }] }],
+                activeLayerIndex: 0
+            };
+            mutations.setActiveLayerIndex( state, 1 );
+            expect( state.activeLayerIndex ).toEqual( 1 );
+        });
+
+        it( "should be able to add a Graphic to a specific layer within the active Document", () => {
+            const state = {
+                documents: [{
+                    name: "foo",
+                    layers: [ LayerFactory.create( "layer1" ), LayerFactory.create( "layer2" ) ]
                 }],
                 activeIndex: 0
             };

@@ -15,8 +15,20 @@
         color: #FFF;
     }
 
+    &:disabled {
+        background-color: #666;
+        color: #b6b6b6;
+        border-color: #b6b6b6;
+    }
+
     &--block {
         display: block;
         text-align: center;
+    }
+
+    &--small {
+        font-size: 75%;
+        padding: $spacing-xsmall $spacing-small;
+        border-radius: $spacing-medium;
     }
 }

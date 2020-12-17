@@ -51,7 +51,7 @@
             <!-- active tool section -->
             <component :is="activeToolOptions" />
             <!-- layer section -->
-            <!-- TODO -->
+            <layers />
         </div>
     </div>
 </template>
@@ -59,6 +59,7 @@
 <script>
 import { mapState, mapGetters, mapMutations } from "vuex";
 import FileSelector from "./components/file-selector/file-selector";
+import Layers       from "./components/layers/layers";
 import SelectBox    from '@/components/ui/select-box/select-box';
 import { mapSelectOptions } from "@/utils/search-select-util"
 import messages     from "./messages.json";
@@ -67,6 +68,7 @@ export default {
     i18n: { messages },
     components: {
         FileSelector,
+        Layers,
         SelectBox,
     },
     data: () => ({
@@ -137,6 +139,7 @@ export default {
 
 .options-panel-wrapper {
     @include component();
+    overflow-y: scroll;
     width: 100%;
     height: 100%;
 }

@@ -36,7 +36,7 @@
                 <ul class="submenu">
                     <li>
                         <button v-t="'newDocument'"
-                                @click="addNewDocument( $t( 'newDocumentNum', { num: documents.length }))"
+                                @click="requestNewDocument()"
                         ></button>
                     </li>
                     <li>
@@ -140,6 +140,7 @@ export default {
             "closeActiveDocument"
         ]),
         ...mapActions([
+            "requestNewDocument",
             "requestDocumentClose",
         ]),
         requestImageExport() {

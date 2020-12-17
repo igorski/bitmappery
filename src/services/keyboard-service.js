@@ -191,7 +191,7 @@ function handleKeyDown( event ) {
             // new document
             if ( hasOption ) {
                 preventDefault( event ); // new browser window
-                store.commit( "addNewDocument" );
+                store.dispatch( "requestNewDocument" );
             }
             break;
 

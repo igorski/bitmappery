@@ -56,7 +56,7 @@ export default {
                     } else if ( !this.activeDocument ) {
                         this.addNewDocument( file.name );
                     }
-                    this.addLayer();
+                    this.addLayer( file.name );
                     break;
                 case "document":
                     if ( !currentDocumentIsEmpty ) {
