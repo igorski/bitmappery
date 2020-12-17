@@ -20,12 +20,13 @@
 * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-const JPEG = "image/jpg";
+const JPEG = "image/jpeg";
 const PNG  = "image/png";
 const GIF  = "image/gif";
 
 export const ACCEPTED_FILE_TYPES      = [ JPEG, PNG, GIF ];
 export const ACCEPTED_FILE_EXTENSIONS = [ "jpg", "jpeg", "png", "gif" ];
+export const EXPORTABLE_FILE_TYPES    = [ JPEG, PNG ];
 
 export const isCompressableFileType = type => type === JPEG;
 

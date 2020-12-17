@@ -76,7 +76,7 @@ import Modal     from "@/components/modal/modal";
 import SelectBox from '@/components/ui/select-box/select-box';
 import Slider    from "@/components/ui/slider/slider";
 import { mapSelectOptions } from "@/utils/search-select-util";
-import { ACCEPTED_FILE_TYPES, typeToExt, isCompressableFileType } from "@/definitions/image-types";
+import { EXPORTABLE_FILE_TYPES, typeToExt, isCompressableFileType } from "@/definitions/image-types";
 import { createCanvas }   from "@/utils/canvas-util";
 import { saveBlobAsFile } from "@/utils/file-util";
 import messages from "./messages.json";
@@ -90,7 +90,7 @@ export default {
     },
     data: () => ({
         name: "",
-        type: ACCEPTED_FILE_TYPES[ 0 ],
+        type: EXPORTABLE_FILE_TYPES[ 0 ],
         quality: 95,
     }),
     computed: {
@@ -101,7 +101,7 @@ export default {
             "activeDocument",
         ]),
         fileTypes() {
-            return mapSelectOptions( ACCEPTED_FILE_TYPES );
+            return mapSelectOptions( EXPORTABLE_FILE_TYPES );
         },
         hasQualityOptions() {
             return isCompressableFileType( this.type );
@@ -118,7 +118,9 @@ export default {
             // into the new canvas at its own scale.
             const { cvs, ctx } = createCanvas( this.activeDocument.width, this.activeDocument.height );
             ctx.drawImage( this.zCanvas.getElement(), 0, 0, cvs.width, cvs.height );
-            const base64 = await fetch( cvs.toDataURL( this.type, this.quality / 100 ));
+            const base64 = await fetch(
+                cvs.toDataURL( this.type, parseFloat(( this.quality / 100 ).toFixed( 2 )))
+            );
             const blob = await base64.blob();
             saveBlobAsFile( blob, `${this.name}.${typeToExt(this.type)}` );
             this.close();
