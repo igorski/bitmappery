@@ -23,6 +23,11 @@
 <template>
     <div class="dropbox-file-modal">
         <h2 v-t="'files'"></h2>
+        <button
+            type="button"
+            class="close-button"
+            @click="closeModal()"
+        >&#215;</button>
         <div v-if="loading" v-t="'loading'"></div>
         <div class="content">
             <div v-if="leaf">

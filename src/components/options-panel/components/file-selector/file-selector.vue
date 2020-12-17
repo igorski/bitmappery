@@ -24,7 +24,7 @@
     <div class="form">
         <label v-t="'selectLocalImageFile'"
                for="file"
-               class="file-label"
+               class="file-label button button--block"
         ></label>
         <input type="file"
                id="file"
@@ -66,24 +66,6 @@ export default {
 <style lang="scss" scoped>
 @import "@/styles/_mixins";
 @import "@/styles/typography";
-
-.file-label {
-    display: block;
-    text-align: center;
-    cursor: pointer;
-    border: $spacing-xsmall solid $color-lines;
-    border-radius: $spacing-medium;
-    padding: $spacing-medium $spacing-xlarge;
-    font-weight: bold;
-    color: #FFF;
-    @include customFont();
-    @include boxSize();
-
-    &:hover {
-        border-style: dashed;
-        border-color: #FFF;
-    }
-}
 
 #file {
     /* hide this ugly thing, use the label as interaction */

@@ -21,20 +21,22 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div>
+    <div class="form">
         <template v-if="!authenticated">
-            <h3 v-t="loading ? 'connectingToDropbox' : 'loginToDropbox'"></h3>
             <button
                 v-if="authUrl"
-                v-t="'login'"
+                v-t="'loginToDropbox'"
                 type="button"
+                class="button dropbox"
                 @click="login"
             ></button>
         </template>
-        <template v-else>
+        <template v-if="authenticated || awaitingConnection">
             <button
-                v-t="'importFromDropbox'"
+                v-t="authenticated ? 'importFromDropbox' : 'connectingToDropbox'"
                 type="button"
+                class="button dropbox"
+                :disabled="awaitingConnection"
                 @click="openFileBrowser"
             ></button>
         </template>
@@ -58,6 +60,11 @@ export default {
         loading: false,
         authUrl: "",
     }),
+    computed: {
+        awaitingConnection() {
+            return !this.isauthenticated && !this.authUrl;
+        },
+    },
     async created() {
         this.loading = true;
         this.authenticated = await isAuthenticated();
@@ -102,3 +109,7 @@ export default {
     },
 };
 </script>
+
+<style lang="scss" scoped>
+@import "@/styles/third-party";
+</style>

@@ -23,6 +23,11 @@
 <template>
     <div class="modal">
         <slot name="header" />
+        <button
+            type="button"
+            class="close-button"
+            @click="closeModal()"
+        >&#215;</button>
         <div class="content">
             <slot name="content" />
             <div class="actions">
@@ -32,6 +37,16 @@
     </div>
 </template>
 
+<script>
+import { mapMutations } from "vuex";
+export default {
+    methods: {
+        ...mapMutations([
+            "closeModal",
+        ]),
+    },
+};
+</script>
 <style lang="scss" scoped>
 @import "@/styles/component";
 

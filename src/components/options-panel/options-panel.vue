@@ -30,7 +30,7 @@
         >{{ collapsed ? '&larr;' : '&rarr;' }}</button>
         <div
             v-if="!collapsed"
-            class="content"
+            class="content form"
         >
             <!-- file import section -->
             <file-selector />
@@ -38,12 +38,12 @@
                 v-if="!dropbox"
                 v-t="'importFromDropbox'"
                 type="button"
-                class="dropbox"
+                class="button button--block dropbox"
                 @click="dropbox = true"
             ></button>
             <component :is="cloudImportType" />
-            <div class="wrapper input">
-                <label v-t="'openImageAs'"></label>
+            <div class="wrapper input padded">
+                <label v-t="'openAsNew'"></label>
                 <select-box :options="fileTargetOptions"
                              v-model="importTarget"
                 />
@@ -133,10 +133,15 @@ export default {
 
 <style lang="scss" scoped>
 @import "@/styles/component";
+@import "@/styles/third-party";
 
 .options-panel-wrapper {
     @include component();
     width: 100%;
     height: 100%;
+}
+
+.padded {
+    margin: $spacing-small 0;
 }
 </style>

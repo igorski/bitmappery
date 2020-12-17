@@ -65,7 +65,7 @@
                 v-t="'cancel'"
                 type="button"
                 class="button"
-                @click="close()"
+                @click="closeModal()"
             ></button>
         </template>
     </modal>
@@ -117,6 +117,7 @@ export default {
     },
     methods: {
         ...mapMutations([
+            "closeModal",
             "setActiveDocumentSize",
         ]),
         lockSync() {
@@ -127,10 +128,7 @@ export default {
         },
         save() {
             this.setActiveDocumentSize({ width: this.width, height: this.height });
-            this.close();
-        },
-        close() {
-            this.$emit( "close" );
+            this.closeModal();
         },
     }
 };

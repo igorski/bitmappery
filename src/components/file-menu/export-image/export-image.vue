@@ -64,14 +64,14 @@
                 v-t="'cancel'"
                 type="button"
                 class="button"
-                @click="close()"
+                @click="closeModal()"
             ></button>
         </template>
     </modal>
 </template>
 
 <script>
-import { mapState, mapGetters } from "vuex";
+import { mapState, mapGetters, mapMutations } from "vuex";
 import Modal     from "@/components/modal/modal";
 import SelectBox from '@/components/ui/select-box/select-box';
 import Slider    from "@/components/ui/slider/slider";
@@ -111,6 +111,9 @@ export default {
         this.name = this.activeDocument.name.split( "." )[ 0 ];
     },
     methods: {
+        ...mapMutations([
+            "closeModal",
+        ]),
         async exportImage() {
             // TODO: here we clone the current zCanvas state to a new canvas
             // of the document dimensions. This will result in a loss of quality if
@@ -123,10 +126,7 @@ export default {
             );
             const blob = await base64.blob();
             saveBlobAsFile( blob, `${this.name}.${typeToExt(this.type)}` );
-            this.close();
-        },
-        close() {
-            this.$emit( "close" );
+            this.closeModal();
         },
     },
 };

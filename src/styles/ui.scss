@@ -13,4 +13,9 @@
         background-color: $color-1;
         color: #FFF;
     }
+
+    &--block {
+        display: block;
+        text-align: center;
+    }
 }

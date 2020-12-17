@@ -1,0 +1,13 @@
+@import "_mixins";
+
+.dropbox {
+    width: 100%;
+    background-color: #3D9AE8;
+    color: #FFF;
+    margin-top: $spacing-small;
+
+    &:hover {
+        background-color: #FFF;
+        color: #3D9AE8;
+    }
+}
