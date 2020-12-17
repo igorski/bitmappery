@@ -111,6 +111,13 @@ describe( "Vuex store", () => {
             });
         });
 
+        it( "should be able to set the current zCanvas instance", () => {
+            const state  = { zCanvas: null };
+            const canvas = { foo: "bar" };
+            mutations.setZCanvas( state, canvas );
+            expect( state.zCanvas ).toEqual( canvas );
+        });
+
         it( "should be able to set the window size", () => {
             const state = { windowSize: { width: 0, height: 0 }};
             const width = 500;

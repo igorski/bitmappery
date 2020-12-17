@@ -20,10 +20,14 @@ export default {
         toolboxOpened: false,
         optionsPanelOpened: true,
         blindActive: false,
-        dialog: null,
-        modal: null,
-        notifications: [],
-        windowSize: { width: window.innerWidth, height: window.innerHeight },
+        dialog: null,       // currently opened dialog
+        modal: null,        // currently opened modal
+        notifications: [],  // notification message queue
+        zCanvas: null,      // zCanvas instance
+        windowSize: {
+            width: window.innerWidth,
+            height: window.innerHeight
+        },
     },
     getters: {
         // eslint-disable-next-line no-unused-vars
@@ -70,6 +74,9 @@ export default {
         },
         clearNotifications( state ) {
             state.notifications = [];
+        },
+        setZCanvas( state, zCanvas ) {
+            state.zCanvas = zCanvas;
         },
         /**
          * cache the resize in the store so components can react to these values

@@ -3,11 +3,23 @@
 .form {
     .wrapper {
         margin: $spacing-small 0;
-        
+
         label,
-        input, textarea, .select {
+        input,
+        textarea,
+        .select,
+        .vue-slider {
             display: inline-block;
-            width: 50%;
+            width: 50% !important;
+        }
+        input, textarea {
+            box-sizing: border-box;
+            border-radius: $spacing-small;
+            border: none;
+            padding: #{$spacing-small + $spacing-xsmall} $spacing-medium;
+        }
+        input[type='checkbox'] {
+            width: auto;
         }
     }
 }

@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import { mapState, mapGetters, mapActions } from "vuex";
+import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import ZoomableCanvas   from "@/components/ui/zcanvas/zoomable-canvas";
 import DrawableLayer    from "@/components/ui/zcanvas/drawable-layer";
 import { scaleToRatio } from "@/utils/image-math";
@@ -52,7 +52,7 @@ import {
 
 /* internal non-reactive properties */
 
-let lastDocument, zCanvas, drawableLayer;
+let lastDocument, drawableLayer;
 // scale of the on-screen canvas relative to the document
 let xScale = 1, yScale = 1, zoom = 1, containerSize;
 
@@ -63,6 +63,7 @@ export default {
     }),
     computed: {
         ...mapState([
+            "zCanvas",
             "windowSize"
         ]),
         ...mapGetters([
@@ -80,16 +81,16 @@ export default {
             deep: true,
             handler( document, oldValue = null ) {
                 if ( !document?.layers ) {
-                    if ( zCanvas ) {
-                        zCanvas.dispose();
-                        zCanvas = null;
+                    if ( this.zCanvas ) {
+                        this.zCanvas.dispose();
+                        this.setZCanvas( null );
                     }
                     return;
                 }
-                if ( !zCanvas ) {
+                if ( !this.zCanvas ) {
                     this.createCanvas();
                     this.$nextTick(() => {
-                        zCanvas.insertInPage( this.$refs.canvasContainer );
+                        this.zCanvas.insertInPage( this.$refs.canvasContainer );
                         this.cacheContainerSize();
                         this.scaleCanvas();
                     });
@@ -99,7 +100,7 @@ export default {
                     lastDocument = name;
                     flushCache(); // switching between documents
                 }
-                if ( zCanvas.width !== width || zCanvas.height !== height ) {
+                if ( this.zCanvas.width !== width || this.zCanvas.height !== height ) {
                     this.scaleCanvas();
                 }
                 document.layers.forEach( layer => {
@@ -108,7 +109,7 @@ export default {
                         return;
                     }
                     layer.graphics.forEach( graphic => {
-                        const sprite = createSpriteForGraphic( zCanvas, graphic );
+                        const sprite = createSpriteForGraphic( this.zCanvas, graphic );
                     });
                 });
             },
@@ -124,7 +125,7 @@ export default {
                 case "brush":
                     if ( !drawableLayer ) {
                         drawableLayer = new DrawableLayer( this.activeDocument );
-                        zCanvas.addChild( drawableLayer );
+                        this.zCanvas.addChild( drawableLayer );
                     }
                     break;
             }
@@ -153,18 +154,21 @@ export default {
         this.cacheContainerSize();
     },
     methods: {
+        ...mapMutations([
+            "setZCanvas",
+        ]),
         ...mapActions([
             "requestDocumentClose",
         ]),
         createCanvas() {
-            zCanvas = new ZoomableCanvas({
+            this.setZCanvas( new ZoomableCanvas({
                 width: 160,
                 height: 90,
                 animate: false,
                 smoothing: true,
                 backgroundColor: "red",
                 stretchToFit: false
-            });
+            }));
         },
         cacheContainerSize() {
             containerSize = this.$el.parentNode?.getBoundingClientRect();
@@ -180,12 +184,12 @@ export default {
             let { width, height } = this.activeDocument;
             ({ width, height } = scaleToRatio( width, height, containerSize.width, containerSize.height ));
             this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
-            zCanvas.setDimensions( width * zoom, height * zoom, true, true ); // replace to not multiply by zoom
+            this.zCanvas.setDimensions( width * zoom, height * zoom, true, true ); // replace to not multiply by zoom
             xScale = width / this.activeDocument.width;
             yScale = height / this.activeDocument.height;
-            zCanvas.setZoomFactor( xScale * zoom, yScale * zoom ); // replace with zCanvas.setZoom()
+            this.zCanvas.setZoomFactor( xScale * zoom, yScale * zoom ); // replace with zCanvas.setZoom()
 
-            this.centerCanvas = zCanvas.getWidth() < containerSize.width || zCanvas.getHeight() < containerSize.height ;
+            this.centerCanvas = this.zCanvas.getWidth() < containerSize.width || this.zCanvas.getHeight() < containerSize.height ;
         },
     },
 };

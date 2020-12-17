@@ -75,7 +75,7 @@ import { isMobile }    from "@/utils/environment-util";
 import store           from "./store";
 import messages        from "./messages.json";
 import {
-    RESIZE_DOCUMENT, DROPBOX_FILE_SELECTOR
+    RESIZE_DOCUMENT, EXPORT_IMAGE, DROPBOX_FILE_SELECTOR
 } from "@/definitions/modal-windows";
 
 Vue.use( Vuex );
@@ -115,6 +115,8 @@ export default {
                     return null;
                 case RESIZE_DOCUMENT:
                     return () => import( "@/components/edit-menu/resize-document/resize-document" );
+                case EXPORT_IMAGE:
+                    return () => import( "@/components/file-menu/export-image/export-image" );
                 case DROPBOX_FILE_SELECTOR:
                     return () => import( "@/components/dropbox-file-selector/dropbox-file-selector" );
             }

@@ -45,9 +45,25 @@
                                 @click="requestDocumentClose()"
                         ></button>
                     </li>
-                    <li><button v-t="'loadDocument'"></button></li>
-                    <li><button v-t="'saveDocument'"></button></li>
-                    <li><button v-t="'exportImage'"></button></li>
+                    <li>
+                        <button v-t="'loadDocument'"
+                                type="button"
+                                disabled
+                        ></button>
+                    </li>
+                    <li>
+                        <button v-t="'saveDocument'"
+                                type="button"
+                                :disabled="true/*!documents.length*/"
+                        ></button>
+                    </li>
+                    <li>
+                        <button v-t="'exportImage'"
+                                type="button"
+                                :disabled="!documents.length"
+                                @click="requestImageExport()"
+                        ></button>
+                    </li>
                 </ul>
             </li>
             <li>
@@ -55,6 +71,7 @@
                 <ul class="submenu">
                     <li>
                         <button v-t="'resizeDocument'"
+                                type="button"
                                 :disabled="!documents.length"
                                 @click="requestDocumentResize()"
                         ></button>
@@ -86,7 +103,7 @@
 
 <script>
 import { mapState, mapGetters, mapMutations, mapActions }  from "vuex";
-import { RESIZE_DOCUMENT } from "@/definitions/modal-windows";
+import { RESIZE_DOCUMENT, EXPORT_IMAGE } from "@/definitions/modal-windows";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import messages from "./messages.json";
 
@@ -125,6 +142,9 @@ export default {
         ...mapActions([
             "requestDocumentClose",
         ]),
+        requestImageExport() {
+            this.openModal( EXPORT_IMAGE );
+        },
         requestDocumentResize() {
             this.openModal( RESIZE_DOCUMENT );
         },

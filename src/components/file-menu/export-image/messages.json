@@ -1,0 +1,10 @@
+{
+    "en-US": {
+        "exportImage": "Export image",
+        "imageType": "Image type",
+        "imageQuality": "Image quality",
+        "fileName": "File name",
+        "export": "Export",
+        "cancel": "Cancel"
+    }
+}

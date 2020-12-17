@@ -67,9 +67,8 @@ import ImageToDocumentManager             from "@/mixins/image-to-document-manag
 import { listFolder, downloadFileAsBlob } from "@/services/dropbox-service";
 import DropboxImagePreview from "./dropbox-image-preview";
 import { truncate } from "@/utils/string-util";
-import messages     from "./messages.json";
-
-const ACCEPTED_FILE_EXTENSIONS = [ ".jpg", ".jpeg", "gif", "png" ];
+import { ACCEPTED_FILE_EXTENSIONS } from "@/definitions/image-types";
+import messages from "./messages.json";
 
 function mapEntry( entry, children = [], parent = null ) {
     return {
@@ -145,7 +144,7 @@ export default {
             return this.leaf.children.filter( entry => {
                 // only show folders and image files
                 if ( entry.type === "file" ) {
-                    return ACCEPTED_FILE_EXTENSIONS.some( ext => entry.name.includes( ext ));
+                    return ACCEPTED_FILE_EXTENSIONS.some( ext => entry.name.includes( `.${ext}` ));
                 }
                 return true;
             });
