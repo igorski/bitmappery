@@ -45,11 +45,14 @@ export const scaleToRatio = ( imageWidth, imageHeight, destWidth, destHeight ) =
 	}
 
     if ( height < destHeight ) {
-        destWidth  *= ( destHeight / height );
-        height = destHeight;
+        destWidth *= ( destHeight / height );
+        height     = destHeight;
     }
-
     return {
         width: destWidth, height
     };
 };
+
+export const isPortrait  = ( width, height ) => width < height;
+export const isLandscape = ( width, height ) => width > height;
+export const isSquare    = ( width, height ) => width === height;

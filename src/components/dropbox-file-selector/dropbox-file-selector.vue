@@ -212,9 +212,8 @@ export default {
     }
 
     @include large() {
-        $width: 480px;
-        $height: 300px;
-
+        $width: 800px;
+        $height: 400px;
         width: $width;
         height: $height;
         left: calc(50% - #{$width / 2});
