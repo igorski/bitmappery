@@ -102,7 +102,6 @@ export default {
             }
         },
         openFileBrowser() {
-            console.warn("alstu?");
             this.openModal( DROPBOX_FILE_SELECTOR );
         },
         showConnectionMessage() {

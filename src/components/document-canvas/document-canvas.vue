@@ -186,12 +186,12 @@ export default {
             "requestDocumentClose",
         ]),
         createCanvas() {
+            // note dimensions will be adjusted by scaleCanvas()
             this.setZCanvas( new ZoomableCanvas({
-                width: 160,
-                height: 90,
+                width: 100,
+                height: 100,
                 animate: false,
                 smoothing: true,
-                backgroundColor: "red",
                 stretchToFit: false
             }));
         },
@@ -227,6 +227,7 @@ export default {
 .canvas-wrapper {
     display: inline-block;
     width: 100%;
+    background: url( "../../assets/images/document_transparent_bg.png" ) repeat fixed;
     @include component();
 
     .content {
