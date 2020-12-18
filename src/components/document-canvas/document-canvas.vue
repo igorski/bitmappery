@@ -162,7 +162,7 @@ export default {
                 zoom = level;
 
                 // cache the current scroll offset so we can zoom from the current offset
-                // note that by default we zoom from the center (of document was unscrolled)
+                // note that by default we zoom from the center (when document was unscrolled)
                 let { scrollLeft, scrollTop, scrollWidth, scrollHeight } = this.$refs.canvasContainer;
                 const ratioX = Math.round( scrollLeft / scrollWidth ) || .5;
                 const ratioY = Math.round( scrollTop / scrollHeight ) || .5;
