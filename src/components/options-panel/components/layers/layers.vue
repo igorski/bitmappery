@@ -55,7 +55,9 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
+import { ADD_LAYER } from "@/definitions/modal-windows";
 import messages from "./messages.json";
+
 export default {
     i18n: { messages },
     computed: {
@@ -71,16 +73,12 @@ export default {
     },
     methods: {
         ...mapMutations([
-            "addLayer",
+            "openModal",
             "removeLayer",
             "setActiveLayerIndex",
         ]),
         requestLayerAdd() {
-            this.addLayer({
-                name: this.$t( "newLayerNum", { num: this.layers.length + 1 }),
-                width: this.activeDocument.width,
-                height: this.activeDocument.height
-            });
+            this.openModal( ADD_LAYER );
         },
         requestLayerRemove() {
             this.removeLayer( this.activeLayer );

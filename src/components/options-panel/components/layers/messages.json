@@ -2,7 +2,6 @@
     "en-US": {
         "layers": "Layers",
         "addLayer": "Add layer",
-        "removeLayer": "Remove layer",
-        "newLayerNum": "New layer #{num}"
+        "removeLayer": "Remove layer"
     }
 }

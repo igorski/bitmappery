@@ -28,19 +28,17 @@
  * @return {Array<{value: *, text: string }>}
  */
 export const mapSelectOptions = items => {
-    return items.map(value => {
-        if (typeof value === 'object') {
+    return items.map( value => {
+        if ( typeof value === "object" ) {
             return value;
         }
-
         let text = ucFirst(value.toString());
 
         // NOTE: values and text MUST be different due to bug described in
         // https://github.com/moreta/vue-search-select/issues/112
-        if (text === value) {
-            text += ' ';
+        if ( text === value ) {
+            text += " ";
         }
-
         return { value, text };
     });
 };
@@ -48,6 +46,6 @@ export const mapSelectOptions = items => {
 /* internal methods */
 
 const ucFirst = text => text.toLowerCase()
-    .split(' ')
-    .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
-    .join(' ');
+    .split(" ")
+    .map(( s ) => s.charAt(0).toUpperCase() + s.substring(1))
+    .join(" ");

@@ -48,9 +48,9 @@
 
 <script>
 import { mapState, mapGetters, mapMutations } from "vuex";
-import { LAYER_GRAPHIC } from "@/definitions/layer-types";
-import ToolTypes         from "@/definitions/tool-types";
-import messages from "./messages.json";
+import { LAYER_GRAPHIC, LAYER_MASK } from "@/definitions/layer-types";
+import ToolTypes from "@/definitions/tool-types";
+import messages  from "./messages.json";
 
 export default {
     i18n: { messages },
@@ -75,7 +75,7 @@ export default {
             return [
                 { type: ToolTypes.MOVE,  i18n: "move",  disabled: !this.activeDocument },
                 { type: ToolTypes.ZOOM,  i18n: "zoom",  disabled: !this.activeDocument },
-                { type: ToolTypes.BRUSH, i18n: "brush", disabled: !this.activeDocument || this.activeLayer?.type !== LAYER_GRAPHIC }
+                { type: ToolTypes.BRUSH, i18n: "brush", disabled: !this.activeDocument || ![ LAYER_GRAPHIC, LAYER_MASK ].includes( this.activeLayer?.type ) }
             ]
         },
     },

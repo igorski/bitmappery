@@ -75,7 +75,8 @@ import { isMobile }    from "@/utils/environment-util";
 import store           from "./store";
 import messages        from "./messages.json";
 import {
-    RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_IMAGE, DROPBOX_FILE_SELECTOR
+    RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_IMAGE, DROPBOX_FILE_SELECTOR,
+    ADD_LAYER
 } from "@/definitions/modal-windows";
 
 Vue.use( Vuex );
@@ -121,6 +122,8 @@ export default {
                     return () => import( "@/components/file-menu/export-image/export-image" );
                 case DROPBOX_FILE_SELECTOR:
                     return () => import( "@/components/dropbox-file-selector/dropbox-file-selector" );
+                case ADD_LAYER:
+                    return () => import( "@/components/options-panel/components/add-layer/add-layer" );
             }
         },
     },

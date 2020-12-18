@@ -77,6 +77,7 @@ export const createSpriteForLayer = ( zCanvasInstance, layer, isInteractive = fa
         switch ( type ) {
             default:
             case LAYER_GRAPHIC:
+            case LAYER_MASK:
                 output = new DrawableLayer( layer );
                 break;
             case LAYER_IMAGE:
