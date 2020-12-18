@@ -22,6 +22,7 @@
  */
 import { sprite }       from "zcanvas";
 import { createCanvas } from "@/utils/canvas-util";
+import { LAYER_MASK }   from "@/definitions/layer-types";
 
 function DrawableLayer( layer ) {
     if ( !layer.bitmap ) {
@@ -33,8 +34,10 @@ function DrawableLayer( layer ) {
     let { bitmap, x, y, width, height } = layer;
     const ctx = bitmap.getContext( "2d" );
 
+    const mask = layer.type === LAYER_MASK;
+
     // zCanvas inheritance
-    DrawableLayer.super( this, "constructor", { bitmap, x, y, width, height } );
+    DrawableLayer.super( this, "constructor", { bitmap, x, y, width, height, mask } );
     this.setDraggable( true );
 
     // TODO: setters and cache for these
