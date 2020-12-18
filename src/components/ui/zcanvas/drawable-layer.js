@@ -41,35 +41,43 @@ function DrawableLayer( layer ) {
     this.setDraggable( true );
 
     // TODO: setters and cache for these
-    const radius = 30; // TODO: setter
-    const innerRadius = 5;
-    const outerRadius = 70;
     const opacity = .5; // 0 - 1 range
     ctx.globalAlpha = opacity;
 
-    const { cvs: brush, ctx: brushCtx } = createCanvas( radius * 2, radius * 2 );
+    this.halfRadius = 0;
 
-    // Radii of the white glow.
-    // Radius of the entire circle.
+    const { cvs: brush, ctx: brushCtx } = createCanvas( 10, 10 );
 
-    x = radius;
-    y = radius;
-    const gradient = brushCtx.createRadialGradient( x, y, innerRadius, x, y, outerRadius );
-    gradient.addColorStop( 0, 'rgba(255,0,0,1)' );
-    gradient.addColorStop( 1, 'rgba(255,255,255,1)' );
+    this.cacheGradient = function( color, radius = 30, innerRadius = 5, outerRadius = 70 )
+    {
+        x = radius;
+        y = radius;
 
-    brushCtx.arc( x, y, radius, 0, 2 * Math.PI );
+        // update brush Canvas size
+        brush.width  = radius * 2;
+        brush.height = radius * 2;
 
-    brushCtx.fillStyle = gradient;
-    brushCtx.fill();
+        const gradient = brushCtx.createRadialGradient( x, y, innerRadius, x, y, outerRadius );
+        gradient.addColorStop( 0, color );
+        gradient.addColorStop( 1, 'rgba(255,255,255,1)' );
 
-    this.handleMove = function( x, y ) {
+        brushCtx.arc( x, y, radius, 0, 2 * Math.PI );
+        brushCtx.fillStyle = gradient;
+        brushCtx.fill();
+
+        this.halfRadius = radius / 2;
+    },
+
+    this.handleMove = function( x, y )
+    {
         // TODO: this zoomFactor should be taken into account by handleInteraction of zCanvas !!
         // BECAUSE IT DOES NOT WORK FOR HANDLEPRESS CURRENTLY
         x /= this.canvas.zoomFactor;
         y /= this.canvas.zoomFactor;
-        ctx.drawImage( brush, x - radius / 2, y - radius / 2 );
+        ctx.drawImage( brush, x - this.halfRadius, y - this.halfRadius );
     }
+
+    this.cacheGradient( "rgba(255,0,0,1)" );
 }
 sprite.extend( DrawableLayer );
 export default DrawableLayer;

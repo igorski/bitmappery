@@ -28,12 +28,13 @@ export default {
         activeTool: null,
         options: {
             [ ToolTypes.ZOOM ] : { level: 1 },
-            [ ToolTypes.BRUSH ]: { },
+            [ ToolTypes.BRUSH ]: { color: "rgba(255,0,0,1)" },
         }
     },
     getters: {
         activeTool: state => state.activeTool,
         zoomOptions: state => state.options[ ToolTypes.ZOOM ],
+        brushOptions: state => state.options[ ToolTypes.BRUSH ],
     },
     mutations: {
         setActiveTool( state, tool ) {

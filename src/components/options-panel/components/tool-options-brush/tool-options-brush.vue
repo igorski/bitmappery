@@ -23,13 +23,56 @@
 <template>
     <div class="tool-option">
         <h3 v-t="'brush'"></h3>
+        <div class="wrapper input">
+            <label v-t="'brushColor'"></label>
+            <component
+                :is="colorPicker"
+                v-model="brushColor"
+                class="color-picker"
+            />
+        </div>
     </div>
 </template>
 
 <script>
+import { mapGetters, mapMutations } from "vuex";
+import ToolTypes     from "@/definitions/tool-types";
+import DrawableLayer from "@/components/ui/zcanvas/drawable-layer";
+import { runSpriteFn } from "@/factories/sprite-factory";
 import messages from "./messages.json";
+
 export default {
     i18n: { messages },
+    computed: {
+        ...mapGetters([
+            "brushOptions",
+        ]),
+        colorPicker() {
+            return () => import( "@/components/ui/color-picker/color-picker" );
+        },
+        brushColor: {
+            get() {
+                return this.brushOptions.color;
+            },
+            set( value ) {
+                this.setToolOptionValue({
+                    tool: ToolTypes.BRUSH,
+                    option: "color",
+                    value,
+                });
+                runSpriteFn( sprite => {
+                    if ( sprite instanceof DrawableLayer ) {
+                        sprite.cacheGradient( this.brushColor );
+                    }
+                });
+            },
+        },
+    },
+    methods: {
+        ...mapMutations([
+            "setToolOptionValue",
+        ]),
+    },
 };
 </script>
 
