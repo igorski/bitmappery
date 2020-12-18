@@ -28,7 +28,7 @@ export default {
         activeTool: null,
         options: {
             [ ToolTypes.ZOOM ] : { level: 1 },
-            [ ToolTypes.BRUSH ]: { color: "rgba(255,0,0,1)" },
+            [ ToolTypes.BRUSH ]: { color: "rgba(255,0,0,1)", size: 10 },
         }
     },
     getters: {

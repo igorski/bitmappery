@@ -50,12 +50,12 @@ npm run lint
 # TODO / Roadmap
 
 * Unit tests for factories
-* DrawableLayer should only draw when brush too lis active
-* Canvas clearRect() is not doing full width and height ?
+* DrawableLayer should only draw when brush tool is active
+* Canvas clearRect() is not doing full width and height ? (might be related to drawable layer click coor problem)
+* Layer masking should be linked to a target layer
 * Layer view in options-panel: allow naming, repositioning, toggle visibility, change type (for masking), opacity
 * Canvas util : store transparency of images
 * Restored base64 images should be treated as binary once more (see layer-factory)
-* Add brush options > size, transparency
 * scale logic should move from zoomable-canvas into zCanvas (as handleInteraction needs to transform offsets by zoom ratio, see DrawableLayer!)
 * adjust scaling (on widescreen images scale in the width, rather than go for full height and zoomed out mode)
 * Zoom in should be center based

@@ -1,6 +1,7 @@
 {
     "en-US": {
         "brush": "Brush",
-        "brushColor": "Brush color"
+        "brushColor": "Brush color",
+        "brushSize": "Brush size"
     }
 }

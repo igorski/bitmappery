@@ -31,6 +31,14 @@
                 class="color-picker"
             />
         </div>
+        <div class="wrapper input">
+            <label v-t="'brushSize'"></label>
+            <slider
+                v-model="brushSize"
+                :min="1"
+                :max="100"
+            />
+        </div>
     </div>
 </template>
 
@@ -38,16 +46,21 @@
 import { mapGetters, mapMutations } from "vuex";
 import ToolTypes     from "@/definitions/tool-types";
 import DrawableLayer from "@/components/ui/zcanvas/drawable-layer";
+import Slider        from "@/components/ui/slider/slider";
 import { runSpriteFn } from "@/factories/sprite-factory";
 import messages from "./messages.json";
 
 export default {
     i18n: { messages },
+    components: {
+        Slider,
+    },
     computed: {
         ...mapGetters([
             "brushOptions",
         ]),
         colorPicker() {
+            // load async as this adds to the bundle size
             return () => import( "@/components/ui/color-picker/color-picker" );
         },
         brushColor: {
@@ -60,11 +73,20 @@ export default {
                     option: "color",
                     value,
                 });
-                runSpriteFn( sprite => {
-                    if ( sprite instanceof DrawableLayer ) {
-                        sprite.cacheGradient( this.brushColor );
-                    }
+                this.updateDrawableLayers();
+            },
+        },
+        brushSize: {
+            get() {
+                return this.brushOptions.size;
+            },
+            set( value ) {
+                this.setToolOptionValue({
+                    tool: ToolTypes.BRUSH,
+                    option: "size",
+                    value,
                 });
+                this.updateDrawableLayers();
             },
         },
     },
@@ -72,6 +94,13 @@ export default {
         ...mapMutations([
             "setToolOptionValue",
         ]),
+        updateDrawableLayers() {
+            runSpriteFn( sprite => {
+                if ( sprite instanceof DrawableLayer ) {
+                    sprite.cacheGradient( this.brushColor, this.brushSize );
+                }
+            });
+        },
     },
 };
 </script>

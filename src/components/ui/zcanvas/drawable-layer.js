@@ -46,21 +46,25 @@ function DrawableLayer( layer ) {
 
     this.halfRadius = 0;
 
-    const { cvs: brush, ctx: brushCtx } = createCanvas( 10, 10 );
+    const { cvs: brush, ctx: brushCtx } = createCanvas();
 
-    this.cacheGradient = function( color, radius = 30, innerRadius = 5, outerRadius = 70 )
+    this.cacheGradient = function( color, radius = 30 )
     {
+        const innerRadius = radius / 6;
+        const outerRadius = radius * 2;
+
         x = radius;
         y = radius;
 
         // update brush Canvas size
-        brush.width  = radius * 2;
-        brush.height = radius * 2;
+        brush.width  = outerRadius;
+        brush.height = outerRadius;
 
         const gradient = brushCtx.createRadialGradient( x, y, innerRadius, x, y, outerRadius );
         gradient.addColorStop( 0, color );
-        gradient.addColorStop( 1, 'rgba(255,255,255,1)' );
+        gradient.addColorStop( 1, 'rgba(255,255,255,0)' );
 
+        brushCtx.clearRect( 0, 0, brush.width, brush.height );
         brushCtx.arc( x, y, radius, 0, 2 * Math.PI );
         brushCtx.fillStyle = gradient;
         brushCtx.fill();
@@ -74,9 +78,9 @@ function DrawableLayer( layer ) {
         // BECAUSE IT DOES NOT WORK FOR HANDLEPRESS CURRENTLY
         x /= this.canvas.zoomFactor;
         y /= this.canvas.zoomFactor;
+
         ctx.drawImage( brush, x - this.halfRadius, y - this.halfRadius );
     }
-
     this.cacheGradient( "rgba(255,0,0,1)" );
 }
 sprite.extend( DrawableLayer );
