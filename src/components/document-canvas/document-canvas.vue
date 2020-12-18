@@ -163,10 +163,11 @@ export default {
 
                 // cache the current scroll offset so we can zoom from the current offset
                 let { scrollLeft, scrollTop, scrollWidth, scrollHeight } = this.$refs.canvasContainer;
-                let ratioX = scrollLeft / scrollWidth;
-                let ratioY = scrollTop / scrollHeight;
+                const ratioX = scrollLeft / scrollWidth;
+                const ratioY = scrollTop / scrollHeight;
 
-                this.scaleCanvas();
+                // rescale canvas, note we can omit the ratio check as the ratio will remain the same
+                this.scaleCanvas( false );
 
                 // maintain relative scroll offset after rescale
                 ({ scrollWidth, scrollHeight } = this.$refs.canvasContainer );
@@ -199,15 +200,17 @@ export default {
             containerSize = this.$el.parentNode?.getBoundingClientRect();
         },
         /**
-         * Ensure the canvas fills out the available space while also maintaining
+         * Ensures the canvas fills out the available space while also maintaining
          * the ratio of the document is is representing.
          */
-        scaleCanvas() {
+        scaleCanvas( performRatioScale = true ) {
             if ( !this.activeDocument ) {
                 return;
             }
             let { width, height } = this.activeDocument;
-            ({ width, height } = scaleToRatio( width, height, containerSize.width, containerSize.height ));
+            if ( performRatioScale ) {
+                ({ width, height } = scaleToRatio( width, height, containerSize.width, containerSize.height ));
+            }
             this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
             this.zCanvas.setDimensions( width * zoom, height * zoom, true, true ); // replace to not multiply by zoom
             xScale = width / this.activeDocument.width;

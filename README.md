@@ -58,7 +58,7 @@ npm run lint
 * Restored base64 images should be treated as binary once more (see layer-factory)
 * scale logic should move from zoomable-canvas into zCanvas (as handleInteraction needs to transform offsets by zoom ratio, see DrawableLayer!)
 * adjust scaling (on widescreen images scale in the width, rather than go for full height and zoomed out mode)
-* Zoom in should be center based
+* Zoom in should be center based, zoom level 1 should be equal to the last ratio based rescale
 * Image position must be made persistent (now isn't on document switch)
 * Implement selections
 * Unload Blobs when images are no longer used in document (see sprite-factory disposeSprite, keep instance count of usages)
