@@ -147,7 +147,7 @@ export default {
             ], { type: "text/plain" });
             saveBlobAsFile( binary, `${name.split( "." )[ 0 ]}${PROJECT_FILE_EXTENSION}` );
             commit( "showNotification", {
-                message: translate( "savedFileSuccessfully" , { file: truncate( file.name, 35 ) })
+                message: translate( "savedFileSuccessfully" , { file: truncate( name, 35 ) })
             });
         },
         /**
