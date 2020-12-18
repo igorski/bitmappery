@@ -28,7 +28,6 @@
             class="close-button"
             @click="closeModal()"
         >&#215;</button>
-        <div v-if="loading" v-t="'loading'"></div>
         <div class="content">
             <div v-if="leaf">
                 <div class="breadcrumbs">
@@ -46,18 +45,23 @@
                 </div>
                 <template v-if="!loading">
                     <!-- files and folders within current leaf -->
-                    <template v-for="node in filesAndFolders">
-                        <button
-                            v-if="node.type === 'folder'"
-                            type="button"
-                            class="folder"
-                            @click="handleNodeClick( node )"
-                        >{{ node.name }}</button>
-                        <dropbox-image-preview
-                            v-else
-                            :path="node.path"
-                            @click="handleNodeClick( node )"
-                        />
+                    <p v-if="!filesAndFolders.length" v-t="'noImageFiles'"></p>
+                    <template v-else>
+                        <template v-for="node in filesAndFolders">
+                            <div
+                                v-if="node.type === 'folder'"
+                                class="folder"
+                                @click="handleNodeClick( node )"
+                            >
+                                <span class="title">{{ node.name }}</span>
+                            </div>
+                            <dropbox-image-preview
+                                v-else
+                                :path="node.path"
+                                class="image-preview"
+                                @click="handleNodeClick( node )"
+                            />
+                        </template>
                     </template>
                 </template>
             </div>
@@ -212,16 +216,25 @@ export default {
     }
 
     @include large() {
-        $width: 800px;
-        $height: 400px;
+        $width: 80%;
+        $height: 75%;
         width: $width;
         height: $height;
+        max-width: 1280px;
         left: calc(50% - #{$width / 2});
         top: calc(50% - #{$height / 2});
+    }
+
+    .content {
+        overflow: auto;
     }
 }
 
 .breadcrumbs {
+    padding: $spacing-medium 0;
+    margin-bottom: $spacing-small;
+    background-color: #b6b6b6;
+
     button {
         display: inline;
         position: relative;
@@ -233,15 +246,32 @@ export default {
         @include customFont();
 
         &:hover, &.active {
-            color: $color-1;
+            color: #FFF;
         }
     }
 }
 
 .folder {
-    width: 64px;
-    height: 64px;
+    display: inline-block;
+    width: 128px;
+    height: 128px;
     vertical-align: top;
-    @include truncate();
+    background: url("../../assets/images/folder.png") no-repeat 50% $spacing-xlarge;
+    background-size: 50%;
+    position: relative;
+    @include customFont();
+
+    &:hover {
+        background-color: $color-1;
+        color: #FFF;
+    }
+
+    .title {
+        position: absolute;
+        bottom: $spacing-medium;
+        width: 100%;
+        text-align: center;
+        @include truncate();
+    }
 }
 </style>

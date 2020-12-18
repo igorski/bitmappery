@@ -1,7 +1,7 @@
 {
     "en-US": {
         "files": "Files",
-        "loading": "Loading...",
+        "noImageFiles": "This folder contains no image files",
         "couldNotRetrieveFilesForPath": "Could not retrieve files for \"{path}\"",
         "importedFileSuccessfully": "Imported \"{file}\" successfully."
     }

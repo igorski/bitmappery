@@ -55,7 +55,7 @@ export default {
         },
     },
     async mounted() {
-        this.src = await getThumbnail( this.path );
+        this.src = await getThumbnail( this.path, true );
     },
     methods: {
         handleImageLoad() {
@@ -75,15 +75,14 @@ export default {
     overflow: hidden;
     cursor: pointer;
 
-    &.loading {
-        width: 64px;
-        height: 64px;
+    &:hover {
+        transform: scale(1.05);
     }
 }
 
 .loader {
-    margin: #{(64 - 30) / 2 }px;
-    width: 30px;
-    height: 30px;
+    width: $spacing-xxlarge;
+    height: $spacing-xxlarge;
+    margin: #{(128px - $spacing-xxlarge) / 2};
 }
 </style>

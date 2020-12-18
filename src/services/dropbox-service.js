@@ -63,12 +63,12 @@ export const listFolder = ( path = "" ) => {
     });
 };
 
-export const getThumbnail = async ( path ) => {
+export const getThumbnail = async ( path, large = false ) => {
     try {
         const { result } = await dbx.filesGetThumbnail({
             path,
             format: "jpeg",
-            size: "w64h64"
+            size: large ? "w128h128" : "w64h64"
         });
         return URL.createObjectURL( result.fileBlob );
     } catch {
