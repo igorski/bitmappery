@@ -20,9 +20,10 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import ModalWindows from '@/definitions/modal-windows';
+import { ADD_LAYER } from "@/definitions/modal-windows";
+import ToolTypes, { MAX_BRUSH_SIZE } from "@/definitions/tool-types";
 
-let store, state, listener,
+let state, getters, commit, dispatch, listener,
     suspended = false, blockDefaults = true, optionDown = false, shiftDown = false;
 
 const DEFAULT_BLOCKED = [ 8, 32, 37, 38, 39, 40 ],
@@ -36,8 +37,7 @@ const DEFAULT_BLOCKED = [ 8, 32, 37, 38, 39, 40 ],
 const KeyboardService =
 {
     init( storeReference ) {
-        store = storeReference;
-        state = store.state;
+        ({ state, getters, commit, dispatch } = storeReference );
 
         // these handlers remain active for the entire application lifetime
 
@@ -133,9 +133,9 @@ function handleKeyDown( event ) {
 
             // close dialog (if existing), else close overlay (if existing)
             if ( state.dialog ) {
-                store.commit( "closeDialog" );
+                commit( "closeDialog" );
             } else if ( state.modal ) {
-                store.commit( "closeModal" );
+                commit( "closeModal" );
             }
             break;
 
@@ -173,6 +173,10 @@ function handleKeyDown( event ) {
             }
             break;
 
+        case 66: // B
+            commit( "setActiveTool", ToolTypes.BRUSH );
+            break;
+
         case 67: // C
              // copy current selection
              if ( hasOption ) {
@@ -187,17 +191,27 @@ function handleKeyDown( event ) {
             }
             break;
 
+        case 76: // L
+            if ( hasOption ) {
+                commit( "openModal", ADD_LAYER );
+            }
+            break;
+
+        case 77: // M
+            commit( "setActiveTool", ToolTypes.MOVE );
+            break;
+
         case 78: // N
             // new document
             if ( hasOption ) {
                 preventDefault( event ); // new browser window
-                store.dispatch( "requestNewDocument" );
+                dispatch( "requestNewDocument" );
             }
             break;
 
         case 79: // O
             if ( hasOption ) {
-                store.commit( "setOptionsPanelOpened", !store.state.optionsPanelOpened );
+                commit( "setOptionsPanelOpened", !state.optionsPanelOpened );
                 preventDefault( event );
             }
             break;
@@ -211,7 +225,7 @@ function handleKeyDown( event ) {
 
         case 84: // T
             if ( hasOption ) {
-                store.commit( "setToolboxOpened", !store.state.toolboxOpened );
+                commit( "setToolboxOpened", !state.toolboxOpened );
                 preventDefault( event );
             }
             break;
@@ -227,7 +241,7 @@ function handleKeyDown( event ) {
         case 87: // W
             // close document
             if ( hasOption ) {
-                store.dispatch( "requestDocumentClose" );
+                dispatch( "requestDocumentClose" );
                 preventDefault( event );
             }
             break;
@@ -245,15 +259,22 @@ function handleKeyDown( event ) {
             if ( hasOption ) {
                 // ...
                 preventDefault( event ); // override browser undo
+            } else {
+                // zoom
+                commit( "setActiveTool", ToolTypes.ZOOM );
             }
             break;
 
         case 219: // [
-            // ...
+            commit( "setToolOptionValue",
+                { tool: ToolTypes.BRUSH, option: "size", value: Math.max( 1, getters.brushOptions.size - 1 )
+            });
             break;
 
         case 221: // ]
-            // ...
+            commit( "setToolOptionValue", {
+                tool: ToolTypes.BRUSH, option: "size", value: Math.min( MAX_BRUSH_SIZE, getters.brushOptions.size + 1 )
+            });
             break;
     }
 }

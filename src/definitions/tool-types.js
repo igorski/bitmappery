@@ -25,3 +25,5 @@ export default {
     ZOOM  : "zoom",
     BRUSH : "brush",
 };
+
+export const MAX_BRUSH_SIZE = 100;

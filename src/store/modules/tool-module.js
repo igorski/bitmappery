@@ -22,6 +22,8 @@
  */
 import Vue       from "vue";
 import ToolTypes from "@/definitions/tool-types";
+import DrawableLayer   from "@/components/ui/zcanvas/drawable-layer";
+import { runSpriteFn } from "@/factories/sprite-factory";
 
 export default {
     state: {
@@ -42,6 +44,21 @@ export default {
         },
         setToolOptionValue( state, { tool, option, value }) {
             Vue.set( state.options[ tool ], option, value );
+            switch ( tool ) {
+                default:
+                    break;
+                case ToolTypes.BRUSH:
+                    updateDrawableLayers( state.options[ tool ]);
+                    break;
+            }
         },
     },
 };
+
+function updateDrawableLayers({ color, size }) {
+    runSpriteFn( sprite => {
+        if ( sprite instanceof DrawableLayer ) {
+            sprite.cacheGradient( color, size );
+        }
+    });
+}

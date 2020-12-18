@@ -36,18 +36,16 @@
             <slider
                 v-model="brushSize"
                 :min="1"
-                :max="100"
+                :max="MAX_BRUSH_SIZE"
             />
         </div>
     </div>
 </template>
 
 <script>
-import { mapGetters, mapMutations } from "vuex";
-import ToolTypes     from "@/definitions/tool-types";
-import DrawableLayer from "@/components/ui/zcanvas/drawable-layer";
-import Slider        from "@/components/ui/slider/slider";
-import { runSpriteFn } from "@/factories/sprite-factory";
+import { mapGetters, mapMutations }  from "vuex";
+import ToolTypes, { MAX_BRUSH_SIZE } from "@/definitions/tool-types";
+import Slider   from "@/components/ui/slider/slider";
 import messages from "./messages.json";
 
 export default {
@@ -55,6 +53,9 @@ export default {
     components: {
         Slider,
     },
+    data: () => ({
+        MAX_BRUSH_SIZE,
+    }),
     computed: {
         ...mapGetters([
             "brushOptions",
@@ -73,7 +74,6 @@ export default {
                     option: "color",
                     value,
                 });
-                this.updateDrawableLayers();
             },
         },
         brushSize: {
@@ -86,7 +86,6 @@ export default {
                     option: "size",
                     value,
                 });
-                this.updateDrawableLayers();
             },
         },
     },
@@ -94,13 +93,6 @@ export default {
         ...mapMutations([
             "setToolOptionValue",
         ]),
-        updateDrawableLayers() {
-            runSpriteFn( sprite => {
-                if ( sprite instanceof DrawableLayer ) {
-                    sprite.cacheGradient( this.brushColor, this.brushSize );
-                }
-            });
-        },
     },
 };
 </script>
