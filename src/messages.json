@@ -5,6 +5,7 @@
         "newDocumentNum": "New document #{num}",
         "closeDocumentWarning": "Closing the document cannot be undone, are you sure?",
         "loadedFileSuccessfully": "Loaded document \"{file}\"",
+        "savedFileSuccessfully": "Saved document \"${file}\"",
         "errorLoadingFile": "An error occured during the loading of \"{file}\"",
         "title": {
             "success": "Success",
