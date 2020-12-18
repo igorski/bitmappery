@@ -72,13 +72,11 @@ function DrawableLayer( layer ) {
         this.halfRadius = radius / 2;
     },
 
+    /* overridden methods */
+
     this.handleMove = function( x, y )
     {
-        // TODO: this zoomFactor should be taken into account by handleInteraction of zCanvas !!
-        // BECAUSE IT DOES NOT WORK FOR HANDLEPRESS CURRENTLY
-        x /= this.canvas.zoomFactor;
-        y /= this.canvas.zoomFactor;
-
+        // note we draw onto the layer bitmap to make this permanent
         ctx.drawImage( brush, x - this.halfRadius, y - this.halfRadius );
     }
     this.cacheGradient( "rgba(255,0,0,1)" );
