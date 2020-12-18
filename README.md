@@ -51,7 +51,7 @@ npm run lint
 
 * Unit tests for factories
 * DrawableLayer should only draw when brush tool is active
-* Canvas clearRect() is not doing full width and height ? (might be related to drawable layer click coor problem)
+* Canvas clearRect() is not doing full width and height ? (might be related to drawable layer click color problem)
 * Layer masking should be linked to a target layer
 * Layer view in options-panel: allow naming, repositioning, toggle visibility, change type (for masking), opacity
 * Canvas util : store transparency of images

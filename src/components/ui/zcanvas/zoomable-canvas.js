@@ -34,7 +34,65 @@ function ZoomableCanvas( opts ) {
             this._canvasContext.scale( xScale, yScale );
             this.invalidate();
     };
+
+
     this.setZoomFactor( 1 );
 }
 canvas.extend( ZoomableCanvas );
 export default ZoomableCanvas;
+
+// TODO add the lines suffixed with // QQQ to zCanvas lib instead of using these overrides
+
+ZoomableCanvas.prototype.handleInteraction = function( aEvent ) {
+    const numChildren  = this._children.length;
+    let theChild, touches, found;
+
+    if ( numChildren > 0 ) {
+
+        // reverse loop to first handle top layers
+        theChild = this._children[ numChildren - 1 ];
+
+        switch ( aEvent.type ) {
+
+            // all touch events
+            default:
+                let eventOffsetX = 0, eventOffsetY = 0;
+                touches /** @type {TouchList} */ = ( aEvent.touches.length > 0 ) ? aEvent.touches : aEvent.changedTouches;
+
+                if ( touches.length > 0 ) {
+                    const offset = this.getCoordinate();
+
+                    eventOffsetX = ( touches[ 0 ].pageX - offset.x ) / this.zoomFactor ; // QQQ
+                    eventOffsetY = ( touches[ 0 ].pageY - offset.y ) / this.zoomFactor; // QQQ
+                }
+
+                while ( theChild ) {
+                    theChild.handleInteraction( eventOffsetX, eventOffsetY, aEvent );
+                    theChild = theChild.last; // note we don't break this loop for multi touch purposes
+                }
+                break;
+
+            // all mouse events
+            case "mousedown":
+            case "mousemove":
+            case "mouseup":
+                let { offsetX, offsetY } = aEvent;
+                offsetX /= this.zoomFactor; // QQQ
+                offsetY /= this.zoomFactor; // QQQ
+                while ( theChild ) {
+                    found = theChild.handleInteraction( offsetX, offsetY, aEvent );
+                    if ( found ) {
+                        break;
+                    }
+                    theChild = theChild.last;
+                }
+                break;
+        }
+    }
+    if ( this._preventDefaults ) {
+        aEvent.stopPropagation();
+        aEvent.preventDefault();
+    }
+    // update the Canvas contents
+    this.invalidate();
+};
