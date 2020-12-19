@@ -46,7 +46,8 @@ import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import ZoomableCanvas   from "@/components/ui/zcanvas/zoomable-canvas";
 import DrawableLayer    from "@/components/ui/zcanvas/drawable-layer";
 import { MAX_ZOOM }     from "@/definitions/tool-types";
-import { scaleToRatio, scaleValue, isPortrait } from "@/utils/image-math";
+import { MAX_IMAGE_SIZE, MAX_MEGAPIXEL } from "@/definitions/image-types";
+import { scaleToRatio, scaleValue, constrain, isPortrait } from "@/utils/image-math";
 import {
     createSpriteForLayer, runSpriteFn, flushLayerSprites, flushCache,
 } from "@/factories/sprite-factory";
@@ -59,15 +60,13 @@ let lastDocument, containerSize;
 // used for change detection in the current editing session (see watchers)
 const layerPool = new Map();
 // scale of the on-screen canvas relative to the document
-let xScale = 1, yScale = 1, zoom = 1, maxScale = 1;
+let xScale = 1, yScale = 1, zoom = 1, maxInScale = 1, maxOutScale = 1;
 
-const MAX_IMAGE_SIZE = 8000; // in pixels, this determines the max zoom in factor
-const calculateMaxScale = ( width, height ) => {
-    if ( isPortrait( width, height )) {
-        maxScale = MAX_IMAGE_SIZE / height * 100 / MAX_ZOOM;
-    } else {
-        maxScale = MAX_IMAGE_SIZE / width * 100 / MAX_ZOOM;
-    }
+const calculateMaxScaling = ( baseWidth, baseHeight, windowWidth ) => {
+    const maxMagnification = isPortrait( baseWidth, baseHeight ) ? MAX_IMAGE_SIZE / baseHeight : MAX_IMAGE_SIZE / baseWidth;
+    const { width, height } = constrain( baseWidth  * maxMagnification, baseHeight * maxMagnification, MAX_MEGAPIXEL ); // dimensions of document at max displayable megapixel size
+    maxInScale  = width / baseWidth;
+    maxOutScale = baseWidth / ( windowWidth / 4 );
 };
 
 export default {
@@ -104,25 +103,21 @@ export default {
                     return;
                 }
                 const { id, width, height } = document;
+                if ( !this.zCanvas ) {
+                    this.createCanvas();
+                    this.$nextTick(() => {
+                        this.zCanvas.insertInPage( this.$refs.canvasContainer );
+                        this.calcIdealDimensions();
+                    });
+                }
                 // switching between documents
                 if ( id !== lastDocument ) {
                     lastDocument = id;
                     flushCache();
                     layerPool.clear();
+                    this.calcIdealDimensions();
                 }
-                if ( !this.zCanvas ) {
-                    this.createCanvas();
-                    this.$nextTick(() => {
-                        this.zCanvas.insertInPage( this.$refs.canvasContainer );
-                        this.cacheContainerSize();
-                        this.scaleCanvas();
-                    });
-                    calculateMaxScale( width, height );
-                } else if ( this.zCanvas.width !== width || this.zCanvas.height !== height ) {
-                    calculateMaxScale( width, height );
-                    this.scaleCanvas();
-                }
-            },
+            }
         },
         layers: {
             deep: true,
@@ -174,9 +169,9 @@ export default {
             handler({ level }) {
                 // are we zooming in or out (relative from the base, not necessarily the previous value)
                 if ( level > 0 ) {
-                    zoom = scaleValue( level, MAX_ZOOM, maxScale - 1 ) + 1;
+                    zoom = scaleValue( level, MAX_ZOOM, maxInScale - 1 ) + 1;
                 } else {
-                    zoom = 1 - scaleValue( Math.abs( level ), MAX_ZOOM, 1 - ( 1 / maxScale ));
+                    zoom = 1 - scaleValue( Math.abs( level ), MAX_ZOOM, 1 - ( 1 / maxOutScale ));
                 }
 
                 // cache the current scroll offset so we can zoom from the current offset
@@ -237,6 +232,7 @@ export default {
                 this.setZCanvasBaseDimensions( scaledSize );
                 xScale = scaledSize.width  / this.activeDocument.width;
                 yScale = scaledSize.height / this.activeDocument.height;
+                calculateMaxScaling( scaledSize.width, scaledSize.height, this.windowSize.width );
             }
             this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
             // replace below by updated zCanvas lib to not multiply by zoom

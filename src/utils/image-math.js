@@ -33,16 +33,16 @@ export const scaleToRatio = ( imageWidth, imageHeight, destWidth, destHeight ) =
     let height = destHeight;
 
     if ( imageWidth > imageHeight ) {
-		ratio  = imageHeight / imageWidth;
-		height = destWidth * ratio;
-	}
+        ratio  = imageHeight / imageWidth;
+        height = destWidth * ratio;
+    }
     else if ( imageHeight > imageWidth ) {
-	    ratio  = imageHeight / imageWidth;
-		height = destWidth * ratio;
-	}
+        ratio  = imageHeight / imageWidth;
+        height = destWidth * ratio;
+    }
     else if ( imageHeight === imageWidth ) {
-		height = destWidth;
-	}
+        height = destWidth;
+    }
 
     if ( height < destHeight ) {
         destWidth *= ( destHeight / height );
@@ -57,9 +57,20 @@ export const scaleToRatio = ( imageWidth, imageHeight, destWidth, destHeight ) =
  * convenience method to scale given value and its expected maxValue against
  * an arbitrary range (defined by maxCompareValue in relation to maxValue)
  */
-export const scaleValue = ( value, maxValue, maxCompareValue ) => {
-    const ratio = maxCompareValue / maxValue;
-    return Math.min( maxValue, value ) * ratio;
+export const scaleValue = ( value, maxValue, maxCompareValue ) => Math.min( maxValue, value ) * ( maxCompareValue / maxValue );
+
+/**
+ * In case given width x height exceeds the maximum amount of given megapixels, a new
+ * width and height are returned that is within the range
+ */
+export const constrain = ( width, height, maxMegaPixel ) => {
+    const megaPixel = width * height;
+    if ( megaPixel > maxMegaPixel ) {
+        const ratio = Math.sqrt( maxMegaPixel ) / Math.sqrt( megaPixel );
+        width  = Math.round( width  * ratio );
+        height = Math.round( height * ratio );
+    }
+    return { width, height };
 };
 
 export const isPortrait  = ( width, height ) => width < height;
