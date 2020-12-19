@@ -72,6 +72,7 @@ import Toolbox         from "@/components/toolbox/toolbox";
 import DialogWindow    from "@/components/dialog-window/dialog-window";
 import Notifications   from '@/components/notifications/notifications';
 import { isMobile }    from "@/utils/environment-util";
+import ToolTypes       from "@/definitions/tool-types";
 import store           from "./store";
 import messages        from "./messages.json";
 import {
@@ -149,12 +150,15 @@ export default {
             "setWindowSize",
             "closeModal",
             "setToolboxOpened",
+            "setToolOptionValue",
         ]),
         ...mapActions([
             "setupServices",
         ]),
         handleResize() {
             this.setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+            // prevent maximum zoom at previous small window size to lead to excessively large document canvas
+            this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value: 1 });
         },
         /**
          * Ensure the document container has optimal size. Ideally we'd like a pure
@@ -168,7 +172,7 @@ export default {
             const toolboxWidth      = this.$refs.toolbox?.$el.clientWidth;
             const optionsPanelWidth = this.$refs.optionsPanel?.$el.clientWidth;
             this.docWidth = `calc(100% - ${toolboxWidth + optionsPanelWidth + 32}px)`;
-            this.$nextTick(() => this.$refs.documentCanvas?.scaleCanvas());
+            this.$nextTick(() => this.$refs.documentCanvas?.calcIdealDimensions());
         },
     }
 };

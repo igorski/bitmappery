@@ -23,6 +23,7 @@
 import LZString from "lz-string";
 import KeyboardService from "@/services/keyboard-service";
 import DocumentFactory from "@/factories/document-factory";
+import canvasModule    from "./modules/canvas-module";
 import documentModule  from "./modules/document-module";
 import imageModule     from "./modules/image-module";
 import toolModule      from "./modules/tool-module";
@@ -39,6 +40,7 @@ const translate = ( key, optArgs ) => i18n?.t( key, optArgs ) ?? key;
 
 export default {
     modules: {
+        canvasModule,
         documentModule,
         imageModule,
         toolModule,
@@ -51,7 +53,6 @@ export default {
         dialog: null,       // currently opened dialog
         modal: null,        // currently opened modal
         notifications: [],  // notification message queue
-        zCanvas: null,      // zCanvas instance
         windowSize: {
             width: window.innerWidth,
             height: window.innerHeight
@@ -104,9 +105,6 @@ export default {
         },
         clearNotifications( state ) {
             state.notifications = [];
-        },
-        setZCanvas( state, zCanvas ) {
-            state.zCanvas = zCanvas;
         },
         /**
          * cache the resize in the store so components can react to these values

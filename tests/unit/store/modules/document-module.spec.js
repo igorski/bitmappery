@@ -6,6 +6,7 @@ const { getters, mutations } = DocumentModule;
 let mockUpdateFn;
 jest.mock( "@/factories/sprite-factory", () => ({
     flushLayerSprites: (...args) => mockUpdateFn?.( "flushLayerSprites", ...args ),
+    runSpriteFn: (...args) => mockUpdateFn?.( "runSpriteFn", ...args ),
 }));
 jest.mock( "@/factories/layer-factory", () => ({
     create: (...args) => mockUpdateFn?.( "create", ...args ),

@@ -45,20 +45,30 @@
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import ZoomableCanvas   from "@/components/ui/zcanvas/zoomable-canvas";
 import DrawableLayer    from "@/components/ui/zcanvas/drawable-layer";
-import { scaleToRatio } from "@/utils/image-math";
+import { MAX_ZOOM }     from "@/definitions/tool-types";
+import { scaleToRatio, scaleValue, isPortrait } from "@/utils/image-math";
 import {
     createSpriteForLayer, runSpriteFn, flushLayerSprites, flushCache,
 } from "@/factories/sprite-factory";
 
 /* internal non-reactive properties */
 
-let lastDocument;
+let lastDocument, containerSize;
 // maintain a pool of sprites representing the layers within the active document
 // the sprites themselves are cached within the sprite-factory, this is merely
 // used for change detection in the current editing session (see watchers)
 const layerPool = new Map();
 // scale of the on-screen canvas relative to the document
-let xScale = 1, yScale = 1, zoom = 1, containerSize;
+let xScale = 1, yScale = 1, zoom = 1, maxScale = 1;
+
+const MAX_IMAGE_SIZE = 8000; // in pixels, this determines the max zoom in factor
+const calculateMaxScale = ( width, height ) => {
+    if ( isPortrait( width, height )) {
+        maxScale = MAX_IMAGE_SIZE / height * 100 / MAX_ZOOM;
+    } else {
+        maxScale = MAX_IMAGE_SIZE / width * 100 / MAX_ZOOM;
+    }
+};
 
 export default {
     data: () => ({
@@ -67,21 +77,21 @@ export default {
     }),
     computed: {
         ...mapState([
-            "zCanvas",
-            "windowSize"
+            "windowSize",
         ]),
         ...mapGetters([
+            "zCanvas",
             "activeDocument",
             "layers",
             "activeLayer",
             "activeTool",
             "zoomOptions",
+            "zCanvasBaseDimensions",
         ]),
     },
     watch: {
         windowSize() {
-            this.cacheContainerSize();
-            this.scaleCanvas();
+            this.calcIdealDimensions();
         },
         activeDocument: {
             handler( document, oldValue = null ) {
@@ -93,14 +103,6 @@ export default {
                     }
                     return;
                 }
-                if ( !this.zCanvas ) {
-                    this.createCanvas();
-                    this.$nextTick(() => {
-                        this.zCanvas.insertInPage( this.$refs.canvasContainer );
-                        this.cacheContainerSize();
-                        this.scaleCanvas();
-                    });
-                }
                 const { id, width, height } = document;
                 // switching between documents
                 if ( id !== lastDocument ) {
@@ -108,7 +110,16 @@ export default {
                     flushCache();
                     layerPool.clear();
                 }
-                if ( this.zCanvas.width !== width || this.zCanvas.height !== height ) {
+                if ( !this.zCanvas ) {
+                    this.createCanvas();
+                    this.$nextTick(() => {
+                        this.zCanvas.insertInPage( this.$refs.canvasContainer );
+                        this.cacheContainerSize();
+                        this.scaleCanvas();
+                    });
+                    calculateMaxScale( width, height );
+                } else if ( this.zCanvas.width !== width || this.zCanvas.height !== height ) {
+                    calculateMaxScale( width, height );
                     this.scaleCanvas();
                 }
             },
@@ -140,7 +151,9 @@ export default {
                     return;
                 }
                 const { id } = layer;
-                [ ...layerPool.entries() ].forEach(([ key, sprite ]) => sprite.setInteractive( key === id ));
+                [ ...layerPool.entries() ].forEach(([ key, sprite ]) => {
+                    sprite.setInteractive( key === id )
+                });
             },
         },
         activeTool( tool ) {
@@ -159,7 +172,12 @@ export default {
         zoomOptions: {
             deep: true,
             handler({ level }) {
-                zoom = level;
+                // are we zooming in or out (relative from the base, not necessarily the previous value)
+                if ( level > 0 ) {
+                    zoom = scaleValue( level, MAX_ZOOM, maxScale - 1 ) + 1;
+                } else {
+                    zoom = 1 - scaleValue( Math.abs( level ), MAX_ZOOM, 1 - ( 1 / maxScale ));
+                }
 
                 // cache the current scroll offset so we can zoom from the current offset
                 // note that by default we zoom from the center (when document was unscrolled)
@@ -167,7 +185,7 @@ export default {
                 const ratioX = Math.round( scrollLeft / scrollWidth ) || .5;
                 const ratioY = Math.round( scrollTop / scrollHeight ) || .5;
 
-                // rescale canvas, note we can omit the ratio check as the ratio will remain the same
+                // rescale canvas, note we omit the best fit calculation as we zoom from the calculated base
                 this.scaleCanvas( false );
 
                 // maintain relative scroll offset after rescale
@@ -184,6 +202,7 @@ export default {
     methods: {
         ...mapMutations([
             "setZCanvas",
+            "setZCanvasBaseDimensions",
         ]),
         ...mapActions([
             "requestDocumentClose",
@@ -202,24 +221,36 @@ export default {
             containerSize = this.$el.parentNode?.getBoundingClientRect();
         },
         /**
-         * Ensures the canvas fills out the available space while also maintaining
-         * the ratio of the document is is representing.
+         * Scales the canvas to dimensions corresponding to document size and zoom.
+         * When calculateBestFit is true, this ensures the canvas fills out the available
+         * space while also maintaining the ratio of the document is is representing.
+         * This resulting value is used as the baseline for the unzoomed level. This
+         * should be recalculated on window resize.
          */
-        scaleCanvas( performRatioScale = true ) {
+        scaleCanvas( calculateBestFit = true ) {
             if ( !this.activeDocument ) {
                 return;
             }
-            let { width, height } = this.activeDocument;
-            if ( performRatioScale ) {
-                ({ width, height } = scaleToRatio( width, height, containerSize.width, containerSize.height ));
+            if ( calculateBestFit ) {
+                const { width, height } = this.activeDocument;
+                const scaledSize = scaleToRatio( width, height, containerSize.width, containerSize.height );
+                this.setZCanvasBaseDimensions( scaledSize );
+                xScale = scaledSize.width  / this.activeDocument.width;
+                yScale = scaledSize.height / this.activeDocument.height;
             }
             this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
-            this.zCanvas.setDimensions( width * zoom, height * zoom, true, true ); // replace to not multiply by zoom
-            xScale = width / this.activeDocument.width;
-            yScale = height / this.activeDocument.height;
+            // replace below by updated zCanvas lib to not multiply by zoom
+            this.zCanvas.setDimensions(
+                this.zCanvasBaseDimensions.width  * zoom,
+                this.zCanvasBaseDimensions.height * zoom,
+                true, true
+            );
             this.zCanvas.setZoomFactor( xScale * zoom, yScale * zoom ); // replace with zCanvas.setZoom()
-
             this.centerCanvas = this.zCanvas.getWidth() < containerSize.width || this.zCanvas.getHeight() < containerSize.height ;
+        },
+        calcIdealDimensions() {
+            this.cacheContainerSize();
+            this.scaleCanvas();
         },
     },
 };

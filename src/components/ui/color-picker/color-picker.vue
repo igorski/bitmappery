@@ -28,8 +28,8 @@
 
 <script>
 import "@simonwep/pickr/dist/themes/nano.min.css";
-import Pickr from "@simonwep/pickr/dist/pickr.es5.min"; // 3 x size of modern bundle
-//import Pickr from "@simonwep/pickr";
+//import Pickr from "@simonwep/pickr/dist/pickr.es5.min"; // 3 x size of modern bundle
+import Pickr from "@simonwep/pickr";
 
 let pickrInstance;
 

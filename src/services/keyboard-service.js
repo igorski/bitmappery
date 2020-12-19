@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { ADD_LAYER } from "@/definitions/modal-windows";
-import ToolTypes, { MAX_BRUSH_SIZE } from "@/definitions/tool-types";
+import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 
 let state, getters, commit, dispatch, listener,
     suspended = false, blockDefaults = true, optionDown = false, shiftDown = false;
@@ -265,15 +265,27 @@ function handleKeyDown( event ) {
             }
             break;
 
+        case 187: // +
+            commit( "setToolOptionValue",
+                { tool: ToolTypes.ZOOM, option: "level", value: Math.min( MAX_ZOOM, getters.zoomOptions.level + ( MAX_ZOOM / 10 ))
+            });
+            break;
+
+        case 189: // -
+            commit( "setToolOptionValue",
+                { tool: ToolTypes.ZOOM, option: "level", value: Math.max( MIN_ZOOM, getters.zoomOptions.level - ( MAX_ZOOM / 10 ))
+            });
+            break;
+
         case 219: // [
             commit( "setToolOptionValue",
-                { tool: ToolTypes.BRUSH, option: "size", value: Math.max( 1, getters.brushOptions.size - 1 )
+                { tool: ToolTypes.BRUSH, option: "size", value: Math.max( 1, getters.brushOptions.size - 5 )
             });
             break;
 
         case 221: // ]
             commit( "setToolOptionValue", {
-                tool: ToolTypes.BRUSH, option: "size", value: Math.min( MAX_BRUSH_SIZE, getters.brushOptions.size + 1 )
+                tool: ToolTypes.BRUSH, option: "size", value: Math.min( MAX_BRUSH_SIZE, getters.brushOptions.size + 5 )
             });
             break;
     }

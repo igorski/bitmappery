@@ -53,6 +53,15 @@ export const scaleToRatio = ( imageWidth, imageHeight, destWidth, destHeight ) =
     };
 };
 
+/**
+ * convenience method to scale given value and its expected maxValue against
+ * an arbitrary range (defined by maxCompareValue in relation to maxValue)
+ */
+export const scaleValue = ( value, maxValue, maxCompareValue ) => {
+    const ratio = maxCompareValue / maxValue;
+    return Math.min( maxValue, value ) * ratio;
+};
+
 export const isPortrait  = ( width, height ) => width < height;
 export const isLandscape = ( width, height ) => width > height;
 export const isSquare    = ( width, height ) => width === height;

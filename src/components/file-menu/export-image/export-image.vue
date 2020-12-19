@@ -71,7 +71,7 @@
 </template>
 
 <script>
-import { mapState, mapGetters, mapMutations } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 import Modal     from "@/components/modal/modal";
 import SelectBox from '@/components/ui/select-box/select-box';
 import Slider    from "@/components/ui/slider/slider";
@@ -94,10 +94,8 @@ export default {
         quality: 95,
     }),
     computed: {
-        ...mapState([
-            "zCanvas",
-        ]),
         ...mapGetters([
+            "zCanvas",
             "activeDocument",
         ]),
         fileTypes() {

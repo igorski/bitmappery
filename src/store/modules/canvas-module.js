@@ -20,12 +20,29 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-export default {
-    MOVE  : "move",
-    ZOOM  : "zoom",
-    BRUSH : "brush",
-};
+import Vue from "vue";
 
-export const MAX_BRUSH_SIZE = 100;
-export const MIN_ZOOM       = -50; // zooming out from base (which is 0)
-export const MAX_ZOOM       = 50;  // zooming in from base (which is 0)
+export default {
+    state: {
+        zCanvas: null, // zCanvas instance
+        // the base dimensions describe the "best fit" scale to represent
+        // the currently active document at the current window size, this
+        // is basically the base line used for the unzoomed document view
+        zCanvasBaseDimensions: {
+            width: 0,
+            height: 0,
+        },
+    },
+    getters: {
+        zCanvas: state => state.zCanvas,
+        zCanvasBaseDimensions: state => state.zCanvasBaseDimensions,
+    },
+    mutations: {
+        setZCanvas( state, zCanvas ) {
+            state.zCanvas = zCanvas;
+        },
+        setZCanvasBaseDimensions( state, { width, height }) {
+            Vue.set( state, "zCanvasBaseDimensions", { width, height });
+        },
+    },
+};

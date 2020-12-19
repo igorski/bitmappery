@@ -29,16 +29,28 @@
             :max="max"
             :tooltip="'none'"
         />
+        <div class="actions">
+            <button
+                v-t="'bestFit'"
+                type="button"
+                class="button button--small"
+                @click="setBestFit()"
+            ></button>
+            <button
+                v-t="'original'"
+                type="button"
+                class="button button--small"
+                @click="setOriginalSize()"
+            ></button>
+        </div>
     </div>
 </template>
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
+import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import Slider    from "@/components/ui/slider/slider";
-import ToolTypes from "@/definitions/tool-types";
 import messages  from "./messages.json";
-
-const MAX_ZOOM = 3;
 
 export default {
     i18n: { messages },
@@ -46,22 +58,25 @@ export default {
         Slider,
     },
     data: () => ({
-        min: 1,
-        max: 10,
+        min: MIN_ZOOM,
+        max: MAX_ZOOM,
     }),
     computed: {
         ...mapGetters([
+            "activeDocument",
             "zoomOptions",
+            "zCanvas",
+            "zCanvasBaseDimensions",
         ]),
         zoomLevel: {
             get() {
-                return ( this.zoomOptions.level / MAX_ZOOM ) * this.max;
+                return this.zoomOptions.level;
             },
             set( value ) {
                 this.setToolOptionValue({
                     tool: ToolTypes.ZOOM,
                     option: "level",
-                    value: ( value / this.max ) * MAX_ZOOM
+                    value
                 });
             }
         }
@@ -70,10 +85,25 @@ export default {
         ...mapMutations([
             "setToolOptionValue",
         ]),
+        setBestFit() {
+            this.zoomLevel = 0;
+        },
+        setOriginalSize() {
+            this.zoomLevel  = ( this.activeDocument.width / this.zCanvasBaseDimensions.width ) * window.devicePixelRatio;
+        },
     },
 };
 </script>
 
 <style lang="scss" scoped>
 @import "@/styles/tool-option";
+
+.actions {
+    display: flex;
+    margin-top: $spacing-medium;
+    button {
+        flex: 1;
+        margin: 0 $spacing-small;
+    }
+}
 </style>

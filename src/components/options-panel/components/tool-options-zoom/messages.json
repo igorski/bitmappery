@@ -1,5 +1,7 @@
 {
     "en-US": {
-        "zoomLevel": "Zoom level"
+        "zoomLevel": "Zoom level",
+        "bestFit": "Best fit",
+        "original": "Original"
     }
 }

@@ -26,7 +26,7 @@
             <h2 v-t="'resizeDocument'"></h2>
         </template>
         <template #content>
-            <div class="form">
+            <div class="form" @keyup.enter="save()">
                 <div class="wrapper input">
                     <label v-t="'width'"></label>
                     <input

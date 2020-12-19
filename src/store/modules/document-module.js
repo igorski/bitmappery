@@ -24,7 +24,7 @@ import Vue from "vue";
 
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory    from "@/factories/layer-factory";
-import { flushLayerSprites } from "@/factories/sprite-factory";
+import { flushLayerSprites, runSpriteFn } from "@/factories/sprite-factory";
 
 export default {
     state: {
@@ -45,8 +45,16 @@ export default {
         },
         setActiveDocumentSize( state, { width, height }) {
             const document = state.documents[ state.activeIndex ];
+            const ratio    = width / document.width;
             document.width  = width;
             document.height = height;
+            document.layers?.forEach( layer => {
+                layer.width  = width;
+                layer.height = height;
+            });
+            runSpriteFn( sprite => {
+                sprite.setBounds( sprite.getX() * ratio, sprite.getY() * ratio, width, height );
+            });
         },
         addNewDocument( state, nameOrDocument ) {
             const document = typeof nameOrDocument === "object" ? nameOrDocument : DocumentFactory.create({ name: nameOrDocument });
