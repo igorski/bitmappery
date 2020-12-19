@@ -216,13 +216,12 @@ export default {
     }
 
     @include large() {
-        $width: 80%;
-        $height: 75%;
-        width: $width;
-        height: $height;
+        width: 80%;
+        height: 75%;
         max-width: 1280px;
-        left: calc(50% - #{$width / 2});
-        top: calc(50% - #{$height / 2});
+        left: 50%;
+        top: 50%;
+        transform: translate(-50% -50%);
     }
 
     .content {
