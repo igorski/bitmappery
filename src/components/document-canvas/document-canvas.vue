@@ -44,9 +44,8 @@
 <script>
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import ZoomableCanvas from "@/components/ui/zcanvas/zoomable-canvas";
-import { MAX_ZOOM }   from "@/definitions/tool-types";
-import { MAX_IMAGE_SIZE, MAX_MEGAPIXEL } from "@/definitions/image-types";
-import { scaleToRatio, scaleValue, constrain, isPortrait } from "@/utils/image-math";
+import { MAX_ZOOM, calculateMaxScaling } from "@/definitions/tool-types";
+import { scaleToRatio, scaleValue }      from "@/utils/image-math";
 import {
     createSpriteForLayer, runSpriteFn, flushLayerSprites, flushCache,
 } from "@/factories/sprite-factory";
@@ -60,13 +59,6 @@ let lastDocument, containerSize;
 const layerPool = new Map();
 // scale of the on-screen canvas relative to the document
 let xScale = 1, yScale = 1, zoom = 1, maxInScale = 1, maxOutScale = 1;
-
-const calculateMaxScaling = ( baseWidth, baseHeight, windowWidth ) => {
-    const maxMagnification = isPortrait( baseWidth, baseHeight ) ? MAX_IMAGE_SIZE / baseHeight : MAX_IMAGE_SIZE / baseWidth;
-    const { width, height } = constrain( baseWidth  * maxMagnification, baseHeight * maxMagnification, MAX_MEGAPIXEL ); // dimensions of document at max displayable megapixel size
-    maxInScale  = width / baseWidth;
-    maxOutScale = baseWidth / ( windowWidth / 4 );
-};
 
 export default {
     data: () => ({
@@ -231,7 +223,9 @@ export default {
                 this.setZCanvasBaseDimensions( scaledSize );
                 xScale = scaledSize.width  / this.activeDocument.width;
                 yScale = scaledSize.height / this.activeDocument.height;
-                calculateMaxScaling( scaledSize.width, scaledSize.height, this.windowSize.width );
+                const maxScaling = calculateMaxScaling( scaledSize.width, scaledSize.height, width, containerSize.width );
+                maxInScale  = maxScaling.in;
+                maxOutScale = maxScaling.out;
             }
             this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
             // replace below by updated zCanvas lib to not multiply by zoom

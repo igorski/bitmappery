@@ -49,7 +49,7 @@ npm run lint
 
 # TODO / Roadmap
 
-* Zoom set original size isn't that accurate (check also on mobile views)
+* Zoom set original size isn't that accurate (check also on mobile views), needs calculateMaxScaling ?
 * LayerSprite should only draw when brush tool is active
 * Canvas clearRect() is not doing full width and height ? (might be related to drawable layer click color problem)
 * Document resizing doesn't rescale sprites properly?
