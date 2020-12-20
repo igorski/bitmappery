@@ -3,6 +3,6 @@
         "layers": "Layers",
         "addLayer": "Add layer",
         "addMask": "Add mask",
-        "removeLayer": "Remove layer"
+        "mask": "Mask"
     }
 }

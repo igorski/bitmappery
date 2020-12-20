@@ -22,7 +22,7 @@
  */
 import { sprite }       from "zcanvas";
 import { createCanvas } from "@/utils/canvas-util";
-import { LAYER_GRAPHIC, LAYER_MASK }   from "@/definitions/layer-types";
+import { LAYER_GRAPHIC, LAYER_MASK } from "@/definitions/layer-types";
 
 class LayerSprite extends sprite {
     constructor( layer ) {
@@ -38,7 +38,7 @@ class LayerSprite extends sprite {
         super({ bitmap, x, y, width, height } );
         this.setDraggable( true );
 
-        this._layer = layer;
+        this.layer = layer;
 
         // create brush (always as all layers can be maskable)
         const brushCanvas = createCanvas();
@@ -50,11 +50,11 @@ class LayerSprite extends sprite {
     }
 
     isDrawable() {
-        return this._layer.type === LAYER_GRAPHIC || this.isMaskable();
+        return this.layer.type === LAYER_GRAPHIC || this.isMaskable();
     }
 
     isMaskable() {
-        return !!this._layer.mask;
+        return !!this.layer.mask;
     }
 
     cacheGradient( color, radius = 30 ) {
@@ -70,7 +70,7 @@ class LayerSprite extends sprite {
 
         const gradient = this._brushCtx.createRadialGradient( x, y, innerRadius, x, y, outerRadius );
         gradient.addColorStop( 0, color );
-        gradient.addColorStop( 1, 'rgba(255,255,255,0)' );
+        gradient.addColorStop( 1, "rgba(255,255,255,0)" );
 
         this._brushCtx.clearRect( 0, 0, this._brushCvs.width, this._brushCvs.height );
         this._brushCtx.arc( x, y, radius, 0, 2 * Math.PI );
@@ -83,10 +83,11 @@ class LayerSprite extends sprite {
     // overridden from zCanvas.sprite
     handleMove( x, y ) {
         if ( !this.isDrawable() ) {
+            // not drawable, perform default behaviour (drag)
             return super.handleMove( x, y );
         }
-        // cache this upfront
-        const ctx = this.isMaskable() ? this._layer.mask.getContext( "2d" ) : this._bitmap.getContext( "2d" );
+        // get the drawing context, cache this upfront
+        const ctx = this.isMaskable() ? this.layer.mask.getContext( "2d" ) : this._bitmap.getContext( "2d" );
         // note we draw onto the layer bitmap to make this permanent
         ctx.drawImage( this._brushCvs, x - this._halfRadius, y - this._halfRadius );
     }

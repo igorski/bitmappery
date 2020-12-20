@@ -31,13 +31,15 @@ export default {
         documents : [], // opened documents
         activeIndex: 0, // the currently active document
         activeLayerIndex: 0, // the currently active layer within the currently active document
+        maskActive: false,
     },
     getters: {
         documents: state => state.documents,
         activeDocument: state => state.documents[ state.activeIndex ],
         layers: ( state, getters ) => getters.activeDocument?.layers,
-        activeLayer: ( state, getters ) => getters.layers?.[ state.activeLayerIndex ],
         activeLayerIndex: state => state.activeLayerIndex,
+        activeLayer: ( state, getters ) => getters.layers?.[ state.activeLayerIndex ],
+        activeLayerMask: ( state, getters ) => ( state.maskActive && getters.activeLayer.mask ) || null,
     },
     mutations: {
         setActiveDocument( state, index ) {
@@ -76,9 +78,9 @@ export default {
             layers.push( LayerFactory.create( opts ) );
             state.activeLayerIndex = layers.length - 1;
         },
-        removeLayer( state, layer ) {
-            const index = state.documents[ state.activeIndex ]?.layers.indexOf( layer );
-            if ( index < 0 ) {
+        removeLayer( state, index ) {
+            const layer = state.documents[ state.activeIndex ]?.layers[ index ];
+            if ( !layer ) {
                 return;
             }
             flushLayerSprites( layer );
@@ -87,8 +89,13 @@ export default {
                 state.activeLayerIndex = Math.max( 0, index - 1 );
             }
         },
-        setActiveLayerIndex( state, index ) {
-            state.activeLayerIndex = index;
+        setActiveLayerIndex( state, layerIndex ) {
+            state.activeLayerIndex = layerIndex;
+            state.maskActive = false;
+        },
+        setActiveLayerMask( state, layerIndex ) {
+            state.activeLayerIndex = layerIndex;
+            state.maskActive = !!state.documents[ state.activeIndex ].layers[ layerIndex ].mask;
         },
         updateLayer( state, { index, opts = {} }) {
             const layer = state.documents[ state.activeIndex ].layers[ index ];

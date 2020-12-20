@@ -31,8 +31,28 @@
                 :class="{
                     'active': layer.index === activeLayerIndex
                 }"
-                @click="setActiveLayerIndex( layer.index )"
-            >{{ layer.name }}</div>
+            >
+                <span
+                    class="name"
+                    @click="setActiveLayerIndex( layer.index )"
+                    :class="{
+                        'highlight': layer.index === activeLayerIndex && !activeLayerMask
+                    }"
+                >{{ layer.name }}</span>
+                <span
+                    v-if="layer.mask"
+                    v-t="'mask'"
+                    class="mask"
+                    :class="{
+                        'highlight': layer.mask === activeLayerMask
+                    }"
+                    @click="setActiveLayerMask( layer.index )"
+                ></span>
+                <span
+                    class="remove"
+                    @click="requestLayerRemove( layer.index )"
+                >&#215;</span>
+            </div>
         </div>
         <div class="actions">
             <button
@@ -46,15 +66,8 @@
                 v-t="'addMask'"
                 type="button"
                 class="button button--small"
-                :disabled="currentLayerHasMask"
+                :disabled="!activeLayer || currentLayerHasMask"
                 @click="requestMaskAdd()"
-            ></button>
-            <button
-                v-t="'removeLayer'"
-                type="button"
-                class="button button--small"
-                :disabled="!activeLayer"
-                @click="requestLayerRemove()"
             ></button>
         </div>
     </div>
@@ -73,6 +86,7 @@ export default {
             "activeDocument",
             "activeLayer",
             "activeLayerIndex",
+            "activeLayerMask",
             "layers",
         ]),
         reverseLayers() {
@@ -88,6 +102,7 @@ export default {
             "removeLayer",
             "updateLayer",
             "setActiveLayerIndex",
+            "setActiveLayerMask",
             "addMaskToActiveLayer",
         ]),
         requestLayerAdd() {
@@ -101,8 +116,8 @@ export default {
                 }
             });
         },
-        requestLayerRemove() {
-            this.removeLayer( this.activeLayer );
+        requestLayerRemove( index ) {
+            this.removeLayer( index );
         },
     },
 };
@@ -131,15 +146,27 @@ h3 {
     padding: 0 $spacing-xsmall;
     @include boxSize();
     @include customFont();
+    display: flex;
 
     &:hover,
     &.active {
         background-color: $color-1;
-        color: #FFF;
+        color: #000;
     }
     &.active {
         padding: $spacing-xsmall $spacing-xsmall;
         border: none;
+    }
+
+    .name {
+        flex: 3;
+        @include truncate();
+    }
+    .mask {
+        flex: 1;
+    }
+    .highlight {
+        color: #FFF;
     }
 }
 

@@ -37,6 +37,11 @@ describe( "Vuex document module", () => {
             expect( getters.layers( state, mockedGetters )).toEqual( mockedGetters.activeDocument.layers );
         });
 
+        it( "should be able to retrieve the active Layer index", () => {
+            const state = { activeLayerIndex: 2 };
+            expect( getters.activeLayerIndex( state )).toEqual( 2 );
+        });
+
         it( "should be able to retrieve the active Layer for the active Document", () => {
             const state = { activeLayerIndex: 1 };
             const mockedGetters = {
@@ -45,9 +50,16 @@ describe( "Vuex document module", () => {
             expect( getters.activeLayer( state, mockedGetters )).toEqual( mockedGetters.layers[ 1 ]);
         });
 
-        it( "should be able to retrieve the active Layer index", () => {
-            const state = { activeLayerIndex: 2 };
-            expect( getters.activeLayerIndex( state )).toEqual( 2 );
+        it( "should be able to retrieve the active Layer mask, when set", () => {
+            const state = { maskActive: false };
+            const mockedGetters = { activeLayer: { name: "layer1" } };
+            // null because mask is not active
+            expect( getters.activeLayerMask( state, mockedGetters )).toBeNull();
+            state.maskActive = true;
+            // null because layer has no mask drawable
+            expect( getters.activeLayerMask( state, mockedGetters )).toBeNull();
+            mockedGetters.activeLayer.mask = { src: "mask" };
+            expect( getters.activeLayerMask( state, mockedGetters )).toEqual( mockedGetters.activeLayer.mask );
         });
     });
 
@@ -151,7 +163,7 @@ describe( "Vuex document module", () => {
                 };
                 mockUpdateFn = jest.fn();
                 const layer = state.documents[ 0 ].layers[ 1 ];
-                mutations.removeLayer( state, layer );
+                mutations.removeLayer( state, 1 );
                 expect( state.documents[ 0 ].layers ).toEqual([
                     { name: "layer1" }, { name: "layer3" }
                 ]);
@@ -160,13 +172,40 @@ describe( "Vuex document module", () => {
             });
         });
 
-        it( "should be able to set the active layer index", () => {
-            const state = {
-                documents: [ { name: "foo", layers: [{ name: "layer1" }, { name: "layer2" }] }],
-                activeLayerIndex: 0
-            };
-            mutations.setActiveLayerIndex( state, 1 );
-            expect( state.activeLayerIndex ).toEqual( 1 );
+        describe( "when setting the active layer content", () => {
+            it( "should be able to set the active layer index", () => {
+                const state = {
+                    documents: [ { name: "foo", layers: [{ name: "layer1" }, { name: "layer2" }] }],
+                    activeLayerIndex: 0
+                };
+                mutations.setActiveLayerIndex( state, 1 );
+                expect( state.activeLayerIndex ).toEqual( 1 );
+            });
+
+            it( "should unset the active layer mask when setting the active layer index", () => {
+                const state = {
+                    documents: [ { name: "foo", layers: [{ name: "layer1" }, { name: "layer2" }] }],
+                    activeLayerIndex: 0,
+                    maskActive: true,
+                };
+                mutations.setActiveLayerIndex( state, 1 );
+                expect( state.maskActive ).toBe( false );
+            });
+
+            it( "should be able to set the active layer mask", () => {
+                const state = {
+                    documents: [{
+                        name: "foo",
+                        layers: [ { name: "layer1" }, { name: "layer2", mask: { src: "mask" } } ]
+                    }],
+                    activeIndex: 0,
+                    activeLayerIndex: 0,
+                    maskActive: false,
+                };
+                mutations.setActiveLayerMask( state, 1 );
+                expect( state.activeLayerIndex ).toEqual( 1 );
+                expect( state.maskActive ).toBe( true );
+            });
         });
 
         it( "should be able to update the options of a specific layer within the active Document", () => {
