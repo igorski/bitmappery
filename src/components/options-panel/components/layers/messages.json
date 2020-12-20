@@ -2,6 +2,7 @@
     "en-US": {
         "layers": "Layers",
         "addLayer": "Add layer",
+        "addMask": "Add mask",
         "removeLayer": "Remove layer"
     }
 }

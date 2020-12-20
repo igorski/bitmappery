@@ -20,7 +20,9 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { loader }    from "zcanvas";
 import { JPEG, PNG } from "@/definitions/image-types";
+import { LAYER_GRAPHIC, LAYER_IMAGE, LAYER_MASK } from "@/definitions/layer-types";
 
 /**
  * Creates a new HTMLCanvasElement, returning both
@@ -48,4 +50,24 @@ export const imageToBase64 = ( bitmap, width, height ) => {
         return cvs.toDataURL( PNG ); // assume transparent content
     }
     return "";
+};
+
+export const base64ToLayerImage = async( base64, type, width, height ) => {
+    if ( !base64 ) {
+        return null;
+    }
+    const { image, size } = await loader.loadImage( base64 );
+    switch ( type ) {
+        default:
+        case LAYER_GRAPHIC:
+        case LAYER_MASK:
+            const { cvs, ctx } = createCanvas( width, height );
+            ctx.drawImage( image, 0, 0 );
+            return cvs;
+
+        case LAYER_IMAGE:
+            // TODO: make Blob
+            return image;
+    }
+    return null;
 };

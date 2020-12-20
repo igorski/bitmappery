@@ -34,12 +34,6 @@
                            v-model="name"
                     />
                 </div>
-                <div class="wrapper input">
-                    <label v-t="'layerType'"></label>
-                    <select-box :options="layerTypes"
-                                 v-model="type"
-                    />
-                </div>
             </div>
         </template>
         <template #actions>
@@ -62,20 +56,17 @@
 
 <script>
 import { mapGetters, mapMutations, mapActions } from "vuex";
-import Modal     from "@/components/modal/modal";
-import SelectBox from '@/components/ui/select-box/select-box';
-import { LAYER_GRAPHIC, LAYER_MASK, LAYER_IMAGE } from "@/definitions/layer-types";
+import Modal from "@/components/modal/modal";
+import { LAYER_GRAPHIC } from "@/definitions/layer-types";
 
 import messages from "./messages.json";
 export default {
     i18n: { messages },
     components: {
         Modal,
-        SelectBox,
     },
     data: () => ({
         name: "",
-        type: LAYER_GRAPHIC,
     }),
     computed: {
         ...mapGetters([
@@ -84,13 +75,6 @@ export default {
         ]),
         isValid() {
             return this.name.length > 0;
-        },
-        layerTypes() {
-            return [
-                { value: LAYER_GRAPHIC, text: this.$t( "graphic" ) },
-                { value: LAYER_MASK,    text: this.$t( "mask" ) },
-                { value: LAYER_IMAGE,   text: this.$t( "image" ) }
-            ];
         },
     },
     mounted() {
@@ -108,7 +92,7 @@ export default {
             }
             this.addLayer({
                 name: this.name,
-                type: this.type,
+                type: LAYER_GRAPHIC,
                 width: this.activeDocument.width,
                 height: this.activeDocument.height
             });

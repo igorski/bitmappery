@@ -7,8 +7,8 @@ jest.mock( "@/services/keyboard-service", () => ({
     setSuspended: (...args) => mockUpdateFn?.( "setSuspended", ...args ),
 }));
 jest.mock( "@/factories/document-factory", () => ({
-    save: (...args) => mockUpdateFn?.( "save", ...args ),
-    load: (...args) => mockUpdateFn?.( "load", ...args ),
+    serialize: (...args) => mockUpdateFn?.( "serialize", ...args ),
+    deserialize: (...args) => mockUpdateFn?.( "deserialize", ...args ),
 }));
 jest.mock( "@/utils/file-util", () => ({
     readFile: (...args) => mockUpdateFn?.( "readFile", ...args ),
@@ -169,7 +169,7 @@ describe( "Vuex store", () => {
                         return mockFileData;
                     case "decompressFromUTF16":
                         return mockDecompressed;
-                    case "load":
+                    case "deserialize":
                         return mockDocument;
                 }
             });
@@ -180,8 +180,8 @@ describe( "Vuex store", () => {
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "readFile", mockFile );
             // assert read data has been processed by decompressor
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "decompressFromUTF16", mockFileData );
-            // assert decompressed data has been loaded by DocumentFactory
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 4, "load", JSON.parse( mockDecompressed ));
+            // assert decompressed data has been deserialized by DocumentFactory
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 4, "deserialize", JSON.parse( mockDecompressed ));
             // assert resulting Document has been added as the active document
             expect( commit ).toHaveBeenNthCalledWith( 1, "addNewDocument", mockDocument );
             expect( commit ).toHaveBeenNthCalledWith( 2, "showNotification", expect.any( Object ));
@@ -197,14 +197,14 @@ describe( "Vuex store", () => {
                 switch ( fn ) {
                     default:
                         return true;
-                    case "save":
+                    case "serialize":
                         return mockSavedDocument;
                 }
             });
             await actions.saveDocument({ commit, getters: mockedGetters }, "foo" );
 
-            // assert the active document is processed by DocumentFactory.save
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "save", mockedGetters.activeDocument );
+            // assert the active document is serialized by DocumentFactory.serialize
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "serialize", mockedGetters.activeDocument );
             // assert the DocumentFactory saved result is stringified and compressed
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "compressToUTF16", JSON.stringify( mockSavedDocument ));
             // assert the resulting Blob will be saved to a File

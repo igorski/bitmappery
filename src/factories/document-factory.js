@@ -48,8 +48,8 @@ const DocumentFactory = {
      * Saving a document instance properties into a simplifie
      * JSON structure for project storage
      */
-    save( document ) {
-        const layers = document.layers.map( LayerFactory.save );
+    serialize( document ) {
+        const layers = document.layers.map( LayerFactory.serialize );
         return {
             n: document.name,
             w: document.width,
@@ -61,10 +61,10 @@ const DocumentFactory = {
      /**
       * Creating a new document instance from a stored JSON structure
       */
-    async load( document ) {
+    async deserialize( document ) {
         const layers = [];
         for ( let i = 0, l = ( document.l ?? [] ).length; i < l; ++i ) {
-            layers.push( await LayerFactory.load( document.l[ i ]));
+            layers.push( await LayerFactory.deserialize( document.l[ i ]));
         }
         return DocumentFactory.create({
             name: document.n,

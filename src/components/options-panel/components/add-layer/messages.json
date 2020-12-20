@@ -3,9 +3,6 @@
         "addNewLayer": "Add new layer",
         "layerName": "Layer name",
         "layerType": "Layer type",
-        "graphic": "Graphic",
-        "mask": "Transparency Mask",
-        "image": "Image",
         "newLayerNum": "New layer #{num}",
         "add": "Add",
         "cancel": "Cancel"

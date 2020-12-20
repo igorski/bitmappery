@@ -124,7 +124,7 @@ export default {
             try {
                 const fileData = await readFile( file );
                 const data     = JSON.parse( LZString.decompressFromUTF16( fileData ));
-                const document = await DocumentFactory.load( data );
+                const document = await DocumentFactory.deserialize( data );
                 commit( "addNewDocument", document );
                 commit( "showNotification", {
                     message: translate( "loadedFileSuccessfully", { file: truncate( file.name, 35 ) })
@@ -139,7 +139,7 @@ export default {
             if ( !name ) {
                 name = getters.activeDocument.name;
             }
-            const data   = DocumentFactory.save( getters.activeDocument );
+            const data   = DocumentFactory.serialize( getters.activeDocument );
             const binary = new Blob([
                 LZString.compressToUTF16( JSON.stringify( data ))
             ], { type: "text/plain" });

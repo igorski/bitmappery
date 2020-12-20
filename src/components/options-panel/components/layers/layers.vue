@@ -43,6 +43,13 @@
                 @click="requestLayerAdd()"
             ></button>
             <button
+                v-t="'addMask'"
+                type="button"
+                class="button button--small"
+                :disabled="currentLayerHasMask"
+                @click="requestMaskAdd()"
+            ></button>
+            <button
                 v-t="'removeLayer'"
                 type="button"
                 class="button button--small"
@@ -55,7 +62,8 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import { ADD_LAYER } from "@/definitions/modal-windows";
+import { ADD_LAYER }    from "@/definitions/modal-windows";
+import { createCanvas } from "@/utils/canvas-util";
 import messages from "./messages.json";
 
 export default {
@@ -70,15 +78,28 @@ export default {
         reverseLayers() {
             return this.layers?.slice().map(( layer, index ) => ({ ...layer, index })).reverse() ?? [];
         },
+        currentLayerHasMask() {
+            return !!this.activeLayer?.mask;
+        },
     },
     methods: {
         ...mapMutations([
             "openModal",
             "removeLayer",
+            "updateLayer",
             "setActiveLayerIndex",
+            "addMaskToActiveLayer",
         ]),
         requestLayerAdd() {
             this.openModal( ADD_LAYER );
+        },
+        requestMaskAdd() {
+            this.updateLayer({
+                index: this.activeLayerIndex,
+                opts: {
+                    mask: createCanvas( this.activeLayer.width, this.activeLayer.height )
+                }
+            });
         },
         requestLayerRemove() {
             this.removeLayer( this.activeLayer );

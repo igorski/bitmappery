@@ -49,7 +49,6 @@ npm run lint
 
 # TODO / Roadmap
 
-* Unit tests for factories
 * Zoom set original size isn't that accurate (check also on mobile views)
 * DrawableLayer should only draw when brush tool is active
 * Canvas clearRect() is not doing full width and height ? (might be related to drawable layer click color problem)
