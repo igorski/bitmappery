@@ -3,6 +3,9 @@
         "layers": "Layers",
         "addLayer": "Add layer",
         "addMask": "Add mask",
-        "mask": "Mask"
+        "mask": "Mask",
+        "areYouSure": "Are you sure?",
+        "doYouWantToRemoveLayerName": "Do you want to remove layer \"{name}\" ?",
+        "doYouWantToRemoveMaskName": "Do you want to remove the mask from layer \"{name}\" ?"
     }
 }

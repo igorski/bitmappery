@@ -52,6 +52,8 @@ export const hasSpriteForLayer = ({ id }) => {
     return spriteCache.has( id );
 };
 
+export const getSpriteForLayer = ({ id }) => spriteCache.get( id );
+
 /**
  * Clears the entire cache and disposes all Sprites.
  */

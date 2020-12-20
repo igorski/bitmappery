@@ -58,7 +58,7 @@ class LayerSprite extends sprite {
     }
 
     cacheGradient( color, radius = 30 ) {
-        const innerRadius = radius / 6;
+        const innerRadius = radius / 10;
         const outerRadius = radius * 2;
 
         const x = radius;
@@ -70,7 +70,15 @@ class LayerSprite extends sprite {
 
         const gradient = this._brushCtx.createRadialGradient( x, y, innerRadius, x, y, outerRadius );
         gradient.addColorStop( 0, color );
-        gradient.addColorStop( 1, "rgba(255,255,255,0)" );
+
+        let color2 = "rgba(255,255,255,0)";
+/*
+        if ( color.startsWith( "rgba" )) {
+            const [r, g, b, a] = color.split( "," );
+            color2 = `${r},${g},${b},0)`;
+        }
+*/
+        gradient.addColorStop( 1, color2 );
 
         this._brushCtx.clearRect( 0, 0, this._brushCvs.width, this._brushCvs.height );
         this._brushCtx.arc( x, y, radius, 0, 2 * Math.PI );
@@ -90,6 +98,22 @@ class LayerSprite extends sprite {
         const ctx = this.isMaskable() ? this.layer.mask.getContext( "2d" ) : this._bitmap.getContext( "2d" );
         // note we draw onto the layer bitmap to make this permanent
         ctx.drawImage( this._brushCvs, x - this._halfRadius, y - this._halfRadius );
+    }
+
+    // overridden from zCanvas.sprite
+    draw( documentContext ) {
+        if ( !this.isMaskable() ) {
+            return super.draw( documentContext );
+        }
+        // TODO: cache, cache, cache
+        const { cvs, ctx } = createCanvas( this.layer.width, this.layer.height );
+        ctx.save();
+        ctx.drawImage( this.layer.bitmap, 0, 0 );
+        ctx.globalCompositeOperation = "destination-in";
+        ctx.drawImage( this.layer.mask,   0, 0 );
+        ctx.globalCompositeOperation = "source-over";
+        ctx.restore();
+        documentContext.drawImage( cvs, 0, 0 );
     }
 }
 export default LayerSprite;

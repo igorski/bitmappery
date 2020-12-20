@@ -24,7 +24,7 @@ import Vue from "vue";
 
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory    from "@/factories/layer-factory";
-import { flushLayerSprites, runSpriteFn } from "@/factories/sprite-factory";
+import { flushLayerSprites, runSpriteFn, getSpriteForLayer } from "@/factories/sprite-factory";
 
 export default {
     state: {
@@ -103,6 +103,12 @@ export default {
                 ...layer,
                 ...opts
             });
+            // update layer in sprite
+            const sprite = getSpriteForLayer( layer );
+            if ( sprite ) {
+                sprite.layer = state.documents[ state.activeIndex ].layers[ index ];
+                sprite.canvas?.invalidate();
+            }
         },
     },
     actions: {

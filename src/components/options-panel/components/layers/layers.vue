@@ -50,7 +50,7 @@
                 ></span>
                 <span
                     class="remove"
-                    @click="requestLayerRemove( layer.index )"
+                    @click="handleRemoveClick( layer.index )"
                 >&#215;</span>
             </div>
         </div>
@@ -103,7 +103,7 @@ export default {
             "updateLayer",
             "setActiveLayerIndex",
             "setActiveLayerMask",
-            "addMaskToActiveLayer",
+            "openDialog",
         ]),
         requestLayerAdd() {
             this.openModal( ADD_LAYER );
@@ -112,13 +112,38 @@ export default {
             this.updateLayer({
                 index: this.activeLayerIndex,
                 opts: {
-                    mask: createCanvas( this.activeLayer.width, this.activeLayer.height )
+                    mask: createCanvas( this.activeLayer.width, this.activeLayer.height ).cvs
                 }
             });
         },
-        requestLayerRemove( index ) {
-            this.removeLayer( index );
+        handleRemoveClick( index ) {
+            const layer = this.layers[ index ];
+            if ( layer.mask ) {
+                this.requestMaskRemove( index );
+            } else {
+                this.requestLayerRemove( index );
+            }
         },
+        requestLayerRemove( index ) {
+            this.openDialog({
+                type: "confirm",
+                title: this.$t( "areYouSure" ),
+                message: this.$t( "doYouWantToRemoveLayerName", { name: this.layers[ index ]?.name }),
+                confirm: () => {
+                    this.removeLayer( index );
+                }
+            });
+        },
+        requestMaskRemove( index ) {
+            this.openDialog({
+                type: "confirm",
+                title: this.$t( "areYouSure" ),
+                message: this.$t( "doYouWantToRemoveMaskName", { name: this.layers[ index ]?.name }),
+                confirm: () => {
+                    this.updateLayer({ index, opts: { mask: null } });
+                }
+            });
+        }
     },
 };
 </script>

@@ -49,15 +49,15 @@ npm run lint
 
 # TODO / Roadmap
 
-* Zoom set original size isn't that accurate (check also on mobile views), needs calculateMaxScaling ?
-* LayerSprite should only draw when brush tool is active
+* LayerSprite should show outline when brush is selected
 * Canvas clearRect() is not doing full width and height ? (might be related to drawable layer click color problem)
 * Document resizing doesn't rescale sprites properly?
-* Layer masking should be linked to a target layer
-* Layer view in options-panel: allow naming, repositioning, toggle visibility, change type (for masking), opacity
+* Optimize layer mask performance (create shared temp canvas for sync operations)
+* Layer view in options-panel: allow naming, repositioning, toggle visibility, opacity
 * Canvas util : store transparency of images
 * Restored base64 images should be treated as binary once more (see layer-factory)
 * scale logic should move from zoomable-canvas into zCanvas (as handleInteraction needs to transform offsets by zoom ratio, see LayerSprite!)
+* Zoom set original size isn't that accurate (check also on mobile views), needs calculateMaxScaling ?
 * adjust scaling (on widescreen images scale in the width, rather than go for full height and zoomed out mode)
 * Image position must be made persistent (now isn't on document switch)
 * Implement selections

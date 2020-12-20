@@ -7,6 +7,7 @@ let mockUpdateFn;
 jest.mock( "@/factories/sprite-factory", () => ({
     flushLayerSprites: (...args) => mockUpdateFn?.( "flushLayerSprites", ...args ),
     runSpriteFn: (...args) => mockUpdateFn?.( "runSpriteFn", ...args ),
+    getSpriteForLayer: (...args) => mockUpdateFn?.( "getSpriteForLayer", ...args ),
 }));
 jest.mock( "@/factories/layer-factory", () => ({
     create: (...args) => mockUpdateFn?.( "create", ...args ),
