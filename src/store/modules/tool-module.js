@@ -22,7 +22,6 @@
  */
 import Vue       from "vue";
 import ToolTypes from "@/definitions/tool-types";
-import DrawableLayer   from "@/components/ui/zcanvas/drawable-layer";
 import { runSpriteFn } from "@/factories/sprite-factory";
 
 export default {
@@ -48,16 +47,16 @@ export default {
                 default:
                     break;
                 case ToolTypes.BRUSH:
-                    updateDrawableLayers( state.options[ tool ]);
+                    updateLayerSprites( state.options[ tool ]);
                     break;
             }
         },
     },
 };
 
-function updateDrawableLayers({ color, size }) {
+function updateLayerSprites({ color, size }) {
     runSpriteFn( sprite => {
-        if ( sprite instanceof DrawableLayer ) {
+        if ( sprite.isDrawable() ) {
             sprite.cacheGradient( color, size );
         }
     });

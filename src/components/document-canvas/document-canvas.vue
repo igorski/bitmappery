@@ -43,9 +43,8 @@
 
 <script>
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
-import ZoomableCanvas   from "@/components/ui/zcanvas/zoomable-canvas";
-import DrawableLayer    from "@/components/ui/zcanvas/drawable-layer";
-import { MAX_ZOOM }     from "@/definitions/tool-types";
+import ZoomableCanvas from "@/components/ui/zcanvas/zoomable-canvas";
+import { MAX_ZOOM }   from "@/definitions/tool-types";
 import { MAX_IMAGE_SIZE, MAX_MEGAPIXEL } from "@/definitions/image-types";
 import { scaleToRatio, scaleValue, constrain, isPortrait } from "@/utils/image-math";
 import {
@@ -162,7 +161,7 @@ export default {
                 case "brush":
                     break;
             }
-            runSpriteFn( sprite => sprite.setDraggable( isDraggable || sprite instanceof DrawableLayer ));
+            runSpriteFn( sprite => sprite.setDraggable( isDraggable || sprite.isDrawable() ));
         },
         zoomOptions: {
             deep: true,

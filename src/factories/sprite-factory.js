@@ -20,8 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { sprite } from "zcanvas";
-import DrawableLayer from "@/components/ui/zcanvas/drawable-layer";
+import LayerSprite from "@/components/ui/zcanvas/layer-sprite";
 import { LAYER_IMAGE, LAYER_GRAPHIC, LAYER_MASK } from "@/definitions/layer-types";
 
 /**
@@ -74,16 +73,7 @@ export const createSpriteForLayer = ( zCanvasInstance, layer, isInteractive = fa
     }
     // lazily create sprite
     if ( !output ) {
-        switch ( type ) {
-            default:
-            case LAYER_GRAPHIC:
-            case LAYER_MASK:
-                output = new DrawableLayer( layer );
-                break;
-            case LAYER_IMAGE:
-                output = new sprite({ bitmap, x, y, width, height });
-                break;
-        }
+        output = new LayerSprite( layer );
         output.setDraggable( true );
         output.setInteractive( isInteractive );
         zCanvasInstance.addChild( output );
