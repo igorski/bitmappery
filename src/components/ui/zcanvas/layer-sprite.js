@@ -24,69 +24,71 @@ import { sprite }       from "zcanvas";
 import { createCanvas } from "@/utils/canvas-util";
 import { LAYER_GRAPHIC, LAYER_MASK }   from "@/definitions/layer-types";
 
-function LayerSprite( layer ) {
-    this._layer = layer;
+class LayerSprite extends sprite {
+    constructor( layer ) {
+        if ( layer.type === LAYER_GRAPHIC && !layer.bitmap ) {
+            // create a Bitmap on which this layer will render its drawable content.
+            // assign this Bitmap to the layer
+            const { cvs } = createCanvas( layer.width, layer.height );
+            layer.bitmap = cvs;
+        }
+        let { bitmap, x, y, width, height } = layer;
 
-    if ( layer.type === LAYER_GRAPHIC && !layer.bitmap ) {
-        // create a Bitmap on which this layer will render its drawable content.
-        // assign this Bitmap to the layer
-        const { cvs } = createCanvas( layer.width, layer.height );
-        layer.bitmap = cvs;
+        // zCanvas inheritance
+        super({ bitmap, x, y, width, height } );
+        this.setDraggable( true );
+
+        this._layer = layer;
+
+        // create brush (always as all layers can be maskable)
+        const brushCanvas = createCanvas();
+        this._brushCvs    = brushCanvas.cvs;
+        this._brushCtx    = brushCanvas.ctx;
+        this._halfRadius  = 0;
+
+        this.cacheGradient( "rgba(255,0,0,1)" );
     }
-    let { bitmap, x, y, width, height } = layer;
 
-    // zCanvas inheritance
-    LayerSprite.super( this, "constructor", { bitmap, x, y, width, height } );
-    this.setDraggable( true );
+    isDrawable() {
+        return this._layer.type === LAYER_GRAPHIC || this.isMaskable();
+    }
 
-    // create brush (always as all layers can be maskable)
-    const brushCanvas = createCanvas();
-    this._brushCvs    = brushCanvas.cvs;
-    this._brushCtx    = brushCanvas.ctx;
-    this._halfRadius  = 0;
+    isMaskable() {
+        return !!this._layer.mask;
+    }
 
-    this.cacheGradient( "rgba(255,0,0,1)" );
+    cacheGradient( color, radius = 30 ) {
+        const innerRadius = radius / 6;
+        const outerRadius = radius * 2;
+
+        const x = radius;
+        const y = radius;
+
+        // update brush Canvas size
+        this._brushCvs.width  = outerRadius;
+        this._brushCvs.height = outerRadius;
+
+        const gradient = this._brushCtx.createRadialGradient( x, y, innerRadius, x, y, outerRadius );
+        gradient.addColorStop( 0, color );
+        gradient.addColorStop( 1, 'rgba(255,255,255,0)' );
+
+        this._brushCtx.clearRect( 0, 0, this._brushCvs.width, this._brushCvs.height );
+        this._brushCtx.arc( x, y, radius, 0, 2 * Math.PI );
+        this._brushCtx.fillStyle = gradient;
+        this._brushCtx.fill();
+
+        this._halfRadius = radius / 2;
+    }
+
+    // overridden from zCanvas.sprite
+    handleMove( x, y ) {
+        if ( !this.isDrawable() ) {
+            return super.handleMove( x, y );
+        }
+        // cache this upfront
+        const ctx = this.isMaskable() ? this._layer.mask.getContext( "2d" ) : this._bitmap.getContext( "2d" );
+        // note we draw onto the layer bitmap to make this permanent
+        ctx.drawImage( this._brushCvs, x - this._halfRadius, y - this._halfRadius );
+    }
 }
-sprite.extend( LayerSprite );
 export default LayerSprite;
-
-/* instance methods */
-
-LayerSprite.prototype.isDrawable = function() {
-    return this._layer.type === LAYER_GRAPHIC || this.isMaskable();
-};
-
-LayerSprite.prototype.isMaskable = function() {
-    return !!this._layer.mask;
-};
-
-LayerSprite.prototype.cacheGradient = function( color, radius = 30 ) {
-    const innerRadius = radius / 6;
-    const outerRadius = radius * 2;
-
-    const x = radius;
-    const y = radius;
-
-    // update brush Canvas size
-    this._brushCvs.width  = outerRadius;
-    this._brushCvs.height = outerRadius;
-
-    const gradient = this._brushCtx.createRadialGradient( x, y, innerRadius, x, y, outerRadius );
-    gradient.addColorStop( 0, color );
-    gradient.addColorStop( 1, 'rgba(255,255,255,0)' );
-
-    this._brushCtx.clearRect( 0, 0, this._brushCvs.width, this._brushCvs.height );
-    this._brushCtx.arc( x, y, radius, 0, 2 * Math.PI );
-    this._brushCtx.fillStyle = gradient;
-    this._brushCtx.fill();
-
-    this._halfRadius = radius / 2;
-};
-
-// overridden from zCanvas.sprite
-LayerSprite.prototype.handleMove = function( x, y ) {
-    // cache this upfront
-    const ctx = this.isMaskable() ? this._layer.mask.getContext( "2d" ) : this._bitmap.getContext( "2d" );
-    // note we draw onto the layer bitmap to make this permanent
-    ctx.drawImage( this._brushCvs, x - this._halfRadius, y - this._halfRadius );
-};
