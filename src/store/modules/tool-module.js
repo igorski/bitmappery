@@ -38,8 +38,9 @@ export default {
         brushOptions: state => state.options[ ToolTypes.BRUSH ],
     },
     mutations: {
-        setActiveTool( state, tool ) {
+        setActiveTool( state, { tool, activeLayer }) {
             state.activeTool = tool;
+            runSpriteFn( sprite => sprite.handleActiveTool( tool, activeLayer ));
         },
         setToolOptionValue( state, { tool, option, value }) {
             Vue.set( state.options[ tool ], option, value );
@@ -57,7 +58,7 @@ export default {
 function updateLayerSprites({ color, size }) {
     runSpriteFn( sprite => {
         if ( sprite.isDrawable() ) {
-            sprite.cacheGradient( color, size );
+            sprite.cacheBrush( color, size );
         }
     });
 }

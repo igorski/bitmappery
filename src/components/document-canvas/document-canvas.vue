@@ -143,17 +143,22 @@ export default {
             },
         },
         activeTool( tool ) {
-            let isDraggable = false; // sprites only draggable for move tool
+            const canvasClasses = this.zCanvas?.getElement().classList;
+            if ( !canvasClasses ) {
+                return;
+            }
+            canvasClasses.remove( "no-cursor" );
+            canvasClasses.remove( "cursor-move" );
             switch ( tool ) {
                 default:
                     break;
                 case "move":
-                    isDraggable = true;
+                    canvasClasses.add( "cursor-move" );
                     break;
                 case "brush":
+                    canvasClasses.add( "no-cursor" );
                     break;
             }
-            runSpriteFn( sprite => sprite.setDraggable( isDraggable || sprite.isDrawable() ));
         },
         zoomOptions: {
             deep: true,
@@ -266,6 +271,15 @@ export default {
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+        }
+
+        canvas {
+            &.no-cursor {
+                cursor: none;
+            }
+            &.cursor-move {
+                cursor: grab;
+            }
         }
     }
 }

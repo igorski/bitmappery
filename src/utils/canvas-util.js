@@ -71,3 +71,20 @@ export const base64ToLayerImage = async( base64, type, width, height ) => {
     }
     return null;
 };
+
+export const resizeImage = async ( image, srcWidth, srcHeight, targetWidth, targetHeight, mime, encoderOptions ) => {
+    if ( srcWidth === targetWidth && srcHeight === targetHeight ) {
+        return image;
+    }
+    if ( typeof image === "string" ) {
+        let size;
+        ({ image, size } = await loader.loadImage( image ));
+        srcWidth  = size.width;
+        srcHeight = size.height;
+    }
+    const { cvs, ctx } = createCanvas( targetWidth, targetHeight );
+    ctx.drawImage(
+        image, 0, 0, srcWidth, srcHeight, 0, 0, targetWidth, targetHeight
+    );
+    return cvs.toDataURL( mime, encoderOptions );
+};

@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { ADD_LAYER } from "@/definitions/modal-windows";
-import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
+import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM, canUseBrush } from "@/definitions/tool-types";
 
 let state, getters, commit, dispatch, listener,
     suspended = false, blockDefaults = true, optionDown = false, shiftDown = false;
@@ -174,7 +174,9 @@ function handleKeyDown( event ) {
             break;
 
         case 66: // B
-            commit( "setActiveTool", ToolTypes.BRUSH );
+            if ( canUseBrush( getters.activeDocument, getters.activeLayer )) {
+                commit( "setActiveTool", { tool: ToolTypes.BRUSH, activeLayer: getters.activeLayer });
+            }
             break;
 
         case 67: // C
@@ -198,7 +200,9 @@ function handleKeyDown( event ) {
             break;
 
         case 77: // M
-            commit( "setActiveTool", ToolTypes.MOVE );
+            if ( getters.activeDocument ) {
+                commit( "setActiveTool", { tool: ToolTypes.MOVE, activeLayer: getters.activeLayer });
+            }
             break;
 
         case 78: // N
@@ -259,9 +263,9 @@ function handleKeyDown( event ) {
             if ( hasOption ) {
                 // ...
                 preventDefault( event ); // override browser undo
-            } else {
+            } else if ( getters.activeDocument ) {
                 // zoom
-                commit( "setActiveTool", ToolTypes.ZOOM );
+                commit( "setActiveTool", { tool: ToolTypes.ZOOM, activeLayer: getters.activeLayer });
             }
             break;
 
@@ -281,12 +285,14 @@ function handleKeyDown( event ) {
             commit( "setToolOptionValue",
                 { tool: ToolTypes.BRUSH, option: "size", value: Math.max( 1, getters.brushOptions.size - 5 )
             });
+            getters.zCanvas?.invalidate();
             break;
 
         case 221: // ]
             commit( "setToolOptionValue", {
                 tool: ToolTypes.BRUSH, option: "size", value: Math.min( MAX_BRUSH_SIZE, getters.brushOptions.size + 5 )
             });
+            getters.zCanvas?.invalidate();
             break;
     }
 }

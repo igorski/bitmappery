@@ -23,6 +23,7 @@
 import { sprite }       from "zcanvas";
 import { createCanvas } from "@/utils/canvas-util";
 import { LAYER_GRAPHIC, LAYER_MASK } from "@/definitions/layer-types";
+import ToolTypes from "@/definitions/tool-types";
 
 class LayerSprite extends sprite {
     constructor( layer ) {
@@ -45,8 +46,16 @@ class LayerSprite extends sprite {
         this._brushCvs    = brushCanvas.cvs;
         this._brushCtx    = brushCanvas.ctx;
         this._halfRadius  = 0;
+        this._pointerX    = 0;
+        this._pointerY    = 0;
 
-        this.cacheGradient( "rgba(255,0,0,1)" );
+        this.cacheBrush( "rgba(255,0,0,1)" );
+        this.cacheMask();
+        this.setActionTarget();
+    }
+
+    setActionTarget( target = "bitmap" ) {
+        this.actionTarget = target;
     }
 
     isDrawable() {
@@ -57,7 +66,9 @@ class LayerSprite extends sprite {
         return !!this.layer.mask;
     }
 
-    cacheGradient( color, radius = 30 ) {
+    cacheBrush( color, radius = 30 ) {
+        this._radius = radius;
+
         const innerRadius = radius / 10;
         const outerRadius = radius * 2;
 
@@ -88,32 +99,118 @@ class LayerSprite extends sprite {
         this._halfRadius = radius / 2;
     }
 
-    // overridden from zCanvas.sprite
-    handleMove( x, y ) {
-        if ( !this.isDrawable() ) {
-            // not drawable, perform default behaviour (drag)
-            return super.handleMove( x, y );
+    cacheMask() {
+        if ( !!this.layer.mask  ) {
+            this._maskCanvas = createCanvas( this.layer.width, this.layer.height ).cvs;
+            this._cacheMask  = true; // requests initial rendering of masked content
+        } else {
+            this._maskCanvas = null;
         }
-        // get the drawing context, cache this upfront
-        const ctx = this.isMaskable() ? this.layer.mask.getContext( "2d" ) : this._bitmap.getContext( "2d" );
-        // note we draw onto the layer bitmap to make this permanent
-        ctx.drawImage( this._brushCvs, x - this._halfRadius, y - this._halfRadius );
     }
 
-    // overridden from zCanvas.sprite
+    handleActiveTool( tool, activeLayer ) {
+        this.setInteractive( this.layer === activeLayer );
+        this.isDragging   = false;
+        this._isBrushMode = false;
+
+        if ( !this._interactive ) {
+            return;
+        }
+        switch ( tool ) {
+            default:
+                this.setDraggable( false );
+                break;
+            case ToolTypes.MOVE:
+                this.setDraggable( true );
+                break;
+            case ToolTypes.BRUSH:
+                this.forceDrag();
+                this._isBrushMode = true;
+                break;
+        }
+    }
+
+    // cheap way to hook into zCanvas.handleMove() handler keep following the cursor in draw()
+    forceDrag() {
+        this.isDragging       = true;
+        this._dragStartOffset = { x: this.getX(), y: this.getY() };
+        this._dragStartEventCoordinates = { x: this._pointerX, y: this._pointerY };
+    }
+
+    /* the following override zCanvas.sprite */
+
+    handleMove( x, y ) {
+        if ( !this._isBrushMode ) {
+            // not drawable, perform default behaviour (drag)
+            if ( this.actionTarget === "mask" ) {
+                this.layer.maskX = this._dragStartOffset.x + ( x - this._dragStartEventCoordinates.x );
+                this.layer.maskY = this._dragStartOffset.y + ( y - this._dragStartEventCoordinates.y );
+                this._cacheMask  = true;
+            } else {
+                return super.handleMove( x, y );
+            }
+        }
+        // brush tool active (either draws onto IMAGE_GRAPHIC layer bitmap
+        // or onto the mask bitmap)
+        if ( this._applyBrush ) {
+            const drawOnMask = this.isMaskable();
+            // get the drawing context
+            const ctx = drawOnMask ? this.layer.mask.getContext( "2d" ) : this._bitmap.getContext( "2d" );
+            // note we draw onto the layer bitmap to make this permanent
+            ctx.drawImage( this._brushCvs, ( x - this.getX() ) - this._radius, y - this.getY() - this._radius );
+            // invalidate cached mask canvas contents (draw() method will render these)
+            if ( drawOnMask ) {
+                this._cacheMask = true;
+            }
+        }
+        this._pointerX = x;
+        this._pointerY = y;
+    }
+
+    handlePress( x, y ) {
+        this._applyBrush = this._isBrushMode;
+    }
+
+    handleRelease( x, y ) {
+        this._applyBrush = false;
+        if ( this._isBrushMode ) {
+            this.forceDrag();
+        }
+    }
+
     draw( documentContext ) {
         if ( !this.isMaskable() ) {
-            return super.draw( documentContext );
+            // use base draw() logic when no mask is set
+            super.draw( documentContext );
+        } else if ( this._maskCanvas ) {
+            const { left, top, width, height } = this._bounds;
+            // render masked contents into mask canvas
+            if ( this._cacheMask ) {
+                const ctx = this._maskCanvas.getContext( "2d" );
+                ctx.save();
+                ctx.drawImage( this.layer.bitmap, 0, 0 );
+                ctx.globalCompositeOperation = "destination-in";
+                ctx.drawImage( this.layer.mask, this.layer.maskX, this.layer.maskY );
+                ctx.restore();
+                this._cacheMask = false;
+            }
+            // render cached mask canvas onto document context
+            documentContext.drawImage(
+                this._maskCanvas,
+                ( .5 + left )   << 0,
+                ( .5 + top  )   << 0,
+                ( .5 + width )  << 0,
+                ( .5 + height ) << 0
+            );
         }
-        // TODO: cache, cache, cache
-        const { cvs, ctx } = createCanvas( this.layer.width, this.layer.height );
-        ctx.save();
-        ctx.drawImage( this.layer.bitmap, 0, 0 );
-        ctx.globalCompositeOperation = "destination-in";
-        ctx.drawImage( this.layer.mask,   0, 0 );
-        ctx.globalCompositeOperation = "source-over";
-        ctx.restore();
-        documentContext.drawImage( cvs, 0, 0 );
+        // render brush outline at pointer position
+        if ( this._isBrushMode ) {
+            documentContext.save();
+            documentContext.beginPath();
+            documentContext.arc( this._pointerX, this._pointerY, this._radius, 0, 2 * Math.PI);
+            documentContext.stroke();
+            documentContext.restore();
+        }
     }
 }
 export default LayerSprite;

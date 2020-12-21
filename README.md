@@ -49,10 +49,13 @@ npm run lint
 
 # TODO / Roadmap
 
+* Something weird with best fit only fitting when window resize fires (also see weird non-cleared canvas areas)
+* Layer and mask coordinates are not saved when saving a document?
+* When using move tool and mask is selected, move mask, not layer
+* Only draw visible content (hope to improve zoomed in performance)
 * LayerSprite should show outline when brush is selected
 * Canvas clearRect() is not doing full width and height ? (might be related to drawable layer click color problem)
 * Document resizing doesn't rescale sprites properly?
-* Optimize layer mask performance (create shared temp canvas for sync operations)
 * Layer view in options-panel: allow naming, repositioning, toggle visibility, opacity
 * Canvas util : store transparency of images
 * Restored base64 images should be treated as binary once more (see layer-factory)
@@ -62,12 +65,12 @@ npm run lint
 * Image position must be made persistent (now isn't on document switch)
 * Implement selections
 * Unload Blobs when images are no longer used in document (see sprite-factory disposeSprite, keep instance count of usages)
-* Export output to image file (by rendering document content on separate canvas instead of taking snapshot at incorrect scale)
 * Load/save documents from/to Dropbox
 * Use hand cursor when draggable
 * Text editing using Google fonts!
 * Use paint brush cursor when painting
 * Add tools for layer rotation and scaling
+* Implement layer scale
 * Implement clone brush
 * Implement document crop
 * Implement change history

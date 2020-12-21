@@ -72,12 +72,14 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import Modal     from "@/components/modal/modal";
-import SelectBox from '@/components/ui/select-box/select-box';
-import Slider    from "@/components/ui/slider/slider";
-import { mapSelectOptions } from "@/utils/search-select-util";
+import { canvas } from "zcanvas";
+import Modal      from "@/components/modal/modal";
+import SelectBox  from '@/components/ui/select-box/select-box';
+import Slider     from "@/components/ui/slider/slider";
+import { mapSelectOptions }  from "@/utils/search-select-util";
+import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { EXPORTABLE_FILE_TYPES, typeToExt, isCompressableFileType } from "@/definitions/image-types";
-import { createCanvas }   from "@/utils/canvas-util";
+import { createCanvas, resizeImage } from "@/utils/canvas-util";
 import { saveBlobAsFile } from "@/utils/file-util";
 import messages from "./messages.json";
 
@@ -113,15 +115,28 @@ export default {
             "closeModal",
         ]),
         async exportImage() {
-            // TODO: here we clone the current zCanvas state to a new canvas
-            // of the document dimensions. This will result in a loss of quality if
-            // the zCanvas is zoomed out. We need to re-render all document properties
-            // into the new canvas at its own scale.
-            const { cvs, ctx } = createCanvas( this.activeDocument.width, this.activeDocument.height );
-            ctx.drawImage( this.zCanvas.getElement(), 0, 0, cvs.width, cvs.height );
-            const base64 = await fetch(
-                cvs.toDataURL( this.type, parseFloat(( this.quality / 100 ).toFixed( 2 )))
+            const { width, height } = this.activeDocument;
+            const tempCanvas = new canvas({ width, height });
+            const ctx = tempCanvas.getElement().getContext( "2d" );
+            // draw existing layers onto temporary canvas at full document scale
+            this.activeDocument.layers.forEach( layer => {
+                const sprite = getSpriteForLayer( layer );
+                sprite.draw( ctx );
+            });
+            const quality = parseFloat(( this.quality / 100 ).toFixed( 2 ));
+            let base64 = tempCanvas.getElement().toDataURL( this.type, quality );
+
+            // zCanvas magnifies content by the pixel ratio for a crisper result, downscale
+            // to actual dimensions of the document
+            const resizedImage = await resizeImage(
+                base64,
+                width * ( window.devicePixelRatio || 1 ),
+                height * ( window.devicePixelRatio || 1 ),
+                width, height,
+                this.type, quality
             );
+            // fetch final base64 data so we can convert it easily to binary
+            base64 = await fetch( resizedImage );
             const blob = await base64.blob();
             saveBlobAsFile( blob, `${this.name}.${typeToExt(this.type)}` );
             this.closeModal();

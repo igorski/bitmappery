@@ -40,7 +40,7 @@
                         'active': activeTool === button.type
                     }"
                     :disabled="button.disabled"
-                    @click="setActiveTool( button.type )"
+                    @click="setTool( button.type )"
             ></button>
         </div>
     </div>
@@ -75,14 +75,14 @@ export default {
             return [
                 { type: ToolTypes.MOVE,  i18n: "move",  disabled: !this.activeDocument },
                 { type: ToolTypes.ZOOM,  i18n: "zoom",  disabled: !this.activeDocument },
-                { type: ToolTypes.BRUSH, i18n: "brush", disabled: !this.activeDocument || !this.activeLayer?.mask }
+                { type: ToolTypes.BRUSH, i18n: "brush", disabled: !this.activeDocument || !( this.activeLayer?.mask || this.activeLayer.type === LAYER_GRAPHIC ) }
             ]
         },
     },
     watch: {
         activeDocument( document ) {
             if ( !document ) {
-                this.setActiveTool( null );
+                this.setTool( null );
             }
         },
         activeLayer( layer ) {
@@ -93,7 +93,7 @@ export default {
                 default:
                     // brushing only allowed on graphic type layers
                     if ( this.activeTool === ToolTypes.BRUSH ) {
-                        this.setActiveTool( ToolTypes.MOVE );
+                        this.setTool( ToolTypes.MOVE );
                     }
                     break;
                 case LAYER_GRAPHIC:
@@ -106,6 +106,9 @@ export default {
             "setActiveTool",
             "setToolboxOpened",
         ]),
+        setTool( tool ) {
+            this.setActiveTool({ tool, activeLayer: this.activeLayer });
+        },
     },
 };
 </script>

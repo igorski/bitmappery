@@ -13,7 +13,7 @@ describe( "Vuex tool module", () => {
     describe( "mutations", () => {
         it( "should be able to set the active tool", () => {
             const state = { activeTool: "foo" };
-            mutations.setActiveTool( state, "bar" );
+            mutations.setActiveTool( state, { tool: "bar" });
             expect( state.activeTool ).toEqual( "bar" );
         });
     });

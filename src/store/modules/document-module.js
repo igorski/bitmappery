@@ -98,15 +98,17 @@ export default {
             state.maskActive = !!state.documents[ state.activeIndex ].layers[ layerIndex ].mask;
         },
         updateLayer( state, { index, opts = {} }) {
-            const layer = state.documents[ state.activeIndex ].layers[ index ];
-            Vue.set( state.documents[ state.activeIndex ].layers, index, {
+            let layer = state.documents[ state.activeIndex ].layers[ index ];
+            layer = {
                 ...layer,
                 ...opts
-            });
+            };
+            Vue.set( state.documents[ state.activeIndex ].layers, index, layer );
             // update layer in sprite
             const sprite = getSpriteForLayer( layer );
             if ( sprite ) {
-                sprite.layer = state.documents[ state.activeIndex ].layers[ index ];
+                sprite.layer = layer;
+                sprite.cacheMask();
                 sprite.canvas?.invalidate();
             }
         },

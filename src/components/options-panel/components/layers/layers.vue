@@ -34,7 +34,7 @@
             >
                 <span
                     class="name"
-                    @click="setActiveLayerIndex( layer.index )"
+                    @click="handleLayerClick( layer )"
                     :class="{
                         'highlight': layer.index === activeLayerIndex && !activeLayerMask
                     }"
@@ -46,7 +46,7 @@
                     :class="{
                         'highlight': layer.mask === activeLayerMask
                     }"
-                    @click="setActiveLayerMask( layer.index )"
+                    @click="handleLayerMaskClick( layer )"
                 ></span>
                 <span
                     class="remove"
@@ -77,6 +77,7 @@
 import { mapGetters, mapMutations } from "vuex";
 import { ADD_LAYER }    from "@/definitions/modal-windows";
 import { createCanvas } from "@/utils/canvas-util";
+import { getSpriteForLayer } from "@/factories/sprite-factory";
 import messages from "./messages.json";
 
 export default {
@@ -143,7 +144,15 @@ export default {
                     this.updateLayer({ index, opts: { mask: null } });
                 }
             });
-        }
+        },
+        handleLayerClick( layer ) {
+            this.setActiveLayerIndex( layer.index );
+            getSpriteForLayer( layer ).setActionTarget( "bitmap" );
+        },
+        handleLayerMaskClick( layer ) {
+            this.setActiveLayerMask( layer.index );
+            getSpriteForLayer( layer ).setActionTarget( "mask" );
+        },
     },
 };
 </script>

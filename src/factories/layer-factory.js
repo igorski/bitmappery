@@ -31,7 +31,7 @@ const LayerFactory = {
     create({
         name = "New Layer",
         type = LAYER_GRAPHIC, bitmap = null, mask = null,
-        x = 0, y = 0, width = 1, height = 1, visible = true
+        x = 0, y = 0, maskX = 0, maskY = 0, width = 1, height = 1, visible = true
     } = {}) {
         return {
             id: `layer_${( ++UID_COUNTER )}`,
@@ -41,6 +41,8 @@ const LayerFactory = {
             mask,
             x,
             y,
+            maskX,
+            maskY,
             width,
             height,
             visible
@@ -59,6 +61,8 @@ const LayerFactory = {
             m: imageToBase64( layer.mask,   layer.width, layer.height ),
             x: layer.x,
             y: layer.y,
+            x2: layer.mask?.x ?? 0,
+            y2: layer.mask?.y ?? 0,
             w: layer.width,
             h: layer.height,
             v: layer.visible,
@@ -79,6 +83,8 @@ const LayerFactory = {
             mask,
             x: layer.x,
             y: layer.y,
+            maskX: layer.x2,
+            maskY: layer.y2,
             width: layer.w,
             height: layer.h,
             visible: layer.v

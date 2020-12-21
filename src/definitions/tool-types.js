@@ -22,11 +22,16 @@
  */
 import { constrain, isPortrait } from "@/utils/image-math";
 import { MAX_IMAGE_SIZE, MAX_MEGAPIXEL } from "@/definitions/image-types";
+import { LAYER_GRAPHIC } from "@/definitions/layer-types";
 
 export default {
     MOVE  : "move",
     ZOOM  : "zoom",
     BRUSH : "brush",
+};
+
+export const canUseBrush = ( activeDocument, activeLayer ) => {
+    return activeDocument && ( activeLayer.mask || activeLayer.type === LAYER_GRAPHIC );
 };
 
 // UI variables
