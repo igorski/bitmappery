@@ -23,6 +23,11 @@
 import LayerSprite from "@/components/ui/zcanvas/layer-sprite";
 import { LAYER_IMAGE, LAYER_GRAPHIC, LAYER_MASK } from "@/definitions/layer-types";
 
+let zCanvasInstance; // a non-Vue observable zCanvas instance
+
+export const getCanvasInstance = () => zCanvasInstance;
+export const setCanvasInstance = zCanvas => zCanvasInstance = zCanvas;
+
 /**
  * Sprites are used to represent layer content. These are mapped
  * to the layer ids (see layer-factory.js)

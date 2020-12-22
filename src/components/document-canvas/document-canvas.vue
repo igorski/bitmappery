@@ -47,6 +47,7 @@ import ZoomableCanvas from "@/components/ui/zcanvas/zoomable-canvas";
 import { MAX_ZOOM, calculateMaxScaling } from "@/definitions/tool-types";
 import { scaleToRatio, scaleValue }      from "@/utils/image-math";
 import {
+    getCanvasInstance, setCanvasInstance,
     createSpriteForLayer, runSpriteFn, flushLayerSprites, flushCache,
 } from "@/factories/sprite-factory";
 
@@ -70,7 +71,6 @@ export default {
             "windowSize",
         ]),
         ...mapGetters([
-            "zCanvas",
             "activeDocument",
             "layers",
             "activeLayer",
@@ -87,17 +87,17 @@ export default {
             handler( document, oldValue = null ) {
                 // no active document or no document content
                 if ( !document?.layers ) {
-                    if ( this.zCanvas ) {
-                        this.zCanvas.dispose();
-                        this.setZCanvas( null );
+                    if ( getCanvasInstance() ) {
+                        getCanvasInstance().dispose();
+                        setCanvasInstance( null );
                     }
                     return;
                 }
                 const { id, width, height } = document;
-                if ( !this.zCanvas ) {
-                    this.createCanvas();
+                if ( !getCanvasInstance() ) {
+                    const zCanvas = this.createCanvas();
                     this.$nextTick(() => {
-                        this.zCanvas.insertInPage( this.$refs.canvasContainer );
+                        zCanvas.insertInPage( this.$refs.canvasContainer );
                         this.calcIdealDimensions();
                     });
                 }
@@ -120,7 +120,7 @@ export default {
                         return;
                     }
                     if ( !layerPool.has( layer.id )) {
-                        const sprite = createSpriteForLayer( this.zCanvas, layer, layer === this.activeLayer );
+                        const sprite = createSpriteForLayer( getCanvasInstance(), layer, layer === this.activeLayer );
                         layerPool.set( layer.id, sprite );
                     }
                     seen.push( layer.id );
@@ -143,7 +143,7 @@ export default {
             },
         },
         activeTool( tool ) {
-            const canvasClasses = this.zCanvas?.getElement().classList;
+            const canvasClasses = getCanvasInstance()?.getElement().classList;
             if ( !canvasClasses ) {
                 return;
             }
@@ -192,7 +192,6 @@ export default {
     },
     methods: {
         ...mapMutations([
-            "setZCanvas",
             "setZCanvasBaseDimensions",
         ]),
         ...mapActions([
@@ -200,13 +199,15 @@ export default {
         ]),
         createCanvas() {
             // note dimensions will be adjusted by scaleCanvas()
-            this.setZCanvas( new ZoomableCanvas({
+            const zCanvas = new ZoomableCanvas({
                 width: 100,
                 height: 100,
                 animate: false,
                 smoothing: true,
                 stretchToFit: false
-            }));
+            });
+            setCanvasInstance( zCanvas );
+            return zCanvas;
         },
         cacheContainerSize() {
             containerSize = this.$el.parentNode?.getBoundingClientRect();
@@ -233,14 +234,15 @@ export default {
                 maxOutScale = maxScaling.out;
             }
             this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
+            const zCanvas = getCanvasInstance();
             // replace below by updated zCanvas lib to not multiply by zoom
-            this.zCanvas.setDimensions(
+            zCanvas.setDimensions(
                 this.zCanvasBaseDimensions.width  * zoom,
                 this.zCanvasBaseDimensions.height * zoom,
                 true, true
             );
-            this.zCanvas.setZoomFactor( xScale * zoom, yScale * zoom ); // replace with zCanvas.setZoom()
-            this.centerCanvas = this.zCanvas.getWidth() < containerSize.width || this.zCanvas.getHeight() < containerSize.height ;
+            zCanvas.setZoomFactor( xScale * zoom, yScale * zoom ); // replace with zCanvas.setZoom()
+            this.centerCanvas = zCanvas.getWidth() < containerSize.width || zCanvas.getHeight() < containerSize.height ;
         },
         calcIdealDimensions() {
             this.cacheContainerSize();

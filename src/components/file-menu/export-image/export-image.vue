@@ -77,7 +77,7 @@ import Modal      from "@/components/modal/modal";
 import SelectBox  from '@/components/ui/select-box/select-box';
 import Slider     from "@/components/ui/slider/slider";
 import { mapSelectOptions }  from "@/utils/search-select-util";
-import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { getSpriteForLayer, getCanvasInstance } from "@/factories/sprite-factory";
 import { EXPORTABLE_FILE_TYPES, typeToExt, isCompressableFileType } from "@/definitions/image-types";
 import { createCanvas, resizeImage } from "@/utils/canvas-util";
 import { saveBlobAsFile } from "@/utils/file-util";
@@ -97,7 +97,6 @@ export default {
     }),
     computed: {
         ...mapGetters([
-            "zCanvas",
             "activeDocument",
         ]),
         fileTypes() {

@@ -24,7 +24,6 @@ import Vue from "vue";
 
 export default {
     state: {
-        zCanvas: null, // zCanvas instance
         // the base dimensions describe the "best fit" scale to represent
         // the currently active document at the current window size, this
         // is basically the base line used for the unzoomed document view
@@ -34,13 +33,9 @@ export default {
         },
     },
     getters: {
-        zCanvas: state => state.zCanvas,
         zCanvasBaseDimensions: state => state.zCanvasBaseDimensions,
     },
     mutations: {
-        setZCanvas( state, zCanvas ) {
-            state.zCanvas = zCanvas;
-        },
         setZCanvasBaseDimensions( state, { width, height }) {
             Vue.set( state, "zCanvasBaseDimensions", { width, height });
         },

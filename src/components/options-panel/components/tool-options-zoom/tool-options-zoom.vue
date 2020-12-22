@@ -65,7 +65,6 @@ export default {
         ...mapGetters([
             "activeDocument",
             "zoomOptions",
-            "zCanvas",
             "zCanvasBaseDimensions",
         ]),
         zoomLevel: {

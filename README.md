@@ -50,6 +50,7 @@ npm run lint
 # TODO / Roadmap
 
 * Something weird with best fit only fitting when window resize fires (also see weird non-cleared canvas areas)
+* Mask cache invalidation on document resize/switch
 * Layer and mask coordinates are not saved when saving a document?
 * Only draw visible content (hope to improve zoomed in performance)
 * LayerSprite should show outline when brush is selected
