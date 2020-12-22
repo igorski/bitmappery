@@ -51,7 +51,6 @@ npm run lint
 
 * Something weird with best fit only fitting when window resize fires (also see weird non-cleared canvas areas)
 * Layer and mask coordinates are not saved when saving a document?
-* When using move tool and mask is selected, move mask, not layer
 * Only draw visible content (hope to improve zoomed in performance)
 * LayerSprite should show outline when brush is selected
 * Canvas clearRect() is not doing full width and height ? (might be related to drawable layer click color problem)
