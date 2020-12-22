@@ -48,7 +48,7 @@ import { MAX_ZOOM, calculateMaxScaling } from "@/definitions/tool-types";
 import { scaleToRatio, scaleValue }      from "@/utils/image-math";
 import {
     getCanvasInstance, setCanvasInstance,
-    createSpriteForLayer, runSpriteFn, flushLayerSprites, flushCache,
+    createSpriteForLayer, flushLayerSprites, flushCache,
 } from "@/factories/sprite-factory";
 
 /* internal non-reactive properties */

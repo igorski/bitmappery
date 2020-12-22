@@ -65,26 +65,57 @@ describe( "Vuex document module", () => {
     });
 
     describe( "mutations", () => {
-        it( "should be able to set the active Document index", () => {
-            const state = { activeIndex: 0 };
-            mutations.setActiveDocument( state, 2 );
-            expect( state.activeIndex ).toEqual( 2 );
+        describe( "when setting the active Document", () => {
+            it( "should be able to set the active Document index", () => {
+                const state = {
+                    documents: [{ name: "foo" }, { name: "bar" }],
+                    activeIndex: 0
+                };
+                mutations.setActiveDocument( state, 1 );
+                expect( state.activeIndex ).toEqual( 1 );
+            });
+
+            it( "should request the invalidate() method on each Sprite for the given Document", () => {
+                const state = {
+                    documents: [{ name: "foo" }, { name: "bar" }],
+                    activeIndex: 0
+                };
+                mockUpdateFn = jest.fn();
+                mutations.setActiveDocument( state, 1 );
+                expect( mockUpdateFn ).toHaveBeenCalledWith( "runSpriteFn", expect.any( Function ), state.documents[ 1 ]);
+            });
         });
 
-        it( "should be able to update the active Document size", () => {
-            const state = {
-                documents: [
+        describe( "when setting the active Document size", () => {
+            it( "should be able to update the active Document size", () => {
+                const state = {
+                    documents: [
+                        { name: "foo", width: 30, height: 30 },
+                        { name: "bar", width: 50, height: 50 }
+                    ],
+                    activeIndex : 1,
+                };
+                const size = { width: 75, height: 40 };
+                mutations.setActiveDocumentSize( state, size );
+                expect( state.documents ).toEqual([
                     { name: "foo", width: 30, height: 30 },
-                    { name: "bar", width: 50, height: 50 }
-                ],
-                activeIndex : 1,
-            };
-            const size = { width: 75, height: 40 };
-            mutations.setActiveDocumentSize( state, size );
-            expect( state.documents ).toEqual([
-                { name: "foo", width: 30, height: 30 },
-                { name: "bar", width: size.width, height: size.height },
-            ]);
+                    { name: "bar", width: size.width, height: size.height },
+                ]);
+            });
+
+            it( "should request the invalidate() method on each Sprite for the given Document", () => {
+                const state = {
+                    documents: [
+                        { name: "foo", width: 30, height: 30 },
+                        { name: "bar", width: 50, height: 50 }
+                    ],
+                    activeIndex : 1,
+                };
+                const size = { width: 75, height: 40 };
+                mockUpdateFn = jest.fn();
+                mutations.setActiveDocumentSize( state, size );
+                expect( mockUpdateFn ).toHaveBeenCalledWith( "runSpriteFn", expect.any( Function ), state.documents[ state.activeIndex ]);
+            });
         });
 
         it( "should be able to add a new Document to the list", () => {

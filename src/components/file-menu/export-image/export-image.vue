@@ -79,7 +79,7 @@ import Slider     from "@/components/ui/slider/slider";
 import { mapSelectOptions }  from "@/utils/search-select-util";
 import { getSpriteForLayer, getCanvasInstance } from "@/factories/sprite-factory";
 import { EXPORTABLE_FILE_TYPES, typeToExt, isCompressableFileType } from "@/definitions/image-types";
-import { createCanvas, resizeImage } from "@/utils/canvas-util";
+import { createCanvas, resizeToBase64 } from "@/utils/canvas-util";
 import { saveBlobAsFile } from "@/utils/file-util";
 import messages from "./messages.json";
 
@@ -127,7 +127,7 @@ export default {
 
             // zCanvas magnifies content by the pixel ratio for a crisper result, downscale
             // to actual dimensions of the document
-            const resizedImage = await resizeImage(
+            const resizedImage = await resizeToBase64(
                 base64,
                 width * ( window.devicePixelRatio || 1 ),
                 height * ( window.devicePixelRatio || 1 ),

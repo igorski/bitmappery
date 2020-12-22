@@ -31,7 +31,7 @@
                     <label v-t="'width'"></label>
                     <input
                         ref="first"
-                        v-model="width"
+                        v-model.number="width"
                         type="number"
                         name="width"
                     />
@@ -47,7 +47,7 @@
                 <div class="wrapper input">
                     <label v-t="'height'"></label>
                     <input
-                        v-model="height"
+                        v-model.number="height"
                         type="number"
                         name="height"
                     />

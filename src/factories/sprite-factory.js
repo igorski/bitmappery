@@ -23,7 +23,7 @@
 import LayerSprite from "@/components/ui/zcanvas/layer-sprite";
 import { LAYER_IMAGE, LAYER_GRAPHIC, LAYER_MASK } from "@/definitions/layer-types";
 
-let zCanvasInstance; // a non-Vue observable zCanvas instance
+let zCanvasInstance = null; // a non-Vue observable zCanvas instance
 
 export const getCanvasInstance = () => zCanvasInstance;
 export const setCanvasInstance = zCanvas => zCanvasInstance = zCanvas;
@@ -36,9 +36,15 @@ const spriteCache = new Map();
 
 /**
  * Runs given fn on each Sprite in the cache
+ * You can also pass in the active document to only run operations on
+ * sprites rendering the layer of the current document
  */
-export const runSpriteFn = fn => {
-    spriteCache.forEach( fn );
+export const runSpriteFn = ( fn, optDocument ) => {
+    spriteCache.forEach(( sprite ) => {
+        if ( !optDocument || optDocument.layers.includes( sprite.layer )) {
+            fn( sprite );
+        }
+    });
 };
 
 /**
@@ -57,7 +63,7 @@ export const hasSpriteForLayer = ({ id }) => {
     return spriteCache.has( id );
 };
 
-export const getSpriteForLayer = ({ id }) => spriteCache.get( id );
+export const getSpriteForLayer = ({ id }) => spriteCache.get( id ) || null;
 
 /**
  * Clears the entire cache and disposes all Sprites.
@@ -92,7 +98,6 @@ export const createSpriteForLayer = ( zCanvasInstance, layer, isInteractive = fa
 /* internal methods */
 
 function disposeSprite( sprite ) {
-    console.warn( "disposing sprite" );
     sprite?.dispose();
     // TODO: also free associated bitmap ?
 }

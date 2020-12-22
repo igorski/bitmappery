@@ -44,19 +44,17 @@ export default {
     mutations: {
         setActiveDocument( state, index ) {
             state.activeIndex = index;
+            runSpriteFn( sprite => sprite.invalidate(), state.documents[ index ] );
         },
         setActiveDocumentSize( state, { width, height }) {
             const document = state.documents[ state.activeIndex ];
-            const ratio    = width / document.width;
             document.width  = width;
             document.height = height;
             document.layers?.forEach( layer => {
                 layer.width  = width;
                 layer.height = height;
             });
-            runSpriteFn( sprite => {
-                sprite.setBounds( sprite.getX() * ratio, sprite.getY() * ratio, width, height );
-            });
+            runSpriteFn( sprite => sprite.resize( width, height ), document );
         },
         addNewDocument( state, nameOrDocument ) {
             const document = typeof nameOrDocument === "object" ? nameOrDocument : DocumentFactory.create({ name: nameOrDocument });

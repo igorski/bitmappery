@@ -72,7 +72,8 @@ export const base64ToLayerImage = async( base64, type, width, height ) => {
     return null;
 };
 
-export const resizeImage = async ( image, srcWidth, srcHeight, targetWidth, targetHeight, mime, encoderOptions ) => {
+export const resizeImage = async ( image, srcWidth, srcHeight, targetWidth, targetHeight ) =>
+{
     if ( srcWidth === targetWidth && srcHeight === targetHeight ) {
         return image;
     }
@@ -86,5 +87,10 @@ export const resizeImage = async ( image, srcWidth, srcHeight, targetWidth, targ
     ctx.drawImage(
         image, 0, 0, srcWidth, srcHeight, 0, 0, targetWidth, targetHeight
     );
-    return cvs.toDataURL( mime, encoderOptions );
+    return cvs;
 };
+
+export const resizeToBase64 = async ( image, srcWidth, srcHeight, targetWidth, targetHeight, mime, encoderOptions ) => {
+    const cvs = await resizeImage( image, srcWidth, srcHeight, targetWidth, targetHeight );
+    return cvs.toDataURL( mime, encoderOptions );
+}

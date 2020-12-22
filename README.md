@@ -50,25 +50,19 @@ npm run lint
 # TODO / Roadmap
 
 * Something weird with best fit only fitting when window resize fires (also see weird non-cleared canvas areas)
-* Mask cache invalidation on document resize/switch
-* Layer and mask coordinates are not saved when saving a document?
+* Layer bitmaps and masks must not be stored as Vue observables
+* Layer and mask coordinates are not saved when saving / switching document?
 * Only draw visible content (hope to improve zoomed in performance)
-* LayerSprite should show outline when brush is selected
 * Canvas clearRect() is not doing full width and height ? (might be related to drawable layer click color problem)
-* Document resizing doesn't rescale sprites properly?
 * Layer view in options-panel: allow naming, repositioning, toggle visibility, opacity
 * Canvas util : store transparency of images
 * Restored base64 images should be treated as binary once more (see layer-factory)
 * scale logic should move from zoomable-canvas into zCanvas (as handleInteraction needs to transform offsets by zoom ratio, see LayerSprite!)
 * Zoom set original size isn't that accurate (check also on mobile views), needs calculateMaxScaling ?
-* adjust scaling (on widescreen images scale in the width, rather than go for full height and zoomed out mode)
-* Image position must be made persistent (now isn't on document switch)
 * Implement selections
 * Unload Blobs when images are no longer used in document (see sprite-factory disposeSprite, keep instance count of usages)
 * Load/save documents from/to Dropbox
-* Use hand cursor when draggable
 * Text editing using Google fonts!
-* Use paint brush cursor when painting
 * Add tools for layer rotation and scaling
 * Implement layer scale
 * Implement clone brush

@@ -20,8 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { sprite }       from "zcanvas";
-import { createCanvas } from "@/utils/canvas-util";
+import { sprite } from "zcanvas";
+import { createCanvas, resizeImage } from "@/utils/canvas-util";
 import { LAYER_GRAPHIC, LAYER_MASK } from "@/definitions/layer-types";
 import ToolTypes from "@/definitions/tool-types";
 
@@ -130,6 +130,24 @@ class LayerSprite extends sprite {
         }
     }
 
+    async resize( width, height ) {
+        const ratio = width / this.width;
+
+        if ( this.layer.bitmap ) {
+            this.layer.bitmap = await resizeImage(
+                this.layer.bitmap, this._bounds.width, this._bounds.height, width, height
+            );
+        }
+        if ( this.layer.mask ) {
+            this.layer.mask = await resizeImage(
+                this.layer.mask, this._bounds.width, this._bounds.height, width, height
+            );
+            this.cacheMask();
+        }
+        this.setBounds( this.getX() * ratio, this.getY() * ratio, width, height );
+        this.invalidate();
+    }
+
     // cheap way to hook into zCanvas.handleMove() handler keep following the cursor in draw()
     forceDrag() {
         this.isDragging       = true;
@@ -176,6 +194,11 @@ class LayerSprite extends sprite {
         if ( this._isBrushMode ) {
             this.forceDrag();
         }
+    }
+
+    invalidate() {
+        this._cacheMask = true;
+        super.invalidate();
     }
 
     draw( documentContext ) {
