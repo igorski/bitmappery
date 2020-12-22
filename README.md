@@ -53,7 +53,6 @@ npm run lint
 * Layer bitmaps and masks must not be stored as Vue observables
 * Layer and mask coordinates are not saved when saving / switching document?
 * Only draw visible content (hope to improve zoomed in performance)
-* Canvas clearRect() is not doing full width and height ? (might be related to drawable layer click color problem)
 * Layer view in options-panel: allow naming, repositioning, toggle visibility, opacity
 * Canvas util : store transparency of images
 * Restored base64 images should be treated as binary once more (see layer-factory)

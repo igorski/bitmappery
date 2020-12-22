@@ -40,6 +40,11 @@ class ZoomableCanvas extends canvas {
 
     // TODO add the lines suffixed with // QQQ to zCanvas lib instead of using these overrides
 
+    render() {
+        this._canvasContext.clearRect( 0, 0, this._width / this.zoomFactor, this._height / this.zoomFactor ); // QQQ
+        super.render();
+    }
+
     handleInteraction( aEvent ) {
         const numChildren  = this._children.length;
         let theChild, touches, found;
