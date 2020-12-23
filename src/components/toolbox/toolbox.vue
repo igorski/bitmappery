@@ -106,6 +106,11 @@ export default {
                     disabled: !this.activeLayer
                 },
                 {
+                    type: ToolTypes.ROTATE,
+                    i18n: "rotateLayer", icon: "rotate",
+                    disabled: !this.activeLayer
+                },
+                {
                     type: ToolTypes.BRUSH,
                     i18n: "brush", icon: "paintbrush",
                     disabled: !this.activeDocument || !( this.activeLayer?.mask || this.activeLayer?.type === LAYER_GRAPHIC )

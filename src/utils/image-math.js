@@ -105,3 +105,21 @@ export const getRectangleForSelection = ( selection ) => {
         height : maxY - minY
     };
 };
+
+export const translatePointerRotation = ( x, y, rotationCenterX, rotationCenterY, angleInRadians ) => {
+    const x2 = x - rotationCenterX;
+    const y2 = y - rotationCenterY;
+
+    const cos = Math.cos( -angleInRadians );
+    const sin = Math.sin( -angleInRadians );
+
+    return {
+        x : x2 * cos - y2 * sin + rotationCenterX,
+        y : x2 * sin + y2 * cos + rotationCenterY
+    };
+};
+
+export const getRotationCenter = ({ left, top, width, height }) => ({
+    tX : left + width  * .5,
+    tY : top  + height * .5
+});

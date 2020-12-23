@@ -55,8 +55,10 @@ npm run lint
 
 # TODO / Roadmap
 
+* Fix bug that occurs when dragging a rotated layer
 * Eraser tool
 * Fill selection with color (make color not unique to brush, but generic tool prop)
+* Animate selection lines between white and black colors, scale lines to always appear at same size, regardless of zoom level
 * When resizing document, positioned layers do not scale their position correctly
 * Layer bitmaps and masks must not be stored as Vue observables
 * Make canvas only as large as its wrapper. Use viewport in zCanvas to render visible content (requires custom scroll handlers for panning)
@@ -66,7 +68,7 @@ npm run lint
 * Zoom set original size isn't that accurate (check also on mobile views), needs calculateMaxScaling ?
 * Unload Blobs when images are no longer used in document (see sprite-factory disposeSprite, keep instance count of usages)
 * Load/save documents directly from/to Dropbox
-* Implement layer rotation
+* Load/save selections (into document)
 * Implement layer scaling
 * Implement rectangular selection
 * Implement merged layer selection

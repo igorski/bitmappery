@@ -4,6 +4,7 @@
         "move": "Move",
         "polygonalLasso": "Polygonal lasso",
         "eyedropper": "Eyedropper",
+        "rotateLayer": "Rotate layer",
         "zoom": "Zoom",
         "brush": "Brush",
         "color": "Color"

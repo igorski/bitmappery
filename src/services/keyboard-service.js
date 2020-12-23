@@ -229,6 +229,10 @@ function handleKeyDown( event ) {
             }
             break;
 
+        case 82: // R
+            setActiveTool( ToolTypes.ROTATE );
+            break;
+
         case 83: // S
             if ( hasOption ) {
                 // ...

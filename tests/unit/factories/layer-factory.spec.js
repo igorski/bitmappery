@@ -23,6 +23,7 @@ describe( "Layer factory", () => {
                 maskY: 0,
                 width: 1,
                 height: 1,
+                rotation: 0,
                 visible: true,
                 selection: null,
             });
@@ -40,6 +41,7 @@ describe( "Layer factory", () => {
                 maskY: 25,
                 width: 16,
                 height: 9,
+                rotation: 270,
                 visible: false,
             });
             expect( layer ).toEqual({
@@ -54,6 +56,7 @@ describe( "Layer factory", () => {
                 maskY: 25,
                 width: 16,
                 height: 9,
+                rotation: 270,
                 visible: false,
                 selection: null,
             })
@@ -70,6 +73,7 @@ describe( "Layer factory", () => {
             y: 50,
             width: 16,
             height: 9,
+            rotation: -90,
             visible: false,
         });
 

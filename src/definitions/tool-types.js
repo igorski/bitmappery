@@ -25,10 +25,12 @@ import { MAX_IMAGE_SIZE, MAX_MEGAPIXEL } from "@/definitions/image-types";
 import { LAYER_GRAPHIC } from "@/definitions/layer-types";
 
 export default {
-    MOVE   : "move",
-    ZOOM   : "zoom",
-    BRUSH  : "brush",
-    LASSO  : "lasso"
+    MOVE       : "move",
+    LASSO      : "lasso",
+    EYEDROPPER : "eyedropper",
+    ROTATE     : "rotate",
+    BRUSH      : "brush",
+    ZOOM       : "zoom",
 };
 
 export const canUseBrush = ( activeDocument, activeLayer ) => {

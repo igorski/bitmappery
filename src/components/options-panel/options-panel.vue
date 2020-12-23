@@ -60,7 +60,8 @@
 import { mapState, mapGetters, mapMutations } from "vuex";
 import FileSelector from "./components/file-selector/file-selector";
 import Layers       from "./components/layers/layers";
-import SelectBox    from '@/components/ui/select-box/select-box';
+import SelectBox    from "@/components/ui/select-box/select-box";
+import ToolTypes    from "@/definitions/tool-types";
 import { mapSelectOptions } from "@/utils/search-select-util"
 import messages     from "./messages.json";
 
@@ -117,10 +118,12 @@ export default {
             switch ( this.activeTool ) {
                 default:
                     return null;
-                case "zoom":
+                case ToolTypes.ZOOM:
                     return () => import( "./components/tool-options-zoom/tool-options-zoom" );
-                case "brush":
+                case ToolTypes.BRUSH:
                     return () => import( "./components/tool-options-brush/tool-options-brush" );
+                case ToolTypes.ROTATE:
+                    return () => import( "./components/tool-options-rotate/tool-options-rotate" );
             }
         },
     },
