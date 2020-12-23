@@ -65,6 +65,7 @@
 import Vuex, { mapState, mapMutations, mapActions } from "vuex";
 import Vue             from "vue";
 import VueI18n         from "vue-i18n";
+import VTooltip        from "v-tooltip";
 import ApplicationMenu from "@/components/application-menu/application-menu";
 import DocumentCanvas  from "@/components/document-canvas/document-canvas";
 import OptionsPanel    from "@/components/options-panel/options-panel";
@@ -82,6 +83,7 @@ import {
 
 Vue.use( Vuex );
 Vue.use( VueI18n );
+Vue.use( VTooltip, { defaultDelay: 500 });
 
 // Create VueI18n instance with options
 const i18n = new VueI18n({
@@ -188,6 +190,7 @@ export default {
 @import "@/styles/ui";
 @import "@/styles/form";
 @import "@/styles/typography";
+@import "@/styles/tooltip";
 
 html, body {
     margin: 0;

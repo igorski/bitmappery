@@ -32,16 +32,28 @@
             v-if="!collapsed"
             class="content"
         >
-            <button v-for="(button, index) in tools"
-                    :key="button.type"
-                    v-t="button.i18n"
+            <button v-for="(tool, index) in tools"
+                    :key="tool.type"
+                    type="button"
+                    v-tooltip="$t( tool.i18n )"
+                    :title="$t( tool.i18n )"
                     class="tool-button"
                     :class="{
-                        'active': activeTool === button.type
+                        'active': activeTool === tool.type
                     }"
-                    :disabled="button.disabled"
-                    @click="setTool( button.type )"
-            ></button>
+                    :disabled="tool.disabled"
+                    @click="setTool( tool.type )"
+            >
+                <img :src="`./assets/icons/tool-${tool.icon}.svg`" />
+            </button>
+            <div class="wrapper">
+                <component
+                    :is="colorPicker"
+                    v-model="brushColor"
+                    v-tooltip="$t('color')"
+                    class="color-picker"
+                />
+            </div>
         </div>
     </div>
 </template>
@@ -62,7 +74,12 @@ export default {
             "activeTool",
             "activeDocument",
             "activeLayer",
+            "brushOptions",
         ]),
+        colorPicker() {
+            // load async as this adds to the bundle size
+            return () => import( "@/components/ui/color-picker/color-picker" );
+        },
         collapsed: {
             get() {
                 return !this.toolboxOpened;
@@ -73,11 +90,39 @@ export default {
         },
         tools() {
             return [
-                { type: ToolTypes.MOVE,   i18n: "move",      disabled: !this.activeDocument },
-                { type: ToolTypes.SELECT, i18n: "selection", disabled: !this.activeDocument },
-                { type: ToolTypes.ZOOM,   i18n: "zoom",      disabled: !this.activeDocument },
-                { type: ToolTypes.BRUSH,  i18n: "brush",     disabled: !this.activeDocument || !( this.activeLayer?.mask || this.activeLayer?.type === LAYER_GRAPHIC ) }
+                {
+                    type: ToolTypes.MOVE,
+                    i18n: "move", icon: "drag",
+                    disabled: !this.activeDocument
+                },
+                {
+                    type: ToolTypes.SELECT,
+                    i18n: "selection", icon: "selection",
+                    disabled: !this.activeDocument
+                },
+                {
+                    type: ToolTypes.ZOOM,
+                    i18n: "zoom", icon: "zoom",
+                    disabled: !this.activeDocument
+                },
+                {
+                    type: ToolTypes.BRUSH,
+                    i18n: "brush", icon: "paintbrush",
+                    disabled: !this.activeDocument || !( this.activeLayer?.mask || this.activeLayer?.type === LAYER_GRAPHIC )
+                }
             ]
+        },
+        brushColor: {
+            get() {
+                return this.brushOptions.color;
+            },
+            set( value ) {
+                this.setToolOptionValue({
+                    tool: ToolTypes.BRUSH,
+                    option: "color",
+                    value,
+                });
+            },
         },
     },
     watch: {
@@ -106,6 +151,7 @@ export default {
         ...mapMutations([
             "setActiveTool",
             "setToolboxOpened",
+            "setToolOptionValue",
         ]),
         setTool( tool ) {
             this.setActiveTool({ tool, activeLayer: this.activeLayer });
@@ -123,13 +169,21 @@ export default {
 }
 
 .tool-button {
-    margin: $spacing-small;
+    display: inline-block;
+    margin: 0 $spacing-small $spacing-small 0;
     cursor: pointer;
     border-radius: $spacing-xsmall;
     border: none;
-    padding: $spacing-medium;
+    padding: $spacing-xsmall;
+    max-width: $spacing-xxlarge;
     font-weight: bold;
     @include customFont();
+
+    img {
+        width: 75%;
+        height: 75%;
+        vertical-align: middle;
+    }
 
     &:hover,
     &.active {

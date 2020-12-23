@@ -24,14 +24,6 @@
     <div class="tool-option">
         <h3 v-t="'brush'"></h3>
         <div class="wrapper input">
-            <label v-t="'brushColor'"></label>
-            <component
-                :is="colorPicker"
-                v-model="brushColor"
-                class="color-picker"
-            />
-        </div>
-        <div class="wrapper input">
             <label v-t="'brushSize'"></label>
             <slider
                 v-model="brushSize"
@@ -60,22 +52,6 @@ export default {
         ...mapGetters([
             "brushOptions",
         ]),
-        colorPicker() {
-            // load async as this adds to the bundle size
-            return () => import( "@/components/ui/color-picker/color-picker" );
-        },
-        brushColor: {
-            get() {
-                return this.brushOptions.color;
-            },
-            set( value ) {
-                this.setToolOptionValue({
-                    tool: ToolTypes.BRUSH,
-                    option: "color",
-                    value,
-                });
-            },
-        },
         brushSize: {
             get() {
                 return this.brushOptions.size;

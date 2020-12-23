@@ -4,6 +4,7 @@
         "move": "Move",
         "selection": "Selection",
         "zoom": "Zoom",
-        "brush": "Brush"
+        "brush": "Brush",
+        "color": "Color"
     }
 }

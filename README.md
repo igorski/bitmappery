@@ -9,7 +9,8 @@ related to Photoshop-esque features aren't welcomed.
 ### All self-written ?
 
 Yep, though it helps having worked five years in the photo software industry and having
-tackled problems before.
+tackled the problems before. Also, Bitmappery is reusing [zCanvas](https://github.com/igorski/zCanvas)
+for rendering and bitmap blitting.
 
 BitMappery does however make use of the following excellent libraries to speed up its development:
 
@@ -17,6 +18,11 @@ BitMappery does however make use of the following excellent libraries to speed u
  * [Pickr](https://github.com/Simonwep/pickr) by Simonwep
  * [Vue slider component](https://github.com/NightCatSama/vue-slider-component) by NightCatSama
  * [Vue search select](https://github.com/moreta/vue-search-select#readme) by Moreta
+ * [Vue tooltip](https://github.com/Akryum/v-tooltip) by Akryum
+
+### Icons
+
+* [UI Essentials](https://freeicons.io/profile/2257) by www.wishforge.games
 
 ## Dropbox integration
 
@@ -51,6 +57,7 @@ npm run lint
 
 * Eraser tool
 * Color picker should go to toolbox
+* Eyedropper
 * When resizing document, positioned layers do not scale their position correctly
 * Layer bitmaps and masks must not be stored as Vue observables
 * Make canvas only as large as its wrapper. Use viewport in zCanvas to render visible content (requires custom scroll handlers for panning)
