@@ -48,13 +48,15 @@ export default {
         },
         setActiveDocumentSize( state, { width, height }) {
             const document = state.documents[ state.activeIndex ];
+            const ratioX   = width  / document.width;
+            const ratioY   = height / document.height;
             document.width  = width;
             document.height = height;
             document.layers?.forEach( layer => {
-                layer.width  = width;
-                layer.height = height;
+                layer.width  *= ratioX;
+                layer.height *= ratioY;
+                getSpriteForLayer( layer )?.resize( layer.width, layer.height );
             });
-            runSpriteFn( sprite => sprite.resize( width, height ), document );
         },
         addNewDocument( state, nameOrDocument ) {
             const document = typeof nameOrDocument === "object" ? nameOrDocument : DocumentFactory.create({ name: nameOrDocument });

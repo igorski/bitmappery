@@ -156,7 +156,8 @@ class LayerSprite extends sprite {
     }
 
     async resize( width, height ) {
-        const ratio = width / this.width;
+        const ratioX = width  / this._bounds.width;
+        const ratioY = height / this._bounds.height;
 
         if ( this.layer.bitmap ) {
             this.layer.bitmap = await resizeImage(
@@ -169,7 +170,7 @@ class LayerSprite extends sprite {
             );
             this.cacheMask();
         }
-        this.setBounds( this.getX() * ratio, this.getY() * ratio, width, height );
+        this.setBounds( this.getX() * ratioX, this.getY() * ratioY, width, height );
         this.invalidate();
     }
 

@@ -106,15 +106,16 @@ describe( "Vuex document module", () => {
             it( "should request the invalidate() method on each Sprite for the given Document", () => {
                 const state = {
                     documents: [
-                        { name: "foo", width: 30, height: 30 },
-                        { name: "bar", width: 50, height: 50 }
+                        { name: "foo", width: 30, height: 30, layers: [ { name: "layer1", width: 30, height: 30 } ] },
+                        { name: "bar", width: 50, height: 50, layers: [ { name: "layer2", width: 20, height: 10 }, { name: "layer3", width: 15, height: 15 } ] }
                     ],
                     activeIndex : 1,
                 };
                 const size = { width: 75, height: 40 };
                 mockUpdateFn = jest.fn();
                 mutations.setActiveDocumentSize( state, size );
-                expect( mockUpdateFn ).toHaveBeenCalledWith( "runSpriteFn", expect.any( Function ), state.documents[ state.activeIndex ]);
+                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "getSpriteForLayer", state.documents[ 1 ].layers[ 0 ]);
+                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "getSpriteForLayer", state.documents[ 1 ].layers[ 1 ]);
             });
         });
 

@@ -49,23 +49,22 @@ npm run lint
 
 # TODO / Roadmap
 
-* Something weird with best fit only fitting when window resize fires (also see weird non-cleared canvas areas)
-* When resizing document, layers are not always equal to the document size/width (e.g. pasted from selections)
-* Layer bitmaps and masks must not be stored as Vue observables
 * Layer and mask coordinates are not saved when saving / switching document?
+* When resizing document, positioned layers do not scale their position correctly
+* Layer bitmaps and masks must not be stored as Vue observables
 * Make canvas only as large as its wrapper. Use viewport in zCanvas to render visible content (requires custom scroll handlers for panning)
-* Layer view in options-panel: allow naming, repositioning, toggle visibility, opacity
-* Canvas util : store transparency of images
+* Layer view in options-panel: allow naming, repositioning, toggling visibility and opacity
+* Canvas util : store transparency of images into saved document
 * Restored base64 images should be treated as binary once more (see layer-factory)
-* scale logic should move from zoomable-canvas into zCanvas (as handleInteraction needs to transform offsets by zoom ratio, see LayerSprite!)
 * Zoom set original size isn't that accurate (check also on mobile views), needs calculateMaxScaling ?
+* Unload Blobs when images are no longer used in document (see sprite-factory disposeSprite, keep instance count of usages)
+* Load/save documents directly from/to Dropbox
+* Implement layer rotation
+* Implement layer scaling
 * Implement rectangular selection
 * Implement merged layer selection
-* Unload Blobs when images are no longer used in document (see sprite-factory disposeSprite, keep instance count of usages)
-* Load/save documents from/to Dropbox
-* Text editing using Google fonts!
-* Add tools for layer rotation and scaling
-* Implement layer scale
-* Implement clone brush
 * Implement document crop
+* Implement clone brush
 * Implement change history
+* Implement text editing using Google fonts!
+* Scale logic should move from zoomable-canvas into zCanvas (as handleInteraction needs to transform offsets by zoom ratio, see LayerSprite!)
