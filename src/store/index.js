@@ -30,7 +30,7 @@ import toolModule      from "./modules/tool-module";
 import { saveBlobAsFile, selectFile, readFile } from "@/utils/file-util";
 import { truncate } from "@/utils/string-util";
 
-const PROJECT_FILE_EXTENSION = ".pmp";
+export const PROJECT_FILE_EXTENSION = ".bpy";
 
 // cheat a little by exposing the vue-i18n translations directly to the
 // store so we can commit translated error/success messages from actions

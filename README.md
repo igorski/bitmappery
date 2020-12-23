@@ -1,4 +1,4 @@
-# PhotoMound
+# BitMappery
 
 ## So you are rebuilding Photoshop in the browser ?
 
@@ -11,7 +11,7 @@ related to Photoshop-esque features aren't welcomed.
 Yep, though it helps having worked five years in the photo software industry and having
 tackled problems before.
 
-PhotoMound does however make use of the following excellent libraries to speed up its development:
+BitMappery does however make use of the following excellent libraries to speed up its development:
 
  * [Vue](https://github.com/vuejs/vue) with [Vuex](https://github.com/vuejs/vuex) and [VueI18n](https://github.com/kazupon/vue-i18n)
  * [Pickr](https://github.com/Simonwep/pickr) by Simonwep

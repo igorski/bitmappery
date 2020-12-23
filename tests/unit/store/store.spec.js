@@ -1,4 +1,4 @@
-import store from "@/store";
+import store, { PROJECT_FILE_EXTENSION } from "@/store";
 
 const { mutations, actions } = store;
 
@@ -215,7 +215,7 @@ describe( "Vuex store", () => {
             // assert the DocumentFactory saved result is stringified and compressed
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "compressToUTF16", JSON.stringify( mockSavedDocument ));
             // assert the resulting Blob will be saved to a File
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "saveBlobAsFile", expect.any( Object ), "foo.pmp" );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "saveBlobAsFile", expect.any( Object ), `foo${PROJECT_FILE_EXTENSION}` );
             expect( commit ).toHaveBeenCalledWith( "showNotification", expect.any( Object ));
         });
     });

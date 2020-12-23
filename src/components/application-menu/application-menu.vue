@@ -28,7 +28,7 @@
             <span>&#9776;</span>
         </div>
         <h1>
-            Photo<span class="emphasis">Mound</span>
+            Bit<span class="emphasis">Mappery</span>
         </h1>
         <ul class="menu-list">
             <!-- file menu -->
