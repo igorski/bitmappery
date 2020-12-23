@@ -52,7 +52,7 @@ npm run lint
 * Something weird with best fit only fitting when window resize fires (also see weird non-cleared canvas areas)
 * Layer bitmaps and masks must not be stored as Vue observables
 * Layer and mask coordinates are not saved when saving / switching document?
-* Only draw visible content (hope to improve zoomed in performance)
+* Make canvas only as large as its wrapper. Use viewport in zCanvas to render visible content (requires custom scroll handlers for panning)
 * Layer view in options-panel: allow naming, repositioning, toggle visibility, opacity
 * Canvas util : store transparency of images
 * Restored base64 images should be treated as binary once more (see layer-factory)
