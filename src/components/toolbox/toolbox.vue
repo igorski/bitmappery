@@ -49,7 +49,7 @@
             <div class="wrapper">
                 <component
                     :is="colorPicker"
-                    v-model="brushColor"
+                    v-model="color"
                     v-tooltip="$t('color')"
                     class="color-picker"
                 />
@@ -74,7 +74,7 @@ export default {
             "activeTool",
             "activeDocument",
             "activeLayer",
-            "brushOptions",
+            "activeColor",
         ]),
         colorPicker() {
             // load async as this adds to the bundle size
@@ -96,32 +96,33 @@ export default {
                     disabled: !this.activeDocument
                 },
                 {
-                    type: ToolTypes.SELECT,
-                    i18n: "selection", icon: "selection",
+                    type: ToolTypes.LASSO,
+                    i18n: "polygonalLasso", icon: "selection",
                     disabled: !this.activeDocument
+                },
+                {
+                    type: ToolTypes.EYEDROPPER,
+                    i18n: "eyedropper", icon: "eyedropper",
+                    disabled: !this.activeLayer
+                },
+                {
+                    type: ToolTypes.BRUSH,
+                    i18n: "brush", icon: "paintbrush",
+                    disabled: !this.activeDocument || !( this.activeLayer?.mask || this.activeLayer?.type === LAYER_GRAPHIC )
                 },
                 {
                     type: ToolTypes.ZOOM,
                     i18n: "zoom", icon: "zoom",
                     disabled: !this.activeDocument
                 },
-                {
-                    type: ToolTypes.BRUSH,
-                    i18n: "brush", icon: "paintbrush",
-                    disabled: !this.activeDocument || !( this.activeLayer?.mask || this.activeLayer?.type === LAYER_GRAPHIC )
-                }
             ]
         },
-        brushColor: {
+        color: {
             get() {
-                return this.brushOptions.color;
+                return this.activeColor;
             },
             set( value ) {
-                this.setToolOptionValue({
-                    tool: ToolTypes.BRUSH,
-                    option: "color",
-                    value,
-                });
+                this.setActiveColor( value );
             },
         },
     },
@@ -151,7 +152,7 @@ export default {
         ...mapMutations([
             "setActiveTool",
             "setToolboxOpened",
-            "setToolOptionValue",
+            "setActiveColor",
         ]),
         setTool( tool ) {
             this.setActiveTool({ tool, activeLayer: this.activeLayer });

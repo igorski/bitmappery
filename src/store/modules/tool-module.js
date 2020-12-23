@@ -27,20 +27,26 @@ import { runSpriteFn } from "@/factories/sprite-factory";
 export default {
     state: {
         activeTool: null,
+        activeColor: "rgba(255,0,0,1)",
         options: {
             [ ToolTypes.ZOOM ] : { level: 1 },
-            [ ToolTypes.BRUSH ]: { color: "rgba(255,0,0,1)", size: 10 },
+            [ ToolTypes.BRUSH ]: { size: 10 },
         }
     },
     getters: {
-        activeTool: state => state.activeTool,
-        zoomOptions: state => state.options[ ToolTypes.ZOOM ],
-        brushOptions: state => state.options[ ToolTypes.BRUSH ],
+        activeTool   : state => state.activeTool,
+        activeColor  : state => state.activeColor,
+        zoomOptions  : state => state.options[ ToolTypes.ZOOM ],
+        brushOptions : state => state.options[ ToolTypes.BRUSH ],
     },
     mutations: {
         setActiveTool( state, { tool, activeLayer }) {
             state.activeTool = tool;
             runSpriteFn( sprite => sprite.handleActiveTool( tool, activeLayer ));
+        },
+        setActiveColor( state, color ) {
+            state.activeColor = color;
+            updateLayerSprites( state.activeColor, state.options[ ToolTypes.BRUSH ]);
         },
         setToolOptionValue( state, { tool, option, value }) {
             Vue.set( state.options[ tool ], option, value );
@@ -48,14 +54,14 @@ export default {
                 default:
                     break;
                 case ToolTypes.BRUSH:
-                    updateLayerSprites( state.options[ tool ]);
+                    updateLayerSprites( state.activeColor, state.options[ tool ]);
                     break;
             }
         },
     },
 };
 
-function updateLayerSprites({ color, size }) {
+function updateLayerSprites( color, { size }) {
     runSpriteFn( sprite => {
         if ( sprite.isDrawable() ) {
             sprite.cacheBrush( color, size );

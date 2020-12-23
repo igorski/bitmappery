@@ -43,6 +43,11 @@ export default {
             default: "rgba(255,255,255,1)",
         },
     },
+    watch: {
+        value( color ) {
+            pickrInstance?.setColor( color );
+        }
+    },
     mounted() {
         pickrInstance = Pickr.create({
             el: this.$refs.picker,

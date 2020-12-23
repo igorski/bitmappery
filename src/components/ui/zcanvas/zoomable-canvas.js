@@ -23,8 +23,10 @@
 import { canvas } from "zcanvas";
 
 class ZoomableCanvas extends canvas {
-    constructor( opts ) {
+    constructor( opts, store ) {
         super( opts );
+        // Vuex root store reference
+        this.store = store;
         this.setZoomFactor( 1 );
     }
 

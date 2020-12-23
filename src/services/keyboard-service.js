@@ -175,7 +175,7 @@ function handleKeyDown( event ) {
 
         case 66: // B
             if ( canUseBrush( getters.activeDocument, getters.activeLayer )) {
-                commit( "setActiveTool", { tool: ToolTypes.BRUSH, activeLayer: getters.activeLayer });
+                setActiveTool( ToolTypes.BRUSH );
             }
             break;
 
@@ -193,15 +193,24 @@ function handleKeyDown( event ) {
             }
             break;
 
+        case 73: // I
+            if ( getters.activeLayer ) {
+                setActiveTool( ToolTypes.EYEDROPPER );
+            }
+            break;
+
         case 76: // L
             if ( hasOption ) {
                 commit( "openModal", ADD_LAYER );
+            } else {
+                commit( "setActiveTool", { tool: ToolTypes.LASSO })
+                setActiveTool( ToolTypes.LASSO );
             }
             break;
 
         case 77: // M
             if ( getters.activeDocument ) {
-                commit( "setActiveTool", { tool: ToolTypes.MOVE, activeLayer: getters.activeLayer });
+                setActiveTool( ToolTypes.MOVE );
             }
             break;
 
@@ -265,7 +274,7 @@ function handleKeyDown( event ) {
                 preventDefault( event ); // override browser undo
             } else if ( getters.activeDocument ) {
                 // zoom
-                commit( "setActiveTool", { tool: ToolTypes.ZOOM, activeLayer: getters.activeLayer });
+                setActiveTool( ToolTypes.ZOOM );
             }
             break;
 
@@ -327,4 +336,8 @@ function handleFocus() {
 function preventDefault( event ) {
     event.stopPropagation();
     event.preventDefault();
+}
+
+function setActiveTool( tool ) {
+    commit( "setActiveTool", { tool, activeLayer: getters.activeLayer });
 }

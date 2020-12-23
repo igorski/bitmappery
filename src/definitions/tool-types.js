@@ -28,7 +28,7 @@ export default {
     MOVE   : "move",
     ZOOM   : "zoom",
     BRUSH  : "brush",
-    SELECT : "select"
+    LASSO  : "lasso"
 };
 
 export const canUseBrush = ( activeDocument, activeLayer ) => {

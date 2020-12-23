@@ -164,3 +164,17 @@ export const copySelection = async ( activeDocument, activeLayer ) => {
     tempCanvas.dispose();
     return await loader.loadImage( selectionCanvas.cvs.toDataURL( PNG ));
 };
+
+/**
+ * The zCanvas displays content at a smaller scale, with optional
+ * zoom. Event coordinates that should be local to the on-screen
+ * display (for instance for color picking purposes) can be
+ * transformed from global canvas coordinate space to local screen space.
+ */
+export const globalToLocal = ( zCanvas, x, y ) => {
+    const factor = zCanvas.zoomFactor * zCanvas._HDPIscaleRatio;
+    return {
+        x: x * factor,
+        y: y * factor
+    }
+};

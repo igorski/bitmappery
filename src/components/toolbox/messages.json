@@ -2,7 +2,8 @@
     "en-US": {
         "toolbox": "Toolbox",
         "move": "Move",
-        "selection": "Selection",
+        "polygonalLasso": "Polygonal lasso",
+        "eyedropper": "Eyedropper",
         "zoom": "Zoom",
         "brush": "Brush",
         "color": "Color"

@@ -147,8 +147,7 @@ export default {
             if ( !canvasClasses ) {
                 return;
             }
-            canvasClasses.remove( "no-cursor" );
-            canvasClasses.remove( "cursor-move" );
+            canvasClasses.remove( ...canvasClasses );
             switch ( tool ) {
                 default:
                     break;
@@ -156,8 +155,13 @@ export default {
                     canvasClasses.add( "cursor-move" );
                     break;
                 case ToolTypes.BRUSH:
-                case ToolTypes.SELECT:
                     canvasClasses.add( "no-cursor" );
+                    break;
+                case ToolTypes.LASSO:
+                    canvasClasses.add( "cursor-pointer" );
+                    break;
+                case ToolTypes.EYEDROPPER:
+                    canvasClasses.add( "cursor-crosshair" );
                     break;
             }
         },
@@ -206,7 +210,7 @@ export default {
                 animate: false,
                 smoothing: true,
                 stretchToFit: false
-            });
+            }, this.$store );
             setCanvasInstance( zCanvas );
             return zCanvas;
         },
@@ -282,6 +286,12 @@ export default {
             }
             &.cursor-move {
                 cursor: grab;
+            }
+            &.cursor-pointer {
+                cursor: pointer;
+            }
+            &.cursor-crosshair {
+                cursor: crosshair;
             }
         }
     }

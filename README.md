@@ -56,8 +56,7 @@ npm run lint
 # TODO / Roadmap
 
 * Eraser tool
-* Color picker should go to toolbox
-* Eyedropper
+* Fill selection with color (make color not unique to brush, but generic tool prop)
 * When resizing document, positioned layers do not scale their position correctly
 * Layer bitmaps and masks must not be stored as Vue observables
 * Make canvas only as large as its wrapper. Use viewport in zCanvas to render visible content (requires custom scroll handlers for panning)

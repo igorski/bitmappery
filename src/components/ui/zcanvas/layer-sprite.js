@@ -22,11 +22,16 @@
  */
 import Vue from "vue";
 import { sprite } from "zcanvas";
-import { createCanvas, resizeImage } from "@/utils/canvas-util";
+import { createCanvas, resizeImage, globalToLocal } from "@/utils/canvas-util";
 import { LAYER_GRAPHIC, LAYER_MASK } from "@/definitions/layer-types";
 import { isPointInRange } from "@/utils/image-math";
 import ToolTypes from "@/definitions/tool-types";
 
+/**
+ * A LayerSprite is the renderer for a Documents Layer.
+ * It handles all tool interactions with the layer and also provides interaction with the Layers Mask.
+ * It inherits from the zCanvas Sprite to be an interactive Canvas drawable.
+ */
 class LayerSprite extends sprite {
     constructor( layer ) {
         if ( layer.type === LAYER_GRAPHIC && !layer.bitmap ) {
@@ -39,8 +44,8 @@ class LayerSprite extends sprite {
 
         // zCanvas inheritance
         super({ bitmap, x, y, width, height } );
-        this.setDraggable( true );
 
+        // Layer this sprite is rendering
         this.layer = layer;
 
         // create brush (always as all layers can be maskable)
@@ -51,7 +56,7 @@ class LayerSprite extends sprite {
         this._pointerX    = 0;
         this._pointerY    = 0;
 
-        this.cacheBrush( "rgba(255,0,0,1)" );
+        this.cacheBrush( this.canvas?.store.getters.activeColor || "rgba(255,0,0,1)" );
         this.cacheMask();
         this.setActionTarget();
     }
@@ -122,8 +127,9 @@ class LayerSprite extends sprite {
         if ( !this._interactive ) {
             return;
         }
-        this._isBrushMode  = false;
-        this._isSelectMode = false;
+        this._isBrushMode   = false;
+        this._isSelectMode  = false;
+        this._isColorPicker = false;
 
         switch ( tool ) {
             default:
@@ -137,10 +143,13 @@ class LayerSprite extends sprite {
                 this.setDraggable( true );
                 this._isBrushMode = true;
                 break;
-            case ToolTypes.SELECT:
+            case ToolTypes.LASSO:
                 this.forceDrag();
                 this.setDraggable( true );
                 this._isSelectMode = true;
+                break;
+            case ToolTypes.EYEDROPPER:
+                this._isColorPicker = true;
                 break;
         }
         this.resetSelection();
@@ -216,7 +225,11 @@ class LayerSprite extends sprite {
     }
 
     handlePress( x, y ) {
-        if ( this._isBrushMode ) {
+        if ( this._isColorPicker ) {
+            const local = globalToLocal( this.canvas, x, y );
+            const p = this.canvas.getElement().getContext( "2d" ).getImageData( local.x, local.y, 1, 1 ).data;
+            this.canvas.store.commit( "setActiveColor", `rgba(${p[0]},${p[1]},${p[2]},${(p[3]/255)})` );
+        } else if ( this._isBrushMode ) {
             this._applyBrush = true;
         } else if ( this._isSelectMode && !this._selectionClosed ) {
             const firstPoint = this.layer.selection[ 0 ];
