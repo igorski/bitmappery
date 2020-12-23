@@ -81,6 +81,10 @@ class LayerSprite extends sprite {
         this._brushCvs.width  = outerRadius;
         this._brushCvs.height = outerRadius;
 
+        if ( !this._brushCtx ) {
+            return; // TODO: this is because in Jenkins on Linux there is no canvas mock available
+        }
+
         const gradient = this._brushCtx.createRadialGradient( x, y, innerRadius, x, y, outerRadius );
         gradient.addColorStop( 0, color );
 
