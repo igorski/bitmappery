@@ -20,9 +20,11 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+ import Vue from "vue";
 import { sprite } from "zcanvas";
 import { createCanvas, resizeImage } from "@/utils/canvas-util";
 import { LAYER_GRAPHIC, LAYER_MASK } from "@/definitions/layer-types";
+import { isPointInRange } from "@/utils/image-math";
 import ToolTypes from "@/definitions/tool-types";
 
 class LayerSprite extends sprite {
@@ -116,6 +118,9 @@ class LayerSprite extends sprite {
         if ( !this._interactive ) {
             return;
         }
+        this._isBrushMode  = false;
+        this._isSelectMode = false;
+
         switch ( tool ) {
             default:
                 this.setDraggable( false );
@@ -125,8 +130,20 @@ class LayerSprite extends sprite {
                 break;
             case ToolTypes.BRUSH:
                 this.forceDrag();
+                this.setDraggable( true );
                 this._isBrushMode = true;
                 break;
+            case ToolTypes.SELECT:
+                this.forceDrag();
+                this.setDraggable( true );
+                this._isSelectMode = true;
+                this._selectionClosed = false;
+                break;
+        }
+        if ( tool === ToolTypes.SELECT ) {
+            Vue.set( this.layer, "selection", [] );
+        } else {
+            Vue.delete( this.layer, "selection" );
         }
     }
 
@@ -148,7 +165,7 @@ class LayerSprite extends sprite {
         this.invalidate();
     }
 
-    // cheap way to hook into zCanvas.handleMove() handler keep following the cursor in draw()
+    // cheap way to hook into zCanvas.handleMove()-handler to keep following the cursor in draw()
     forceDrag() {
         this.isDragging       = true;
         this._dragStartOffset = { x: this.getX(), y: this.getY() };
@@ -158,13 +175,17 @@ class LayerSprite extends sprite {
     /* the following override zCanvas.sprite */
 
     handleMove( x, y ) {
+        // store reference to current pointer position
+        this._pointerX = x;
+        this._pointerY = y;
+
         if ( !this._isBrushMode ) {
             // not drawable, perform default behaviour (drag)
             if ( this.actionTarget === "mask" ) {
                 this.layer.maskX = this._dragStartOffset.x + ( x - this._dragStartEventCoordinates.x );
                 this.layer.maskY = this._dragStartOffset.y + ( y - this._dragStartEventCoordinates.y );
                 this._cacheMask  = true;
-            } else {
+            } else if ( !this._isSelectMode ) {
                 return super.handleMove( x, y );
             }
         }
@@ -181,17 +202,23 @@ class LayerSprite extends sprite {
                 this._cacheMask = true;
             }
         }
-        this._pointerX = x;
-        this._pointerY = y;
     }
 
     handlePress( x, y ) {
-        this._applyBrush = this._isBrushMode;
+        if ( this._isBrushMode ) {
+            this._applyBrush = true;
+        } else if ( this._isSelectMode && !this._selectionClosed ) {
+            const firstPoint = this.layer.selection[ 0 ];
+            if ( firstPoint && isPointInRange( x, y, firstPoint.x, firstPoint.y )) {
+                this._selectionClosed = true;
+            }
+            this.layer.selection.push({ x, y });
+        }
     }
 
     handleRelease( x, y ) {
         this._applyBrush = false;
-        if ( this._isBrushMode ) {
+        if ( this._isBrushMode || this._isSelectMode ) {
             this.forceDrag();
         }
     }
@@ -230,8 +257,32 @@ class LayerSprite extends sprite {
         if ( this._isBrushMode ) {
             documentContext.save();
             documentContext.beginPath();
-            documentContext.arc( this._pointerX, this._pointerY, this._radius, 0, 2 * Math.PI);
+            documentContext.arc( this._pointerX, this._pointerY, this._radius, 0, 2 * Math.PI );
             documentContext.stroke();
+            documentContext.restore();
+        }
+        // render selection outline
+        if ( this._isSelectMode ) {
+            documentContext.save();
+            documentContext.beginPath();
+            documentContext.lineWidth = 2;
+            this.layer.selection.forEach(( point, index ) => {
+                documentContext[ index === 0 ? "moveTo" : "lineTo" ]( point.x, point.y );
+            });
+            // draw line to current cursor position
+            if ( !this._selectionClosed ) {
+                documentContext.lineTo( this._pointerX, this._pointerY );
+            }
+            documentContext.stroke();
+            // highlight current cursor position
+            if ( !this._selectionClosed ) {
+                documentContext.beginPath();
+                documentContext.lineWidth = 5;
+                const firstPoint = this.layer.selection[ 0 ];
+                const size = firstPoint && isPointInRange( this._pointerX, this._pointerY, firstPoint.x, firstPoint.y ) ? 25 : 10;
+                documentContext.arc( this._pointerX, this._pointerY, size, 0, 2 * Math.PI );
+                documentContext.stroke();
+            }
             documentContext.restore();
         }
     }

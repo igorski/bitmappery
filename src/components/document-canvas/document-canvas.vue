@@ -44,8 +44,8 @@
 <script>
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import ZoomableCanvas from "@/components/ui/zcanvas/zoomable-canvas";
-import { MAX_ZOOM, calculateMaxScaling } from "@/definitions/tool-types";
-import { scaleToRatio, scaleValue }      from "@/utils/image-math";
+import ToolTypes, { MAX_ZOOM, calculateMaxScaling } from "@/definitions/tool-types";
+import { scaleToRatio, scaleValue } from "@/utils/image-math";
 import {
     getCanvasInstance, setCanvasInstance,
     createSpriteForLayer, flushLayerSprites, flushCache,
@@ -152,10 +152,11 @@ export default {
             switch ( tool ) {
                 default:
                     break;
-                case "move":
+                case ToolTypes.MOVE:
                     canvasClasses.add( "cursor-move" );
                     break;
-                case "brush":
+                case ToolTypes.BRUSH:
+                case ToolTypes.SELECT:
                     canvasClasses.add( "no-cursor" );
                     break;
             }

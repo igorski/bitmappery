@@ -49,6 +49,7 @@ export default {
         menuOpened: false,
         toolboxOpened: false,
         optionsPanelOpened: true,
+        selectionContent: null, // clipboard content of copied images ({ image, size })
         blindActive: false,
         dialog: null,       // currently opened dialog
         modal: null,        // currently opened modal
@@ -71,6 +72,9 @@ export default {
         },
         setOptionsPanelOpened( state, value ) {
             state.optionsPanelOpened = !!value;
+        },
+        setSelectionContent( state, image ) {
+            state.selectionContent = image;
         },
         setBlindActive( state, active ) {
             state.blindActive = !!active;

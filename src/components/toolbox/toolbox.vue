@@ -73,9 +73,10 @@ export default {
         },
         tools() {
             return [
-                { type: ToolTypes.MOVE,  i18n: "move",  disabled: !this.activeDocument },
-                { type: ToolTypes.ZOOM,  i18n: "zoom",  disabled: !this.activeDocument },
-                { type: ToolTypes.BRUSH, i18n: "brush", disabled: !this.activeDocument || !( this.activeLayer?.mask || this.activeLayer.type === LAYER_GRAPHIC ) }
+                { type: ToolTypes.MOVE,   i18n: "move",      disabled: !this.activeDocument },
+                { type: ToolTypes.SELECT, i18n: "selection", disabled: !this.activeDocument },
+                { type: ToolTypes.ZOOM,   i18n: "zoom",      disabled: !this.activeDocument },
+                { type: ToolTypes.BRUSH,  i18n: "brush",     disabled: !this.activeDocument || !( this.activeLayer?.mask || this.activeLayer?.type === LAYER_GRAPHIC ) }
             ]
         },
     },

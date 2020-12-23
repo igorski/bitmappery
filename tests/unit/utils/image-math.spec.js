@@ -1,4 +1,4 @@
-import { scaleToRatio, constrain, isPortrait, isLandscape, isSquare } from "@/utils/image-math";
+import { scaleToRatio, constrain, isPortrait, isLandscape, isSquare, getRectangleForSelection } from "@/utils/image-math";
 
 describe( "Image math utilities", () => {
     describe( "When constrainting an image to the maximum supported size in megapixels", () => {
@@ -44,6 +44,23 @@ describe( "Image math utilities", () => {
             expect( isSquare( PORTRAIT.width,  PORTRAIT.height )).toBe( false );
             expect( isSquare( LANDSCAPE.width, LANDSCAPE.height )).toBe( false );
             expect( isSquare( SQUARE.width,    SQUARE.height )).toBe( true );
+        });
+    });
+
+    describe( "when given a polygon selection", () => {
+        it( "should be able to calculate the bounding box of the selection", () => {
+            const selection = [
+                { x: 100, y: 150 },
+                { x: 50,  y: 899 },
+                { x: 50,  y: 100 },
+                { x: 101, y: 100 }
+            ];
+            expect( getRectangleForSelection( selection )).toEqual({
+                left: 50,
+                top: 100,
+                width: 51,
+                height: 799
+            });
         });
     });
 });

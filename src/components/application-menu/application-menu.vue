@@ -31,6 +31,7 @@
             Photo<span class="emphasis">Mound</span>
         </h1>
         <ul class="menu-list">
+            <!-- file menu -->
             <li>
                 <a v-t="'file'" class="title" @click.prevent></a>
                 <ul class="submenu">
@@ -67,6 +68,7 @@
                     </li>
                 </ul>
             </li>
+            <!-- edit menu -->
             <li>
                 <a v-t="'edit'" class="title" @click.prevent></a>
                 <ul class="submenu">
@@ -77,8 +79,23 @@
                                 @click="requestDocumentResize()"
                         ></button>
                     </li>
+                    <li>
+                        <button v-t="'copySelection'"
+                                type="button"
+                                :disabled="!hasSelection"
+                                @click="requestSelectionCopy()"
+                        ></button>
+                    </li>
+                    <li>
+                        <button v-t="'pasteAsNewLayer'"
+                                type="button"
+                                :disabled="!hasClipboard"
+                                @click="pasteClipboard()"
+                        ></button>
+                    </li>
                 </ul>
             </li>
+            <!-- window menu -->
             <li>
                 <a v-t="'window'" class="title" @click.prevent></a>
                 <ul class="submenu">
@@ -105,7 +122,9 @@
 <script>
 import { mapState, mapGetters, mapMutations, mapActions }  from "vuex";
 import { RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_IMAGE } from "@/definitions/modal-windows";
+import { LAYER_IMAGE } from "@/definitions/layer-types";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
+import { copySelection } from "@/utils/canvas-util";
 import messages from "./messages.json";
 
 export default {
@@ -113,15 +132,23 @@ export default {
     computed: {
         ...mapState([
             "menuOpened",
-            "blindActive"
+            "blindActive",
+            "selectionContent",
         ]),
         ...mapGetters([
             "activeDocument",
             "documents",
+            "activeLayer",
         ]),
         supportsFullscreen,
         noDocumentsAvailable() {
             return !this.activeDocument;
+        },
+        hasSelection() {
+            return this.activeLayer?.selection?.length > 0;
+        },
+        hasClipboard() {
+            return !!this.selectionContent;
         },
     },
     watch: {
@@ -141,9 +168,12 @@ export default {
             "setMenuOpened",
             "openModal",
             "setActiveDocument",
+            "setActiveTool",
             "addNewDocument",
+            "addLayer",
             "closeActiveDocument",
             "showNotification",
+            "setSelectionContent",
         ]),
         ...mapActions([
             "requestNewDocument",
@@ -158,6 +188,15 @@ export default {
         },
         requestDocumentSave() {
             this.openModal( SAVE_DOCUMENT );
+        },
+        async requestSelectionCopy() {
+            const selectionImage = await copySelection( this.activeDocument, this.activeLayer );
+            this.setSelectionContent( selectionImage );
+            this.setActiveTool({ tool: null });
+            this.showNotification({ message: this.$t( "selectionCopied" ) });
+        },
+        pasteClipboard() {
+            this.addLayer({ type: LAYER_IMAGE, bitmap: this.selectionContent.image, ...this.selectionContent.size });
         },
     }
 };

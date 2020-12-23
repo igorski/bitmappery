@@ -26,7 +26,7 @@
             <h2 v-t="'exportImage'"></h2>
         </template>
         <template #content>
-            <div class="form">
+            <div class="form" @keup.enter="exportImage">
                 <div class="wrapper input">
                     <label v-t="'imageType'"></label>
                     <select-box :options="fileTypes"
@@ -72,15 +72,13 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import { canvas } from "zcanvas";
 import Modal      from "@/components/modal/modal";
 import SelectBox  from '@/components/ui/select-box/select-box';
 import Slider     from "@/components/ui/slider/slider";
 import { mapSelectOptions }  from "@/utils/search-select-util";
-import { getSpriteForLayer, getCanvasInstance } from "@/factories/sprite-factory";
 import { EXPORTABLE_FILE_TYPES, typeToExt, isCompressableFileType } from "@/definitions/image-types";
-import { createCanvas, resizeToBase64 } from "@/utils/canvas-util";
-import { saveBlobAsFile } from "@/utils/file-util";
+import { createDocumentSnapshot } from "@/utils/canvas-util";
+import { saveBlobAsFile }         from "@/utils/file-util";
 import messages from "./messages.json";
 
 export default {
@@ -114,29 +112,7 @@ export default {
             "closeModal",
         ]),
         async exportImage() {
-            const { width, height } = this.activeDocument;
-            const tempCanvas = new canvas({ width, height });
-            const ctx = tempCanvas.getElement().getContext( "2d" );
-            // draw existing layers onto temporary canvas at full document scale
-            this.activeDocument.layers.forEach( layer => {
-                const sprite = getSpriteForLayer( layer );
-                sprite.draw( ctx );
-            });
-            const quality = parseFloat(( this.quality / 100 ).toFixed( 2 ));
-            let base64 = tempCanvas.getElement().toDataURL( this.type, quality );
-
-            // zCanvas magnifies content by the pixel ratio for a crisper result, downscale
-            // to actual dimensions of the document
-            const resizedImage = await resizeToBase64(
-                base64,
-                width * ( window.devicePixelRatio || 1 ),
-                height * ( window.devicePixelRatio || 1 ),
-                width, height,
-                this.type, quality
-            );
-            // fetch final base64 data so we can convert it easily to binary
-            base64 = await fetch( resizedImage );
-            const blob = await base64.blob();
+            const blob = await createDocumentSnapshot( this.activeDocument, this.type, this.quality );
             saveBlobAsFile( blob, `${this.name}.${typeToExt(this.type)}` );
             this.closeModal();
         },

@@ -45,7 +45,8 @@ const LayerFactory = {
             maskY,
             width,
             height,
-            visible
+            visible,
+            selection: null, // only used at runtime, will not be serialized
         }
     },
 

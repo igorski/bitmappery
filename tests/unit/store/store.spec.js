@@ -40,6 +40,13 @@ describe( "Vuex store", () => {
             expect( state.optionsPanelOpened ).toBe( true );
         });
 
+        it( "should be able to set the current selection content", () => {
+            const state = { selectionContent: null };
+            const selection = { image: { src: "foo" }, size: { width: 100, height: 50 } };
+            mutations.setSelectionContent( state, selection );
+            expect( state.selectionContent ).toEqual( selection );
+        });
+
         it( "should be able to toggle the active state of the blinding layer", () => {
             const state = { blindActive: false };
             mutations.setBlindActive( state, true );

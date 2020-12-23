@@ -76,3 +76,32 @@ export const constrain = ( width, height, maxMegaPixel ) => {
 export const isPortrait  = ( width, height ) => width < height;
 export const isLandscape = ( width, height ) => width > height;
 export const isSquare    = ( width, height ) => width === height;
+
+export const isPointInRange = ( point1x, point1y, point2x, point2y, margin = 5 ) => {
+    const left   = point2x - margin;
+    const right  = point2x + margin;
+    const top    = point2y - margin;
+    const bottom = point2y + margin;
+
+    return point1x >= left && point1x <= right && point1y >= top  && point1y <= bottom;
+};
+
+export const getRectangleForSelection = ( selection ) => {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = 0;
+    let maxY = 0;
+
+    selection.forEach(({ x, y }) => {
+        minX = Math.min( minX, x );
+        maxX = Math.max( maxX, x );
+        minY = Math.min( minY, y );
+        maxY = Math.max( maxY, y );
+    });
+    return {
+        left   : minX,
+        top    : minY,
+        width  : maxX - minX,
+        height : maxY - minY
+    };
+};

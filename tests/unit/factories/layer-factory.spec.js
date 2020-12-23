@@ -24,6 +24,7 @@ describe( "Layer factory", () => {
                 width: 1,
                 height: 1,
                 visible: true,
+                selection: null,
             });
         });
 
@@ -54,6 +55,7 @@ describe( "Layer factory", () => {
                 width: 16,
                 height: 9,
                 visible: false,
+                selection: null,
             })
         });
     });

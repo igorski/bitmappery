@@ -50,6 +50,7 @@ npm run lint
 # TODO / Roadmap
 
 * Something weird with best fit only fitting when window resize fires (also see weird non-cleared canvas areas)
+* When resizing document, layers are not always equal to the document size/width (e.g. pasted from selections)
 * Layer bitmaps and masks must not be stored as Vue observables
 * Layer and mask coordinates are not saved when saving / switching document?
 * Make canvas only as large as its wrapper. Use viewport in zCanvas to render visible content (requires custom scroll handlers for panning)
@@ -58,7 +59,8 @@ npm run lint
 * Restored base64 images should be treated as binary once more (see layer-factory)
 * scale logic should move from zoomable-canvas into zCanvas (as handleInteraction needs to transform offsets by zoom ratio, see LayerSprite!)
 * Zoom set original size isn't that accurate (check also on mobile views), needs calculateMaxScaling ?
-* Implement selections
+* Implement rectangular selection
+* Implement merged layer selection
 * Unload Blobs when images are no longer used in document (see sprite-factory disposeSprite, keep instance count of usages)
 * Load/save documents from/to Dropbox
 * Text editing using Google fonts!
