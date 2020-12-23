@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
- import Vue from "vue";
+import Vue from "vue";
 import { sprite } from "zcanvas";
 import { createCanvas, resizeImage } from "@/utils/canvas-util";
 import { LAYER_GRAPHIC, LAYER_MASK } from "@/definitions/layer-types";
@@ -141,14 +141,18 @@ class LayerSprite extends sprite {
                 this.forceDrag();
                 this.setDraggable( true );
                 this._isSelectMode = true;
-                this._selectionClosed = false;
                 break;
         }
-        if ( tool === ToolTypes.SELECT ) {
+        this.resetSelection();
+    }
+
+    resetSelection() {
+        if ( this._isSelectMode ) {
             Vue.set( this.layer, "selection", [] );
         } else {
             Vue.delete( this.layer, "selection" );
         }
+        this._selectionClosed = false;
     }
 
     async resize( width, height ) {

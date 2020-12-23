@@ -95,6 +95,19 @@
                     </li>
                 </ul>
             </li>
+            <!-- selection menu -->
+            <li>
+                <a v-t="'selection'" class="title" @click.prevent></a>
+                <ul class="submenu">
+                    <li>
+                        <button v-t="'deselectAll'"
+                                type="button"
+                                :disabled="!hasSelection"
+                                @click="clearSelection()"
+                        ></button>
+                    </li>
+                </ul>
+            </li>
             <!-- window menu -->
             <li>
                 <a v-t="'window'" class="title" @click.prevent></a>
@@ -124,6 +137,7 @@ import { mapState, mapGetters, mapMutations, mapActions }  from "vuex";
 import { RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_IMAGE } from "@/definitions/modal-windows";
 import { LAYER_IMAGE } from "@/definitions/layer-types";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
+import { runSpriteFn } from "@/factories/sprite-factory";
 import { copySelection } from "@/utils/canvas-util";
 import messages from "./messages.json";
 
@@ -192,11 +206,16 @@ export default {
         async requestSelectionCopy() {
             const selectionImage = await copySelection( this.activeDocument, this.activeLayer );
             this.setSelectionContent( selectionImage );
-            this.setActiveTool({ tool: null });
+            this.setActiveTool({ tool: null, activeLayer: this.activeLayer });
+            this.clearSelection();
             this.showNotification({ message: this.$t( "selectionCopied" ) });
+        },
+        clearSelection() {
+            runSpriteFn( sprite => sprite.resetSelection(), this.activeDocument );
         },
         pasteClipboard() {
             this.addLayer({ type: LAYER_IMAGE, bitmap: this.selectionContent.image, ...this.selectionContent.size });
+            this.clearSelection();
         },
     }
 };

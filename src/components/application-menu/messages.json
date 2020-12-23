@@ -8,6 +8,8 @@
         "exportImage": "Export image",
         "edit": "Edit",
         "resizeDocument": "Resize document",
+        "selection": "Selection",
+        "deselectAll": "Deselect all",
         "copySelection": "Copy selection",
         "selectionCopied": "Selection copied",
         "pasteAsNewLayer": "Paste as new layer",

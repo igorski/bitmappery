@@ -127,14 +127,15 @@ export default {
             const file = fileList[ 0 ];
             try {
                 const fileData = await readFile( file );
-                const data     = JSON.parse( LZString.decompressFromUTF16( fileData ));
-                const document = await DocumentFactory.deserialize( data );
+                const data     = LZString.decompressFromUTF16( fileData );
+                const document = await DocumentFactory.deserialize( JSON.parse( data ));
                 commit( "addNewDocument", document );
                 commit( "showNotification", {
                     message: translate( "loadedFileSuccessfully", { file: truncate( file.name, 35 ) })
                 });
-            } catch {
+            } catch ( e ) {
                 commit( "showNotification", {
+                    title: translate( "title.error" ),
                     message: translate( "errorLoadingFile", { file: truncate( file.name, 35 ) })
                 });
             }
