@@ -195,6 +195,8 @@ class LayerSprite extends sprite {
                 this.layer.maskY = this._dragStartOffset.y + ( y - this._dragStartEventCoordinates.y );
                 this._cacheMask  = true;
             } else if ( !this._isSelectMode ) {
+                this.layer.x = x;
+                this.layer.y = y;
                 return super.handleMove( x, y );
             }
         }
