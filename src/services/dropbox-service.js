@@ -22,6 +22,7 @@
  */
 import { Dropbox } from "dropbox";
 
+let sessionActive = false;
 let accessToken;
 let dbx;
 
@@ -33,6 +34,8 @@ export const requestLogin = ( clientId, loginUrl ) => {
     dbx = new Dropbox({ clientId });
     return dbx.auth.getAuthenticationUrl( loginUrl );
 }
+
+export const hasActiveSession = () => sessionActive;
 
 /**
  * Authentication step 2: user has received access token, register it in the
@@ -47,15 +50,15 @@ export const registerAccessToken = token => {
 export const isAuthenticated = async () => {
     dbx = new Dropbox({ accessToken: accessToken ?? sessionStorage?.getItem( "dropboxToken" ) });
     try {
-        // this is a bit daft but does the trick, can we use a different method though?
-        await listFolder();
-        return true;
+        const { result } = await dbx.checkUser({ query: "echo" });
+        return result?.result === "echo";
     } catch ( error ) {
         return false;
     }
 };
 
 export const listFolder = ( path = "" ) => {
+    sessionActive = true; // upon first file browse, we consider the session active
     return dbx.filesListFolder({
         path,
         include_media_info: true,

@@ -47,7 +47,7 @@
 import { mapMutations } from "vuex";
 import { DROPBOX_FILE_SELECTOR } from "@/definitions/modal-windows";
 import {
-    isAuthenticated, requestLogin, registerAccessToken
+    isAuthenticated, hasActiveSession, requestLogin, registerAccessToken
 } from "@/services/dropbox-service";
 import messages from "./messages.json";
 
@@ -69,19 +69,27 @@ export default {
         this.loading = true;
         this.authenticated = await isAuthenticated();
         if ( this.authenticated ) {
-            this.showConnectionMessage();
-            this.openFileBrowser();
+            if ( !hasActiveSession() ) {
+                this.showConnectionMessage();
+                this.openFileBrowser();
+            }
         } else {
             this.authUrl = requestLogin(
                 window.dropboxClientId || localStorage?.getItem( "dropboxClientId" ),
                 window.dropboxRedirect || `${window.location.href}login.html`
             );
-            this.login();
+            this.openDialog({
+                type: "confirm",
+                title: this.$t( "establishConnection" ),
+                message: this.$t( "connectionExpl" ),
+                confirm: () => this.login(),
+            });
         }
         this.loading = false;
     },
     methods: {
         ...mapMutations([
+            "openDialog",
             "openModal",
             "showNotification",
         ]),
