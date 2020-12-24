@@ -23,10 +23,13 @@
 import LZString from "lz-string";
 import KeyboardService from "@/services/keyboard-service";
 import DocumentFactory from "@/factories/document-factory";
+import { LAYER_IMAGE } from "@/definitions/layer-types";
+import { runSpriteFn } from "@/factories/sprite-factory";
 import canvasModule    from "./modules/canvas-module";
 import documentModule  from "./modules/document-module";
 import imageModule     from "./modules/image-module";
 import toolModule      from "./modules/tool-module";
+import { copySelection } from "@/utils/canvas-util";
 import { saveBlobAsFile, selectFile, readFile } from "@/utils/file-util";
 import { truncate } from "@/utils/string-util";
 
@@ -152,6 +155,22 @@ export default {
             commit( "showNotification", {
                 message: translate( "savedFileSuccessfully" , { file: truncate( name, 35 ) })
             });
+        },
+        async requestSelectionCopy({ commit, dispatch, getters }) {
+            const selectionImage = await copySelection( getters.activeDocument, getters.activeLayer );
+            commit( "setSelectionContent", selectionImage );
+            commit( "setActiveTool", { tool: null, activeLayer: getters.activeLayer });
+            commit( "showNotification", { message: translate( "selectionCopied" ) });
+            dispatch( "clearSelection" );
+        },
+        clearSelection({ getters }) {
+            runSpriteFn( sprite => sprite.resetSelection(), getters.activeDocument );
+        },
+        pasteSelection({ commit, dispatch, state }) {
+            commit( "addLayer",
+                { type: LAYER_IMAGE, bitmap: state.selectionContent.image, ...state.selectionContent.size }
+            );
+            dispatch( "clearSelection" );
         },
         /**
          * Install the services that will listen to global hardware events

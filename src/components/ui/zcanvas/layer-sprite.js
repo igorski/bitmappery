@@ -316,7 +316,7 @@ class LayerSprite extends sprite {
         if ( this._isSelectMode ) {
             documentContext.save();
             documentContext.beginPath();
-            documentContext.lineWidth = 2;
+            documentContext.lineWidth = 2 / this.canvas.zoomFactor;
             this.layer.selection.forEach(( point, index ) => {
                 documentContext[ index === 0 ? "moveTo" : "lineTo" ]( point.x, point.y );
             });
@@ -328,10 +328,10 @@ class LayerSprite extends sprite {
             // highlight current cursor position
             if ( !this._selectionClosed ) {
                 documentContext.beginPath();
-                documentContext.lineWidth = 5;
+                documentContext.lineWidth *= 1.5;
                 const firstPoint = this.layer.selection[ 0 ];
-                const size = firstPoint && isPointInRange( this._pointerX, this._pointerY, firstPoint.x, firstPoint.y ) ? 25 : 10;
-                documentContext.arc( this._pointerX, this._pointerY, size, 0, 2 * Math.PI );
+                const size = firstPoint && isPointInRange( this._pointerX, this._pointerY, firstPoint.x, firstPoint.y ) ? 15 : 5;
+                documentContext.arc( this._pointerX, this._pointerY, size / this.canvas.zoomFactor, 0, 2 * Math.PI );
                 documentContext.stroke();
             }
             documentContext.restore();

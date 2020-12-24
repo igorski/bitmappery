@@ -127,6 +127,8 @@ function handleKeyDown( event ) {
     //if ( !hasOption && !shiftDown )
     //    handleInputForMode( keyCode );
 
+    let currentValue;
+
     switch ( keyCode )
     {
         case 27: // escape
@@ -181,15 +183,17 @@ function handleKeyDown( event ) {
 
         case 67: // C
              // copy current selection
-             if ( hasOption ) {
-                // ...
+             if ( hasOption && getters.activeLayer?.selection?.length > 0 ) {
+                 dispatch( "requestSelectionCopy" );
+                 preventDefault( event );
              }
              break;
 
         case 68: // D
             // deselect all
             if ( hasOption ) {
-                // ...
+                dispatch( "clearSelection" );
+                preventDefault( event ); // bookmark
             }
             break;
 
@@ -255,8 +259,8 @@ function handleKeyDown( event ) {
 
         case 86: // V
             // paste current selection
-            if ( hasOption ) {
-                // ...
+            if ( hasOption && !!state.selectionContent ) {
+                dispatch( "pasteSelection" );
                 preventDefault( event ); // override browser paste
             }
             break;
@@ -301,15 +305,17 @@ function handleKeyDown( event ) {
             break;
 
         case 219: // [
+            currentValue = getters.activeTool === ToolTypes.ERASER ? getters.eraserOptions : getters.brushOptions;
             commit( "setToolOptionValue",
-                { tool: ToolTypes.BRUSH, option: "size", value: Math.max( 1, getters.brushOptions.size - 5 )
+                { tool: getters.activeTool, option: "size", value: Math.max( 1, currentValue.size - 5 )
             });
             getters.zCanvas?.invalidate();
             break;
 
         case 221: // ]
+            currentValue = getters.activeTool === ToolTypes.ERASER ? getters.eraserOptions : getters.brushOptions;
             commit( "setToolOptionValue", {
-                tool: ToolTypes.BRUSH, option: "size", value: Math.min( MAX_BRUSH_SIZE, getters.brushOptions.size + 5 )
+                tool: getters.activeTool, option: "size", value: Math.min( MAX_BRUSH_SIZE, currentValue.size + 5 )
             });
             getters.zCanvas?.invalidate();
             break;

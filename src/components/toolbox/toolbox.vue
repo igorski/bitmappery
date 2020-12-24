@@ -185,15 +185,13 @@ export default {
     cursor: pointer;
     border-radius: $spacing-xsmall;
     border: none;
-    padding: $spacing-xsmall;
-    max-width: $spacing-xxlarge;
+    padding: $spacing-xxsmall $spacing-xsmall;
     font-weight: bold;
     @include customFont();
 
     img {
-        width: 75%;
-        height: 75%;
-        vertical-align: middle;
+        width: $spacing-large;
+        height: $spacing-large;
     }
 
     &:hover,

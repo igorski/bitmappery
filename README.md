@@ -57,8 +57,9 @@ npm run lint
 
 * Fix bug that occurs when dragging a rotated layer
 * Copying selections on rotated content doesn't work
+* Copying selection should preserve original scale
 * Fill selection with color (make color not unique to brush, but generic tool prop)
-* Animate selection lines between white and black colors, scale lines to always appear at same size, regardless of zoom level
+* Animate selection lines between white and black colors
 * When resizing document, positioned layers do not scale their position correctly
 * Layer bitmaps and masks must not be stored as Vue observables
 * Make canvas only as large as its wrapper. Use viewport in zCanvas to render visible content (requires custom scroll handlers for panning)

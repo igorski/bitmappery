@@ -90,7 +90,7 @@
                         <button v-t="'pasteAsNewLayer'"
                                 type="button"
                                 :disabled="!hasClipboard"
-                                @click="pasteClipboard()"
+                                @click="pasteSelection()"
                         ></button>
                     </li>
                 </ul>
@@ -135,10 +135,8 @@
 <script>
 import { mapState, mapGetters, mapMutations, mapActions }  from "vuex";
 import { RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_IMAGE } from "@/definitions/modal-windows";
-import { LAYER_IMAGE } from "@/definitions/layer-types";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { runSpriteFn } from "@/factories/sprite-factory";
-import { copySelection } from "@/utils/canvas-util";
 import messages from "./messages.json";
 
 export default {
@@ -182,16 +180,17 @@ export default {
             "setMenuOpened",
             "openModal",
             "setActiveDocument",
-            "setActiveTool",
             "addNewDocument",
             "addLayer",
             "closeActiveDocument",
-            "showNotification",
             "setSelectionContent",
         ]),
         ...mapActions([
             "requestNewDocument",
             "requestDocumentClose",
+            "requestSelectionCopy",
+            "clearSelection",
+            "pasteSelection",
             "loadDocument",
         ]),
         requestImageExport() {
@@ -202,20 +201,6 @@ export default {
         },
         requestDocumentSave() {
             this.openModal( SAVE_DOCUMENT );
-        },
-        async requestSelectionCopy() {
-            const selectionImage = await copySelection( this.activeDocument, this.activeLayer );
-            this.setSelectionContent( selectionImage );
-            this.setActiveTool({ tool: null, activeLayer: this.activeLayer });
-            this.clearSelection();
-            this.showNotification({ message: this.$t( "selectionCopied" ) });
-        },
-        clearSelection() {
-            runSpriteFn( sprite => sprite.resetSelection(), this.activeDocument );
-        },
-        pasteClipboard() {
-            this.addLayer({ type: LAYER_IMAGE, bitmap: this.selectionContent.image, ...this.selectionContent.size });
-            this.clearSelection();
         },
     }
 };

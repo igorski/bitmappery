@@ -7,6 +7,7 @@
         "loadedFileSuccessfully": "Loaded document \"{file}\"",
         "savedFileSuccessfully": "Saved document \"${file}\"",
         "errorLoadingFile": "An error occured during the loading of \"{file}\"",
+        "selectionCopied": "Selection copied",
         "title": {
             "success": "Success",
             "error": "Error"

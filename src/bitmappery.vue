@@ -245,7 +245,7 @@ html, body {
     }
 
     .toolbox {
-        width: 150px;
+        width: 125px;
     }
     .document-container {
         width: 100%;
