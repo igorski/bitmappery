@@ -1,11 +1,12 @@
 {
     "en-US": {
         "toolbox": "Toolbox",
-        "move": "Move",
+        "dragLayer": "Drag layer",
         "polygonalLasso": "Polygonal lasso",
         "eyedropper": "Eyedropper",
         "rotateLayer": "Rotate layer",
         "zoom": "Zoom",
+        "eraser": "Eraser",
         "brush": "Brush",
         "color": "Color"
     }

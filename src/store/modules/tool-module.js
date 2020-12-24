@@ -29,15 +29,17 @@ export default {
         activeTool: null,
         activeColor: "rgba(255,0,0,1)",
         options: {
-            [ ToolTypes.ZOOM ] : { level: 1 },
-            [ ToolTypes.BRUSH ]: { size: 10 },
+            [ ToolTypes.ZOOM ]  : { level: 1 },
+            [ ToolTypes.BRUSH ] : { size: 10 },
+            [ ToolTypes.ERASER ]: { size: 10, opacity: 1 },
         }
     },
     getters: {
-        activeTool   : state => state.activeTool,
-        activeColor  : state => state.activeColor,
-        zoomOptions  : state => state.options[ ToolTypes.ZOOM ],
-        brushOptions : state => state.options[ ToolTypes.BRUSH ],
+        activeTool    : state => state.activeTool,
+        activeColor   : state => state.activeColor,
+        zoomOptions   : state => state.options[ ToolTypes.ZOOM ],
+        brushOptions  : state => state.options[ ToolTypes.BRUSH ],
+        eraserOptions : state => state.options[ ToolTypes.ERASER ],
     },
     mutations: {
         setActiveTool( state, { tool, activeLayer }) {
@@ -49,12 +51,16 @@ export default {
             updateLayerSprites( state.activeColor, state.options[ ToolTypes.BRUSH ]);
         },
         setToolOptionValue( state, { tool, option, value }) {
-            Vue.set( state.options[ tool ], option, value );
+            const toolOptions = state.options[ tool ];
+            Vue.set( toolOptions, option, value );
             switch ( tool ) {
                 default:
                     break;
                 case ToolTypes.BRUSH:
-                    updateLayerSprites( state.activeColor, state.options[ tool ]);
+                    updateLayerSprites( state.activeColor, toolOptions );
+                    break;
+                case ToolTypes.ERASER:
+                    updateLayerSprites( `rgba(255,255,255,${toolOptions.opacity})`, toolOptions );
                     break;
             }
         },

@@ -138,10 +138,12 @@ class LayerSprite extends sprite {
             case ToolTypes.MOVE:
                 this.setDraggable( true );
                 break;
+            case ToolTypes.ERASER:
             case ToolTypes.BRUSH:
                 this.forceDrag();
                 this.setDraggable( true );
                 this._isBrushMode = true;
+                this._brushType   = tool;
                 break;
             case ToolTypes.LASSO:
                 this.forceDrag();
@@ -216,14 +218,22 @@ class LayerSprite extends sprite {
                 return super.handleMove( x, y );
             }
         }
-        // brush tool active (either draws onto IMAGE_GRAPHIC layer bitmap
-        // or onto the mask bitmap)
+        // brush tool active (either draws/erasers onto IMAGE_GRAPHIC layer bitmap
+        // or on the mask bitmap)
         if ( this._applyBrush ) {
             const drawOnMask = this.isMaskable();
+            const isEraser   = this._brushType === ToolTypes.ERASER;
             // get the drawing context
             const ctx = drawOnMask ? this.layer.mask.getContext( "2d" ) : this._bitmap.getContext( "2d" );
-            // note we draw onto the layer bitmap to make this permanent
+            if ( isEraser ) {
+                ctx.save();
+                ctx.globalCompositeOperation = "destination-out";
+            }
+            // note we draw directly onto the layer bitmaps, making this permanent
             ctx.drawImage( this._brushCvs, ( x - this.getX() ) - this._radius, y - this.getY() - this._radius );
+            if ( isEraser ) {
+                ctx.restore();
+            }
             // invalidate cached mask canvas contents (draw() method will render these)
             if ( drawOnMask ) {
                 this._cacheMask = true;

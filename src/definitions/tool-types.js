@@ -29,6 +29,7 @@ export default {
     LASSO      : "lasso",
     EYEDROPPER : "eyedropper",
     ROTATE     : "rotate",
+    ERASER     : "eraser",
     BRUSH      : "brush",
     ZOOM       : "zoom",
 };

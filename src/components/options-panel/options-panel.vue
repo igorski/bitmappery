@@ -120,6 +120,8 @@ export default {
                     return null;
                 case ToolTypes.ZOOM:
                     return () => import( "./components/tool-options-zoom/tool-options-zoom" );
+                case ToolTypes.ERASER:
+                    return () => import( "./components/tool-options-eraser/tool-options-eraser" );
                 case ToolTypes.BRUSH:
                     return () => import( "./components/tool-options-brush/tool-options-brush" );
                 case ToolTypes.ROTATE:

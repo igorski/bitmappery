@@ -56,7 +56,7 @@ npm run lint
 # TODO / Roadmap
 
 * Fix bug that occurs when dragging a rotated layer
-* Eraser tool
+* Copying selections on rotated content doesn't work
 * Fill selection with color (make color not unique to brush, but generic tool prop)
 * Animate selection lines between white and black colors, scale lines to always appear at same size, regardless of zoom level
 * When resizing document, positioned layers do not scale their position correctly

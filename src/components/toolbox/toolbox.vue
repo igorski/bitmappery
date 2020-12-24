@@ -92,7 +92,7 @@ export default {
             return [
                 {
                     type: ToolTypes.MOVE,
-                    i18n: "move", icon: "drag",
+                    i18n: "dragLayer", icon: "drag",
                     disabled: !this.activeDocument
                 },
                 {
@@ -109,6 +109,11 @@ export default {
                     type: ToolTypes.ROTATE,
                     i18n: "rotateLayer", icon: "rotate",
                     disabled: !this.activeLayer
+                },
+                {
+                    type: ToolTypes.ERASER,
+                    i18n: "eraser", icon: "eraser",
+                    disabled: !this.activeDocument || !( this.activeLayer?.mask || this.activeLayer?.type === LAYER_GRAPHIC )
                 },
                 {
                     type: ToolTypes.BRUSH,

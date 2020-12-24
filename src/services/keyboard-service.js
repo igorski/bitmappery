@@ -193,6 +193,12 @@ function handleKeyDown( event ) {
             }
             break;
 
+        case 69: // E
+            if ( canUseBrush( getters.activeDocument, getters.activeLayer )) {
+                setActiveTool( ToolTypes.ERASER );
+            }
+            break;
+
         case 73: // I
             if ( getters.activeLayer ) {
                 setActiveTool( ToolTypes.EYEDROPPER );

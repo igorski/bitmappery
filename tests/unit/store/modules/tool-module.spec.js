@@ -11,6 +11,7 @@ describe( "Vuex tool module", () => {
             options: {
                 [ ToolTypes.ZOOM ]: { level: 1 },
                 [ ToolTypes.BRUSH ]: { size: 10 },
+                [ ToolTypes.ERASER ]: { size: 10, opacity: 1 }
             }
         }
         it( "should be able to return the active tool", () => {
@@ -27,6 +28,10 @@ describe( "Vuex tool module", () => {
 
         it( "should be able to retrieve the brush options", () => {
             expect( getters.brushOptions( state )).toEqual({ size: 10 });
+        });
+
+        it( "should be able to retrieve the eraser options", () => {
+            expect( getters.eraserOptions( state )).toEqual({ size: 10, opacity: 1 });
         });
     });
 
