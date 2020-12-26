@@ -37,8 +37,7 @@ import { mapGetters, mapMutations } from "vuex";
 import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import Slider    from "@/components/ui/slider/slider";
 import messages  from "./messages.json";
-
-const DEGREES_TO_RADIANS = Math.PI / 180;
+import { degreesToRadians, radiansToDegrees } from "@/utils/image-math";
 
 export default {
     i18n: { messages },
@@ -57,12 +56,12 @@ export default {
         // note rotation is stored in radians but represented visually as degrees
         rotation: {
             get() {
-                return this.activeLayer.rotation / DEGREES_TO_RADIANS;
+                return radiansToDegrees( this.activeLayer.rotation );
             },
             set( value ) {
                 this.updateLayer({
                     index: this.activeLayerIndex,
-                    opts: { rotation: ( value % 360 ) * DEGREES_TO_RADIANS }
+                    opts: { rotation: degreesToRadians( value % 360 )  }
                 });
             }
         }

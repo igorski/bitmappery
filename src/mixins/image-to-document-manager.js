@@ -46,9 +46,9 @@ export default {
 
             image.src = source;
 
-            const currentDocumentIsEmpty = this.layers?.length <= 1 && this.layers?.[0]?.bitmap === null;
+            const currentDocumentIsEmpty = this.layers?.length <= 1 && this.layers?.[0]?.source === null;
             const layerOpts = {
-                bitmap: image,
+                source: image,
                 type: LAYER_IMAGE,
                 name: file.name,
                 ...size,

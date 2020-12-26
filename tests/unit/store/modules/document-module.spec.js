@@ -256,7 +256,7 @@ describe( "Vuex document module", () => {
                 name: "layer2 updated",
                 x: 100,
                 y: 200,
-                bitmap: new Image(),
+                source: new Image(),
                 width: 100,
                 height: 150,
                 type: LAYER_IMAGE

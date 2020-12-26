@@ -79,7 +79,7 @@ export const flushCache = () => {
  * layer content on given zCanvas instance
  */
 export const createSpriteForLayer = ( zCanvasInstance, layer, isInteractive = false ) => {
-    const { id, type, bitmap, x, y, width, height } = layer;
+    const { id } = layer;
     let output;
     if ( hasSpriteForLayer( layer )) {
         output = spriteCache.get( id );
@@ -99,5 +99,5 @@ export const createSpriteForLayer = ( zCanvasInstance, layer, isInteractive = fa
 
 function disposeSprite( sprite ) {
     sprite?.dispose();
-    // TODO: also free associated bitmap ?
+    // TODO: also free associated bitmap and source ?
 }

@@ -30,14 +30,15 @@ const LayerFactory = {
      */
     create({
         name = "New Layer",
-        type = LAYER_GRAPHIC, bitmap = null, mask = null,
-        x = 0, y = 0, maskX = 0, maskY = 0, width = 1, height = 1, rotation = 0, visible = true
+        type = LAYER_GRAPHIC, source = null, mask = null,
+        x = 0, y = 0, maskX = 0, maskY = 0, width = 1, height = 1, visible = true,
+        effects = { rotation: 0 }
     } = {}) {
         return {
             id: `layer_${( ++UID_COUNTER )}`,
             name,
             type,
-            bitmap,
+            source,
             mask,
             x,
             y,
@@ -45,9 +46,10 @@ const LayerFactory = {
             maskY,
             width,
             height,
-            rotation,
             visible,
-            selection: null, // only used at runtime, will not be serialized
+            effects,
+            // only used at runtime, will not be serialized
+            selection: null,
         }
     },
 
@@ -59,7 +61,7 @@ const LayerFactory = {
         return {
             n: layer.name,
             t: layer.type,
-            b: imageToBase64( layer.bitmap, layer.width, layer.height ),
+            s: imageToBase64( layer.source, layer.width, layer.height ),
             m: imageToBase64( layer.mask,   layer.width, layer.height ),
             x: layer.x,
             y: layer.y,
@@ -67,7 +69,7 @@ const LayerFactory = {
             y2: layer.maskY,
             w: layer.width,
             h: layer.height,
-            r: layer.rotation,
+            fx: layer.effects,
             v: layer.visible,
         };
     },
@@ -77,12 +79,12 @@ const LayerFactory = {
      * inside a stored project
      */
     async deserialize( layer ) {
-        const bitmap = await base64ToLayerImage( layer.b, layer.t, layer.w, layer.h );
+        const source = await base64ToLayerImage( layer.s, layer.t, layer.w, layer.h );
         const mask   = await base64ToLayerImage( layer.m, LAYER_MASK, layer.w, layer.h );
         return LayerFactory.create({
             name: layer.n,
             type: layer.t,
-            bitmap,
+            source,
             mask,
             x: layer.x,
             y: layer.y,
@@ -90,8 +92,8 @@ const LayerFactory = {
             maskY: layer.y2,
             width: layer.w,
             height: layer.h,
-            rotation: layer.r,
-            visible: layer.v
+            visible: layer.v,
+            effects: layer.fx,
         });
     }
 };

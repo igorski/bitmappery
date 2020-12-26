@@ -147,7 +147,7 @@ export default {
         },
         handleLayerClick( layer ) {
             this.setActiveLayerIndex( layer.index );
-            getSpriteForLayer( layer ).setActionTarget( "bitmap" );
+            getSpriteForLayer( layer ).setActionTarget( "source" );
         },
         handleLayerMaskClick( layer ) {
             this.setActiveLayerMask( layer.index );

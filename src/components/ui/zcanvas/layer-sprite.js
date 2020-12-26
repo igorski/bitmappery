@@ -34,16 +34,16 @@ import ToolTypes from "@/definitions/tool-types";
  */
 class LayerSprite extends sprite {
     constructor( layer ) {
-        if ( layer.type === LAYER_GRAPHIC && !layer.bitmap ) {
+        if ( layer.type === LAYER_GRAPHIC && !layer.source ) {
             // create a Bitmap on which this layer will render its drawable content.
             // assign this Bitmap to the layer
             const { cvs } = createCanvas( layer.width, layer.height );
-            layer.bitmap = cvs;
+            layer.source = cvs;
         }
-        let { bitmap, x, y, width, height } = layer;
+        let { x, y, width, height } = layer;
 
         // zCanvas inheritance
-        super({ bitmap, x, y, width, height } );
+        super({ bitmap: layer.bitmap || layer.source, x, y, width, height } );
 
         // Layer this sprite is rendering
         this.layer = layer;
@@ -61,7 +61,7 @@ class LayerSprite extends sprite {
         this.setActionTarget();
     }
 
-    setActionTarget( target = "bitmap" ) {
+    setActionTarget( target = "source" ) {
         this.actionTarget = target;
     }
 
@@ -170,9 +170,9 @@ class LayerSprite extends sprite {
         const ratioX = width  / this._bounds.width;
         const ratioY = height / this._bounds.height;
 
-        if ( this.layer.bitmap ) {
-            this.layer.bitmap = await resizeImage(
-                this.layer.bitmap, this._bounds.width, this._bounds.height, width, height
+        if ( this.layer.source ) {
+            this.layer.source = await resizeImage(
+                this.layer.source, this._bounds.width, this._bounds.height, width, height
             );
         }
         if ( this.layer.mask ) {
@@ -218,13 +218,13 @@ class LayerSprite extends sprite {
                 return super.handleMove( x, y );
             }
         }
-        // brush tool active (either draws/erasers onto IMAGE_GRAPHIC layer bitmap
+        // brush tool active (either draws/erasers onto IMAGE_GRAPHIC layer source
         // or on the mask bitmap)
         if ( this._applyBrush ) {
             const drawOnMask = this.isMaskable();
             const isEraser   = this._brushType === ToolTypes.ERASER;
             // get the drawing context
-            const ctx = drawOnMask ? this.layer.mask.getContext( "2d" ) : this._bitmap.getContext( "2d" );
+            const ctx = drawOnMask ? this.layer.mask.getContext( "2d" ) : this.layer.source.getContext( "2d" );
             if ( isEraser ) {
                 ctx.save();
                 ctx.globalCompositeOperation = "destination-out";
@@ -286,7 +286,7 @@ class LayerSprite extends sprite {
             if ( this._cacheMask ) {
                 const ctx = this._maskCanvas.getContext( "2d" );
                 ctx.save();
-                ctx.drawImage( this.layer.bitmap, 0, 0 );
+                ctx.drawImage( this.layer.source, 0, 0 );
                 ctx.globalCompositeOperation = "destination-in";
                 ctx.drawImage( this.layer.mask, this.layer.maskX, this.layer.maskY );
                 ctx.restore();
