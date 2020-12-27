@@ -24,7 +24,7 @@ import Vue from "vue";
 import { sprite } from "zcanvas";
 import { createCanvas, resizeImage, globalToLocal } from "@/utils/canvas-util";
 import { LAYER_GRAPHIC, LAYER_MASK } from "@/definitions/layer-types";
-import { isPointInRange, translatePointerRotation, getRotationCenter } from "@/utils/image-math";
+import { isPointInRange } from "@/utils/image-math";
 import ToolTypes from "@/definitions/tool-types";
 
 /**
@@ -199,13 +199,6 @@ class LayerSprite extends sprite {
         this._pointerX = x;
         this._pointerY = y;
 
-        // for rotated content we must translate the pointer coordinates to the unrotated position
-        if ( this.layer.rotation ) {
-            // TODO: this is going all sorts of wrong.
-            const { tX, tY } = getRotationCenter( this._bounds );
-            ({ x, y } = translatePointerRotation( x, y, tX, tY, this.layer.rotation ));
-        }
-
         if ( !this._isBrushMode ) {
             // not drawable, perform default behaviour (drag)
             if ( this.actionTarget === "mask" ) {
@@ -270,13 +263,6 @@ class LayerSprite extends sprite {
     }
 
     draw( documentContext ) {
-        if ( this.layer.rotation ) {
-            documentContext.save();
-            const { tX, tY } = getRotationCenter( this._bounds );
-            documentContext.translate( tX, tY );
-            documentContext.rotate( this.layer.rotation );
-            documentContext.translate( -tX, -tY );
-        }
         if ( !this.isMaskable() ) {
             // use base draw() logic when no mask is set
             super.draw( documentContext );
@@ -286,7 +272,7 @@ class LayerSprite extends sprite {
             if ( this._cacheMask ) {
                 const ctx = this._maskCanvas.getContext( "2d" );
                 ctx.save();
-                ctx.drawImage( this.layer.source, 0, 0 );
+                ctx.drawImage( this._bitmap, 0, 0 );
                 ctx.globalCompositeOperation = "destination-in";
                 ctx.drawImage( this.layer.mask, this.layer.maskX, this.layer.maskY );
                 ctx.restore();
@@ -300,9 +286,6 @@ class LayerSprite extends sprite {
                 ( .5 + width )  << 0,
                 ( .5 + height ) << 0
             );
-        }
-        if ( this.layer.rotation ) {
-            documentContext.restore();
         }
         // render brush outline at pointer position
         if ( this._isBrushMode ) {
@@ -336,6 +319,13 @@ class LayerSprite extends sprite {
             }
             documentContext.restore();
         }
+    }
+
+    dispose() {
+        super.dispose();
+        this._bitmap     = null;
+        this._maskCanvas = null;
+        this._brushCvs   = null;
     }
 }
 export default LayerSprite;

@@ -25,6 +25,7 @@ import Vue from "vue";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory    from "@/factories/layer-factory";
 import { flushLayerSprites, runSpriteFn, getSpriteForLayer } from "@/factories/sprite-factory";
+import { renderEffectsForLayer } from "@/services/render-service";
 
 export default {
     state: {
@@ -40,6 +41,7 @@ export default {
         activeLayerIndex: state => state.activeLayerIndex,
         activeLayer: ( state, getters ) => getters.layers?.[ state.activeLayerIndex ],
         activeLayerMask: ( state, getters ) => ( state.maskActive && getters.activeLayer.mask ) || null,
+        activeLayerEffects: ( state, getters ) => getters.activeLayer.effects || [],
     },
     mutations: {
         setActiveDocument( state, index ) {
@@ -110,6 +112,19 @@ export default {
                 sprite.layer = layer;
                 sprite.cacheMask();
                 sprite.canvas?.invalidate();
+            }
+        },
+        updateLayerEffects( state, { index, effects = {} }) {
+            const layer = state.documents[ state.activeIndex ].layers[ index ];
+            Vue.set( layer, "effects", {
+                ...layer.effects,
+                ...effects
+            });
+            // update layer in sprite
+            const sprite = getSpriteForLayer( layer );
+            if ( sprite ) {
+                sprite.layer = layer;
+                renderEffectsForLayer( layer );
             }
         },
     },

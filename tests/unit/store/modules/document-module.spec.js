@@ -12,6 +12,9 @@ jest.mock( "@/factories/sprite-factory", () => ({
 jest.mock( "@/factories/layer-factory", () => ({
     create: (...args) => mockUpdateFn?.( "create", ...args ),
 }));
+jest.mock( "@/services/render-service", () => ({
+    renderEffectsForLayer: (...args) => mockUpdateFn?.( "renderEffectsForLayer", ...args ),
+}));
 
 describe( "Vuex document module", () => {
     describe( "getters", () => {
@@ -61,6 +64,11 @@ describe( "Vuex document module", () => {
             expect( getters.activeLayerMask( state, mockedGetters )).toBeNull();
             mockedGetters.activeLayer.mask = { src: "mask" };
             expect( getters.activeLayerMask( state, mockedGetters )).toEqual( mockedGetters.activeLayer.mask );
+        });
+
+        it( "should be able to retrieve the active Layer effects", () => {
+            const mockedGetters = { activeLayer: { name: "layer1", effects: [{ rotation: 1 }] } };
+            expect( getters.activeLayerEffects( {}, mockedGetters )).toEqual( mockedGetters.activeLayer.effects );
         });
     });
 
@@ -241,31 +249,54 @@ describe( "Vuex document module", () => {
             });
         });
 
-        it( "should be able to update the options of a specific layer within the active Document", () => {
-            const layer1 = { name: "layer1" };
-            const layer2 = { name: "layer2" };
-            const state = {
-                documents: [{
-                    name: "foo",
-                    layers: [ layer1, layer2 ]
-                }],
-                activeIndex: 0
-            };
-            const index = 1;
-            const opts  = {
-                name: "layer2 updated",
-                x: 100,
-                y: 200,
-                source: new Image(),
-                width: 100,
-                height: 150,
-                type: LAYER_IMAGE
-            };
-            mutations.updateLayer( state, { index, opts });
-            expect( state.documents[ 0 ].layers[ index ] ).toEqual({
-                id: layer2.id,
-                visible: layer2.visible,
-                ...opts
+        describe( "when updating layer properties", () => {
+            let layer1, layer2, state;
+            beforeEach(() => {
+                layer1 = { name: "layer1", effects: { rotation: 0 } };
+                layer2 = { name: "layer2", effects: { rotation: 0 } };
+                state = {
+                    documents: [{
+                        name: "foo",
+                        layers: [ { ...layer1 }, { ...layer2 } ]
+                    }],
+                    activeIndex: 0
+                };
+            });
+
+            it( "should be able to update the options of a specific layer within the active Document", () => {
+                const index = 1;
+                const opts  = {
+                    name: "layer2 updated",
+                    x: 100,
+                    y: 200,
+                    source: new Image(),
+                    width: 100,
+                    height: 150,
+                    type: LAYER_IMAGE
+                };
+                mutations.updateLayer( state, { index, opts });
+                expect( state.documents[ 0 ].layers[ index ] ).toEqual({
+                    ...layer2,
+                    ...opts
+                });
+            });
+
+            it( "should be able to update the effects of a specific layer within the active Document", () => {
+                const index   = 0;
+                const effects = {
+                    rotation: 1.6
+                };
+                mockUpdateFn = jest.fn( fn => {
+                    if ( fn === "getSpriteForLayer" ) return { src: "bitmap" };
+                    return true;
+                });
+                mutations.updateLayerEffects( state, { index, effects });
+                expect( state.documents[ 0 ].layers[ index ] ).toEqual({
+                    ...layer1,
+                    effects,
+                });
+                expect( mockUpdateFn ).toHaveBeenCalledWith( "getSpriteForLayer", state.documents[ 0 ].layers[ index ] );
+                expect( mockUpdateFn ).toHaveBeenCalledWith( "renderEffectsForLayer", state.documents[ 0 ].layers[ index ] );
             });
         });
     });

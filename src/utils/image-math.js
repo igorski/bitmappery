@@ -20,6 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+export const degreesToRadians = deg => deg * Math.PI / 180;
+export const radiansToDegrees = rad => rad * 180 / Math.PI;
 
 /**
  * Calculates the appropriate dimensions for fitting an image of dimensions
@@ -120,6 +122,39 @@ export const translatePointerRotation = ( x, y, rotationCenterX, rotationCenterY
 };
 
 export const getRotationCenter = ({ left, top, width, height }) => ({
-    tX : left + width  * .5,
-    tY : top  + height * .5
+    x: left + width  * .5,
+    y: top  + height * .5
 });
+
+export const getRotatedSize = ({ width, height }, angleInRadians ) => {
+    const x1 = -width  * .5,
+          x2 = width   * .5,
+          x3 = width   * .5,
+          x4 = -width  * .5,
+          y1 = height  * .5,
+          y2 = height  * .5,
+          y3 = -height * .5,
+          y4 = -height * .5;
+
+    const cos = Math.cos( angleInRadians );
+    const sin = Math.sin( angleInRadians );
+
+    const x11 = x1  * cos + y1 * sin,
+          y11 = -x1 * sin + y1 * cos,
+          x21 = x2  * cos + y2 * sin,
+          y21 = -x2 * sin + y2 * cos,
+          x31 = x3  * cos + y3 * sin,
+          y31 = -x3 * sin + y3 * cos,
+          x41 = x4  * cos + y4 * sin,
+          y41 = -x4 * sin + y4 * cos;
+
+    const xMin = Math.min( x11, x21, x31, x41 ),
+          xMax = Math.max( x11, x21, x31, x41 ),
+          yMin = Math.min( y11, y21, y31, y41 ),
+          yMax = Math.max( y11, y21, y31, y41 );
+
+    return {
+        width  : xMax - xMin,
+        height : yMax - yMin
+    };
+};
