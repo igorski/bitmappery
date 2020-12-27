@@ -30,7 +30,7 @@ export const renderEffectsForLayer = async layer => {
     const { effects } = layer;
     const sprite = getSpriteForLayer( layer );
 
-    if ( !sprite ) {
+    if ( !sprite || !layer.source ) {
         return;
     }
 
