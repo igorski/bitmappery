@@ -25,7 +25,6 @@ import Vue from "vue";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory    from "@/factories/layer-factory";
 import { flushLayerSprites, runSpriteFn, getSpriteForLayer } from "@/factories/sprite-factory";
-import { renderEffectsForLayer } from "@/services/render-service";
 
 export default {
     state: {
@@ -110,8 +109,7 @@ export default {
             const sprite = getSpriteForLayer( layer );
             if ( sprite ) {
                 sprite.layer = layer;
-                sprite.cacheMask();
-                sprite.canvas?.invalidate();
+                sprite.cacheEffects();
             }
         },
         updateLayerEffects( state, { index, effects = {} }) {
@@ -124,7 +122,7 @@ export default {
             const sprite = getSpriteForLayer( layer );
             if ( sprite ) {
                 sprite.layer = layer;
-                renderEffectsForLayer( layer );
+                sprite.cacheEffects();
             }
         },
     },

@@ -24,7 +24,8 @@ import Vue from "vue";
 import { sprite } from "zcanvas";
 import { createCanvas, resizeImage, globalToLocal } from "@/utils/canvas-util";
 import { LAYER_GRAPHIC, LAYER_MASK } from "@/definitions/layer-types";
-import { isPointInRange } from "@/utils/image-math";
+import { isPointInRange, translatePointerRotation } from "@/utils/image-math";
+import { renderEffectsForLayer } from "@/services/render-service";
 import ToolTypes from "@/definitions/tool-types";
 
 /**
@@ -34,19 +35,16 @@ import ToolTypes from "@/definitions/tool-types";
  */
 class LayerSprite extends sprite {
     constructor( layer ) {
+        const { bitmap, x, y, width, height } = layer;
+        super({ bitmap, x, y, width, height } ); // zCanvas inheritance
+
+        this.layer = layer; // the Layer this Sprite will be rendering
+
         if ( layer.type === LAYER_GRAPHIC && !layer.source ) {
-            // create a Bitmap on which this layer will render its drawable content.
-            // assign this Bitmap to the layer
+            // create a Canvas on which this layer will render its drawable content.
             const { cvs } = createCanvas( layer.width, layer.height );
             layer.source = cvs;
         }
-        let { x, y, width, height } = layer;
-
-        // zCanvas inheritance
-        super({ bitmap: layer.bitmap || layer.source, x, y, width, height } );
-
-        // Layer this sprite is rendering
-        this.layer = layer;
 
         // create brush (always as all layers can be maskable)
         const brushCanvas = createCanvas();
@@ -57,8 +55,16 @@ class LayerSprite extends sprite {
         this._pointerY    = 0;
 
         this.cacheBrush( this.canvas?.store.getters.activeColor || "rgba(255,0,0,1)" );
-        this.cacheMask();
         this.setActionTarget();
+
+        if ( layer.source instanceof Image ) {
+            const handler = () => {
+                this.cacheEffects();
+                layer.source.removeEventListener( "load", handler );
+            }
+            layer.source.addEventListener( "load", handler );
+        }
+        this.cacheEffects();
     }
 
     setActionTarget( target = "source" ) {
@@ -110,13 +116,15 @@ class LayerSprite extends sprite {
         this._halfRadius = radius / 2;
     }
 
-    cacheMask() {
-        if ( !!this.layer.mask  ) {
-            this._maskCanvas = createCanvas( this.layer.width, this.layer.height ).cvs;
-            this._cacheMask  = true; // requests initial rendering of masked content
-        } else {
-            this._maskCanvas = null;
+    cacheEffects() {
+        if ( this._rafFx ) {
+            return; // debounced to only occur once before next render cycle
         }
+        this._rafFx = true;
+        requestAnimationFrame(() => {
+            renderEffectsForLayer( this.layer );
+            this._rafFx = false;
+        });
     }
 
     handleActiveTool( tool, activeLayer ) {
@@ -179,7 +187,7 @@ class LayerSprite extends sprite {
             this.layer.mask = await resizeImage(
                 this.layer.mask, this._bounds.width, this._bounds.height, width, height
             );
-            this.cacheMask();
+            this.cacheEffects();
         }
         this.setBounds( this.getX() * ratioX, this.getY() * ratioY, width, height );
         this.invalidate();
@@ -195,7 +203,7 @@ class LayerSprite extends sprite {
     /* the following override zCanvas.sprite */
 
     handleMove( x, y ) {
-        // store reference to current pointer position
+        // store reference to current pointer position (relative to canvas)
         this._pointerX = x;
         this._pointerY = y;
 
@@ -204,7 +212,6 @@ class LayerSprite extends sprite {
             if ( this.actionTarget === "mask" ) {
                 this.layer.maskX = this._dragStartOffset.x + ( x - this._dragStartEventCoordinates.x );
                 this.layer.maskY = this._dragStartOffset.y + ( y - this._dragStartEventCoordinates.y );
-                this._cacheMask  = true;
             } else if ( !this._isSelectMode ) {
                 this.layer.x = x;
                 this.layer.y = y;
@@ -214,6 +221,11 @@ class LayerSprite extends sprite {
         // brush tool active (either draws/erasers onto IMAGE_GRAPHIC layer source
         // or on the mask bitmap)
         if ( this._applyBrush ) {
+            // translate pointer to rotated space, when layer is rotated
+            const rotation = this.layer.effects.rotation;
+            if (( rotation % 360 ) !== 0 ) {
+                ({ x, y } = translatePointerRotation( x, y, this._bounds.left + this._bounds.width / 2, this._bounds.top + this._bounds.height / 2, this.layer.effects.rotation ));
+            }
             const drawOnMask = this.isMaskable();
             const isEraser   = this._brushType === ToolTypes.ERASER;
             // get the drawing context
@@ -223,14 +235,11 @@ class LayerSprite extends sprite {
                 ctx.globalCompositeOperation = "destination-out";
             }
             // note we draw directly onto the layer bitmaps, making this permanent
-            ctx.drawImage( this._brushCvs, ( x - this.getX() ) - this._radius, y - this.getY() - this._radius );
+            ctx.drawImage( this._brushCvs, x - this._radius, y - this._radius );
             if ( isEraser ) {
                 ctx.restore();
             }
-            // invalidate cached mask canvas contents (draw() method will render these)
-            if ( drawOnMask ) {
-                this._cacheMask = true;
-            }
+            this.cacheEffects(); // sync mask and source changes with sprite Bitmap
         }
     }
 
@@ -257,36 +266,9 @@ class LayerSprite extends sprite {
         }
     }
 
-    invalidate() {
-        this._cacheMask = true;
-        super.invalidate();
-    }
-
     draw( documentContext ) {
-        if ( !this.isMaskable() ) {
-            // use base draw() logic when no mask is set
-            super.draw( documentContext );
-        } else if ( this._maskCanvas ) {
-            const { left, top, width, height } = this._bounds;
-            // render masked contents into mask canvas
-            if ( this._cacheMask ) {
-                const ctx = this._maskCanvas.getContext( "2d" );
-                ctx.save();
-                ctx.drawImage( this._bitmap, 0, 0 );
-                ctx.globalCompositeOperation = "destination-in";
-                ctx.drawImage( this.layer.mask, this.layer.maskX, this.layer.maskY );
-                ctx.restore();
-                this._cacheMask = false;
-            }
-            // render cached mask canvas onto document context
-            documentContext.drawImage(
-                this._maskCanvas,
-                ( .5 + left )   << 0,
-                ( .5 + top  )   << 0,
-                ( .5 + width )  << 0,
-                ( .5 + height ) << 0
-            );
-        }
+        super.draw( documentContext ); // renders bitmap
+
         // render brush outline at pointer position
         if ( this._isBrushMode ) {
             documentContext.save();
@@ -323,9 +305,8 @@ class LayerSprite extends sprite {
 
     dispose() {
         super.dispose();
-        this._bitmap     = null;
-        this._maskCanvas = null;
-        this._brushCvs   = null;
+        this._bitmap   = null;
+        this._brushCvs = null;
     }
 }
 export default LayerSprite;

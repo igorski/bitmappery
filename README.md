@@ -55,7 +55,6 @@ npm run lint
 
 # TODO / Roadmap
 
-* Fix bug that occurs when dragging a rotated layer
 * Copying selections on rotated content doesn't work
 * Copying selection should preserve original scale
 * Fill selection with color (make color not unique to brush, but generic tool prop)

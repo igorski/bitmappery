@@ -57,7 +57,6 @@ export default {
             const start = Date.now();
             await loadImageFiles( files, this.addLoadedFile.bind( this ));
             const elapsed = Date.now() - start;
-            console.warn( "Total time for load: " + ( elapsed / 1000 ) + " seconds" );
         },
     }
 };

@@ -12,9 +12,6 @@ jest.mock( "@/factories/sprite-factory", () => ({
 jest.mock( "@/factories/layer-factory", () => ({
     create: (...args) => mockUpdateFn?.( "create", ...args ),
 }));
-jest.mock( "@/services/render-service", () => ({
-    renderEffectsForLayer: (...args) => mockUpdateFn?.( "renderEffectsForLayer", ...args ),
-}));
 
 describe( "Vuex document module", () => {
     describe( "getters", () => {
@@ -274,20 +271,26 @@ describe( "Vuex document module", () => {
                     height: 150,
                     type: LAYER_IMAGE
                 };
+                const mockSprite = { src: "bitmap", cacheEffects: jest.fn() };
+                mockUpdateFn = jest.fn( fn => {
+                    if ( fn === "getSpriteForLayer" ) return mockSprite;
+                    return true;
+                });
                 mutations.updateLayer( state, { index, opts });
                 expect( state.documents[ 0 ].layers[ index ] ).toEqual({
                     ...layer2,
                     ...opts
                 });
+                expect( mockUpdateFn ).toHaveBeenCalledWith( "getSpriteForLayer", state.documents[ 0 ].layers[ index ] );
+                expect( mockSprite.cacheEffects ).toHaveBeenCalled();
             });
 
             it( "should be able to update the effects of a specific layer within the active Document", () => {
                 const index   = 0;
-                const effects = {
-                    rotation: 1.6
-                };
+                const effects = { rotation: 1.6 };
+                const mockSprite = { src: "bitmap", cacheEffects: jest.fn() };
                 mockUpdateFn = jest.fn( fn => {
-                    if ( fn === "getSpriteForLayer" ) return { src: "bitmap" };
+                    if ( fn === "getSpriteForLayer" ) return mockSprite;
                     return true;
                 });
                 mutations.updateLayerEffects( state, { index, effects });
@@ -296,7 +299,7 @@ describe( "Vuex document module", () => {
                     effects,
                 });
                 expect( mockUpdateFn ).toHaveBeenCalledWith( "getSpriteForLayer", state.documents[ 0 ].layers[ index ] );
-                expect( mockUpdateFn ).toHaveBeenCalledWith( "renderEffectsForLayer", state.documents[ 0 ].layers[ index ] );
+                expect( mockSprite.cacheEffects ).toHaveBeenCalled();
             });
         });
     });

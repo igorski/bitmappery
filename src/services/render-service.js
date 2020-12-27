@@ -22,7 +22,7 @@
  */
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { createCanvas }      from "@/utils/canvas-util";
-import { getRotationCenter } from "@/utils/image-math";
+import { getRotatedSize, getRotationCenter } from "@/utils/image-math";
 
 const queue = [];
 
@@ -34,7 +34,8 @@ export const renderEffectsForLayer = async layer => {
         return;
     }
 
-    const { width, height } = layer;
+    // if source is rotated, calculate the width and height for the current rotation
+    const { width, height } = getRotatedSize( layer, effects.rotation );
     let cvs;
     if ( sprite._bitmap instanceof HTMLCanvasElement ) {
         cvs        = sprite._bitmap;
@@ -46,30 +47,49 @@ export const renderEffectsForLayer = async layer => {
     const ctx = cvs.getContext( "2d" );
 
     if ( hasEffects( layer )) {
-        await renderTransformations( ctx, layer.source, width, height, effects.rotation );
+        await renderTransformedSource( layer, ctx, layer.source, width, height, effects.rotation );
     } else {
         ctx.drawImage( layer.source, 0, 0 );
     }
 
     // update on-screen canvas contents
     sprite.setBitmap( cvs, width, height );
-    sprite.cacheMask();
     sprite.invalidate();
 };
 
 /* internal methods */
 
-const hasEffects = ({ effects }) => {
-    return effects.rotation !== 0;
+const hasEffects = ( layer ) => {
+    const { effects } = layer;
+    return !!layer.mask || effects.rotation !== 0;
 };
 
-const renderTransformations = async ( ctx, sourceBitmap, width, height, rotation ) => {
-    const { x, y } = getRotationCenter({ left: 0, top: 0, width, height });
+const renderTransformedSource = async ( layer, ctx, sourceBitmap, width, height, rotation ) => {
+    const rotate = ( rotation % 360 ) !== 0;
+    let targetX = 0, targetY = 0;
+    if ( rotate ) {
+        const { x, y } = getRotationCenter({ left: 0, top: 0, width, height });
+        ctx.save();
+        ctx.translate( x, y );
+        ctx.rotate( rotation );
+        ctx.translate( -x, -y );
+        targetX = x - layer.width  * .5;
+        targetY = y - layer.height * .5;
+    }
+    ctx.drawImage( sourceBitmap, targetX, targetY );
+    await renderMask( layer, ctx, targetX, targetY );
+    if ( rotate ) {
+        ctx.restore();
+    }
+}
 
+const renderMask = async( layer, ctx, tX = 0, tY = 0 ) => {
+    if ( !layer.mask ) {
+        return;
+    }
     ctx.save();
-    ctx.translate( x, y );
-    ctx.rotate( rotation );
-    ctx.translate( -x, -y );
-    ctx.drawImage( sourceBitmap, 0, 0 );
+    ctx.translate( tX, tY );
+    ctx.globalCompositeOperation = "destination-in";
+    ctx.drawImage( layer.mask, layer.maskX, layer.maskY );
     ctx.restore();
 }
