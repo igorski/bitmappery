@@ -142,6 +142,7 @@ function handleKeyDown( event ) {
             break;
 
         case 32: // spacebar
+            commit( "setDragMode", true );
             break;
 
         // capture the apple key here as it is not recognized as a modifier
@@ -292,12 +293,14 @@ function handleKeyDown( event ) {
             }
             break;
 
+        case 107:
         case 187: // +
             commit( "setToolOptionValue",
                 { tool: ToolTypes.ZOOM, option: "level", value: Math.min( MAX_ZOOM, getters.zoomOptions.level + ( MAX_ZOOM / 10 ))
             });
             break;
 
+        case 109:
         case 189: // -
             commit( "setToolOptionValue",
                 { tool: ToolTypes.ZOOM, option: "level", value: Math.max( MIN_ZOOM, getters.zoomOptions.level - ( MAX_ZOOM / 10 ))
@@ -324,6 +327,10 @@ function handleKeyDown( event ) {
 
 function handleKeyUp( event ) {
     shiftDown = false;
+
+    if ( event.keyCode === 32 ) { // spacebar
+        commit( "setDragMode", false );
+    }
 
     if ( optionDown ) {
         switch ( event.keyCode ) {

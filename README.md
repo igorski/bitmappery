@@ -55,13 +55,15 @@ npm run lint
 
 # TODO / Roadmap
 
+* Moving of masks broken ?
+* Verify saving and restoring of masked and rotated and positioned content
+* Transparency blocks should be rendered by zCanvas, not parent div
 * Copying selections on rotated content doesn't work
 * Copying selection should preserve original scale
 * Fill selection with color (make color not unique to brush, but generic tool prop)
 * Animate selection lines between white and black colors
 * When resizing document, positioned layers do not scale their position correctly
 * Layer bitmaps and masks must not be stored as Vue observables
-* Make canvas only as large as its wrapper. Use viewport in zCanvas to render visible content (requires custom scroll handlers for panning)
 * Layer view in options-panel: allow naming, repositioning, toggling visibility and opacity
 * Canvas util : store transparency of images into saved document
 * Restored base64 images should be treated as binary once more (see layer-factory)

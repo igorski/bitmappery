@@ -20,6 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import Vue from "vue";
 import { canvas } from "zcanvas";
 
 class ZoomableCanvas extends canvas {
@@ -30,13 +31,31 @@ class ZoomableCanvas extends canvas {
         this.setZoomFactor( 1 );
     }
 
-    setZoomFactor( xScale, yScale ) {
-        this.zoomFactor = xScale;
+    setZoomFactor( scale ) {
+        this.zoomFactor = scale;
 
         // This zoom factor logic should move into the zCanvas
         // library where updateCanvasSize() takes this additional factor into account
 
-        this._canvasContext.scale( xScale, yScale );
+        this._canvasContext.scale( scale, scale );
+
+        if ( this._viewport ) {
+            const { left, top, width, height } = this._viewport;
+
+            const scrollWidth  = this._width  - width;
+            const scrollHeight = this._height - height;
+
+            // cache the current scroll offset so we can zoom from the current offset
+            // note that by default we zoom from the center (when document was unscrolled)
+            const ratioX = Math.round( left / scrollWidth ) || .5;
+            const ratioY = Math.round( top / scrollHeight ) || .5;
+
+            // maintain relative scroll offset after rescale
+            this.panViewport(
+                ( scrollWidth  - width )  * ratioX,
+                ( scrollHeight - height ) * ratioY
+            );
+        }
         this.invalidate();
     }
 
@@ -48,7 +67,8 @@ class ZoomableCanvas extends canvas {
     }
 
     handleInteraction( aEvent ) {
-        const numChildren  = this._children.length;
+        const numChildren = this._children.length;
+        const viewport    = this._viewport;
         let theChild, touches, found;
 
         if ( numChildren > 0 ) {
@@ -65,7 +85,10 @@ class ZoomableCanvas extends canvas {
 
                     if ( touches.length > 0 ) {
                         const offset = this.getCoordinate();
-
+                        if ( viewport ) {
+                            offset.x -= viewport.left;
+                            offset.y -= viewport.top;
+                        }
                         eventOffsetX = ( touches[ 0 ].pageX - offset.x ) / this.zoomFactor ; // QQQ
                         eventOffsetY = ( touches[ 0 ].pageY - offset.y ) / this.zoomFactor; // QQQ
                     }
@@ -81,6 +104,10 @@ class ZoomableCanvas extends canvas {
                 case "mousemove":
                 case "mouseup":
                     let { offsetX, offsetY } = aEvent;
+                    if ( viewport ) {
+                        offsetX += viewport.left;
+                        offsetY += viewport.top;
+                    }
                     offsetX /= this.zoomFactor; // QQQ
                     offsetY /= this.zoomFactor; // QQQ
                     while ( theChild ) {
@@ -90,6 +117,15 @@ class ZoomableCanvas extends canvas {
                         }
                         theChild = theChild.last;
                     }
+                    break;
+
+                // scroll wheel
+                case "wheel":
+                    const { deltaX, deltaY } = aEvent;
+                    const WHEEL_SPEED = 20;
+                    const xSpeed = deltaX === 0 ? 0 : deltaX > 0 ? WHEEL_SPEED : -WHEEL_SPEED;
+                    const ySpeed = deltaY === 0 ? 0 : deltaY > 0 ? WHEEL_SPEED : -WHEEL_SPEED;
+                    this.panViewport( viewport.left + xSpeed, viewport.top + ySpeed, true );
                     break;
             }
         }

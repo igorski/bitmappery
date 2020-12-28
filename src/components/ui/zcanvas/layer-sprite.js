@@ -218,7 +218,7 @@ class LayerSprite extends sprite {
                 return super.handleMove( x, y );
             }
         }
-        // brush tool active (either draws/erasers onto IMAGE_GRAPHIC layer source
+        // brush tool active (either draws/erases onto IMAGE_GRAPHIC layer source
         // or on the mask bitmap)
         if ( this._applyBrush ) {
             // translate pointer to rotated space, when layer is rotated
@@ -246,7 +246,11 @@ class LayerSprite extends sprite {
     handlePress( x, y ) {
         if ( this._isColorPicker ) {
             const local = globalToLocal( this.canvas, x, y );
-            const p = this.canvas.getElement().getContext( "2d" ).getImageData( local.x, local.y, 1, 1 ).data;
+            const p = this.canvas.getElement().getContext( "2d" ).getImageData(
+                local.x - this.canvas._viewport.left,
+                local.y - this.canvas._viewport.top,
+                1, 1
+            ).data;
             this.canvas.store.commit( "setActiveColor", `rgba(${p[0]},${p[1]},${p[2]},${(p[3]/255)})` );
         } else if ( this._isBrushMode ) {
             this._applyBrush = true;
@@ -266,14 +270,18 @@ class LayerSprite extends sprite {
         }
     }
 
-    draw( documentContext ) {
-        super.draw( documentContext ); // renders bitmap
+    draw( documentContext, viewport ) {
+        const vp = { ...viewport };
+        Object.entries(vp).forEach(([key, value]) => {
+            vp[key] = value / this.canvas.zoomFactor; // QQQ to zCanvas.Sprite
+        });
+        super.draw( documentContext, vp ); // renders bitmap
 
         // render brush outline at pointer position
         if ( this._isBrushMode ) {
             documentContext.save();
             documentContext.beginPath();
-            documentContext.arc( this._pointerX, this._pointerY, this._radius, 0, 2 * Math.PI );
+            documentContext.arc( this._pointerX - vp.left, this._pointerY - vp.top, this._radius, 0, 2 * Math.PI );
             documentContext.stroke();
             documentContext.restore();
         }
@@ -283,11 +291,11 @@ class LayerSprite extends sprite {
             documentContext.beginPath();
             documentContext.lineWidth = 2 / this.canvas.zoomFactor;
             this.layer.selection.forEach(( point, index ) => {
-                documentContext[ index === 0 ? "moveTo" : "lineTo" ]( point.x, point.y );
+                documentContext[ index === 0 ? "moveTo" : "lineTo" ]( point.x - vp.left, point.y - vp.top );
             });
             // draw line to current cursor position
             if ( !this._selectionClosed ) {
-                documentContext.lineTo( this._pointerX, this._pointerY );
+                documentContext.lineTo( this._pointerX - vp.left, this._pointerY - vp.top );
             }
             documentContext.stroke();
             // highlight current cursor position
@@ -296,7 +304,7 @@ class LayerSprite extends sprite {
                 documentContext.lineWidth *= 1.5;
                 const firstPoint = this.layer.selection[ 0 ];
                 const size = firstPoint && isPointInRange( this._pointerX, this._pointerY, firstPoint.x, firstPoint.y ) ? 15 : 5;
-                documentContext.arc( this._pointerX, this._pointerY, size / this.canvas.zoomFactor, 0, 2 * Math.PI );
+                documentContext.arc( this._pointerX - vp.left, this._pointerY - vp.top, size / this.canvas.zoomFactor, 0, 2 * Math.PI );
                 documentContext.stroke();
             }
             documentContext.restore();

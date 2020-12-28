@@ -38,12 +38,23 @@
             class="content"
             :class="{ 'center': centerCanvas }"
         ></div>
+        <scrollbars
+            v-if="activeDocument"
+            ref="scrollbars"
+            :content-width="cvsWidth"
+            :content-height="cvsHeight"
+            :viewport-width="viewportWidth"
+            :viewport-height="viewportHeight"
+            @input="panViewport"
+        />
     </div>
 </template>
 
 <script>
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import ZoomableCanvas from "@/components/ui/zcanvas/zoomable-canvas";
+import Scrollpane from "@/components/ui/zcanvas/scrollpane";
+import Scrollbars from "./scrollbars/scrollbars";
 import ToolTypes, { MAX_ZOOM, calculateMaxScaling } from "@/definitions/tool-types";
 import { scaleToRatio, scaleValue } from "@/utils/image-math";
 import {
@@ -62,13 +73,21 @@ const layerPool = new Map();
 let xScale = 1, yScale = 1, zoom = 1, maxInScale = 1, maxOutScale = 1;
 
 export default {
+    components: {
+        Scrollbars,
+    },
     data: () => ({
         wrapperHeight: "auto",
         centerCanvas: false,
+        cvsWidth: 100,
+        cvsHeight: 100,
+        viewportWidth: 100,
+        viewportHeight: 100,
     }),
     computed: {
         ...mapState([
             "windowSize",
+            "dragMode",
         ]),
         ...mapGetters([
             "activeDocument",
@@ -143,27 +162,7 @@ export default {
             },
         },
         activeTool( tool ) {
-            const canvasClasses = getCanvasInstance()?.getElement().classList;
-            if ( !canvasClasses ) {
-                return;
-            }
-            canvasClasses.remove( ...canvasClasses );
-            switch ( tool ) {
-                default:
-                    break;
-                case ToolTypes.MOVE:
-                    canvasClasses.add( "cursor-move" );
-                    break;
-                case ToolTypes.BRUSH:
-                    canvasClasses.add( "no-cursor" );
-                    break;
-                case ToolTypes.LASSO:
-                    canvasClasses.add( "cursor-pointer" );
-                    break;
-                case ToolTypes.EYEDROPPER:
-                    canvasClasses.add( "cursor-crosshair" );
-                    break;
-            }
+            this.handleCursor();
         },
         zoomOptions: {
             deep: true,
@@ -174,23 +173,26 @@ export default {
                 } else {
                     zoom = 1 - scaleValue( Math.abs( level ), MAX_ZOOM, 1 - ( 1 / maxOutScale ));
                 }
-
-                // cache the current scroll offset so we can zoom from the current offset
-                // note that by default we zoom from the center (when document was unscrolled)
-                let { scrollLeft, scrollTop, scrollWidth, scrollHeight } = this.$refs.canvasContainer;
-                const ratioX = Math.round( scrollLeft / scrollWidth ) || .5;
-                const ratioY = Math.round( scrollTop / scrollHeight ) || .5;
-
                 // rescale canvas, note we omit the best fit calculation as we zoom from the calculated base
                 this.scaleCanvas( false );
-
-                // maintain relative scroll offset after rescale
-                let offsetWidth, offsetHeight;
-                ({ scrollWidth, scrollHeight, offsetWidth, offsetHeight } = this.$refs.canvasContainer );
-                this.$refs.canvasContainer.scrollLeft = ( scrollWidth  - offsetWidth )  * ratioX;
-                this.$refs.canvasContainer.scrollTop  = ( scrollHeight - offsetHeight ) * ratioY;
             }
         },
+        dragMode( value ) {
+            const zCanvas = getCanvasInstance();
+            if ( value ) {
+                this.drag = new Scrollpane({
+                    width  : zCanvas.getWidth()  / zoom * maxInScale,
+                    height : zCanvas.getHeight() / zoom * maxOutScale
+                });
+                zCanvas.addChild( this.drag );
+                const classList = zCanvas.getElement().classList;
+                classList.remove( ...classList );
+                classList.add( "cursor-move" );
+            } else {
+                this.drag.dispose();
+                this.handleCursor(); // restore cursor to value appropriate to current tool
+            }
+        }
     },
     mounted() {
         this.cacheContainerSize();
@@ -205,11 +207,16 @@ export default {
         createCanvas() {
             // note dimensions will be adjusted by scaleCanvas()
             const zCanvas = new ZoomableCanvas({
-                width: 100,
-                height: 100,
+                width: this.cvsWidth,
+                height: this.cvsHeight,
                 animate: false,
                 smoothing: true,
-                stretchToFit: false
+                stretchToFit: false,
+                viewport: {
+                    width: this.viewportWidth,
+                    height: this.viewportHeight
+                },
+                handler: this.handleCanvasEvent.bind( this ),
             }, this.$store );
             setCanvasInstance( zCanvas );
             return zCanvas;
@@ -228,6 +235,7 @@ export default {
             if ( !this.activeDocument ) {
                 return;
             }
+            const zCanvas = getCanvasInstance();
             if ( calculateBestFit ) {
                 const { width, height } = this.activeDocument;
                 const scaledSize = scaleToRatio( width, height, containerSize.width, containerSize.height );
@@ -237,21 +245,62 @@ export default {
                 const maxScaling = calculateMaxScaling( scaledSize.width, scaledSize.height, width, containerSize.width );
                 maxInScale  = maxScaling.in;
                 maxOutScale = maxScaling.out;
+                this.viewportWidth  = containerSize.width;
+                this.viewportHeight = containerSize.height;
+                zCanvas.setViewport( this.viewportWidth, this.viewportHeight );
             }
             this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
-            const zCanvas = getCanvasInstance();
-            // replace below by updated zCanvas lib to not multiply by zoom
-            zCanvas.setDimensions(
-                this.zCanvasBaseDimensions.width  * zoom,
-                this.zCanvasBaseDimensions.height * zoom,
-                true, true
-            );
+            // replace below with updated zCanvas lib to not multiply by zoom
+            this.cvsWidth  = this.zCanvasBaseDimensions.width  * zoom;
+            this.cvsHeight = this.zCanvasBaseDimensions.height * zoom;
+            zCanvas.setDimensions( this.cvsWidth, this.cvsHeight, true, true );
             zCanvas.setZoomFactor( xScale * zoom, yScale * zoom ); // replace with zCanvas.setZoom()
             this.centerCanvas = zCanvas.getWidth() < containerSize.width || zCanvas.getHeight() < containerSize.height ;
         },
         calcIdealDimensions() {
             this.cacheContainerSize();
             this.scaleCanvas();
+        },
+        panViewport({ left, top }) {
+            getCanvasInstance().panViewport(
+                Math.round( left * ( this.cvsWidth  - this.viewportWidth )),
+                Math.round( top  * ( this.cvsHeight - this.viewportHeight ))
+            );
+        },
+        handleCanvasEvent({ type, value }) {
+            switch ( type ) {
+                default:
+                    break;
+                case "panned":
+                    this.$refs.scrollbars?.update(
+                        value.left / ( this.cvsWidth  - this.viewportWidth ),
+                        value.top  / ( this.cvsHeight - this.viewportHeight )
+                    );
+                    break;
+            }
+        },
+        handleCursor() {
+            const canvasClasses = getCanvasInstance()?.getElement().classList;
+            if ( !canvasClasses ) {
+                return;
+            }
+            canvasClasses.remove( ...canvasClasses );
+            switch ( this.activeTool ) {
+                default:
+                    break;
+                case ToolTypes.MOVE:
+                    canvasClasses.add( "cursor-move" );
+                    break;
+                case ToolTypes.BRUSH:
+                    canvasClasses.add( "no-cursor" );
+                    break;
+                case ToolTypes.LASSO:
+                    canvasClasses.add( "cursor-pointer" );
+                    break;
+                case ToolTypes.EYEDROPPER:
+                    canvasClasses.add( "cursor-crosshair" );
+                    break;
+            }
         },
     },
 };
@@ -270,7 +319,7 @@ export default {
     .content {
         position: relative;
         padding: 0;
-        overflow: auto;
+        overflow: none;
         display: block;
 
         &.center canvas {
