@@ -22,6 +22,7 @@
  */
 import { canvas, loader } from "zcanvas";
 import { PNG } from "@/definitions/image-types";
+import { LAYER_TEXT } from "@/definitions/layer-types";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { createCanvas, resizeToBase64 } from "@/utils/canvas-util";
 import { getRotatedSize, getRotationCenter, getRectangleForSelection } from "@/utils/image-math";
@@ -47,6 +48,10 @@ export const renderEffectsForLayer = async layer => {
         ({ cvs } = createCanvas( width, height ));
     }
     const ctx = cvs.getContext( "2d" );
+
+    if ( layer.type === LAYER_TEXT ) {
+        await renderText( layer );
+    }
 
     if ( hasEffects( layer )) {
         await renderTransformedSource( layer, ctx, layer.source, width, height, effects );
@@ -130,6 +135,17 @@ const hasEffects = ( layer ) => {
     }
     const { effects } = layer;
     return effects.rotation !== 0 || effects.mirrorX || effects.mirrorY;
+};
+
+const renderText = async layer => {
+    const { text } = layer;
+    const sourceCtx = layer.source.getContext( "2d" );
+
+    sourceCtx.clearRect( 0, 0, layer.source.width, layer.source.height );
+
+    sourceCtx.font = `${text.size}pt ${text.font}`;
+    sourceCtx.fillStyle = text.color;
+    sourceCtx.fillText( text.value, 0, text.size );
 };
 
 const renderTransformedSource = async ( layer, ctx, sourceBitmap, width, height, { mirrorX, mirrorY, rotation }) => {

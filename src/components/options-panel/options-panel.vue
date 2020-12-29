@@ -134,6 +134,8 @@ export default {
                     return () => import( "./tool-options-rotate/tool-options-rotate" );
                 case ToolTypes.MIRROR:
                     return () => import( "./tool-options-mirror/tool-options-mirror" );
+                case ToolTypes.TEXT:
+                    return () => import( "./tool-options-text/tool-options-text" );
             }
         },
     },

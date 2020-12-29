@@ -23,7 +23,7 @@
 import Vue from "vue";
 import { sprite } from "zcanvas";
 import { createCanvas, resizeImage, globalToLocal } from "@/utils/canvas-util";
-import { LAYER_GRAPHIC, LAYER_MASK } from "@/definitions/layer-types";
+import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
 import { isPointInRange, translatePointerRotation } from "@/utils/image-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import ToolTypes from "@/definitions/tool-types";
@@ -40,7 +40,7 @@ class LayerSprite extends sprite {
 
         this.layer = layer; // the Layer this Sprite will be rendering
 
-        if ( layer.type === LAYER_GRAPHIC && !layer.source ) {
+        if ([ LAYER_GRAPHIC, LAYER_TEXT ].includes( layer.type ) && !layer.source ) {
             // create a Canvas on which this layer will render its drawable content.
             const { cvs } = createCanvas( layer.width, layer.height );
             layer.source = cvs;
@@ -69,10 +69,6 @@ class LayerSprite extends sprite {
 
     setActionTarget( target = "source" ) {
         this.actionTarget = target;
-    }
-
-    isDrawable() {
-        return this.layer.type === LAYER_GRAPHIC || this.isMaskable();
     }
 
     isMaskable() {

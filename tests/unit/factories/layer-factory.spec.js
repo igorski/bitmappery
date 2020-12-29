@@ -7,16 +7,31 @@ jest.mock( "@/utils/canvas-util", () => ({
     base64ToLayerImage: (...args) => mockUpdateFn?.( "base64ToLayerImage", ...args ),
 }));
 jest.mock( "@/factories/effects-factory", () => ({
-    create: (...args) => mockUpdateFn?.( "create", ...args ),
-    serialize: (...args) => mockUpdateFn?.( "serialize", ...args ),
-    deserialize: (...args) => mockUpdateFn?.( "deserialize", ...args ),
+    create: (...args) => mockUpdateFn?.( "createEffect", ...args ),
+    serialize: (...args) => mockUpdateFn?.( "serializeEffect", ...args ),
+    deserialize: (...args) => mockUpdateFn?.( "deserializeEffect", ...args ),
+}));
+jest.mock( "@/factories/text-factory", () => ({
+    create: (...args) => mockUpdateFn?.( "createText", ...args ),
+    serialize: (...args) => mockUpdateFn?.( "serializeText", ...args ),
+    deserialize: (...args) => mockUpdateFn?.( "deserializeText", ...args ),
 }));
 
 describe( "Layer factory", () => {
     describe( "when creating a new layer", () => {
         it( "should create a default Layer structure when no arguments are passed", () => {
             const mockEffects = { foo: "bar" };
-            mockUpdateFn = fn => fn === "create" ? mockEffects : {};
+            const mockText = { value: "lorem ipsum dolor sit amet" };
+            mockUpdateFn = fn => {
+                switch( fn ) {
+                    default:
+                        return {};
+                    case "createEffect":
+                        return mockEffects;
+                    case "createText":
+                        return mockText;
+                }
+            }
             const layer = LayerFactory.create();
             expect( layer ).toEqual({
                 id: expect.any( String ),
@@ -31,6 +46,7 @@ describe( "Layer factory", () => {
                 width: 1,
                 height: 1,
                 visible: true,
+                text: mockText,
                 effects: mockEffects,
                 selection: null,
             });
@@ -50,6 +66,9 @@ describe( "Layer factory", () => {
                 width: 16,
                 height: 9,
                 visible: false,
+                text: {
+                    value: "Lorem ipsum",
+                },
                 effects: {
                     rotation: 270,
                 },
@@ -67,6 +86,9 @@ describe( "Layer factory", () => {
                 width: 16,
                 height: 9,
                 visible: false,
+                text: {
+                    value: "Lorem ipsum"
+                },
                 effects: {
                     rotation: 270,
                 },
@@ -87,6 +109,9 @@ describe( "Layer factory", () => {
                 width: 16,
                 height: 9,
                 visible: false,
+                text: {
+                    value: "Foo bar baz",
+                },
                 effects: {
                     rotation: -90,
                 },
@@ -96,13 +121,15 @@ describe( "Layer factory", () => {
             const serialized = LayerFactory.serialize( layer );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "imageToBase64", layer.source, layer.width, layer.height );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "imageToBase64", layer.mask,   layer.width, layer.height );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "serialize", layer.effects );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "serializeText", layer.text );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 4, "serializeEffect", layer.effects );
 
             mockUpdateFn = jest.fn(( fn, data ) => data );
             const deserialized = await LayerFactory.deserialize( serialized );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "base64ToLayerImage", expect.any( Object ), LAYER_IMAGE, layer.width, layer.height );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "base64ToLayerImage", expect.any( Object ), LAYER_MASK, layer.width, layer.height );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "deserialize", layer.effects );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "deserializeText",    layer.text );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 4, "deserializeEffect",  layer.effects );
 
             // note id's are unique per created session instance and therefor will differ
             expect({

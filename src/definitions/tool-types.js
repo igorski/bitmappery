@@ -31,11 +31,12 @@ export default {
     ROTATE     : "rotate",
     ERASER     : "eraser",
     BRUSH      : "brush",
+    TEXT       : "text",
     ZOOM       : "zoom",
 };
 
-export const canUseBrush = ( activeDocument, activeLayer ) => {
-    return activeDocument && ( activeLayer.mask || activeLayer.type === LAYER_GRAPHIC );
+export const canDraw = ( activeDocument, activeLayer ) => {
+    return activeDocument && ( activeLayer?.mask || activeLayer?.type === LAYER_GRAPHIC );
 };
 
 // UI variables

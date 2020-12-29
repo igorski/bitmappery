@@ -20,7 +20,40 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-export const LAYER_GRAPHIC = "graphic";
-export const LAYER_IMAGE   = "image";
-export const LAYER_MASK    = "mask";
-export const LAYER_TEXT    = "text";
+const TextFactory = {
+    create({ font = "Arial", value = "", size = 16, color = "red" } = {}) {
+        return {
+            font,
+            value,
+            size,
+            color,
+        };
+    },
+
+    /**
+     * Saving text properties into a simplified JSON structure
+     * for project storage
+     */
+    serialize( text ) {
+        return {
+            f: text.font,
+            v: text.value,
+            s: text.size,
+            c: text.color,
+        };
+    },
+
+    /**
+     * Creating a new text instance from a stored text structure
+     * inside a stored projects layer
+     */
+     deserialize( text = {} ) {
+         return TextFactory.create({
+             font: text.f,
+             value: text.v,
+             size: text.s,
+             color: text.c,
+         });
+     }
+};
+export default TextFactory;

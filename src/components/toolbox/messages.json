@@ -9,6 +9,8 @@
         "zoom": "Zoom",
         "eraser": "Eraser",
         "brush": "Brush",
+        "text": "Text",
+        "newTextLayer": "New text layer",
         "color": "Color"
     }
 }

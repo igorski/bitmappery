@@ -67,7 +67,7 @@
 
 <script>
 import { mapState, mapGetters, mapMutations } from "vuex";
-import { LAYER_GRAPHIC, LAYER_MASK } from "@/definitions/layer-types";
+import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
 import ToolTypes from "@/definitions/tool-types";
 import messages  from "./messages.json";
 
@@ -96,6 +96,7 @@ export default {
             }
         },
         tools() {
+            const canDraw = this.activeDocument && ( this.activeLayer?.mask || this.activeLayer?.type === LAYER_GRAPHIC );
             return [
                 {
                     type: ToolTypes.MOVE,
@@ -125,12 +126,17 @@ export default {
                 {
                     type: ToolTypes.ERASER,
                     i18n: "eraser", icon: "eraser", key: "E",
-                    disabled: !this.activeDocument || !( this.activeLayer?.mask || this.activeLayer?.type === LAYER_GRAPHIC )
+                    disabled: !canDraw
                 },
                 {
                     type: ToolTypes.BRUSH,
                     i18n: "brush", icon: "paintbrush", key: "B",
-                    disabled: !this.activeDocument || !( this.activeLayer?.mask || this.activeLayer?.type === LAYER_GRAPHIC )
+                    disabled: !canDraw
+                },
+                {
+                    type: ToolTypes.TEXT,
+                    i18n: "text", icon: "text", key: "T",
+                    disabled: !this.activeDocument,
                 },
                 {
                     type: ToolTypes.ZOOM,
@@ -158,25 +164,33 @@ export default {
             if ( !layer ) {
                 return;
             }
-            switch ( layer.type ) {
+            switch ( this.activeTool ) {
                 default:
-                    // brushing only allowed on graphic type layers
-                    if ( this.activeTool === ToolTypes.BRUSH ) {
-                        this.setTool( ToolTypes.MOVE );
+                    return;
+                case ToolTypes.BRUSH:
+                    if ( !layer.mask ) {
+                        this.setTool( null );
                     }
                     break;
-                case LAYER_GRAPHIC:
+                case ToolTypes.TEXT:
+                    if ( !layer.type === LAYER_TEXT ) {
+                        this.setTool( null );
+                    }
                     break;
             }
         },
     },
     methods: {
         ...mapMutations([
+            "addLayer",
             "setActiveTool",
             "setToolboxOpened",
             "setActiveColor",
         ]),
         setTool( tool ) {
+            if ( tool === ToolTypes.TEXT && this.activeLayer?.type !== LAYER_TEXT ) {
+                this.addLayer({ type: LAYER_TEXT, name: this.$t( "newTextLayer") });
+            }
             this.setActiveTool({ tool, activeLayer: this.activeLayer });
         },
     },

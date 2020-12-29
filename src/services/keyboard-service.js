@@ -20,8 +20,9 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { ADD_LAYER } from "@/definitions/modal-windows";
-import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM, canUseBrush } from "@/definitions/tool-types";
+import { ADD_LAYER }  from "@/definitions/modal-windows";
+import { LAYER_TEXT } from "@/definitions/layer-types";
+import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM, canDraw } from "@/definitions/tool-types";
 import { getCanvasInstance } from "@/factories/sprite-factory";
 
 let state, getters, commit, dispatch, listener,
@@ -178,7 +179,7 @@ function handleKeyDown( event ) {
             break;
 
         case 66: // B
-            if ( canUseBrush( getters.activeDocument, getters.activeLayer )) {
+            if ( canDraw( getters.activeDocument, getters.activeLayer )) {
                 setActiveTool( ToolTypes.BRUSH );
             }
             break;
@@ -200,7 +201,7 @@ function handleKeyDown( event ) {
             break;
 
         case 69: // E
-            if ( canUseBrush( getters.activeDocument, getters.activeLayer )) {
+            if ( canDraw( getters.activeDocument, getters.activeLayer )) {
                 setActiveTool( ToolTypes.ERASER );
             }
             break;
@@ -262,6 +263,11 @@ function handleKeyDown( event ) {
             if ( hasOption ) {
                 commit( "setToolboxOpened", !state.toolboxOpened );
                 preventDefault( event );
+            } else if ( getters.activeDocument ) {
+                if ( getters.activeLayer?.type !== LAYER_TEXT ) {
+                    commit( "addLayer", { type: LAYER_TEXT });
+                }
+                setActiveTool( ToolTypes.TEXT );
             }
             break;
 

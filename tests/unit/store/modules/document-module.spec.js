@@ -155,16 +155,34 @@ describe( "Vuex document module", () => {
         describe( "when adding layers", () => {
             it( "should be able to add a Layer to the active Document", () => {
                 const state = {
-                    documents: [ { name: "foo", layers: [] } ],
+                    documents: [ { name: "foo", width: 1000, height: 1000, layers: [] } ],
                     activeIndex: 0
                 };
-                const mockLayer = { name: "bar" };
-                mockUpdateFn = jest.fn(() => mockLayer );
-                const opts = { name: "baz", width: 50, height: 100 };
+                mockUpdateFn = jest.fn((fn, data) => data );
+                const opts = { name: "layer1", width: 50, height: 100 };
                 mutations.addLayer( state, opts );
                 // assert LayerFactory is invoked with provided opts when calling addLayer()
                 expect( mockUpdateFn ).toHaveBeenCalledWith( "create", opts );
-                expect( state.documents[ 0 ].layers ).toEqual([ mockLayer ]);
+                expect( state.documents[ 0 ].layers ).toEqual([{
+                    name: "layer1",
+                    width: 50,
+                    height: 100
+                } ]);
+            });
+
+            it( "when adding a Layer without specified dimensions, these should default to the Document dimensions", () => {
+                const state = {
+                    documents: [ { name: "foo", width: 1000, height: 1000, layers: [] } ],
+                    activeIndex: 0
+                };
+                mockUpdateFn = jest.fn((fn, data) => data );
+                const opts = { name: "layer1" };
+                mutations.addLayer( state, opts );
+                expect( state.documents[ 0 ].layers ).toEqual([{
+                    name: "layer1",
+                    width: state.documents[ 0 ].width,
+                    height: state.documents[ 0 ].height
+                }]);
             });
 
             it( "should update the active layer index to the last added layers index", () => {

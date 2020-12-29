@@ -199,8 +199,6 @@ export default {
             "setMenuOpened",
             "openModal",
             "setActiveDocument",
-            "addNewDocument",
-            "addLayer",
             "closeActiveDocument",
             "setSelectionContent",
         ]),
@@ -408,7 +406,7 @@ h1 {
 
             @include mobile() {
                 color: #666;
-                
+
                 &:disabled {
                     color: #b6b6b6;
                 }
