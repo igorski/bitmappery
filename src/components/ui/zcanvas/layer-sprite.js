@@ -36,7 +36,7 @@ import ToolTypes from "@/definitions/tool-types";
 class LayerSprite extends sprite {
     constructor( layer ) {
         const { bitmap, x, y, width, height } = layer;
-        super({ bitmap, x, y, width, height } ); // zCanvas inheritance
+        super({ bitmap, x, y, width, height }); // zCanvas inheritance
 
         this.layer = layer; // the Layer this Sprite will be rendering
 
@@ -221,9 +221,10 @@ class LayerSprite extends sprite {
                 this.layer.maskY = this._dragStartOffset.y + ( y - this._dragStartEventCoordinates.y );
                 recacheEffects = true;
             } else if ( !this._isSelectMode ) {
-                this.layer.x = x;
-                this.layer.y = y;
-                return super.handleMove( x, y );
+                super.handleMove( x, y );
+                this.layer.x = this._bounds.left;
+                this.layer.y = this._bounds.top;
+                return;
             }
         }
         // brush tool active (either draws/erases onto IMAGE_GRAPHIC layer source
@@ -283,7 +284,7 @@ class LayerSprite extends sprite {
 
     draw( documentContext, viewport ) {
         const vp = { ...viewport };
-        Object.entries(vp).forEach(([key, value]) => {
+        Object.entries( vp ).forEach(([ key, value ]) => {
             vp[key] = value / this.canvas.zoomFactor; // QQQ to zCanvas.Sprite
         });
         super.draw( documentContext, vp ); // renders bitmap

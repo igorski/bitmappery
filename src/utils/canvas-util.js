@@ -23,8 +23,7 @@
 import { canvas, loader } from "zcanvas";
 import { JPEG, PNG }      from "@/definitions/image-types";
 import { LAYER_GRAPHIC, LAYER_IMAGE, LAYER_MASK } from "@/definitions/layer-types";
-import { getSpriteForLayer }        from "@/factories/sprite-factory";
-import { getRectangleForSelection } from "@/utils/image-math";
+import { getSpriteForLayer } from "@/factories/sprite-factory";
 
 /**
  * Creates a new HTMLCanvasElement, returning both
@@ -100,38 +99,6 @@ export const resizeToBase64 = async ( image, srcWidth, srcHeight, targetWidth, t
     }
     const cvs = await resizeImage( image, srcWidth, srcHeight, targetWidth, targetHeight );
     return cvs.toDataURL( mime, encoderOptions );
-};
-
-/**
- * Copy the selection defined in activeLayer into a separate Image
- */
-export const copySelection = async ( activeDocument, activeLayer ) => {
-    const { width, height } = activeDocument;
-    const tempCanvas = new canvas({ width, height });
-    let ctx = tempCanvas.getElement().getContext( "2d" );
-    const sprite = getSpriteForLayer( activeLayer );
-
-    ctx.beginPath();
-    activeLayer.selection.forEach(( point, index ) => {
-        ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x, point.y );
-    });
-    ctx.closePath();
-    ctx.save();
-    ctx.clip();
-    // draw active layer onto temporary canvas at full document scale
-    sprite._isSelectMode = false; // prevents drawing selection outline into image
-    sprite.draw( ctx );
-    ctx.restore();
-
-    const selectionRectangle = getRectangleForSelection( activeLayer.selection );
-    const selectionCanvas = createCanvas( selectionRectangle.width, selectionRectangle.height );
-    selectionCanvas.ctx.drawImage(
-        tempCanvas.getElement(),
-        selectionRectangle.left, selectionRectangle.top, selectionRectangle.width, selectionRectangle.height,
-        0, 0, selectionRectangle.width, selectionRectangle.height
-    );
-    tempCanvas.dispose();
-    return await loader.loadImage( selectionCanvas.cvs.toDataURL( PNG ));
 };
 
 /**

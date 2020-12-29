@@ -20,10 +20,11 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { canvas } from "zcanvas";
+import { canvas, loader } from "zcanvas";
+import { PNG } from "@/definitions/image-types";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
-import { createCanvas, resizeToBase64 }      from "@/utils/canvas-util";
-import { getRotatedSize, getRotationCenter } from "@/utils/image-math";
+import { createCanvas, resizeToBase64 } from "@/utils/canvas-util";
+import { getRotatedSize, getRotationCenter, getRectangleForSelection } from "@/utils/image-math";
 
 const queue = [];
 
@@ -62,9 +63,8 @@ export const renderEffectsForLayer = async layer => {
  * Creates a snapshot of the current document at its full size, returns a Blob.
  */
 export const createDocumentSnapshot = async ( activeDocument, type, quality ) => {
-    const { width, height } = activeDocument;
-    const tempCanvas = new canvas({ width, height, viewport: { width, height } });
-    const ctx = tempCanvas.getElement().getContext( "2d" );
+    const { zcvs, cvs, ctx } = createFullSizeCanvas( activeDocument );
+    const { width, height }  = activeDocument;
 
     // draw existing layers onto temporary canvas at full document scale
     const { layers } = activeDocument;
@@ -72,11 +72,11 @@ export const createDocumentSnapshot = async ( activeDocument, type, quality ) =>
         const layer = layers[ i ];
         const sprite = getSpriteForLayer( layer );
         await renderEffectsForLayer( layer );
-        sprite.draw( ctx, tempCanvas._viewport );
+        sprite.draw( ctx, zcvs._viewport );
     }
     quality = parseFloat(( quality / 100 ).toFixed( 2 ));
-    let base64 = tempCanvas.getElement().toDataURL( type, quality );
-    tempCanvas.dispose();
+    let base64 = cvs.toDataURL( type, quality );
+    zcvs.dispose();
 
     // zCanvas magnifies content by the pixel ratio for a crisper result, downscale
     // to actual dimensions of the document
@@ -90,6 +90,36 @@ export const createDocumentSnapshot = async ( activeDocument, type, quality ) =>
     // fetch final base64 data so we can convert it easily to binary
     base64 = await fetch( resizedImage );
     return await base64.blob();
+};
+
+/**
+ * Copy the selection defined in activeLayer into a separate Image
+ */
+export const copySelection = async ( activeDocument, activeLayer ) => {
+    const { zcvs, cvs, ctx } = createFullSizeCanvas( activeDocument );
+    const sprite = getSpriteForLayer( activeLayer );
+
+    ctx.beginPath();
+    activeLayer.selection.forEach(( point, index ) => {
+        ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x, point.y );
+    });
+    ctx.closePath();
+    ctx.save();
+    ctx.clip();
+    // draw active layer onto temporary canvas at full document scale
+    sprite._isSelectMode = false; // prevents drawing selection outline into image
+    sprite.draw( ctx, zcvs._viewport );
+    ctx.restore();
+
+    const selectionRectangle = getRectangleForSelection( activeLayer.selection );
+    const selectionCanvas = createCanvas( selectionRectangle.width, selectionRectangle.height );
+    selectionCanvas.ctx.drawImage(
+        cvs,
+        selectionRectangle.left, selectionRectangle.top, selectionRectangle.width, selectionRectangle.height,
+        0, 0, selectionRectangle.width, selectionRectangle.height
+    );
+    zcvs.dispose();
+    return await loader.loadImage( selectionCanvas.cvs.toDataURL( PNG ));
 };
 
 /* internal methods */
@@ -142,3 +172,16 @@ const renderMask = async( layer, ctx, tX = 0, tY = 0 ) => {
     ctx.drawImage( layer.mask, layer.maskX, layer.maskY );
     ctx.restore();
 }
+
+/**
+ * Create a (temporary) instance of zCanvas at the full document size.
+ * This is used when creating snapshots
+ */
+const createFullSizeCanvas = document => {
+    const { width, height } = document;
+    const zcvs = new canvas({ width, height, viewport: { width: width * 10, height: height * 10 } });
+    const cvs  = zcvs.getElement();
+    const ctx  = cvs.getContext( "2d" );
+
+    return { zcvs, cvs, ctx };
+};

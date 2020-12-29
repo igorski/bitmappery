@@ -56,11 +56,10 @@ npm run lint
 
 # TODO / Roadmap
 
-* Issue with exporting images
+* Transparency blocks should be rendered by zCanvas, not parent div
+* Restoring positions of documents with positioned rotated objects is not accurate
 * Issue with drawing mask on mirrored content
 * Moving of flipped / rotated content leads to occasional non-renders (isInsideViewport doesn't take rotated rectangles into account)
-* Verify saving and restoring of masked and rotated and positioned content
-* Transparency blocks should be rendered by zCanvas, not parent div
 * Copying selections on rotated content doesn't work
 * Copying selection should preserve original scale
 * Fill selection with color (make color not unique to brush, but generic tool prop)

@@ -405,6 +405,14 @@ h1 {
             &:disabled {
                 color: #666;
             }
+
+            @include mobile() {
+                color: #666;
+                
+                &:disabled {
+                    color: #b6b6b6;
+                }
+            }
         }
 
         ul {

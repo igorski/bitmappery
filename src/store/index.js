@@ -29,7 +29,7 @@ import canvasModule    from "./modules/canvas-module";
 import documentModule  from "./modules/document-module";
 import imageModule     from "./modules/image-module";
 import toolModule      from "./modules/tool-module";
-import { copySelection } from "@/utils/canvas-util";
+import { copySelection } from "@/services/render-service";
 import { saveBlobAsFile, selectFile, readFile } from "@/utils/file-util";
 import { truncate } from "@/utils/string-util";
 
@@ -172,7 +172,7 @@ export default {
         },
         pasteSelection({ commit, dispatch, state }) {
             commit( "addLayer",
-                { type: LAYER_IMAGE, bitmap: state.selectionContent.image, ...state.selectionContent.size }
+                { type: LAYER_IMAGE, source: state.selectionContent.image, ...state.selectionContent.size }
             );
             dispatch( "clearSelection" );
         },
