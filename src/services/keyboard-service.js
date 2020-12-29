@@ -204,6 +204,12 @@ function handleKeyDown( event ) {
             }
             break;
 
+        case 70: // F
+            if ( getters.activeLayer ) {
+                setActiveTool( ToolTypes.MIRROR );
+            }
+            break;
+
         case 73: // I
             if ( getters.activeLayer ) {
                 setActiveTool( ToolTypes.EYEDROPPER );

@@ -95,14 +95,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/tool-option";
-
-.actions {
-    display: flex;
-    margin-top: $spacing-medium;
-    button {
-        flex: 1;
-        margin: 0 $spacing-small;
-    }
-}
+@import "@/styles/options-panel";
 </style>

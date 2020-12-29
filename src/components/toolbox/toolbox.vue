@@ -35,7 +35,7 @@
             <button v-for="(tool, index) in tools"
                     :key="tool.type"
                     type="button"
-                    v-tooltip="$t( tool.i18n )"
+                    v-tooltip="`${$t( tool.i18n )} (${tool.key})`"
                     :title="$t( tool.i18n )"
                     class="tool-button"
                     :class="{
@@ -92,37 +92,42 @@ export default {
             return [
                 {
                     type: ToolTypes.MOVE,
-                    i18n: "dragLayer", icon: "drag",
+                    i18n: "dragLayer", icon: "drag", key: "M",
                     disabled: !this.activeDocument
                 },
                 {
                     type: ToolTypes.LASSO,
-                    i18n: "polygonalLasso", icon: "selection",
+                    i18n: "polygonalLasso", icon: "selection", key: "L",
                     disabled: !this.activeDocument
                 },
                 {
                     type: ToolTypes.EYEDROPPER,
-                    i18n: "eyedropper", icon: "eyedropper",
+                    i18n: "eyedropper", icon: "eyedropper", key: "I",
                     disabled: !this.activeLayer
                 },
                 {
                     type: ToolTypes.ROTATE,
-                    i18n: "rotateLayer", icon: "rotate",
+                    i18n: "rotateLayer", icon: "rotate", key: "R",
+                    disabled: !this.activeLayer
+                },
+                {
+                    type: ToolTypes.MIRROR,
+                    i18n: "mirrorLayer", icon: "mirror", key: "F",
                     disabled: !this.activeLayer
                 },
                 {
                     type: ToolTypes.ERASER,
-                    i18n: "eraser", icon: "eraser",
+                    i18n: "eraser", icon: "eraser", key: "E",
                     disabled: !this.activeDocument || !( this.activeLayer?.mask || this.activeLayer?.type === LAYER_GRAPHIC )
                 },
                 {
                     type: ToolTypes.BRUSH,
-                    i18n: "brush", icon: "paintbrush",
+                    i18n: "brush", icon: "paintbrush", key: "B",
                     disabled: !this.activeDocument || !( this.activeLayer?.mask || this.activeLayer?.type === LAYER_GRAPHIC )
                 },
                 {
                     type: ToolTypes.ZOOM,
-                    i18n: "zoom", icon: "zoom",
+                    i18n: "zoom", icon: "zoom", key: "Z",
                     disabled: !this.activeDocument
                 },
             ]

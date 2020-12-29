@@ -160,6 +160,7 @@ export default {
 <style lang="scss" scoped>
 @import "@/styles/_mixins";
 @import "@/styles/typography";
+@import "@/styles/options-panel";
 
 h3 {
     color: #FFF;
@@ -201,16 +202,6 @@ h3 {
     }
     .highlight {
         color: #FFF;
-    }
-}
-
-.actions {
-    margin-top: $spacing-small;
-    display: flex;
-
-    button {
-        flex: 1;
-        margin: 0 $spacing-small;
     }
 }
 </style>

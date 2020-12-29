@@ -56,6 +56,7 @@ npm run lint
 # TODO / Roadmap
 
 * Moving of masks broken ?
+* Issue with drawing mask on mirrored content
 * Verify saving and restoring of masked and rotated and positioned content
 * Transparency blocks should be rendered by zCanvas, not parent div
 * Copying selections on rotated content doesn't work

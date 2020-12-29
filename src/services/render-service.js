@@ -47,7 +47,7 @@ export const renderEffectsForLayer = async layer => {
     const ctx = cvs.getContext( "2d" );
 
     if ( hasEffects( layer )) {
-        await renderTransformedSource( layer, ctx, layer.source, width, height, effects.rotation );
+        await renderTransformedSource( layer, ctx, layer.source, width, height, effects );
     } else {
         ctx.drawImage( layer.source, 0, 0 );
     }
@@ -60,16 +60,31 @@ export const renderEffectsForLayer = async layer => {
 /* internal methods */
 
 const hasEffects = ( layer ) => {
+    if ( !!layer.mask ) {
+        return true;
+    }
     const { effects } = layer;
-    return !!layer.mask || effects.rotation !== 0;
+    return effects.rotation !== 0 || effects.mirrorX || effects.mirrorY;
 };
 
-const renderTransformedSource = async ( layer, ctx, sourceBitmap, width, height, rotation ) => {
+const renderTransformedSource = async ( layer, ctx, sourceBitmap, width, height, { mirrorX, mirrorY, rotation }) => {
     const rotate = ( rotation % 360 ) !== 0;
-    let targetX = 0, targetY = 0;
+    let targetX = mirrorX ? -width  : 0;
+    let targetY = mirrorY ? -height : 0;
+
+    const xScale = mirrorX ? -1 : 1;
+    const yScale = mirrorY ? -1 : 1;
+
+    ctx.save();
+    ctx.scale( xScale, yScale );
+
     if ( rotate ) {
-        const { x, y } = getRotationCenter({ left: 0, top: 0, width, height });
-        ctx.save();
+        const { x, y } = getRotationCenter({
+            left   : 0,
+            top    : 0,
+            width  : mirrorX ? -width : width,
+            height : mirrorY ? -height : height
+        });
         ctx.translate( x, y );
         ctx.rotate( rotation );
         ctx.translate( -x, -y );
@@ -78,9 +93,8 @@ const renderTransformedSource = async ( layer, ctx, sourceBitmap, width, height,
     }
     ctx.drawImage( sourceBitmap, targetX, targetY );
     await renderMask( layer, ctx, targetX, targetY );
-    if ( rotate ) {
-        ctx.restore();
-    }
+
+    ctx.restore();
 }
 
 const renderMask = async( layer, ctx, tX = 0, tY = 0 ) => {

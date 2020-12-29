@@ -94,5 +94,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/tool-option";
+@import "@/styles/options-panel";
 </style>

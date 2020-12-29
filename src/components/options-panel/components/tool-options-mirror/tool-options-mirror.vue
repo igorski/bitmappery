@@ -22,53 +22,52 @@
  */
 <template>
     <div class="tool-option">
-        <h3 v-t="'brush'"></h3>
-        <div class="wrapper input">
-            <label v-t="'brushSize'"></label>
-            <slider
-                v-model="brushSize"
-                :min="1"
-                :max="MAX_BRUSH_SIZE"
-            />
+        <h3 v-t="'mirror'"></h3>
+        <div class="actions">
+            <button
+                v-t="'flipHorizontal'"
+                type="button"
+                class="button button--small"
+                @click="flipHorizontal"
+            ></button>
+            <button
+                v-t="'flipVertical'"
+                type="button"
+                class="button button--small"
+                @click="flipVertical"
+            ></button>
         </div>
     </div>
 </template>
 
 <script>
-import { mapGetters, mapMutations }  from "vuex";
-import ToolTypes, { MAX_BRUSH_SIZE } from "@/definitions/tool-types";
-import Slider   from "@/components/ui/slider/slider";
-import messages from "./messages.json";
+import { mapGetters, mapMutations } from "vuex";
+import messages  from "./messages.json";
 
 export default {
     i18n: { messages },
-    components: {
-        Slider,
-    },
-    data: () => ({
-        MAX_BRUSH_SIZE,
-    }),
     computed: {
         ...mapGetters([
-            "brushOptions",
+            "activeLayerIndex",
+            "activeLayerEffects",
         ]),
-        brushSize: {
-            get() {
-                return this.brushOptions.size;
-            },
-            set( value ) {
-                this.setToolOptionValue({
-                    tool: ToolTypes.BRUSH,
-                    option: "size",
-                    value,
-                });
-            },
-        },
     },
     methods: {
         ...mapMutations([
-            "setToolOptionValue",
+            "updateLayerEffects",
         ]),
+        flipHorizontal() {
+            this.updateLayerEffects({
+                index: this.activeLayerIndex,
+                effects: { mirrorX: !this.activeLayerEffects.mirrorX  }
+            });
+        },
+        flipVertical() {
+            this.updateLayerEffects({
+                index: this.activeLayerIndex,
+                effects: { mirrorY: !this.activeLayerEffects.mirrorY  }
+            });
+        },
     },
 };
 </script>

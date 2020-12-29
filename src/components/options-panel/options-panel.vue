@@ -126,6 +126,8 @@ export default {
                     return () => import( "./components/tool-options-brush/tool-options-brush" );
                 case ToolTypes.ROTATE:
                     return () => import( "./components/tool-options-rotate/tool-options-rotate" );
+                case ToolTypes.MIRROR:
+                    return () => import( "./components/tool-options-mirror/tool-options-mirror" );
             }
         },
     },

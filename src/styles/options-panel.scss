@@ -10,3 +10,13 @@
         color: #FFF;
     }
 }
+
+.actions {
+    margin: $spacing-small 0;
+    display: flex;
+
+    button {
+        flex: 1;
+        margin: 0 $spacing-small;
+    }
+}
