@@ -64,8 +64,8 @@
 
 <script>
 import { mapState, mapGetters, mapMutations } from "vuex";
-import FileSelector from "./components/file-selector/file-selector";
-import Layers       from "./components/layers/layers";
+import FileSelector from "./file-selector/file-selector";
+import Layers       from "./layers/layers";
 import SelectBox    from "@/components/ui/select-box/select-box";
 import ToolTypes    from "@/definitions/tool-types";
 import { mapSelectOptions } from "@/utils/search-select-util"
@@ -117,7 +117,7 @@ export default {
                 default:
                     return null;
                 case true:
-                    return () => import( "./components/dropbox-connector/dropbox-connector" );
+                    return () => import( "./dropbox-connector/dropbox-connector" );
             }
         },
         activeToolOptions() {
@@ -125,15 +125,15 @@ export default {
                 default:
                     return null;
                 case ToolTypes.ZOOM:
-                    return () => import( "./components/tool-options-zoom/tool-options-zoom" );
+                    return () => import( "./tool-options-zoom/tool-options-zoom" );
                 case ToolTypes.ERASER:
-                    return () => import( "./components/tool-options-eraser/tool-options-eraser" );
+                    return () => import( "./tool-options-eraser/tool-options-eraser" );
                 case ToolTypes.BRUSH:
-                    return () => import( "./components/tool-options-brush/tool-options-brush" );
+                    return () => import( "./tool-options-brush/tool-options-brush" );
                 case ToolTypes.ROTATE:
-                    return () => import( "./components/tool-options-rotate/tool-options-rotate" );
+                    return () => import( "./tool-options-rotate/tool-options-rotate" );
                 case ToolTypes.MIRROR:
-                    return () => import( "./components/tool-options-mirror/tool-options-mirror" );
+                    return () => import( "./tool-options-mirror/tool-options-mirror" );
             }
         },
     },
