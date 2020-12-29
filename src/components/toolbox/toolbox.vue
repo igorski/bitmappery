@@ -238,11 +238,13 @@ export default {
     vertical-align: middle;
     display: inline-flex;
     border-top: 1px solid $color-lines;
-    margin-top: $spacing-xxsmall;
-    padding-top: $spacing-small;
+    margin-top: $spacing-small;
+    padding-top: $spacing-medium - $spacing-xsmall;
 
     &__label {
         margin: $spacing-xxsmall $spacing-small 0 $spacing-xxsmall;
+        @include customFont();
+        color: #FFF;
     }
 
     .color-picker {
