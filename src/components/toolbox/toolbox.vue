@@ -197,6 +197,8 @@ export default {
     .close-button {
         top: $spacing-small - $spacing-xxsmall;
         right: $spacing-xxsmall;
+        width: 36px;
+        height: 29px;
 
         img {
             width: $spacing-medium + $spacing-small;
@@ -237,7 +239,7 @@ export default {
 .color-panel {
     vertical-align: middle;
     display: inline-flex;
-    border-top: 1px solid $color-lines;
+    border-top: 1px solid #444;
     margin-top: $spacing-small;
     padding-top: $spacing-medium - $spacing-xsmall;
 

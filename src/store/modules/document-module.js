@@ -125,6 +125,10 @@ export default {
                 sprite.cacheEffects();
             }
         },
+        saveSelection( state, { name, selection }) {
+            const document = state.documents[ state.activeIndex ];
+            Vue.set( document.selections, name, selection );
+        },
     },
     actions: {
         requestNewDocument({ commit, getters }) {

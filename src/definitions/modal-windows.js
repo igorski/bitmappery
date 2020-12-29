@@ -25,3 +25,5 @@ export const SAVE_DOCUMENT         = 2;
 export const EXPORT_IMAGE          = 3;
 export const DROPBOX_FILE_SELECTOR = 4;
 export const ADD_LAYER             = 5;
+export const SAVE_SELECTION        = 6;
+export const LOAD_SELECTION        = 7;

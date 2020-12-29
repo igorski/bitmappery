@@ -30,7 +30,7 @@ const DocumentFactory = {
      * all layers and image content)
      */
     create({
-        name = "New document", width = 400, height = 300, layers = []
+        name = "New document", width = 400, height = 300, layers = [], selections = {}
     } = {}) {
         if ( !layers.length ) {
             layers = [ LayerFactory.create({ width, height }) ];
@@ -41,6 +41,7 @@ const DocumentFactory = {
             name,
             width,
             height,
+            selections,
         };
     },
 
@@ -54,7 +55,8 @@ const DocumentFactory = {
             n: document.name,
             w: document.width,
             h: document.height,
-            l: layers
+            l: layers,
+            s: document.selections,
         };
     },
 
@@ -70,7 +72,8 @@ const DocumentFactory = {
             name: document.n,
             width: document.w,
             height: document.h,
-            layers
+            layers,
+            selections: document.s,
         });
     }
 };

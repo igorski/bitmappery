@@ -159,6 +159,8 @@ export default {
     .close-button {
         top: $spacing-small - $spacing-xxsmall;
         right: $spacing-xxsmall;
+        width: 36px;
+        height: 29px;
 
         img {
             width: $spacing-medium + $spacing-small;

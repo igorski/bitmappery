@@ -167,11 +167,16 @@ class LayerSprite extends sprite {
 
     resetSelection() {
         if ( this._isSelectMode ) {
-            Vue.set( this.layer, "selection", [] );
+            this.setSelection( [] );
         } else {
             Vue.delete( this.layer, "selection" );
         }
         this._selectionClosed = false;
+    }
+
+    setSelection( value ) {
+        Vue.set( this.layer, "selection", value );
+        this._selectionClosed = true; // TODO: can we determine this from first and last point?
     }
 
     async resize( width, height ) {

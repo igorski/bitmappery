@@ -72,7 +72,6 @@ npm run lint
 * Zoom set original size isn't that accurate (check also on mobile views), needs calculateMaxScaling ?
 * Unload Blobs when images are no longer used in document (see sprite-factory disposeSprite, keep instance count of usages)
 * Load/save documents directly from/to Dropbox
-* Load/save selections (into document)
 * Implement layer scaling
 * Implement rectangular selection
 * Implement merged layer selection

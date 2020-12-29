@@ -106,6 +106,20 @@
                                 @click="clearSelection()"
                         ></button>
                     </li>
+                    <li>
+                        <button v-t="'loadSelection'"
+                                type="button"
+                                :disabled="!hasSavedSelections"
+                                @click="requestSelectionLoad()"
+                        ></button>
+                    </li>
+                    <li>
+                        <button v-t="'saveSelection'"
+                                type="button"
+                                :disabled="!hasSelection"
+                                @click="requestSelectionSave()"
+                        ></button>
+                    </li>
                 </ul>
             </li>
             <!-- window menu -->
@@ -134,7 +148,9 @@
 
 <script>
 import { mapState, mapGetters, mapMutations, mapActions }  from "vuex";
-import { RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_IMAGE } from "@/definitions/modal-windows";
+import {
+    RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION
+} from "@/definitions/modal-windows";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { runSpriteFn } from "@/factories/sprite-factory";
 import messages from "./messages.json";
@@ -158,6 +174,9 @@ export default {
         },
         hasSelection() {
             return this.activeLayer?.selection?.length > 0;
+        },
+        hasSavedSelections() {
+            return Object.keys( this.activeDocument?.selections || {} ).length > 0;
         },
         hasClipboard() {
             return !!this.selectionContent;
@@ -201,6 +220,12 @@ export default {
         },
         requestDocumentSave() {
             this.openModal( SAVE_DOCUMENT );
+        },
+        requestSelectionLoad() {
+            this.openModal( LOAD_SELECTION );
+        },
+        requestSelectionSave() {
+            this.openModal( SAVE_SELECTION );
         },
     }
 };

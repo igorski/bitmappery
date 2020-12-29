@@ -10,6 +10,8 @@
         "resizeDocument": "Resize document",
         "selection": "Selection",
         "deselectAll": "Deselect all",
+        "loadSelection": "Load selection",
+        "saveSelection": "Save selection",
         "copySelection": "Copy selection",
         "pasteAsNewLayer": "Paste as new layer",
         "window": "Window",

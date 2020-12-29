@@ -17,7 +17,8 @@ describe( "Document factory", () => {
                 name: "New document",
                 width: 400,
                 height: 300,
-                layers: [ { layer: "1" } ]
+                layers: [ { layer: "1" } ],
+                selections: {}
             });
         });
 
@@ -27,14 +28,16 @@ describe( "Document factory", () => {
                 name: "foo",
                 width: 1200,
                 height: 900,
-                layers
+                layers,
+                selections: { foo: [{ x: 0, y: 0 }] }
             });
             expect( document ).toEqual({
                 id: expect.any( String ),
                 name: "foo",
                 width: 1200,
                 height: 900,
-                layers
+                layers,
+                selections: { foo: [{ x: 0, y: 0 }] },
             });
         });
     });
@@ -42,11 +45,16 @@ describe( "Document factory", () => {
     describe( "when serializing and deserializing a Document", () => {
         it( "should do so without data loss", async () => {
             const layers = [ { layer: "1" }, { layer: "2" } ];
+            const selections = {
+                foo: [{ x: 0, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }, { x: 0, y: 0 }],
+                bar: []
+            };
             const document = DocumentFactory.create({
                 name: "foo",
                 width: 1200,
                 height: 900,
-                layers
+                layers,
+                selections
             });
             mockUpdateFn = jest.fn(( fn, data ) => JSON.stringify( data ));
             const serialized = DocumentFactory.serialize( document );
