@@ -58,6 +58,7 @@ npm run lint
 
 * Moving of masks broken ?
 * Issue with drawing mask on mirrored content
+* Moving of flipped / rotated content leads to occassional non-renders (isInsideViewport doesn't take rotated rectangles into account)
 * Verify saving and restoring of masked and rotated and positioned content
 * Transparency blocks should be rendered by zCanvas, not parent div
 * Copying selections on rotated content doesn't work
@@ -79,4 +80,5 @@ npm run lint
 * Implement clone brush
 * Implement change history
 * Implement text editing using Google fonts!
+* Implement pattern to activate scrollpane on touch screens
 * Scale logic should move from zoomable-canvas into zCanvas (as handleInteraction needs to transform offsets by zoom ratio, see LayerSprite!)

@@ -126,7 +126,7 @@ export default {
                 case DROPBOX_FILE_SELECTOR:
                     return () => import( "@/components/dropbox-file-selector/dropbox-file-selector" );
                 case ADD_LAYER:
-                    return () => import( "@/components/options-panel/components/add-layer/add-layer" );
+                    return () => import( "@/components/options-panel/add-layer/add-layer" );
                 case LOAD_SELECTION:
                     return () => import( "@/components/selection-menu/load-selection/load-selection" );
                 case SAVE_SELECTION:
