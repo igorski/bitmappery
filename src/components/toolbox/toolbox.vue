@@ -22,12 +22,18 @@
  */
 <template>
     <div class="toolbox-wrapper">
-        <h2 v-if="!collapsed" v-t="'toolbox'"></h2>
+        <h2
+            v-if="!collapsed"
+            v-t="'toolbox'"
+            v-tooltip="'CTRL + T'"
+        ></h2>
         <button
             type="button"
-            class="close-button"
+            class="close-button button--ghost"
             @click="collapsed = !collapsed"
-        >{{ collapsed ? '&rarr;' : '&larr;' }}</button>
+        >
+            <img :src="`./assets/icons/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
+        </button>
         <div
             v-if="!collapsed"
             class="content"
@@ -46,7 +52,8 @@
             >
                 <img :src="`./assets/icons/tool-${tool.icon}.svg`" />
             </button>
-            <div class="wrapper">
+            <div class="wrapper input color-panel">
+                <label v-t="'color'" class="color-panel__label"></label>
                 <component
                     :is="colorPicker"
                     v-model="color"
@@ -182,6 +189,20 @@ export default {
 
 .toolbox-wrapper {
     @include component();
+
+    .content {
+        margin-right: -$spacing-small;
+    }
+
+    .close-button {
+        top: $spacing-small - $spacing-xxsmall;
+        right: $spacing-xxsmall;
+
+        img {
+            width: $spacing-medium + $spacing-small;
+            height: $spacing-medium + $spacing-small;
+        }
+    }
 }
 
 .tool-button {
@@ -197,6 +218,8 @@ export default {
     img {
         width: $spacing-large;
         height: $spacing-large;
+        vertical-align: middle;
+        padding: $spacing-xxsmall 0;
     }
 
     &:hover,
@@ -210,4 +233,21 @@ export default {
         color: #666;
     }
 }
+
+.color-panel {
+    vertical-align: middle;
+    display: inline-flex;
+    border-top: 1px solid $color-lines;
+    margin-top: $spacing-xxsmall;
+    padding-top: $spacing-small;
+
+    &__label {
+        margin: $spacing-xxsmall $spacing-small 0 $spacing-xxsmall;
+    }
+
+    .color-picker {
+        margin-top: -$spacing-xsmall;
+    }
+}
+
 </style>

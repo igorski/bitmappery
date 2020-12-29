@@ -31,4 +31,9 @@
         padding: $spacing-xsmall $spacing-small;
         border-radius: $spacing-medium;
     }
+
+    &--ghost {
+        background: transparent;
+        border: none;
+    }
 }

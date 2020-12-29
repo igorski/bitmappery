@@ -22,6 +22,7 @@
  */
 import { ADD_LAYER } from "@/definitions/modal-windows";
 import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM, canUseBrush } from "@/definitions/tool-types";
+import { getCanvasInstance } from "@/factories/sprite-factory";
 
 let state, getters, commit, dispatch, listener,
     suspended = false, blockDefaults = true, optionDown = false, shiftDown = false;
@@ -318,7 +319,7 @@ function handleKeyDown( event ) {
             commit( "setToolOptionValue",
                 { tool: getters.activeTool, option: "size", value: Math.max( 1, currentValue.size - 5 )
             });
-            getters.zCanvas?.invalidate();
+            getCanvasInstance()?.invalidate();
             break;
 
         case 221: // ]
@@ -326,7 +327,7 @@ function handleKeyDown( event ) {
             commit( "setToolOptionValue", {
                 tool: getters.activeTool, option: "size", value: Math.min( MAX_BRUSH_SIZE, currentValue.size + 5 )
             });
-            getters.zCanvas?.invalidate();
+            getCanvasInstance()?.invalidate();
             break;
     }
 }

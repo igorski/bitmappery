@@ -239,13 +239,13 @@ html, body {
             z-index: 2;
         }
         &.collapsed {
-            width: 45px;
+            width: 40px;
             min-height: 40px;
         }
     }
 
     .toolbox {
-        width: 125px;
+        width: 113px;
     }
     .document-container {
         width: 100%;

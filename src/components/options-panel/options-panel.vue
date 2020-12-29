@@ -22,12 +22,18 @@
  */
 <template>
     <div class="options-panel-wrapper">
-        <h2 v-if="!collapsed" v-t="'optionsPanel'"></h2>
+        <h2
+            v-if="!collapsed"
+            v-t="'optionsPanel'"
+            v-tooltip="'CTRL + O'"
+        ></h2>
         <button
             type="button"
-            class="close-button"
+            class="close-button button--ghost"
             @click="collapsed = !collapsed"
-        >{{ collapsed ? '&larr;' : '&rarr;' }}</button>
+        >
+            <img :src="`./assets/icons/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
+        </button>
         <div
             v-if="!collapsed"
             class="content form"
@@ -149,6 +155,16 @@ export default {
     overflow-y: auto;
     width: 100%;
     height: 100%;
+
+    .close-button {
+        top: $spacing-small - $spacing-xxsmall;
+        right: $spacing-xxsmall;
+
+        img {
+            width: $spacing-medium + $spacing-small;
+            height: $spacing-medium + $spacing-small;
+        }
+    }
 }
 
 .padded {

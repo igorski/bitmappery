@@ -22,7 +22,8 @@ BitMappery does however make use of the following excellent libraries to speed u
 
 ### Icons
 
-* [UI Essentials](https://freeicons.io/profile/2257) by www.wishforge.games
+* UI Essentials by [www.wishforge.games](https://freeicons.io/profile/2257)
+* Black arrow icons set by [Reda](https://freeicons.io/profile/6156)
 
 ## Dropbox integration
 

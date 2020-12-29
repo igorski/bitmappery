@@ -87,12 +87,3 @@ export default {
     },
 };
 </script>
-
-<style lang="scss" scoped>
-@import "@/styles/_mixins";
-
-.color-picker {
-    display: inline-block;
-    margin-top: -$spacing-small;
-}
-</style>
