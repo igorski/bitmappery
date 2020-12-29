@@ -313,7 +313,6 @@ export default {
 .canvas-wrapper {
     display: inline-block;
     width: 100%;
-    background: url( "../../assets/images/document_transparent_bg.png" ) repeat fixed;
     @include component();
 
     .content {
@@ -322,14 +321,9 @@ export default {
         overflow: none;
         display: block;
 
-        &.center canvas {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
         canvas {
+            background: url( "../../assets/images/document_transparent_bg.png" ) repeat;
+
             &.no-cursor {
                 cursor: none;
             }
@@ -342,6 +336,13 @@ export default {
             &.cursor-crosshair {
                 cursor: crosshair;
             }
+        }
+
+        &.center canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
     }
 }

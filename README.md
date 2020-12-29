@@ -56,7 +56,6 @@ npm run lint
 
 # TODO / Roadmap
 
-* Transparency blocks should be rendered by zCanvas, not parent div
 * Restoring positions of documents with positioned rotated objects is not accurate
 * Issue with drawing mask on mirrored content
 * Moving of flipped / rotated content leads to occasional non-renders (isInsideViewport doesn't take rotated rectangles into account)
