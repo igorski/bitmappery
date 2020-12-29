@@ -103,37 +103,6 @@ export const resizeToBase64 = async ( image, srcWidth, srcHeight, targetWidth, t
 };
 
 /**
- * Creates a snapshot of the current document at its full size, returns a Blob.
- */
-export const createDocumentSnapshot = async ( activeDocument, type, quality ) => {
-    const { width, height } = activeDocument;
-    const tempCanvas = new canvas({ width, height });
-    const ctx = tempCanvas.getElement().getContext( "2d" );
-
-    // draw existing layers onto temporary canvas at full document scale
-    activeDocument.layers.forEach( layer => {
-        const sprite = getSpriteForLayer( layer );
-        sprite.draw( ctx );
-    });
-    quality = parseFloat(( quality / 100 ).toFixed( 2 ));
-    let base64 = tempCanvas.getElement().toDataURL( type, quality );
-    tempCanvas.dispose();
-
-    // zCanvas magnifies content by the pixel ratio for a crisper result, downscale
-    // to actual dimensions of the document
-    const resizedImage = await resizeToBase64(
-        base64,
-        width  * ( window.devicePixelRatio || 1 ),
-        height * ( window.devicePixelRatio || 1 ),
-        width, height,
-        type, quality
-    );
-    // fetch final base64 data so we can convert it easily to binary
-    base64 = await fetch( resizedImage );
-    return await base64.blob();
-};
-
-/**
  * Copy the selection defined in activeLayer into a separate Image
  */
 export const copySelection = async ( activeDocument, activeLayer ) => {

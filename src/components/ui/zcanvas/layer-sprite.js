@@ -212,11 +212,14 @@ class LayerSprite extends sprite {
         this._pointerX = x;
         this._pointerY = y;
 
+        let recacheEffects = false;
+
         if ( !this._isBrushMode ) {
             // not drawable, perform default behaviour (drag)
             if ( this.actionTarget === "mask" ) {
                 this.layer.maskX = this._dragStartOffset.x + ( x - this._dragStartEventCoordinates.x );
                 this.layer.maskY = this._dragStartOffset.y + ( y - this._dragStartEventCoordinates.y );
+                recacheEffects = true;
             } else if ( !this._isSelectMode ) {
                 this.layer.x = x;
                 this.layer.y = y;
@@ -244,6 +247,9 @@ class LayerSprite extends sprite {
             if ( isEraser ) {
                 ctx.restore();
             }
+            recacheEffects = true;
+        }
+        if ( recacheEffects ) {
             this.cacheEffects(); // sync mask and source changes with sprite Bitmap
         }
     }

@@ -20,8 +20,9 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { canvas } from "zcanvas";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
-import { createCanvas }      from "@/utils/canvas-util";
+import { createCanvas, resizeToBase64 }      from "@/utils/canvas-util";
 import { getRotatedSize, getRotationCenter } from "@/utils/image-math";
 
 const queue = [];
@@ -55,6 +56,40 @@ export const renderEffectsForLayer = async layer => {
     // update on-screen canvas contents
     sprite.setBitmap( cvs, width, height );
     sprite.invalidate();
+};
+
+/**
+ * Creates a snapshot of the current document at its full size, returns a Blob.
+ */
+export const createDocumentSnapshot = async ( activeDocument, type, quality ) => {
+    const { width, height } = activeDocument;
+    const tempCanvas = new canvas({ width, height, viewport: { width, height } });
+    const ctx = tempCanvas.getElement().getContext( "2d" );
+
+    // draw existing layers onto temporary canvas at full document scale
+    const { layers } = activeDocument;
+    for ( let i = 0, l = layers.length; i < l; ++i ) {
+        const layer = layers[ i ];
+        const sprite = getSpriteForLayer( layer );
+        await renderEffectsForLayer( layer );
+        sprite.draw( ctx, tempCanvas._viewport );
+    }
+    quality = parseFloat(( quality / 100 ).toFixed( 2 ));
+    let base64 = tempCanvas.getElement().toDataURL( type, quality );
+    tempCanvas.dispose();
+
+    // zCanvas magnifies content by the pixel ratio for a crisper result, downscale
+    // to actual dimensions of the document
+    const resizedImage = await resizeToBase64(
+        base64,
+        width  * ( window.devicePixelRatio || 1 ),
+        height * ( window.devicePixelRatio || 1 ),
+        width, height,
+        type, quality
+    );
+    // fetch final base64 data so we can convert it easily to binary
+    base64 = await fetch( resizedImage );
+    return await base64.blob();
 };
 
 /* internal methods */

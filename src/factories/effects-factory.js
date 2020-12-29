@@ -45,7 +45,7 @@ const EffectFactory = {
      * Creating a new effects lists from a stored effects structure
      * inside a stored projects layer
      */
-     deserialize( effects ) {
+     deserialize( effects = {} ) {
          return EffectFactory.create({
              rotation: effects.r,
              mirrorX: effects.x,

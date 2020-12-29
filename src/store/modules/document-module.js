@@ -40,7 +40,7 @@ export default {
         activeLayerIndex: state => state.activeLayerIndex,
         activeLayer: ( state, getters ) => getters.layers?.[ state.activeLayerIndex ],
         activeLayerMask: ( state, getters ) => ( state.maskActive && getters.activeLayer.mask ) || null,
-        activeLayerEffects: ( state, getters ) => getters.activeLayer.effects || [],
+        activeLayerEffects: ( state, getters ) => getters.activeLayer?.effects || [],
     },
     mutations: {
         setActiveDocument( state, index ) {
