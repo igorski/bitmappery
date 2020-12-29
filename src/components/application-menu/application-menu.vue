@@ -254,7 +254,7 @@ $toggle-width: 50px;
     @include mobile() {
         height: $menu-height;
         position: fixed;
-        z-index: 2;
+        z-index: 5;
         overflow: hidden;
         width: 100%;
         top: 0;
