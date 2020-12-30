@@ -1,6 +1,7 @@
 {
     "en-US": {
         "layers": "Layers",
+        "noLayers": "There are no layers in this document",
         "addLayer": "Add layer",
         "addMask": "Add mask",
         "mask": "Mask",

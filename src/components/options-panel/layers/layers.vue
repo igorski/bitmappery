@@ -23,7 +23,10 @@
 <template>
     <div>
         <h3 v-t="'layers'"></h3>
-        <div class="layer-list">
+        <div
+            v-if="reverseLayers.length"
+            class="layer-list"
+        >
             <div
                 v-for="(layer, index) in reverseLayers"
                 :key="`layer_${index}`"
@@ -54,6 +57,10 @@
                 >&#215;</span>
             </div>
         </div>
+        <p
+            v-else
+            v-t="'noLayers'"
+        ></p>
         <div class="actions">
             <button
                 v-t="'addLayer'"

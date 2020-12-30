@@ -134,7 +134,7 @@ export default {
         },
         size: {
             get() {
-                return this.activeLayer.text?.size;
+                return this.activeLayer?.text?.size;
             },
             set( size ) {
                 this.updateLayer({
@@ -145,7 +145,7 @@ export default {
         },
         lineHeight: {
             get() {
-                return this.activeLayer.text?.lineHeight;
+                return this.activeLayer?.text?.lineHeight;
             },
             set( lineHeight ) {
                 this.updateLayer({
@@ -156,7 +156,7 @@ export default {
         },
         spacing: {
             get() {
-                return this.activeLayer.text?.spacing;
+                return this.activeLayer?.text?.spacing;
             },
             set( spacing ) {
                 this.updateLayer({
@@ -167,7 +167,7 @@ export default {
         },
         color: {
             get() {
-                return this.activeLayer.text?.color;
+                return this.activeLayer?.text?.color;
             },
             set( color ) {
                 this.updateLayer({
@@ -178,7 +178,7 @@ export default {
         },
         font: {
             get() {
-                return this.activeLayer.text?.font;
+                return this.activeLayer?.text?.font;
             },
             async set( font ) {
                 const fromCache = await loadGoogleFont( font );
