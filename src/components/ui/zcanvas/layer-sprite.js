@@ -299,6 +299,8 @@ class LayerSprite extends sprite {
             const firstPoint = this.layer.selection[ 0 ];
             if ( firstPoint && isPointInRange( x, y, firstPoint.x, firstPoint.y )) {
                 this._selectionClosed = true;
+                x = firstPoint.x;
+                y = firstPoint.y;
             }
             this.layer.selection.push({ x, y });
         }
