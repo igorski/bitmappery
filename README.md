@@ -56,14 +56,15 @@ npm run lint
 
 # TODO / Roadmap
 
+* Canvas util : store transparency of images into saved document
 * Drawing masks on layers that are both rotated and mirrored is off
 * Dragging of masks is kinda broken
+* Restoring documents containing rotated text is innaccurate
 * When resizing document, positioned layers do not scale their position correctly
 * Implement rectangular selection / select all
 * Render service should use the tool-options-text debounce on first font load to ensure font is present on document load
 * Render service should measure total text bounding box upfront and scale resulting bitmap (can be done after render)
 * Try very wide Dropbox image on MB Air with space + pan in bottom right area. Won't work.
-* Restoring positions of documents with positioned rotated objects is not accurate
 * Moving of flipped / rotated content leads to occasional non-renders (isInsideViewport doesn't take rotated rectangles into account)
 * Copying selections on rotated content doesn't work
 * Copying selection should preserve original scale
@@ -71,7 +72,6 @@ npm run lint
 * Animate selection lines between white and black colors
 * Layer bitmaps and masks must not be stored as Vue observables
 * Layer view in options-panel: allow naming, repositioning, toggling visibility and opacity
-* Canvas util : store transparency of images into saved document
 * Restored base64 images should be treated as binary once more (see layer-factory)
 * Zoom set original size isn't that accurate (check also on mobile views), needs calculateMaxScaling ?
 * Unload Blobs when images are no longer used in document (see sprite-factory disposeSprite, keep instance count of usages)

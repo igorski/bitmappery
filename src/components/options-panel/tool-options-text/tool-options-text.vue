@@ -228,6 +228,7 @@ export default {
                     value: this.text,
                     size: this.size,
                     lineHeight: this.lineHeight,
+                    spacing: this.spacing,
                     font: this.font,
                     color: this.color,
                     ...textOpts,
