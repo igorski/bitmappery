@@ -71,6 +71,10 @@ class LayerSprite extends sprite {
         this.actionTarget = target;
     }
 
+    isDrawable() {
+        return this.layer.type === LAYER_GRAPHIC || this.isMaskable();
+    }
+
     isMaskable() {
         return !!this.layer.mask;
     }
