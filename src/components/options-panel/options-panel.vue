@@ -158,6 +158,17 @@ export default {
     width: 100%;
     height: 100%;
 
+    @include mobile() {
+        overflow: hidden;
+
+        .content {
+            max-height: calc(100% - #{$heading-height});
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding: $spacing-small $spacing-medium;
+        }
+    }
+
     .close-button {
         top: $spacing-small - $spacing-xxsmall;
         right: $spacing-xxsmall;

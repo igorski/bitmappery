@@ -147,9 +147,7 @@ export default {
         // no need to remove the below as we will require it throughout the application lifteimte
         window.addEventListener( "resize", this.handleResize.bind( this ));
         // 640 declared in _variables.scss to be mobile threshold
-        if ( !isMobile() ) {
-            this.setToolboxOpened( true );
-        }
+        this.setToolboxOpened( true );
     },
     methods: {
         ...mapMutations([
@@ -229,36 +227,62 @@ html, body {
         z-index: 400; // below overlays (see _variables.scss)
     }
 
-    .toolbox,
-    .document-container,
-    .options-panel {
-        display: inline-block;
-        vertical-align: top;
-    }
-    .toolbox,
-    .options-panel {
-        @include mobile() {
-            position: absolute;
-            top: $menu-height;
-            z-index: 2;
-        }
-        &.collapsed {
-            width: 40px;
-            min-height: 40px;
-        }
-    }
-
-    .toolbox {
-        width: 113px;
-    }
     .document-container {
         width: 100%;
         margin: 0 $spacing-medium;
     }
-    .options-panel {
-        width: 300px;
-        @include mobile() {
-            right: 0;
+
+    /* three column layout on tablet / desktops */
+
+    @include large() {
+        .toolbox,
+        .document-container,
+        .options-panel {
+            display: inline-block;
+            vertical-align: top;
+        }
+        .toolbox,
+        .options-panel {
+            &.collapsed {
+                width: $heading-height;
+                min-height: $heading-height;
+            }
+        }
+
+        .toolbox {
+            width: 113px;
+        }
+        .options-panel {
+            width: 300px;
+        }
+    }
+
+    /* three row layout on phones */
+
+    @include mobile() {
+        .toolbox {
+            position: fixed;
+            top: $menu-height;
+            width: 100%;
+            height: $menu-height;
+        }
+        .options-panel {
+            position: fixed;
+            width: 100%;
+            max-height: 50%;
+            //max-height: calc(100% - #{$menu-height * 3});
+            bottom: 0;
+
+            &.collapsed {
+                height: $menu-height;
+            }
+        }
+        .document-container {
+            position: fixed;
+            top: $menu-height * 2;
+            width: 100%;
+            height: calc(100% - #{$menu-height * 3 });
+            margin: 0;
         }
     }
 }

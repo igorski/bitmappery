@@ -24,7 +24,7 @@
     <nav class="menu"
          :class="{ opened: menuOpened }"
     >
-        <div class="toggle" @click="setMenuOpened(!menuOpened)">
+        <div class="toggle" @click="setMenuOpened( !menuOpened )">
             <span>&#9776;</span>
         </div>
         <h1>
@@ -34,7 +34,7 @@
             <!-- file menu -->
             <li>
                 <a v-t="'file'" class="title" @click.prevent></a>
-                <ul class="submenu">
+                <ul class="submenu" @click="close()">
                     <li>
                         <button v-t="'newDocument'"
                                 @click="requestNewDocument()"
@@ -225,6 +225,9 @@ export default {
         requestSelectionSave() {
             this.openModal( SAVE_SELECTION );
         },
+        close() {
+            this.setMenuOpened( false );
+        }
     }
 };
 </script>

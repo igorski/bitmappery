@@ -57,6 +57,7 @@ import Scrollpane from "@/components/ui/zcanvas/scrollpane";
 import Scrollbars from "./scrollbars/scrollbars";
 import ToolTypes, { MAX_ZOOM, calculateMaxScaling } from "@/definitions/tool-types";
 import { scaleToRatio, scaleValue } from "@/utils/image-math";
+import { isMobile } from "@/utils/environment-util";
 import {
     getCanvasInstance, setCanvasInstance,
     createSpriteForLayer, flushLayerSprites, flushCache,
@@ -64,6 +65,7 @@ import {
 
 /* internal non-reactive properties */
 
+const mobileView = isMobile();
 let lastDocument, containerSize;
 // maintain a pool of sprites representing the layers within the active document
 // the sprites themselves are cached within the sprite-factory, this is merely
@@ -77,7 +79,7 @@ export default {
         Scrollbars,
     },
     data: () => ({
-        wrapperHeight: "auto",
+        wrapperHeight: "100%",
         centerCanvas: false,
         cvsWidth: 100,
         cvsHeight: 100,
@@ -223,6 +225,9 @@ export default {
         },
         cacheContainerSize() {
             containerSize = this.$el.parentNode?.getBoundingClientRect();
+            if ( mobileView ) {
+                containerSize.height -= 40; // collapsed options panel height
+            }
         },
         /**
          * Scales the canvas to dimensions corresponding to document size and zoom.
@@ -249,7 +254,9 @@ export default {
                 this.viewportHeight = containerSize.height;
                 zCanvas.setViewport( this.viewportWidth, this.viewportHeight );
             }
-            this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
+            if ( !mobileView ) {
+                this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
+            }
             // replace below with updated zCanvas lib to not multiply by zoom
             this.cvsWidth  = this.zCanvasBaseDimensions.width  * zoom;
             this.cvsHeight = this.zCanvasBaseDimensions.height * zoom;
@@ -318,7 +325,7 @@ export default {
     .content {
         position: relative;
         padding: 0;
-        overflow: none;
+        overflow: hidden;
         display: block;
 
         canvas {

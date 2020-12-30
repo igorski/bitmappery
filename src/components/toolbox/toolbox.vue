@@ -204,26 +204,42 @@ export default {
 .toolbox-wrapper {
     @include component();
 
-    .content {
-        margin-right: -$spacing-small;
+    @include large() {
+        .content {
+            margin-right: -$spacing-small;
+        }
+
+        .close-button {
+            top: $spacing-small - $spacing-xxsmall;
+            right: $spacing-xxsmall;
+            width: 36px;
+            height: 29px;
+
+            img {
+                width: $spacing-medium + $spacing-small;
+                height: $spacing-medium + $spacing-small;
+            }
+        }
     }
 
-    .close-button {
-        top: $spacing-small - $spacing-xxsmall;
-        right: $spacing-xxsmall;
-        width: 36px;
-        height: 29px;
+    @include mobile() {
+        // always expanded in mobile view (is small horizontal strip)
+        overflow-y: hidden;
+        overflow-x: auto;
 
-        img {
-            width: $spacing-medium + $spacing-small;
-            height: $spacing-medium + $spacing-small;
+        .content {
+            width: max-content;
+            padding: $spacing-xsmall $spacing-medium $spacing-xxsmall;
+        }
+
+        h2,
+        .close-button {
+            display: none;
         }
     }
 }
 
 .tool-button {
-    display: inline-block;
-    margin: 0 $spacing-small $spacing-small 0;
     cursor: pointer;
     border-radius: $spacing-xsmall;
     border: none;
@@ -248,14 +264,27 @@ export default {
         background-color: #444;
         color: #666;
     }
+
+    @include large() {
+        margin: 0 $spacing-small $spacing-small 0;
+        display: inline-block;
+    }
+
+    @include mobile() {
+        margin: 0 $spacing-small 0 0;
+        display: inline;
+    }
 }
 
 .color-panel {
     vertical-align: middle;
     display: inline-flex;
-    border-top: 1px solid #444;
-    margin-top: $spacing-small;
-    padding-top: $spacing-medium - $spacing-xsmall;
+
+    @include large() {
+        border-top: 1px solid #444;
+        margin-top: $spacing-small;
+        padding-top: $spacing-medium - $spacing-xsmall;
+    }
 
     &__label {
         margin: $spacing-xxsmall $spacing-small 0 $spacing-xxsmall;

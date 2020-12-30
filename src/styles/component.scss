@@ -12,13 +12,19 @@
         @include boxSize();
         color: #FFF;
         background-image: $color-window-bg;
-        height: 40px;
+        height: $heading-height;
     }
 
     .content {
-        padding: $spacing-medium;
         @include boxSize();
-        height: calc(100% - 40px);
+
+        @include large() {
+            padding: $spacing-medium;
+            height: calc(100% - $heading-height);
+        }
+        @include mobile() {
+            padding: $spacing-xsmall $spacing-small;
+        }
     }
 
     .close-button {

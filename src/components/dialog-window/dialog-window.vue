@@ -28,17 +28,19 @@
     >
         <h4>{{ title }}</h4>
         <p>{{ message }}</p>
-        <button v-t="'ok'"
-                type="button"
-                class="button"
-                @click="handleConfirm()"
-        ></button>
-        <button v-t="'cancel'"
-                v-if="type === 'confirm'"
-                type="button"
-                class="button"
-                @click="handleCancel()"
-        ></button>
+        <div class="actions">
+            <button v-t="'ok'"
+                    type="button"
+                    class="button"
+                    @click="handleConfirm()"
+            ></button>
+            <button v-t="'cancel'"
+                    v-if="type === 'confirm'"
+                    type="button"
+                    class="button"
+                    @click="handleCancel()"
+            ></button>
+        </div>
     </div>
 </template>
 
@@ -121,6 +123,10 @@ export default {
         margin-right: $spacing-medium;
     }
 
+    @include large() {
+        max-width: 480px;
+    }
+
     @include mobile() {
         border-radius: 0;
         width: 100%;
@@ -129,6 +135,16 @@ export default {
         button {
             display: block;
             width: 100%;
+        }
+    }
+
+    .actions {
+        margin: $spacing-small 0;
+        display: flex;
+
+        button {
+            flex: 1;
+            margin: 0 $spacing-small;
         }
     }
 }
