@@ -143,9 +143,19 @@ const renderText = async layer => {
 
     sourceCtx.clearRect( 0, 0, layer.source.width, layer.source.height );
 
-    sourceCtx.font = `${text.size}pt ${text.font}`;
+    const lines = text.value.split( "\n" );
+
+    sourceCtx.font = `${text.size}px ${text.font}`;
     sourceCtx.fillStyle = text.color;
-    sourceCtx.fillText( text.value, 0, text.size );
+
+    const lineHeight = text.size;
+    let y = 0;
+    lines.forEach(( line, index ) => {
+        const textMetrics = sourceCtx.measureText( line );
+        y = lineHeight + index * lineHeight;
+        y += Math.abs( textMetrics[ "actualBoundingBoxDescent" ]);
+        sourceCtx.fillText( line, 0, y );
+    });
 };
 
 const renderTransformedSource = async ( layer, ctx, sourceBitmap, width, height, { mirrorX, mirrorY, rotation }) => {
