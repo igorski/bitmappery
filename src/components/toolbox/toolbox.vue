@@ -100,12 +100,17 @@ export default {
             return [
                 {
                     type: ToolTypes.MOVE,
-                    i18n: "dragLayer", icon: "drag", key: "M",
+                    i18n: "dragLayer", icon: "drag", key: "V",
+                    disabled: !this.activeDocument
+                },
+                {
+                    type: ToolTypes.SELECTION,
+                    i18n: "rectangularSelection", icon: "selection", key: "M",
                     disabled: !this.activeDocument
                 },
                 {
                     type: ToolTypes.LASSO,
-                    i18n: "polygonalLasso", icon: "selection", key: "L",
+                    i18n: "polygonalLasso", icon: "lasso", key: "L",
                     disabled: !this.activeDocument
                 },
                 {

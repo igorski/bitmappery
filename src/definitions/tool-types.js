@@ -27,6 +27,7 @@ import { LAYER_GRAPHIC } from "@/definitions/layer-types";
 export default {
     MOVE       : "move",
     LASSO      : "lasso",
+    SELECTION  : "selection",
     EYEDROPPER : "eyedropper",
     ROTATE     : "rotate",
     ERASER     : "eraser",

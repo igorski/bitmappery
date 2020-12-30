@@ -10,6 +10,7 @@
         "resizeDocument": "Resize document",
         "selection": "Selection",
         "deselectAll": "Deselect all",
+        "selectAll": "Select all",
         "loadSelection": "Load selection",
         "saveSelection": "Save selection",
         "copySelection": "Copy selection",

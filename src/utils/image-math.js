@@ -158,3 +158,9 @@ export const getRotatedSize = ({ width, height }, angleInRadians ) => {
         height : yMax - yMin
     };
 };
+
+export const rectangleToCoordinates = ( x, y, width, height ) => [
+    { x, y }, { x: x + width, y },                          // TL to TR
+    { x: x + width, y: y + height }, { x, y: y + height },  // BR to BL
+    { x, y }, // back to TL to close selection
+];

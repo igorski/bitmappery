@@ -3,6 +3,7 @@
         "toolbox": "Toolbox",
         "dragLayer": "Drag layer",
         "polygonalLasso": "Polygonal lasso",
+        "rectangularSelection": "Rectangular selection",
         "eyedropper": "Eyedropper",
         "rotateLayer": "Rotate layer",
         "mirrorLayer": "Mirror layer",

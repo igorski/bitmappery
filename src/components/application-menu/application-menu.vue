@@ -71,7 +71,7 @@
             <!-- edit menu -->
             <li>
                 <a v-t="'edit'" class="title" @click.prevent></a>
-                <ul class="submenu">
+                <ul class="submenu" @click="close()">
                     <li>
                         <button v-t="'resizeDocument'"
                                 type="button"
@@ -98,7 +98,14 @@
             <!-- selection menu -->
             <li>
                 <a v-t="'selection'" class="title" @click.prevent></a>
-                <ul class="submenu">
+                <ul class="submenu" @click="close()">
+                    <li>
+                        <button v-t="'selectAll'"
+                                type="button"
+                                :disabled="!activeLayer"
+                                @click="selectAll()"
+                        ></button>
+                    </li>
                     <li>
                         <button v-t="'deselectAll'"
                                 type="button"
@@ -125,7 +132,7 @@
             <!-- window menu -->
             <li>
                 <a v-t="'window'" class="title" @click.prevent></a>
-                <ul class="submenu">
+                <ul class="submenu" @click="close()">
                     <li v-for="(doc, index) in documents"
                         :key="`doc_${index}`"
                     >
@@ -152,7 +159,7 @@ import {
     RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION
 } from "@/definitions/modal-windows";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
-import { runSpriteFn } from "@/factories/sprite-factory";
+import { runSpriteFn, getSpriteForLayer } from "@/factories/sprite-factory";
 import messages from "./messages.json";
 
 export default {
@@ -164,8 +171,8 @@ export default {
             "selectionContent",
         ]),
         ...mapGetters([
-            "activeDocument",
             "documents",
+            "activeDocument",
             "activeLayer",
         ]),
         supportsFullscreen,
@@ -224,6 +231,9 @@ export default {
         },
         requestSelectionSave() {
             this.openModal( SAVE_SELECTION );
+        },
+        selectAll() {
+            getSpriteForLayer( this.activeLayer )?.selectAll();
         },
         close() {
             this.setMenuOpened( false );

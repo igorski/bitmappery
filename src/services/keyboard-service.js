@@ -23,7 +23,7 @@
 import { ADD_LAYER }  from "@/definitions/modal-windows";
 import { LAYER_TEXT } from "@/definitions/layer-types";
 import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM, canDraw } from "@/definitions/tool-types";
-import { getCanvasInstance } from "@/factories/sprite-factory";
+import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 
 let state, getters, commit, dispatch, listener,
     suspended = false, blockDefaults = true, optionDown = false, shiftDown = false;
@@ -173,8 +173,8 @@ function handleKeyDown( event ) {
 
         case 65: // A
             // select all
-            if ( hasOption ) {
-                // ...
+            if ( hasOption && getters.activeLayer ) {
+                getSpriteForLayer( getters.activeLayer )?.selectAll();
             }
             break;
 
@@ -229,7 +229,7 @@ function handleKeyDown( event ) {
 
         case 77: // M
             if ( getters.activeDocument ) {
-                setActiveTool( ToolTypes.MOVE );
+                setActiveTool( ToolTypes.SELECTION );
             }
             break;
 
@@ -277,6 +277,8 @@ function handleKeyDown( event ) {
             if ( hasOption && !!state.selectionContent ) {
                 dispatch( "pasteSelection" );
                 preventDefault( event ); // override browser paste
+            } else if ( getters.activeDocument ) {
+                setActiveTool( ToolTypes.MOVE );
             }
             break;
 

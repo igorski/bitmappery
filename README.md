@@ -56,18 +56,18 @@ npm run lint
 
 # TODO / Roadmap
 
+* Implement loaders on document load/save, image export and dropbox import
 * Canvas util : store transparency of images into saved document
-* Drawing masks on layers that are both rotated and mirrored is off
+* Drawing masks on layers that are both rotated and mirrored is broken, this also occurs on layers that are not at 0,0 coordinate position
 * Dragging of masks is kinda broken
-* Restoring documents containing rotated text is innaccurate
+* Pasted selections should appear in center
+* Zoom should always be center based
+* Restoring documents containing rotated text is inaccurate
 * When resizing document, positioned layers do not scale their position correctly
-* Implement rectangular selection / select all
 * Render service should use the tool-options-text debounce on first font load to ensure font is present on document load
 * Render service should measure total text bounding box upfront and scale resulting bitmap (can be done after render)
 * Try very wide Dropbox image on MB Air with space + pan in bottom right area. Won't work.
 * Moving of flipped / rotated content leads to occasional non-renders (isInsideViewport doesn't take rotated rectangles into account)
-* Copying selections on rotated content doesn't work
-* Copying selection should preserve original scale
 * Fill selection with color (make color not unique to brush, but generic tool prop)
 * Animate selection lines between white and black colors
 * Layer bitmaps and masks must not be stored as Vue observables
