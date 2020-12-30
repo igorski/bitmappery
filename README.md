@@ -57,6 +57,7 @@ npm run lint
 # TODO / Roadmap
 
 * Render service should use the tool-options-text debounce on first font load to ensure font is present on document load
+* Render service should measure total text bounding box upfront and scale resulting bitmap (can be done after render)
 * Try very wide Dropbox image on MB Air with space + pan in bottom right area. Won't work.
 * Restoring positions of documents with positioned rotated objects is not accurate
 * Issue with drawing mask on mirrored content

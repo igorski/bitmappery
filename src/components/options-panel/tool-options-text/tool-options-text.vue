@@ -49,6 +49,15 @@
             />
         </div>
         <div class="wrapper input">
+            <label v-t="'lineHeight'"></label>
+            <slider
+                v-model="lineHeight"
+                :min="0"
+                :max="172"
+                :tooltip="'none'"
+            />
+        </div>
+        <div class="wrapper input">
             <label v-t="'color'"></label>
             <component
                 :is="colorPicker"
@@ -79,6 +88,7 @@ export default {
     data: () => ({
         internalText: "",
         renderPending: false,
+        layerId: null,
     }),
     computed: {
         ...mapGetters([
@@ -108,7 +118,7 @@ export default {
                     this.renderPending = false;
                     this.updateLayer({
                         index: this.activeLayerIndex,
-                        opts: { text: { value: this.text, size: this.size, font: this.font, color: this.color } },
+                        opts: this.formatOpts({ value })
                     });
                 }, 75 );
             }
@@ -117,10 +127,21 @@ export default {
             get() {
                 return this.activeLayer.text?.size;
             },
-            set( value ) {
+            set( size ) {
                 this.updateLayer({
                     index: this.activeLayerIndex,
-                    opts: { text: { value: this.text, size: value, font: this.font, color: this.color } },
+                    opts: this.formatOpts({ size })
+                });
+            }
+        },
+        lineHeight: {
+            get() {
+                return this.activeLayer.text?.lineHeight;
+            },
+            set( lineHeight ) {
+                this.updateLayer({
+                    index: this.activeLayerIndex,
+                    opts: this.formatOpts({ lineHeight }),
                 });
             }
         },
@@ -128,10 +149,10 @@ export default {
             get() {
                 return this.activeLayer.text?.color;
             },
-            set( value ) {
+            set( color ) {
                 this.updateLayer({
                     index: this.activeLayerIndex,
-                    opts: { text: { value: this.text, size: this.size, font: this.font, color: value } },
+                    opts: this.formatOpts({ color })
                 });
             }
         },
@@ -139,11 +160,11 @@ export default {
             get() {
                 return this.activeLayer.text?.font;
             },
-            async set( value ) {
-                const fromCache = await loadGoogleFont( value );
+            async set( font ) {
+                const fromCache = await loadGoogleFont( font );
                 this.updateLayer({
                     index: this.activeLayerIndex,
-                    opts: { text: { value: this.text, size: this.size, font: value, color: this.color } },
+                    opts: this.formatOpts({ font })
                 });
                 // on first load, font is not immediately available for rendering
                 if ( !fromCache ) {
@@ -158,7 +179,10 @@ export default {
         activeLayer: {
             immediate: true,
             handler( layer ) {
-                this.internalText = layer.text?.value;
+                if ( this.layerId !== layer.id ) {
+                    this.internalText = layer.text?.value;
+                    this.layerId      = layer.id;
+                }
             }
         },
     },
@@ -177,6 +201,18 @@ export default {
         },
         handleBlur() {
             KeyboardService.setSuspended( false );
+        },
+        formatOpts( textOpts = {} ) {
+            return {
+                text: {
+                    value: this.text,
+                    size: this.size,
+                    lineHeight: this.lineHeight,
+                    font: this.font,
+                    color: this.color,
+                    ...textOpts,
+                }
+            };
         },
     },
 };

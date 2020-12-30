@@ -20,7 +20,7 @@
 
         @include large() {
             padding: $spacing-medium;
-            height: calc(100% - $heading-height);
+            height: calc(100% - #{$heading-height});
         }
         @include mobile() {
             padding: $spacing-xsmall $spacing-small;

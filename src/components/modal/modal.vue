@@ -66,7 +66,7 @@ export default {
     }
 
     .actions {
-        position: fixed;
+        position: absolute;
         bottom: 0;
         left: 0;
         width: 100%;
@@ -78,6 +78,10 @@ export default {
         button {
             flex: 1;
             margin: $spacing-small;
+        }
+
+        @include mobile() {
+            position: fixed;
         }
     }
 

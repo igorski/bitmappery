@@ -157,12 +157,12 @@ const renderText = async layer => {
     sourceCtx.fillStyle = text.color;
 
     const lines      = text.value.split( "\n" );
-    const lineHeight = text.size;
+    const lineHeight = text.lineHeight ?  text.lineHeight : text.size;
     let y = 0;
     lines.forEach(( line, index ) => {
-        const textMetrics = sourceCtx.measureText( line );
-        y = lineHeight + index * lineHeight;
-        y += Math.abs( textMetrics[ "actualBoundingBoxDescent" ]);
+        //const textMetrics = sourceCtx.measureText( line );
+        y = lineHeight + ( index * lineHeight );
+        //y += Math.abs( textMetrics[ "actualBoundingBoxDescent" ]);
         sourceCtx.fillText( line, 0, y );
     });
 };

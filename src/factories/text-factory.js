@@ -23,9 +23,18 @@
 import { googleFonts } from "@/services/font-service";
 
 const TextFactory = {
-    create({ font = googleFonts[ 0 ], value = "", size = 16, color = "red" } = {}) {
+    create({
+        font = googleFonts[ 0 ],
+        value = "",
+        size = 16,
+        lineHeight = 0,
+        spacing = 0,
+        color = "red"
+    } = {}) {
         return {
             font,
+            lineHeight,
+            spacing,
             value,
             size,
             color,
@@ -41,6 +50,8 @@ const TextFactory = {
             f: text.font,
             v: text.value,
             s: text.size,
+            l: text.lineHeight,
+            p: text.spacing,
             c: text.color,
         };
     },
@@ -54,6 +65,8 @@ const TextFactory = {
              font: text.f,
              value: text.v,
              size: text.s,
+             lineHeight: text.l,
+             spacing: text.p,
              color: text.c,
          });
      }

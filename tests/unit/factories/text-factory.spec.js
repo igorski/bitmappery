@@ -7,6 +7,8 @@ describe( "Text factory", () => {
             const text = TextFactory.create();
             expect( text ).toEqual({
                 size: expect.any( Number ),
+                lineHeight: expect.any( Number ),
+                spacing: 0,
                 value: "",
                 font: googleFonts[ 0 ],
                 color: "red",
@@ -16,12 +18,16 @@ describe( "Text factory", () => {
         it( "should be able to create a Text structure from given arguments", () => {
             const text = TextFactory.create({
                 size: 10,
+                lineHeight: 30,
+                spacing: 50,
                 font: "Helvetica",
                 value: "Foo bar baz",
                 color: "#FF00AE"
             });
             expect( text ).toEqual({
                 size: 10,
+                lineHeight: 30,
+                spacing: 50,
                 font: "Helvetica",
                 value: "Foo bar baz",
                 color: "#FF00AE"
@@ -33,6 +39,8 @@ describe( "Text factory", () => {
         it( "should do so without data loss", async () => {
             const text = TextFactory.create({
                 size: 10,
+                lineHeight: 40,
+                spacing: 10,
                 font: "Helvetica",
                 value: "Foo bar baz",
                 color: "#FFF"

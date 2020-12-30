@@ -3,6 +3,8 @@
         "text": "Text",
         "font": "Font",
         "size": "Size",
+        "lineHeight": "Line height",
+        "spacing": "Letter spacing",
         "color": "Color"
     }
 }
