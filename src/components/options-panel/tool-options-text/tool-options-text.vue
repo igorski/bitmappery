@@ -40,6 +40,15 @@
                 :tooltip="'none'"
             />
         </div>
+        <div class="wrapper input">
+            <label v-t="'color'"></label>
+            <component
+                :is="colorPicker"
+                v-model="color"
+                v-tooltip="$t('color')"
+                class="color-picker"
+            />
+        </div>
     </div>
 </template>
 
@@ -60,6 +69,10 @@ export default {
             "activeLayerIndex",
             "activeLayer",
         ]),
+        colorPicker() {
+            // load async as this adds to the bundle size
+            return () => import( "@/components/ui/color-picker/color-picker" );
+        },
         text: {
             get() {
                 return this.activeLayer.text?.value;
@@ -67,7 +80,7 @@ export default {
             set( value ) {
                 this.updateLayer({
                     index: this.activeLayerIndex,
-                    opts: { text: { value, size: this.size, font: "Arial", color: "red" } },
+                    opts: { text: { value, size: this.size, font: "Arial", color: this.color } },
                 });
                 this.requestRender();
             }
@@ -79,7 +92,19 @@ export default {
             set( value ) {
                 this.updateLayer({
                     index: this.activeLayerIndex,
-                    opts: { text: { value: this.text, size: value, font: "Arial", color: "red" } },
+                    opts: { text: { value: this.text, size: value, font: "Arial", color: this.color } },
+                });
+                this.requestRender();
+            }
+        },
+        color: {
+            get() {
+                return this.activeLayer.text?.color;
+            },
+            set( value ) {
+                this.updateLayer({
+                    index: this.activeLayerIndex,
+                    opts: { text: { value: this.text, size: this.size, font: "Arial", color: value } },
                 });
                 this.requestRender();
             }
@@ -107,4 +132,10 @@ export default {
 
 <style lang="scss" scoped>
 @import "@/styles/options-panel";
+
+.color-picker {
+    width: 50%;
+    display: inline-block;
+    transform: translateY(-$spacing-xsmall);
+}
 </style>

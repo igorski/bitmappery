@@ -2,6 +2,7 @@
     "en-US": {
         "text": "Text",
         "font": "Font",
-        "size": "Size"
+        "size": "Size",
+        "color": "Color"
     }
 }
