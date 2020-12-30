@@ -4,7 +4,7 @@
         "font": "Font",
         "size": "Size",
         "lineHeight": "Line height",
-        "spacing": "Letter spacing",
+        "letterSpacing": "Letter spacing",
         "color": "Color"
     }
 }

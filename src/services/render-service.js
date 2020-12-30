@@ -156,14 +156,28 @@ const renderText = async layer => {
     sourceCtx.font      = `${text.size}px ${font}`;
     sourceCtx.fillStyle = text.color;
 
-    const lines      = text.value.split( "\n" );
-    const lineHeight = text.lineHeight ?  text.lineHeight : text.size;
+    const lines    = text.value.split( "\n" );
+    let lineHeight = text.lineHeight;
+
+    // if no custom line height was given, calculate optimal height for font
+    if ( !lineHeight ) {
+        const textMetrics = sourceCtx.measureText( "Wq" );
+        lineHeight = text.size + Math.abs( textMetrics[ "actualBoundingBoxDescent" ]);
+    }
+
     let y = 0;
-    lines.forEach(( line, index ) => {
-        //const textMetrics = sourceCtx.measureText( line );
-        y = lineHeight + ( index * lineHeight );
-        //y += Math.abs( textMetrics[ "actualBoundingBoxDescent" ]);
-        sourceCtx.fillText( line, 0, y );
+    lines.forEach(( line, lineIndex ) => {
+        y = lineHeight + ( lineIndex * lineHeight );
+
+        if ( !text.spacing ) {
+            // write entire line (0 spacing defaults to font spacing)
+            sourceCtx.fillText( line, 0, y );
+        } else {
+            // write letter by letter (yeah... this is why we cache things)
+            line.split( "" ).forEach(( letter, letterIndex ) => {
+                sourceCtx.fillText( letter, letterIndex * text.spacing, y );
+            });
+        }
     });
 };
 

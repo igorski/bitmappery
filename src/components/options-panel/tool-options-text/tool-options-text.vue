@@ -58,6 +58,15 @@
             />
         </div>
         <div class="wrapper input">
+            <label v-t="'letterSpacing'"></label>
+            <slider
+                v-model="spacing"
+                :min="0"
+                :max="172"
+                :tooltip="'none'"
+            />
+        </div>
+        <div class="wrapper input">
             <label v-t="'color'"></label>
             <component
                 :is="colorPicker"
@@ -142,6 +151,17 @@ export default {
                 this.updateLayer({
                     index: this.activeLayerIndex,
                     opts: this.formatOpts({ lineHeight }),
+                });
+            }
+        },
+        spacing: {
+            get() {
+                return this.activeLayer.text?.spacing;
+            },
+            set( spacing ) {
+                this.updateLayer({
+                    index: this.activeLayerIndex,
+                    opts: this.formatOpts({ spacing }),
                 });
             }
         },

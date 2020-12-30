@@ -24,19 +24,19 @@ import { googleFonts } from "@/services/font-service";
 
 const TextFactory = {
     create({
-        font = googleFonts[ 0 ],
         value = "",
+        font = googleFonts[ 0 ],
         size = 16,
         lineHeight = 0,
         spacing = 0,
         color = "red"
     } = {}) {
         return {
+            value,
             font,
+            size,
             lineHeight,
             spacing,
-            value,
-            size,
             color,
         };
     },
