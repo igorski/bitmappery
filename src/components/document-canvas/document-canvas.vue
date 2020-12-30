@@ -260,8 +260,7 @@ export default {
             // replace below with updated zCanvas lib to not multiply by zoom
             this.cvsWidth  = this.zCanvasBaseDimensions.width  * zoom;
             this.cvsHeight = this.zCanvasBaseDimensions.height * zoom;
-            zCanvas.setDimensions( this.cvsWidth, this.cvsHeight, true, true );
-            zCanvas.setZoomFactor( xScale * zoom, yScale * zoom ); // replace with zCanvas.setZoom()
+            zCanvas.setDocumentScale( this.cvsWidth, this.cvsHeight, xScale, zoom, this.activeDocument );
             this.centerCanvas = zCanvas.getWidth() < containerSize.width || zCanvas.getHeight() < containerSize.height ;
         },
         calcIdealDimensions() {

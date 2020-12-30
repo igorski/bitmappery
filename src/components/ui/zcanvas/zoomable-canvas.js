@@ -26,9 +26,21 @@ import { canvas } from "zcanvas";
 class ZoomableCanvas extends canvas {
     constructor( opts, store ) {
         super( opts );
+
         // Vuex root store reference
         this.store = store;
+
+        this.documentScale = 1;
         this.setZoomFactor( 1 );
+    }
+
+    setDocumentScale( targetWidth, targetHeight, scale, zoom, activeDocument = null ) {
+        this.setDimensions( targetWidth, targetHeight, true, true );
+        this.setZoomFactor( scale * zoom, scale * zoom ); // eventually replace with zCanvas.setZoom()
+
+        if ( activeDocument ) {
+            this.documentScale = activeDocument.width / this._width; // the scale of the Document relative to this on-screen canvas
+        }
     }
 
     setZoomFactor( scale ) {

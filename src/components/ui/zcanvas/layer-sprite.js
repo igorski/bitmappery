@@ -243,6 +243,9 @@ class LayerSprite extends sprite {
                 ctx.save();
                 ctx.globalCompositeOperation = "destination-out";
             }
+            // correct pointer offset in relation to content panning
+            x -= this._bounds.left;
+            y -= this._bounds.top;
             // note we draw directly onto the layer bitmaps, making this permanent
             ctx.drawImage( this._brushCvs, x - this._radius, y - this._radius );
             if ( isEraser ) {

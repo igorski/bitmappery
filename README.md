@@ -8,7 +8,7 @@ related to Photoshop-esque features aren't welcomed.
 
 ### All self-written ?
 
-Yep, though it helps having worked five years in the photo software industry and having
+Yep, though it helps having worked in the photo software industry for five years, having
 tackled the problems before. Also, Bitmappery is reusing [zCanvas](https://github.com/igorski/zCanvas)
 for rendering and bitmap blitting.
 
@@ -56,17 +56,18 @@ npm run lint
 
 # TODO / Roadmap
 
+* Issue with drawing masks on rotated content
+* When resizing document, positioned layers do not scale their position correctly
+* Implement rectangular selection / select all
 * Render service should use the tool-options-text debounce on first font load to ensure font is present on document load
 * Render service should measure total text bounding box upfront and scale resulting bitmap (can be done after render)
 * Try very wide Dropbox image on MB Air with space + pan in bottom right area. Won't work.
 * Restoring positions of documents with positioned rotated objects is not accurate
-* Issue with drawing mask on mirrored content
 * Moving of flipped / rotated content leads to occasional non-renders (isInsideViewport doesn't take rotated rectangles into account)
 * Copying selections on rotated content doesn't work
 * Copying selection should preserve original scale
 * Fill selection with color (make color not unique to brush, but generic tool prop)
 * Animate selection lines between white and black colors
-* When resizing document, positioned layers do not scale their position correctly
 * Layer bitmaps and masks must not be stored as Vue observables
 * Layer view in options-panel: allow naming, repositioning, toggling visibility and opacity
 * Canvas util : store transparency of images into saved document
@@ -75,10 +76,9 @@ npm run lint
 * Unload Blobs when images are no longer used in document (see sprite-factory disposeSprite, keep instance count of usages)
 * Load/save documents directly from/to Dropbox
 * Implement layer scaling
-* Implement rectangular selection
 * Implement merged layer selection
 * Implement document crop
 * Implement clone brush
 * Implement change history
-* Implement pattern to activate scrollpane on touch screens
+* Implement UI pattern to activate scrollpane on touch screens
 * Scale logic should move from zoomable-canvas into zCanvas (as handleInteraction needs to transform offsets by zoom ratio, see LayerSprite!)
