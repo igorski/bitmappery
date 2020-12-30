@@ -217,8 +217,8 @@ class LayerSprite extends sprite {
         if ( !this._isBrushMode ) {
             // not drawable, perform default behaviour (drag)
             if ( this.actionTarget === "mask" ) {
-                this.layer.maskX = this._dragStartOffset.x + ( x - this._dragStartEventCoordinates.x );
-                this.layer.maskY = this._dragStartOffset.y + ( y - this._dragStartEventCoordinates.y );
+                this.layer.maskX = this._dragStartOffset.x + (( x - this._bounds.left ) - this._dragStartEventCoordinates.x );
+                this.layer.maskY = this._dragStartOffset.y + (( y - this._bounds.top )  - this._dragStartEventCoordinates.y );
                 recacheEffects = true;
             } else if ( !this._isSelectMode ) {
                 super.handleMove( x, y );
@@ -230,27 +230,38 @@ class LayerSprite extends sprite {
         // brush tool active (either draws/erases onto IMAGE_GRAPHIC layer source
         // or on the mask bitmap)
         if ( this._applyBrush ) {
-            // translate pointer to rotated space, when layer is rotated
-            const rotation = this.layer.effects.rotation;
+            // translate pointer to translated space, when layer is rotated or mirrored
+            const { mirrorX, mirrorY, rotation } = this.layer.effects;
+            const rotCenterX = this._bounds.left + this._bounds.width  / 2;
+            const rotCenterY = this._bounds.top  + this._bounds.height / 2;
             if (( rotation % 360 ) !== 0 ) {
-                ({ x, y } = translatePointerRotation( x, y, this._bounds.left + this._bounds.width / 2, this._bounds.top + this._bounds.height / 2, this.layer.effects.rotation ));
+                ({ x, y } = translatePointerRotation( x, y, rotCenterX, rotCenterY, rotation ));
             }
             const drawOnMask = this.isMaskable();
             const isEraser   = this._brushType === ToolTypes.ERASER;
             // get the drawing context
             const ctx = drawOnMask ? this.layer.mask.getContext( "2d" ) : this.layer.source.getContext( "2d" );
+            ctx.save();
+
             if ( isEraser ) {
-                ctx.save();
                 ctx.globalCompositeOperation = "destination-out";
             }
             // correct pointer offset in relation to content panning
-            x -= this._bounds.left;
-            y -= this._bounds.top;
+            if ( mirrorX ) {
+                x -= ctx.canvas.width;
+            }
+            if ( mirrorY ) {
+                y -= ctx.canvas.height;
+            }
+            // transform destination context in case the current layer is rotated or mirrored
+            ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
+            ctx.translate( x, y );
+            ctx.rotate( rotation );
+            ctx.translate( -x, -y );
             // note we draw directly onto the layer bitmaps, making this permanent
             ctx.drawImage( this._brushCvs, x - this._radius, y - this._radius );
-            if ( isEraser ) {
-                ctx.restore();
-            }
+            ctx.restore();
+
             recacheEffects = true;
         }
         if ( recacheEffects ) {

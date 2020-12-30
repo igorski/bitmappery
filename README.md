@@ -56,7 +56,8 @@ npm run lint
 
 # TODO / Roadmap
 
-* Issue with drawing masks on rotated content
+* Drawing masks on layers that are both rotated and mirrored is off
+* Dragging of masks is kinda broken
 * When resizing document, positioned layers do not scale their position correctly
 * Implement rectangular selection / select all
 * Render service should use the tool-options-text debounce on first font load to ensure font is present on document load
