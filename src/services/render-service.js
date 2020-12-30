@@ -26,6 +26,7 @@ import { LAYER_TEXT } from "@/definitions/layer-types";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { createCanvas, resizeToBase64 } from "@/utils/canvas-util";
 import { getRotatedSize, getRotationCenter, getRectangleForSelection } from "@/utils/image-math";
+import { loadGoogleFont } from "@/services/font-service";
 
 const queue = [];
 
@@ -139,15 +140,23 @@ const hasEffects = ( layer ) => {
 
 const renderText = async layer => {
     const { text } = layer;
+
+    if ( !text.value ) {
+        return;
+    }
+    let font = text.font;
+    try {
+        await loadGoogleFont( font ); // lazily loads font file upon first request
+    } catch {
+        font = "Arial"; // fall back to universally available Arial
+    }
+
     const sourceCtx = layer.source.getContext( "2d" );
-
     sourceCtx.clearRect( 0, 0, layer.source.width, layer.source.height );
-
-    const lines = text.value.split( "\n" );
-
-    sourceCtx.font = `${text.size}px ${text.font}`;
+    sourceCtx.font      = `${text.size}px ${font}`;
     sourceCtx.fillStyle = text.color;
 
+    const lines      = text.value.split( "\n" );
     const lineHeight = text.size;
     let y = 0;
     lines.forEach(( line, index ) => {

@@ -173,7 +173,7 @@ export default {
                     }
                     break;
                 case ToolTypes.TEXT:
-                    if ( !layer.type === LAYER_TEXT ) {
+                    if ( layer.type !== LAYER_TEXT ) {
                         this.setTool( null );
                     }
                     break;

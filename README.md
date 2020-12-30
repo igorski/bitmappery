@@ -56,7 +56,6 @@ npm run lint
 
 # TODO / Roadmap
 
-* Implement text editing using Google fonts!
 * Try very wide Dropbox image on MB Air with space + pan in bottom right area. Won't work.
 * Restoring positions of documents with positioned rotated objects is not accurate
 * Issue with drawing mask on mirrored content

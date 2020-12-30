@@ -268,6 +268,7 @@ function handleKeyDown( event ) {
                     commit( "addLayer", { type: LAYER_TEXT });
                 }
                 setActiveTool( ToolTypes.TEXT );
+                preventDefault( event );
             }
             break;
 

@@ -30,7 +30,7 @@ const DocumentFactory = {
      * all layers and image content)
      */
     create({
-        name = "New document", width = 400, height = 300, layers = [], selections = {}
+        name = "New document", width = 1000, height = 1000, layers = [], selections = {}
     } = {}) {
         if ( !layers.length ) {
             layers = [ LayerFactory.create({ width, height }) ];

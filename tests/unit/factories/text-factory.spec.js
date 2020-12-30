@@ -1,4 +1,5 @@
-import TextFactory from "@/factories/text-factory";
+import TextFactory     from "@/factories/text-factory";
+import { googleFonts } from "@/services/font-service";
 
 describe( "Text factory", () => {
     describe( "when creating a new Text instance", () => {
@@ -7,7 +8,7 @@ describe( "Text factory", () => {
             expect( text ).toEqual({
                 size: expect.any( Number ),
                 value: "",
-                font: "Arial",
+                font: googleFonts[ 0 ],
                 color: "red",
             });
         });

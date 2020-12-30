@@ -15,8 +15,8 @@ describe( "Document factory", () => {
             expect( document ).toEqual({
                 id: expect.any( String ),
                 name: "New document",
-                width: 400,
-                height: 300,
+                width: 1000,
+                height: 1000,
                 layers: [ { layer: "1" } ],
                 selections: {}
             });

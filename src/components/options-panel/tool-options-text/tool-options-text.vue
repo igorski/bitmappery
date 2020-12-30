@@ -21,14 +21,22 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div class="tool-option">
+    <div class="tool-option"
+         @focusin="handleFocus"
+         @focusout="handleBlur"
+    >
         <h3 v-t="'text'"></h3>
         <div class="wrapper input">
             <textarea
+                ref="textInput"
                 v-model="text"
                 class="full"
-                @focus="handleTextFocus"
-                @blur="handleTextBlur"
+            />
+        </div>
+        <div class="wrapper input">
+            <label v-t="'font'"></label>
+            <select-box :options="fonts"
+                         v-model="font"
             />
         </div>
         <div class="wrapper input">
@@ -54,16 +62,24 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import Slider from "@/components/ui/slider/slider";
+import SelectBox  from '@/components/ui/select-box/select-box';
+import Slider     from "@/components/ui/slider/slider";
+import { mapSelectOptions } from "@/utils/search-select-util";
 import KeyboardService from "@/services/keyboard-service";
+import { googleFonts, loadGoogleFont } from "@/services/font-service";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import messages  from "./messages.json";
 
 export default {
     i18n: { messages },
     components: {
+        SelectBox,
         Slider,
     },
+    data: () => ({
+        internalText: "",
+        renderPending: false,
+    }),
     computed: {
         ...mapGetters([
             "activeLayerIndex",
@@ -73,16 +89,28 @@ export default {
             // load async as this adds to the bundle size
             return () => import( "@/components/ui/color-picker/color-picker" );
         },
+        fonts() {
+            return mapSelectOptions( [ ...googleFonts ].sort() );
+        },
         text: {
             get() {
-                return this.activeLayer.text?.value;
+                return this.internalText;
             },
             set( value ) {
-                this.updateLayer({
-                    index: this.activeLayerIndex,
-                    opts: { text: { value, size: this.size, font: "Arial", color: this.color } },
-                });
-                this.requestRender();
+                this.internalText = value;
+                // debounce the modle update (and subsequent text render)
+                // to not update on each entered character
+                if ( this.renderPending ) {
+                    return;
+                }
+                this.renderPending = true;
+                window.setTimeout(() => {
+                    this.renderPending = false;
+                    this.updateLayer({
+                        index: this.activeLayerIndex,
+                        opts: { text: { value: this.text, size: this.size, font: this.font, color: this.color } },
+                    });
+                }, 75 );
             }
         },
         size: {
@@ -92,9 +120,8 @@ export default {
             set( value ) {
                 this.updateLayer({
                     index: this.activeLayerIndex,
-                    opts: { text: { value: this.text, size: value, font: "Arial", color: this.color } },
+                    opts: { text: { value: this.text, size: value, font: this.font, color: this.color } },
                 });
-                this.requestRender();
             }
         },
         color: {
@@ -104,27 +131,52 @@ export default {
             set( value ) {
                 this.updateLayer({
                     index: this.activeLayerIndex,
-                    opts: { text: { value: this.text, size: this.size, font: "Arial", color: value } },
+                    opts: { text: { value: this.text, size: this.size, font: this.font, color: value } },
                 });
-                this.requestRender();
+            }
+        },
+        font: {
+            get() {
+                return this.activeLayer.text?.font;
+            },
+            async set( value ) {
+                const fromCache = await loadGoogleFont( value );
+                this.updateLayer({
+                    index: this.activeLayerIndex,
+                    opts: { text: { value: this.text, size: this.size, font: value, color: this.color } },
+                });
+                // on first load, font is not immediately available for rendering
+                if ( !fromCache ) {
+                    window.setTimeout(() => {
+                        getSpriteForLayer( this.activeLayer )?.cacheEffects();
+                    }, 50 );
+                }
             }
         }
     },
+    watch: {
+        activeLayer: {
+            immediate: true,
+            handler( layer ) {
+                this.internalText = layer.text?.value;
+            }
+        },
+    },
+    mounted() {
+        this.$refs.textInput?.focus();
+    },
     destroyed() {
-        this.handleTextBlur();
+        this.handleBlur();
     },
     methods: {
         ...mapMutations([
             "updateLayer",
         ]),
-        handleTextFocus() {
+        handleFocus() {
             KeyboardService.setSuspended( true );
         },
-        handleTextBlur() {
+        handleBlur() {
             KeyboardService.setSuspended( false );
-        },
-        requestRender() {
-            getSpriteForLayer( this.activeLayer )?.cacheEffects();
         },
     },
 };

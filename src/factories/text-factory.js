@@ -20,8 +20,10 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { googleFonts } from "@/services/font-service";
+
 const TextFactory = {
-    create({ font = "Arial", value = "", size = 16, color = "red" } = {}) {
+    create({ font = googleFonts[ 0 ], value = "", size = 16, color = "red" } = {}) {
         return {
             font,
             value,
