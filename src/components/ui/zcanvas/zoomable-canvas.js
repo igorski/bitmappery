@@ -35,8 +35,26 @@ class ZoomableCanvas extends canvas {
     }
 
     setDocumentScale( targetWidth, targetHeight, scale, zoom, activeDocument = null ) {
+        const { left, top, width, height } = this._viewport;
+
+        let scrollWidth  = this._width  - width;
+        let scrollHeight = this._height - height;
+
+        // cache the current scroll offset so we can zoom from the current offset
+        // note that by default we zoom from the center (when document was unscrolled)
+        const ratioX = ( left / scrollWidth ) || .5;
+        const ratioY = ( top / scrollHeight ) || .5;
+
         this.setDimensions( targetWidth, targetHeight, true, true );
         this.setZoomFactor( scale * zoom, scale * zoom ); // eventually replace with zCanvas.setZoom()
+
+        // update scroll widths after scaling operation
+
+        scrollWidth  = this._width  - width;
+        scrollHeight = this._height - height;
+
+        // maintain relative scroll offset after rescale
+        this.panViewport( scrollWidth  * ratioX, scrollHeight * ratioY, true );
 
         if ( activeDocument ) {
             this.documentScale = activeDocument.width / this._width; // the scale of the Document relative to this on-screen canvas
@@ -50,24 +68,6 @@ class ZoomableCanvas extends canvas {
         // library where updateCanvasSize() takes this additional factor into account
 
         this._canvasContext.scale( scale, scale );
-
-        if ( this._viewport ) {
-            const { left, top, width, height } = this._viewport;
-
-            const scrollWidth  = this._width  - width;
-            const scrollHeight = this._height - height;
-
-            // cache the current scroll offset so we can zoom from the current offset
-            // note that by default we zoom from the center (when document was unscrolled)
-            const ratioX = Math.round( left / scrollWidth ) || .5;
-            const ratioY = Math.round( top / scrollHeight ) || .5;
-
-            // maintain relative scroll offset after rescale
-            this.panViewport(
-                ( scrollWidth  - width )  * ratioX,
-                ( scrollHeight - height ) * ratioY
-            );
-        }
         this.invalidate();
     }
 

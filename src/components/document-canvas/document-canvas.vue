@@ -277,6 +277,7 @@ export default {
             switch ( type ) {
                 default:
                     break;
+                // internal zCanvas event has panned the viewport, update the scrollbars accordingly
                 case "panned":
                     this.$refs.scrollbars?.update(
                         value.left / ( this.cvsWidth  - this.viewportWidth ),
@@ -301,6 +302,7 @@ export default {
                     canvasClasses.add( "no-cursor" );
                     break;
                 case ToolTypes.LASSO:
+                case ToolTypes.SELECTION:
                     canvasClasses.add( "cursor-pointer" );
                     break;
                 case ToolTypes.EYEDROPPER:
