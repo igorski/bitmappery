@@ -57,9 +57,9 @@ npm run lint
 # TODO / Roadmap
 
 * Implement loaders on document load/save, image export and dropbox import
-* Canvas util : store transparency of images into saved document
 * Drawing masks on a rotated layer that is panned (or mirrored) is broken
 * Dragging of masks on rotated/mirror content is kinda broken
+* Restoring of document with rotated layers (smaller than document size) restores at incorrect offset
 * Pasted selections should appear in center
 * Zoom should always be center based
 * Restoring documents containing rotated text is inaccurate

@@ -24,11 +24,21 @@ export const JPEG = "image/jpeg";
 export const PNG  = "image/png";
 export const GIF  = "image/gif";
 
+const TRANSPARENT_TYPES = [ PNG, GIF ];
+
 export const ACCEPTED_FILE_TYPES      = [ JPEG, PNG, GIF ];
 export const ACCEPTED_FILE_EXTENSIONS = [ "jpg", "jpeg", "png", "gif" ];
 export const EXPORTABLE_FILE_TYPES    = [ JPEG, PNG ];
 
 export const isCompressableFileType = type => type === JPEG;
+
+export const isTransparent = ({ name, type }) => {
+    if ( type === "dropbox" ) {
+        // files imported from Dropbox don't list their mime type, derive from filename instead
+        return name.includes( ".png" ) || name.includes( ".gif" );
+    }
+    return TRANSPARENT_TYPES.includes( type );
+}
 
 export const typeToExt = type => {
     switch ( type ) {

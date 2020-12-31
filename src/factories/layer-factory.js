@@ -33,7 +33,7 @@ const LayerFactory = {
      */
     create({
         name = "New Layer",
-        type = LAYER_GRAPHIC, source = null, mask = null,
+        type = LAYER_GRAPHIC, transparent = true, source = null, mask = null,
         x = 0, y = 0, maskX = 0, maskY = 0, width = 1, height = 1, visible = true,
         effects = {}, text = {}
     } = {}) {
@@ -42,6 +42,7 @@ const LayerFactory = {
             name,
             type,
             source,
+            transparent,
             mask,
             x,
             y,
@@ -65,8 +66,9 @@ const LayerFactory = {
         return {
             n: layer.name,
             t: layer.type,
-            s: imageToBase64( layer.source, layer.width, layer.height ),
-            m: imageToBase64( layer.mask,   layer.width, layer.height ),
+            tr: layer.transparent,
+            s: imageToBase64( layer.source, layer.width, layer.height, layer.transparent ),
+            m: imageToBase64( layer.mask,   layer.width, layer.height, true ),
             x: layer.x,
             y: layer.y,
             x2: layer.maskX,
@@ -89,6 +91,7 @@ const LayerFactory = {
         return LayerFactory.create({
             name: layer.n,
             type: layer.t,
+            transparent: layer.tr,
             source,
             mask,
             x: layer.x,

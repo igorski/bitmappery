@@ -37,6 +37,7 @@ describe( "Layer factory", () => {
                 id: expect.any( String ),
                 name: expect.any( String ),
                 type: LAYER_GRAPHIC,
+                transparent: true,
                 source: null,
                 mask: null,
                 x: 0,
@@ -57,6 +58,7 @@ describe( "Layer factory", () => {
             const layer = LayerFactory.create({
                 name: "foo",
                 type: LAYER_IMAGE,
+                transparent: false,
                 source: { src: "bitmap" },
                 mask: { src: "mask" },
                 x: 100,
@@ -77,6 +79,7 @@ describe( "Layer factory", () => {
                 id: expect.any( String ),
                 name: "foo",
                 type: LAYER_IMAGE,
+                transparent: false,
                 source: { src: "bitmap" },
                 mask: { src: "mask" },
                 x: 100,
@@ -102,6 +105,7 @@ describe( "Layer factory", () => {
             const layer = LayerFactory.create({
                 name: "foo",
                 type: LAYER_IMAGE,
+                transparent: false,
                 source: { src: "bitmap" },
                 mask: { src: "mask" },
                 x: 100,
@@ -119,8 +123,8 @@ describe( "Layer factory", () => {
             mockUpdateFn = jest.fn(( fn, data ) => data );
 
             const serialized = LayerFactory.serialize( layer );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "imageToBase64", layer.source, layer.width, layer.height );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "imageToBase64", layer.mask,   layer.width, layer.height );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "imageToBase64", layer.source, layer.width, layer.height, layer.transparent );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "imageToBase64", layer.mask,   layer.width, layer.height, true );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "serializeText", layer.text );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 4, "serializeEffect", layer.effects );
 

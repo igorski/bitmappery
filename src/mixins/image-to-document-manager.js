@@ -21,7 +21,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { mapGetters, mapMutations, mapActions } from "vuex";
-import { LAYER_IMAGE } from "@/definitions/layer-types";
+import { isTransparent } from "@/definitions/image-types";
+import { LAYER_IMAGE }   from "@/definitions/layer-types";
 
 export default {
     computed: {
@@ -51,8 +52,10 @@ export default {
                 source: image,
                 type: LAYER_IMAGE,
                 name: file.name,
+                transparent: isTransparent( file ),
                 ...size,
             };
+
             switch ( this.fileTarget) {
                 default:
                 case "layer":

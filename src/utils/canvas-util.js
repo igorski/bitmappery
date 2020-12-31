@@ -40,15 +40,15 @@ export const createCanvas = ( optWidth = 0, optHeight = 0 ) => {
     return { cvs, ctx };
 };
 
-export const imageToBase64 = ( bitmap, width, height ) => {
+export const imageToBase64 = ( bitmap, width, height, transparent ) => {
     let cvs;
     if ( bitmap instanceof Image ) {
         ({ cvs } = createCanvas( width, height ));
         cvs.getContext( "2d" ).drawImage( bitmap, 0, 0 );
-        return cvs.toDataURL( JPEG ); // assume photographic content TODO: check transparency
+        return cvs.toDataURL( transparent ? PNG : JPEG );
     } else if ( bitmap instanceof HTMLCanvasElement ) {
         cvs = bitmap;
-        return cvs.toDataURL( PNG ); // assume transparent content
+        return cvs.toDataURL( PNG ); // Canvas sources are always transparent
     }
     return "";
 };
