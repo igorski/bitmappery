@@ -20,9 +20,11 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-let UID_COUNTER = 0;
-
+import LZString     from "lz-string";
 import LayerFactory from "@/factories/layer-factory";
+import { readFile } from "@/utils/file-util";
+
+let UID_COUNTER = 0;
 
 const DocumentFactory = {
     /**
@@ -75,6 +77,21 @@ const DocumentFactory = {
             layers,
             selections: document.s,
         });
+    },
+
+    toBlob( document ) {
+        const data = DocumentFactory.serialize( document );
+        return new Blob([
+            LZString.compressToUTF16( JSON.stringify( data ))
+        ], { type: "text/plain" });
+    },
+
+    async fromBlob( blob ) {
+        const fileData = await readFile( blob );
+        const data     = LZString.decompressFromUTF16( fileData );
+        const document = await DocumentFactory.deserialize( JSON.parse( data ));
+
+        return document;
     }
 };
 export default DocumentFactory;

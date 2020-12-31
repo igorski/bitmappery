@@ -82,6 +82,7 @@ export default {
     methods: {
         ...mapMutations([
             "closeModal",
+            "setActiveDocumentName",
         ]),
         ...mapActions([
             "saveDocument",
@@ -90,6 +91,7 @@ export default {
             if ( !this.isValid ) {
                 return;
             }
+            this.setActiveDocumentName( this.name );
             this.saveDocument( this.name );
             this.closeModal();
         },

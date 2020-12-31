@@ -22,7 +22,8 @@
  */
 import { Dropbox } from "dropbox";
 
-let sessionActive = false;
+const UPLOAD_FILE_SIZE_LIMIT = 150 * 1024 * 1024;
+
 let accessToken;
 let dbx;
 
@@ -34,8 +35,6 @@ export const requestLogin = ( clientId, loginUrl ) => {
     dbx = new Dropbox({ clientId });
     return dbx.auth.getAuthenticationUrl( loginUrl );
 }
-
-export const hasActiveSession = () => sessionActive;
 
 /**
  * Authentication step 2: user has received access token, register it in the
@@ -57,13 +56,21 @@ export const isAuthenticated = async () => {
     }
 };
 
-export const listFolder = ( path = "" ) => {
-    sessionActive = true; // upon first file browse, we consider the session active
-    return dbx.filesListFolder({
+export const listFolder = async ( path = "" ) => {
+    let entries = [];
+    let result;
+    ({ result } = await dbx.filesListFolder({
         path,
         include_media_info: true,
         include_deleted: false
-    });
+    }));
+    entries = [ ...result.entries ];
+
+    while ( result?.has_more ) {
+        ({ result } = await dbx.filesListFolderContinue({ cursor: result.cursor }));
+        entries.push( ...result.entries );
+    }
+    return entries;
 };
 
 export const getThumbnail = async ( path, large = false ) => {
@@ -79,11 +86,64 @@ export const getThumbnail = async ( path, large = false ) => {
     }
 };
 
-export const downloadFileAsBlob = async path => {
+export const downloadFileAsBlob = async ( path, returnAsURL = false ) => {
     try {
         const { result } = await dbx.filesDownload({ path });
-        return URL.createObjectURL( result.fileBlob );
+        if ( returnAsURL ) {
+            return URL.createObjectURL( result.fileBlob );
+        }
+        return result.fileBlob;
     } catch {
         return null;
+    }
+};
+
+export const uploadBlob = async ( blob, fileName ) => {
+    const path = `/bitmappery/${fileName.split( " " ).join ( "_" )}`;
+    if ( file.size < UPLOAD_FILE_SIZE_LIMIT ) {
+        // File is smaller than 150 Mb - use filesUpload API
+        try {
+            const { result } = await dbx.filesUpload({ path, contents: blob, mode: "overwrite" });
+            return !!result.name;
+        } catch ( error ) {
+            console.error( error );
+            return false;
+        }
+    } else {
+        // File is bigger than 150 Mb - use filesUploadSession* API
+        const maxBlob   = 8 * 1000 * 1000; // 8Mb - Dropbox JavaScript API suggested max file / chunk size
+        const workItems = [];
+        let offset = 0;
+        while ( offset < file.size ) {
+            const chunkSize = Math.min( maxBlob, file.size - offset );
+            workItems.push( file.slice( offset, offset + chunkSize ));
+            offset += chunkSize;
+        }
+
+        return workItems.reduce(( acc, blob, idx, items ) => {
+            if ( idx == 0 ) {
+                // Starting multipart upload of file
+                return acc.then(() => {
+                    return dbx.filesUploadSessionStart({
+                        close: false, contents: blob
+                    }).then( response => response.session_id )
+                });
+            } else if ( idx < items.length - 1 ) {
+                // Append part to the upload session
+                return acc.then( sessionId => {
+                    const cursor = { session_id: sessionId, offset: idx * maxBlob };
+                    return dbx.filesUploadSessionAppendV2({
+                        cursor: cursor, close: false, contents: blob
+                    }).then(() => sessionId );
+                });
+            } else {
+                // Last chunk of data, close session
+                return acc.then( sessionId => {
+                    const cursor = { session_id: sessionId, offset: file.size - blob.size };
+                    const commit = { path: '/' + file.name, mode: 'add', autorename: true, mute: false };
+                    return dbx.filesUploadSessionFinish({ cursor: cursor, commit: commit, contents: blob });
+                });
+            }
+        }, Promise.resolve());
     }
 };

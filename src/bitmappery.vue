@@ -77,7 +77,7 @@ import ToolTypes       from "@/definitions/tool-types";
 import store           from "./store";
 import messages        from "./messages.json";
 import {
-    RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_IMAGE, DROPBOX_FILE_SELECTOR,
+    RESIZE_DOCUMENT, EXPORT_DOCUMENT, SAVE_DROPBOX_DOCUMENT, EXPORT_IMAGE, DROPBOX_FILE_SELECTOR,
     ADD_LAYER, LOAD_SELECTION, SAVE_SELECTION
 } from "@/definitions/modal-windows";
 
@@ -119,12 +119,14 @@ export default {
                     return null;
                 case RESIZE_DOCUMENT:
                     return () => import( "@/components/edit-menu/resize-document/resize-document" );
-                case SAVE_DOCUMENT:
-                    return () => import( "@/components/file-menu/save-document/save-document" );
+                case EXPORT_DOCUMENT:
+                    return () => import( "@/components/file-menu/export-document/export-document" );
                 case EXPORT_IMAGE:
                     return () => import( "@/components/file-menu/export-image/export-image" );
                 case DROPBOX_FILE_SELECTOR:
                     return () => import( "@/components/dropbox-file-selector/dropbox-file-selector" );
+                case SAVE_DROPBOX_DOCUMENT:
+                    return () => import( "@/components/file-menu/save-dropbox-document/save-dropbox-document" );
                 case ADD_LAYER:
                     return () => import( "@/components/options-panel/add-layer/add-layer" );
                 case LOAD_SELECTION:

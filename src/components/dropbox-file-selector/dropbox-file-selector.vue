@@ -50,7 +50,14 @@
                         <template v-for="node in filesAndFolders">
                             <div
                                 v-if="node.type === 'folder'"
-                                class="folder"
+                                class="entry entry__folder"
+                                @click="handleNodeClick( node )"
+                            >
+                                <span class="title">{{ node.name }}</span>
+                            </div>
+                            <div
+                                v-else-if="node.type === 'bpy'"
+                                class="entry entry__document"
                                 @click="handleNodeClick( node )"
                             >
                                 <span class="title">{{ node.name }}</span>
@@ -70,18 +77,27 @@
 </template>
 
 <script>
-import { mapMutations } from "vuex";
-import { loader }       from "zcanvas";
-import ImageToDocumentManager             from "@/mixins/image-to-document-manager";
+import { mapMutations, mapActions } from "vuex";
+import { loader } from "zcanvas";
+import sortBy from "lodash.sortby";
+import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { listFolder, downloadFileAsBlob } from "@/services/dropbox-service";
 import DropboxImagePreview from "./dropbox-image-preview";
 import { truncate } from "@/utils/string-util";
 import { ACCEPTED_FILE_EXTENSIONS } from "@/definitions/image-types";
+import { PROJECT_FILE_EXTENSION }   from "@/store";
 import messages from "./messages.json";
 
+// we allow listing of both BitMappery Documents and all accepted image types
+const FILE_EXTENSIONS = [ ...ACCEPTED_FILE_EXTENSIONS, ...PROJECT_FILE_EXTENSION ];
+
 function mapEntry( entry, children = [], parent = null ) {
+    let type = entry[ ".tag" ]; // folder/file
+    if ( entry.name.endsWith( PROJECT_FILE_EXTENSION )) {
+        type = "bpy";
+    }
     return {
-        type: entry[ ".tag" ], // folder/file
+        type,
         name: entry.name,
         id: entry.id,
         path: entry.path_lower,
@@ -153,7 +169,7 @@ export default {
             return this.leaf.children.filter( entry => {
                 // only show folders and image files
                 if ( entry.type === "file" ) {
-                    return ACCEPTED_FILE_EXTENSIONS.some( ext => entry.name.includes( `.${ext}` ));
+                    return FILE_EXTENSIONS.some( ext => entry.name.includes( `.${ext}` ));
                 }
                 return true;
             });
@@ -167,15 +183,21 @@ export default {
             "openDialog",
             "closeModal",
             "showNotification",
+            "setDropboxConnected",
+        ]),
+        ...mapActions([
+            "loadDocument",
         ]),
         async retrieveFiles( path ) {
             this.loading = true;
             try {
-                const { result } = await listFolder( path );
+                const entries = await listFolder( path );
+                this.setDropboxConnected( true ); // opened browser implies we have a valid connection
+
                 const leaf   = findLeafByPath( this.tree, path );
                 const parent = { type: "folder", name: leaf.name, parent: leaf.parent, path };
                 // populate leaf with fetched children
-                leaf.children = result?.entries?.map( entry => mapEntry( entry, [], parent )) ?? [];
+                leaf.children = sortBy( entries?.map( entry => mapEntry( entry, [], parent )) ?? [], [ "type", "name" ]);
                 this.leaf = leaf;
             } catch {
                 this.openDialog({ type: "error", message: this.$t( "couldNotRetrieveFilesForPath", { path } ) });
@@ -187,9 +209,15 @@ export default {
                 case "folder":
                     await this.retrieveFiles( node.path );
                     break;
+                case "bpy":
+                    const blob = await downloadFileAsBlob( node.path );
+                    blob.name = node.name;
+                    this.loadDocument( blob );
+                    this.closeModal();
+                    break;
                 case "file":
                     // TODO: loader, error handling and background load (for bulk selection)
-                    const url = await downloadFileAsBlob( node.path );
+                    const url = await downloadFileAsBlob( node.path, true );
                     const { image, size } = await loader.loadImage( url );
                     this.addLoadedFile({ type: "dropbox", name: node.name }, { image, size });
                     this.showNotification({
@@ -250,13 +278,11 @@ export default {
     }
 }
 
-.folder {
+.entry {
     display: inline-block;
     width: 128px;
     height: 128px;
     vertical-align: top;
-    background: url("../../assets/images/folder.png") no-repeat 50% $spacing-xlarge;
-    background-size: 50%;
     position: relative;
     @include customFont();
 
@@ -271,6 +297,16 @@ export default {
         width: 100%;
         text-align: center;
         @include truncate();
+    }
+
+    &__folder {
+        background: url("../../assets/images/folder.png") no-repeat 50% $spacing-xlarge;
+        background-size: 50%;
+    }
+
+    &__document {
+        background: url("../../assets/icons/icon-bpy.svg") no-repeat 50% $spacing-xlarge;
+        background-size: 50%;
     }
 }
 </style>

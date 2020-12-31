@@ -44,10 +44,10 @@
 </template>
 
 <script>
-import { mapMutations } from "vuex";
+import { mapState, mapMutations } from "vuex";
 import { DROPBOX_FILE_SELECTOR } from "@/definitions/modal-windows";
 import {
-    isAuthenticated, hasActiveSession, requestLogin, registerAccessToken
+    isAuthenticated, requestLogin, registerAccessToken
 } from "@/services/dropbox-service";
 import messages from "./messages.json";
 
@@ -61,6 +61,9 @@ export default {
         authUrl: "",
     }),
     computed: {
+        ...mapState([
+            "dropboxConnected",
+        ]),
         awaitingConnection() {
             return !this.authenticated && !this.authUrl;
         },
@@ -69,7 +72,7 @@ export default {
         this.loading = true;
         this.authenticated = await isAuthenticated();
         if ( this.authenticated ) {
-            if ( !hasActiveSession() ) {
+            if ( !this.dropboxConnected ) {
                 this.showConnectionMessage();
                 this.openFileBrowser();
             }

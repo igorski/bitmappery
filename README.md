@@ -73,7 +73,6 @@ npm run lint
 * Restored base64 images should be treated as binary once more (see layer-factory)
 * Zoom set original size isn't that accurate (check also on mobile views), needs calculateMaxScaling ?
 * Unload Blobs when images are no longer used in document (see sprite-factory disposeSprite, keep instance count of usages)
-* Load/save documents directly from/to Dropbox
 * Implement layer scaling
 * Implement merged layer selection
 * Implement document crop

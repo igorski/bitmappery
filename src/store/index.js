@@ -20,7 +20,6 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import LZString from "lz-string";
 import KeyboardService from "@/services/keyboard-service";
 import DocumentFactory from "@/factories/document-factory";
 import { LAYER_IMAGE } from "@/definitions/layer-types";
@@ -30,7 +29,7 @@ import documentModule  from "./modules/document-module";
 import imageModule     from "./modules/image-module";
 import toolModule      from "./modules/tool-module";
 import { copySelection } from "@/services/render-service";
-import { saveBlobAsFile, selectFile, readFile } from "@/utils/file-util";
+import { saveBlobAsFile, selectFile } from "@/utils/file-util";
 import { truncate } from "@/utils/string-util";
 
 export const PROJECT_FILE_EXTENSION = ".bpy";
@@ -58,6 +57,7 @@ export default {
         dialog: null,       // currently opened dialog
         modal: null,        // currently opened modal
         notifications: [],  // notification message queue
+        dropboxConnected: false,
         windowSize: {
             width: window.innerWidth,
             height: window.innerHeight
@@ -124,18 +124,21 @@ export default {
         setWindowSize( state, { width, height }) {
             state.windowSize = { width, height };
         },
+        setDropboxConnected( state, value ) {
+            state.dropboxConnected = value;
+        },
     },
     actions: {
-        async loadDocument({ commit }) {
-            const fileList = await selectFile( PROJECT_FILE_EXTENSION, false );
-            if ( !fileList?.length ) {
-                return;
+        async loadDocument({ commit }, file = null ) {
+            if ( !file ) {
+                const fileList = await selectFile( PROJECT_FILE_EXTENSION, false );
+                if ( !fileList?.length ) {
+                    return;
+                }
+                file = fileList[ 0 ];
             }
-            const file = fileList[ 0 ];
             try {
-                const fileData = await readFile( file );
-                const data     = LZString.decompressFromUTF16( fileData );
-                const document = await DocumentFactory.deserialize( JSON.parse( data ));
+                const document = await DocumentFactory.fromBlob( file );
                 commit( "addNewDocument", document );
                 commit( "showNotification", {
                     message: translate( "loadedFileSuccessfully", { file: truncate( file.name, 35 ) })
@@ -151,10 +154,7 @@ export default {
             if ( !name ) {
                 name = getters.activeDocument.name;
             }
-            const data   = DocumentFactory.serialize( getters.activeDocument );
-            const binary = new Blob([
-                LZString.compressToUTF16( JSON.stringify( data ))
-            ], { type: "text/plain" });
+            const binary = DocumentFactory.toBlob( getters.activeDocument );
             saveBlobAsFile( binary, `${name.split( "." )[ 0 ]}${PROJECT_FILE_EXTENSION}` );
             commit( "showNotification", {
                 message: translate( "savedFileSuccessfully" , { file: truncate( name, 35 ) })

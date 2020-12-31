@@ -91,6 +91,17 @@ describe( "Vuex document module", () => {
             });
         });
 
+        it( "should be able to update the active Document name", () => {
+            const state = {
+                documents: [ { name: "foo", width: 5, height: 5 }, { name: "bar", width: 10, height: 10 }],
+                activeIndex: 1,
+            };
+            mutations.setActiveDocumentName( state, "baz" );
+            expect( state.documents ).toEqual([
+                { name: "foo", width: 5, height: 5 }, { name: "baz", width: 10, height: 10 },
+            ]);
+        });
+
         describe( "when setting the active Document size", () => {
             it( "should be able to update the active Document size", () => {
                 const state = {

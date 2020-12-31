@@ -40,14 +40,29 @@
                                 @click="requestNewDocument()"
                         ></button>
                     </li>
+                    <template v-if="dropboxConnected">
+                        <li>
+                            <button v-t="'loadDropboxDocument'"
+                                    type="button"
+                                    @click="requestDropboxLoad()"
+                            ></button>
+                        </li>
+                        <li>
+                            <button v-t="'saveDropboxDocument'"
+                                    type="button"
+                                    :disabled="noDocumentsAvailable"
+                                    @click="requestDropboxSave()"
+                            ></button>
+                        </li>
+                    </template>
                     <li>
-                        <button v-t="'loadDocument'"
+                        <button v-t="'importDocument'"
                                 type="button"
                                 @click="loadDocument()"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'saveDocument'"
+                        <button v-t="'exportDocument'"
                                 type="button"
                                 :disabled="noDocumentsAvailable"
                                 @click="requestDocumentSave()"
@@ -156,7 +171,8 @@
 <script>
 import { mapState, mapGetters, mapMutations, mapActions }  from "vuex";
 import {
-    RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION
+    RESIZE_DOCUMENT, EXPORT_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION,
+    DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT
 } from "@/definitions/modal-windows";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { runSpriteFn, getSpriteForLayer } from "@/factories/sprite-factory";
@@ -169,6 +185,7 @@ export default {
             "menuOpened",
             "blindActive",
             "selectionContent",
+            "dropboxConnected",
         ]),
         ...mapGetters([
             "documents",
@@ -224,13 +241,19 @@ export default {
             this.openModal( RESIZE_DOCUMENT );
         },
         requestDocumentSave() {
-            this.openModal( SAVE_DOCUMENT );
+            this.openModal( EXPORT_DOCUMENT );
         },
         requestSelectionLoad() {
             this.openModal( LOAD_SELECTION );
         },
         requestSelectionSave() {
             this.openModal( SAVE_SELECTION );
+        },
+        requestDropboxLoad() {
+            this.openModal( DROPBOX_FILE_SELECTOR );
+        },
+        requestDropboxSave() {
+            this.openModal( SAVE_DROPBOX_DOCUMENT );
         },
         selectAll() {
             getSpriteForLayer( this.activeLayer )?.selectAll();

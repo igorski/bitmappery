@@ -47,6 +47,9 @@ export default {
             state.activeIndex = index;
             runSpriteFn( sprite => sprite.invalidate(), state.documents[ index ] );
         },
+        setActiveDocumentName( state, name ) {
+            state.documents[ state.activeIndex ].name = name;
+        },
         setActiveDocumentSize( state, { width, height }) {
             const document = state.documents[ state.activeIndex ];
             const ratioX   = width  / document.width;

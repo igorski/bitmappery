@@ -9,16 +9,13 @@ jest.mock( "@/services/keyboard-service", () => ({
 jest.mock( "@/factories/document-factory", () => ({
     serialize: (...args) => mockUpdateFn?.( "serialize", ...args ),
     deserialize: (...args) => mockUpdateFn?.( "deserialize", ...args ),
+    toBlob: (...args) => mockUpdateFn?.( "toBlob", ...args ),
+    fromBlob: (...args) => mockUpdateFn?.( "fromBlob", ...args ),
 }));
 jest.mock( "@/utils/file-util", () => ({
-    readFile: (...args) => mockUpdateFn?.( "readFile", ...args ),
     selectFile: (...args) => mockUpdateFn?.( "selectFile", ...args ),
     saveBlobAsFile: (...args) => mockUpdateFn?.( "saveBlobAsFile", ...args ),
 }))
-jest.mock( "lz-string", () => ({
-    compressToUTF16: (...args) => mockUpdateFn?.( "compressToUTF16", ...args ),
-    decompressFromUTF16: (...args) => mockUpdateFn?.( "decompressFromUTF16", ...args ),
-}));
 
 describe( "Vuex store", () => {
     describe( "mutations", () => {
@@ -157,41 +154,59 @@ describe( "Vuex store", () => {
             mutations.setWindowSize( state, { width, height });
             expect( state.windowSize ).toEqual({ width, height });
         });
+
+        it( "should be able to set the Dropbox connection status", () => {
+            const state = { dropboxConnected: false };
+            mutations.setDropboxConnected( state, true );
+            expect( state.dropboxConnected ).toEqual( true );
+        });
     });
 
     describe( "actions", () => {
-        it( "should be able to load a saved document", async () => {
-            const commit = jest.fn();
-            const mockFile = { name: "file" };
-            const mockFileData = "base64";
-            const mockDecompressed = "{\"base\":\"64\"}";
-            const mockDocument = { name: "foo" };
-            mockUpdateFn = jest.fn( fn => {
-                switch ( fn ) {
-                    default:
-                        return true;
-                    case "selectFile":
-                        return [mockFile];
-                    case "readFile":
-                        return mockFileData;
-                    case "decompressFromUTF16":
-                        return mockDecompressed;
-                    case "deserialize":
-                        return mockDocument;
-                }
+        describe( "when loading a saved document", () => {
+            it( "should be able to load a saved document by using the file selector", async () => {
+                const commit = jest.fn();
+                const mockFile = { name: "file" };
+                const mockDocument = { name: "foo" };
+                mockUpdateFn = jest.fn( fn => {
+                    switch ( fn ) {
+                        default:
+                            return true;
+                        case "selectFile":
+                            return [mockFile];
+                        case "fromBlob":
+                            return mockDocument;
+                    }
+                });
+                await actions.loadDocument({ commit });
+                // assert file selector has been prompted
+                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "selectFile", expect.any( String ), expect.any( Boolean ));
+                // assert selected file is converted from Blob to document
+                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "fromBlob", mockFile );
+                // assert resulting Document has been added as the active document
+                expect( commit ).toHaveBeenNthCalledWith( 1, "addNewDocument", mockDocument );
+                expect( commit ).toHaveBeenNthCalledWith( 2, "showNotification", expect.any( Object ));
             });
-            await actions.loadDocument({ commit });
-            // assert file selector has been prompted
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "selectFile", expect.any( String ), expect.any( Boolean ));
-            // assert selected file is read
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "readFile", mockFile );
-            // assert read data has been processed by decompressor
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "decompressFromUTF16", mockFileData );
-            // assert decompressed data has been deserialized by DocumentFactory
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 4, "deserialize", JSON.parse( mockDecompressed ));
-            // assert resulting Document has been added as the active document
-            expect( commit ).toHaveBeenNthCalledWith( 1, "addNewDocument", mockDocument );
-            expect( commit ).toHaveBeenNthCalledWith( 2, "showNotification", expect.any( Object ));
+
+            it( "should be able to load a saved document from a given File/Blob", async () => {
+                const commit = jest.fn();
+                const blob = { name: "file" };
+                const mockDocument = { name: "foo" };
+                mockUpdateFn = jest.fn( fn => {
+                    switch ( fn ) {
+                        default:
+                            return true;
+                        case "fromBlob":
+                            return mockDocument;
+                    }
+                });
+                await actions.loadDocument({ commit }, blob );
+                // assert give file is converted from Blob to document
+                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "fromBlob", blob );
+                // assert resulting Document has been added as the active document
+                expect( commit ).toHaveBeenNthCalledWith( 1, "addNewDocument", mockDocument );
+                expect( commit ).toHaveBeenNthCalledWith( 2, "showNotification", expect.any( Object ));
+            });
         });
 
         it( "should be able to save the currently opened document", async () => {
@@ -204,18 +219,16 @@ describe( "Vuex store", () => {
                 switch ( fn ) {
                     default:
                         return true;
-                    case "serialize":
+                    case "toBlob":
                         return mockSavedDocument;
                 }
             });
             await actions.saveDocument({ commit, getters: mockedGetters }, "foo" );
 
-            // assert the active document is serialized by DocumentFactory.serialize
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "serialize", mockedGetters.activeDocument );
-            // assert the DocumentFactory saved result is stringified and compressed
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "compressToUTF16", JSON.stringify( mockSavedDocument ));
+            // assert the active document is serialized by DocumentFactory.toBlob
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "toBlob", mockedGetters.activeDocument );
             // assert the resulting Blob will be saved to a File
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "saveBlobAsFile", expect.any( Object ), `foo${PROJECT_FILE_EXTENSION}` );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "saveBlobAsFile", expect.any( Object ), `foo${PROJECT_FILE_EXTENSION}` );
             expect( commit ).toHaveBeenCalledWith( "showNotification", expect.any( Object ));
         });
     });

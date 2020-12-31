@@ -74,6 +74,7 @@ export default {
     margin: 0 $spacing-xxsmall;
     overflow: hidden;
     cursor: pointer;
+    vertical-align: middle;
 
     &:hover {
         transform: scale(1.05);
