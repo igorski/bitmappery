@@ -243,6 +243,7 @@ class LayerSprite extends sprite {
             const { mirrorX, mirrorY, rotation } = this.layer.effects;
             const rotCenterX = this._bounds.left + this._bounds.width  / 2;
             const rotCenterY = this._bounds.top  + this._bounds.height / 2;
+
             if (( rotation % 360 ) !== 0 ) {
                 ({ x, y } = translatePointerRotation( x, y, rotCenterX, rotCenterY, rotation ));
             }
@@ -255,7 +256,7 @@ class LayerSprite extends sprite {
             if ( isEraser ) {
                 ctx.globalCompositeOperation = "destination-out";
             }
-            // correct pointer offset in relation to content panning
+
             if ( mirrorX ) {
                 x -= ctx.canvas.width;
             }
@@ -267,6 +268,13 @@ class LayerSprite extends sprite {
             ctx.translate( x, y );
             ctx.rotate( rotation );
             ctx.translate( -x, -y );
+
+            // correct pointer offset w/regards to layer pan position
+            x -= this.layer.x;
+            y -= this.layer.y;
+
+            // TODO: when rotated, x and y are now in right coordinate space, but not at right point
+
             // note we draw directly onto the layer bitmaps, making this permanent
             ctx.drawImage( this._brushCvs, x - this._radius, y - this._radius );
             ctx.restore();
