@@ -79,7 +79,6 @@
 <script>
 import { mapMutations, mapActions } from "vuex";
 import { loader } from "zcanvas";
-import sortBy from "lodash.sortby";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { listFolder, downloadFileAsBlob } from "@/services/dropbox-service";
 import DropboxImagePreview from "./dropbox-image-preview";
@@ -197,7 +196,15 @@ export default {
                 const leaf   = findLeafByPath( this.tree, path );
                 const parent = { type: "folder", name: leaf.name, parent: leaf.parent, path };
                 // populate leaf with fetched children
-                leaf.children = sortBy( entries?.map( entry => mapEntry( entry, [], parent )) ?? [], [ "type", "name" ]);
+                leaf.children = ( entries?.map( entry => mapEntry( entry, [], parent )) ?? [] )
+                    .sort(( a, b ) => {
+                        if ( a.type < b.type ) {
+                            return 1;
+                        } else if ( a.type > b.type ) {
+                            return -1;
+                        }
+                        return a.name.localeCompare( b.name );
+                    });
                 this.leaf = leaf;
             } catch {
                 this.openDialog({ type: "error", message: this.$t( "couldNotRetrieveFilesForPath", { path } ) });
@@ -270,6 +277,7 @@ export default {
         background: none;
         padding: 0 $spacing-small;
         border-left: 1px solid $color-lines;
+        font-size: 100%;
         @include customFont();
 
         &:hover, &.active {
