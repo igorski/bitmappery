@@ -25,7 +25,7 @@
         <h2
             v-if="!collapsed"
             v-t="'toolbox'"
-            v-tooltip="'CTRL + T'"
+            v-tooltip="'(Tab)'"
         ></h2>
         <button
             type="button"

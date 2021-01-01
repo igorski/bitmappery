@@ -25,7 +25,7 @@
         <h2
             v-if="!collapsed"
             v-t="'optionsPanel'"
-            v-tooltip="'CTRL + O'"
+            v-tooltip="'(Tab)'"
         ></h2>
         <button
             type="button"

@@ -23,6 +23,7 @@
 import { ADD_LAYER }  from "@/definitions/modal-windows";
 import { LAYER_TEXT } from "@/definitions/layer-types";
 import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM, canDraw } from "@/definitions/tool-types";
+import { DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT } from "@/definitions/modal-windows";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 
 let state, getters, commit, dispatch, listener,
@@ -133,6 +134,12 @@ function handleKeyDown( event ) {
 
     switch ( keyCode )
     {
+        case 9: // tab
+            commit( "setToolboxOpened",      !state.toolboxOpened );
+            commit( "setOptionsPanelOpened", !state.optionsPanelOpened );
+            event.preventDefault();
+            break;
+
         case 27: // escape
 
             // close dialog (if existing), else close overlay (if existing)
@@ -219,7 +226,7 @@ function handleKeyDown( event ) {
             break;
 
         case 76: // L
-            if ( hasOption ) {
+            if ( hasOption && shiftDown ) {
                 commit( "openModal", ADD_LAYER );
             } else {
                 commit( "setActiveTool", { tool: ToolTypes.LASSO })
@@ -243,7 +250,9 @@ function handleKeyDown( event ) {
 
         case 79: // O
             if ( hasOption ) {
-                commit( "setOptionsPanelOpened", !state.optionsPanelOpened );
+                if ( state.dropboxConnected ) {
+                    commit( "openModal", DROPBOX_FILE_SELECTOR );
+                }
                 preventDefault( event );
             }
             break;
@@ -254,16 +263,15 @@ function handleKeyDown( event ) {
 
         case 83: // S
             if ( hasOption ) {
-                // ...
+                if ( getters.activeDocument && state.dropboxConnected ) {
+                    commit( "openModal", SAVE_DROPBOX_DOCUMENT );
+                }
                 preventDefault( event ); // page save
             }
             break;
 
         case 84: // T
-            if ( hasOption ) {
-                commit( "setToolboxOpened", !state.toolboxOpened );
-                preventDefault( event );
-            } else if ( getters.activeDocument ) {
+            if ( getters.activeDocument ) {
                 if ( getters.activeLayer?.type !== LAYER_TEXT ) {
                     commit( "addLayer", { type: LAYER_TEXT });
                 }
