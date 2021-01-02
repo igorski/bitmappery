@@ -65,7 +65,7 @@
                         <button v-t="'exportDocument'"
                                 type="button"
                                 :disabled="noDocumentsAvailable"
-                                @click="requestDocumentSave()"
+                                @click="requestDocumentExport()"
                         ></button>
                     </li>
                     <li>
@@ -240,7 +240,7 @@ export default {
         requestDocumentResize() {
             this.openModal( RESIZE_DOCUMENT );
         },
-        requestDocumentSave() {
+        requestDocumentExport() {
             this.openModal( EXPORT_DOCUMENT );
         },
         requestSelectionLoad() {

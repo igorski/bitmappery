@@ -20,10 +20,11 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { ADD_LAYER }  from "@/definitions/modal-windows";
 import { LAYER_TEXT } from "@/definitions/layer-types";
 import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM, canDraw } from "@/definitions/tool-types";
-import { DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT } from "@/definitions/modal-windows";
+import {
+    ADD_LAYER, EXPORT_DOCUMENT, DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT
+} from "@/definitions/modal-windows";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 
 let state, getters, commit, dispatch, listener,
@@ -208,7 +209,9 @@ function handleKeyDown( event ) {
             break;
 
         case 69: // E
-            if ( canDraw( getters.activeDocument, getters.activeLayer )) {
+            if ( hasOption ) {
+                openModal( EXPORT_DOCUMENT );
+            } else if ( canDraw( getters.activeDocument, getters.activeLayer )) {
                 setActiveTool( ToolTypes.ERASER );
             }
             break;
@@ -220,14 +223,16 @@ function handleKeyDown( event ) {
             break;
 
         case 73: // I
-            if ( getters.activeLayer ) {
+            if ( hasOption ) {
+                dispatch( "loadDocument" );
+            } else if ( getters.activeLayer ) {
                 setActiveTool( ToolTypes.EYEDROPPER );
             }
             break;
 
         case 76: // L
             if ( hasOption && shiftDown ) {
-                commit( "openModal", ADD_LAYER );
+                openModal( ADD_LAYER );
             } else {
                 commit( "setActiveTool", { tool: ToolTypes.LASSO })
                 setActiveTool( ToolTypes.LASSO );
@@ -251,7 +256,7 @@ function handleKeyDown( event ) {
         case 79: // O
             if ( hasOption ) {
                 if ( state.dropboxConnected ) {
-                    commit( "openModal", DROPBOX_FILE_SELECTOR );
+                    openModal( DROPBOX_FILE_SELECTOR );
                 }
                 preventDefault( event );
             }
@@ -264,7 +269,7 @@ function handleKeyDown( event ) {
         case 83: // S
             if ( hasOption ) {
                 if ( getters.activeDocument && state.dropboxConnected ) {
-                    commit( "openModal", SAVE_DROPBOX_DOCUMENT );
+                    openModal( SAVE_DROPBOX_DOCUMENT );
                 }
                 preventDefault( event ); // page save
             }
@@ -387,4 +392,8 @@ function preventDefault( event ) {
 
 function setActiveTool( tool ) {
     commit( "setActiveTool", { tool, activeLayer: getters.activeLayer });
+}
+
+function openModal( modal ) {
+    commit( "openModal", modal );
 }

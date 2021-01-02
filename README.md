@@ -6,7 +6,7 @@ No, I'm building a tool that does the bare minimum what I require and what I don
 find in other open source tools. That doesn't mean of course that contributions
 related to Photoshop-esque features aren't welcomed.
 
-### All self-written ?
+### All hand-written ?
 
 Yep, though it helps having worked in the photo software industry for five years, having
 tackled the problems before. Also, Bitmappery is reusing [zCanvas](https://github.com/igorski/zCanvas)
@@ -24,6 +24,23 @@ BitMappery does however make use of the following excellent libraries to speed u
 
 * UI Essentials by [www.wishforge.games](https://freeicons.io/profile/2257)
 * Black arrow icons set by [Reda](https://freeicons.io/profile/6156)
+
+## Model
+
+BitMappery works with entities known as _Documents_. A Document contains several _Layer_s, each of
+which define their content, transformation, _Effect_s, etc. Each of the nested entity properties
+has its own factory (see _@/src/factories/_). The Document is managed by the Vuex _document-module.js_.
+
+## Document rendering and interactions
+
+The Document is rendered one layer at a time onto a Canvas element, using [zCanvas](https://github.com/igorski/zCanvas). Both the rendering and interaction handling is performed by _@/src/components/ui/zcanvas/layer_sprite.js_.
+Note that the purpose of the renderer is solely to delegate interactions events to the Layer entity. The
+renderer should represent the properties of the Layer, the Layer should never reverse-engineer from the onscreen
+content (especially as different window size and scaling factor will greatly complicate these matters when
+performed two-way).
+
+Rendering transformations, text and effects is an asynchronous operation handled by _@/src/services/render-service.js_. The purpose of this service is to perform and cache repeated operations and eventually maintain
+the source bitmap represented by the _layer-sprite.js_.
 
 ## Dropbox integration
 
@@ -56,7 +73,10 @@ npm run lint
 
 # TODO / Roadmap
 
+* Implement iframe based rendering (as more compatible alternative to OffscreenCanvas) for effects
+* Implement action queue when drawing, only execute drawing on update() hook
 * Implement loaders on document load/save, image export and dropbox import
+* Maintain cache for transformations and filters, rendered at the display destination size (invalidate on window resize)
 * Drawing masks on a rotated layer that is panned (or mirrored) is broken
 * Dragging of masks on rotated/mirror content is kinda broken
 * Restoring of document with rotated layers (smaller than document size) restores at incorrect offset
