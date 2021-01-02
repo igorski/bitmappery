@@ -46,7 +46,7 @@ class LayerSprite extends sprite {
             layer.source = cvs;
         }
 
-        // create brush (always as all layers can be maskable)
+        // create brush (used for both drawing on LAYER_GRAPHIC types and to create layer masks)
         const brushCanvas = createCanvas();
         this._brushCvs    = brushCanvas.cvs;
         this._brushCtx    = brushCanvas.ctx;
@@ -214,6 +214,14 @@ class LayerSprite extends sprite {
         this._dragStartEventCoordinates = { x: this._pointerX, y: this._pointerY };
     }
 
+    syncedPositioning( x, y ) {
+        this._bounds.left = x;
+        this._bounds.top  = y;
+        this.layer.x = x;
+        this.layer.y = y;
+        this.invalidate();
+    }
+
     /* the following override zCanvas.sprite */
 
     handleMove( x, y ) {
@@ -349,9 +357,9 @@ class LayerSprite extends sprite {
             documentContext.beginPath();
             documentContext.lineWidth = 2 / this.canvas.zoomFactor;
 
-            let selection = this.layer.selection;
+            let { selection }   = this.layer;
             const firstPoint    = selection[ 0 ];
-            const localPointerX = this._pointerX - vp.left;
+            const localPointerX = this._pointerX - vp.left; // local to viewport
             const localPointerY = this._pointerY - vp.top;
 
             // when in rectangular select mode, the outline will draw from the first coordinate

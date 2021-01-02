@@ -165,15 +165,35 @@ function handleKeyDown( event ) {
             break;
 
         case 38: // up
+            if ( getters.activeTool === ToolTypes.MOVE ) {
+                const sprite = getSpriteForLayer( getters.activeLayer );
+                const speed  = shiftDown ? 10 : 1;
+                sprite?.syncedPositioning( sprite.getX(), sprite.getY() - speed );
+            }
             break;
 
         case 40: // down
+            if ( getters.activeTool === ToolTypes.MOVE ) {
+                const sprite = getSpriteForLayer( getters.activeLayer );
+                const speed  = shiftDown ? 10 : 1;
+                sprite?.syncedPositioning( sprite.getX(), sprite.getY() + speed );
+            }
             break;
 
         case 39: // right
+            if ( getters.activeTool === ToolTypes.MOVE ) {
+                const sprite = getSpriteForLayer( getters.activeLayer );
+                const speed  = shiftDown ? 10 : 1;
+                sprite?.syncedPositioning( sprite.getX() + speed, sprite.getY());
+            }
             break;
 
         case 37: // left
+            if ( getters.activeTool === ToolTypes.MOVE ) {
+                const sprite = getSpriteForLayer( getters.activeLayer );
+                const speed  = shiftDown ? 10 : 1;
+                sprite?.syncedPositioning( sprite.getX() - speed, sprite.getY() );
+            }
             break;
 
         case 46: // delete
