@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -183,6 +183,8 @@ export default {
             "closeModal",
             "showNotification",
             "setDropboxConnected",
+            "setLoading",
+            "unsetLoading",
         ]),
         ...mapActions([
             "loadDocument",
@@ -212,6 +214,7 @@ export default {
             this.loading = false;
         },
         async handleNodeClick( node ) {
+            this.setLoading( "dbox" );
             switch ( node.type ) {
                 case "folder":
                     await this.retrieveFiles( node.path );
@@ -233,6 +236,7 @@ export default {
                     this.closeModal();
                     break;
             }
+            this.unsetLoading( "dbox" );
         },
     },
 };

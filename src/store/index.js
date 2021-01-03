@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -56,6 +56,7 @@ export default {
         panMode: false,     // whether drag interactions with the document will pan its viewport
         dialog: null,       // currently opened dialog
         modal: null,        // currently opened modal
+        loadingStates: [],  // wether one or more long running operations are running
         notifications: [],  // notification message queue
         dropboxConnected: false,
         windowSize: {
@@ -66,6 +67,7 @@ export default {
     getters: {
         // eslint-disable-next-line no-unused-vars
         t: state => ( key, optArgs ) => translate( key, optArgs ),
+        isLoading: state => state.loadingStates.length > 0,
     },
     mutations: {
         setMenuOpened( state, value ) {
@@ -85,6 +87,17 @@ export default {
         },
         setPanMode( state, value ) {
             state.panMode = value;
+        },
+        setLoading( state, key ) {
+            if ( !state.loadingStates.includes( key )) {
+                state.loadingStates.push( key );
+            }
+        },
+        unsetLoading( state, key ) {
+            const idx = state.loadingStates.indexOf( key );
+            if ( idx > -1 ) {
+                state.loadingStates.splice( idx, 1 );
+            }
         },
         /**
          * open a dialog window showing given title and message.

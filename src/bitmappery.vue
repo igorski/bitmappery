@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -56,13 +56,14 @@
                 @close="closeModal()"
             />
         </div>
+        <loader v-if="isLoading" />
         <!-- notifications -->
         <notifications />
     </div>
 </template>
 
 <script>
-import Vuex, { mapState, mapMutations, mapActions } from "vuex";
+import Vuex, { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import Vue             from "vue";
 import VueI18n         from "vue-i18n";
 import VTooltip        from "v-tooltip";
@@ -71,7 +72,8 @@ import DocumentCanvas  from "@/components/document-canvas/document-canvas";
 import OptionsPanel    from "@/components/options-panel/options-panel";
 import Toolbox         from "@/components/toolbox/toolbox";
 import DialogWindow    from "@/components/dialog-window/dialog-window";
-import Notifications   from '@/components/notifications/notifications';
+import Notifications   from "@/components/notifications/notifications";
+import Loader          from "@/components/loader/loader";
 import { isMobile }    from "@/utils/environment-util";
 import ToolTypes       from "@/definitions/tool-types";
 import store           from "./store";
@@ -95,11 +97,12 @@ export default {
     store: new Vuex.Store( store ),
     components: {
         ApplicationMenu,
-        DocumentCanvas,
-        Toolbox,
         DialogWindow,
-        OptionsPanel,
+        DocumentCanvas,
+        Loader,
         Notifications,
+        OptionsPanel,
+        Toolbox,
     },
     data: () => ({
         docWidth: "100%",
@@ -112,6 +115,9 @@ export default {
             "dialog",
             "modal",
             "windowSize",
+        ]),
+        ...mapGetters([
+            "isLoading",
         ]),
         activeModal() {
             switch ( this.modal ) {

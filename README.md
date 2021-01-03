@@ -75,7 +75,6 @@ npm run lint
 
 * Implement iframe based rendering (as more compatible alternative to OffscreenCanvas) for effects
 * Implement action queue when drawing, only execute drawing on update() hook
-* Implement loaders on document load/save, image export and dropbox import
 * Maintain cache for transformations and filters, rendered at the display destination size (invalidate on window resize)
 * Drawing masks on a rotated layer that is panned (or mirrored) is broken
 * Dragging of masks on rotated/mirror content is kinda broken

@@ -1,7 +1,7 @@
 import store, { PROJECT_FILE_EXTENSION } from "@/store";
 import { LAYER_IMAGE } from "@/definitions/layer-types";
 
-const { mutations, actions } = store;
+const { getters, mutations, actions } = store;
 
 let mockUpdateFn;
 jest.mock( "@/services/keyboard-service", () => ({
@@ -19,6 +19,15 @@ jest.mock( "@/utils/file-util", () => ({
 }))
 
 describe( "Vuex store", () => {
+    describe( "getters", () => {
+        it( "should know when there is currently a loading state active", () => {
+            const state = { loadingStates: [] };
+            expect( getters.isLoading( state )).toBe( false );
+            state.loadingStates.push( "foo" );
+            expect( getters.isLoading( state )).toBe( true );
+        });
+    });
+
     describe( "mutations", () => {
         it( "should be able to toggle the opened state of the menu", () => {
             const state = { menuOpened: false };
@@ -55,6 +64,20 @@ describe( "Vuex store", () => {
             const state = { panMode: false };
             mutations.setPanMode( state, true );
             expect( state.panMode ).toBe( true );
+        });
+
+        describe( "when toggling loading states", () => {
+            it( "should be able to register a new loading state", () => {
+                const state = { loadingStates: [ "foo" ] };
+                mutations.setLoading( state, "bar" );
+                expect( state.loadingStates ).toEqual([ "foo", "bar" ]);
+            });
+
+            it( "should be able to unregister an existing loading state", () => {
+                const state = { loadingStates: [ "foo", "bar" ] };
+                mutations.unsetLoading( state, "foo" );
+                expect( state.loadingStates ).toEqual([ "bar" ]);
+            });
         });
 
         describe( "when toggling dialog windows", () => {

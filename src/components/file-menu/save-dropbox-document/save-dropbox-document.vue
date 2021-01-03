@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -88,12 +88,15 @@ export default {
             "openDialog",
             "setActiveDocumentName",
             "showNotification",
+            "setLoading",
+            "unsetLoading",
         ]),
         async requestSave() {
             if ( !this.isValid ) {
                 return;
             }
             this.setActiveDocumentName( this.name );
+            this.setLoading( "save" );
             try {
                 const blob = DocumentFactory.toBlob( this.activeDocument );
                 await uploadBlob( blob, `${this.name}${PROJECT_FILE_EXTENSION}` );
@@ -101,6 +104,7 @@ export default {
             } catch ( e ) {
                 this.openDialog({ type: "error", message: this.$t( "errorOccurred" ) });
             }
+            this.unsetLoading( "save" );
             this.closeModal();
         },
     },
