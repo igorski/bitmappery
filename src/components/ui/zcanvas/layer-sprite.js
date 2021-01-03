@@ -183,6 +183,7 @@ class LayerSprite extends sprite {
     }
 
     setSelection( value ) {
+        console.warn(JSON.stringify(value));
         Vue.set( this.layer, "selection", value );
         this._selectionClosed = true; // TODO: can we determine this from first and last point?
         this.invalidate();

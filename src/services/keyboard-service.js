@@ -26,12 +26,14 @@ import {
     ADD_LAYER, EXPORT_DOCUMENT, DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT
 } from "@/definitions/modal-windows";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
+import { translatePoints } from "@/utils/image-math";
 
 let state, getters, commit, dispatch, listener,
     suspended = false, blockDefaults = true, optionDown = false, shiftDown = false;
 
-const DEFAULT_BLOCKED = [ 8, 32, 37, 38, 39, 40 ],
-      noop            = () => {};
+const DEFAULT_BLOCKED    = [ 8, 32, 37, 38, 39, 40 ];
+const MOVABLE_TOOL_TYPES = [ ToolTypes.DRAG, ToolTypes.SELECTION, ToolTypes.LASSO ];
+const noop = () => {};
 
 /**
  * KeyboardService is a dedicated controller that listens to keyboard
@@ -165,34 +167,26 @@ function handleKeyDown( event ) {
             break;
 
         case 38: // up
-            if ( getters.activeTool === ToolTypes.DRAG ) {
-                const sprite = getSpriteForLayer( getters.activeLayer );
-                const speed  = shiftDown ? 10 : 1;
-                sprite?.syncedPositioning( sprite.getX(), sprite.getY() - speed );
+            if ( MOVABLE_TOOL_TYPES.includes( getters.activeTool )) {
+                moveObject( 1, 0, getters.activeTool );
             }
             break;
 
         case 40: // down
-            if ( getters.activeTool === ToolTypes.DRAG ) {
-                const sprite = getSpriteForLayer( getters.activeLayer );
-                const speed  = shiftDown ? 10 : 1;
-                sprite?.syncedPositioning( sprite.getX(), sprite.getY() + speed );
+            if ( MOVABLE_TOOL_TYPES.includes( getters.activeTool )) {
+                moveObject( 1, 1, getters.activeTool )
             }
             break;
 
         case 39: // right
-            if ( getters.activeTool === ToolTypes.DRAG ) {
-                const sprite = getSpriteForLayer( getters.activeLayer );
-                const speed  = shiftDown ? 10 : 1;
-                sprite?.syncedPositioning( sprite.getX() + speed, sprite.getY());
+            if ( MOVABLE_TOOL_TYPES.includes( getters.activeTool )) {
+                moveObject( 0, 1, getters.activeTool );
             }
             break;
 
         case 37: // left
-            if ( getters.activeTool === ToolTypes.DRAG ) {
-                const sprite = getSpriteForLayer( getters.activeLayer );
-                const speed  = shiftDown ? 10 : 1;
-                sprite?.syncedPositioning( sprite.getX() - speed, sprite.getY() );
+            if ( MOVABLE_TOOL_TYPES.includes( getters.activeTool )) {
+                moveObject( 0, 0, getters.activeTool );
             }
             break;
 
@@ -422,4 +416,38 @@ function setActiveTool( tool ) {
 
 function openModal( modal ) {
     commit( "openModal", modal );
+}
+
+/**
+ * @param {number} axis to move (0 == horizontal, 1 == vertical)
+ * @param {number} dir to move (0 == up/left, 1 == down/right)
+ */
+function moveObject( axis = 0, dir = 0, activeTool ) {
+    const sprite = getSpriteForLayer( getters.activeLayer );
+    if ( !sprite ) {
+        return;
+    }
+    const speed = shiftDown ? 10 : 1;
+    switch ( activeTool ) {
+        case ToolTypes.DRAG:
+            let x = sprite.getX();
+            let y = sprite.getY();
+            if ( axis === 0 ) {
+                x = dir === 0 ? x - speed : x + speed;
+            } else {
+                y = dir === 0 ? y - speed : y + speed;
+            }
+            sprite.syncedPositioning( x, y );
+            break;
+        case ToolTypes.SELECTION:
+        case ToolTypes.LASSO:
+            sprite.setSelection(
+                translatePoints(
+                    getters.activeLayer.selection,
+                    axis === 0 ? dir === 0 ? -speed : speed : 0,
+                    axis === 1 ? dir === 0 ? -speed : speed : 0
+                )
+            );
+            break;
+    }
 }

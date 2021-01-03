@@ -1,4 +1,7 @@
-import { scaleToRatio, constrain, isPortrait, isLandscape, isSquare, getRectangleForSelection } from "@/utils/image-math";
+import {
+    scaleToRatio, constrain, isPortrait, isLandscape, isSquare,
+    getRectangleForSelection, translatePoints,
+} from "@/utils/image-math";
 
 describe( "Image math utilities", () => {
     describe( "When constrainting an image to the maximum supported size in megapixels", () => {
@@ -62,5 +65,14 @@ describe( "Image math utilities", () => {
                 height: 799
             });
         });
+    });
+
+    it( "should be able to translate the coordinates within a list", () => {
+        const list = [
+            { x: 10, y: 10 }, { x: 15, y: 15 }
+        ];
+        expect( translatePoints( list, 5, -5 )).toEqual([
+            { x: 15, y: 5 }, { x: 20, y: 10 }
+        ]);
     });
 });
