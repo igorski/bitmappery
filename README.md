@@ -80,7 +80,6 @@ npm run lint
 * Drawing masks on a rotated layer that is panned (or mirrored) is broken
 * Dragging of masks on rotated/mirror content is kinda broken
 * Restoring of document with rotated layers (smaller than document size) restores at incorrect offset
-* Pasted selections should appear in center
 * When resizing document, positioned layers do not scale their position correctly
 * Render service should use the tool-options-text debounce on first font load to ensure font is present on document load
 * Render service should measure total text bounding box upfront and scale resulting bitmap (can be done after render)

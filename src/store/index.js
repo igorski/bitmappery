@@ -170,10 +170,15 @@ export default {
         clearSelection({ getters }) {
             runSpriteFn( sprite => sprite.resetSelection(), getters.activeDocument );
         },
-        pasteSelection({ commit, dispatch, state }) {
-            commit( "addLayer",
-                { type: LAYER_IMAGE, source: state.selectionContent.image, ...state.selectionContent.size }
-            );
+        pasteSelection({ commit, getters, dispatch, state }) {
+            const { image, size } = state.selectionContent;
+            commit( "addLayer", {
+                type: LAYER_IMAGE,
+                source: image,
+                ...size,
+                x: getters.activeDocument.width  / 2 - size.width  / 2,
+                y: getters.activeDocument.height / 2 - size.height / 2,
+            });
             dispatch( "clearSelection" );
         },
         /**

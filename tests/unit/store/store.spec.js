@@ -1,4 +1,5 @@
 import store, { PROJECT_FILE_EXTENSION } from "@/store";
+import { LAYER_IMAGE } from "@/definitions/layer-types";
 
 const { mutations, actions } = store;
 
@@ -230,6 +231,25 @@ describe( "Vuex store", () => {
             // assert the resulting Blob will be saved to a File
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "saveBlobAsFile", expect.any( Object ), `foo${PROJECT_FILE_EXTENSION}` );
             expect( commit ).toHaveBeenCalledWith( "showNotification", expect.any( Object ));
+        });
+
+        it( "should be able to paste the current in-memory image selection at the center of the Document", async () => {
+            const state = {
+                selectionContent: { image: { src: "foo" }, size: { width: 40, height: 30 } },
+            };
+            const mockedGetters = { activeDocument: { width: 200, height: 150 } };
+            const commit   = jest.fn();
+            const dispatch = jest.fn();
+            await actions.pasteSelection({ state, getters: mockedGetters, commit, dispatch });
+            expect( commit ).toHaveBeenCalledWith( "addLayer", {
+                type: LAYER_IMAGE,
+                source: state.selectionContent.image,
+                width: state.selectionContent.size.width,
+                height: state.selectionContent.size.height,
+                x: 80,
+                y: 60
+            });
+            expect( dispatch ).toHaveBeenCalledWith( "clearSelection" );
         });
     });
 });

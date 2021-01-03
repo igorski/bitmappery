@@ -190,7 +190,7 @@ export default {
                 zCanvas.addChild( this.drag );
                 const classList = zCanvas.getElement().classList;
                 classList.remove( ...classList );
-                classList.add( "cursor-move" );
+                classList.add( "cursor-drag" );
             } else {
                 this.drag.dispose();
                 this.handleCursor(); // restore cursor to value appropriate to current tool
@@ -297,6 +297,7 @@ export default {
             switch ( this.activeTool ) {
                 default:
                     break;
+                case ToolTypes.MOVE:
                 case ToolTypes.DRAG:
                     canvasClasses.add( "cursor-drag" );
                     break;
