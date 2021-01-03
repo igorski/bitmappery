@@ -157,6 +157,10 @@
                     </li>
                 </ul>
             </li>
+            <!-- help menu -->
+            <li>
+                <a v-t="'help'" href="https://www.igorski.nl/bitmappery/help" target="_blank" class="title" @click="close()"></a>
+            </li>
         </ul>
         <!-- fullscreen button -->
         <div v-if="supportsFullscreen"
