@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -135,16 +135,21 @@ class LayerSprite extends sprite {
         if ( !this._interactive ) {
             return;
         }
+        this._isDragMode        = tool === ToolTypes.DRAG;
         this._isBrushMode       = false;
         this._isSelectMode      = false;
         this._isRectangleSelect = tool === ToolTypes.SELECTION;
         this._isColorPicker     = false;
 
+        // note we use setDraggable() even outside of ToolTypes.DRAG
+        // this is because draggable zCanvas.sprites will trigger the handleMove()
+        // handler on pointer events. We override handleMove() for tool specific behaviour.
+
         switch ( tool ) {
             default:
                 this.setDraggable( false );
                 break;
-            case ToolTypes.MOVE:
+            case ToolTypes.DRAG:
                 this.setDraggable( true );
                 break;
             case ToolTypes.ERASER:
@@ -237,7 +242,7 @@ class LayerSprite extends sprite {
                 this.layer.maskX = this._dragStartOffset.x + (( x - this._bounds.left ) - this._dragStartEventCoordinates.x );
                 this.layer.maskY = this._dragStartOffset.y + (( y - this._bounds.top )  - this._dragStartEventCoordinates.y );
                 recacheEffects = true;
-            } else if ( !this._isSelectMode ) {
+            } else if ( this._isDragMode /*!this._isSelectMode*/ ) {
                 super.handleMove( x, y );
                 this.layer.x = this._bounds.left;
                 this.layer.y = this._bounds.top;

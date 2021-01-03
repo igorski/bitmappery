@@ -1,6 +1,7 @@
 {
     "en-US": {
         "toolbox": "Toolbox",
+        "panViewport": "Pan viewport",
         "dragLayer": "Drag layer",
         "polygonalLasso": "Polygonal lasso",
         "rectangularSelection": "Rectangular selection",

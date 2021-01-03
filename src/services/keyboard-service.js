@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2016-2020 - https://www.igorski.nl
+ * Igor Zinken 2016-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -165,7 +165,7 @@ function handleKeyDown( event ) {
             break;
 
         case 38: // up
-            if ( getters.activeTool === ToolTypes.MOVE ) {
+            if ( getters.activeTool === ToolTypes.DRAG ) {
                 const sprite = getSpriteForLayer( getters.activeLayer );
                 const speed  = shiftDown ? 10 : 1;
                 sprite?.syncedPositioning( sprite.getX(), sprite.getY() - speed );
@@ -173,7 +173,7 @@ function handleKeyDown( event ) {
             break;
 
         case 40: // down
-            if ( getters.activeTool === ToolTypes.MOVE ) {
+            if ( getters.activeTool === ToolTypes.DRAG ) {
                 const sprite = getSpriteForLayer( getters.activeLayer );
                 const speed  = shiftDown ? 10 : 1;
                 sprite?.syncedPositioning( sprite.getX(), sprite.getY() + speed );
@@ -181,7 +181,7 @@ function handleKeyDown( event ) {
             break;
 
         case 39: // right
-            if ( getters.activeTool === ToolTypes.MOVE ) {
+            if ( getters.activeTool === ToolTypes.DRAG ) {
                 const sprite = getSpriteForLayer( getters.activeLayer );
                 const speed  = shiftDown ? 10 : 1;
                 sprite?.syncedPositioning( sprite.getX() + speed, sprite.getY());
@@ -189,7 +189,7 @@ function handleKeyDown( event ) {
             break;
 
         case 37: // left
-            if ( getters.activeTool === ToolTypes.MOVE ) {
+            if ( getters.activeTool === ToolTypes.DRAG ) {
                 const sprite = getSpriteForLayer( getters.activeLayer );
                 const speed  = shiftDown ? 10 : 1;
                 sprite?.syncedPositioning( sprite.getX() - speed, sprite.getY() );
@@ -282,6 +282,12 @@ function handleKeyDown( event ) {
             }
             break;
 
+        case 80: // P
+            if ( getters.activeDocument ) {
+                setActiveTool( ToolTypes.MOVE );
+            }
+            break;
+
         case 82: // R
             setActiveTool( ToolTypes.ROTATE );
             break;
@@ -311,7 +317,7 @@ function handleKeyDown( event ) {
                 dispatch( "pasteSelection" );
                 preventDefault( event ); // override browser paste
             } else if ( getters.activeDocument ) {
-                setActiveTool( ToolTypes.MOVE );
+                setActiveTool( ToolTypes.DRAG );
             }
             break;
 

@@ -98,5 +98,4 @@ npm run lint
 * Implement document crop
 * Implement clone brush
 * Implement change history
-* Implement UI pattern to activate scrollpane on touch screens
 * Scale logic should move from zoomable-canvas into zCanvas (as handleInteraction needs to transform offsets by zoom ratio, see LayerSprite!)

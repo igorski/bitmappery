@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -25,7 +25,8 @@ import { MAX_IMAGE_SIZE, MAX_MEGAPIXEL } from "@/definitions/image-types";
 import { LAYER_GRAPHIC } from "@/definitions/layer-types";
 
 export default {
-    MOVE       : "move",
+    MOVE       : "move",  // pans viewport
+    DRAG       : "drag",  // drags layer within document
     LASSO      : "lasso",
     SELECTION  : "selection",
     EYEDROPPER : "eyedropper",

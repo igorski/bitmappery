@@ -165,6 +165,7 @@ export default {
         },
         activeTool( tool ) {
             this.handleCursor();
+            this.setDragMode( tool === ToolTypes.MOVE );
         },
         zoomOptions: {
             deep: true,
@@ -202,6 +203,7 @@ export default {
     methods: {
         ...mapMutations([
             "setZCanvasBaseDimensions",
+            "setDragMode",
         ]),
         ...mapActions([
             "requestDocumentClose",
@@ -295,8 +297,8 @@ export default {
             switch ( this.activeTool ) {
                 default:
                     break;
-                case ToolTypes.MOVE:
-                    canvasClasses.add( "cursor-move" );
+                case ToolTypes.DRAG:
+                    canvasClasses.add( "cursor-drag" );
                     break;
                 case ToolTypes.BRUSH:
                     canvasClasses.add( "no-cursor" );
@@ -335,7 +337,7 @@ export default {
             &.no-cursor {
                 cursor: none;
             }
-            &.cursor-move {
+            &.cursor-drag {
                 cursor: grab;
             }
             &.cursor-pointer {

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -100,6 +100,11 @@ export default {
             return [
                 {
                     type: ToolTypes.MOVE,
+                    i18n: "panViewport", icon: "move", key: "P / Space + Drag",
+                    disabled: !this.activeDocument
+                },
+                {
+                    type: ToolTypes.DRAG,
                     i18n: "dragLayer", icon: "drag", key: "V",
                     disabled: !this.activeDocument
                 },
