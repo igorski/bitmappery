@@ -154,7 +154,7 @@ function handleKeyDown( event ) {
             break;
 
         case 32: // spacebar
-            commit( "setDragMode", true );
+            commit( "setPanMode", true );
             break;
 
         // capture the apple key here as it is not recognized as a modifier
@@ -377,8 +377,8 @@ function handleKeyDown( event ) {
 function handleKeyUp( event ) {
     shiftDown = false;
 
-    if ( event.keyCode === 32 ) { // spacebar
-        commit( "setDragMode", false );
+    if ( event.keyCode === 32 && getters.activeTool !== ToolTypes.MOVE ) { // spacebar
+        commit( "setPanMode", false );
     }
 
     if ( optionDown ) {

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -28,8 +28,11 @@ import { sprite } from "zcanvas";
  * Sprite capturing all pointer events.
  */
 class Scrollpane extends sprite {
-    constructor( opts ) {
-        super( opts );
+    constructor( zCanvas ) {
+        super({
+            width  : zCanvas.getWidth()  / zCanvas.zoomFactor,
+            height : zCanvas.getHeight() / zCanvas.zoomFactor
+        });
         this.setDraggable( true );
     }
 
@@ -38,7 +41,6 @@ class Scrollpane extends sprite {
 
         if ( this.isDragging ) {
             this.vp = this.canvas._viewport;
-
             this._vpStartX = this.vp.left;
             this._vpStartY = this.vp.top;
         }
@@ -55,11 +57,11 @@ class Scrollpane extends sprite {
     }
 
     // DEBUG only
-    /*
-    draw( ctx ) {
+/*
+    draw( ctx, vp ) {
         ctx.fillStyle = "rgba(255,0,128,.5)";
         ctx.fillRect( 0, 0, this._bounds.width, this._bounds.height );
     }
-    */
+*/
 }
 export default Scrollpane;

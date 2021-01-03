@@ -51,6 +51,12 @@ describe( "Vuex store", () => {
             expect( state.blindActive ).toBe( true );
         });
 
+        it( "should be able to set the global Document pan mode", () => {
+            const state = { panMode: false };
+            mutations.setPanMode( state, true );
+            expect( state.panMode ).toBe( true );
+        });
+
         describe( "when toggling dialog windows", () => {
             it( "should be able to open a dialog window and apply its request parameters", () => {
                 const state = { dialog: null };

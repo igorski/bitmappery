@@ -53,7 +53,7 @@ export default {
         optionsPanelOpened: true,
         selectionContent: null, // clipboard content of copied images ({ image, size })
         blindActive: false,
-        dragMode: false,    // whether drag interactions with the document will pan its viewport
+        panMode: false,     // whether drag interactions with the document will pan its viewport
         dialog: null,       // currently opened dialog
         modal: null,        // currently opened modal
         notifications: [],  // notification message queue
@@ -83,8 +83,8 @@ export default {
         setBlindActive( state, active ) {
             state.blindActive = !!active;
         },
-        setDragMode( state, value ) {
-            state.dragMode = value;
+        setPanMode( state, value ) {
+            state.panMode = value;
         },
         /**
          * open a dialog window showing given title and message.

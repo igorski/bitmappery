@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -89,7 +89,7 @@ export default {
     computed: {
         ...mapState([
             "windowSize",
-            "dragMode",
+            "panMode",
         ]),
         ...mapGetters([
             "activeDocument",
@@ -165,7 +165,7 @@ export default {
         },
         activeTool( tool ) {
             this.handleCursor();
-            this.setDragMode( tool === ToolTypes.MOVE );
+            this.setPanMode( tool === ToolTypes.MOVE );
         },
         zoomOptions: {
             deep: true,
@@ -180,13 +180,10 @@ export default {
                 this.scaleCanvas( false );
             }
         },
-        dragMode( value ) {
+        panMode( value ) {
             const zCanvas = getCanvasInstance();
             if ( value ) {
-                this.drag = new Scrollpane({
-                    width  : zCanvas.getWidth()  / zoom * maxInScale,
-                    height : zCanvas.getHeight() / zoom * maxOutScale
-                });
+                this.drag = new Scrollpane( zCanvas );
                 zCanvas.addChild( this.drag );
                 const classList = zCanvas.getElement().classList;
                 classList.remove( ...classList );
@@ -203,7 +200,7 @@ export default {
     methods: {
         ...mapMutations([
             "setZCanvasBaseDimensions",
-            "setDragMode",
+            "setPanMode",
         ]),
         ...mapActions([
             "requestDocumentClose",
@@ -350,10 +347,16 @@ export default {
         }
 
         &.center canvas {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            @include large() {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+            @include mobile() {
+                display: block;
+                margin: 0 auto;
+            }
         }
     }
 }
