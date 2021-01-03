@@ -79,6 +79,10 @@ class LayerSprite extends sprite {
         return !!this.layer.mask;
     }
 
+    isRotated() {
+        return ( this.layer.effects.rotation % 360 ) !== 0;
+    }
+
     cacheBrush( color, radius = 30 ) {
         this._radius = radius;
 
@@ -183,9 +187,8 @@ class LayerSprite extends sprite {
     }
 
     setSelection( value ) {
-        console.warn(JSON.stringify(value));
         Vue.set( this.layer, "selection", value );
-        this._selectionClosed = true; // TODO: can we determine this from first and last point?
+        this._selectionClosed = value.length > 1; // TODO: can we determine this from first and last point?
         this.invalidate();
     }
 
@@ -258,7 +261,7 @@ class LayerSprite extends sprite {
             const rotCenterX = this._bounds.left + this._bounds.width  / 2;
             const rotCenterY = this._bounds.top  + this._bounds.height / 2;
 
-            if (( rotation % 360 ) !== 0 ) {
+            if ( this.isRotated() ) {
                 ({ x, y } = translatePointerRotation( x, y, rotCenterX, rotCenterY, rotation ));
             }
             const drawOnMask = this.isMaskable();
