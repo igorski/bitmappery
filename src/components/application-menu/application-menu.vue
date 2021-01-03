@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -27,7 +27,7 @@
         <div class="toggle" @click="setMenuOpened( !menuOpened )">
             <span>&#9776;</span>
         </div>
-        <h1>
+        <h1 class="title">
             Bit<span class="emphasis">Mappery</span>
         </h1>
         <ul class="menu-list">
@@ -272,6 +272,14 @@ export default {
 <style lang="scss" scoped>
 @import "@/styles/_mixins.scss";
 $toggle-width: 50px;
+
+.title {
+    letter-spacing: $spacing-xxsmall;
+
+    .emphasis {
+        letter-spacing: $spacing-xxsmall / 4;
+    }
+}
 
 .menu {
     color: #b6b6b6;
