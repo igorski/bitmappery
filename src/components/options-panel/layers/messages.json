@@ -6,6 +6,12 @@
         "addMask": "Add mask",
         "mask": "Mask",
         "areYouSure": "Are you sure?",
+        "dblClickToRename": "Double-click to rename layer",
+        "clickToEditLayer": "Click to edit layer",
+        "clickToEditMask": "Click to edit layer mask",
+        "toggleVisibility": "Toggle visiblity",
+        "deleteMask": "Delete mask",
+        "deleteLayer": "Delete layer",
         "doYouWantToRemoveLayerName": "Do you want to remove layer \"{name}\" ?",
         "doYouWantToRemoveMaskName": "Do you want to remove the mask from layer \"{name}\" ?"
     }

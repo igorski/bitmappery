@@ -68,7 +68,6 @@ npm run lint
 
 * Drawing masks/brushes on a rotated layer that is panned or mirrored is broken
 * Implement clone brush
-* Layer view in options-panel: allow naming, repositioning, toggling visibility and opacity
 * Render service should use the tool-options-text debounce on first font load to ensure font is present on document load
 * Moving of flipped / rotated content leads to occasional non-renders (isInsideViewport doesn't take rotated rectangles into account)
 * Restoring of document with rotated layers (smaller than document size) restores at incorrect offset
@@ -85,6 +84,7 @@ npm run lint
 * Restored base64 images should be treated as binary once more (see layer-factory)
 * Zoom set original size isn't that accurate (check also on mobile views), needs calculateMaxScaling ?
 * Unload Blobs when images are no longer used in document (see sprite-factory disposeSprite, keep instance count of usages)
+* Implement layer sorting and opacity
 * Implement layer scaling
 * Implement merged layer selection
 * Implement document crop

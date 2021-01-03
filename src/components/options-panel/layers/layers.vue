@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -34,16 +34,31 @@
                 :class="{
                     'active': layer.index === activeLayerIndex
                 }"
+                @dblclick="handleLayerDoubleClick( layer )"
             >
+                <!-- layer name is an input on double click -->
+                <input
+                    v-if="editable && layer.index === activeLayerIndex"
+                    ref="nameInput"
+                    class="name-input"
+                    :value="layer.name"
+                    @blur="editable = false"
+                    @keyup.enter="editable = false"
+                    @change="updateActiveLayerName"
+                />
                 <span
+                    v-else
+                    v-tooltip="$t( layer.mask && layer.mask === activeLayerMask ? 'clickToEditLayer' : 'dblClickToRename')"
                     class="name"
-                    @click="handleLayerClick( layer )"
                     :class="{
                         'highlight': layer.index === activeLayerIndex && !activeLayerMask
                     }"
+                    @click="handleLayerClick( layer )"
                 >{{ layer.name }}</span>
+                <!-- optional layer mask -->
                 <span
                     v-if="layer.mask"
+                    v-tooltip="$t('clickToEditMask')"
                     v-t="'mask'"
                     class="mask"
                     :class="{
@@ -51,10 +66,21 @@
                     }"
                     @click="handleLayerMaskClick( layer )"
                 ></span>
-                <span
-                    class="remove"
-                    @click="handleRemoveClick( layer.index )"
-                >&#215;</span>
+                <div class="layer-actions">
+                    <button
+                        v-tooltip="$t('toggleVisibility')"
+                        type="button"
+                        class="button button--ghost"
+                        @click="toggleLayerVisibility( layer.index )"
+                        :class="{ 'disabled': !layer.visible }"
+                    ><img src="@/assets/icons/icon-eye.svg" /></button>
+                    <button
+                        v-tooltip="$t( layer.mask ? 'deleteMask' : 'deleteLayer' )"
+                        type="button"
+                        class="button button--ghost"
+                        @click="handleRemoveClick( layer.index )"
+                    ><img src="@/assets/icons/icon-trashcan.svg" /></button>
+                </div>
             </div>
         </div>
         <p
@@ -82,13 +108,17 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import { ADD_LAYER }    from "@/definitions/modal-windows";
+import { ADD_LAYER } from "@/definitions/modal-windows";
 import { createCanvas } from "@/utils/canvas-util";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
+import KeyboardService from "@/services/keyboard-service";
 import messages from "./messages.json";
 
 export default {
     i18n: { messages },
+    data: () => ({
+        editable: false,
+    }),
     computed: {
         ...mapGetters([
             "activeDocument",
@@ -102,6 +132,16 @@ export default {
         },
         currentLayerHasMask() {
             return !!this.activeLayer?.mask;
+        },
+    },
+    watch: {
+        editable( value ) {
+            KeyboardService.setSuspended( value );
+            if ( value ) {
+                this.$nextTick(() => {
+                    this.$refs.nameInput[0]?.focus();
+                });
+            }
         },
     },
     methods: {
@@ -121,6 +161,25 @@ export default {
                 index: this.activeLayerIndex,
                 opts: {
                     mask: createCanvas( this.activeLayer.width, this.activeLayer.height ).cvs
+                }
+            });
+        },
+        handleLayerDoubleClick( index ) {
+            this.editable = true;
+        },
+        updateActiveLayerName({ target }) {
+            this.updateLayer({
+                index: this.activeLayerIndex,
+                opts: {
+                    name: target.value
+                }
+            });
+        },
+        toggleLayerVisibility( index ) {
+            this.updateLayer({
+                index,
+                opts: {
+                    visible: !this.layers[ index ].visible
                 }
             });
         },
@@ -184,7 +243,6 @@ h3 {
 .layer {
     cursor: pointer;
     border-bottom: 1px dotted $color-lines;
-    font-size: 80%;
     padding: 0 $spacing-xsmall;
     @include boxSize();
     @include customFont();
@@ -196,19 +254,38 @@ h3 {
         color: #000;
     }
     &.active {
-        padding: $spacing-xsmall $spacing-xsmall;
         border: none;
     }
 
-    .name {
+    .name,
+    .name-input {
         flex: 3;
         @include truncate();
+        padding: $spacing-small 0 0 $spacing-xsmall;
     }
     .mask {
         flex: 1;
+        padding: $spacing-small 0 0;
     }
     .highlight {
         color: #FFF;
+        text-decoration: underline;
+    }
+}
+
+.layer-actions {
+    .button {
+        width: 30px;
+        height: 40px;
+        padding: 0;
+
+        &.disabled {
+            opacity: .5;
+        }
+        img {
+            width: 24px;
+            vertical-align: middle;
+        }
     }
 }
 </style>
