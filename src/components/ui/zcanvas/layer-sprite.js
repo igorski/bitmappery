@@ -369,14 +369,15 @@ class LayerSprite extends sprite {
 
             // when in rectangular select mode, the outline will draw from the first coordinate
             // (defined in handlePress()) to the current pointer coordinate
-            if ( this._isRectangleSelect && !this._selectionClosed && selection.length ) {
-                selection = rectangleToCoordinates( firstPoint.x, firstPoint.y, localPointerX - firstPoint.x, localPointerY - firstPoint.y );
+            if ( this._isRectangleSelect && selection.length && !this._selectionClosed ) {
+                selection = rectangleToCoordinates( firstPoint.x, firstPoint.y, localPointerX - firstPoint.x + vp.left, localPointerY - firstPoint.y + vp.top );
             }
             // draw each point in the selection
             selection.forEach(( point, index ) => {
                 documentContext[ index === 0 ? "moveTo" : "lineTo" ]( point.x - vp.left, point.y - vp.top );
             });
-            // draw line to current cursor position
+
+            // for lasso selections, draw line to current cursor position
             if ( !this._isRectangleSelect && !this._selectionClosed ) {
                 documentContext.lineTo( localPointerX, localPointerY );
             }
