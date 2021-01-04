@@ -60,7 +60,7 @@ import { scaleToRatio, scaleValue } from "@/utils/image-math";
 import { isMobile } from "@/utils/environment-util";
 import {
     getCanvasInstance, setCanvasInstance,
-    createSpriteForLayer, flushLayerSprites, flushCache,
+    createSpriteForLayer, getSpriteForLayer, flushLayerSprites, flushCache,
 } from "@/factories/sprite-factory";
 
 /* internal non-reactive properties */
@@ -134,14 +134,15 @@ export default {
         layers: {
             deep: true,
             handler( layers ) {
-                const seen = [];
+                const seen    = [];
+                const zCanvas = getCanvasInstance();
                 layers?.forEach( layer => {
                     if ( !layer.visible ) {
                         flushLayerSprites( layer );
                         return;
                     }
                     if ( !layerPool.has( layer.id )) {
-                        const sprite = createSpriteForLayer( getCanvasInstance(), layer, layer === this.activeLayer );
+                        const sprite = createSpriteForLayer( zCanvas, layer, layer === this.activeLayer );
                         layerPool.set( layer.id, sprite );
                     }
                     seen.push( layer.id );
@@ -149,6 +150,12 @@ export default {
                 [ ...layerPool.keys() ].filter( id => !seen.includes( id )).forEach( id => {
                     flushLayerSprites( layerPool.get( id ));
                     layerPool.delete( id );
+                });
+                // ensure the visible layers are at right position in display list
+                layers?.filter(({ visible }) => visible ).forEach( layer => {
+                    const sprite = getSpriteForLayer( layer );
+                    zCanvas.removeChild( sprite );
+                    zCanvas.addChild( sprite );
                 });
             },
         },
