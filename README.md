@@ -67,7 +67,7 @@ npm run lint
 # TODO / Roadmap
 
 * Drawing masks/brushes on a rotated layer that is panned or mirrored is broken
-* Implement clone brush
+* Cloning contents onto a rotated layer is broken
 * Render service should use the tool-options-text debounce on first font load to ensure font is present on document load
 * Moving of flipped / rotated content leads to occasional non-renders (isInsideViewport doesn't take rotated rectangles into account)
 * Restoring of document with rotated layers (smaller than document size) restores at incorrect offset

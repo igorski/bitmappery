@@ -33,6 +33,7 @@ export default {
     ROTATE     : "rotate",
     ERASER     : "eraser",
     BRUSH      : "brush",
+    CLONE      : "clone",
     TEXT       : "text",
     ZOOM       : "zoom",
 };

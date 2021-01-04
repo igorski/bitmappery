@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -32,19 +32,22 @@ export default {
             [ ToolTypes.ZOOM ]  : { level: 1 },
             [ ToolTypes.BRUSH ] : { size: 10 },
             [ ToolTypes.ERASER ]: { size: 10, opacity: 1 },
-        }
+            [ ToolTypes.CLONE ] : { size: 10, source: null, coords: null },
+        },
     },
     getters: {
         activeTool    : state => state.activeTool,
         activeColor   : state => state.activeColor,
+        activeToolOptions : state => state.options[ state.activeTool ],
         zoomOptions   : state => state.options[ ToolTypes.ZOOM ],
         brushOptions  : state => state.options[ ToolTypes.BRUSH ],
         eraserOptions : state => state.options[ ToolTypes.ERASER ],
+        cloneOptions  : state => state.options[ ToolTypes.CLONE ],
     },
     mutations: {
         setActiveTool( state, { tool, activeLayer }) {
             state.activeTool = tool;
-            runSpriteFn( sprite => sprite.handleActiveTool( tool, activeLayer ));
+            runSpriteFn( sprite => sprite.handleActiveTool( tool, state.options[ state.activeTool ], activeLayer ));
         },
         setActiveColor( state, color ) {
             state.activeColor = color;
@@ -56,6 +59,7 @@ export default {
             switch ( tool ) {
                 default:
                     break;
+                case ToolTypes.CLONE:
                 case ToolTypes.BRUSH:
                     updateLayerSprites( state.activeColor, toolOptions );
                     break;

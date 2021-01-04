@@ -27,7 +27,7 @@
         <div class="toggle" @click="setMenuOpened( !menuOpened )">
             <span>&#9776;</span>
         </div>
-        <h1 class="title">
+        <h1 class="heading">
             Bit<span class="emphasis">Mappery</span>
         </h1>
         <ul class="menu-list">
@@ -270,10 +270,12 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/_mixins.scss";
+@import "@/styles/_mixins";
+@import "@/styles/typography";
+
 $toggle-width: 50px;
 
-.title {
+.heading {
     letter-spacing: $spacing-xxsmall;
 
     .emphasis {
@@ -425,6 +427,7 @@ h1 {
             color: #b6b6b6;
             text-decoration: none;
             padding-bottom: $spacing-large;
+            @include customFont();
         }
 
         &:hover,
@@ -519,6 +522,7 @@ h1 {
     top: $spacing-small;
     right: $spacing-medium;
     cursor: pointer;
+    @include customFont();
 
     &:hover {
         color: $color-1;

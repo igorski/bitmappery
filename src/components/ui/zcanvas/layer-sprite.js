@@ -23,9 +23,11 @@
 import Vue from "vue";
 import { sprite } from "zcanvas";
 import { createCanvas, resizeImage, globalToLocal } from "@/utils/canvas-util";
+import { renderCross, renderMasked } from "@/utils/render-util";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
 import { isPointInRange, translatePointerRotation, rectangleToCoordinates } from "@/utils/image-math";
 import { renderEffectsForLayer } from "@/services/render-service";
+import { getSpriteForLayer } from "@/factories/sprite-factory";
 import ToolTypes from "@/definitions/tool-types";
 
 /**
@@ -131,19 +133,26 @@ class LayerSprite extends sprite {
         });
     }
 
-    handleActiveTool( tool, activeLayer ) {
+    getBitmap() {
+        return this._bitmap;
+    }
+
+    handleActiveTool( tool, toolOptions, activeLayer ) {
+        this.isDragging     = false;
+        this._isBrushMode   = false;
+        this._isSelectMode  = false;
+        this._isColorPicker = false;
+        this._toolOptions   = null;
+
         this.setInteractive( this.layer === activeLayer );
-        this.isDragging   = false;
-        this._isBrushMode = false;
 
         if ( !this._interactive ) {
             return;
         }
         this._isDragMode        = tool === ToolTypes.DRAG;
-        this._isBrushMode       = false;
-        this._isSelectMode      = false;
         this._isRectangleSelect = tool === ToolTypes.SELECTION;
-        this._isColorPicker     = false;
+        this._toolType          = tool;
+        this._toolOptions       = toolOptions;
 
         // note we use setDraggable() even outside of ToolTypes.DRAG
         // this is because draggable zCanvas.sprites will trigger the handleMove()
@@ -156,12 +165,12 @@ class LayerSprite extends sprite {
             case ToolTypes.DRAG:
                 this.setDraggable( true );
                 break;
+            case ToolTypes.CLONE:
             case ToolTypes.ERASER:
             case ToolTypes.BRUSH:
                 this.forceMoveListener();
                 this.setDraggable( true );
                 this._isBrushMode = true;
-                this._brushType   = tool;
                 break;
             case ToolTypes.SELECTION:
             case ToolTypes.LASSO:
@@ -253,6 +262,7 @@ class LayerSprite extends sprite {
                 return;
             }
         }
+
         // brush tool active (either draws/erases onto IMAGE_GRAPHIC layer source
         // or on the mask bitmap)
         if ( this._applyBrush ) {
@@ -265,7 +275,9 @@ class LayerSprite extends sprite {
                 ({ x, y } = translatePointerRotation( x, y, rotCenterX, rotCenterY, rotation ));
             }
             const drawOnMask = this.isMaskable();
-            const isEraser   = this._brushType === ToolTypes.ERASER;
+            const isEraser   = this._toolType === ToolTypes.ERASER;
+            const isCloner   = this._toolType === ToolTypes.CLONE;
+
             // get the drawing context
             const ctx = drawOnMask ? this.layer.mask.getContext( "2d" ) : this.layer.source.getContext( "2d" );
             ctx.save();
@@ -292,8 +304,15 @@ class LayerSprite extends sprite {
 
             // TODO: when rotated, x and y are now in right coordinate space, but not at right point
 
-            // note we draw directly onto the layer bitmaps, making this permanent
-            ctx.drawImage( this._brushCvs, x - this._radius, y - this._radius );
+            if ( isCloner ) {
+                renderMasked(
+                    ctx, this, x, y,
+                    getSpriteForLayer({ id: this._toolOptions.source }), // TODO: fugly!!
+                    this._brushCvs, this._radius
+                );
+            } else {
+                ctx.drawImage( this._brushCvs, x - this._radius, y - this._radius );
+            }
             ctx.restore();
 
             recacheEffects = true;
@@ -316,8 +335,13 @@ class LayerSprite extends sprite {
             this.canvas.store.commit( "setActiveColor", `rgba(${p[0]},${p[1]},${p[2]},${(p[3]/255)})` );
         }
         else if ( this._isBrushMode ) {
-            // brush mode, set the application to true (will be applied in handleMove())
-            this._applyBrush = true;
+            if ( this._toolType === ToolTypes.CLONE && !this._toolOptions.coords ) {
+                // pressing down when using the clone tool with no coords yet defined, sets the source coords.
+                this._toolOptions.coords = { x, y };
+            } else {
+                // for any other brush mode state, set the brush application to true (will be applied in handleMove())
+                this._applyBrush = true;
+            }
         }
         else if ( this._isSelectMode && !this._selectionClosed ) {
             // selection mode, set the click coordinate as the first point in the selection
@@ -354,9 +378,27 @@ class LayerSprite extends sprite {
 
         // render brush outline at pointer position
         if ( this._isBrushMode ) {
+            const drawBrushOutline = this._toolType !== ToolTypes.CLONE || !!this._toolOptions.coords;
+            if ( this._toolType === ToolTypes.CLONE ) {
+                const { coords } = this._toolOptions;
+                let tx = this._pointerX - vp.left;
+                let ty = this._pointerY - vp.top;
+                if ( coords ) {
+                    tx = ( coords.x - vp.left ) + ( this._pointerX - this._dragStartEventCoordinates.x );
+                    ty = ( coords.y - vp.top  ) + ( this._pointerY - this._dragStartEventCoordinates.y );
+                }
+                // when no source coordinate is set, or when applying the clone stamp, we show a cross to mark the origin
+                if ( !coords || this._applyBrush ) {
+                    renderCross( documentContext, tx, ty, this._radius / this.canvas.zoomFactor );
+                }
+            }
             documentContext.save();
             documentContext.beginPath();
-            documentContext.arc( this._pointerX - vp.left, this._pointerY - vp.top, this._radius, 0, 2 * Math.PI );
+
+            if ( drawBrushOutline ) {
+                // any other brush mode state shows brush outline
+                documentContext.arc( this._pointerX - vp.left, this._pointerY - vp.top, this._radius, 0, 2 * Math.PI );
+            }
             documentContext.stroke();
             documentContext.restore();
         }

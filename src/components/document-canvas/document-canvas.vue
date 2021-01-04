@@ -306,6 +306,8 @@ export default {
                     canvasClasses.add( "cursor-drag" );
                     break;
                 case ToolTypes.BRUSH:
+                case ToolTypes.CLONE:
+                case ToolTypes.ERASER:
                     canvasClasses.add( "no-cursor" );
                     break;
                 case ToolTypes.LASSO:

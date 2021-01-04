@@ -68,6 +68,7 @@
 <script>
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
+import { runSpriteFn } from "@/factories/sprite-factory";
 import ToolTypes from "@/definitions/tool-types";
 import messages  from "./messages.json";
 
@@ -82,6 +83,7 @@ export default {
             "activeDocument",
             "activeLayer",
             "activeColor",
+            "activeToolOptions",
         ]),
         colorPicker() {
             // load async as this adds to the bundle size
@@ -119,13 +121,23 @@ export default {
                     disabled: !this.activeDocument
                 },
                 {
-                    type: ToolTypes.EYEDROPPER,
-                    i18n: "eyedropper", icon: "eyedropper", key: "I",
-                    disabled: !this.activeLayer
+                    type: ToolTypes.BRUSH,
+                    i18n: "brush", icon: "paintbrush", key: "B",
+                    disabled: !canDraw
                 },
                 {
-                    type: ToolTypes.ROTATE,
-                    i18n: "rotateLayer", icon: "rotate", key: "R",
+                    type: ToolTypes.ERASER,
+                    i18n: "eraser", icon: "eraser", key: "E",
+                    disabled: !canDraw
+                },
+                {
+                    type: ToolTypes.CLONE,
+                    i18n: "cloneStamp", icon: "stamp", key: "S",
+                    disabled: !canDraw
+                },
+                {
+                    type: ToolTypes.EYEDROPPER,
+                    i18n: "eyedropper", icon: "eyedropper", key: "I",
                     disabled: !this.activeLayer
                 },
                 {
@@ -134,14 +146,9 @@ export default {
                     disabled: !this.activeLayer
                 },
                 {
-                    type: ToolTypes.ERASER,
-                    i18n: "eraser", icon: "eraser", key: "E",
-                    disabled: !canDraw
-                },
-                {
-                    type: ToolTypes.BRUSH,
-                    i18n: "brush", icon: "paintbrush", key: "B",
-                    disabled: !canDraw
+                    type: ToolTypes.ROTATE,
+                    i18n: "rotateLayer", icon: "rotate", key: "R",
+                    disabled: !this.activeLayer
                 },
                 {
                     type: ToolTypes.TEXT,
@@ -176,6 +183,7 @@ export default {
             }
             switch ( this.activeTool ) {
                 default:
+                    runSpriteFn( sprite => sprite.handleActiveTool( this.activeTool, this.activeToolOptions, layer ));
                     return;
                 case ToolTypes.BRUSH:
                     if ( !layer.mask ) {

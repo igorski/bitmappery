@@ -33,6 +33,7 @@ let state, getters, commit, dispatch, listener,
 
 const DEFAULT_BLOCKED    = [ 8, 32, 37, 38, 39, 40 ];
 const MOVABLE_TOOL_TYPES = [ ToolTypes.DRAG, ToolTypes.SELECTION, ToolTypes.LASSO ];
+const BRUSH_TYPES        = [ ToolTypes.BRUSH, ToolTypes.ERASER, ToolTypes.CLONE ];
 const noop = () => {};
 
 /**
@@ -132,8 +133,6 @@ function handleKeyDown( event ) {
 
     //if ( !hasOption && !shiftDown )
     //    handleInputForMode( keyCode );
-
-    let currentValue;
 
     switch ( keyCode )
     {
@@ -292,6 +291,8 @@ function handleKeyDown( event ) {
                     openModal( SAVE_DROPBOX_DOCUMENT );
                 }
                 preventDefault( event ); // page save
+            } else if ( canDraw( getters.activeDocument, getters.activeLayer )) {
+                setActiveTool( ToolTypes.CLONE );
             }
             break;
 
@@ -357,19 +358,21 @@ function handleKeyDown( event ) {
             break;
 
         case 219: // [
-            currentValue = getters.activeTool === ToolTypes.ERASER ? getters.eraserOptions : getters.brushOptions;
-            commit( "setToolOptionValue",
-                { tool: getters.activeTool, option: "size", value: Math.max( 1, currentValue.size - 5 )
-            });
-            getCanvasInstance()?.invalidate();
+            if ( BRUSH_TYPES.includes( getters.activeTool )) {
+                commit( "setToolOptionValue", {
+                    tool: getters.activeTool, option: "size", value: Math.max( 1, getters.activeToolOptions.size - 5 )
+                });
+                getCanvasInstance()?.invalidate();
+            }
             break;
 
         case 221: // ]
-            currentValue = getters.activeTool === ToolTypes.ERASER ? getters.eraserOptions : getters.brushOptions;
-            commit( "setToolOptionValue", {
-                tool: getters.activeTool, option: "size", value: Math.min( MAX_BRUSH_SIZE, currentValue.size + 5 )
-            });
-            getCanvasInstance()?.invalidate();
+            if ( BRUSH_TYPES.includes( getters.activeTool )) {
+                commit( "setToolOptionValue", {
+                    tool: getters.activeTool, option: "size", value: Math.min( MAX_BRUSH_SIZE, getters.activeToolOptions.size + 5 )
+                });
+                getCanvasInstance()?.invalidate();
+            }
             break;
     }
 }

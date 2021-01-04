@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -130,6 +130,8 @@ export default {
                     return () => import( "./tool-options-eraser/tool-options-eraser" );
                 case ToolTypes.BRUSH:
                     return () => import( "./tool-options-brush/tool-options-brush" );
+                case ToolTypes.CLONE:
+                    return () => import( "./tool-options-clone/tool-options-clone" );
                 case ToolTypes.ROTATE:
                     return () => import( "./tool-options-rotate/tool-options-rotate" );
                 case ToolTypes.MIRROR:

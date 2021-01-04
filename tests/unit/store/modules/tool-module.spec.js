@@ -6,16 +6,21 @@ const { getters, mutations } = storeModule;
 describe( "Vuex tool module", () => {
     describe( "getters", () => {
         const state = {
-            activeTool: ToolTypes.MOVE,
+            activeTool: ToolTypes.ZOOM,
             activeColor: "red",
             options: {
                 [ ToolTypes.ZOOM ]: { level: 1 },
                 [ ToolTypes.BRUSH ]: { size: 10 },
-                [ ToolTypes.ERASER ]: { size: 10, opacity: 1 }
+                [ ToolTypes.ERASER ]: { size: 10, opacity: 1 },
+                [ ToolTypes.CLONE ]: { size: 10, source: null, coords: null },
             }
         }
         it( "should be able to return the active tool", () => {
-            expect( getters.activeTool( state )).toEqual( ToolTypes.MOVE );
+            expect( getters.activeTool( state )).toEqual( ToolTypes.ZOOM );
+        });
+
+        it( "should be able to return the active tool options", () => {
+            expect( getters.activeToolOptions( state )).toEqual( state.options[ ToolTypes.ZOOM ]);
         });
 
         it( "should be able to return the active color", () => {
@@ -32,6 +37,10 @@ describe( "Vuex tool module", () => {
 
         it( "should be able to retrieve the eraser options", () => {
             expect( getters.eraserOptions( state )).toEqual({ size: 10, opacity: 1 });
+        });
+
+        it( "should be able to retrieve the clone stamp options", () => {
+            expect( getters.cloneOptions( state )).toEqual({ size: 10, source: null, coords: null });
         });
     });
 
