@@ -32,7 +32,7 @@ export default {
             [ ToolTypes.ZOOM ]  : { level: 1 },
             [ ToolTypes.BRUSH ] : { size: 10 },
             [ ToolTypes.ERASER ]: { size: 10, opacity: 1 },
-            [ ToolTypes.CLONE ] : { size: 10, source: null, coords: null },
+            [ ToolTypes.CLONE ] : { size: 10, opacity: 1, source: null, coords: null },
         },
     },
     getters: {

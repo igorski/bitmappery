@@ -3,6 +3,7 @@
         "cloneBrush": "Clone brush",
         "sourceLayer": "Source layer",
         "brushSize": "Brush size",
+        "opacity": "Opacity",
         "selectSourceCoordinate": "Select source coordinate"
     }
 }

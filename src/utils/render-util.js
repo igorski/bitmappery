@@ -47,8 +47,8 @@ export const renderCross = ( ctx, x, y, size ) => {
  * @param {number} maskRadius radius of the mask (determines mask size)
  */
 export const renderMasked = ( destContext, sprite, destX, destY, sourceSprite, brushCvs, maskRadius ) => {
-    const { coords } = sprite._toolOptions;
-    const source     = sourceSprite.getBitmap();
+    const { coords, opacity } = sprite._toolOptions;
+    const source = sourceSprite.getBitmap();
 
     const sourceX = ( coords.x - sourceSprite.getX()) - maskRadius;
     const sourceY = ( coords.y - sourceSprite.getY()) - maskRadius;
@@ -59,6 +59,8 @@ export const renderMasked = ( destContext, sprite, destX, destY, sourceSprite, b
     const { cvs, ctx } = tempCanvas;
     cvs.width  = brushCvs.width;
     cvs.height = brushCvs.height;
+    
+    ctx.globalAlpha = opacity;
 
     // draw source bitmap data onto temporary canvas
     ctx.drawImage(

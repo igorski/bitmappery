@@ -9,10 +9,10 @@ describe( "Vuex tool module", () => {
             activeTool: ToolTypes.ZOOM,
             activeColor: "red",
             options: {
-                [ ToolTypes.ZOOM ]: { level: 1 },
-                [ ToolTypes.BRUSH ]: { size: 10 },
-                [ ToolTypes.ERASER ]: { size: 10, opacity: 1 },
-                [ ToolTypes.CLONE ]: { size: 10, source: null, coords: null },
+                [ ToolTypes.ZOOM ]   : { level: 1 },
+                [ ToolTypes.BRUSH ]  : { size: 10 },
+                [ ToolTypes.ERASER ] : { size: 10, opacity: 1 },
+                [ ToolTypes.CLONE ]  : { size: 10, opacity: 1, source: null, coords: null },
             }
         }
         it( "should be able to return the active tool", () => {
@@ -40,7 +40,7 @@ describe( "Vuex tool module", () => {
         });
 
         it( "should be able to retrieve the clone stamp options", () => {
-            expect( getters.cloneOptions( state )).toEqual({ size: 10, source: null, coords: null });
+            expect( getters.cloneOptions( state )).toEqual({ size: 10, opacity: 1, source: null, coords: null });
         });
     });
 

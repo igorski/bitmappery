@@ -38,6 +38,14 @@
             />
         </div>
         <div class="wrapper input">
+            <label v-t="'opacity'"></label>
+            <slider
+                v-model="opacity"
+                :min="0"
+                :max="100"
+            />
+        </div>
+        <div class="wrapper input">
             <button
                 v-t="'selectSourceCoordinate'"
                 v-tooltip="'(Alt + Click)'"
@@ -93,6 +101,14 @@ export default {
             },
             set( value ) {
                 this.updateValue( "size", value );
+            },
+        },
+        opacity: {
+            get() {
+                return this.cloneOptions.opacity * 100;
+            },
+            set( value ) {
+                this.updateValue( "opacity", value / 100 );
             },
         },
     },
