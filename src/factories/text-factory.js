@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,7 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { googleFonts } from "@/services/font-service";
+import { loadGoogleFont } from "@/services/font-service";
+import { googleFonts } from "@/definitions/font-types";
 
 const TextFactory = {
     create({
@@ -60,9 +61,11 @@ const TextFactory = {
      * Creating a new text instance from a stored text structure
      * inside a stored projects layer
      */
-     deserialize( text = {} ) {
+     async deserialize( text = {} ) {
+         const font = text.f;
+         await loadGoogleFont( font ); // ensure font is loaded and ready
          return TextFactory.create({
-             font: text.f,
+             font,
              value: text.v,
              size: text.s,
              lineHeight: text.l,

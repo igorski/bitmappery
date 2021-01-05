@@ -214,8 +214,10 @@ describe( "Vuex store", () => {
                 // assert selected file is converted from Blob to document
                 expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "fromBlob", mockFile );
                 // assert resulting Document has been added as the active document
-                expect( commit ).toHaveBeenNthCalledWith( 1, "addNewDocument", mockDocument );
-                expect( commit ).toHaveBeenNthCalledWith( 2, "showNotification", expect.any( Object ));
+                expect( commit ).toHaveBeenNthCalledWith( 1, "setLoading", "doc" );
+                expect( commit ).toHaveBeenNthCalledWith( 2, "addNewDocument", mockDocument );
+                expect( commit ).toHaveBeenNthCalledWith( 3, "showNotification", expect.any( Object ));
+                expect( commit ).toHaveBeenNthCalledWith( 4, "unsetLoading", "doc" );
             });
 
             it( "should be able to load a saved document from a given File/Blob", async () => {
@@ -234,8 +236,10 @@ describe( "Vuex store", () => {
                 // assert give file is converted from Blob to document
                 expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "fromBlob", blob );
                 // assert resulting Document has been added as the active document
-                expect( commit ).toHaveBeenNthCalledWith( 1, "addNewDocument", mockDocument );
-                expect( commit ).toHaveBeenNthCalledWith( 2, "showNotification", expect.any( Object ));
+                expect( commit ).toHaveBeenNthCalledWith( 1, "setLoading", "doc" );
+                expect( commit ).toHaveBeenNthCalledWith( 2, "addNewDocument", mockDocument );
+                expect( commit ).toHaveBeenNthCalledWith( 3, "showNotification", expect.any( Object ));
+                expect( commit ).toHaveBeenNthCalledWith( 4, "unsetLoading", "doc" );
             });
         });
 

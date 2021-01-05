@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -88,6 +88,7 @@ const LayerFactory = {
     async deserialize( layer ) {
         const source = await base64ToLayerImage( layer.s, layer.t, layer.w, layer.h );
         const mask   = await base64ToLayerImage( layer.m, LAYER_MASK, layer.w, layer.h );
+        const text   = await TextFactory.deserialize( layer.tx );
         return LayerFactory.create({
             name: layer.n,
             type: layer.t,
@@ -101,7 +102,7 @@ const LayerFactory = {
             width: layer.w,
             height: layer.h,
             visible: layer.v,
-            text: TextFactory.deserialize( layer.tx ),
+            text,
             effects: EffectsFactory.deserialize( layer.f ),
         });
     }

@@ -150,6 +150,7 @@ export default {
                 }
                 file = fileList[ 0 ];
             }
+            commit( "setLoading", "doc" );
             try {
                 const document = await DocumentFactory.fromBlob( file );
                 commit( "addNewDocument", document );
@@ -162,6 +163,7 @@ export default {
                     message: translate( "errorLoadingFile", { file: truncate( file.name, 35 ) })
                 });
             }
+            commit( "unsetLoading", "doc" );
         },
         saveDocument({ commit, getters }, name = null ) {
             if ( !name ) {

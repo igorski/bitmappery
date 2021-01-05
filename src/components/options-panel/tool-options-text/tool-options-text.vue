@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -84,8 +84,8 @@ import SelectBox  from '@/components/ui/select-box/select-box';
 import Slider     from "@/components/ui/slider/slider";
 import { mapSelectOptions } from "@/utils/search-select-util";
 import KeyboardService from "@/services/keyboard-service";
-import { googleFonts, loadGoogleFont } from "@/services/font-service";
-import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { loadGoogleFont } from "@/services/font-service";
+import { googleFonts } from "@/definitions/font-types";
 import messages  from "./messages.json";
 
 export default {
@@ -180,18 +180,11 @@ export default {
             get() {
                 return this.activeLayer?.text?.font;
             },
-            async set( font ) {
-                const fromCache = await loadGoogleFont( font );
+            set( font ) {
                 this.updateLayer({
                     index: this.activeLayerIndex,
                     opts: this.formatOpts({ font })
                 });
-                // on first load, font is not immediately available for rendering
-                if ( !fromCache ) {
-                    window.setTimeout(() => {
-                        getSpriteForLayer( this.activeLayer )?.cacheEffects();
-                    }, 50 );
-                }
             }
         }
     },

@@ -1,5 +1,10 @@
-import TextFactory     from "@/factories/text-factory";
-import { googleFonts } from "@/services/font-service";
+import TextFactory from "@/factories/text-factory";
+import { googleFonts } from "@/definitions/font-types";
+
+let mockUpdateFn;
+jest.mock( "@/services/font-service", () => ({
+    loadGoogleFont: (...args) => mockUpdateFn?.( "loadGoogleFont", ...args ),
+}));
 
 describe( "Text factory", () => {
     describe( "when creating a new Text instance", () => {
@@ -37,6 +42,7 @@ describe( "Text factory", () => {
 
     describe( "when serializing and deserializing a Text structure", () => {
         it( "should do so without data loss", async () => {
+            mockUpdateFn = jest.fn();
             const text = TextFactory.create({
                 size: 10,
                 lineHeight: 40,
@@ -45,10 +51,11 @@ describe( "Text factory", () => {
                 value: "Foo bar baz",
                 color: "#FFF"
             });
-            const serialized = TextFactory.serialize( text );
-            const deserialized = TextFactory.deserialize( serialized );
+            const serialized   = TextFactory.serialize( text );
+            const deserialized = await TextFactory.deserialize( serialized );
 
             expect( deserialized ).toEqual( text );
+            expect( mockUpdateFn ).toHaveBeenCalledWith( "loadGoogleFont", "Helvetica" );
         });
     });
 });
