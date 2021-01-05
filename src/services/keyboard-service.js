@@ -35,6 +35,7 @@ const DEFAULT_BLOCKED    = [ 8, 32, 37, 38, 39, 40 ];
 const MOVABLE_TOOL_TYPES = [ ToolTypes.DRAG, ToolTypes.SELECTION, ToolTypes.LASSO ];
 const BRUSH_TYPES        = [ ToolTypes.BRUSH, ToolTypes.ERASER, ToolTypes.CLONE ];
 const noop = () => {};
+const defaultBlock = e => e.preventDefault();
 
 /**
  * KeyboardService is a dedicated controller that listens to keyboard
@@ -142,6 +143,13 @@ function handleKeyDown( event ) {
             event.preventDefault();
             break;
 
+        case 17: // Ctrl
+            optionDown = true;
+            commit( "setLayerSelectMode", true );
+            // prevent context menu from opening in this mode
+            document.addEventListener( "contextmenu", defaultBlock );
+            break;
+
         case 27: // escape
 
             // close dialog (if existing), else close overlay (if existing)
@@ -159,7 +167,6 @@ function handleKeyDown( event ) {
         // capture the apple key here as it is not recognized as a modifier
 
         case 224:   // Firefox
-        case 17:    // Opera
         case 91:    // WebKit left key
         case 93:    // Webkit right key
             optionDown = true;
@@ -380,15 +387,25 @@ function handleKeyDown( event ) {
 function handleKeyUp( event ) {
     shiftDown = false;
 
-    if ( event.keyCode === 32 && getters.activeTool !== ToolTypes.MOVE ) { // spacebar
-        commit( "setPanMode", false );
+    switch ( event.keyCode ) {
+        default:
+            break;
+        case 17: // Ctrl
+            commit( "setLayerSelectMode", false );
+            document.removeEventListener( "contextmenu", defaultBlock );
+            break;
+        case 32: // spacebar
+            if ( getters.activeTool !== ToolTypes.MOVE ) {
+                commit( "setPanMode", false );
+            }
+            break;
     }
 
     if ( optionDown ) {
         switch ( event.keyCode ) {
             // Apple key
             case 224:   // Firefox
-            case 17:    // Opera
+            case 17:    // Opera (also Ctrl key)
             case 91:    // WebKit left key
             case 93:    // Webkit right key
                 optionDown = false;
@@ -398,7 +415,7 @@ function handleKeyUp( event ) {
 
     if ( !suspended ) {
         if ( typeof listener === "function" ) {
-            listener( "up", aEvent.keyCode, aEvent );
+            listener( "up", event.keyCode, aEvent );
         }
     }
 }

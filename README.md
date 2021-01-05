@@ -20,8 +20,8 @@ under the hood for rendering and bitmap blitting. BitMappery is written on top o
 
 ## Model
 
-BitMappery works with entities known as _Documents_. A Document contains several _Layer_s, each of
-which define their content, transformation, _Effect_s, etc. Each of the nested entity properties
+BitMappery works with entities known as _Documents_. A Document contains several _Layers_, each of
+which define their content, transformation, _Effects, etc. Each of the nested entity properties
 has its own factory (see _@/src/factories/_). The Document is managed by the Vuex _document-module.js_.
 
 ## Document rendering and interactions
@@ -71,7 +71,6 @@ npm run lint
 * Moving of flipped / rotated content leads to occasional non-renders (isInsideViewport doesn't take rotated rectangles into account)
 
 * When opening a new document, show window to specify dimensions
-* Add ctrl + click to instantly select layer (needs transparency check)
 * Implement iframe based rendering (as more compatible alternative to OffscreenCanvas) for effects
 * Implement action queue when drawing, only execute drawing on update() hook
 * Maintain cache for transformations and filters, rendered at the display destination size (invalidate on window resize)

@@ -240,12 +240,23 @@ describe( "Vuex document module", () => {
         });
 
         describe( "when setting the active layer content", () => {
-            it( "should be able to set the active layer index", () => {
+            it( "should be able to set the active layer by index", () => {
                 const state = {
                     documents: [ { name: "foo", layers: [{ name: "layer1" }, { name: "layer2" }] }],
+                    activeIndex: 0,
                     activeLayerIndex: 0
                 };
                 mutations.setActiveLayerIndex( state, 1 );
+                expect( state.activeLayerIndex ).toEqual( 1 );
+            });
+
+            it( "should be able to set the active layer by reference", () => {
+                const state = {
+                    documents: [ { name: "foo", layers: [{ name: "layer1" }, { name: "layer2" }] }],
+                    activeIndex: 0,
+                    activeLayerIndex: 0
+                };
+                mutations.setActiveLayer( state, state.documents[ 0 ].layers[ 1 ] );
                 expect( state.activeLayerIndex ).toEqual( 1 );
             });
 

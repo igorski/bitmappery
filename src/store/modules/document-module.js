@@ -102,6 +102,12 @@ export default {
             state.activeLayerIndex = layerIndex;
             state.maskActive = false;
         },
+        setActiveLayer( state, layer ) {
+            const index = state.documents[ state.activeIndex ]?.layers.indexOf( layer );
+            if ( index > -1 ) {
+                state.activeLayerIndex = index;
+            }
+        },
         setActiveLayerMask( state, layerIndex ) {
             state.activeLayerIndex = layerIndex;
             state.maskActive = !!state.documents[ state.activeIndex ].layers[ layerIndex ].mask;

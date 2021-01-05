@@ -114,3 +114,45 @@ export const globalToLocal = ( zCanvas, x, y ) => {
         y: y * factor
     }
 };
+
+/**
+  * determines whether the pixel(s) at requested coordinate (or coordinate range) within the
+  * given image is fully transparent
+  *
+  * @param {HTMLCanvasElement} source
+  * @param {number} x x-coordinate within the image
+  * @param {number} y y-coordinate within the image
+  * @param {number=} size optional radius in pixels to verify
+  * @return {boolean} value indicating whether coordinate is transparent
+  */
+export const isInsideTransparentArea = ( source, x, y, size = 5 ) => {
+    const left   = x - size;
+    const right  = x + size;
+    const top    = y - size;
+    const bottom = y + size;
+    const width  = right - left;
+    const height = bottom - top;
+
+    // get list of RGBA values at the requested rectangle within given source
+    const imageData = source.getContext( "2d" ).getImageData( left, top, size, size ).data;
+
+    // How many solid pixels in the detection area do we need in order to mark it as non-transparent
+    const requiredSolidPixels = Math.ceil(( width * height ) / 10 );
+    let solidPixelsFound = 0;
+
+    for ( x = 0; x < width; ++x ) {
+        for ( y = 0; y < height; ++y ) {
+            // 4 == the amount of indices for a single RGBA value
+            // 3 == the index at which the alpha channel of the RGBA value is defined
+            const index = (( Math.round( x ) + ( Math.round( y ) * width )) * 4 ) + 3;
+            const pixel = imageData[ index ];
+
+              if ( typeof pixel === "number" && pixel !== 0 ) {
+                  if ( ++solidPixelsFound >= requiredSolidPixels ) {
+                      return false;
+                  }
+              }
+        }
+    }
+    return true;
+};

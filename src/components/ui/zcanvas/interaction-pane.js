@@ -21,25 +21,45 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { sprite } from "zcanvas";
+import { isInsideTransparentArea } from "@/utils/canvas-util";
+import LayerSprite from "@/components/ui/zcanvas/layer-sprite";
+
+export const MODE_PAN          = 0;
+export const MODE_LAYER_SELECT = 1;
 
 /**
- * Scrollpane is a very cheap hack to control the viewport panning
- * by overlaying the entire zCanvas display list with one canvas-sized
- * Sprite capturing all pointer events.
+ * InteractionPane is a top-level canvas-sized Sprite that captures all Canvas
+ * interaction events. This is used to:
+ *
+ * 1. control viewport panning when dragging over the canvas in panMode
+ * 2. select the active layer by finding non-transparent pixels at the pointer position
  */
-class Scrollpane extends sprite {
-    constructor( zCanvas ) {
+class InteractionPane extends sprite {
+    constructor( zCanvas, type = MODE_PAN ) {
         super({
             width  : zCanvas.getWidth()  / zCanvas.zoomFactor,
             height : zCanvas.getHeight() / zCanvas.zoomFactor
         });
         this.setDraggable( true );
+        this.type = type;
     }
 
     handlePress( x, y ) {
         super.handlePress( x, y );
 
-        if ( this.isDragging ) {
+        if ( this.type === MODE_LAYER_SELECT ) {
+            const sprites = this.canvas.getChildren().filter( sprite => sprite instanceof LayerSprite );
+            // loop over all layer sprites in reverse (top of display list to bottom) order
+            let i = sprites.length;
+            while ( i-- ) {
+                const sprite = sprites[ i ];
+                // if the sprites Bitmap contents are non-transparent at the given coordinate, make it the active layer
+                if ( !isInsideTransparentArea( sprite.getBitmap(), x - sprite.getX(), y - sprite.getY() )) {
+                    this.canvas.store.commit( "setActiveLayer", sprite.layer );
+                    break;
+                }
+            }
+        } else if ( this.isDragging ) {
             this.vp = this.canvas._viewport;
             this._vpStartX = this.vp.left;
             this._vpStartY = this.vp.top;
@@ -47,6 +67,9 @@ class Scrollpane extends sprite {
     }
 
     handleMove( x, y ) {
+        if ( this.type !== MODE_PAN ) {
+            return;
+        }
         const distX = this.vp.left - this._vpStartX;
         const distY = this.vp.top  - this._vpStartY;
 
@@ -64,4 +87,4 @@ class Scrollpane extends sprite {
     }
 */
 }
-export default Scrollpane;
+export default InteractionPane;

@@ -53,7 +53,7 @@
 <script>
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import ZoomableCanvas from "@/components/ui/zcanvas/zoomable-canvas";
-import Scrollpane from "@/components/ui/zcanvas/scrollpane";
+import InteractionPane, { MODE_PAN, MODE_LAYER_SELECT } from "@/components/ui/zcanvas/interaction-pane";
 import Scrollbars from "./scrollbars/scrollbars";
 import ToolTypes, { MAX_ZOOM, calculateMaxScaling } from "@/definitions/tool-types";
 import { scaleToRatio, scaleValue } from "@/utils/image-math";
@@ -66,7 +66,7 @@ import {
 /* internal non-reactive properties */
 
 const mobileView = isMobile();
-let lastDocument, containerSize;
+let lastDocument, containerSize, interactionPane;
 // maintain a pool of sprites representing the layers within the active document
 // the sprites themselves are cached within the sprite-factory, this is merely
 // used for change detection in the current editing session (see watchers)
@@ -90,6 +90,7 @@ export default {
         ...mapState([
             "windowSize",
             "panMode",
+            "layerSelectMode",
         ]),
         ...mapGetters([
             "activeDocument",
@@ -188,18 +189,11 @@ export default {
             }
         },
         panMode( value ) {
-            const zCanvas = getCanvasInstance();
-            if ( value ) {
-                this.drag = new Scrollpane( zCanvas );
-                zCanvas.addChild( this.drag );
-                const classList = zCanvas.getElement().classList;
-                classList.remove( ...classList );
-                classList.add( "cursor-drag" );
-            } else {
-                this.drag.dispose();
-                this.handleCursor(); // restore cursor to value appropriate to current tool
-            }
-        }
+            this.createInteractionPane( value, MODE_PAN, "cursor-drag" );
+        },
+        layerSelectMode( value ) {
+            this.createInteractionPane( value, MODE_LAYER_SELECT, "cursor-pointer" );
+        },
     },
     mounted() {
         this.cacheContainerSize();
@@ -319,6 +313,19 @@ export default {
                     break;
             }
         },
+        createInteractionPane( enabled, mode, pointerStyle ) {
+            const zCanvas = getCanvasInstance();
+            if ( enabled && zCanvas ) {
+                interactionPane = new InteractionPane( zCanvas, mode );
+                zCanvas.addChild( interactionPane );
+                const classList = zCanvas.getElement().classList;
+                classList.remove( ...classList );
+                classList.add( pointerStyle );
+            } else {
+                interactionPane?.dispose();
+                this.handleCursor(); // restore cursor to value appropriate to current tool
+            }
+        }
     },
 };
 </script>

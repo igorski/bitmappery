@@ -53,11 +53,12 @@ export default {
         optionsPanelOpened: true,
         selectionContent: null, // clipboard content of copied images ({ image, size })
         blindActive: false,
-        panMode: false,     // whether drag interactions with the document will pan its viewport
-        dialog: null,       // currently opened dialog
-        modal: null,        // currently opened modal
-        loadingStates: [],  // wether one or more long running operations are running
-        notifications: [],  // notification message queue
+        panMode: false,         // whether drag interactions with the document will pan its viewport
+        layerSelectMode: false, // whether clicking on the document should act as layer selection
+        dialog: null,           // currently opened dialog
+        modal: null,            // currently opened modal
+        loadingStates: [],      // wether one or more long running operations are running
+        notifications: [],      // notification message queue
         dropboxConnected: false,
         windowSize: {
             width: window.innerWidth,
@@ -87,6 +88,9 @@ export default {
         },
         setPanMode( state, value ) {
             state.panMode = value;
+        },
+        setLayerSelectMode( state, value ) {
+            state.layerSelectMode = value;
         },
         setLoading( state, key ) {
             if ( !state.loadingStates.includes( key )) {
