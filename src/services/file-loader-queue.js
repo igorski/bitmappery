@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { loader }      from "zcanvas";
-import ImageFileWorker from "@/services/image-file-to-resource.worker";
+import ImageFileWorker from "@/workers/image-file-to-resource.worker";
 
 /**
  * We can use a Worker to load the files to bitmaps so we can retrieve
@@ -95,7 +95,7 @@ function handleWorkerMessage({ data }) {
         fileQueueObj?.success({ image, size: { width, height } });
     }
     if ( data?.cmd === "loadError" ) {
-        fileQueueObj?.reject( file, data?.error );
+        fileQueueObj?.error( file, data?.error );
     }
 }
 

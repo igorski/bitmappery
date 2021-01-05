@@ -99,7 +99,7 @@ export default {
             this.closeModal();
             this.setLoading( "save" );
             try {
-                const blob = DocumentFactory.toBlob( this.activeDocument );
+                const blob = await DocumentFactory.toBlob( this.activeDocument );
                 await uploadBlob( blob, `${this.name}${PROJECT_FILE_EXTENSION}` );
                 this.showNotification({ message: this.$t( "fileSavedInDropbox", { file: this.name }) });
             } catch ( e ) {

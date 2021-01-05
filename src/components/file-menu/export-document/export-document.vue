@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -83,6 +83,8 @@ export default {
         ...mapMutations([
             "closeModal",
             "setActiveDocumentName",
+            "setLoading",
+            "unsetLoading",
         ]),
         ...mapActions([
             "saveDocument",
@@ -92,8 +94,10 @@ export default {
                 return;
             }
             this.setActiveDocumentName( this.name );
-            this.saveDocument( this.name );
             this.closeModal();
+            this.setLoading( "exd" );
+            this.saveDocument( this.name );
+            this.unsetLoading( "exd" );
         },
     },
 };

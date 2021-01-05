@@ -165,11 +165,11 @@ export default {
             }
             commit( "unsetLoading", "doc" );
         },
-        saveDocument({ commit, getters }, name = null ) {
+        async saveDocument({ commit, getters }, name = null ) {
             if ( !name ) {
                 name = getters.activeDocument.name;
             }
-            const binary = DocumentFactory.toBlob( getters.activeDocument );
+            const binary = await DocumentFactory.toBlob( getters.activeDocument );
             saveBlobAsFile( binary, `${name.split( "." )[ 0 ]}${PROJECT_FILE_EXTENSION}` );
             commit( "showNotification", {
                 message: translate( "savedFileSuccessfully" , { file: truncate( name, 35 ) })

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,9 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import LZString     from "lz-string";
 import LayerFactory from "@/factories/layer-factory";
-import { readFile } from "@/utils/file-util";
+import { compress, decompress } from "@/services/compression-service";
 
 let UID_COUNTER = 0;
 
@@ -79,18 +78,15 @@ const DocumentFactory = {
         });
     },
 
-    toBlob( document ) {
+    async toBlob( document ) {
         const data = DocumentFactory.serialize( document );
-        return new Blob([
-            LZString.compressToUTF16( JSON.stringify( data ))
-        ], { type: "text/plain" });
+        const blob = await compress( data );
+        return blob;
     },
 
     async fromBlob( blob ) {
-        const fileData = await readFile( blob );
-        const data     = LZString.decompressFromUTF16( fileData );
-        const document = await DocumentFactory.deserialize( JSON.parse( data ));
-
+        const data     = await decompress( blob );
+        const document = await DocumentFactory.deserialize( data );
         return document;
     }
 };

@@ -114,11 +114,11 @@ export default {
             "unsetLoading",
         ]),
         async exportImage() {
+            this.closeModal();
             this.setLoading( "exp" );
             const blob = await createDocumentSnapshot( this.activeDocument, this.type, this.quality );
             saveBlobAsFile( blob, `${this.name}.${typeToExt(this.type)}` );
             this.unsetLoading( "exp" );
-            this.closeModal();
         },
     },
 };
