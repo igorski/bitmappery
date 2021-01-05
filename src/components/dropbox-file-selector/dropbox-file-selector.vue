@@ -296,6 +296,7 @@ export default {
     height: 128px;
     vertical-align: top;
     position: relative;
+    cursor: pointer;
     @include customFont();
 
     &:hover {

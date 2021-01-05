@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -61,6 +61,8 @@ export const renderEffectsForLayer = async layer => {
     }
 
     // update on-screen canvas contents
+    // note that updating the bitmap will also adjust the sprite bounds
+    // as appropriate (e.g. on rotation), the Layer model remains unaffected by this
     sprite.setBitmap( cvs, width, height );
     sprite.invalidate();
 };

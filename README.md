@@ -69,8 +69,9 @@ npm run lint
 * Drawing masks/brushes on a rotated layer that is panned or mirrored is broken
 * Cloning contents onto a rotated layer is broken
 * Moving of flipped / rotated content leads to occasional non-renders (isInsideViewport doesn't take rotated rectangles into account)
-* Restoring of document with rotated layers (smaller than document size) restores at incorrect offset
 
+* When opening a new document, show window to specify dimensions
+* Add ctrl + click to instantly select layer (needs transparency check)
 * Implement iframe based rendering (as more compatible alternative to OffscreenCanvas) for effects
 * Implement action queue when drawing, only execute drawing on update() hook
 * Maintain cache for transformations and filters, rendered at the display destination size (invalidate on window resize)

@@ -232,15 +232,24 @@ class LayerSprite extends sprite {
         this._dragStartEventCoordinates = { x: this._pointerX, y: this._pointerY };
     }
 
-    syncedPositioning( x, y ) {
-        this._bounds.left = x;
-        this._bounds.top  = y;
-        this.layer.x = x;
-        this.layer.y = y;
+    /* the following override zCanvas.sprite */
+
+    setBounds( x, y, width = 0, height = 0 ) {
+        const bounds        = this._bounds;
+        const { left, top } = bounds;
+
+        if ( width === 0 || height === 0 ) {
+            ({ width, height } = bounds );
+        }
+        super.setBounds( x, y, width, height );
+
+        // update the Layer model by the relative offset
+        // (because the Sprite has an alternate position when rotated)
+
+        this.layer.x += bounds.left - left;
+        this.layer.y += bounds.top  - top;
         this.invalidate();
     }
-
-    /* the following override zCanvas.sprite */
 
     handleMove( x, y ) {
         // store reference to current pointer position (relative to canvas)
@@ -257,8 +266,6 @@ class LayerSprite extends sprite {
                 recacheEffects = true;
             } else if ( this._isDragMode /*!this._isSelectMode*/ ) {
                 super.handleMove( x, y );
-                this.layer.x = this._bounds.left;
-                this.layer.y = this._bounds.top;
                 return;
             }
         }

@@ -440,7 +440,7 @@ function moveObject( axis = 0, dir = 0, activeTool ) {
             } else {
                 y = dir === 0 ? y - speed : y + speed;
             }
-            sprite.syncedPositioning( x, y );
+            sprite.setBounds( x, y );
             break;
         case ToolTypes.SELECTION:
         case ToolTypes.LASSO:

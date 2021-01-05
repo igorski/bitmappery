@@ -96,6 +96,7 @@ export default {
                 return;
             }
             this.setActiveDocumentName( this.name );
+            this.closeModal();
             this.setLoading( "save" );
             try {
                 const blob = DocumentFactory.toBlob( this.activeDocument );
@@ -105,7 +106,6 @@ export default {
                 this.openDialog({ type: "error", message: this.$t( "errorOccurred" ) });
             }
             this.unsetLoading( "save" );
-            this.closeModal();
         },
     },
 };
