@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -71,11 +71,81 @@ class ZoomableCanvas extends canvas {
         this.invalidate();
     }
 
-    // TODO add the lines suffixed with // QQQ to zCanvas lib instead of using these overrides
+    /* zCanvas.canvas overrides */
+
+    // see QQQ comments to see what the difference is. Ideally these changes
+    // should eventually be propagated to the zCanvas library.
 
     render() {
-        this._canvasContext.clearRect( 0, 0, this._width / this.zoomFactor, this._height / this.zoomFactor ); // QQQ
-        super.render();
+        const now   = Date.now();  // current timestamp
+        const delta = now - this._lastRender;
+
+        this._renderPending = false;
+        this._lastRender    = now - ( delta % this._renderInterval );
+
+        // in case a resize was requested execute it now as we will
+        // immediately draw nwe contents onto the screen
+
+        if ( this._enqueuedSize ) {
+            updateCanvasSize( this );
+        }
+
+        const ctx = this._canvasContext;
+        let theSprite;
+
+        if ( ctx ) {
+
+            // QQQ zoomFactor must be taken into account
+
+            const { zoomFactor } = this;
+
+            const width  = this._width  / zoomFactor;
+            const height = this._height / zoomFactor;
+
+            const viewport = { ...this._viewport };
+            Object.entries( viewport ).forEach(([ key, value ]) => {
+                viewport[ key ] = value / zoomFactor;
+            });
+
+            // E.O. QQQ
+
+            // clear previous canvas contents either by flooding it
+            // with the optional background colour, or by clearing all pixel content
+
+            if ( this._bgColor ) {
+                ctx.fillStyle = this._bgColor;
+                ctx.fillRect( 0, 0, width, height );
+            }
+            else {
+                ctx.clearRect( 0, 0, width, height );
+            }
+
+            const useExternalUpdateHandler = typeof this._updateHandler === "function";
+
+            if ( useExternalUpdateHandler ) {
+                this._updateHandler( now );
+            }
+
+            // draw the children onto the canvas
+
+            theSprite = this._children[ 0 ];
+
+            while ( theSprite ) {
+
+                if ( !useExternalUpdateHandler ) {
+                    theSprite.update( now );
+                }
+                theSprite.draw( ctx, viewport );
+                theSprite = theSprite.next;
+            }
+        }
+
+        // keep render loop going if Canvas is animatable
+
+        if ( !this._disposed && this._animate && !this._renderPending ) {
+            this._renderPending = true;
+            this._renderId = window.requestAnimationFrame( this._renderHandler );
+        }
     }
 
     handleInteraction( aEvent ) {

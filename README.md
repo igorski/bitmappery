@@ -69,6 +69,7 @@ npm run lint
 * Drawing masks/brushes on a rotated layer that is panned or mirrored is broken
 * Cloning contents onto a rotated layer is broken
 * Moving of flipped / rotated content leads to occasional non-renders (isInsideViewport doesn't take rotated rectangles into account)
+* Lasso tool on touch screen is broken
 
 * When opening a new document, show window to specify dimensions
 * Implement iframe based rendering (as more compatible alternative to OffscreenCanvas) for effects

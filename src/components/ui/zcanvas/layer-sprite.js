@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Vue from "vue";
-import { sprite } from "zcanvas";
+import ZoomableSprite from "@/components/ui/zcanvas/zoomable-sprite";
 import { createCanvas, resizeImage, globalToLocal } from "@/utils/canvas-util";
 import { renderCross, renderMasked } from "@/utils/render-util";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
@@ -35,7 +35,7 @@ import ToolTypes from "@/definitions/tool-types";
  * It handles all tool interactions with the layer and also provides interaction with the Layers Mask.
  * It inherits from the zCanvas Sprite to be an interactive Canvas drawable.
  */
-class LayerSprite extends sprite {
+class LayerSprite extends ZoomableSprite {
     constructor( layer ) {
         const { bitmap, x, y, width, height } = layer;
         super({ bitmap, x, y, width, height }); // zCanvas inheritance
@@ -377,22 +377,19 @@ class LayerSprite extends sprite {
     }
 
     draw( documentContext, viewport ) {
-        const vp = { ...viewport };
-        Object.entries( vp ).forEach(([ key, value ]) => {
-            vp[key] = value / this.canvas.zoomFactor; // QQQ to zCanvas.Sprite
-        });
-        super.draw( documentContext, vp ); // renders bitmap
+        // invoke base class behaviour to render bitmap
+        super.draw( documentContext, viewport );
 
         // render brush outline at pointer position
         if ( this._isBrushMode ) {
             const drawBrushOutline = this._toolType !== ToolTypes.CLONE || !!this._toolOptions.coords;
             if ( this._toolType === ToolTypes.CLONE ) {
                 const { coords } = this._toolOptions;
-                let tx = this._pointerX - vp.left;
-                let ty = this._pointerY - vp.top;
+                let tx = this._pointerX - viewport.left;
+                let ty = this._pointerY - viewport.top;
                 if ( coords ) {
-                    tx = ( coords.x - vp.left ) + ( this._pointerX - this._dragStartEventCoordinates.x );
-                    ty = ( coords.y - vp.top  ) + ( this._pointerY - this._dragStartEventCoordinates.y );
+                    tx = ( coords.x - viewport.left ) + ( this._pointerX - this._dragStartEventCoordinates.x );
+                    ty = ( coords.y - viewport.top  ) + ( this._pointerY - this._dragStartEventCoordinates.y );
                 }
                 // when no source coordinate is set, or when applying the clone stamp, we show a cross to mark the origin
                 if ( !coords || this._applyBrush ) {
@@ -404,7 +401,7 @@ class LayerSprite extends sprite {
 
             if ( drawBrushOutline ) {
                 // any other brush mode state shows brush outline
-                documentContext.arc( this._pointerX - vp.left, this._pointerY - vp.top, this._radius, 0, 2 * Math.PI );
+                documentContext.arc( this._pointerX - viewport.left, this._pointerY - viewport.top, this._radius, 0, 2 * Math.PI );
             }
             documentContext.stroke();
             documentContext.restore();
@@ -417,17 +414,22 @@ class LayerSprite extends sprite {
 
             let { selection }   = this.layer;
             const firstPoint    = selection[ 0 ];
-            const localPointerX = this._pointerX - vp.left; // local to viewport
-            const localPointerY = this._pointerY - vp.top;
+            const localPointerX = this._pointerX - viewport.left; // local to viewport
+            const localPointerY = this._pointerY - viewport.top;
 
             // when in rectangular select mode, the outline will draw from the first coordinate
             // (defined in handlePress()) to the current pointer coordinate
             if ( this._isRectangleSelect && selection.length && !this._selectionClosed ) {
-                selection = rectangleToCoordinates( firstPoint.x, firstPoint.y, localPointerX - firstPoint.x + vp.left, localPointerY - firstPoint.y + vp.top );
+                selection = rectangleToCoordinates(
+                    firstPoint.x,
+                    firstPoint.y,
+                    localPointerX - firstPoint.x + viewport.left,
+                    localPointerY - firstPoint.y + viewport.top
+                );
             }
             // draw each point in the selection
             selection.forEach(( point, index ) => {
-                documentContext[ index === 0 ? "moveTo" : "lineTo" ]( point.x - vp.left, point.y - vp.top );
+                documentContext[ index === 0 ? "moveTo" : "lineTo" ]( point.x - viewport.left, point.y - viewport.top );
             });
 
             // for lasso selections, draw line to current cursor position
