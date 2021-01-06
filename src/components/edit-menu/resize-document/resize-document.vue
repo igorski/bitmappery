@@ -1,7 +1,7 @@
 /**
 * The MIT License (MIT)
 *
-* Igor Zinken 2019-2020 - https://www.igorski.nl
+* Igor Zinken 2020-2021 - https://www.igorski.nl
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 * this software and associated documentation files (the "Software"), to deal in
@@ -119,6 +119,7 @@ export default {
         ...mapMutations([
             "closeModal",
             "setActiveDocumentSize",
+            "resizeActiveDocumentContent",
         ]),
         lockSync() {
             this.syncLock = true;
@@ -126,8 +127,13 @@ export default {
                 this.syncLock = false;
             });
         },
-        save() {
-            this.setActiveDocumentSize({ width: this.width, height: this.height });
+        async save() {
+            const { width, height } = this;
+            const scaleX = width  / this.activeDocument.width;
+            const scaleY = height / this.activeDocument.height;
+
+            await this.resizeActiveDocumentContent({ scaleX, scaleY });
+            this.setActiveDocumentSize({ width, height });
             this.closeModal();
         },
     }

@@ -76,7 +76,6 @@ npm run lint
 * Implement action queue when drawing, only execute drawing on update() hook
 * Maintain cache for transformations and filters, rendered at the display destination size (invalidate on window resize)
 * Dragging of masks on rotated/mirror content is kinda broken
-* When resizing document, positioned layers do not scale their position correctly
 * Render service should measure total text bounding box upfront and scale resulting bitmap (can be done after render)
 * Fill selection with color (make color not unique to brush, but generic tool prop)
 * Animate selection lines between white and black colors
@@ -89,4 +88,3 @@ npm run lint
 * Implement merged layer selection
 * Implement document crop
 * Implement change history
-* Scale logic should move from zoomable-canvas into zCanvas (as handleInteraction needs to transform offsets by zoom ratio, see LayerSprite!)

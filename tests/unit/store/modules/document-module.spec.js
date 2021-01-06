@@ -8,9 +8,13 @@ jest.mock( "@/factories/sprite-factory", () => ({
     flushLayerSprites: (...args) => mockUpdateFn?.( "flushLayerSprites", ...args ),
     runSpriteFn: (...args) => mockUpdateFn?.( "runSpriteFn", ...args ),
     getSpriteForLayer: (...args) => mockUpdateFn?.( "getSpriteForLayer", ...args ),
+    getCanvasInstance: (...args) => mockUpdateFn?.( "getCanvasInstance", ...args ),
 }));
 jest.mock( "@/factories/layer-factory", () => ({
     create: (...args) => mockUpdateFn?.( "create", ...args ),
+}));
+jest.mock( "@/utils/render-util", () => ({
+    resizeLayerContent: (...args) => mockUpdateFn?.( "resizeLayerContent", ...args ),
 }));
 
 describe( "Vuex document module", () => {
@@ -119,7 +123,7 @@ describe( "Vuex document module", () => {
                 ]);
             });
 
-            it( "should request the invalidate() method on each Sprite for the given Document", () => {
+            it( "should update the existing zCanvas dimensions and trigger its associated rescale handler", () => {
                 const state = {
                     documents: [
                         { name: "foo", width: 30, height: 30, layers: [ { name: "layer1", width: 30, height: 30 } ] },
@@ -128,10 +132,18 @@ describe( "Vuex document module", () => {
                     activeIndex : 1,
                 };
                 const size = { width: 75, height: 40 };
-                mockUpdateFn = jest.fn();
+                const mockCanvas = {
+                    setDimensions: jest.fn(),
+                    rescaleFn: jest.fn()
+                };
+                mockUpdateFn = jest.fn( fn => {
+                    return fn === "getCanvasInstance" ? mockCanvas : null
+                });
                 mutations.setActiveDocumentSize( state, size );
-                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "getSpriteForLayer", state.documents[ 1 ].layers[ 0 ]);
-                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "getSpriteForLayer", state.documents[ 1 ].layers[ 1 ]);
+                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "getCanvasInstance" );
+                expect( mockCanvas.setDimensions ).toHaveBeenCalledWith( size.width, size.height, true, true );
+                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "getCanvasInstance" );
+                expect( mockCanvas.rescaleFn ).toHaveBeenCalled();
             });
         });
 
@@ -341,6 +353,23 @@ describe( "Vuex document module", () => {
                 expect( mockUpdateFn ).toHaveBeenCalledWith( "getSpriteForLayer", state.documents[ 0 ].layers[ index ] );
                 expect( mockSprite.cacheEffects ).toHaveBeenCalled();
             });
+        });
+
+        it( "should be able to resize active Document content by calling the render util upon each Layer", async () => {
+            const layer1 = { name: "layer1" };
+            const layer2 = { name: "layer2" };
+            const state = {
+                documents: [
+                    { layers: [ layer1, layer2 ]}
+                ],
+                activeIndex: 0,
+            };
+            mockUpdateFn = jest.fn();
+            const scaleX = 1.1;
+            const scaleY = 1.2;
+            await mutations.resizeActiveDocumentContent( state, { scaleX, scaleY });
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "resizeLayerContent", layer1, scaleX, scaleY );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "resizeLayerContent", layer2, scaleX, scaleY );
         });
     });
 });

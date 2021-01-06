@@ -20,7 +20,9 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { createCanvas } from "@/utils/canvas-util";
+import { createCanvas, resizeImage } from "@/utils/canvas-util";
+import { LAYER_TEXT } from "@/definitions/layer-types";
+
 const tempCanvas = createCanvas();
 
 export const renderCross = ( ctx, x, y, size ) => {
@@ -59,7 +61,7 @@ export const renderMasked = ( destContext, sprite, destX, destY, sourceSprite, b
     const { cvs, ctx } = tempCanvas;
     cvs.width  = brushCvs.width;
     cvs.height = brushCvs.height;
-    
+
     ctx.globalAlpha = opacity;
 
     // draw source bitmap data onto temporary canvas
@@ -77,4 +79,31 @@ export const renderMasked = ( destContext, sprite, destX, destY, sourceSprite, b
         cvs, 0, 0, maskRadius, maskRadius,
         destX - maskRadius, destY - maskRadius, maskRadius, maskRadius
     );
+};
+
+export const resizeLayerContent = async ( layer, ratioX, ratioY ) => {
+    const { source, mask } = layer;
+
+    layer.source = await resizeImage(
+        source, source.width, source.height, source.width * ratioX, source.height * ratioY
+    );
+    if ( mask ) {
+        layer.mask = await resizeImage(
+            mask, mask.width, mask.height, mask.width * ratioX, mask.height * ratioY
+        );
+        layer.maskX *= ratioX;
+        layer.maskY *= ratioY;
+    }
+    layer.x      *= ratioX;
+    layer.y      *= ratioY;
+    layer.width  *= ratioX;
+    layer.height *= ratioY;
+
+    if ( layer.type === LAYER_TEXT ) {
+        const { text } = layer;
+
+        text.size       *= ratioX;
+        text.spacing    *= ratioX;
+        text.lineHeight *= ratioY;
+    }
 };

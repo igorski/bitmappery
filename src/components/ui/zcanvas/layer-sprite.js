@@ -206,25 +206,6 @@ class LayerSprite extends ZoomableSprite {
         this._isSelectMode = true;
     }
 
-    async resize( width, height ) {
-        const ratioX = width  / this._bounds.width;
-        const ratioY = height / this._bounds.height;
-
-        if ( this.layer.source ) {
-            this.layer.source = await resizeImage(
-                this.layer.source, this._bounds.width, this._bounds.height, width, height
-            );
-        }
-        if ( this.layer.mask ) {
-            this.layer.mask = await resizeImage(
-                this.layer.mask, this._bounds.width, this._bounds.height, width, height
-            );
-            this.cacheEffects();
-        }
-        this.setBounds( this.getX() * ratioX, this.getY() * ratioY, width, height );
-        this.invalidate();
-    }
-
     // cheap way to hook into zCanvas.handleMove()-handler so we can keep following the cursor in tool modes
     forceMoveListener() {
         this.isDragging       = true;
@@ -452,8 +433,10 @@ class LayerSprite extends ZoomableSprite {
 
     dispose() {
         super.dispose();
-        this._bitmap   = null;
-        this._brushCvs = null;
+
+        this._bitmap      = null;
+        this._bitmapReady = false;
+        this._brushCvs    = null;
     }
 }
 export default LayerSprite;

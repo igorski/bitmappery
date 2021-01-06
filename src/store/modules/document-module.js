@@ -24,7 +24,8 @@ import Vue from "vue";
 
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory    from "@/factories/layer-factory";
-import { flushLayerSprites, runSpriteFn, getSpriteForLayer } from "@/factories/sprite-factory";
+import { flushLayerSprites, runSpriteFn, getSpriteForLayer, getCanvasInstance } from "@/factories/sprite-factory";
+import { resizeLayerContent } from "@/utils/render-util";
 
 export default {
     state: {
@@ -52,15 +53,10 @@ export default {
         },
         setActiveDocumentSize( state, { width, height }) {
             const document = state.documents[ state.activeIndex ];
-            const ratioX   = width  / document.width;
-            const ratioY   = height / document.height;
             document.width  = width;
             document.height = height;
-            document.layers?.forEach( layer => {
-                layer.width  *= ratioX;
-                layer.height *= ratioY;
-                getSpriteForLayer( layer )?.resize( layer.width, layer.height );
-            });
+            getCanvasInstance()?.setDimensions( width, height, true, true );
+            getCanvasInstance()?.rescaleFn();
         },
         addNewDocument( state, nameOrDocument ) {
             const document = typeof nameOrDocument === "object" ? nameOrDocument : DocumentFactory.create({ name: nameOrDocument });
@@ -140,6 +136,17 @@ export default {
             if ( sprite ) {
                 sprite.layer = layer;
                 sprite.cacheEffects();
+            }
+        },
+        async resizeActiveDocumentContent( state, { scaleX, scaleY }) {
+            const document = state.documents[ state.activeIndex ];
+            for ( let i = 0, l = document?.layers?.length; i < l; ++i ) {
+                const layer = document.layers[ i ];
+                // by toggling visiblity we force the Sprite to recache its contents when visible again
+                const wasVisible = layer.visible;
+                layer.visible = false;
+                await resizeLayerContent( layer, scaleX, scaleY );
+                layer.visible = wasVisible;
             }
         },
         saveSelection( state, { name, selection }) {

@@ -115,7 +115,6 @@ export default {
                     }
                     return;
                 }
-                const { id, width, height } = document;
                 if ( !getCanvasInstance() ) {
                     const zCanvas = this.createCanvas();
                     this.$nextTick(() => {
@@ -123,6 +122,7 @@ export default {
                         this.calcIdealDimensions();
                     });
                 }
+                const { id } = document;
                 // switching between documents
                 if ( id !== lastDocument ) {
                     lastDocument = id;
@@ -219,7 +219,7 @@ export default {
                     height: this.viewportHeight
                 },
                 handler: this.handleCanvasEvent.bind( this ),
-            }, this.$store );
+            }, this.$store, this.calcIdealDimensions );
             setCanvasInstance( zCanvas );
             return zCanvas;
         },

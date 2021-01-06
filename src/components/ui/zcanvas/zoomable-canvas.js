@@ -24,11 +24,13 @@ import Vue from "vue";
 import { canvas } from "zcanvas";
 
 class ZoomableCanvas extends canvas {
-    constructor( opts, store ) {
+    constructor( opts, store, rescaleFn ) {
         super( opts );
 
         // Vuex root store reference
         this.store = store;
+        // rescale handler used to match parent component with zCanvas rescales
+        this.rescaleFn = rescaleFn;
 
         this.documentScale = 1;
         this.setZoomFactor( 1 );
