@@ -213,11 +213,11 @@ export default {
         },
         handleLayerClick( layer ) {
             this.setActiveLayerIndex( layer.index );
-            getSpriteForLayer( layer ).setActionTarget( "source" );
+            getSpriteForLayer( layer )?.setActionTarget( "source" );
         },
         handleLayerMaskClick( layer ) {
             this.setActiveLayerMask( layer.index );
-            getSpriteForLayer( layer ).setActionTarget( "mask" );
+            getSpriteForLayer( layer )?.setActionTarget( "mask" );
         },
     },
 };

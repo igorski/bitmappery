@@ -114,16 +114,20 @@ export const copySelection = async ( activeDocument, activeLayer ) => {
     ctx.closePath();
     ctx.save();
     ctx.clip();
+    
     // draw active layer onto temporary canvas at full document scale
     sprite._isSelectMode = false; // prevents drawing selection outline into image
     sprite.draw( ctx, zcvs._viewport );
     ctx.restore();
 
+    // when calculating the source rectangle we must take the device pixel ratio into account
+    const pixelRatio = window.devicePixelRatio || 1;
     const selectionRectangle = getRectangleForSelection( activeLayer.selection );
     const selectionCanvas = createCanvas( selectionRectangle.width, selectionRectangle.height );
     selectionCanvas.ctx.drawImage(
         cvs,
-        selectionRectangle.left, selectionRectangle.top, selectionRectangle.width, selectionRectangle.height,
+        selectionRectangle.left  * pixelRatio, selectionRectangle.top    * pixelRatio,
+        selectionRectangle.width * pixelRatio, selectionRectangle.height * pixelRatio,
         0, 0, selectionRectangle.width, selectionRectangle.height
     );
     zcvs.dispose();
