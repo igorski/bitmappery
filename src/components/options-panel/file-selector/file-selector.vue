@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -22,7 +22,7 @@
  */
 <template>
     <div class="form">
-        <label v-t="'selectLocalImageFile'"
+        <label v-t="'importLocalFile'"
                for="file"
                class="file-label button button--block"
         ></label>
@@ -36,27 +36,59 @@
 </template>
 
 <script>
-import { loadImageFiles }     from "@/services/file-loader-queue";
-import ImageToDocumentManager from "@/mixins/image-to-document-manager";
-import messages               from "./messages.json";
+import { mapActions } from "vuex";
+import { loadImageFiles }         from "@/services/file-loader-queue";
+import ImageToDocumentManager     from "@/mixins/image-to-document-manager";
+import { PROJECT_FILE_EXTENSION } from "@/store";
+import messages                   from "./messages.json";
 
 const ACCEPTED_IMAGE_TYPES = [ "image/png", "image/gif", "image/jpeg" ];
+
+// we allow selection of both BitMappery Documents and all accepted image types
+const FILE_EXTENSIONS = [ ...ACCEPTED_IMAGE_TYPES, PROJECT_FILE_EXTENSION ];
 
 export default {
     i18n: { messages },
     mixins: [ ImageToDocumentManager ],
     data: () => ({
-        acceptedImageTypes: ACCEPTED_IMAGE_TYPES,
+        acceptedImageTypes: FILE_EXTENSIONS,
     }),
     methods: {
+        ...mapActions([
+            "loadDocument",
+        ]),
         async handleFileSelect({ target }) {
             const files = target?.files;
             if ( !files || files.length === 0 ) {
                 return;
             }
+
+            // separate BitMappery documents from image files
+
+            const bpyDocuments = [];
+            const imageFiles   = [];
+
+            for ( let i = 0, l = files.length; i < l; ++i ) {
+                const file = files[ i ];
+                const [ name, ext ] = file.name.split( "." );
+                if ( ext === PROJECT_FILE_EXTENSION.replace( ".", "" )) {
+                    bpyDocuments.push( file );
+                } else {
+                    imageFiles.push( file );
+                }
+            }
+
+            // load the image files
+
             const start = Date.now();
-            await loadImageFiles( files, this.addLoadedFile.bind( this ));
+            await loadImageFiles( imageFiles, this.addLoadedFile.bind( this ));
             const elapsed = Date.now() - start;
+
+            // load the BitMappery documents
+
+            bpyDocuments.forEach( doc => {
+                this.loadDocument( doc );
+            });
         },
     }
 };
