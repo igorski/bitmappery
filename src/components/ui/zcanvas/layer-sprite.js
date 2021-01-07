@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Vue from "vue";
-import ZoomableSprite from "@/components/ui/zcanvas/zoomable-sprite";
+import { sprite } from "zcanvas"
 import { createCanvas, resizeImage, globalToLocal } from "@/utils/canvas-util";
 import { renderCross, renderMasked } from "@/utils/render-util";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";

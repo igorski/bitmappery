@@ -67,15 +67,15 @@ npm run lint
 # TODO / Roadmap
 
 * Drawing masks/brushes on a rotated layer that is panned or mirrored is broken
-* Moving of flipped / rotated content leads to occasional non-renders (isInsideViewport doesn't take rotated rectangles into account)
+* Rotated layers sometimes not visible in Safari depending on scale and viewport offset
 * Repeated presses on a clone stamp with source coords does not behave logically
 
 * Implement iframe based rendering (as more compatible alternative to OffscreenCanvas) for effects
 * Implement action queue when drawing, only execute drawing on update() hook
 * Maintain cache for transformations and filters, rendered at the display destination size (invalidate on window resize)
 * Dragging of masks on rotated/mirror content is kinda broken
-* Render service should measure total text bounding box upfront and scale resulting bitmap (can be done after render)
-* Fill selection with color (make color not unique to brush, but generic tool prop)
+* Render service should measure total text bounding box upfront and crop resulting bitmap (can be done after render)
+* Fill selection with color
 * Animate selection lines between white and black colors
 * Layer bitmaps and masks must not be stored as Vue observables
 * Restored base64 images should be treated as binary once more (see layer-factory)
@@ -86,3 +86,4 @@ npm run lint
 * Implement merged layer selection
 * Implement document crop
 * Implement change history
+* Scale logic should move from zoomable-canvas into zCanvas (as handleInteraction needs to transform offsets by zoom ratio, see LayerSprite!)
