@@ -79,8 +79,8 @@ import ToolTypes       from "@/definitions/tool-types";
 import store           from "./store";
 import messages        from "./messages.json";
 import {
-    RESIZE_DOCUMENT, EXPORT_DOCUMENT, SAVE_DROPBOX_DOCUMENT, EXPORT_IMAGE, DROPBOX_FILE_SELECTOR,
-    ADD_LAYER, LOAD_SELECTION, SAVE_SELECTION
+    CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, SAVE_DROPBOX_DOCUMENT, EXPORT_IMAGE,
+    DROPBOX_FILE_SELECTOR, ADD_LAYER, LOAD_SELECTION, SAVE_SELECTION
 } from "@/definitions/modal-windows";
 
 Vue.use( Vuex );
@@ -123,6 +123,8 @@ export default {
             switch ( this.modal ) {
                 default:
                     return null;
+                case CREATE_DOCUMENT:
+                    return () => import( "@/components/file-menu/create-document/create-document" );
                 case RESIZE_DOCUMENT:
                     return () => import( "@/components/edit-menu/resize-document/resize-document" );
                 case EXPORT_DOCUMENT:

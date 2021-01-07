@@ -23,7 +23,7 @@
 import { LAYER_TEXT } from "@/definitions/layer-types";
 import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM, canDraw } from "@/definitions/tool-types";
 import {
-    ADD_LAYER, EXPORT_DOCUMENT, DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT
+    CREATE_DOCUMENT, ADD_LAYER, EXPORT_DOCUMENT, DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT
 } from "@/definitions/modal-windows";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { translatePoints } from "@/utils/image-math";
@@ -269,7 +269,7 @@ function handleKeyDown( event ) {
             // new document
             if ( hasOption ) {
                 preventDefault( event ); // new browser window
-                dispatch( "requestNewDocument" );
+                openModal( CREATE_DOCUMENT );
             }
             break;
 

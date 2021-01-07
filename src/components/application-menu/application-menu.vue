@@ -175,7 +175,7 @@
 <script>
 import { mapState, mapGetters, mapMutations, mapActions }  from "vuex";
 import {
-    RESIZE_DOCUMENT, EXPORT_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION,
+    CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION,
     DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT
 } from "@/definitions/modal-windows";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
@@ -231,13 +231,15 @@ export default {
             "setSelectionContent",
         ]),
         ...mapActions([
-            "requestNewDocument",
             "requestDocumentClose",
             "requestSelectionCopy",
             "clearSelection",
             "pasteSelection",
             "loadDocument",
         ]),
+        requestNewDocument() {
+            this.openModal( CREATE_DOCUMENT );
+        },
         requestImageExport() {
             this.openModal( EXPORT_IMAGE );
         },

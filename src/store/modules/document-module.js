@@ -123,7 +123,7 @@ export default {
             }
         },
         updateLayerEffects( state, { index, effects = {} }) {
-            const layer = state.documents[ state.activeIndex ].layers[ index ];
+            const layer = state.documents[ state.activeIndex ]?.layers[ index ];
             if ( !layer ) {
                 return;
             }
@@ -155,9 +155,6 @@ export default {
         },
     },
     actions: {
-        requestNewDocument({ commit, getters }) {
-            commit( "addNewDocument", getters.t( "newDocumentNum", { num: getters.documents.length + 1 }));
-        },
         requestDocumentClose({ commit, getters }) {
             commit( "openDialog", {
                 type: "confirm",

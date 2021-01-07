@@ -89,10 +89,10 @@ export default {
         },
         sourceLayer: {
             get() {
-                return this.cloneOptions.source;
+                return this.cloneOptions.sourceLayerId;
             },
             set( value ) {
-                this.updateValue( "source", value );
+                this.updateValue( "sourceLayerId", value );
             },
         },
         brushSize: {

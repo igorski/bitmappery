@@ -267,7 +267,7 @@ class LayerSprite extends ZoomableSprite {
             const isCloner   = this._toolType === ToolTypes.CLONE;
 
             // get the drawing context
-            const ctx = drawOnMask ? this.layer.mask.getContext( "2d" ) : this.layer.source.getContext( "2d" );
+            const ctx = ( drawOnMask ? this.layer.mask : this.layer.source ).getContext( "2d" );
             ctx.save();
 
             if ( isEraser ) {
@@ -295,7 +295,7 @@ class LayerSprite extends ZoomableSprite {
             if ( isCloner ) {
                 renderMasked(
                     ctx, this, x, y,
-                    getSpriteForLayer({ id: this._toolOptions.source }), // TODO: fugly!!
+                    getSpriteForLayer({ id: this._toolOptions.sourceLayerId }), // TODO: fugly!!
                     this._brushCvs, this._radius
                 );
             } else {
@@ -311,8 +311,7 @@ class LayerSprite extends ZoomableSprite {
     }
 
     handlePress( x, y ) {
-        if ( this._isColorPicker )
-        {
+        if ( this._isColorPicker ) {
             // color picker mode, get the color below the clicked point
             const local = globalToLocal( this.canvas, x, y );
             const p = this.canvas.getElement().getContext( "2d" ).getImageData(
