@@ -55,18 +55,17 @@
                     }"
                     @click="handleLayerClick( layer )"
                 >{{ layer.name }}</span>
-                <!-- optional layer mask -->
-                <span
-                    v-if="layer.mask"
-                    v-tooltip="$t('clickToEditMask')"
-                    v-t="'mask'"
-                    class="mask"
-                    :class="{
-                        'highlight': layer.mask === activeLayerMask
-                    }"
-                    @click="handleLayerMaskClick( layer )"
-                ></span>
                 <div class="layer-actions">
+                    <!-- optional layer mask -->
+                    <button
+                        v-if="layer.mask"
+                        v-tooltip="$t('clickToEditMask')"
+                        class="button button--ghost"
+                        :class="{
+                            'highlight': layer.mask === activeLayerMask
+                        }"
+                        @click="handleLayerMaskClick( layer )"
+                    ><img src="@/assets/icons/icon-mask.svg" /></button>
                     <button
                         v-tooltip="$t('toggleVisibility')"
                         type="button"
@@ -74,6 +73,12 @@
                         @click="toggleLayerVisibility( layer.index )"
                         :class="{ 'disabled': !layer.visible }"
                     ><img src="@/assets/icons/icon-eye.svg" /></button>
+                    <button
+                        v-tooltip="$t('filters')"
+                        type="button"
+                        class="button button--ghost"
+                        @click="handleFiltersClick( layer.index )"
+                    ><img src="@/assets/icons/icon-settings.svg" /></button>
                     <button
                         v-tooltip="$t( layer.mask ? 'deleteMask' : 'deleteLayer' )"
                         type="button"
@@ -108,7 +113,7 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import { ADD_LAYER } from "@/definitions/modal-windows";
+import { ADD_LAYER, LAYER_FILTERS } from "@/definitions/modal-windows";
 import { createCanvas } from "@/utils/canvas-util";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import KeyboardService from "@/services/keyboard-service";
@@ -182,6 +187,10 @@ export default {
                     visible: !this.layers[ index ].visible
                 }
             });
+        },
+        handleFiltersClick( index ) {
+            this.setActiveLayerIndex( index );
+            this.openModal( LAYER_FILTERS );
         },
         handleRemoveClick( index ) {
             const layer = this.layers[ index ];
@@ -262,10 +271,6 @@ h3 {
         flex: 3;
         @include truncate();
         padding: $spacing-small 0 0 $spacing-xsmall;
-    }
-    .mask {
-        flex: 1;
-        padding: $spacing-small 0 0;
     }
     .highlight {
         color: #FFF;

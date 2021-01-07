@@ -29,6 +29,8 @@ import { getRotatedSize, getRotationCenter, getRectangleForSelection } from "@/u
 import { loadGoogleFont } from "@/services/font-service";
 
 const queue = [];
+const MAX_8BIT = 255;
+const HALF     = .5;
 
 export const renderEffectsForLayer = async layer => {
     const { effects } = layer;
@@ -58,6 +60,9 @@ export const renderEffectsForLayer = async layer => {
         await renderTransformedSource( layer, ctx, layer.source, width, height, effects );
     } else {
         ctx.drawImage( layer.source, 0, 0 );
+    }
+    if ( hasFilters( layer )) {
+        await renderFilters( cvs, layer );
     }
 
     // update on-screen canvas contents
@@ -114,7 +119,7 @@ export const copySelection = async ( activeDocument, activeLayer ) => {
     ctx.closePath();
     ctx.save();
     ctx.clip();
-    
+
     // draw active layer onto temporary canvas at full document scale
     sprite._isSelectMode = false; // prevents drawing selection outline into image
     sprite.draw( ctx, zcvs._viewport );
@@ -136,12 +141,17 @@ export const copySelection = async ( activeDocument, activeLayer ) => {
 
 /* internal methods */
 
-const hasEffects = ( layer ) => {
+const hasEffects = layer => {
     if ( !!layer.mask ) {
         return true;
     }
     const { effects } = layer;
     return effects.rotation !== 0 || effects.mirrorX || effects.mirrorY;
+};
+
+const hasFilters = layer => {
+    const { filters } = layer;
+    return filters.levels || filters.contrast;
 };
 
 const renderText = async layer => {
@@ -208,14 +218,14 @@ const renderTransformedSource = async ( layer, ctx, sourceBitmap, width, height,
         ctx.translate( x, y );
         ctx.rotate( rotation );
         ctx.translate( -x, -y );
-        targetX = x - layer.width  * .5;
-        targetY = y - layer.height * .5;
+        targetX = x - layer.width  * HALF;
+        targetY = y - layer.height * HALF;
     }
     ctx.drawImage( sourceBitmap, targetX, targetY );
     await renderMask( layer, ctx, targetX, targetY );
 
     ctx.restore();
-}
+};
 
 const renderMask = async( layer, ctx, tX = 0, tY = 0 ) => {
     if ( !layer.mask ) {
@@ -226,7 +236,39 @@ const renderMask = async( layer, ctx, tX = 0, tY = 0 ) => {
     ctx.globalCompositeOperation = "destination-in";
     ctx.drawImage( layer.mask, layer.maskX, layer.maskY );
     ctx.restore();
-}
+};
+
+const renderFilters = async ( source, layer ) => {
+    const { filters } = layer;
+    const contrast    = Math.pow((( filters.contrast * 100 ) + 100 ) / 100, 2 ); // -100 to 100 range
+    const levels      = filters.levels * 2; // 0 to 2 range
+
+    const { width, height } = source;
+    const ctx = source.getContext( "2d" );
+    const pixels   = ctx.getImageData( 0, 0, width, height );
+    const { data } = pixels;
+
+    for ( let x = 0; x < width; ++x ) {
+        for ( let y = 0; y < height; ++y ) {
+            const i = ( y * width + x ) * 4;
+
+            // 1. adjust level (note we leave the alpha channel unchanged)
+            if ( levels ) {
+                data[ i ]     = data[ i ]     * levels * levels; // R
+                data[ i + 1 ] = data[ i + 1 ] * levels * levels; // G
+                data[ i + 2 ] = data[ i + 2 ] * levels * levels; // B
+            }
+            // 2. adjust contrast (note we leave the alpha channel unchanged)
+            if ( contrast ) {
+                data[ i ]     = (( data[ i ]     / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT; // R
+                data[ i + 1 ] = (( data[ i + 1 ] / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT; // G
+                data[ i + 2 ] = (( data[ i + 2 ] / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT; // B
+            }
+        }
+    }
+    ctx.clearRect( 0, 0, width, height );
+    ctx.putImageData( pixels, 0, 0 );
+};
 
 /**
  * Create a (temporary) instance of zCanvas at the full document size.

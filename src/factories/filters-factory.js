@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,13 +20,34 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-export const CREATE_DOCUMENT       = 1;
-export const RESIZE_DOCUMENT       = 2;
-export const EXPORT_DOCUMENT       = 3;
-export const EXPORT_IMAGE          = 4;
-export const DROPBOX_FILE_SELECTOR = 5;
-export const SAVE_DROPBOX_DOCUMENT = 6;
-export const ADD_LAYER             = 7;
-export const LAYER_FILTERS         = 8;
-export const SAVE_SELECTION        = 9;
-export const LOAD_SELECTION        = 10;
+const FiltersFactory = {
+    create({ levels = .5, contrast = 0 } = {}) {
+        return {
+            levels,
+            contrast,
+        };
+    },
+
+    /**
+     * Saving filter properties into a simplified JSON structure
+     * for project storage
+     */
+    serialize( filters ) {
+        return {
+            l: filters.levels,
+            c: filters.contrast,
+        };
+    },
+
+    /**
+     * Creating a new filter list from a stored filters structure
+     * inside a stored projects layer
+     */
+     deserialize( filters = {} ) {
+         return FiltersFactory.create({
+             levels: filters.l,
+             contrast: filters.c,
+         });
+     }
+};
+export default FiltersFactory;

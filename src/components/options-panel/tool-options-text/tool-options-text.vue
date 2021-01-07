@@ -117,7 +117,7 @@ export default {
             },
             set( value ) {
                 this.internalText = value;
-                // debounce the modle update (and subsequent text render)
+                // debounce the model update (and subsequent text render)
                 // to not update on each entered character
                 if ( this.renderPending ) {
                     return;

@@ -23,6 +23,7 @@
 import { LAYER_GRAPHIC, LAYER_MASK }         from "@/definitions/layer-types";
 import { imageToBase64, base64ToLayerImage } from "@/utils/canvas-util";
 import EffectsFactory from "@/factories/effects-factory";
+import FiltersFactory from "@/factories/filters-factory";
 import TextFactory    from "@/factories/text-factory";
 
 let UID_COUNTER = 0;
@@ -35,7 +36,7 @@ const LayerFactory = {
         name = "New Layer",
         type = LAYER_GRAPHIC, transparent = true, source = null, mask = null,
         x = 0, y = 0, maskX = 0, maskY = 0, width = 1, height = 1, visible = true,
-        effects = {}, text = {}
+        effects = {}, filters = {}, text = {}
     } = {}) {
         return {
             id: `layer_${( ++UID_COUNTER )}`,
@@ -53,6 +54,7 @@ const LayerFactory = {
             visible,
             text: TextFactory.create( text ),
             effects: EffectsFactory.create( effects ),
+            filters: FiltersFactory.create( filters ),
             // only used at runtime, will not be serialized
             selection: null,
         }
@@ -77,6 +79,7 @@ const LayerFactory = {
             h: layer.height,
             tx: TextFactory.serialize( layer.text ),
             f: EffectsFactory.serialize( layer.effects ),
+            fl: FiltersFactory.serialize( layer.filters ),
             v: layer.visible,
         };
     },
@@ -104,6 +107,7 @@ const LayerFactory = {
             visible: layer.v,
             text,
             effects: EffectsFactory.deserialize( layer.f ),
+            filters: FiltersFactory.deserialize( layer.fl ),
         });
     }
 };
