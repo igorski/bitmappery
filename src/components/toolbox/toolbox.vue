@@ -48,7 +48,7 @@
                         'active': activeTool === tool.type
                     }"
                     :disabled="tool.disabled"
-                    @click="setTool( tool.type )"
+                    @click="handleToolClick( tool.type )"
             >
                 <img :src="`./assets/icons/tool-${tool.icon}.svg`" />
             </button>
@@ -69,6 +69,7 @@
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
 import { runSpriteFn } from "@/factories/sprite-factory";
+import { isMobile } from "@/utils/environment-util";
 import ToolTypes from "@/definitions/tool-types";
 import messages  from "./messages.json";
 
@@ -77,6 +78,7 @@ export default {
     computed: {
         ...mapState([
             "toolboxOpened",
+            "optionsPanelOpened",
         ]),
         ...mapGetters([
             "activeTool",
@@ -203,8 +205,15 @@ export default {
             "addLayer",
             "setActiveTool",
             "setToolboxOpened",
+            "setOptionsPanelOpened",
             "setActiveColor",
         ]),
+        handleToolClick( tool ) {
+            this.setTool( tool );
+            if ( isMobile() && !this.optionsPanelOpened ) {
+                this.setOptionsPanelOpened( true );
+            }
+        },
         setTool( tool ) {
             if ( tool === ToolTypes.TEXT && this.activeLayer?.type !== LAYER_TEXT ) {
                 this.addLayer({ type: LAYER_TEXT, name: this.$t( "newTextLayer") });
