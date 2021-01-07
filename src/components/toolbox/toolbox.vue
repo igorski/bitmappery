@@ -70,7 +70,7 @@ import { mapState, mapGetters, mapMutations } from "vuex";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
 import { runSpriteFn } from "@/factories/sprite-factory";
 import { isMobile } from "@/utils/environment-util";
-import ToolTypes from "@/definitions/tool-types";
+import ToolTypes, { canDraw, canClone } from "@/definitions/tool-types";
 import messages  from "./messages.json";
 
 export default {
@@ -100,7 +100,8 @@ export default {
             }
         },
         tools() {
-            const canDraw = this.activeDocument && ( this.activeLayer?.mask || this.activeLayer?.type === LAYER_GRAPHIC );
+            const drawable = canDraw( this.activeDocument, this.activeLayer );
+            const clonable = canClone( this.activeDocument, this.activeLayer );
             return [
                 {
                     type: ToolTypes.MOVE,
@@ -125,17 +126,17 @@ export default {
                 {
                     type: ToolTypes.BRUSH,
                     i18n: "brush", icon: "paintbrush", key: "B",
-                    disabled: !canDraw
+                    disabled: !drawable
                 },
                 {
                     type: ToolTypes.ERASER,
                     i18n: "eraser", icon: "eraser", key: "E",
-                    disabled: !canDraw
+                    disabled: !drawable
                 },
                 {
                     type: ToolTypes.CLONE,
                     i18n: "cloneStamp", icon: "stamp", key: "S",
-                    disabled: !canDraw
+                    disabled: !clonable
                 },
                 {
                     type: ToolTypes.EYEDROPPER,

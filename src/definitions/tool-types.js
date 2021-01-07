@@ -42,6 +42,11 @@ export const canDraw = ( activeDocument, activeLayer ) => {
     return activeDocument && ( activeLayer?.mask || activeLayer?.type === LAYER_GRAPHIC );
 };
 
+// should eventually be replaced with canDraw() (see https://github.com/igorski/bitmappery/issues/1)
+export const canClone = ( activeDocument, activeLayer ) => {
+    return canDraw( activeDocument, activeLayer ) && ( activeLayer.effects.rotation % 360 ) === 0;
+};
+
 // UI variables
 export const MAX_BRUSH_SIZE = 100;
 export const MIN_ZOOM       = -50; // zooming out from base (which is 0)
