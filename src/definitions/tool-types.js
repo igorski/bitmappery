@@ -39,7 +39,10 @@ export default {
 };
 
 export const canDraw = ( activeDocument, activeLayer ) => {
-    return activeDocument && ( activeLayer?.mask || activeLayer?.type === LAYER_GRAPHIC );
+    return activeDocument &&
+    ( activeLayer?.mask || activeLayer?.type === LAYER_GRAPHIC ) &&
+    // this last line should eventually be removed (see https://github.com/igorski/bitmappery/issues/2)
+    (( activeLayer.effects.rotation % 360 ) === 0 || ( !activeLayer.effects.mirrorX && !activeLayer.effects.mirrorY ));
 };
 
 // should eventually be replaced with canDraw() (see https://github.com/igorski/bitmappery/issues/1)

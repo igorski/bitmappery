@@ -265,9 +265,9 @@ class LayerSprite extends sprite {
             if ( this.isRotated() ) {
                 ({ x, y } = translatePointerRotation( x, y, rotCenterX, rotCenterY, rotation ));
             }
-            const drawOnMask = this.isMaskable();
-            const isEraser   = this._toolType === ToolTypes.ERASER;
-            const isCloner   = this._toolType === ToolTypes.CLONE;
+            const drawOnMask   = this.isMaskable();
+            const isEraser     = this._toolType === ToolTypes.ERASER;
+            const isCloneStamp = this._toolType === ToolTypes.CLONE;
 
             // get the drawing context
             const ctx = ( drawOnMask ? this.layer.mask : this.layer.source ).getContext( "2d" );
@@ -286,16 +286,16 @@ class LayerSprite extends sprite {
             // correct pointer offset w/regards to layer pan position
             x -= this.layer.x;
             y -= this.layer.y;
-            
+
             // transform destination context in case the current layer is rotated or mirrored
             ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
             ctx.translate( x, y );
             ctx.rotate( rotation );
             ctx.translate( -x, -y );
 
-            // TODO: when rotated, x and y are now in right coordinate space, but not at right point
+            // TODO: when rotated and mirrored, x and y are now in right coordinate space, but not at right point
 
-            if ( isCloner ) {
+            if ( isCloneStamp ) {
                 renderMasked(
                     ctx, this, x, y,
                     getSpriteForLayer({ id: this._toolOptions.sourceLayerId }), // TODO: fugly!!

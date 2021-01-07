@@ -66,7 +66,6 @@ npm run lint
 
 # TODO / Roadmap
 
-* Drawing masks/brushes on a rotated layer that is mirrored is broken
 * Rotated layers sometimes not visible in Safari depending on scale and viewport offset
 * Repeated presses on a clone stamp with source coords does not behave logically
 
