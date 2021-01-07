@@ -164,22 +164,54 @@ class ZoomableCanvas extends canvas {
 
                 // all touch events
                 default:
-                    let eventOffsetX = 0, eventOffsetY = 0;
-                    touches /** @type {TouchList} */ = ( aEvent.touches.length > 0 ) ? aEvent.touches : aEvent.changedTouches;
+                    let eventOffsetX = 0, eventOffsetY = 0, result;
 
-                    if ( touches.length > 0 ) {
+                    const touches /** @type {TouchList} */ = event.changedTouches;
+                    let i = 0, l = touches.length;
+
+                    if ( l > 0 ) {
                         const offset = this.getCoordinate();
                         if ( viewport ) {
                             offset.x -= viewport.left;
                             offset.y -= viewport.top;
                         }
-                        eventOffsetX = ( touches[ 0 ].pageX - offset.x ) / this.zoomFactor ; // QQQ
-                        eventOffsetY = ( touches[ 0 ].pageY - offset.y ) / this.zoomFactor; // QQQ
-                    }
 
-                    while ( theChild ) {
-                        theChild.handleInteraction( eventOffsetX, eventOffsetY, aEvent );
-                        theChild = theChild.last; // note we don't break this loop for multi touch purposes
+                        // zCanvas supports multitouch, process all pointers
+
+                        for ( i = 0; i < l; ++i ) {
+                            const touch          = touches[ i ];
+                            const { identifier } = touch;
+
+                            eventOffsetX = ( touches[ 0 ].pageX - offset.x ) / this.zoomFactor ; // QQQ
+                            eventOffsetY = ( touches[ 0 ].pageY - offset.y ) / this.zoomFactor;  // QQQ
+
+                            switch ( event.type ) {
+                                // on touchstart events, when we a Sprite handles the event, we
+                                // map the touch identifier to this Sprite
+                                case "touchstart":
+                                    while ( theChild ) {
+                                        if ( !this._activeTouches.includes( theChild ) && theChild.handleInteraction( eventOffsetX, eventOffsetY, event )) {
+                                            this._activeTouches[ identifier ] = theChild;
+                                            break;
+                                        }
+                                        theChild = theChild.last;
+                                    }
+                                    theChild = this._children[ numChildren - 1 ];
+                                    break;
+                                // on all remaining touch events we retrieve the Sprite associated
+                                // with the event pointer directly
+                                default:
+                                    theChild = this._activeTouches[ identifier ];
+                                    if ( theChild?.handleInteraction( eventOffsetX, eventOffsetY, event )) {
+                                        // all events other than touchmove should be treated as a release
+                                        if ( event.type !== "touchmove" ) {
+                                            this._activeTouches[ identifier ] = null;
+                                        }
+                                    }
+                                    break;
+
+                            }
+                        }
                     }
                     break;
 

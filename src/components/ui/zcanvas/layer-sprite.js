@@ -232,10 +232,13 @@ class LayerSprite extends ZoomableSprite {
         this.invalidate();
     }
 
-    handleMove( x, y ) {
+    handleMove( x, y, { type }) {
         // store reference to current pointer position (relative to canvas)
-        this._pointerX = x;
-        this._pointerY = y;
+        // note that for touch events this is handled in handlePress() instead
+        if ( !type.startsWith( "touch" )) {
+            this._pointerX = x;
+            this._pointerY = y;
+        }
 
         let recacheEffects = false;
 
@@ -310,7 +313,11 @@ class LayerSprite extends ZoomableSprite {
         }
     }
 
-    handlePress( x, y ) {
+    handlePress( x, y, { type }) {
+        if ( type.startsWith( "touch" )) {
+            this._pointerX = x;
+            this._pointerY = y;
+        }
         if ( this._isColorPicker ) {
             // color picker mode, get the color below the clicked point
             const local = globalToLocal( this.canvas, x, y );
