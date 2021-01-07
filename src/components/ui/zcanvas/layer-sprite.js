@@ -35,7 +35,7 @@ import ToolTypes from "@/definitions/tool-types";
  * It handles all tool interactions with the layer and also provides interaction with the Layers Mask.
  * It inherits from the zCanvas Sprite to be an interactive Canvas drawable.
  */
-class LayerSprite extends ZoomableSprite {
+class LayerSprite extends sprite {
     constructor( layer ) {
         const { bitmap, x, y, width, height } = layer;
         super({ bitmap, x, y, width, height }); // zCanvas inheritance
@@ -283,15 +283,15 @@ class LayerSprite extends ZoomableSprite {
             if ( mirrorY ) {
                 y -= ctx.canvas.height;
             }
+            // correct pointer offset w/regards to layer pan position
+            x -= this.layer.x;
+            y -= this.layer.y;
+            
             // transform destination context in case the current layer is rotated or mirrored
             ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
             ctx.translate( x, y );
             ctx.rotate( rotation );
             ctx.translate( -x, -y );
-
-            // correct pointer offset w/regards to layer pan position
-            x -= this.layer.x;
-            y -= this.layer.y;
 
             // TODO: when rotated, x and y are now in right coordinate space, but not at right point
 

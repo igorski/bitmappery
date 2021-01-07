@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@simonwep/pickr": "^1.8.0",
+    "canvas": "^2.6.1",
     "core-js": "^3.6.5",
     "dropbox": "^8.2.0",
     "register-service-worker": "^1.7.1",
@@ -41,6 +42,6 @@
     "vue-search-select": "^2.9.3",
     "vue-template-compiler": "^2.6.11",
     "worker-loader": "^2.0.0",
-    "zcanvas": "^4.2.0"
+    "zcanvas": "^4.2.1"
   }
 }

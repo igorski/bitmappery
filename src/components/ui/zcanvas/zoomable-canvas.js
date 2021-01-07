@@ -164,7 +164,7 @@ class ZoomableCanvas extends canvas {
 
                 // all touch events
                 default:
-                    let eventOffsetX = 0, eventOffsetY = 0, result;
+                    let eventOffsetX = 0, eventOffsetY = 0;
 
                     const touches /** @type {TouchList} */ = event.changedTouches;
                     let i = 0, l = touches.length;

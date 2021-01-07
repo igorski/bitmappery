@@ -136,9 +136,12 @@ export const isInsideTransparentArea = ( source, x, y, size = 5 ) => {
     // get list of RGBA values at the requested rectangle within given source
     const imageData = source.getContext( "2d" ).getImageData( left, top, size, size ).data;
 
-    // How many solid pixels in the detection area do we need in order to mark it as non-transparent
-    const requiredSolidPixels = Math.ceil(( width * height ) / 10 );
-    let solidPixelsFound = 0;
+    // we define a threshold for opaque pixels, the reason being that visually
+    // we might perceive a fractional value just above 0 to be "transparent"
+    // only when we have a sufficient amount can we assume we are inside
+    // a border of anti-aliased pixels
+    const opaqueThreshold = Math.ceil(( width * height ) / 10 );
+    let opaquePixels = 0;
 
     for ( x = 0; x < width; ++x ) {
         for ( y = 0; y < height; ++y ) {
@@ -148,7 +151,7 @@ export const isInsideTransparentArea = ( source, x, y, size = 5 ) => {
             const pixel = imageData[ index ];
 
               if ( typeof pixel === "number" && pixel !== 0 ) {
-                  if ( ++solidPixelsFound >= requiredSolidPixels ) {
+                  if ( ++opaquePixels >= opaqueThreshold ) {
                       return false;
                   }
               }
