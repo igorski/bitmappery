@@ -20,8 +20,12 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import FiltersFactory from "@/factories/filters-factory";
+
 const MAX_8BIT = 255;
 const HALF     = .5;
+
+const defaultFilters = FiltersFactory.create();
 
 self.addEventListener( "message", async ({ data }) => {
     const { id, cmd } = data;
@@ -37,21 +41,29 @@ self.addEventListener( "message", async ({ data }) => {
 /* internal methods */
 
 const renderFilters = ( imageData, width, height, filters ) => {
+    const brightness     = ( filters.brightness * 2 );//( filters.brightness * 2 ) - 1; // -1 to 1 range
     const contrast       = Math.pow((( filters.contrast * 100 ) + 100 ) / 100, 2 ); // -100 to 100 range
-    const levels         = filters.levels * 2; // 0 to 2 range
+    const gamma          = ( filters.gamma * 2 ); // 0 to 2 range
+    const vibrance       = -(( filters.vibrance * 200 ) - 100 ); // -100 to 100 range
     const { desaturate } = filters; // boolean
 
     const pixels = imageData.data;
+    let r, g, b, a;
+
+    const doBrightness = filters.brightness !== defaultFilters.brightness;
+    const doContrast   = filters.contrast   !== defaultFilters.contrast;
+    const doGamma      = filters.gamma      !== defaultFilters.gamma;
+    const doVibrance   = filters.vibrance   !== defaultFilters.vibrance;
 
     for ( let x = 0; x < width; ++x ) {
         for ( let y = 0; y < height; ++y ) {
             const i = ( y * width + x ) * 4;
 
-            // 1. adjust level (note we leave the alpha channel unchanged)
-            if ( levels ) {
-                pixels[ i ]     = pixels[ i ]     * levels * levels; // R
-                pixels[ i + 1 ] = pixels[ i + 1 ] * levels * levels; // G
-                pixels[ i + 2 ] = pixels[ i + 2 ] * levels * levels; // B
+            // 1. adjust gamma (note we leave the alpha channel unchanged)
+            if ( doGamma ) {
+                pixels[ i ]     = pixels[ i ]     * gamma * gamma; // R
+                pixels[ i + 1 ] = pixels[ i + 1 ] * gamma * gamma; // G
+                pixels[ i + 2 ] = pixels[ i + 2 ] * gamma * gamma; // B
             }
             // 2. desaturate (note we leave the alpha channel unchanged)
             if ( desaturate ) {
@@ -60,11 +72,30 @@ const renderFilters = ( imageData, width, height, filters ) => {
                 pixels[ i + 1 ] = grayScale; // G
                 pixels[ i + 2 ] = grayScale; // B
             }
-            // 3. adjust contrast (note we leave the alpha channel unchanged)
-            if ( contrast ) {
+            // 3. adjust brightness (note we leave the alpha channel unchanged)
+            if ( doBrightness ) {
+                pixels[ i ]     = pixels[ i ]     * brightness;
+                pixels[ i + 1 ] = pixels[ i + 1 ] * brightness;
+                pixels[ i + 2 ] = pixels[ i + 2 ] * brightness;
+            }
+            // 4. adjust contrast (note we leave the alpha channel unchanged)
+            if ( doContrast ) {
                 pixels[ i ]     = (( pixels[ i ]     / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT; // R
                 pixels[ i + 1 ] = (( pixels[ i + 1 ] / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT; // G
                 pixels[ i + 2 ] = (( pixels[ i + 2 ] / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT; // B
+            }
+            // 5. adjust vibrance (note we leave the alpha channel unchanged)
+            if ( doVibrance ) {
+                r = pixels[ i ];
+                g = pixels[ i + 1 ];
+                b = pixels[ i + 2 ];
+                const max = Math.max( r, g, b );
+                const avg = ( r + g + b ) / 3;
+                const amt = (( Math.abs( max - avg ) * 2 / MAX_8BIT ) * vibrance ) / 10; // 100;
+
+				pixels[ i ]     = r !== max ? r + ( max - r ) * amt : r;
+                pixels[ i + 1 ] = g !== max ? g + ( max - g ) * amt : g;
+                pixels[ i + 2 ] = b !== max ? b + ( max - b ) * amt : b;
             }
         }
     }

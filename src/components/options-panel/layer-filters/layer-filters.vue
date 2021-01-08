@@ -28,9 +28,9 @@
         <template #content>
             <div class="form" @keyup.enter="requestLayerAdd()">
                 <div class="wrapper input">
-                    <label v-t="'levels'"></label>
+                    <label v-t="'gamma'"></label>
                     <slider
-                        v-model="levels"
+                        v-model="gamma"
                         :min="0"
                         :max="100"
                         :tooltip="'none'"
@@ -40,6 +40,24 @@
                     <label v-t="'contrast'"></label>
                     <slider
                         v-model="contrast"
+                        :min="0"
+                        :max="100"
+                        :tooltip="'none'"
+                    />
+                </div>
+                <div class="wrapper input">
+                    <label v-t="'brightness'"></label>
+                    <slider
+                        v-model="brightness"
+                        :min="0"
+                        :max="100"
+                        :tooltip="'none'"
+                    />
+                </div>
+                <div class="wrapper input">
+                    <label v-t="'vibrance'"></label>
+                    <slider
+                        v-model="vibrance"
                         :min="0"
                         :max="100"
                         :tooltip="'none'"
@@ -103,12 +121,20 @@ export default {
         filters() {
             return this.activeLayer.filters;
         },
-        levels: {
+        gamma: {
             get() {
-                return this.internalValue.levels * 100;
+                return this.internalValue.gamma * 100;
             },
             set( value ) {
-                this.internalValue.levels = value / 100;
+                this.internalValue.gamma = value / 100;
+            }
+        },
+        brightness: {
+            get() {
+                return this.internalValue.brightness * 100;
+            },
+            set( value ) {
+                this.internalValue.brightness = value / 100;
             }
         },
         contrast: {
@@ -117,6 +143,14 @@ export default {
             },
             set( value ) {
                 this.internalValue.contrast = value / 100;
+            }
+        },
+        vibrance: {
+            get() {
+                return this.internalValue.vibrance * 100;
+            },
+            set( value ) {
+                this.internalValue.vibrance = value / 100;
             }
         },
     },

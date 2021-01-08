@@ -23,11 +23,13 @@
 let defaultFilters = null;
 
 const FiltersFactory = {
-    create({ levels = .5, contrast = 0, desaturate = false } = {}) {
+    create({ gamma = .5, brightness = .5, contrast = 0, vibrance = .5, desaturate = false } = {}) {
         return {
-            levels,
+            gamma,
+            brightness,
             contrast,
             desaturate,
+            vibrance,
         };
     },
 
@@ -37,9 +39,11 @@ const FiltersFactory = {
      */
     serialize( filters ) {
         return {
-            l: filters.levels,
+            g: filters.gamma,
+            b: filters.brightness,
             c: filters.contrast,
             d: filters.desaturate,
+            v: filters.vibrance,
         };
     },
 
@@ -49,9 +53,11 @@ const FiltersFactory = {
      */
      deserialize( filters = {} ) {
          return FiltersFactory.create({
-             levels: filters.l,
+             gamma: filters.g,
+             brightness: filters.b,
              contrast: filters.c,
              desaturate: filters.d,
+             vibrance: filters.v,
          });
      }
 };
@@ -61,7 +67,9 @@ export const hasFilters = filters => {
     if ( !defaultFilters ) {
         defaultFilters = FiltersFactory.create();
     }
-    return filters.levels     !== defaultFilters.levels   ||
-           filters.contrast   !== defaultFilters.contrast ||
-           filters.desaturate !== defaultFilters.desaturate;
+    return filters.gamma      !== defaultFilters.gamma      ||
+           filters.brightness !== defaultFilters.brightness ||
+           filters.contrast   !== defaultFilters.contrast   ||
+           filters.desaturate !== defaultFilters.desaturate ||
+           filters.vibrance   !== defaultFilters.vibrance;
 };

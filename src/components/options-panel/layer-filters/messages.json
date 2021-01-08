@@ -1,8 +1,10 @@
 {
     "en-US": {
         "filters": "Filters",
-        "levels": "Levels",
+        "gamma": "Gamma",
         "contrast": "Contrast",
+        "brightness": "Brightness",
+        "vibrance": "Vibrance",
         "desaturate": "Desaturate",
         "save": "Save",
         "reset": "Reset",
