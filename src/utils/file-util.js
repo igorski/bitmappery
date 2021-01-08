@@ -58,13 +58,13 @@ export const selectFile = ( acceptedTypes, multiple = false ) => {
     });
 };
 
-export const readFile = file => {
+export const readFile = ( file, optEncoding = "UTF-8" ) => {
     const reader = new FileReader();
     return new Promise(( resolve, reject ) => {
         reader.onload = readerEvent => {
             resolve( readerEvent.target.result );
         };
         reader.onerror = reject;
-        reader.readAsText( file );
+        reader.readAsText( file, optEncoding );
     });
 };

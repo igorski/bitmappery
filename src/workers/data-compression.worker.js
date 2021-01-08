@@ -32,16 +32,22 @@ self.addEventListener( "message", event => {
 
         case "compress":
             const blob = new Blob([
-                LZString.compressToUTF16( JSON.stringify( data ))
-            ], { type: "text/plain" });
+                LZString.compressToBase64( JSON.stringify( data ))
+            ], { type: "text/plain;charset=utf-8" });
             self.postMessage({ cmd: "complete", id, data: blob });
             break;
 
         case "decompress":
             readFile( data )
                 .then( fileData => {
-                    const decompressed = JSON.parse( LZString.decompressFromUTF16( fileData ));
-                    self.postMessage({ cmd: "complete", id, data: decompressed });
+                    let decompressed;
+                    try {
+                        decompressed = LZString.decompressFromBase64( fileData );
+                    } catch {
+                        // "legacy" (well, pre-beta...) format used UTF16 encoding, which went awry in Safari...
+                        decompressed = LZString.decompressFromUTF16( fileData );
+                    }
+                    self.postMessage({ cmd: "complete", id, data: JSON.parse( decompressed ) });
                 })
                 .catch( error => {
                     self.postMessage({ cmd: "loadError", error });
