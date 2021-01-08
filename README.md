@@ -66,9 +66,7 @@ npm run lint
 
 # TODO / Roadmap
 
-* Rotated layers sometimes not visible in Safari depending on scale and viewport offset
-* Repeated presses on a clone stamp with source coords does not behave logically
-
+* Repeated presses on a clone stamp with source coords do not behave logically
 * Implement iframe based rendering (as more compatible alternative to OffscreenCanvas) for effects
 * Implement action queue when drawing, only execute drawing on update() hook
 * Maintain cache for transformations and filters, rendered at the display destination size (invalidate on window resize)

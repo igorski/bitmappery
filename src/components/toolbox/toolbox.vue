@@ -48,7 +48,7 @@
                         'active': activeTool === tool.type
                     }"
                     :disabled="tool.disabled"
-                    @click="handleToolClick( tool.type )"
+                    @click="handleToolClick( tool )"
             >
                 <img :src="`./assets/icons/tool-${tool.icon}.svg`" />
             </button>
@@ -106,62 +106,62 @@ export default {
                 {
                     type: ToolTypes.MOVE,
                     i18n: "panViewport", icon: "move", key: "P / Space + Drag",
-                    disabled: !this.activeDocument
+                    disabled: !this.activeDocument, hasOptions: false
                 },
                 {
                     type: ToolTypes.DRAG,
                     i18n: "dragLayer", icon: "drag", key: "V",
-                    disabled: !this.activeDocument
+                    disabled: !this.activeDocument, hasOptions: false
                 },
                 {
                     type: ToolTypes.SELECTION,
                     i18n: "rectangularSelection", icon: "selection", key: "M",
-                    disabled: !this.activeDocument
+                    disabled: !this.activeDocument, hasOptions: false
                 },
                 {
                     type: ToolTypes.LASSO,
                     i18n: "polygonalLasso", icon: "lasso", key: "L",
-                    disabled: !this.activeDocument
+                    disabled: !this.activeDocument, hasOptions: false
                 },
                 {
                     type: ToolTypes.BRUSH,
                     i18n: "brush", icon: "paintbrush", key: "B",
-                    disabled: !drawable
+                    disabled: !drawable, hasOptions: true
                 },
                 {
                     type: ToolTypes.ERASER,
                     i18n: "eraser", icon: "eraser", key: "E",
-                    disabled: !drawable
+                    disabled: !drawable, hasOptions: true
                 },
                 {
                     type: ToolTypes.CLONE,
                     i18n: "cloneStamp", icon: "stamp", key: "S",
-                    disabled: !clonable
+                    disabled: !clonable, hasOptions: true
                 },
                 {
                     type: ToolTypes.EYEDROPPER,
                     i18n: "eyedropper", icon: "eyedropper", key: "I",
-                    disabled: !this.activeLayer
+                    disabled: !this.activeLayer, hasOptions: false
                 },
                 {
                     type: ToolTypes.MIRROR,
                     i18n: "mirrorLayer", icon: "mirror", key: "F",
-                    disabled: !this.activeLayer
+                    disabled: !this.activeLayer, hasOptions: true
                 },
                 {
                     type: ToolTypes.ROTATE,
                     i18n: "rotateLayer", icon: "rotate", key: "R",
-                    disabled: !this.activeLayer
+                    disabled: !this.activeLayer, hasOptions: true
                 },
                 {
                     type: ToolTypes.TEXT,
                     i18n: "text", icon: "text", key: "T",
-                    disabled: !this.activeDocument,
+                    disabled: !this.activeDocument, hasOptions: true
                 },
                 {
                     type: ToolTypes.ZOOM,
                     i18n: "zoom", icon: "zoom", key: "Z",
-                    disabled: !this.activeDocument
+                    disabled: !this.activeDocument, hasOptions: true
                 },
             ]
         },
@@ -209,9 +209,9 @@ export default {
             "setOptionsPanelOpened",
             "setActiveColor",
         ]),
-        handleToolClick( tool ) {
-            this.setTool( tool );
-            if ( isMobile() && !this.optionsPanelOpened ) {
+        handleToolClick({ type, hasOptions }) {
+            this.setTool( type );
+            if ( isMobile() && hasOptions && !this.optionsPanelOpened ) {
                 this.setOptionsPanelOpened( true );
             }
         },
