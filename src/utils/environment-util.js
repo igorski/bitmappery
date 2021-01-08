@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2017-2020 - https://www.igorski.nl
+ * Igor Zinken 2017-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -30,17 +30,22 @@ export const isMobile = () => window.screen.availWidth <= 640; // see _variables
 
 export const supportsFullscreen = () => !Bowser.ios;
 
-export const setToggleButton = ( element, maximizeCopy, minimizeCopy ) => {
+export const setToggleButton = ( element, maximizeCopy, minimizeCopy, optCallback ) => {
     fsToggle = element;
     fsToggle.addEventListener( "click", toggleFullscreen );
 
     maximizeText = maximizeCopy;
     minimizeText = minimizeCopy;
 
+    const callback = () => {
+        handleFullscreenChange();
+        optCallback?.();
+    }
+
     [
         "webkitfullscreenchange", "mozfullscreenchange", "fullscreenchange", "MSFullscreenChange"
     ]
-    .forEach( event => d.addEventListener( event, handleFullscreenChange, false ));
+    .forEach( event => d.addEventListener( event, callback, false ));
 };
 
 /* internal methods */

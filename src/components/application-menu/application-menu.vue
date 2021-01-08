@@ -179,7 +179,7 @@ import {
     DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT
 } from "@/definitions/modal-windows";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
-import { runSpriteFn, getSpriteForLayer } from "@/factories/sprite-factory";
+import { getCanvasInstance, runSpriteFn, getSpriteForLayer } from "@/factories/sprite-factory";
 import messages from "./messages.json";
 
 export default {
@@ -219,7 +219,9 @@ export default {
     },
     mounted() {
         if ( this.$refs.fullscreenBtn ) {
-            setToggleButton( this.$refs.fullscreenBtn, this.$t( "maximize" ), this.$t( "minimize" ));
+            setToggleButton( this.$refs.fullscreenBtn, this.$t( "maximize" ), this.$t( "minimize" ), () => {
+                getCanvasInstance()?.rescaleFn();
+            });
         }
     },
     methods: {
