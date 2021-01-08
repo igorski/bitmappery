@@ -107,3 +107,12 @@ export const resizeLayerContent = async ( layer, ratioX, ratioY ) => {
         text.lineHeight *= ratioY;
     }
 };
+
+export const cropLayerContent = async ( layer, left, top ) => {
+    if ( layer.mask ) {
+        layer.maskX -= left;
+        layer.maskY -= top;
+    }
+    layer.x -= left;
+    layer.y -= top;
+};

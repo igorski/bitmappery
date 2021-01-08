@@ -25,7 +25,7 @@ import Vue from "vue";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory    from "@/factories/layer-factory";
 import { flushLayerSprites, runSpriteFn, getSpriteForLayer, getCanvasInstance } from "@/factories/sprite-factory";
-import { resizeLayerContent } from "@/utils/render-util";
+import { resizeLayerContent, cropLayerContent } from "@/utils/render-util";
 
 export default {
     state: {
@@ -146,6 +146,17 @@ export default {
                 const wasVisible = layer.visible;
                 layer.visible = false;
                 await resizeLayerContent( layer, scaleX, scaleY );
+                layer.visible = wasVisible;
+            }
+        },
+        async cropActiveDocumentContent( state, { left, top }) {
+            const document = state.documents[ state.activeIndex ];
+            for ( let i = 0, l = document?.layers?.length; i < l; ++i ) {
+                const layer = document.layers[ i ];
+                // by toggling visiblity we force the Sprite to recache its contents when visible again
+                const wasVisible = layer.visible;
+                layer.visible = false;
+                await cropLayerContent( layer, left, top );
                 layer.visible = wasVisible;
             }
         },

@@ -102,6 +102,13 @@
                         ></button>
                     </li>
                     <li>
+                        <button v-t="'cropToSelection'"
+                                type="button"
+                                :disabled="!hasSelection"
+                                @click="requestCropToSelection()"
+                        ></button>
+                    </li>
+                    <li>
                         <button v-t="'pasteAsNewLayer'"
                                 type="button"
                                 :disabled="!hasClipboard"
@@ -179,6 +186,7 @@ import {
     DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT
 } from "@/definitions/modal-windows";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
+import { getRectangleForSelection } from "@/utils/image-math";
 import { getCanvasInstance, runSpriteFn, getSpriteForLayer } from "@/factories/sprite-factory";
 import messages from "./messages.json";
 
@@ -229,8 +237,10 @@ export default {
             "setMenuOpened",
             "openModal",
             "setActiveDocument",
+            "setActiveDocumentSize",
             "closeActiveDocument",
             "setSelectionContent",
+            "cropActiveDocumentContent",
         ]),
         ...mapActions([
             "requestDocumentClose",
@@ -256,6 +266,11 @@ export default {
         },
         requestSelectionSave() {
             this.openModal( SAVE_SELECTION );
+        },
+        async requestCropToSelection() {
+            const { left, top, width, height } = getRectangleForSelection( this.activeLayer.selection );
+            await this.cropActiveDocumentContent({ left, top });
+            this.setActiveDocumentSize({ width, height });
         },
         requestDropboxLoad() {
             this.openModal( DROPBOX_FILE_SELECTOR );

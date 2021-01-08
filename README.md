@@ -80,6 +80,5 @@ npm run lint
 * Implement layer sorting and opacity
 * Implement layer scaling
 * Implement merged layer selection
-* Implement document crop
 * Implement change history
 * Scale logic should move from zoomable-canvas into zCanvas (as handleInteraction needs to transform offsets by zoom ratio, see LayerSprite!)

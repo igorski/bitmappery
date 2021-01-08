@@ -16,6 +16,7 @@
         "loadSelection": "Load selection",
         "saveSelection": "Save selection",
         "copySelection": "Copy selection",
+        "cropToSelection": "Crop to selection",
         "pasteAsNewLayer": "Paste as new layer",
         "window": "Window",
         "windowNumName": "Window #{num}: {name}",

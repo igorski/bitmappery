@@ -15,6 +15,7 @@ jest.mock( "@/factories/layer-factory", () => ({
 }));
 jest.mock( "@/utils/render-util", () => ({
     resizeLayerContent: (...args) => mockUpdateFn?.( "resizeLayerContent", ...args ),
+    cropLayerContent: (...args) => mockUpdateFn?.( "cropLayerContent", ...args ),
 }));
 
 describe( "Vuex document module", () => {
@@ -370,6 +371,23 @@ describe( "Vuex document module", () => {
             await mutations.resizeActiveDocumentContent( state, { scaleX, scaleY });
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "resizeLayerContent", layer1, scaleX, scaleY );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "resizeLayerContent", layer2, scaleX, scaleY );
+        });
+
+        it( "should be able to crop active Document content by calling the render util upon each Layer", async () => {
+            const layer1 = { name: "layer1" };
+            const layer2 = { name: "layer2" };
+            const state = {
+                documents: [
+                    { layers: [ layer1, layer2 ]}
+                ],
+                activeIndex: 0,
+            };
+            mockUpdateFn = jest.fn();
+            const left = 10;
+            const top  = 15;
+            await mutations.cropActiveDocumentContent( state, { left, top });
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "cropLayerContent", layer1, left, top );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "cropLayerContent", layer2, left, top );
         });
     });
 });
