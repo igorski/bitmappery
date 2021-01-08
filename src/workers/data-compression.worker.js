@@ -40,13 +40,7 @@ self.addEventListener( "message", event => {
         case "decompress":
             readFile( data )
                 .then( fileData => {
-                    let decompressed;
-                    try {
-                        decompressed = LZString.decompressFromBase64( fileData );
-                    } catch {
-                        // "legacy" (well, pre-beta...) format used UTF16 encoding, which went awry in Safari...
-                        decompressed = LZString.decompressFromUTF16( fileData );
-                    }
+                    const decompressed = LZString.decompressFromBase64( fileData );
                     self.postMessage({ cmd: "complete", id, data: JSON.parse( decompressed ) });
                 })
                 .catch( error => {
