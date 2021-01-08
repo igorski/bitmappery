@@ -1,4 +1,4 @@
-import FiltersFactory from "@/factories/filters-factory";
+import FiltersFactory, { hasFilters } from "@/factories/filters-factory";
 
 describe( "Filters factory", () => {
     describe( "when creating a new filter list", () => {
@@ -36,6 +36,24 @@ describe( "Filters factory", () => {
             const deserialized = FiltersFactory.deserialize( serialized );
 
             expect( deserialized ).toEqual( filters );
+        });
+    });
+
+    describe( "when determining if a filter configuration deviates from the default (and thus requires processing)", () => {
+        it( "should consider a configuration that is equal to the default as inactive", () => {
+            const defaultFilter = FiltersFactory.create();
+            expect( hasFilters( defaultFilter )).toBe( false );
+        });
+
+        it( "should consider a configuration where one of the properties deviates from the default as active", () => {
+            let filter = FiltersFactory.create({ levels: .7 });
+            expect( hasFilters( filter )).toBe( true );
+
+            filter = FiltersFactory.create({ contrast: .3 });
+            expect( hasFilters( filter )).toBe( true );
+
+            filter = FiltersFactory.create({ desaturate: true });
+            expect( hasFilters( filter )).toBe( true );
         });
     });
 });

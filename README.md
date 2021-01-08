@@ -67,7 +67,6 @@ npm run lint
 # TODO / Roadmap
 
 * Repeated presses on a clone stamp with source coords do not behave logically
-* Implement iframe based rendering (as more compatible alternative to OffscreenCanvas) for effects
 * Implement action queue when drawing, only execute drawing on update() hook
 * Maintain cache for transformations and filters, rendered at the display destination size (invalidate on window resize)
 * Dragging of masks on rotated/mirror content is kinda broken

@@ -24,13 +24,14 @@ import { canvas, loader } from "zcanvas";
 import { PNG } from "@/definitions/image-types";
 import { LAYER_TEXT } from "@/definitions/layer-types";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { hasFilters } from "@/factories/filters-factory";
 import { createCanvas, resizeToBase64 } from "@/utils/canvas-util";
 import { getRotatedSize, getRotationCenter, getRectangleForSelection } from "@/utils/image-math";
+import FilterWorker from "@/workers/filter.worker";
 import { loadGoogleFont } from "@/services/font-service";
 
-const queue = [];
-const MAX_8BIT = 255;
-const HALF     = .5;
+const jobQueue = [];
+let UID = 0;
 
 export const renderEffectsForLayer = async layer => {
     const { effects } = layer;
@@ -61,8 +62,8 @@ export const renderEffectsForLayer = async layer => {
     } else {
         ctx.drawImage( layer.source, 0, 0 );
     }
-    if ( hasFilters( layer )) {
-        await renderFilters( cvs, layer );
+    if ( hasFilters( layer.filters )) {
+        await runJob( "filters", cvs, { filters: layer.filters });
     }
 
     // update on-screen canvas contents
@@ -141,17 +142,50 @@ export const copySelection = async ( activeDocument, activeLayer ) => {
 
 /* internal methods */
 
+const handleWorkerMessage = ({ data }) => {
+    const jobQueueObj = getJobFromQueue( data?.id );
+    if ( data?.cmd === "complete" ) {
+        jobQueueObj?.success( data );
+    }
+    if ( data?.cmd === "error" ) {
+        jobQueueObj?.error( file, data?.error );
+    }
+};
+
+const runJob = ( cmd, source, jobSettings ) => {
+    const { width, height } = source;
+    const ctx = source.getContext( "2d" );
+    const imageData = ctx.getImageData( 0, 0, width, height );
+
+    return new Promise( async ( resolve, reject ) => {
+        const id = ( ++UID );
+        // Worker is lazily created per process so we can parallelize
+        const worker = new FilterWorker();
+        worker.onmessage = handleWorkerMessage;
+        const disposeWorker = () => worker.terminate();
+        jobQueue.push({
+            id,
+            success: async data => {
+                disposeWorker();
+                ctx.clearRect( 0, 0, source.width, source.height );
+                ctx.putImageData( data.imageData, 0, 0 );
+                resolve();
+            },
+            error: () => {
+                disposeWorker();
+                reject();
+            }
+        });
+        worker.postMessage({ cmd, id, width, height, imageData, ...jobSettings });
+    })
+};
+
 const hasEffects = layer => {
     if ( !!layer.mask ) {
         return true;
     }
     const { effects } = layer;
     return effects.rotation !== 0 || effects.mirrorX || effects.mirrorY;
-};
-
-const hasFilters = layer => {
-    const { filters } = layer;
-    return filters.desaturate || filters.levels || filters.contrast;
 };
 
 const renderText = async layer => {
@@ -218,8 +252,8 @@ const renderTransformedSource = async ( layer, ctx, sourceBitmap, width, height,
         ctx.translate( x, y );
         ctx.rotate( rotation );
         ctx.translate( -x, -y );
-        targetX = x - layer.width  * HALF;
-        targetY = y - layer.height * HALF;
+        targetX = x - layer.width  * .5;
+        targetY = y - layer.height * .5;
     }
     ctx.drawImage( sourceBitmap, targetX, targetY );
     await renderMask( layer, ctx, targetX, targetY );
@@ -238,46 +272,6 @@ const renderMask = async( layer, ctx, tX = 0, tY = 0 ) => {
     ctx.restore();
 };
 
-const renderFilters = async ( source, layer ) => {
-    const { filters }    = layer;
-    const contrast       = Math.pow((( filters.contrast * 100 ) + 100 ) / 100, 2 ); // -100 to 100 range
-    const levels         = filters.levels * 2; // 0 to 2 range
-    const { desaturate } = filters; // boolean
-
-    const { width, height } = source;
-    const ctx = source.getContext( "2d" );
-    const pixels   = ctx.getImageData( 0, 0, width, height );
-    const { data } = pixels;
-
-    for ( let x = 0; x < width; ++x ) {
-        for ( let y = 0; y < height; ++y ) {
-            const i = ( y * width + x ) * 4;
-
-            // 1. adjust level (note we leave the alpha channel unchanged)
-            if ( levels ) {
-                data[ i ]     = data[ i ]     * levels * levels; // R
-                data[ i + 1 ] = data[ i + 1 ] * levels * levels; // G
-                data[ i + 2 ] = data[ i + 2 ] * levels * levels; // B
-            }
-            // 2. desaturate (note we leave the alpha channel unchanged)
-            if ( desaturate ) {
-                const grayScale = data[ i ] * 0.3 + data[ i + 1 ] * 0.59 + data[ i + 2 ] * 0.11;
-                data[ i ]     = grayScale; // R
-                data[ i + 1 ] = grayScale; // G
-                data[ i + 2 ] = grayScale; // B
-            }
-            // 3. adjust contrast (note we leave the alpha channel unchanged)
-            if ( contrast ) {
-                data[ i ]     = (( data[ i ]     / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT; // R
-                data[ i + 1 ] = (( data[ i + 1 ] / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT; // G
-                data[ i + 2 ] = (( data[ i + 2 ] / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT; // B
-            }
-        }
-    }
-    ctx.clearRect( 0, 0, width, height );
-    ctx.putImageData( pixels, 0, 0 );
-};
-
 /**
  * Create a (temporary) instance of zCanvas at the full document size.
  * This is used when creating snapshots
@@ -290,3 +284,12 @@ const createFullSizeCanvas = document => {
 
     return { zcvs, cvs, ctx };
 };
+
+function getJobFromQueue( jobId ) {
+    const jobQueueObj = jobQueue.find(({ id }) => id === jobId );
+    if ( !jobQueueObj ) {
+        return null;
+    }
+    jobQueue.splice( jobQueue.indexOf( jobQueueObj ), 1 );
+    return jobQueueObj;
+}

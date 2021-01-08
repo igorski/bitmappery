@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { createCanvas } from "@/utils/canvas-util";
+import { createCanvas, canvasToBlob } from "@/utils/canvas-util";
 
 const { URL } = window;
 
@@ -35,7 +35,7 @@ const { URL } = window;
  * @param {Number=} optQuality optional JPEG compression to use (when mime is JPEG) between 0 - 1
  * @return {String} Blob URL
  */
-export const imageToResource = ( imageElement, type = "image/jpeg", optQuality = .9 ) => {
+export const imageToResource = async ( imageElement, type = "image/jpeg", optQuality = .9 ) => {
     const { cvs, ctx } = createCanvas();
 
     cvs.width  = imageElement.naturalWidth  || imageElement.width;
@@ -43,15 +43,8 @@ export const imageToResource = ( imageElement, type = "image/jpeg", optQuality =
 
     ctx.drawImage( imageElement, 0, 0 );
 
-    return new Promise(( resolve, reject ) => {
-        try {
-            cvs.toBlob(( blob ) => {
-                resolve( URL.createObjectURL( blob ));
-            }, type, optQuality );
-        } catch ( error ) {
-            reject( error );
-        }
-    });
+    const blob = await canvasToBlob( cvs, type, optQuality );
+    return URL.createObjectURL( blob );
 };
 
 export const disposeResource = imageBlobURL => {

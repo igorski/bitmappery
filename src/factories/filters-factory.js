@@ -20,6 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+let defaultFilters = null;
+
 const FiltersFactory = {
     create({ levels = .5, contrast = 0, desaturate = false } = {}) {
         return {
@@ -54,3 +56,12 @@ const FiltersFactory = {
      }
 };
 export default FiltersFactory;
+
+export const hasFilters = filters => {
+    if ( !defaultFilters ) {
+        defaultFilters = FiltersFactory.create();
+    }
+    return filters.levels     !== defaultFilters.levels   ||
+           filters.contrast   !== defaultFilters.contrast ||
+           filters.desaturate !== defaultFilters.desaturate;
+};

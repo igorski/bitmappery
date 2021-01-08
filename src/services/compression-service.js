@@ -20,11 +20,10 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import CompressionWorker from "@/workers/data-compression.worker.js";
+import CompressionWorker from "@/workers/compression.worker.js";
 
 const jobQueue = [];
 let UID = 0;
-let worker;
 
 /**
  * Compress given data Object into an compressed binary Blob.
@@ -48,24 +47,25 @@ function handleWorkerMessage({ data }) {
     }
 }
 
-function getWorker() {
-    // Worker is lazily created
-    if ( !worker ) {
-        worker = new CompressionWorker();
-        worker.onmessage = handleWorkerMessage;
-    }
-    return worker;
-}
-
 function createJob( cmd, data ) {
     return new Promise(( resolve, reject ) => {
         const id = ( ++UID );
+        // Worker is lazily created per process so we can parallelize
+        const worker = new CompressionWorker();
+        worker.onmessage = handleWorkerMessage;
+        const disposeWorker = () => worker.terminate();
         jobQueue.push({
             id,
-            success: resolve,
-            error: reject,
+            success: response => {
+                disposeWorker();
+                resolve( response );
+            },
+            error: error  => {
+                disposeWorker();
+                reject( error );
+            }
         });
-        getWorker().postMessage({ cmd, data, id });
+        worker.postMessage({ cmd, data, id });
     })
 }
 

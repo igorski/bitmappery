@@ -159,3 +159,34 @@ export const isInsideTransparentArea = ( source, x, y, size = 5 ) => {
     }
     return true;
 };
+
+export const canvasToBlob = ( cvs, type = "image/png", quality = .9 ) => {
+    return new Promise(( resolve, reject ) => {
+        try {
+            cvs.toBlob(( blob ) => {
+                resolve( blob );
+            }, type, quality );
+        } catch ( error ) {
+            reject( error );
+        }
+    });
+};
+
+export const blobToCanvas = blob => {
+    const blobURL = URL.createObjectURL( blob );
+    const revoke  = () => URL.revokeObjectURL( blobURL );
+    return new Promise(( resolve, reject ) => {
+        const image = new Image();
+        image.onload = () => {
+            const { cvs, ctx } = createCanvas( image.width, image.height );
+            ctx.drawImage( image, 0, 0 );
+            revoke();
+            resolve( cvs );
+        };
+        image.onerror = error => {
+            revoke();
+            reject( error );
+        }
+        image.src = blobURL;
+    });
+};
