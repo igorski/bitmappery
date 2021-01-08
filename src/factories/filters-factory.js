@@ -21,10 +21,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 const FiltersFactory = {
-    create({ levels = .5, contrast = 0 } = {}) {
+    create({ levels = .5, contrast = 0, desaturate = false } = {}) {
         return {
             levels,
             contrast,
+            desaturate,
         };
     },
 
@@ -36,6 +37,7 @@ const FiltersFactory = {
         return {
             l: filters.levels,
             c: filters.contrast,
+            d: filters.desaturate,
         };
     },
 
@@ -47,6 +49,7 @@ const FiltersFactory = {
          return FiltersFactory.create({
              levels: filters.l,
              contrast: filters.c,
+             desaturate: filters.d,
          });
      }
 };

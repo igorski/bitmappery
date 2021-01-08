@@ -151,7 +151,7 @@ const hasEffects = layer => {
 
 const hasFilters = layer => {
     const { filters } = layer;
-    return filters.levels || filters.contrast;
+    return filters.desaturate || filters.levels || filters.contrast;
 };
 
 const renderText = async layer => {
@@ -239,9 +239,10 @@ const renderMask = async( layer, ctx, tX = 0, tY = 0 ) => {
 };
 
 const renderFilters = async ( source, layer ) => {
-    const { filters } = layer;
-    const contrast    = Math.pow((( filters.contrast * 100 ) + 100 ) / 100, 2 ); // -100 to 100 range
-    const levels      = filters.levels * 2; // 0 to 2 range
+    const { filters }    = layer;
+    const contrast       = Math.pow((( filters.contrast * 100 ) + 100 ) / 100, 2 ); // -100 to 100 range
+    const levels         = filters.levels * 2; // 0 to 2 range
+    const { desaturate } = filters; // boolean
 
     const { width, height } = source;
     const ctx = source.getContext( "2d" );
@@ -258,7 +259,14 @@ const renderFilters = async ( source, layer ) => {
                 data[ i + 1 ] = data[ i + 1 ] * levels * levels; // G
                 data[ i + 2 ] = data[ i + 2 ] * levels * levels; // B
             }
-            // 2. adjust contrast (note we leave the alpha channel unchanged)
+            // 2. desaturate (note we leave the alpha channel unchanged)
+            if ( desaturate ) {
+                const grayScale = data[ i ] * 0.3 + data[ i + 1 ] * 0.59 + data[ i + 2 ] * 0.11;
+                data[ i ]     = grayScale; // R
+                data[ i + 1 ] = grayScale; // G
+                data[ i + 2 ] = grayScale; // B
+            }
+            // 3. adjust contrast (note we leave the alpha channel unchanged)
             if ( contrast ) {
                 data[ i ]     = (( data[ i ]     / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT; // R
                 data[ i + 1 ] = (( data[ i + 1 ] / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT; // G

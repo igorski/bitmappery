@@ -45,6 +45,13 @@
                         :tooltip="'none'"
                     />
                 </div>
+                <div class="wrapper input">
+                    <label v-t="'desaturate'"></label>
+                    <toggle-button
+                        v-model="internalValue.desaturate"
+                        name="desaturate"
+                    />
+                </div>
             </div>
         </template>
         <template #actions>
@@ -72,6 +79,7 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
+import { ToggleButton } from "vue-js-toggle-button";
 import Modal  from "@/components/modal/modal";
 import Slider from "@/components/ui/slider/slider";
 import FiltersFactory from "@/factories/filters-factory";
@@ -82,6 +90,7 @@ export default {
     components: {
         Modal,
         Slider,
+        ToggleButton,
     },
     data: () => ({
         internalValue: {},

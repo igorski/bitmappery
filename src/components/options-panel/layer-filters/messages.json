@@ -3,6 +3,7 @@
         "filters": "Filters",
         "levels": "Levels",
         "contrast": "Contrast",
+        "desaturate": "Desaturate",
         "save": "Save",
         "reset": "Reset",
         "cancel": "Cancel"

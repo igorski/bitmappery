@@ -7,6 +7,7 @@ describe( "Filters factory", () => {
             expect( filters ).toEqual({
                 levels: .5,
                 contrast: 0,
+                desaturate: false,
             });
         });
 
@@ -14,10 +15,12 @@ describe( "Filters factory", () => {
             const filters = FiltersFactory.create({
                 levels: .7,
                 contrast: .3,
+                desaturate: true,
             });
             expect( filters ).toEqual({
                 levels: .7,
                 contrast: .3,
+                desaturate: true,
             });
         });
     });
@@ -27,6 +30,7 @@ describe( "Filters factory", () => {
             const filters = FiltersFactory.create({
                 levels: .7,
                 contrast: .3,
+                desaturate: true,
             });
             const serialized   = FiltersFactory.serialize( filters );
             const deserialized = FiltersFactory.deserialize( serialized );

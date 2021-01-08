@@ -38,9 +38,8 @@
                 </div>
                 <div class="wrapper input">
                     <label v-t="'maintainAspectRatio'"></label>
-                    <input
+                    <toggle-button
                         v-model="maintainRatio"
-                        type="checkbox"
                         name="ratio"
                     />
                 </div>
@@ -73,6 +72,7 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
+import { ToggleButton } from "vue-js-toggle-button";
 import Modal from "@/components/modal/modal";
 import messages from "./messages.json";
 
@@ -80,6 +80,7 @@ export default {
     i18n: { messages },
     components: {
         Modal,
+        ToggleButton,
     },
     data: () => ({
         width: 0,
