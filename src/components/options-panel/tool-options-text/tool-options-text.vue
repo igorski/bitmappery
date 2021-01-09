@@ -192,7 +192,7 @@ export default {
         activeLayer: {
             immediate: true,
             handler( layer ) {
-                if ( this.layerId !== layer.id ) {
+                if ( layer && this.layerId !== layer.id ) {
                     this.internalText = layer.text?.value;
                     this.layerId      = layer.id;
                 }

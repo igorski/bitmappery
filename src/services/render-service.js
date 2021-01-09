@@ -28,6 +28,7 @@ import { isEqual as isEffectsEqual } from "@/factories/effects-factory";
 import { hasFilters, isEqual as isFiltersEqual } from "@/factories/filters-factory";
 import { isEqual as isTextEqual } from "@/factories/text-factory";
 import { createCanvas, cloneCanvas, resizeToBase64 } from "@/utils/canvas-util";
+import { replaceLayerSource } from "@/utils/layer-util";
 import { getRotatedSize, getRotationCenter, getRectangleForSelection } from "@/utils/image-math";
 import { hasLayerCache, getLayerCache, setLayerCache } from "@/services/caches/bitmap-cache";
 import { loadGoogleFont } from "@/services/font-service";
@@ -55,11 +56,22 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
     const applyFilter   = hasFilters( layer.filters );
     let hasCachedFilter = applyFilter && cached?.filterData && isFiltersEqual( layer.filters, cached.filters );
 
-    // step 1. render content for layer types without a fixed source
-    if ( layer.type === LAYER_TEXT /*&& !isTextEqual( layer.text, cached?.text )*/) {
-        await renderText( layer, cvs );
-        cacheToSet.text = { ...layer.text }; // update cache to set
-        hasCachedFilter = false; // new contents need to be refiltered
+    // step 1. render layer source contents
+
+    if ( layer.type === LAYER_TEXT && layer.text.value ) {
+        let textData;
+        if ( cached?.textData && isTextEqual( layer.text, cached.text )) {
+            //console.info( "reading rendered text from cache" );
+            textData = cached.textData;
+        } else {
+            textData = await renderText( layer );
+            replaceLayerSource( layer, textData );
+            //console.info( "writing rendered text to cache" );
+            cacheToSet.text     = { ...layer.text };
+            cacheToSet.textData = textData;
+            hasCachedFilter = false; // new contents need to be refiltered
+        }
+        ctx.drawImage( textData, 0, 0 );
     } else if ( !hasCachedFilter ) {
         //console.info( "draw unfiltered source, will apply filter next: " + applyFilter );
         ctx.drawImage( layer.source, 0, 0 );
@@ -222,45 +234,61 @@ const hasEffects = layer => {
     return effects.rotation !== 0 || effects.mirrorX || effects.mirrorY;
 };
 
-const renderText = async ( layer, destination ) => {
+const renderText = async layer => {
     const { text } = layer;
-    if ( !text.value ) {
-        return;
-    }
     let font = text.font;
     try {
         await loadGoogleFont( font ); // lazily loads font file upon first request
     } catch {
         font = "Arial"; // fall back to universally available Arial
     }
+    const { cvs, ctx } = createCanvas( layer.width, layer.height );
 
-    const destCtx = destination.getContext( "2d" );
-    destCtx.font      = `${text.size}px ${font}`;
-    destCtx.fillStyle = text.color;
+    ctx.font      = `${text.size}px ${font}`;
+    ctx.fillStyle = text.color;
 
     const lines    = text.value.split( "\n" );
     let lineHeight = text.lineHeight;
+    let textMetrics;
+    let yStartOffset = 0;
 
+    textMetrics = ctx.measureText( "Wq" );
     // if no custom line height was given, calculate optimal height for font
     if ( !lineHeight ) {
-        const textMetrics = destCtx.measureText( "Wq" );
-        lineHeight = text.size + Math.abs( textMetrics[ "actualBoundingBoxDescent" ]);
+        lineHeight  = text.size + Math.abs( textMetrics.actualBoundingBoxDescent );
     }
+    yStartOffset = textMetrics.actualBoundingBoxAscent;
 
+    let width  = 0;
+    let height = 0;
     let y = 0;
-    lines.forEach(( line, lineIndex ) => {
-        y = lineHeight + ( lineIndex * lineHeight );
 
+    lines.forEach(( line, lineIndex ) => {
+        y = yStartOffset + ( lineIndex * lineHeight );
         if ( !text.spacing ) {
             // write entire line (0 spacing defaults to font spacing)
-            destCtx.fillText( line, 0, y );
+            ctx.fillText( line, 0, y );
+            textMetrics = ctx.measureText( line );
+            width   = Math.max( width, textMetrics.width );
         } else {
             // write letter by letter (yeah... this is why we cache things)
-            line.split( "" ).forEach(( letter, letterIndex ) => {
-                destCtx.fillText( letter, letterIndex * text.spacing, y );
+            const letters = line.split( "" );
+            letters.forEach(( letter, letterIndex ) => {
+                ctx.fillText( letter, letterIndex * text.spacing, y );
             });
+            width   = Math.max( width, letters.length * text.spacing );
         }
+        height += lineHeight;
     });
+    width  = Math.ceil( width );
+    height = Math.ceil( height );
+
+    const out = createCanvas( width, height );
+    out.ctx.drawImage( cvs, 0, 0, width, height, 0, 0, width, height );
+    // render outlines to debug cropped bounding box
+    //out.ctx.fillStyle = "rgba(255,0,0,.5)";
+    //out.ctx.fillRect( 0, 0, width, height );
+    return out.cvs;
 };
 
 const renderTransformedSource = async ( layer, ctx, sourceBitmap, width, height, { mirrorX, mirrorY, rotation }) => {
