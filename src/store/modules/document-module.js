@@ -167,12 +167,15 @@ export default {
     },
     actions: {
         requestDocumentClose({ commit, getters }) {
+            if ( !getters.activeDocument ) {
+                return;
+            }
             commit( "openDialog", {
-                type: "confirm",
-                title: getters.t( "areYouSure" ),
-                message: getters.t( "closeDocumentWarning" ),
-                confirm: () => commit( "closeActiveDocument" ),
-                cancel: () => true
+                type    : "confirm",
+                title   : getters.t( "areYouSure" ),
+                message : getters.t( "closeDocumentWarning", { document: getters.activeDocument.name } ),
+                confirm : () => commit( "closeActiveDocument" ),
+                cancel  : () => true
             });
         },
     }

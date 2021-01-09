@@ -2,11 +2,12 @@
     "en-US": {
         "bitmappery": "BitMappery",
         "areYouSure": "Are you sure?",
-        "closeDocumentWarning": "Closing the document cannot be undone, are you sure?",
+        "closeDocumentWarning": "Are you sure you want to close \"{document}\" ? If you have pending changes these will be lost.",
         "loadedFileSuccessfully": "Loaded document \"{file}\"",
         "savedFileSuccessfully": "Saved document \"{file}\"",
         "errorLoadingFile": "An error occured during the loading of \"{file}\"",
         "selectionCopied": "Selection copied",
+        "warningUnload": "You are about to close BitMappery. Confirmation means you have either saved your pending changes or are aware these will otherwise be lost.",
         "title": {
             "success": "Success",
             "error": "Error"
