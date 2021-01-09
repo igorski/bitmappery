@@ -27,6 +27,7 @@ import { renderCross, renderMasked } from "@/utils/render-util";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
 import { isPointInRange, translatePointerRotation, rectangleToCoordinates } from "@/utils/image-math";
 import { renderEffectsForLayer } from "@/services/render-service";
+import { flushLayerCache, clearCacheProperty } from "@/services/caches/bitmap-cache";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import ToolTypes from "@/definitions/tool-types";
 
@@ -127,8 +128,8 @@ class LayerSprite extends sprite {
             return; // debounced to only occur once before next render cycle
         }
         this._rafFx = true;
-        requestAnimationFrame(() => {
-            renderEffectsForLayer( this.layer );
+        requestAnimationFrame( async () => {
+            await renderEffectsForLayer( this.layer );
             this._rafFx = false;
         });
     }
@@ -309,6 +310,7 @@ class LayerSprite extends sprite {
             recacheEffects = true;
         }
         if ( recacheEffects ) {
+            clearCacheProperty( this.layer, "filterData" ); // filter must be applied to new contents
             this.cacheEffects(); // sync mask and source changes with sprite Bitmap
         }
     }
@@ -439,6 +441,8 @@ class LayerSprite extends sprite {
 
     dispose() {
         super.dispose();
+
+        flushLayerCache( this.layer );
 
         this._bitmap      = null;
         this._bitmapReady = false;

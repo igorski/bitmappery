@@ -1,6 +1,7 @@
 {
     "en-US": {
         "filters": "Filters",
+        "enabled": "Filters active",
         "gamma": "Gamma",
         "contrast": "Contrast",
         "brightness": "Brightness",

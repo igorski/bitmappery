@@ -1,4 +1,4 @@
-import TextFactory from "@/factories/text-factory";
+import TextFactory, { isEqual } from "@/factories/text-factory";
 import { googleFonts } from "@/definitions/font-types";
 
 let mockUpdateFn;
@@ -57,5 +57,14 @@ describe( "Text factory", () => {
             expect( deserialized ).toEqual( text );
             expect( mockUpdateFn ).toHaveBeenCalledWith( "loadGoogleFont", "Helvetica" );
         });
+    });
+
+    it( "should know when two text instances are equal", () => {
+        const defaultText = TextFactory.create();
+        [ "size", "lineHeight", "spacing", "font", "value", "color" ].forEach( property => {
+            const text = TextFactory.create({ [ property ]: 1 });
+            expect( isEqual( text, defaultText )).toBe( false );
+        });
+        expect( isEqual( defaultText, TextFactory.create() )).toBe( true );
     });
 });

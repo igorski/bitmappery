@@ -75,3 +75,12 @@ const TextFactory = {
      }
 };
 export default TextFactory;
+
+export const isEqual = ( text, textToCompare = {} ) => {
+    return text.font       === textToCompare.font &&
+           text.value      === textToCompare.value &&
+           text.size       === textToCompare.size &&
+           text.lineHeight === textToCompare.lineHeight &&
+           text.spacing    === textToCompare.spacing &&
+           text.color      === textToCompare.color;
+};

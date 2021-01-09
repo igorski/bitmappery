@@ -52,7 +52,7 @@ export const runSpriteFn = ( fn, optDocument ) => {
  * flush all its cached Sprites.
  */
 export const flushLayerSprites = ({ id }) => {
-    console.warn( `flushing sprite for "${id}"` );
+    //console.info( `flushing sprite for "${id}"` );
     if ( hasSpriteForLayer({ id })) {
         disposeSprite( spriteCache.get( id ));
         spriteCache.delete( id );
@@ -69,7 +69,7 @@ export const getSpriteForLayer = ({ id }) => spriteCache.get( id ) || null;
  * Clears the entire cache and disposes all Sprites.
  */
 export const flushCache = () => {
-    console.warn( "flushing sprite cache" );
+    //console.info( "flushing sprite cache" );
     spriteCache.forEach( disposeSprite );
     spriteCache.clear();
 };

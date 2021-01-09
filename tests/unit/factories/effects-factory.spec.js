@@ -1,4 +1,4 @@
-import EffectsFactory from "@/factories/effects-factory";
+import EffectsFactory, { isEqual } from "@/factories/effects-factory";
 
 describe( "Effects factory", () => {
     describe( "when creating a new Effects list", () => {
@@ -37,5 +37,14 @@ describe( "Effects factory", () => {
 
             expect( deserialized ).toEqual( effects );
         });
+    });
+
+    it( "should know when two effects instances are equal", () => {
+        const defaultEffects = EffectsFactory.create();
+        [ "mirrorX", "mirrorY", "rotation" ].forEach( property => {
+            const effects = EffectsFactory.create({ [ property ]: 1 });
+            expect( isEqual( effects, defaultEffects )).toBe( false );
+        });
+        expect( isEqual( defaultEffects, EffectsFactory.create() )).toBe( true );
     });
 });

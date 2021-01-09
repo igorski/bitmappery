@@ -23,8 +23,16 @@
 let defaultFilters = null;
 
 const FiltersFactory = {
-    create({ gamma = .5, brightness = .5, contrast = 0, vibrance = .5, desaturate = false } = {}) {
+    create({
+        enabled    = true,
+        gamma      = .5,
+        brightness = .5,
+        contrast   = 0,
+        vibrance   = .5,
+        desaturate = false
+    } = {}) {
         return {
+            enabled,
             gamma,
             brightness,
             contrast,
@@ -39,6 +47,7 @@ const FiltersFactory = {
      */
     serialize( filters ) {
         return {
+            e: filters.enabled,
             g: filters.gamma,
             b: filters.brightness,
             c: filters.contrast,
@@ -53,6 +62,7 @@ const FiltersFactory = {
      */
      deserialize( filters = {} ) {
          return FiltersFactory.create({
+             enabled: filters.e,
              gamma: filters.g,
              brightness: filters.b,
              contrast: filters.c,
@@ -64,12 +74,20 @@ const FiltersFactory = {
 export default FiltersFactory;
 
 export const hasFilters = filters => {
+    if ( !filters.enabled ) {
+        return false;
+    }
     if ( !defaultFilters ) {
         defaultFilters = FiltersFactory.create();
     }
-    return filters.gamma      !== defaultFilters.gamma      ||
-           filters.brightness !== defaultFilters.brightness ||
-           filters.contrast   !== defaultFilters.contrast   ||
-           filters.desaturate !== defaultFilters.desaturate ||
-           filters.vibrance   !== defaultFilters.vibrance;
+    return !isEqual( filters, defaultFilters );
+};
+
+export const isEqual = ( filters, filtersToCompareTo = {} ) => {
+    return filters.enabled    === filtersToCompareTo.enabled    &&
+           filters.gamma      === filtersToCompareTo.gamma      &&
+           filters.brightness === filtersToCompareTo.brightness &&
+           filters.contrast   === filtersToCompareTo.contrast   &&
+           filters.desaturate === filtersToCompareTo.desaturate &&
+           filters.vibrance   === filtersToCompareTo.vibrance;
 };

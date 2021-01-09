@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,43 +20,30 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-const EffectFactory = {
-    create({ rotation = 0, mirrorX = false, mirrorY = false } = {}) {
-        return {
-            rotation,
-            mirrorX,
-            mirrorY,
-        };
-    },
+const layerCache = new Map();
 
-    /**
-     * Saving effects properties into a simplified JSON structure
-     * for project storage
-     */
-    serialize( effects ) {
-        return {
-            r: effects.rotation,
-            x: effects.mirrorX,
-            y: effects.mirrorY,
-        };
-    },
+export const getLayerCache = ({ id }) => layerCache.get( id );
 
-    /**
-     * Creating a new effects lists from a stored effects structure
-     * inside a stored projects layer
-     */
-     deserialize( effects = {} ) {
-         return EffectFactory.create({
-             rotation: effects.r,
-             mirrorX: effects.x,
-             mirrorY: effects.y,
-         });
-     }
+export const setLayerCache = ( layer, props ) => {
+    const cache = getLayerCache( layer ) ?? {};
+    layerCache.set( layer.id, { ...cache, ...props });
 };
-export default EffectFactory;
 
-export const isEqual = ( effects, effectsToCompare = {} ) => {
-    return effects.rotation === effectsToCompare.rotation  &&
-           effects.mirrorX  === effectsToCompare.mirrorX &&
-           effects.mirrorY  === effectsToCompare.mirrorY;
+export const hasLayerCache = ({ id }) => layerCache.has( id );
+
+export const clearCacheProperty = ( layer, propertyName ) => {
+    const cache = getLayerCache( layer );
+    if ( cache?.[ propertyName ] ) {
+        delete cache[ propertyName ];
+    }
+};
+
+export const flushLayerCache = layer => {
+    //console.info( "flushing bitmap cache for layer " + layer.id );
+    layerCache.delete( layer.id );
+};
+
+export const flushCache = () => {
+    //console.info( "flushing bitmap cache" );
+    layerCache.clear();
 };

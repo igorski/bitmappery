@@ -238,7 +238,15 @@ function handleKeyDown( event ) {
 
         case 70: // F
             if ( getters.activeLayer ) {
-                setActiveTool( ToolTypes.MIRROR );
+                if ( optionDown ) {
+                    const filters = getters.activeLayer.filters;
+                    commit( "updateLayer", {
+                        index: getters.activeLayerIndex,
+                        opts: { filters: { ...filters, enabled: !filters.enabled} }
+                    });
+                } else {
+                    setActiveTool( ToolTypes.MIRROR );
+                }
             }
             break;
 

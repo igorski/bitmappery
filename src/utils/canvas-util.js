@@ -160,6 +160,12 @@ export const isInsideTransparentArea = ( source, x, y, size = 5 ) => {
     return true;
 };
 
+export const cloneCanvas = canvasToClone => {
+    const { cvs, ctx } = createCanvas( canvasToClone.width, canvasToClone.height );
+    ctx.drawImage( canvasToClone, 0, 0 );
+    return cvs;
+};
+
 export const canvasToBlob = ( cvs, type = "image/png", quality = .9 ) => {
     return new Promise(( resolve, reject ) => {
         try {

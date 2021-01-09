@@ -28,6 +28,13 @@
         <template #content>
             <div class="form" @keyup.enter="requestLayerAdd()">
                 <div class="wrapper input">
+                    <label v-t="'enabled'"></label>
+                    <toggle-button
+                        v-model="internalValue.enabled"
+                        name="enabled"
+                    />
+                </div>
+                <div class="wrapper input">
                     <label v-t="'gamma'"></label>
                     <slider
                         v-model="gamma"
@@ -181,7 +188,7 @@ export default {
             "closeModal",
         ]),
         save() {
-            this.update();
+            // no need to call update(), computed setters have triggered model update
             this.closeModal();
         },
         reset() {

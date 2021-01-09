@@ -24,11 +24,14 @@ import { canvas, loader } from "zcanvas";
 import { PNG } from "@/definitions/image-types";
 import { LAYER_TEXT } from "@/definitions/layer-types";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
-import { hasFilters } from "@/factories/filters-factory";
-import { createCanvas, resizeToBase64 } from "@/utils/canvas-util";
+import { isEqual as isEffectsEqual } from "@/factories/effects-factory";
+import { hasFilters, isEqual as isFiltersEqual } from "@/factories/filters-factory";
+import { isEqual as isTextEqual } from "@/factories/text-factory";
+import { createCanvas, cloneCanvas, resizeToBase64 } from "@/utils/canvas-util";
 import { getRotatedSize, getRotationCenter, getRectangleForSelection } from "@/utils/image-math";
-import FilterWorker from "@/workers/filter.worker";
+import { hasLayerCache, getLayerCache, setLayerCache } from "@/services/caches/bitmap-cache";
 import { loadGoogleFont } from "@/services/font-service";
+import FilterWorker from "@/workers/filter.worker";
 
 const jobQueue = [];
 let UID = 0;
@@ -43,30 +46,57 @@ export const renderEffectsForLayer = async layer => {
 
     // if source is rotated, calculate the width and height for the current rotation
     const { width, height } = getRotatedSize( layer, effects.rotation );
-    let cvs;
-    if ( sprite._bitmap instanceof HTMLCanvasElement ) {
-        cvs        = sprite._bitmap;
-        cvs.width  = width;
-        cvs.height = height;
-    } else {
-        ({ cvs } = createCanvas( width, height ));
-    }
-    const ctx = cvs.getContext( "2d" );
+    const { cvs, ctx } = createCanvas( width, height );
 
-    if ( layer.type === LAYER_TEXT ) {
+    const cached     = getLayerCache( layer );
+    const cacheToSet = {};
+
+    const applyEffects  = hasEffects( layer );
+    const applyFilter   = hasFilters( layer.filters );
+    let hasCachedFilter = applyFilter && cached?.filterData && isFiltersEqual( layer.filters, cached.filters );
+
+    // step 1. render content for layer types without a fixed source
+
+    if ( layer.type === LAYER_TEXT && !isTextEqual( layer.text, cached?.text )) {
         await renderText( layer );
-    }
-
-    if ( hasEffects( layer )) {
-        await renderTransformedSource( layer, ctx, layer.source, width, height, effects );
-    } else {
+        cacheToSet.text = { ...layer.text }; // update cache to set
+        hasCachedFilter = false; // new contents need to be refiltered
+    } else if ( !hasCachedFilter ) {
+        //console.info( "draw unfiltered source, will apply filter next: " + applyFilter );
         ctx.drawImage( layer.source, 0, 0 );
     }
-    if ( hasFilters( layer.filters )) {
-        await runJob( "filters", cvs, { filters: layer.filters });
+
+    // step 2. apply filters, this step can be cached to avoid unnecessary crunching
+
+    if ( applyFilter ) {
+        let imageData;
+        if ( hasCachedFilter ) {
+            //console.info( "reading filtered content from cache" );
+            imageData = cached.filterData;
+        } else {
+            imageData = await runJob( "filters", cvs, { filters: layer.filters });
+            //console.info( "writing filtered content to cache" );
+            cacheToSet.filters    = { ...layer.filters };
+            cacheToSet.filterData = imageData;
+        }
+        ctx.clearRect( 0, 0, width, height );
+        ctx.putImageData( imageData, 0, 0 );
     }
 
-    // update on-screen canvas contents
+    // step 3. apply effects
+    // TODO: hook these into cache as well ? then again this is the last action in an otherwise cached queue...
+
+    if ( applyEffects ) {
+        //console.info( "apply effects", JSON.stringify( layer.effects ));
+        await renderTransformedSource( layer, ctx, applyFilter ? cloneCanvas( cvs ) : layer.source, width, height, effects );
+    }
+
+    // step 4. update cache and on-screen canvas contents
+
+    if ( Object.keys( cacheToSet ).length ) {
+        setLayerCache( layer, cacheToSet );
+    }
+
     // note that updating the bitmap will also adjust the sprite bounds
     // as appropriate (e.g. on rotation), the Layer model remains unaffected by this
     sprite.setBitmap( cvs, width, height );
@@ -142,20 +172,17 @@ export const copySelection = async ( activeDocument, activeLayer ) => {
 
 /* internal methods */
 
-const handleWorkerMessage = ({ data }) => {
-    const jobQueueObj = getJobFromQueue( data?.id );
-    if ( data?.cmd === "complete" ) {
-        jobQueueObj?.success( data );
-    }
-    if ( data?.cmd === "error" ) {
-        jobQueueObj?.error( file, data?.error );
-    }
-};
-
+/**
+ * Run a image processing job in a dedicated Worker.
+ *
+ * @param {string} cmd Worker command to execute
+ * @param {HTMLCanvasElement} source content to process
+ * @param {Object} jobSettings job/cmd-specific properties
+ * @return {Promise<ImageData>} processed source as ImageData (can be stored in cache)
+ */
 const runJob = ( cmd, source, jobSettings ) => {
     const { width, height } = source;
-    const ctx = source.getContext( "2d" );
-    const imageData = ctx.getImageData( 0, 0, width, height );
+    const imageData = source.getContext( "2d" ).getImageData( 0, 0, width, height );
 
     return new Promise( async ( resolve, reject ) => {
         const id = ( ++UID );
@@ -167,9 +194,7 @@ const runJob = ( cmd, source, jobSettings ) => {
             id,
             success: async data => {
                 disposeWorker();
-                ctx.clearRect( 0, 0, source.width, source.height );
-                ctx.putImageData( data.imageData, 0, 0 );
-                resolve();
+                resolve( data.imageData );
             },
             error: () => {
                 disposeWorker();
@@ -178,6 +203,16 @@ const runJob = ( cmd, source, jobSettings ) => {
         });
         worker.postMessage({ cmd, id, width, height, imageData, ...jobSettings });
     })
+};
+
+const handleWorkerMessage = ({ data }) => {
+    const jobQueueObj = getJobFromQueue( data?.id );
+    if ( data?.cmd === "complete" ) {
+        jobQueueObj?.success( data );
+    }
+    if ( data?.cmd === "error" ) {
+        jobQueueObj?.error( file, data?.error );
+    }
 };
 
 const hasEffects = layer => {
@@ -239,6 +274,7 @@ const renderTransformedSource = async ( layer, ctx, sourceBitmap, width, height,
     const xScale = mirrorX ? -1 : 1;
     const yScale = mirrorY ? -1 : 1;
 
+    ctx.clearRect( 0, 0, width, height );
     ctx.save();
     ctx.scale( xScale, yScale );
 

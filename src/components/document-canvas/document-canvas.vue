@@ -60,8 +60,9 @@ import { scaleToRatio, scaleValue } from "@/utils/image-math";
 import { isMobile } from "@/utils/environment-util";
 import {
     getCanvasInstance, setCanvasInstance,
-    createSpriteForLayer, getSpriteForLayer, flushLayerSprites, flushCache,
+    createSpriteForLayer, getSpriteForLayer, flushLayerSprites, flushCache as flushSpriteCache,
 } from "@/factories/sprite-factory";
+import { flushCache as flushBitmapCache } from "@/services/caches/bitmap-cache";
 
 /* internal non-reactive properties */
 
@@ -126,7 +127,8 @@ export default {
                 // switching between documents
                 if ( id !== lastDocument ) {
                     lastDocument = id;
-                    flushCache();
+                    flushSpriteCache();
+                    flushBitmapCache();
                     layerPool.clear();
                     this.calcIdealDimensions();
                 }

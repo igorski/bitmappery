@@ -86,13 +86,14 @@ export default {
     }
 
     @include large() {
+        $actionsHeight: 74px;
         $width: 480px;
         $height: 300px;
 
         width: $width;
-        height: $height;
+        height: $height + $actionsHeight;
         left: calc(50% - #{$width / 2});
-        top: calc(50% - #{$height / 2});
+        top: calc(50% - #{($height + $actionsHeight ) / 2});
     }
 }
 </style>
