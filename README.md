@@ -67,10 +67,10 @@ npm run lint
 # TODO / Roadmap
 
 * Repeated presses on a clone stamp with source coords do not behave logically
-* Implement action queue when drawing, only execute drawing on update() hook
+* Implement action queue when drawing, only execute drawing on zCanvas.sprite.update()-hook
 * Maintain cache for source images at the display destination size (invalidate on window resize / zoom), this prevents processing large images that are never displayed at their full scale
 * Dragging of masks on rotated/mirror content is kinda broken
-* Render service should measure total text bounding box upfront and crop resulting bitmap (can be done after render)
+* Render service should measure total text bounding box upfront and crop resulting bitmap (can be done after render), also restore text bitmap cache
 * Fill selection with color
 * Animate selection lines between white and black colors
 * Layer source and mask must not be stored as Vue observables

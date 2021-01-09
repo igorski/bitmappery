@@ -36,7 +36,7 @@ import FilterWorker from "@/workers/filter.worker";
 const jobQueue = [];
 let UID = 0;
 
-export const renderEffectsForLayer = async layer => {
+export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
     const { effects } = layer;
     const sprite = getSpriteForLayer( layer );
 
@@ -48,7 +48,7 @@ export const renderEffectsForLayer = async layer => {
     const { width, height } = getRotatedSize( layer, effects.rotation );
     const { cvs, ctx } = createCanvas( width, height );
 
-    const cached     = getLayerCache( layer );
+    const cached     = useCaching ? getLayerCache( layer ) : null;
     const cacheToSet = {};
 
     const applyEffects  = hasEffects( layer );
@@ -56,9 +56,8 @@ export const renderEffectsForLayer = async layer => {
     let hasCachedFilter = applyFilter && cached?.filterData && isFiltersEqual( layer.filters, cached.filters );
 
     // step 1. render content for layer types without a fixed source
-
-    if ( layer.type === LAYER_TEXT && !isTextEqual( layer.text, cached?.text )) {
-        await renderText( layer );
+    if ( layer.type === LAYER_TEXT /*&& !isTextEqual( layer.text, cached?.text )*/) {
+        await renderText( layer, cvs );
         cacheToSet.text = { ...layer.text }; // update cache to set
         hasCachedFilter = false; // new contents need to be refiltered
     } else if ( !hasCachedFilter ) {
@@ -93,7 +92,7 @@ export const renderEffectsForLayer = async layer => {
 
     // step 4. update cache and on-screen canvas contents
 
-    if ( Object.keys( cacheToSet ).length ) {
+    if ( useCaching && Object.keys( cacheToSet ).length ) {
         setLayerCache( layer, cacheToSet );
     }
 
@@ -115,7 +114,7 @@ export const createDocumentSnapshot = async ( activeDocument, type, quality ) =>
     for ( let i = 0, l = layers.length; i < l; ++i ) {
         const layer = layers[ i ];
         const sprite = getSpriteForLayer( layer );
-        await renderEffectsForLayer( layer );
+        await renderEffectsForLayer( layer, false );
         sprite.draw( ctx, zcvs._viewport );
     }
     quality = parseFloat(( quality / 100 ).toFixed( 2 ));
@@ -223,9 +222,8 @@ const hasEffects = layer => {
     return effects.rotation !== 0 || effects.mirrorX || effects.mirrorY;
 };
 
-const renderText = async layer => {
+const renderText = async ( layer, destination ) => {
     const { text } = layer;
-
     if ( !text.value ) {
         return;
     }
@@ -236,17 +234,16 @@ const renderText = async layer => {
         font = "Arial"; // fall back to universally available Arial
     }
 
-    const sourceCtx = layer.source.getContext( "2d" );
-    sourceCtx.clearRect( 0, 0, layer.source.width, layer.source.height );
-    sourceCtx.font      = `${text.size}px ${font}`;
-    sourceCtx.fillStyle = text.color;
+    const destCtx = destination.getContext( "2d" );
+    destCtx.font      = `${text.size}px ${font}`;
+    destCtx.fillStyle = text.color;
 
     const lines    = text.value.split( "\n" );
     let lineHeight = text.lineHeight;
 
     // if no custom line height was given, calculate optimal height for font
     if ( !lineHeight ) {
-        const textMetrics = sourceCtx.measureText( "Wq" );
+        const textMetrics = destCtx.measureText( "Wq" );
         lineHeight = text.size + Math.abs( textMetrics[ "actualBoundingBoxDescent" ]);
     }
 
@@ -256,11 +253,11 @@ const renderText = async layer => {
 
         if ( !text.spacing ) {
             // write entire line (0 spacing defaults to font spacing)
-            sourceCtx.fillText( line, 0, y );
+            destCtx.fillText( line, 0, y );
         } else {
             // write letter by letter (yeah... this is why we cache things)
             line.split( "" ).forEach(( letter, letterIndex ) => {
-                sourceCtx.fillText( letter, letterIndex * text.spacing, y );
+                destCtx.fillText( letter, letterIndex * text.spacing, y );
             });
         }
     });
