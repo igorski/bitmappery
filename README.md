@@ -21,7 +21,7 @@ under the hood for rendering and bitmap blitting. BitMappery is written on top o
 ## Model
 
 BitMappery works with entities known as _Documents_. A Document contains several _Layers_, each of
-which define their content, transformation, _Effects, etc. Each of the nested entity properties
+which define their content, transformation, _Effects_, etc. Each of the nested entity properties
 has its own factory (see _@/src/factories/_). The Document is managed by the Vuex _document-module.js_.
 
 ## Document rendering and interactions

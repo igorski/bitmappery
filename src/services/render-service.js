@@ -29,7 +29,7 @@ import { hasFilters, isEqual as isFiltersEqual } from "@/factories/filters-facto
 import { isEqual as isTextEqual } from "@/factories/text-factory";
 import { createCanvas, cloneCanvas, resizeToBase64 } from "@/utils/canvas-util";
 import { replaceLayerSource } from "@/utils/layer-util";
-import { getRotatedSize, getRotationCenter, getRectangleForSelection } from "@/utils/image-math";
+import { fastRound, getRotatedSize, getRotationCenter, getRectangleForSelection } from "@/utils/image-math";
 import { hasLayerCache, getLayerCache, setLayerCache } from "@/services/caches/bitmap-cache";
 import { loadGoogleFont } from "@/services/font-service";
 import FilterWorker from "@/workers/filter.worker";
@@ -264,19 +264,19 @@ const renderText = async layer => {
     let y = 0;
 
     lines.forEach(( line, lineIndex ) => {
-        y = yStartOffset + ( lineIndex * lineHeight );
+        y = fastRound( yStartOffset + ( lineIndex * lineHeight ));
         if ( !text.spacing ) {
             // write entire line (0 spacing defaults to font spacing)
             ctx.fillText( line, 0, y );
             textMetrics = ctx.measureText( line );
-            width   = Math.max( width, textMetrics.width );
+            width = Math.max( width, textMetrics.width );
         } else {
             // write letter by letter (yeah... this is why we cache things)
             const letters = line.split( "" );
             letters.forEach(( letter, letterIndex ) => {
-                ctx.fillText( letter, letterIndex * text.spacing, y );
+                ctx.fillText( letter, fastRound( letterIndex * text.spacing ), y );
             });
-            width   = Math.max( width, letters.length * text.spacing );
+            width = Math.max( width, letters.length * text.spacing );
         }
         height += lineHeight;
     });
