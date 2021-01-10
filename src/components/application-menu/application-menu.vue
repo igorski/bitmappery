@@ -186,7 +186,7 @@ import {
     DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT
 } from "@/definitions/modal-windows";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
-import { getRectangleForSelection } from "@/utils/image-math";
+import { getRectangleForSelection } from "@/math/selection-math";
 import { getCanvasInstance, runSpriteFn, getSpriteForLayer } from "@/factories/sprite-factory";
 import messages from "./messages.json";
 

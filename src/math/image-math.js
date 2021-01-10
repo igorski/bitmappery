@@ -91,26 +91,6 @@ export const isPointInRange = ( point1x, point1y, point2x, point2y, margin = 5 )
     return point1x >= left && point1x <= right && point1y >= top  && point1y <= bottom;
 };
 
-export const getRectangleForSelection = selection => {
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = 0;
-    let maxY = 0;
-
-    selection.forEach(({ x, y }) => {
-        minX = Math.min( minX, x );
-        maxX = Math.max( maxX, x );
-        minY = Math.min( minY, y );
-        maxY = Math.max( maxY, y );
-    });
-    return {
-        left   : minX,
-        top    : minY,
-        width  : maxX - minX,
-        height : maxY - minY
-    };
-};
-
 export const translatePointerRotation = ( x, y, rotationCenterX, rotationCenterY, angleInRadians ) => {
     const x2 = x - rotationCenterX;
     const y2 = y - rotationCenterY;

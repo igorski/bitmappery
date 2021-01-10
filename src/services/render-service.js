@@ -29,7 +29,8 @@ import { hasFilters, isEqual as isFiltersEqual } from "@/factories/filters-facto
 import { isEqual as isTextEqual } from "@/factories/text-factory";
 import { createCanvas, cloneCanvas, resizeToBase64 } from "@/utils/canvas-util";
 import { replaceLayerSource } from "@/utils/layer-util";
-import { fastRound, getRotatedSize, getRotationCenter, getRectangleForSelection } from "@/utils/image-math";
+import { fastRound, getRotatedSize, getRotationCenter } from "@/math/image-math";
+import { getRectangleForSelection } from "@/math/selection-math";
 import { hasLayerCache, getLayerCache, setLayerCache } from "@/services/caches/bitmap-cache";
 import { loadGoogleFont } from "@/services/font-service";
 import FilterWorker from "@/workers/filter.worker";

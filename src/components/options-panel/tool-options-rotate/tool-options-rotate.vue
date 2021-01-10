@@ -37,7 +37,7 @@ import { mapGetters, mapMutations } from "vuex";
 import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import Slider    from "@/components/ui/slider/slider";
 import messages  from "./messages.json";
-import { degreesToRadians, radiansToDegrees } from "@/utils/image-math";
+import { degreesToRadians, radiansToDegrees } from "@/math/image-math";
 
 export default {
     i18n: { messages },

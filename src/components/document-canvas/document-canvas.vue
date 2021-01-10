@@ -56,7 +56,7 @@ import ZoomableCanvas from "@/components/ui/zcanvas/zoomable-canvas";
 import InteractionPane, { MODE_PAN, MODE_LAYER_SELECT } from "@/components/ui/zcanvas/interaction-pane";
 import Scrollbars from "./scrollbars/scrollbars";
 import ToolTypes, { MAX_ZOOM, calculateMaxScaling } from "@/definitions/tool-types";
-import { scaleToRatio, scaleValue } from "@/utils/image-math";
+import { scaleToRatio, scaleValue } from "@/math/image-math";
 import { isMobile } from "@/utils/environment-util";
 import {
     getCanvasInstance, setCanvasInstance,

@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { constrain, isPortrait } from "@/utils/image-math";
+import { constrain, isPortrait } from "@/math/image-math";
 import { MAX_IMAGE_SIZE, MAX_MEGAPIXEL } from "@/definitions/image-types";
 import { LAYER_GRAPHIC } from "@/definitions/layer-types";
 

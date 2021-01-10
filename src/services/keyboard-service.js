@@ -26,7 +26,7 @@ import {
     CREATE_DOCUMENT, ADD_LAYER, EXPORT_DOCUMENT, DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT
 } from "@/definitions/modal-windows";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
-import { translatePoints } from "@/utils/image-math";
+import { translatePoints } from "@/math/image-math";
 
 let state, getters, commit, dispatch, listener,
     suspended = false, blockDefaults = true, optionDown = false, shiftDown = false;

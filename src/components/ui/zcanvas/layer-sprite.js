@@ -26,9 +26,9 @@ import { createCanvas, resizeImage, globalToLocal } from "@/utils/canvas-util";
 import { renderCross, renderMasked } from "@/utils/render-util";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
 import {
-    isPointInRange, translatePointerRotation, getRectangleForSelection,
-    rotatePoints, rectangleToCoordinates
-} from "@/utils/image-math";
+    isPointInRange, translatePointerRotation, rotatePoints, rectangleToCoordinates
+} from "@/math/image-math";
+import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { flushLayerCache, clearCacheProperty } from "@/services/caches/bitmap-cache";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
@@ -186,15 +186,9 @@ class LayerSprite extends sprite {
 
                 // drawable tools can work alongside an existing selection
                 const selection = activeLayer.selection;
-                if ( selection?.length > 2 && canDrawOnSelection( activeLayer )) {
-                    const firstPoint = selection[ 0 ];
-                    const lastPoint  = selection[ selection.length - 1 ];
-                    if ( firstPoint.x === lastPoint.x && firstPoint.y === lastPoint.y ) {
-                        this._hasSelection    = true;
-                        this._selectionClosed = true;
-                    } else {
-                        this._hasSelection = false;
-                    }
+                if ( isSelectionClosed( selection ) && canDrawOnSelection( activeLayer )) {
+                    this._hasSelection    = true;
+                    this._selectionClosed = true;
                 } else {
                     this._hasSelection = false;
                     this.resetSelection();
@@ -465,7 +459,7 @@ class LayerSprite extends sprite {
             documentContext.restore();
         }
         // render selection outline
-        if ( this._isSelectMode || this._hasSelection ) {
+        if (( this._isSelectMode || this._hasSelection ) && this.layer.selection ) {
             documentContext.save();
             documentContext.beginPath();
             documentContext.lineWidth = 2 / this.canvas.zoomFactor;

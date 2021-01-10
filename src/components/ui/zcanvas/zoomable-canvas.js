@@ -22,7 +22,7 @@
  */
 import Vue from "vue";
 import { canvas } from "zcanvas";
-import { fastRound } from "@/utils/image-math";
+import { fastRound } from "@/math/image-math";
 
 class ZoomableCanvas extends canvas {
     constructor( opts, store, rescaleFn ) {
