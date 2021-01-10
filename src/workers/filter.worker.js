@@ -48,7 +48,8 @@ const renderFilters = ( imageData, filters ) => {
     const { desaturate } = filters; // boolean
 
     const pixels = imageData.data;
-    let r, g, b, a, max, avg, amt;
+    let r, g, b, a;
+    let grayScale, max, avg, amt;
 
     const doBrightness = filters.brightness !== defaultFilters.brightness;
     const doContrast   = filters.contrast   !== defaultFilters.contrast;
@@ -61,44 +62,62 @@ const renderFilters = ( imageData, filters ) => {
 
     for ( let i = 0, l = pixels.length; i < l; i += 4 ) {
 
+        r = pixels[ i ];
+        g = pixels[ i + 1 ];
+        b = pixels[ i + 2 ];
+        //a = pixels[ i + 3 ]; // currently no filter uses alpha channel
+
         // 1. adjust gamma
         if ( doGamma ) {
-            pixels[ i ]     = pixels[ i ]     * gamma * gamma; // R
-            pixels[ i + 1 ] = pixels[ i + 1 ] * gamma * gamma; // G
-            pixels[ i + 2 ] = pixels[ i + 2 ] * gamma * gamma; // B
+            r = r * gamma * gamma;
+            g = g * gamma * gamma;
+            b = b * gamma * gamma;
         }
+
         // 2. desaturate
         if ( desaturate ) {
-            const grayScale = pixels[ i ] * 0.3 + pixels[ i + 1 ] * 0.59 + pixels[ i + 2 ] * 0.11;
-            pixels[ i ]     = grayScale; // R
-            pixels[ i + 1 ] = grayScale; // G
-            pixels[ i + 2 ] = grayScale; // B
+            grayScale = r * 0.3 + g * 0.59 + b * 0.11;
+            r = grayScale;
+            g = grayScale;
+            b = grayScale;
         }
+
         // 3. adjust brightness
         if ( doBrightness ) {
-            pixels[ i ]     = pixels[ i ]     * brightness; // R
-            pixels[ i + 1 ] = pixels[ i + 1 ] * brightness; // G
-            pixels[ i + 2 ] = pixels[ i + 2 ] * brightness; // B
+            r *= brightness;
+            g *= brightness;
+            b *= brightness;
         }
+
         // 4. adjust contrast
         if ( doContrast ) {
-            pixels[ i ]     = (( pixels[ i ]     / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT; // R
-            pixels[ i + 1 ] = (( pixels[ i + 1 ] / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT; // G
-            pixels[ i + 2 ] = (( pixels[ i + 2 ] / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT; // B
+            r = (( r / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT;
+            g = (( g / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT;
+            b = (( b / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT;
         }
+
         // 5. adjust vibrance
         if ( doVibrance ) {
-            r = pixels[ i ];
-            g = pixels[ i + 1 ];
-            b = pixels[ i + 2 ];
             max = Math.max( r, g, b );
             avg = ( r + g + b ) / 3;
             amt = (( Math.abs( max - avg ) * 2 / MAX_8BIT ) * vibrance ) / 10; // 100;
 
-			pixels[ i ]     = r !== max ? r + ( max - r ) * amt : r;
-            pixels[ i + 1 ] = g !== max ? g + ( max - g ) * amt : g;
-            pixels[ i + 2 ] = b !== max ? b + ( max - b ) * amt : b;
+            if ( r !== max ) {
+                r = r + ( max - r ) * amt;
+            }
+            if ( g !== max ) {
+                g = g + ( max - g ) * amt;
+            }
+            if ( b !== max ) {
+                b = b + ( max - b ) * amt;
+            }
         }
+
+        // commit the changes
+        pixels[ i ]     = r;
+        pixels[ i + 1 ] = g;
+        pixels[ i + 2 ] = b;
+        //pixels[ i + 3 ] = a; // currently no filter uses alpha channel
     }
     return imageData;
 };
