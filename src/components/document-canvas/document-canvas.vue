@@ -131,6 +131,9 @@ export default {
                     flushBitmapCache();
                     layerPool.clear();
                     this.calcIdealDimensions();
+                    this.$nextTick(() => {
+                        this.setActiveTool({ tool: this.activeTool || ToolTypes.MOVE, layer: this.activeLayer });
+                    });
                 }
             }
         },
@@ -204,6 +207,7 @@ export default {
         ...mapMutations([
             "setZCanvasBaseDimensions",
             "setPanMode",
+            "setActiveTool",
         ]),
         ...mapActions([
             "requestDocumentClose",

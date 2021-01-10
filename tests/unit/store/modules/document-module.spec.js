@@ -151,10 +151,14 @@ describe( "Vuex document module", () => {
         it( "should be able to add a new Document to the list", () => {
             const state = {
                 documents: [ { name: "foo" } ],
+                activeIndex: 0,
+                activeLayerIndex: 2,
             };
             mutations.addNewDocument( state, "bar" );
             expect( state.documents ).toHaveLength( 2 );
             expect( state.documents[ 1 ].name ).toEqual( "bar" );
+            expect( state.activeIndex ).toEqual( 1 );
+            expect( state.activeLayerIndex ).toEqual( 0 );
         });
 
         it( "should be able to close the active Document", () => {

@@ -61,7 +61,8 @@ export default {
         addNewDocument( state, nameOrDocument ) {
             const document = typeof nameOrDocument === "object" ? nameOrDocument : DocumentFactory.create({ name: nameOrDocument });
             state.documents.push( document );
-            state.activeIndex = state.documents.length - 1;
+            state.activeIndex      = state.documents.length - 1;
+            state.activeLayerIndex = document.layers.length - 1;
         },
         closeActiveDocument( state ) {
             const document = state.documents[ state.activeIndex ];
