@@ -25,11 +25,14 @@ import { sprite } from "zcanvas"
 import { createCanvas, resizeImage, globalToLocal } from "@/utils/canvas-util";
 import { renderCross, renderMasked } from "@/utils/render-util";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
-import { isPointInRange, translatePointerRotation, rectangleToCoordinates } from "@/utils/image-math";
+import {
+    isPointInRange, translatePointerRotation, getRectangleForSelection,
+    rotatePoints, rectangleToCoordinates
+} from "@/utils/image-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { flushLayerCache, clearCacheProperty } from "@/services/caches/bitmap-cache";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
-import ToolTypes from "@/definitions/tool-types";
+import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
 
 /**
  * A LayerSprite is the renderer for a Documents Layer.
@@ -134,15 +137,21 @@ class LayerSprite extends sprite {
         });
     }
 
+    resetFilterAndRecache() {
+        clearCacheProperty( this.layer, "filterData" ); // filter must be applied to new contents
+        this.cacheEffects(); // sync mask and source changes with sprite Bitmap
+    }
+
     getBitmap() {
         return this._bitmap;
     }
 
     handleActiveTool( tool, toolOptions, activeLayer ) {
         this.isDragging     = false;
-        this._isBrushMode   = false;
+        this._isPaintMode   = false;
         this._isSelectMode  = false;
         this._isColorPicker = false;
+        this._hasSelection  = false;
         this._toolOptions   = null;
 
         this.setInteractive( this.layer === activeLayer );
@@ -166,24 +175,46 @@ class LayerSprite extends sprite {
             case ToolTypes.DRAG:
                 this.setDraggable( true );
                 break;
-            case ToolTypes.CLONE:
+            // drawables
+            case ToolTypes.FILL:
             case ToolTypes.ERASER:
             case ToolTypes.BRUSH:
+            case ToolTypes.CLONE:
                 this.forceMoveListener();
                 this.setDraggable( true );
-                this._isBrushMode = true;
+                this._isPaintMode = true;
+
+                // drawable tools can work alongside an existing selection
+                const selection = activeLayer.selection;
+                if ( selection?.length > 2 && canDrawOnSelection( activeLayer )) {
+                    const firstPoint = selection[ 0 ];
+                    const lastPoint  = selection[ selection.length - 1 ];
+                    if ( firstPoint.x === lastPoint.x && firstPoint.y === lastPoint.y ) {
+                        this._hasSelection    = true;
+                        this._selectionClosed = true;
+                    } else {
+                        this._hasSelection = false;
+                    }
+                } else {
+                    this._hasSelection = false;
+                    this.resetSelection();
+                }
                 break;
             case ToolTypes.SELECTION:
             case ToolTypes.LASSO:
                 this.forceMoveListener();
                 this.setDraggable( true );
                 this._isSelectMode = true;
+                this._hasSelection = activeLayer.selection?.length > 0;
                 break;
             case ToolTypes.EYEDROPPER:
                 this._isColorPicker = true;
                 break;
         }
-        this.resetSelection();
+        if ( !this._isPaintMode ) {
+            this.resetSelection();
+        }
+        this.invalidate();
     }
 
     resetSelection() {
@@ -212,6 +243,96 @@ class LayerSprite extends sprite {
         this.isDragging       = true;
         this._dragStartOffset = { x: this.getX(), y: this.getY() };
         this._dragStartEventCoordinates = { x: this._pointerX, y: this._pointerY };
+    }
+
+    paint( x, y ) {
+        // translate pointer to translated space, when layer is rotated or mirrored
+        const { mirrorX, mirrorY, rotation } = this.layer.effects;
+        const rotCenterX = this._bounds.left + this._bounds.width  / 2;
+        const rotCenterY = this._bounds.top  + this._bounds.height / 2;
+
+        if ( this.isRotated() ) {
+            ({ x, y } = translatePointerRotation( x, y, rotCenterX, rotCenterY, rotation ));
+        }
+        const drawOnMask   = this.isMaskable();
+        const isEraser     = this._toolType === ToolTypes.ERASER;
+        const isCloneStamp = this._toolType === ToolTypes.CLONE;
+        const isFillMode   = this._toolType === ToolTypes.FILL;
+
+        // get the drawing context
+        const ctx = ( drawOnMask ? this.layer.mask : this.layer.source ).getContext( "2d" );
+        const { width, height } = ctx.canvas;
+
+        ctx.save();
+
+        if ( isEraser ) {
+            ctx.globalCompositeOperation = "destination-out";
+        }
+
+        if ( mirrorX ) {
+            x -= width;
+        }
+        if ( mirrorY ) {
+            y -= height;
+        }
+        // correct pointer offset w/regards to layer pan position
+        x -= this.layer.x;
+        y -= this.layer.y;
+
+        // if there is an active selection, painting will be constrained within
+
+        if ( this.layer.selection ) {
+            let selectionPoints = this.layer.selection;
+            let sX = this._bounds.left;
+            let sY = this._bounds.top;
+            if ( this.isRotated() ) {
+                selectionPoints = rotatePoints( selectionPoints, rotCenterX, rotCenterY, rotation );
+                const rect = getRectangleForSelection( selectionPoints );
+                // TODO: 0, 0 coordinate is fine when layer isn't panned...
+                //const pts = translatePointerRotation( 0, 0, rect.width / 2, rect.height / 2, rotation );
+                //console.warn(pts);
+                sX = 0;//pts.x;
+                sY = 0;//pts.y;
+            }
+            ctx.beginPath();
+            selectionPoints.forEach(( point, index ) => {
+                ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x - sX, point.y - sY );
+            });
+            if ( !isFillMode ) {
+                ctx.clip();
+            }
+        }
+
+        // transform destination context in case the current layer is rotated or mirrored
+        ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
+        ctx.translate( x, y );
+        ctx.rotate( rotation );
+        ctx.translate( -x, -y );
+
+        if ( isFillMode ) {
+            ctx.fillStyle = this.canvas?.store.getters.activeColor;
+            if ( this.layer.selection ) {
+                ctx.fill();
+                ctx.closePath(); // is this necessary ?
+            } else {
+                ctx.fillRect( 0, 0, width, height );
+            }
+        } else {
+
+            // TODO: when rotated and mirrored, x and y are now in right coordinate space, but not at right point
+
+            if ( isCloneStamp ) {
+                renderMasked(
+                    ctx, this, x, y,
+                    getSpriteForLayer({ id: this._toolOptions.sourceLayerId }), // TODO: fugly!!
+                    this._brushCvs, this._radius
+                );
+            } else {
+                ctx.drawImage( this._brushCvs, x - this._radius, y - this._radius );
+            }
+        }
+        ctx.restore();
+        this.resetFilterAndRecache();
     }
 
     /* the following override zCanvas.sprite */
@@ -243,75 +364,21 @@ class LayerSprite extends sprite {
 
         let recacheEffects = false;
 
-        if ( !this._isBrushMode ) {
+        if ( !this._isPaintMode ) {
             // not drawable, perform default behaviour (drag)
             if ( this.actionTarget === "mask" ) {
                 this.layer.maskX = this._dragStartOffset.x + (( x - this._bounds.left ) - this._dragStartEventCoordinates.x );
                 this.layer.maskY = this._dragStartOffset.y + (( y - this._bounds.top )  - this._dragStartEventCoordinates.y );
-                recacheEffects = true;
+                this.resetFilterAndRecache();
             } else if ( this._isDragMode /*!this._isSelectMode*/ ) {
                 super.handleMove( x, y );
                 return;
             }
         }
 
-        // brush tool active (either draws/erases onto IMAGE_GRAPHIC layer source
-        // or on the mask bitmap)
-        if ( this._applyBrush ) {
-            // translate pointer to translated space, when layer is rotated or mirrored
-            const { mirrorX, mirrorY, rotation } = this.layer.effects;
-            const rotCenterX = this._bounds.left + this._bounds.width  / 2;
-            const rotCenterY = this._bounds.top  + this._bounds.height / 2;
-
-            if ( this.isRotated() ) {
-                ({ x, y } = translatePointerRotation( x, y, rotCenterX, rotCenterY, rotation ));
-            }
-            const drawOnMask   = this.isMaskable();
-            const isEraser     = this._toolType === ToolTypes.ERASER;
-            const isCloneStamp = this._toolType === ToolTypes.CLONE;
-
-            // get the drawing context
-            const ctx = ( drawOnMask ? this.layer.mask : this.layer.source ).getContext( "2d" );
-            ctx.save();
-
-            if ( isEraser ) {
-                ctx.globalCompositeOperation = "destination-out";
-            }
-
-            if ( mirrorX ) {
-                x -= ctx.canvas.width;
-            }
-            if ( mirrorY ) {
-                y -= ctx.canvas.height;
-            }
-            // correct pointer offset w/regards to layer pan position
-            x -= this.layer.x;
-            y -= this.layer.y;
-
-            // transform destination context in case the current layer is rotated or mirrored
-            ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
-            ctx.translate( x, y );
-            ctx.rotate( rotation );
-            ctx.translate( -x, -y );
-
-            // TODO: when rotated and mirrored, x and y are now in right coordinate space, but not at right point
-
-            if ( isCloneStamp ) {
-                renderMasked(
-                    ctx, this, x, y,
-                    getSpriteForLayer({ id: this._toolOptions.sourceLayerId }), // TODO: fugly!!
-                    this._brushCvs, this._radius
-                );
-            } else {
-                ctx.drawImage( this._brushCvs, x - this._radius, y - this._radius );
-            }
-            ctx.restore();
-
-            recacheEffects = true;
-        }
-        if ( recacheEffects ) {
-            clearCacheProperty( this.layer, "filterData" ); // filter must be applied to new contents
-            this.cacheEffects(); // sync mask and source changes with sprite Bitmap
+        // brush tool active (either draws/erases onto IMAGE_GRAPHIC layer source or on the mask bitmap)
+        if ( this._applyPaint ) {
+            this.paint( x, y );
         }
     }
 
@@ -330,13 +397,15 @@ class LayerSprite extends sprite {
             ).data;
             this.canvas.store.commit( "setActiveColor", `rgba(${p[0]},${p[1]},${p[2]},${(p[3]/255)})` );
         }
-        else if ( this._isBrushMode ) {
+        else if ( this._isPaintMode ) {
             if ( this._toolType === ToolTypes.CLONE && !this._toolOptions.coords ) {
                 // pressing down when using the clone tool with no coords yet defined, sets the source coords.
                 this._toolOptions.coords = { x, y };
+            } else if ( this._toolType === ToolTypes.FILL ) {
+                this.paint( x, y );
             } else {
                 // for any other brush mode state, set the brush application to true (will be applied in handleMove())
-                this._applyBrush = true;
+                this._applyPaint = true;
             }
         }
         else if ( this._isSelectMode && !this._selectionClosed ) {
@@ -352,10 +421,10 @@ class LayerSprite extends sprite {
     }
 
     handleRelease( x, y ) {
-        this._applyBrush = false;
-        if ( this._isBrushMode || this._isSelectMode ) {
+        this._applyPaint = false;
+        if ( this._isPaintMode || this._isSelectMode ) {
             this.forceMoveListener(); // keeps the move listener active
-            if ( this._isRectangleSelect ) {
+            if ( this._isRectangleSelect && this.layer.selection.length > 0 ) {
                 // when releasing in rectangular select mode, set the selection to
                 // the bounding box of the down press coordinate and this release coordinate
                 const firstPoint = this.layer.selection[ 0 ];
@@ -370,7 +439,7 @@ class LayerSprite extends sprite {
         super.draw( documentContext, viewport );
 
         // render brush outline at pointer position
-        if ( this._isBrushMode ) {
+        if ( this._isPaintMode ) {
             const drawBrushOutline = this._toolType !== ToolTypes.CLONE || !!this._toolOptions.coords;
             if ( this._toolType === ToolTypes.CLONE ) {
                 const { coords } = this._toolOptions;
@@ -381,7 +450,7 @@ class LayerSprite extends sprite {
                     ty = ( coords.y - viewport.top  ) + ( this._pointerY - this._dragStartEventCoordinates.y );
                 }
                 // when no source coordinate is set, or when applying the clone stamp, we show a cross to mark the origin
-                if ( !coords || this._applyBrush ) {
+                if ( !coords || this._applyPaint ) {
                     renderCross( documentContext, tx, ty, this._radius / this.canvas.zoomFactor );
                 }
             }
@@ -396,7 +465,7 @@ class LayerSprite extends sprite {
             documentContext.restore();
         }
         // render selection outline
-        if ( this._isSelectMode ) {
+        if ( this._isSelectMode || this._hasSelection ) {
             documentContext.save();
             documentContext.beginPath();
             documentContext.lineWidth = 2 / this.canvas.zoomFactor;

@@ -250,6 +250,12 @@ function handleKeyDown( event ) {
             }
             break;
 
+        case 71: // G
+            if ( canDraw( getters.activeDocument, getters.activeLayer )) {
+                setActiveTool( ToolTypes.FILL );
+            }
+            break;
+
         case 73: // I
             if ( hasOption ) {
                 dispatch( "loadDocument" );

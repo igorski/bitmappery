@@ -159,7 +159,9 @@ export default {
         await this.setupServices( i18n );
         // no need to remove the below as we will require it throughout the application lifetime
         window.addEventListener( "resize", this.handleResize.bind( this ));
-        window.onbeforeunload = e => this.activeDocument ? () => this.$t( "warningUnload" ) : true;
+        if ( process.env.NODE_ENV !== "development" ) {
+            window.onbeforeunload = e => this.activeDocument ? () => this.$t( "warningUnload" ) : true;
+        }
         // 640 declared in _variables.scss to be mobile threshold
         this.setToolboxOpened( true );
     },

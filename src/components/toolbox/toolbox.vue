@@ -124,6 +124,11 @@ export default {
                     disabled: !this.activeDocument, hasOptions: false
                 },
                 {
+                    type: ToolTypes.FILL,
+                    i18n: "paintBucket", icon: "fill", key: "G",
+                    disabled: !drawable, hasOptions: false
+                },
+                {
                     type: ToolTypes.BRUSH,
                     i18n: "brush", icon: "paintbrush", key: "B",
                     disabled: !drawable, hasOptions: true
@@ -175,11 +180,6 @@ export default {
         },
     },
     watch: {
-        activeDocument( document ) {
-            if ( !document ) {
-                this.setTool( null );
-            }
-        },
         activeLayer( layer ) {
             if ( !layer ) {
                 return;

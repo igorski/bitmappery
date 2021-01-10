@@ -31,8 +31,9 @@ export default {
     SELECTION  : "selection",
     EYEDROPPER : "eyedropper",
     ROTATE     : "rotate",
-    ERASER     : "eraser",
+    FILL       : "fill",
     BRUSH      : "brush",
+    ERASER     : "eraser",
     CLONE      : "clone",
     TEXT       : "text",
     ZOOM       : "zoom",
@@ -48,6 +49,15 @@ export const canDraw = ( activeDocument, activeLayer ) => {
 // should eventually be replaced with canDraw() (see https://github.com/igorski/bitmappery/issues/1)
 export const canClone = ( activeDocument, activeLayer ) => {
     return canDraw( activeDocument, activeLayer ) && ( activeLayer.effects.rotation % 360 ) === 0;
+};
+
+// we cannot draw in selection if a layer is either mirrored or panned+rotated (see https://github.com/igorski/bitmappery/issues/5)
+export const canDrawOnSelection = activeLayer => {
+    const { effects } = activeLayer;
+    if ( activeLayer.x === 0 && activeLayer.y === 0 ) {
+        return !effects.mirrorX && !effects.mirrorY;
+    }
+    return (( effects.rotation % 360 ) === 0 ) && !activeLayer.effects.mirrorX && !activeLayer.effects.mirrorY;
 };
 
 // UI variables
