@@ -22,6 +22,7 @@
  */
 import Vue from "vue";
 import { canvas } from "zcanvas";
+import { fastRound } from "@/utils/image-math";
 
 class ZoomableCanvas extends canvas {
     constructor( opts, store, rescaleFn ) {
@@ -44,10 +45,10 @@ class ZoomableCanvas extends canvas {
 
         // cache the current scroll offset so we can zoom from the current offset
         // note that by default we zoom from the center (when document was unscrolled)
-        const ratioX = ( left / scrollWidth ) || .5;
-        const ratioY = ( top / scrollHeight ) || .5;
+        const ratioX = ( left / scrollWidth )  || .5;
+        const ratioY = ( top  / scrollHeight ) || .5;
 
-        this.setDimensions( targetWidth, targetHeight, true, true );
+        this.setDimensions( fastRound( targetWidth ), fastRound( targetHeight ), true, true );
         this.setZoomFactor( scale * zoom, scale * zoom ); // eventually replace with zCanvas.setZoom()
 
         // update scroll widths after scaling operation
@@ -56,7 +57,10 @@ class ZoomableCanvas extends canvas {
         scrollHeight = this._height - height;
 
         // maintain relative scroll offset after rescale
-        this.panViewport( scrollWidth  * ratioX, scrollHeight * ratioY, true );
+        this.panViewport(
+            fastRound( scrollWidth  * ratioX ),
+            fastRound( scrollHeight * ratioY ), true
+        );
 
         if ( activeDocument ) {
             this.documentScale = activeDocument.width / this._width; // the scale of the Document relative to this on-screen canvas
@@ -101,8 +105,8 @@ class ZoomableCanvas extends canvas {
 
             const { zoomFactor } = this;
 
-            const width  = this._width  / zoomFactor;
-            const height = this._height / zoomFactor;
+            const width  = fastRound( this._width  / zoomFactor );
+            const height = fastRound( this._height / zoomFactor );
 
             const viewport = { ...this._viewport };
             Object.entries( viewport ).forEach(([ key, value ]) => {

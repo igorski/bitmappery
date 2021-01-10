@@ -1,9 +1,19 @@
 import {
-    scaleToRatio, constrain, isPortrait, isLandscape, isSquare,
+    fastRound, scaleToRatio, constrain, isPortrait, isLandscape, isSquare,
     getRectangleForSelection, translatePoints,
 } from "@/utils/image-math";
 
 describe( "Image math utilities", () => {
+    describe( "When rounding numbers", () => {
+        it( "should be able to round positive numbers", () => {
+            expect( fastRound( 13.67689767 )).toEqual( 14 );
+        });
+
+        it( "should be able to round negative numbers", () => {
+            expect( fastRound( -12.534523 )).toEqual( -12 );
+        });
+    });
+
     describe( "When constrainting an image to the maximum supported size in megapixels", () => {
         it ( "should not adjust the dimensions of images below this threshold", () => {
             expect( constrain( 7999, 7999, 8000 * 8000 )).toEqual({ width: 7999, height: 7999 });

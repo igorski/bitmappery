@@ -46,7 +46,7 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
     }
 
     // if source is rotated, calculate the width and height for the current rotation
-    const { width, height } = getRotatedSize( layer, effects.rotation );
+    const { width, height } = getRotatedSize( layer, effects.rotation, true );
     const { cvs, ctx } = createCanvas( width, height );
 
     const cached     = useCaching ? getLayerCache( layer ) : null;
@@ -309,7 +309,7 @@ const renderTransformedSource = async ( layer, ctx, sourceBitmap, width, height,
             top    : 0,
             width  : mirrorX ? -width : width,
             height : mirrorY ? -height : height
-        });
+        }, true );
         ctx.translate( x, y );
         ctx.rotate( rotation );
         ctx.translate( -x, -y );

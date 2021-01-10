@@ -23,6 +23,9 @@
 export const degreesToRadians = deg => deg * Math.PI / 180;
 export const radiansToDegrees = rad => rad * 180 / Math.PI;
 
+// Safari greatly benefits from round numbers as subpixel content is sometimes ommitted from rendering...
+export const fastRound = num => num > 0 ? ( num + .5 ) << 0 : num | 0;
+
 /**
  * Calculates the appropriate dimensions for fitting an image of dimensions
  * described by imageWidth x imageHeight in a destination area described by
@@ -69,8 +72,8 @@ export const constrain = ( width, height, maxMegaPixel ) => {
     const megaPixel = width * height;
     if ( megaPixel > maxMegaPixel ) {
         const ratio = Math.sqrt( maxMegaPixel ) / Math.sqrt( megaPixel );
-        width  = Math.round( width  * ratio );
-        height = Math.round( height * ratio );
+        width  = fastRound( width  * ratio );
+        height = fastRound( height * ratio );
     }
     return { width, height };
 };
@@ -121,12 +124,16 @@ export const translatePointerRotation = ( x, y, rotationCenterX, rotationCenterY
     };
 };
 
-export const getRotationCenter = ({ left, top, width, height }) => ({
-    x: left + width  * .5,
-    y: top  + height * .5
-});
+export const getRotationCenter = ({ left, top, width, height }, rounded = false ) => {
+    const x = left + width  * .5;
+    const y = top  + height * .5;
+    return {
+        x: rounded ? fastRound( x ) : x,
+        y: rounded ? fastRound( y ) : y,
+    };
+};
 
-export const getRotatedSize = ({ width, height }, angleInRadians ) => {
+export const getRotatedSize = ({ width, height }, angleInRadians, rounded = false ) => {
     const x1 = -width  * .5,
           x2 = width   * .5,
           x3 = width   * .5,
@@ -153,10 +160,15 @@ export const getRotatedSize = ({ width, height }, angleInRadians ) => {
           yMin = Math.min( y11, y21, y31, y41 ),
           yMax = Math.max( y11, y21, y31, y41 );
 
-    return {
+    const out = {
         width  : xMax - xMin,
         height : yMax - yMin
     };
+    if ( rounded ) {
+        out.width  = fastRound( out.width );
+        out.height = fastRound( out.height );
+    }
+    return out;
 };
 
 export const rectangleToCoordinates = ( x, y, width, height ) => [
