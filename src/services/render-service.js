@@ -212,7 +212,7 @@ const runJob = ( cmd, source, jobSettings ) => {
                 reject();
             }
         });
-        worker.postMessage({ cmd, id, width, height, imageData, ...jobSettings });
+        worker.postMessage({ cmd, id, imageData, ...jobSettings });
     })
 };
 
