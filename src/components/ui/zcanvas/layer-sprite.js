@@ -59,6 +59,7 @@ class LayerSprite extends sprite {
         this._halfRadius  = 0;
         this._pointerX    = 0;
         this._pointerY    = 0;
+        this._paintQueue  = [];
 
         this.cacheBrush( this.canvas?.store.getters.activeColor || "rgba(255,0,0,1)" );
         this.setActionTarget();
@@ -372,7 +373,8 @@ class LayerSprite extends sprite {
 
         // brush tool active (either draws/erases onto IMAGE_GRAPHIC layer source or on the mask bitmap)
         if ( this._applyPaint ) {
-            this.paint( x, y );
+            // actual painting is deferred to render cycle
+            this._paintQueue.push({ x, y });
         }
     }
 
@@ -425,6 +427,23 @@ class LayerSprite extends sprite {
                 this.layer.selection = rectangleToCoordinates( firstPoint.x, firstPoint.y, x - firstPoint.x, y - firstPoint.y );
                 this._selectionClosed = true;
             }
+        }
+    }
+
+    update( timestamp ) {
+        super.update( timestamp );
+        const pqLength = this._paintQueue.length;
+        if ( pqLength > 0 ) {
+            const firstPoint    = this._paintQueue[ 0 ];
+            const pointsToPaint = [ firstPoint ];
+            if ( this._toolType !== ToolTypes.FILL ) {
+                const lastPoint = { x: this._pointerX, y: this._pointerY };
+                console.warn(firstPoint,lastPoint);
+            }
+            console.warn("processed " + this._paintQueue.length + " queue items.");
+
+            pointsToPaint.forEach(({ x, y }) => this.paint( x, y ));
+            this._paintQueue = [];
         }
     }
 
