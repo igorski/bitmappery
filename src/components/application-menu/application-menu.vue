@@ -87,6 +87,21 @@
             <li>
                 <a v-t="'edit'" class="title" @click.prevent></a>
                 <ul class="submenu" @click="close()">
+                    <!-- undo / redo visibility is hidden until we are storing states consistently -->
+                    <!-- <li>
+                        <button v-t="'undo'"
+                                type="button"
+                                :disabled="!canUndo"
+                                @click="navigateHistory('undo')"
+                        ></button>
+                    </li>
+                    <li>
+                        <button v-t="'redo'"
+                                type="button"
+                                :disabled="!canRedo"
+                                @click="navigateHistory('redo')"
+                        ></button>
+                    </li> -->
                     <li>
                         <button v-t="'resizeDocument'"
                                 type="button"
@@ -203,6 +218,8 @@ export default {
             "documents",
             "activeDocument",
             "activeLayer",
+            "canUndo",
+            "canRedo",
         ]),
         supportsFullscreen,
         noDocumentsAvailable() {
@@ -277,6 +294,9 @@ export default {
         },
         requestDropboxSave() {
             this.openModal( SAVE_DROPBOX_DOCUMENT );
+        },
+        navigateHistory( action = "undo" ) {
+            this.$store.dispatch( action );
         },
         selectAll() {
             getSpriteForLayer( this.activeLayer )?.selectAll();

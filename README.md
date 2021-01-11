@@ -35,6 +35,48 @@ performed two-way).
 Rendering transformations, text and effects is an asynchronous operation handled by _@/src/services/render-service.js_. The purpose of this service is to perform and cache repeated operations and eventually maintain
 the source bitmap represented by the _layer-sprite.js_.
 
+## State history
+
+Mutations can be registered in state history (Vuex _history-module.js_) in order to provide undo and redo
+of operations. In order to prevent storing a lot of changes of the same property (for instance when dragging a slider), the storage of a new state is deferred through a queue. This is why history states are enqueued by _propertyName_:
+
+When enqueuing a new state while there is an existing one enqueued for the same property name, the first state is updated so its redo will match that of the newest state, the undo remaining unchanged. The second state will not
+be added to the queue.
+
+It is good to understand that the undo/redo for an action should be considered separate
+from the Vue component that is triggering the transaction, the reason being that the component can be
+unmounted at the moment the history state is changed (and the component is no longer active).
+
+That's why undo/redo handlers should either work on variables in a local scope, or on the Vuex store
+when mutating store properties. When relying on store state and getters, be sure to cache their
+values in the local scope to avoid conflicts (for instance in below example we cache _activeLayerIndex_
+as it is used by the undo/redo methods to update a specific Layer. _activeLayerIndex_ can change during
+the application lifetime before the undo/redo handler fires which would otherwise lead to the _wrong Layer_
+being updated.
+
+```
+update( propertyName, newValue ) {
+    // cache the existing values of the property value we are about to mutate...
+    const existingValue = this.getterForExistingValue;
+    // ...and the layer index that is used to identify the layer containing the property
+    const index  = this.activeLayerIndex;
+    const store  = this.$store;
+    // define the method that will mutate the existing value to given newValue
+    const commit = () => store.commit( "updateLayer", { index, opts: { newValue } });
+    // and perform the mutation directly
+    commit();
+    // now define and enqueue undo/redo handlers to reverse and redo the commit mutation
+    enqueueState( propertyName, {
+        undo() {
+            store.commit( "updateLayerEffects", { index, opts: { effects: existingValue} });
+        },
+        redo() {
+            commit();
+        },
+    });
+}
+```
+
 ## Dropbox integration
 
 Requires you to [register a client id or access token](https://www.dropbox.com/developers/apps).

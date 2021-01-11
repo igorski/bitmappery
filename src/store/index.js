@@ -22,10 +22,12 @@
  */
 import KeyboardService from "@/services/keyboard-service";
 import DocumentFactory from "@/factories/document-factory";
+import { initHistory } from "@/factories/history-state-factory";
 import { LAYER_IMAGE } from "@/definitions/layer-types";
 import { runSpriteFn } from "@/factories/sprite-factory";
 import canvasModule    from "./modules/canvas-module";
 import documentModule  from "./modules/document-module";
+import historyModule   from "./modules/history-module";
 import imageModule     from "./modules/image-module";
 import toolModule      from "./modules/tool-module";
 import { copySelection } from "@/services/render-service";
@@ -44,6 +46,7 @@ export default {
     modules: {
         canvasModule,
         documentModule,
+        historyModule,
         imageModule,
         toolModule,
     },
@@ -211,6 +214,7 @@ export default {
             const storeReference = this;
             return new Promise( resolve => {
                 KeyboardService.init( storeReference );
+                initHistory( storeReference );
                 resolve();
             });
         },

@@ -9,6 +9,8 @@
         "saveDropboxDocument": "Save in Dropbox",
         "exportImage": "Export image",
         "edit": "Edit",
+        "undo": "Undo",
+        "redo": "Redo",
         "resizeDocument": "Resize document",
         "selection": "Selection",
         "deselectAll": "Deselect all",

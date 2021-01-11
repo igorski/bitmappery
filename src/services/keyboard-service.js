@@ -356,7 +356,7 @@ function handleKeyDown( event ) {
         case 90: // Z
             // undo
             if ( hasOption ) {
-                // ...
+                dispatch( shiftDown ? "redo" : "undo" );
                 preventDefault( event ); // override browser undo
             } else if ( getters.activeDocument ) {
                 // zoom
