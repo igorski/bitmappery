@@ -20,6 +20,8 @@
 * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+import { ACCEPTED_FILE_TYPES } from "@/definitions/image-types";
+
 export const saveBlobAsFile = ( blob, fileName ) => {
     const blobURL = URL.createObjectURL( blob );
     const anchor  = document.createElement( "a" );
@@ -67,4 +69,32 @@ export const readFile = ( file, optEncoding = "UTF-8" ) => {
         reader.onerror = reject;
         reader.readAsText( file, optEncoding );
     });
+};
+
+export const readClipboardFiles = clipboardData => {
+    const items = clipboardData?.items;
+    const files = [];
+    if ( items?.length ) {
+        items.forEach( item => {
+            if ( item.kind === "file" ) {
+                if ( ACCEPTED_FILE_TYPES.includes( item.type )) {
+                    files.push( item.getAsFile());
+                }
+            }
+        });
+    }
+    return files;
+};
+
+export const readDroppedFiles = dataTransfer => {
+    const items = dataTransfer?.files;
+    const files = [];
+    if ( items?.length ) {
+        items.forEach( item => {
+            if ( ACCEPTED_FILE_TYPES.includes( item.type )) {
+                files.push( item );
+            }
+        });
+    }
+    return files;
 };

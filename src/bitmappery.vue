@@ -75,6 +75,9 @@ import DialogWindow    from "@/components/dialog-window/dialog-window";
 import Notifications   from "@/components/notifications/notifications";
 import Loader          from "@/components/loader/loader";
 import { isMobile }    from "@/utils/environment-util";
+import { loadImageFiles }     from "@/services/file-loader-queue";
+import ImageToDocumentManager from "@/mixins/image-to-document-manager";
+import { readClipboardFiles, readDroppedFiles } from "@/utils/file-util";
 import ToolTypes       from "@/definitions/tool-types";
 import store           from "./store";
 import messages        from "./messages.json";
@@ -95,6 +98,7 @@ const i18n = new VueI18n({
 export default {
     i18n,
     store: new Vuex.Store( store ),
+    mixins: [ ImageToDocumentManager ],
     components: {
         ApplicationMenu,
         DialogWindow,
@@ -159,11 +163,34 @@ export default {
         await this.setupServices( i18n );
         // no need to remove the below as we will require it throughout the application lifetime
         window.addEventListener( "resize", this.handleResize.bind( this ));
+        // prepare adaptive view for mobile environment
+        this.setToolboxOpened( true );
+        this.setOptionsPanelOpened( !isMobile() );
+    },
+    mounted() {
         if ( process.env.NODE_ENV !== "development" ) {
             window.onbeforeunload = e => this.activeDocument ? () => this.$t( "warningUnload" ) : true;
         }
-        this.setToolboxOpened( true );
-        this.setOptionsPanelOpened( !isMobile() );
+
+        // if File content is pasted or dragged into the application, parse and load image files within
+        // this reuses addLoadedFile from the mixin
+
+        window.addEventListener( "paste", event => {
+            const files = readClipboardFiles( event?.clipboardData );
+            loadImageFiles( files, this.addLoadedFile.bind( this ));
+        }, false );
+
+        this.$el.addEventListener( "dragover", event => {
+            event.stopPropagation();
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "copy";
+        }, false );
+        this.$el.addEventListener( "drop", event => {
+            const files = readDroppedFiles( event?.dataTransfer );
+            loadImageFiles( files, this.addLoadedFile.bind( this ));
+            event.preventDefault();
+            event.stopPropagation();
+        }, false );
     },
     methods: {
         ...mapMutations([
