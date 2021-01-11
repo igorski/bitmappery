@@ -74,8 +74,8 @@ export default {
         if ( this.authenticated ) {
             if ( !this.dropboxConnected ) {
                 this.showConnectionMessage();
-                this.openFileBrowser();
             }
+            this.openFileBrowser();
         } else {
             this.authUrl = requestLogin(
                 window.dropboxClientId || localStorage?.getItem( "dropboxClientId" ),

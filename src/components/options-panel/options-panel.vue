@@ -38,22 +38,6 @@
             v-if="!collapsed"
             class="content form"
         >
-            <!-- file import section -->
-            <file-selector />
-            <button
-                v-if="!dropbox"
-                v-t="'importFromDropbox'"
-                type="button"
-                class="button button--block dropbox"
-                @click="dropbox = true"
-            ></button>
-            <component :is="cloudImportType" />
-            <div class="wrapper input padded">
-                <label v-t="'openAsNew'"></label>
-                <select-box :options="fileTargetOptions"
-                             v-model="importTarget"
-                />
-            </div>
             <!-- active tool section -->
             <component :is="activeToolOptions" />
             <!-- layer section -->
@@ -64,30 +48,21 @@
 
 <script>
 import { mapState, mapGetters, mapMutations } from "vuex";
-import FileSelector from "./file-selector/file-selector";
-import Layers       from "./layers/layers";
-import SelectBox    from "@/components/ui/select-box/select-box";
-import ToolTypes    from "@/definitions/tool-types";
-import { mapSelectOptions } from "@/utils/search-select-util"
-import messages     from "./messages.json";
+import Layers    from "./layers/layers";
+import ToolTypes from "@/definitions/tool-types";
+import messages  from "./messages.json";
 
 export default {
     i18n: { messages },
     components: {
-        FileSelector,
         Layers,
-        SelectBox,
     },
-    data: () => ({
-        dropbox: false,
-    }),
     computed: {
         ...mapState([
             "optionsPanelOpened",
         ]),
         ...mapGetters([
             "activeTool",
-            "fileTarget",
         ]),
         collapsed: {
             get() {
@@ -95,29 +70,6 @@ export default {
             },
             set( value ) {
                 this.setOptionsPanelOpened( !value );
-            }
-        },
-        fileTargetOptions() {
-            return mapSelectOptions([ "layer", "document" ]);
-        },
-        importTarget: {
-            get() {
-                return this.fileTarget;
-            },
-            set( value ) {
-                this.setFileTarget( value );
-            }
-        },
-        /**
-         * Cloud import are loaded at runtime to omit packaging
-         * third party SDK within the core bundle.
-         */
-        cloudImportType() {
-            switch ( this.dropbox ) {
-                default:
-                    return null;
-                case true:
-                    return () => import( "./dropbox-connector/dropbox-connector" );
             }
         },
         activeToolOptions() {
@@ -144,7 +96,6 @@ export default {
     methods: {
         ...mapMutations([
             "setOptionsPanelOpened",
-            "setFileTarget",
         ]),
     }
 };
@@ -152,7 +103,6 @@ export default {
 
 <style lang="scss" scoped>
 @import "@/styles/component";
-@import "@/styles/third-party";
 
 .options-panel-wrapper {
     @include component();

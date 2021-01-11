@@ -162,14 +162,15 @@ export default {
         if ( process.env.NODE_ENV !== "development" ) {
             window.onbeforeunload = e => this.activeDocument ? () => this.$t( "warningUnload" ) : true;
         }
-        // 640 declared in _variables.scss to be mobile threshold
         this.setToolboxOpened( true );
+        this.setOptionsPanelOpened( !isMobile() );
     },
     methods: {
         ...mapMutations([
             "setWindowSize",
             "closeModal",
             "setToolboxOpened",
+            "setOptionsPanelOpened",
             "setToolOptionValue",
         ]),
         ...mapActions([
@@ -285,7 +286,7 @@ html, body {
         .options-panel {
             position: fixed;
             width: 100%;
-            max-height: 50%;
+            max-height: 33%;
             //max-height: calc(100% - #{$menu-height * 3});
             bottom: 0;
 

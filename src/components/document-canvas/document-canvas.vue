@@ -32,27 +32,29 @@
                 class="close-button"
                 @click="requestDocumentClose()"
             >&#215;</button>
+            <div
+                ref="canvasContainer"
+                class="content"
+                :class="{ 'center': centerCanvas }"
+            ></div>
+            <scrollbars
+                v-if="activeDocument"
+                ref="scrollbars"
+                :content-width="cvsWidth"
+                :content-height="cvsHeight"
+                :viewport-width="viewportWidth"
+                :viewport-height="viewportHeight"
+                @input="panViewport"
+            />
         </template>
-        <div
-            ref="canvasContainer"
-            class="content"
-            :class="{ 'center': centerCanvas }"
-        ></div>
-        <scrollbars
-            v-if="activeDocument"
-            ref="scrollbars"
-            :content-width="cvsWidth"
-            :content-height="cvsHeight"
-            :viewport-width="viewportWidth"
-            :viewport-height="viewportHeight"
-            @input="panViewport"
-        />
+        <file-import v-else />
     </div>
 </template>
 
 <script>
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import ZoomableCanvas from "@/components/ui/zcanvas/zoomable-canvas";
+import FileImport from "@/components/file-import/file-import";
 import InteractionPane, { MODE_PAN, MODE_LAYER_SELECT } from "@/components/ui/zcanvas/interaction-pane";
 import Scrollbars from "./scrollbars/scrollbars";
 import ToolTypes, { MAX_ZOOM, calculateMaxScaling } from "@/definitions/tool-types";
@@ -78,6 +80,7 @@ let xScale = 1, yScale = 1, zoom = 1, maxInScale = 1, maxOutScale = 1;
 export default {
     components: {
         Scrollbars,
+        FileImport,
     },
     data: () => ({
         wrapperHeight: "100%",
@@ -200,8 +203,10 @@ export default {
             this.createInteractionPane( value, MODE_LAYER_SELECT, "cursor-pointer" );
         },
     },
-    mounted() {
+    async mounted() {
+        await this.$nextTick();
         this.cacheContainerSize();
+        this.scaleWrapper();
     },
     methods: {
         ...mapMutations([
@@ -260,14 +265,17 @@ export default {
                 this.viewportHeight = containerSize.height;
                 zCanvas.setViewport( this.viewportWidth, this.viewportHeight );
             }
-            if ( !mobileView ) {
-                this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
-            }
+            this.scaleWrapper();
             // replace below with updated zCanvas lib to not multiply by zoom
             this.cvsWidth  = this.zCanvasBaseDimensions.width  * zoom;
             this.cvsHeight = this.zCanvasBaseDimensions.height * zoom;
             zCanvas.setDocumentScale( this.cvsWidth, this.cvsHeight, xScale, zoom, this.activeDocument );
             this.centerCanvas = zCanvas.getWidth() < containerSize.width || zCanvas.getHeight() < containerSize.height ;
+        },
+        scaleWrapper() {
+            if ( !mobileView ) {
+                this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
+            }
         },
         calcIdealDimensions() {
             this.cacheContainerSize();
