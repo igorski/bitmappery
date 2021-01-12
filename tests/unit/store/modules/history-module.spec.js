@@ -2,6 +2,12 @@ import UndoManager from "undo-manager";
 import store from "@/store/modules/history-module";
 const { getters, mutations, actions }  = store;
 
+let mockUpdateFn;
+jest.mock( "@/factories/history-state-factory", () => ({
+    forceProcess: (...args) => mockUpdateFn?.( "forceProcess", ...args ),
+    flushQueue: (...args) => mockUpdateFn?.( "flushQueue", ...args )
+}));
+
 describe( "History State module", () => {
     const noop = () => {}, AMOUNT_OF_STATES = 5;
     let commit = jest.fn();
@@ -73,6 +79,8 @@ describe( "History State module", () => {
         });
 
         it("should be able to clear its history", () => {
+            mockUpdateFn = jest.fn();
+
             function shouldntRun() {
                 throw new Error("undo/redo callback should not have fired after clearing the undo history");
             }
@@ -81,6 +89,7 @@ describe( "History State module", () => {
 
             mutations.resetHistory(state);
 
+            expect(mockUpdateFn).toHaveBeenCalledWith( "flushQueue" );
             expect(state.historyIndex).toEqual(-1);
             expect(getters.canUndo(state)).toBe(false); // expected no undo to be available after flushing of history
             expect(getters.canRedo(state)).toBe(false); // expected no redo to be available after flushing of history
@@ -103,11 +112,14 @@ describe( "History State module", () => {
         });
 
         it("should be able to undo an action when an action was stored in its state history", async () => {
+            mockUpdateFn = jest.fn();
+
             const undo = jest.fn();
             mutations.saveState(state, { undo: undo, redo: noop });
 
             await actions.undo({ state, commit, getters: { canUndo: state.undoManager.hasUndo() }});
 
+            expect(mockUpdateFn).toHaveBeenCalledWith( "forceProcess" );
             expect(undo).toHaveBeenCalled();
             expect(state.historyIndex).toEqual(0);
         });

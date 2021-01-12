@@ -129,6 +129,7 @@ export default {
                 const { id } = document;
                 // switching between documents
                 if ( id !== lastDocument ) {
+                    this.resetHistory();
                     lastDocument = id;
                     flushSpriteCache();
                     flushBitmapCache();
@@ -213,6 +214,7 @@ export default {
             "setZCanvasBaseDimensions",
             "setPanMode",
             "setActiveTool",
+            "resetHistory",
         ]),
         ...mapActions([
             "requestDocumentClose",

@@ -213,13 +213,15 @@ class LayerSprite extends sprite {
     }
 
     resetSelection() {
+        const selection = this.layer.selection || [];
         if ( this._isSelectMode ) {
             this.setSelection( [] );
+            storeSelectionHistory( this, selection );
         } else {
             Vue.delete( this.layer, "selection" );
-            this.invalidate();
         }
         this._selectionClosed = false;
+        this.invalidate();
     }
 
     setSelection( value ) {
@@ -362,7 +364,7 @@ class LayerSprite extends sprite {
 
         const sprite = this;
 
-        enqueueState( "spritePos" + layer.id, {
+        enqueueState( `spritePos_${layer.id}`, {
             undo() {
                 bounds.left = left;
                 bounds.top  = top;
@@ -438,12 +440,17 @@ class LayerSprite extends sprite {
         else if ( this._isSelectMode && !this._selectionClosed ) {
             // selection mode, set the click coordinate as the first point in the selection
             const firstPoint = this.layer.selection[ 0 ];
+            let storeHistory = false;
             if ( firstPoint && isPointInRange( x, y, firstPoint.x, firstPoint.y )) {
                 this._selectionClosed = true;
                 x = firstPoint.x;
                 y = firstPoint.y;
+                storeHistory = true;
             }
             this.layer.selection.push({ x, y });
+            if ( storeHistory ) {
+                storeSelectionHistory( this );
+            }
         }
     }
 
@@ -457,6 +464,7 @@ class LayerSprite extends sprite {
                 const firstPoint = this.layer.selection[ 0 ];
                 this.layer.selection = rectangleToCoordinates( firstPoint.x, firstPoint.y, x - firstPoint.x, y - firstPoint.y );
                 this._selectionClosed = true;
+                storeSelectionHistory( this );
             }
         }
     }
@@ -546,3 +554,18 @@ class LayerSprite extends sprite {
     }
 }
 export default LayerSprite;
+
+/* internal non-instance methods */
+
+function storeSelectionHistory( sprite, optPreviousSelection = [] ) {
+    const { layer } = sprite;
+    const selection = [ ...layer.selection ];
+    enqueueState( `selection_${layer.id}`, {
+        undo() {
+            sprite.setSelection( optPreviousSelection );
+        },
+        redo() {
+            sprite.setSelection( selection );
+        }
+    });
+}

@@ -87,8 +87,7 @@
             <li>
                 <a v-t="'edit'" class="title" @click.prevent></a>
                 <ul class="submenu" @click="close()">
-                    <!-- undo / redo visibility is hidden until we are storing states consistently -->
-                    <!-- <li>
+                    <li>
                         <button v-t="'undo'"
                                 type="button"
                                 :disabled="!canUndo"
@@ -101,7 +100,7 @@
                                 :disabled="!canRedo"
                                 @click="navigateHistory('redo')"
                         ></button>
-                    </li> -->
+                    </li>
                     <li>
                         <button v-t="'resizeDocument'"
                                 type="button"

@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import UndoManager from "undo-manager";
-import { forceProcess } from "@/factories/history-state-factory";
+import { forceProcess, flushQueue } from "@/factories/history-state-factory";
 
 const STATES_TO_SAVE = 99;
 
@@ -68,8 +68,9 @@ const module = {
          * clears entire history
          */
         resetHistory( state ) {
+            flushQueue();
             state.undoManager.clear();
-            state.historyIndex = state.undoManager.getIndex();
+            state.historyIndex = -1;
         }
     },
     actions: {
