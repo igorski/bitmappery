@@ -3,8 +3,6 @@
         "newDocument": "New document",
         "newDocumentNum": "New document #{num}",
         "name": "Name",
-        "width": "Width",
-        "height": "Height",
         "create": "Create",
         "cancel": "Cancel"
     }

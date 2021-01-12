@@ -1,8 +1,6 @@
 {
     "en-US": {
         "resizeDocument": "Resize document",
-        "width": "Width",
-        "height": "Height",
         "maintainAspectRatio": "Maintain aspect ratio",
         "save": "Save",
         "cancel": "Cancel"
