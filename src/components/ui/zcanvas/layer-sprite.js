@@ -216,7 +216,7 @@ class LayerSprite extends sprite {
         const selection = this.layer.selection || [];
         if ( this._isSelectMode ) {
             this.setSelection( [] );
-            storeSelectionHistory( this, selection );
+            storeSelectionHistory( this.layer, selection );
         } else {
             Vue.delete( this.layer, "selection" );
         }
@@ -362,22 +362,16 @@ class LayerSprite extends sprite {
         layer.x = newLayerX;
         layer.y = newLayerY;
 
-        const sprite = this;
-
         enqueueState( `spritePos_${layer.id}`, {
             undo() {
-                bounds.left = left;
-                bounds.top  = top;
-                layer.x     = oldLayerX;
-                layer.y     = oldLayerY;
-                sprite.invalidate();
+                positionSpriteFromHistory( layer, left, top );
+                layer.x = oldLayerX;
+                layer.y = oldLayerY;
             },
             redo() {
-                bounds.left = newX;
-                bounds.top  = newY;
-                layer.x     = newLayerX;
-                layer.y     = newLayerY;
-                sprite.invalidate();
+                positionSpriteFromHistory( layer, newX, newY );
+                layer.x = newLayerX;
+                layer.y = newLayerY;
             }
         });
         this.invalidate();
@@ -449,7 +443,7 @@ class LayerSprite extends sprite {
             }
             this.layer.selection.push({ x, y });
             if ( storeHistory ) {
-                storeSelectionHistory( this );
+                storeSelectionHistory( this.layer );
             }
         }
     }
@@ -464,7 +458,7 @@ class LayerSprite extends sprite {
                 const firstPoint = this.layer.selection[ 0 ];
                 this.layer.selection = rectangleToCoordinates( firstPoint.x, firstPoint.y, x - firstPoint.x, y - firstPoint.y );
                 this._selectionClosed = true;
-                storeSelectionHistory( this );
+                storeSelectionHistory( this.layer );
             }
         }
     }
@@ -557,15 +551,27 @@ export default LayerSprite;
 
 /* internal non-instance methods */
 
-function storeSelectionHistory( sprite, optPreviousSelection = [] ) {
-    const { layer } = sprite;
+// NOTE we use getSpriteForLayer() instead of passing the Sprite by reference
+// as it is possible the Sprite originally rendering the Layer has been disposed
+// and a new one has been created while traversing the change history
+
+function storeSelectionHistory( layer, optPreviousSelection = [] ) {
     const selection = [ ...layer.selection ];
     enqueueState( `selection_${layer.id}`, {
         undo() {
-            sprite.setSelection( optPreviousSelection );
+            getSpriteForLayer( layer )?.setSelection( optPreviousSelection );
         },
         redo() {
-            sprite.setSelection( selection );
+            getSpriteForLayer( layer )?.setSelection( selection );
         }
     });
+}
+
+function positionSpriteFromHistory( layer, x, y ) {
+    const sprite = getSpriteForLayer( layer );
+    if ( sprite ) {
+        sprite._bounds.left = x;
+        sprite._bounds.top  = y;
+        sprite.invalidate();
+    }
 }
