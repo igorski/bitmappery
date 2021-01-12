@@ -71,7 +71,7 @@ export default {
             const store  = this.$store;
             const commit = () => store.commit( "updateLayerEffects", { index, effects: newEffects });
             commit();
-            enqueueState( propName, {
+            enqueueState( `${propName}_${index}`, {
                 undo() {
                     store.commit( "updateLayerEffects", { index, effects: { mirrorX, mirrorY } });
                 },

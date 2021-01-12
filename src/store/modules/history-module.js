@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import UndoManager from "undo-manager";
+import { forceProcess } from "@/factories/history-state-factory";
 
 const STATES_TO_SAVE = 99;
 
@@ -76,6 +77,7 @@ const module = {
          * apply the previously stored state
          */
         undo({ state, getters, commit }) {
+            forceProcess();
             return new Promise( resolve => {
                 if ( getters.canUndo ) {
                     state.undoManager.undo();

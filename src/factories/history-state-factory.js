@@ -37,6 +37,10 @@ export const flushQueue = () => {
     stateQueue.clear();
 };
 
+// should only be called by history-module when performing undo
+// this ensures that an enqueued state that is reverted within the ENQUEUE_TIMEOUT is restored
+export const forceProcess = processQueue;
+
 export const enqueueState = ( key, undoRedoState ) => {
     // new state is for the same property as the previously enqueued state
     // we can discard the previously enqueued states.redo in favour of this more actual one
