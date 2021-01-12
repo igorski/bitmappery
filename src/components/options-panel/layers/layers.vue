@@ -116,6 +116,7 @@ import { mapGetters, mapMutations } from "vuex";
 import { ADD_LAYER, LAYER_FILTERS } from "@/definitions/modal-windows";
 import { createCanvas } from "@/utils/canvas-util";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { enqueueState } from "@/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
 import messages from "./messages.json";
 
@@ -153,7 +154,6 @@ export default {
         ...mapMutations([
             "openModal",
             "removeLayer",
-            "updateLayer",
             "setActiveLayerIndex",
             "setActiveLayerMask",
             "openDialog",
@@ -161,31 +161,33 @@ export default {
         requestLayerAdd() {
             this.openModal( ADD_LAYER );
         },
-        requestMaskAdd() {
-            this.updateLayer({
-                index: this.activeLayerIndex,
-                opts: {
-                    mask: createCanvas( this.activeLayer.width, this.activeLayer.height ).cvs
-                }
-            });
-        },
         handleLayerDoubleClick( index ) {
             this.editable = true;
         },
         updateActiveLayerName({ target }) {
-            this.updateLayer({
-                index: this.activeLayerIndex,
-                opts: {
-                    name: target.value
-                }
+            const newName     = target.value;
+            const currentName = this.activeLayer.name;
+            const index       = this.activeLayerIndex;
+            const store  = this.$store;
+            const commit = () => store.commit( "updateLayer", { index, opts: { name: newName } });
+            commit();
+            enqueueState( `layerName_${index}`, {
+                undo() {
+                    store.commit( "updateLayer", { index, opts: { name: currentName } });
+                },
+                redo: commit,
             });
         },
         toggleLayerVisibility( index ) {
-            this.updateLayer({
-                index,
-                opts: {
-                    visible: !this.layers[ index ].visible
-                }
+            const originalVisibility = this.layers[ index ].visible;
+            const store  = this.$store;
+            const commit = () => store.commit( "updateLayer", { index, opts: { visible: !originalVisibility } });
+            commit();
+            enqueueState( `layerVisibility_${index}`, {
+                undo() {
+                    store.commit( "updateLayer", { index, opts: { visible: originalVisibility } });
+                },
+                redo: commit,
             });
         },
         handleFiltersClick( index ) {
@@ -201,22 +203,53 @@ export default {
             }
         },
         requestLayerRemove( index ) {
+            const layer = this.layers[ index ];
             this.openDialog({
                 type: "confirm",
                 title: this.$t( "areYouSure" ),
-                message: this.$t( "doYouWantToRemoveLayerName", { name: this.layers[ index ]?.name }),
+                message: this.$t( "doYouWantToRemoveLayerName", { name: layer.name }),
                 confirm: () => {
-                    this.removeLayer( index );
+                    const store  = this.$store;
+                    const commit = () => store.commit( "removeLayer", index );
+                    commit();
+                    enqueueState( `layerRemove_${index}`, {
+                        undo() {
+                            store.commit( "insertLayerAtIndex", { index, layer });
+                        },
+                        redo: commit,
+                    });
                 }
             });
         },
+        requestMaskAdd() {
+            const index  = this.activeLayerIndex;
+            const mask   = createCanvas( this.activeLayer.width, this.activeLayer.height ).cvs;
+            const store  = this.$store;
+            const commit = () => store.commit( "updateLayer", { index, opts: { mask } });
+            commit();
+            enqueueState( `maskAdd_${index}`, {
+                undo() {
+                    store.commit( "updateLayer", { index, opts: { mask: null } });
+                },
+                redo: commit,
+            });
+        },
         requestMaskRemove( index ) {
+            const mask = this.activeLayer.mask;
             this.openDialog({
                 type: "confirm",
                 title: this.$t( "areYouSure" ),
                 message: this.$t( "doYouWantToRemoveMaskName", { name: this.layers[ index ]?.name }),
                 confirm: () => {
-                    this.updateLayer({ index, opts: { mask: null } });
+                    const store  = this.$store;
+                    const commit = () => store.commit( "updateLayer", { index, opts: { mask: null } });
+                    commit();
+                    enqueueState( `maskRemove_${index}`, {
+                        undo() {
+                            store.commit( "updateLayer", { index, opts: { mask } });
+                        },
+                        redo: commit,
+                    });
                 }
             });
         },

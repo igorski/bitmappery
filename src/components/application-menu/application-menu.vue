@@ -202,6 +202,7 @@ import {
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { getRectangleForSelection } from "@/math/selection-math";
 import { getCanvasInstance, runSpriteFn, getSpriteForLayer } from "@/factories/sprite-factory";
+import { enqueueState } from "@/factories/history-state-factory";
 import messages from "./messages.json";
 
 export default {
@@ -283,10 +284,25 @@ export default {
         requestSelectionSave() {
             this.openModal( SAVE_SELECTION );
         },
-        async requestCropToSelection() {
+        requestCropToSelection() {
+            const store = this.$store;
+            const currentSize = {
+                width: this.activeDocument.width,
+                height: this.activeDocument.height
+            };
             const { left, top, width, height } = getRectangleForSelection( this.activeLayer.selection );
-            await this.cropActiveDocumentContent({ left, top });
-            this.setActiveDocumentSize({ width, height });
+            const commit = async () => {
+                await store.commit( "cropActiveDocumentContent", { left, top });
+                store.commit( "setActiveDocumentSize", { width, height });
+            };
+            commit();
+            enqueueState("crop", {
+                async undo() {
+                    await store.commit( "cropActiveDocumentContent", { left: -left, top: -top });
+                    store.commit( "setActiveDocumentSize", currentSize );
+                },
+                redo: commit
+            });
         },
         requestDropboxLoad() {
             this.openModal( DROPBOX_FILE_SELECTOR );

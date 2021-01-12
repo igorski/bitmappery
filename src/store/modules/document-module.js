@@ -84,6 +84,11 @@ export default {
             layers.push( LayerFactory.create( opts ));
             state.activeLayerIndex = layers.length - 1;
         },
+        insertLayerAtIndex( state, { index, layer }) {
+            const document = state.documents[ state.activeIndex ];
+            document.layers.splice( index, 0, layer );
+            state.activeLayerIndex = index;
+        },
         removeLayer( state, index ) {
             const layer = state.documents[ state.activeIndex ]?.layers[ index ];
             if ( !layer ) {

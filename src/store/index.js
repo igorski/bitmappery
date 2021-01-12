@@ -22,7 +22,8 @@
  */
 import KeyboardService from "@/services/keyboard-service";
 import DocumentFactory from "@/factories/document-factory";
-import { initHistory } from "@/factories/history-state-factory";
+import LayerFactory    from "@/factories/layer-factory";
+import { initHistory, enqueueState } from "@/factories/history-state-factory";
 import { LAYER_IMAGE } from "@/definitions/layer-types";
 import { runSpriteFn } from "@/factories/sprite-factory";
 import canvasModule    from "./modules/canvas-module";
@@ -193,15 +194,28 @@ export default {
             runSpriteFn( sprite => sprite.resetSelection(), getters.activeDocument );
         },
         pasteSelection({ commit, getters, dispatch, state }) {
-            const { image, size } = state.selectionContent;
-            commit( "addLayer", {
+            const selection       = state.selectionContent;
+            const { image, size } = selection;
+            const layer = LayerFactory.create({
                 type: LAYER_IMAGE,
                 source: image,
                 ...size,
                 x: getters.activeDocument.width  / 2 - size.width  / 2,
                 y: getters.activeDocument.height / 2 - size.height / 2,
             });
-            dispatch( "clearSelection" );
+            const index = getters.activeDocument.layers.length;
+            const paste = () => {
+                commit( "insertLayerAtIndex", { index, layer });
+                dispatch( "clearSelection" );
+            };
+            paste();
+            enqueueState( `paste_${selection.length}`, {
+                undo() {
+                    commit( "setSelectionContent", selection );
+                    commit( "removeLayer", index );
+                },
+                redo: paste
+            });
         },
         /**
          * Install the services that will listen to global hardware events
