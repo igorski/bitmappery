@@ -32,6 +32,7 @@ import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-ma
 import { renderEffectsForLayer } from "@/services/render-service";
 import { flushLayerCache, clearCacheProperty } from "@/services/caches/bitmap-cache";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { enqueueState } from "@/factories/history-state-factory";
 import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
 
 /**
@@ -332,19 +333,51 @@ class LayerSprite extends sprite {
     /* the following override zCanvas.sprite */
 
     setBounds( x, y, width = 0, height = 0 ) {
-        const bounds        = this._bounds;
+        const bounds = this._bounds;
+        const layer  = this.layer;
+
+        // store current values (for undo)
         const { left, top } = bounds;
+        const oldLayerX = layer.x;
+        const oldLayerY = layer.y;
 
         if ( width === 0 || height === 0 ) {
             ({ width, height } = bounds );
         }
+        // commit change
         super.setBounds( x, y, width, height );
+
+        // store new value (for redo)
+        const newX = bounds.left;
+        const newY = bounds.top;
 
         // update the Layer model by the relative offset
         // (because the Sprite has an alternate position when rotated)
 
-        this.layer.x += bounds.left - left;
-        this.layer.y += bounds.top  - top;
+        const newLayerX = layer.x + ( newX - left );
+        const newLayerY = layer.y + ( newY - top );
+
+        layer.x = newLayerX;
+        layer.y = newLayerY;
+
+        const sprite = this;
+
+        enqueueState( "spritePos" + layer.id, {
+            undo() {
+                bounds.left = left;
+                bounds.top  = top;
+                layer.x     = oldLayerX;
+                layer.y     = oldLayerY;
+                sprite.invalidate();
+            },
+            redo() {
+                bounds.left = newX;
+                bounds.top  = newY;
+                layer.x     = newLayerX;
+                layer.y     = newLayerY;
+                sprite.invalidate();
+            }
+        });
         this.invalidate();
     }
 

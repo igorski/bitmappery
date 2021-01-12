@@ -59,8 +59,8 @@ update( propertyName, newValue ) {
     // cache the existing values of the property value we are about to mutate...
     const existingValue = this.getterForExistingValue;
     // ...and the layer index that is used to identify the layer containing the property
-    const index  = this.activeLayerIndex;
-    const store  = this.$store;
+    const index = this.activeLayerIndex;
+    const store = this.$store;
     // define the method that will mutate the existing value to given newValue
     const commit = () => store.commit( "updateLayer", { index, opts: { newValue } });
     // and perform the mutation directly
@@ -68,7 +68,7 @@ update( propertyName, newValue ) {
     // now define and enqueue undo/redo handlers to reverse and redo the commit mutation
     enqueueState( propertyName, {
         undo() {
-            store.commit( "updateLayerEffects", { index, opts: { effects: existingValue} });
+            store.commit( "updateLayerEffects", { index, opts: { existingValue } });
         },
         redo() {
             commit();
@@ -108,17 +108,17 @@ npm run lint
 
 # TODO / Roadmap
 
+* Layer source and mask must not be stored as Vue observables
+* Implement history mechanism in more places, show state to undo/redo in application menu
 * Repeated presses on a clone stamp with source coords do not behave logically
 * Implement action queue when drawing, only execute drawing on zCanvas.sprite.update()-hook
 * Maintain cache for source images at the display destination size (invalidate on window resize / zoom), this prevents processing large images that are never displayed at their full scale
 * Dragging of masks on rotated/mirror content is kinda broken
 * Animate selection lines between white and black colors
-* Layer source and mask must not be stored as Vue observables
 * Restored base64 images should be treated as binary once more (see layer-factory)
 * Zoom set original size isn't that accurate (check also on mobile views), needs calculateMaxScaling ?
 * Unload Blobs when images are no longer used in document (see sprite-factory disposeSprite, keep instance count of usages)
 * Implement layer sorting and opacity
 * Implement layer scaling
 * Implement merged layer selection
-* Implement change history
 * Scale logic should move from zoomable-canvas into zCanvas (as handleInteraction needs to transform offsets by zoom ratio, see LayerSprite!)
