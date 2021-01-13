@@ -22,7 +22,7 @@
  */
 import Vue from "vue";
 import { sprite } from "zcanvas"
-import { createCanvas, resizeImage, globalToLocal } from "@/utils/canvas-util";
+import { createCanvas, cloneCanvas, resizeImage, globalToLocal } from "@/utils/canvas-util";
 import { renderCross, renderMasked } from "@/utils/render-util";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
 import { translatePointerRotation, rotatePoints } from "@/math/image-math";
@@ -155,6 +155,9 @@ class LayerSprite extends sprite {
         this._selection     = null;
         this._toolOptions   = null;
 
+        // store pending paint states (if there were any)
+        this.storePaintState();
+
         if ( !this._interactive ) {
             return;
         }
@@ -203,6 +206,10 @@ class LayerSprite extends sprite {
     }
 
     paint( x, y ) {
+        if ( !this._pendingPaintState ) {
+            this.preparePendingPaintState();
+        }
+
         // translate pointer to translated space, when layer is rotated or mirrored
         const { mirrorX, mirrorY, rotation } = this.layer.effects;
         const rotCenterX = this._bounds.left + this._bounds.width  / 2;
@@ -290,6 +297,37 @@ class LayerSprite extends sprite {
         }
         ctx.restore();
         this.resetFilterAndRecache();
+    }
+
+    /**
+     * As storing Bitmaps will consume a lot of memory fast we debounce this by
+     * a larger interval to prevent creating a big bitmap per brush stroke.
+     * Note that upon switching tools the state is enqueued immediately to
+     * not delay to history state UI from updating more than necessary.
+     */
+    preparePendingPaintState() {
+        this._orgSourceToStore  = cloneCanvas( this.layer.source );
+        this._pendingPaintState = setTimeout( this.storePaintState.bind( this ), 5000 );
+    }
+
+    storePaintState() {
+        if ( !this._pendingPaintState ) {
+            return;
+        }
+        clearTimeout( this._pendingPaintState );
+        this._pendingPaintState = null;
+        const layer    = this.layer;
+        const orgState = this._orgSourceToStore;
+        const newState = cloneCanvas( layer.source );
+        enqueueState( `spritePaint_${layer.id}`, {
+            undo() {
+                restorePaintFromHistory( layer, orgState );
+            },
+            redo() {
+                restorePaintFromHistory( layer, newState);
+            }
+        });
+        this._orgSourceToStore = null;
     }
 
     /* the following override zCanvas.sprite */
@@ -477,4 +515,9 @@ function positionSpriteFromHistory( layer, x, y ) {
         sprite._bounds.top  = y;
         sprite.invalidate();
     }
+}
+
+function restorePaintFromHistory( layer, orgState ) {
+    layer.source = orgState;
+    getSpriteForLayer( layer )?.resetFilterAndRecache();
 }

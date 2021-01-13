@@ -114,6 +114,7 @@ export default {
             handler( document, oldValue = null ) {
                 // no active document or no document content
                 if ( !document?.layers ) {
+                    this.resetHistory();
                     if ( getCanvasInstance() ) {
                         getCanvasInstance().dispose();
                         setCanvasInstance( null );
