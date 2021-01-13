@@ -38,6 +38,28 @@
             v-if="!collapsed"
             class="content"
         >
+            <!-- history states -->
+            <button
+                type="button"
+                v-tooltip="$t('undo')"
+                class="tool-button"
+                :title="$t('undo')"
+                :disabled="!canUndo"
+                @click="undo()"
+            >
+                <img src="@/assets/icons/icon-history.svg" />
+            </button>
+            <button
+                type="button"
+                v-tooltip="$t('redo')"
+                class="tool-button"
+                :title="$t('redo')"
+                :disabled="!canRedo"
+                @click="redo()"
+            >
+                <img src="@/assets/icons/icon-history.svg" class="mirrored" />
+            </button>
+            <!-- tools -->
             <button v-for="(tool, index) in tools"
                     :key="tool.type"
                     type="button"
@@ -66,7 +88,7 @@
 </template>
 
 <script>
-import { mapState, mapGetters, mapMutations } from "vuex";
+import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
 import { runSpriteFn } from "@/factories/sprite-factory";
 import { isMobile } from "@/utils/environment-util";
@@ -86,6 +108,8 @@ export default {
             "activeLayer",
             "activeColor",
             "activeToolOptions",
+            "canUndo",
+            "canRedo",
         ]),
         colorPicker() {
             // load async as this adds to the bundle size
@@ -209,6 +233,10 @@ export default {
             "setOptionsPanelOpened",
             "setActiveColor",
         ]),
+        ...mapActions([
+            "undo",
+            "redo",
+        ]),
         handleToolClick({ type, hasOptions }) {
             this.setTool( type );
             if ( isMobile() && hasOptions && !this.optionsPanelOpened ) {
@@ -280,6 +308,11 @@ export default {
         height: $spacing-large;
         vertical-align: middle;
         padding: $spacing-xxsmall 0;
+
+        &.mirrored {
+            transform: scale(-1, 1);
+            transform-origin: center;
+        }
     }
 
     &:hover,

@@ -1,6 +1,8 @@
 {
     "en-US": {
         "toolbox": "Toolbox",
+        "undo": "Undo action",
+        "redo": "Redo action",
         "panViewport": "Pan viewport",
         "dragLayer": "Drag layer",
         "polygonalLasso": "Polygonal lasso",
