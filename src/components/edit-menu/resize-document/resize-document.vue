@@ -28,29 +28,15 @@
         <template #content>
             <div class="form" @keyup.enter="save()">
                 <div class="wrapper input">
-                    <label v-t="'width'"></label>
-                    <input
-                        ref="first"
-                        v-model.number="width"
-                        type="number"
-                        name="width"
-                    />
-                </div>
-                <div class="wrapper input">
                     <label v-t="'maintainAspectRatio'"></label>
                     <toggle-button
                         v-model="maintainRatio"
                         name="ratio"
                     />
                 </div>
-                <div class="wrapper input">
-                    <label v-t="'height'"></label>
-                    <input
-                        v-model.number="height"
-                        type="number"
-                        name="height"
-                    />
-                </div>
+                <dimensions-formatter
+                    v-model="dimensions"
+                />
             </div>
         </template>
         <template #actions>
@@ -74,6 +60,7 @@
 import { mapGetters, mapMutations } from "vuex";
 import { ToggleButton } from "vue-js-toggle-button";
 import Modal from "@/components/modal/modal";
+import DimensionsFormatter from "@/components/ui/dimensions-formatter/dimensions-formatter";
 import messages from "./messages.json";
 
 export default {
@@ -81,10 +68,13 @@ export default {
     components: {
         Modal,
         ToggleButton,
+        DimensionsFormatter,
     },
     data: () => ({
-        width: 0,
-        height: 0,
+        dimensions: {
+            width: 0,
+            height: 0,
+        },
         ratio: 0,
         syncLock: false,
         maintainRatio: true,
@@ -93,18 +83,24 @@ export default {
         ...mapGetters([
             "activeDocument",
         ]),
+        width() {
+            return this.dimensions.width;
+        },
+        height() {
+            return this.dimensions.height;
+        },
     },
-    mounted() {
-        this.width  = this.activeDocument.width;
-        this.height = this.activeDocument.height;
-        this.ratio  = this.width / this.height;
+    created() {
+        this.dimensions.width  = this.activeDocument.width;
+        this.dimensions.height = this.activeDocument.height;
+        this.ratio = this.dimensions.width / this.dimensions.height;
 
         this.$watch( "width", function( value ) {
             if ( !this.maintainRatio || this.syncLock ) {
                 return;
             }
             this.lockSync();
-            this.height = Math.round( value / this.ratio );
+            this.dimensions.height = Math.round( value / this.ratio );
         });
 
         this.$watch( "height", function( value ) {
@@ -112,9 +108,8 @@ export default {
                 return;
             }
             this.lockSync();
-            this.width = Math.round( value * this.ratio );
+            this.dimensions.width = Math.round( value * this.ratio );
         });
-        this.$refs.first.focus();
     },
     methods: {
         ...mapMutations([
@@ -129,12 +124,12 @@ export default {
             });
         },
         async save() {
-            const { width, height } = this;
+            const { width, height } = this.dimensions;
             const scaleX = width  / this.activeDocument.width;
             const scaleY = height / this.activeDocument.height;
 
             await this.resizeActiveDocumentContent({ scaleX, scaleY });
-            this.setActiveDocumentSize({ width, height });
+            this.setActiveDocumentSize({ width: Math.round( width ), height: Math.round( height ) });
             this.closeModal();
         },
     }

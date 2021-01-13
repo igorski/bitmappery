@@ -35,22 +35,9 @@
                         name="name"
                     />
                 </div>
-                <div class="wrapper input">
-                    <label v-t="'width'"></label>
-                    <input
-                        v-model.number="width"
-                        type="number"
-                        name="width"
-                    />
-                </div>
-                <div class="wrapper input">
-                    <label v-t="'height'"></label>
-                    <input
-                        v-model.number="height"
-                        type="number"
-                        name="height"
-                    />
-                </div>
+                <dimensions-formatter
+                    v-model="dimensions"
+                />
             </div>
         </template>
         <template #actions>
@@ -74,17 +61,21 @@
 import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal";
 import DocumentFactory from "@/factories/document-factory";
+import DimensionsFormatter from "@/components/ui/dimensions-formatter/dimensions-formatter";
 import messages from "./messages.json";
 
 export default {
     i18n: { messages },
     components: {
         Modal,
+        DimensionsFormatter,
     },
     data: () => ({
         name   : "",
-        width  : 1000,
-        height : 1000,
+        dimensions: {
+            width: 1000,
+            height: 1000,
+        },
     }),
     computed: {
         ...mapGetters([
@@ -102,9 +93,9 @@ export default {
         ]),
         async save() {
             this.addNewDocument( DocumentFactory.create({
-                name: this.name,
-                width: this.width,
-                height: this.height
+                name   : this.name,
+                width  : Math.round( this.dimensions.width ),
+                height : Math.round( this.dimensions.height ),
             }));
             this.closeModal();
         },

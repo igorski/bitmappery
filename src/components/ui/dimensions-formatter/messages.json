@@ -1,0 +1,13 @@
+{
+    "en-US": {
+        "dimensions": "Dimensions",
+        "dpi": "DPI",
+        "width": "Width",
+        "height": "Height",
+        "unit": "Unit",
+        "px": "Pixels",
+        "in": "Inches",
+        "cm": "Centimeters",
+        "mm": "Millimeters"
+    }
+}
