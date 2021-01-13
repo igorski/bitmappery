@@ -22,6 +22,7 @@
  */
 import Vue from "vue";
 import { canvas } from "zcanvas";
+import InteractionPane from "@/components/ui/zcanvas/interaction-pane";
 import { fastRound } from "@/math/image-math";
 
 class ZoomableCanvas extends canvas {
@@ -35,6 +36,7 @@ class ZoomableCanvas extends canvas {
 
         this.documentScale = 1;
         this.setZoomFactor( 1 );
+        this.interactionPane = new InteractionPane();
     }
 
     setDocumentScale( targetWidth, targetHeight, scale, zoom, activeDocument = null ) {
@@ -255,6 +257,13 @@ class ZoomableCanvas extends canvas {
         }
         // update the Canvas contents
         this.invalidate();
+    }
+
+    dispose() {
+        super.dispose();
+
+        this.interactionPane?.dispose();
+        this.interactionPane = null;
     }
 }
 export default ZoomableCanvas;

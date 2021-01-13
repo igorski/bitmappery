@@ -43,6 +43,8 @@ const DocumentFactory = {
             width,
             height,
             selections,
+            // only used at runtime, will not be serialized
+            selection: null,
         };
     },
 

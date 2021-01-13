@@ -156,7 +156,7 @@ export const copySelection = async ( activeDocument, activeLayer ) => {
     const sprite = getSpriteForLayer( activeLayer );
 
     ctx.beginPath();
-    activeLayer.selection.forEach(( point, index ) => {
+    activeDocument.selection.forEach(( point, index ) => {
         ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x, point.y );
     });
     ctx.closePath();
@@ -170,7 +170,7 @@ export const copySelection = async ( activeDocument, activeLayer ) => {
 
     // when calculating the source rectangle we must take the device pixel ratio into account
     const pixelRatio = window.devicePixelRatio || 1;
-    const selectionRectangle = getRectangleForSelection( activeLayer.selection );
+    const selectionRectangle = getRectangleForSelection( activeDocument.selection );
     const selectionCanvas = createCanvas( selectionRectangle.width, selectionRectangle.height );
     selectionCanvas.ctx.drawImage(
         cvs,

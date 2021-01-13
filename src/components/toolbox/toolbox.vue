@@ -210,7 +210,7 @@ export default {
             }
             switch ( this.activeTool ) {
                 default:
-                    runSpriteFn( sprite => sprite.handleActiveTool( this.activeTool, this.activeToolOptions, layer ));
+                    runSpriteFn( sprite => sprite.handleActiveTool( this.activeTool, this.activeToolOptions, this.activeDocument ));
                     return;
                 case ToolTypes.BRUSH:
                     if ( !layer.mask ) {
@@ -247,7 +247,7 @@ export default {
             if ( tool === ToolTypes.TEXT && this.activeLayer?.type !== LAYER_TEXT ) {
                 this.addLayer({ type: LAYER_TEXT, name: this.$t( "newTextLayer") });
             }
-            this.setActiveTool({ tool, activeLayer: this.activeLayer });
+            this.setActiveTool({ tool, document: this.activeDocument });
         },
     },
 };

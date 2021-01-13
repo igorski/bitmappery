@@ -202,7 +202,7 @@ function handleKeyDown( event ) {
         case 65: // A
             // select all
             if ( hasOption && getters.activeLayer ) {
-                getSpriteForLayer( getters.activeLayer )?.selectAll();
+                getCanvasInstance()?.interactionPane.selectAll();
             }
             break;
 
@@ -214,7 +214,7 @@ function handleKeyDown( event ) {
 
         case 67: // C
              // copy current selection
-             if ( hasOption && getters.activeLayer?.selection?.length > 0 ) {
+             if ( hasOption && getters.activeDocument?.selection?.length > 0 ) {
                  dispatch( "requestSelectionCopy" );
                  preventDefault( event );
              }
@@ -445,7 +445,7 @@ function preventDefault( event ) {
 }
 
 function setActiveTool( tool ) {
-    commit( "setActiveTool", { tool, activeLayer: getters.activeLayer });
+    commit( "setActiveTool", { tool, document: getters.activeDocument });
 }
 
 function openModal( modal ) {
@@ -457,13 +457,13 @@ function openModal( modal ) {
  * @param {number} dir to move (0 == up/left, 1 == down/right)
  */
 function moveObject( axis = 0, dir = 0, activeTool ) {
-    const sprite = getSpriteForLayer( getters.activeLayer );
-    if ( !sprite ) {
-        return;
-    }
     const speed = shiftDown ? 10 : 1;
     switch ( activeTool ) {
         case ToolTypes.DRAG:
+            const sprite = getSpriteForLayer( getters.activeLayer );
+            if ( !sprite ) {
+                return;
+            }
             let x = sprite.getX();
             let y = sprite.getY();
             if ( axis === 0 ) {
@@ -475,12 +475,12 @@ function moveObject( axis = 0, dir = 0, activeTool ) {
             break;
         case ToolTypes.SELECTION:
         case ToolTypes.LASSO:
-            sprite.setSelection(
+            getCanvasInstance()?.interactionPane.setSelection(
                 translatePoints(
-                    getters.activeLayer.selection,
+                    getters.activeDocument.selection,
                     axis === 0 ? dir === 0 ? -speed : speed : 0,
                     axis === 1 ? dir === 0 ? -speed : speed : 0
-                )
+                ), true
             );
             break;
     }

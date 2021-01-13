@@ -25,9 +25,7 @@ import { sprite } from "zcanvas"
 import { createCanvas, resizeImage, globalToLocal } from "@/utils/canvas-util";
 import { renderCross, renderMasked } from "@/utils/render-util";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
-import {
-    isPointInRange, translatePointerRotation, rotatePoints, rectangleToCoordinates
-} from "@/math/image-math";
+import { translatePointerRotation, rotatePoints } from "@/math/image-math";
 import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { flushLayerCache, clearCacheProperty } from "@/services/caches/bitmap-cache";
@@ -61,7 +59,6 @@ class LayerSprite extends sprite {
         this._pointerX    = 0;
         this._pointerY    = 0;
 
-        this.cacheBrush( this.canvas?.store.getters.activeColor || "rgba(255,0,0,1)" );
         this.setActionTarget();
 
         if ( layer.source instanceof Image ) {
@@ -151,19 +148,17 @@ class LayerSprite extends sprite {
         this.setInteractive( this.layer === activeLayer );
     }
 
-    handleActiveTool( tool, toolOptions, activeLayer ) {
+    handleActiveTool( tool, toolOptions, activeDocument ) {
         this.isDragging     = false;
         this._isPaintMode   = false;
-        this._isSelectMode  = false;
         this._isColorPicker = false;
-        this._hasSelection  = false;
+        this._selection     = null;
         this._toolOptions   = null;
 
         if ( !this._interactive ) {
             return;
         }
         this._isDragMode        = tool === ToolTypes.DRAG;
-        this._isRectangleSelect = tool === ToolTypes.SELECTION;
         this._toolType          = tool;
         this._toolOptions       = toolOptions;
 
@@ -188,53 +183,16 @@ class LayerSprite extends sprite {
                 this._isPaintMode = true;
 
                 // drawable tools can work alongside an existing selection
-                const selection = this.layer.selection;
+                const selection = activeDocument.selection;
                 if ( isSelectionClosed( selection ) && canDrawOnSelection( this.layer )) {
-                    this._hasSelection    = true;
-                    this._selectionClosed = true;
-                } else {
-                    this._hasSelection = false;
-                    this.resetSelection();
+                    this._selection = selection;
                 }
-                break;
-            case ToolTypes.SELECTION:
-            case ToolTypes.LASSO:
-                this.forceMoveListener();
-                this.setDraggable( true );
-                this._isSelectMode = true;
-                this._hasSelection = this.layer.selection?.length > 0;
                 break;
             case ToolTypes.EYEDROPPER:
                 this._isColorPicker = true;
                 break;
         }
-        if ( !this._isPaintMode ) {
-            this.resetSelection();
-        }
         this.invalidate();
-    }
-
-    resetSelection() {
-        const selection = this.layer.selection || [];
-        if ( this._isSelectMode ) {
-            this.setSelection( [] );
-            storeSelectionHistory( this.layer, selection );
-        } else {
-            Vue.delete( this.layer, "selection" );
-        }
-        this._selectionClosed = false;
-        this.invalidate();
-    }
-
-    setSelection( value ) {
-        Vue.set( this.layer, "selection", value );
-        this._selectionClosed = value.length > 1; // TODO: can we determine this from first and last point?
-        this.invalidate();
-    }
-
-    selectAll() {
-        this.setSelection( rectangleToCoordinates( this._bounds.left, this._bounds.top, this._bounds.width, this._bounds.height ));
-        this._isSelectMode = true;
     }
 
     // cheap way to hook into zCanvas.handleMove()-handler so we can keep following the cursor in tool modes
@@ -280,8 +238,8 @@ class LayerSprite extends sprite {
 
         // if there is an active selection, painting will be constrained within
 
-        if ( this.layer.selection ) {
-            let selectionPoints = this.layer.selection;
+        if ( this._selection ) {
+            let selectionPoints = this._selection;
             let sX = this._bounds.left;
             let sY = this._bounds.top;
             if ( this.isRotated() ) {
@@ -310,7 +268,7 @@ class LayerSprite extends sprite {
 
         if ( isFillMode ) {
             ctx.fillStyle = this.canvas?.store.getters.activeColor;
-            if ( this.layer.selection ) {
+            if ( this._selection ) {
                 ctx.fill();
                 ctx.closePath(); // is this necessary ?
             } else {
@@ -395,7 +353,7 @@ class LayerSprite extends sprite {
                 this.layer.maskX = this._dragStartOffset.x + (( x - this._bounds.left ) - this._dragStartEventCoordinates.x );
                 this.layer.maskY = this._dragStartOffset.y + (( y - this._bounds.top )  - this._dragStartEventCoordinates.y );
                 this.resetFilterAndRecache();
-            } else if ( this._isDragMode /*!this._isSelectMode*/ ) {
+            } else if ( this._isDragMode ) {
                 super.handleMove( x, y );
                 return;
             }
@@ -433,35 +391,12 @@ class LayerSprite extends sprite {
                 this._applyPaint = true;
             }
         }
-        else if ( this._isSelectMode && !this._selectionClosed ) {
-            // selection mode, set the click coordinate as the first point in the selection
-            const firstPoint = this.layer.selection[ 0 ];
-            let storeHistory = false;
-            if ( firstPoint && isPointInRange( x, y, firstPoint.x, firstPoint.y )) {
-                this._selectionClosed = true;
-                x = firstPoint.x;
-                y = firstPoint.y;
-                storeHistory = true;
-            }
-            this.layer.selection.push({ x, y });
-            if ( storeHistory ) {
-                storeSelectionHistory( this.layer );
-            }
-        }
     }
 
     handleRelease( x, y ) {
         this._applyPaint = false;
-        if ( this._isPaintMode || this._isSelectMode ) {
+        if ( this._isPaintMode ) {
             this.forceMoveListener(); // keeps the move listener active
-            if ( this._isRectangleSelect && this.layer.selection.length > 0 ) {
-                // when releasing in rectangular select mode, set the selection to
-                // the bounding box of the down press coordinate and this release coordinate
-                const firstPoint = this.layer.selection[ 0 ];
-                this.layer.selection = rectangleToCoordinates( firstPoint.x, firstPoint.y, x - firstPoint.x, y - firstPoint.y );
-                this._selectionClosed = true;
-                storeSelectionHistory( this.layer );
-            }
         }
     }
 
@@ -495,48 +430,7 @@ class LayerSprite extends sprite {
             documentContext.stroke();
             documentContext.restore();
         }
-        // render selection outline
-        if (( this._isSelectMode || this._hasSelection ) && this.layer.selection ) {
-            documentContext.save();
-            documentContext.beginPath();
-            documentContext.lineWidth = 2 / this.canvas.zoomFactor;
 
-            let { selection }   = this.layer;
-            const firstPoint    = selection[ 0 ];
-            const localPointerX = this._pointerX - viewport.left; // local to viewport
-            const localPointerY = this._pointerY - viewport.top;
-
-            // when in rectangular select mode, the outline will draw from the first coordinate
-            // (defined in handlePress()) to the current pointer coordinate
-            if ( this._isRectangleSelect && selection.length && !this._selectionClosed ) {
-                selection = rectangleToCoordinates(
-                    firstPoint.x,
-                    firstPoint.y,
-                    localPointerX - firstPoint.x + viewport.left,
-                    localPointerY - firstPoint.y + viewport.top
-                );
-            }
-            // draw each point in the selection
-            selection.forEach(( point, index ) => {
-                documentContext[ index === 0 ? "moveTo" : "lineTo" ]( point.x - viewport.left, point.y - viewport.top );
-            });
-
-            // for lasso selections, draw line to current cursor position
-            if ( !this._isRectangleSelect && !this._selectionClosed ) {
-                documentContext.lineTo( localPointerX, localPointerY );
-            }
-            documentContext.stroke();
-
-            // highlight current cursor position for unclosed selections
-            if ( !this._selectionClosed ) {
-                documentContext.beginPath();
-                documentContext.lineWidth *= 1.5;
-                const size = firstPoint && isPointInRange( this._pointerX, this._pointerY, firstPoint.x, firstPoint.y ) ? 15 : 5;
-                documentContext.arc( localPointerX, localPointerY, size / this.canvas.zoomFactor, 0, 2 * Math.PI );
-                documentContext.stroke();
-            }
-            documentContext.restore();
-        }
         // interactive state implies the sprite's Layer is currently active
         // show a border around the Layer contents to indicate the active area
         if ( this._interactive ) {
@@ -575,18 +469,6 @@ export default LayerSprite;
 // NOTE we use getSpriteForLayer() instead of passing the Sprite by reference
 // as it is possible the Sprite originally rendering the Layer has been disposed
 // and a new one has been created while traversing the change history
-
-function storeSelectionHistory( layer, optPreviousSelection = [] ) {
-    const selection = [ ...layer.selection ];
-    enqueueState( `selection_${layer.id}`, {
-        undo() {
-            getSpriteForLayer( layer )?.setSelection( optPreviousSelection );
-        },
-        redo() {
-            getSpriteForLayer( layer )?.setSelection( selection );
-        }
-    });
-}
 
 function positionSpriteFromHistory( layer, x, y ) {
     const sprite = getSpriteForLayer( layer );

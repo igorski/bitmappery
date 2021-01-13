@@ -226,7 +226,7 @@ export default {
             return !this.activeDocument;
         },
         hasSelection() {
-            return this.activeLayer?.selection?.length > 0;
+            return this.activeDocument?.selection?.length > 0;
         },
         hasSavedSelections() {
             return Object.keys( this.activeDocument?.selections || {} ).length > 0;
@@ -290,7 +290,7 @@ export default {
                 width: this.activeDocument.width,
                 height: this.activeDocument.height
             };
-            const { left, top, width, height } = getRectangleForSelection( this.activeLayer.selection );
+            const { left, top, width, height } = getRectangleForSelection( this.activeDocument.selection );
             const commit = async () => {
                 await store.commit( "cropActiveDocumentContent", { left, top });
                 store.commit( "setActiveDocumentSize", { width, height });
@@ -314,7 +314,7 @@ export default {
             this.$store.dispatch( action );
         },
         selectAll() {
-            getSpriteForLayer( this.activeLayer )?.selectAll();
+            getCanvasInstance()?.interactionPane?.selectAll();
         },
         close() {
             this.setMenuOpened( false );

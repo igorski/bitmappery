@@ -26,14 +26,20 @@ has its own factory (see _@/src/factories/_). The Document is managed by the Vue
 
 ## Document rendering and interactions
 
-The Document is rendered one layer at a time onto a Canvas element, using [zCanvas](https://github.com/igorski/zCanvas). Both the rendering and interaction handling is performed by _@/src/components/ui/zcanvas/layer_sprite.js_.
+The Document is rendered one layer at a time onto a Canvas element, using [zCanvas](https://github.com/igorski/zCanvas). Both the rendering and interaction handling is performed by dedicated "Sprite" classes.
+
+All layer rendering and interactions are handled by _@/src/components/ui/zcanvas/layer_sprite.js_.
 Note that the purpose of the renderer is solely to delegate interactions events to the Layer entity. The
 renderer should represent the properties of the Layer, the Layer should never reverse-engineer from the onscreen
 content (especially as different window size and scaling factor will greatly complicate these matters when
 performed two-way).
 
 Rendering transformations, text and effects is an asynchronous operation handled by _@/src/services/render-service.js_. The purpose of this service is to perform and cache repeated operations and eventually maintain
-the source bitmap represented by the _layer-sprite.js_.
+the source bitmap represented by the LayerSprite. The LayerSprite invokes the rendering service.
+
+All interactions that work across layers (viewport panning, layer selection by clicking on non-transparent
+pixels and selection drawing) is done by a single top level sprite that covers the entire zCanvas area.
+This is handled by _@/src/components/ui/zcanvas/interaction-pane.js_.
 
 ## State history
 
@@ -109,7 +115,6 @@ npm run lint
 # TODO / Roadmap
 
 * Layer source and mask must not be stored as Vue observables
-* Implement history mechanism in more places, show state to undo/redo in application menu
 * Repeated presses on a clone stamp with source coords do not behave logically
 * Implement action queue when drawing, only execute drawing on zCanvas.sprite.update()-hook
 * Maintain cache for source images at the display destination size (invalidate on window resize / zoom), this prevents processing large images that are never displayed at their full scale

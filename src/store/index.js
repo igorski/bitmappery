@@ -24,6 +24,7 @@ import KeyboardService from "@/services/keyboard-service";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory    from "@/factories/layer-factory";
 import { initHistory, enqueueState } from "@/factories/history-state-factory";
+import { getCanvasInstance } from "@/factories/sprite-factory";
 import { LAYER_IMAGE } from "@/definitions/layer-types";
 import { runSpriteFn } from "@/factories/sprite-factory";
 import canvasModule    from "./modules/canvas-module";
@@ -58,6 +59,7 @@ export default {
         selectionContent: null, // clipboard content of copied images ({ image, size })
         blindActive: false,
         panMode: false,         // whether drag interactions with the document will pan its viewport
+        selectMode: false,      // whether the currently active tool is a selection type (works across layers)
         layerSelectMode: false, // whether clicking on the document should act as layer selection
         dialog: null,           // currently opened dialog
         modal: null,            // currently opened modal
@@ -92,6 +94,9 @@ export default {
         },
         setPanMode( state, value ) {
             state.panMode = value;
+        },
+        setSelectMode( state, value ) {
+            state.selectMode = value;
         },
         setLayerSelectMode( state, value ) {
             state.layerSelectMode = value;
@@ -190,8 +195,8 @@ export default {
             commit( "showNotification", { message: translate( "selectionCopied" ) });
             dispatch( "clearSelection" );
         },
-        clearSelection({ getters }) {
-            runSpriteFn( sprite => sprite.resetSelection(), getters.activeDocument );
+        clearSelection() {
+            getCanvasInstance()?.interactionPane.resetSelection();
         },
         pasteSelection({ commit, getters, dispatch, state }) {
             const selection       = state.selectionContent;
