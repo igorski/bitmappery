@@ -314,7 +314,7 @@ export default {
             this.$store.dispatch( action );
         },
         selectAll() {
-            getCanvasInstance()?.interactionPane?.selectAll();
+            getCanvasInstance()?.interactionPane.selectAll( this.activeLayer );
         },
         close() {
             this.setMenuOpened( false );

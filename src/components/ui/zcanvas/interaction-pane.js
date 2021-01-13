@@ -24,7 +24,7 @@ import Vue from "vue";
 import { sprite } from "zcanvas";
 import { isInsideTransparentArea } from "@/utils/canvas-util";
 import { enqueueState } from "@/factories/history-state-factory";
-import { getCanvasInstance } from "@/factories/sprite-factory";
+import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { isPointInRange, rectangleToCoordinates } from "@/math/image-math";
 import { isSelectionClosed } from "@/math/selection-math";
 import ToolTypes from "@/definitions/tool-types";
@@ -122,9 +122,10 @@ class InteractionPane extends sprite {
         this.invalidate();
     }
 
-    selectAll() {
+    selectAll( targetLayer = null ) {
+        const bounds = targetLayer ? getSpriteForLayer( targetLayer ).getBounds() : this._bounds;
         this.setSelection(
-            rectangleToCoordinates( this._bounds.left, this._bounds.top, this._bounds.width, this._bounds.height )
+            rectangleToCoordinates( bounds.left, bounds.top, bounds.width, bounds.height )
         );
     }
 

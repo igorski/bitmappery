@@ -202,7 +202,7 @@ function handleKeyDown( event ) {
         case 65: // A
             // select all
             if ( hasOption && getters.activeLayer ) {
-                getCanvasInstance()?.interactionPane.selectAll();
+                getCanvasInstance()?.interactionPane.selectAll( getters.activeLayer );
             }
             break;
 
