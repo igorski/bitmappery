@@ -128,7 +128,7 @@ export default {
         border-radius: $spacing-medium;
         box-sizing: border-box;
         padding: $spacing-small $spacing-xlarge $spacing-medium;
-        margin-top: $spacing-large;
+        margin: $spacing-xlarge 0 $spacing-large;
     }
 }
 

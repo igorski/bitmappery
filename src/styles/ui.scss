@@ -9,6 +9,8 @@
     border-radius: $spacing-large;
     font-weight: bold;
     font-size: 100%;
+    background-color: rgb(239,239,239);
+    color: #000;
 
     &:hover {
         background-color: $color-1;

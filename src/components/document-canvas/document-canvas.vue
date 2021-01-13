@@ -176,7 +176,7 @@ export default {
                 }
                 const { id } = layer;
                 [ ...layerPool.entries() ].forEach(([ key, sprite ]) => {
-                    sprite.setInteractive( key === id )
+                    sprite.handleActiveLayer( layer );
                 });
             },
         },

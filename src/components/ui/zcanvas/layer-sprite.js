@@ -147,6 +147,10 @@ class LayerSprite extends sprite {
         return this._bitmap;
     }
 
+    handleActiveLayer( activeLayer ) {
+        this.setInteractive( this.layer === activeLayer );
+    }
+
     handleActiveTool( tool, toolOptions, activeLayer ) {
         this.isDragging     = false;
         this._isPaintMode   = false;
@@ -154,8 +158,6 @@ class LayerSprite extends sprite {
         this._isColorPicker = false;
         this._hasSelection  = false;
         this._toolOptions   = null;
-
-        this.setInteractive( this.layer === activeLayer );
 
         if ( !this._interactive ) {
             return;
@@ -186,8 +188,8 @@ class LayerSprite extends sprite {
                 this._isPaintMode = true;
 
                 // drawable tools can work alongside an existing selection
-                const selection = activeLayer.selection;
-                if ( isSelectionClosed( selection ) && canDrawOnSelection( activeLayer )) {
+                const selection = this.layer.selection;
+                if ( isSelectionClosed( selection ) && canDrawOnSelection( this.layer )) {
                     this._hasSelection    = true;
                     this._selectionClosed = true;
                 } else {
@@ -200,7 +202,7 @@ class LayerSprite extends sprite {
                 this.forceMoveListener();
                 this.setDraggable( true );
                 this._isSelectMode = true;
-                this._hasSelection = activeLayer.selection?.length > 0;
+                this._hasSelection = this.layer.selection?.length > 0;
                 break;
             case ToolTypes.EYEDROPPER:
                 this._isColorPicker = true;
@@ -533,6 +535,25 @@ class LayerSprite extends sprite {
                 documentContext.arc( localPointerX, localPointerY, size / this.canvas.zoomFactor, 0, 2 * Math.PI );
                 documentContext.stroke();
             }
+            documentContext.restore();
+        }
+        // interactive state implies the sprite's Layer is currently active
+        // show a border around the Layer contents to indicate the active area
+        if ( this._interactive ) {
+            documentContext.save();
+            documentContext.lineWidth   = 1 / this.canvas.zoomFactor;
+            documentContext.strokeStyle = "#0db0bc";
+            const { x, y, width, height } = this.layer;
+            const destX = x - viewport.left;
+            const destY = y - viewport.top;
+            if ( this.isRotated()) {
+                const tX = destX + ( width  * .5 );
+                const tY = destY + ( height * .5 );
+                documentContext.translate( tX, tY );
+                documentContext.rotate( this.layer.effects.rotation );
+                documentContext.translate( -tX, -tY );
+            }
+            documentContext.strokeRect( destX, destY, width, height );
             documentContext.restore();
         }
     }
