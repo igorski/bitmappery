@@ -22,8 +22,10 @@
  */
 #include <math.h>
 
-float MAX_8BIT = 255.f;
-float HALF     = 0.5;
+float MAX_8BIT     = 255.f;
+float HALF_MAX8BIT = 2.f / MAX_8BIT;
+float HALF         = 0.5;
+float ONE_THIRD    = 1.f / 3.f;
 
 // internal filter methods
 
@@ -34,10 +36,10 @@ inline void desaturate( float& r, float& g, float& b ) {
     b = grayScale;
 }
 
-inline void gamma( float gamma, float& r, float& g, float& b ) {
-    r = r * gamma * gamma;
-    g = g * gamma * gamma;
-    b = b * gamma * gamma;
+inline void gamma( float gammaSquared, float& r, float& g, float& b ) {
+    r = r * gammaSquared;
+    g = g * gammaSquared;
+    b = b * gammaSquared;
 }
 
 // used for brightness, but is in essence a multiplication for the pixel values
@@ -65,30 +67,32 @@ inline void vibrance( float vibrance, float& r, float& g, float& b ) {
         max = b;
     }
 
-    avg = ( r + g + b ) / 3;
-    amt = (( abs( max - avg ) * 2 / MAX_8BIT ) * vibrance ) / 10; // 100;
+    avg = ( r + g + b ) * ONE_THIRD;
+    amt = (( abs( max - avg ) * HALF_MAX8BIT ) * vibrance ) * 0.1; // 0.01;
 
     if ( r != max ) {
-        r = r + ( max - r ) * amt;
+        r += ( max - r ) * amt;
     }
     if ( g != max ) {
-        g = g + ( max - g ) * amt;
+        g += ( max - g ) * amt;
     }
     if ( b != max ) {
-        b = b + ( max - b ) * amt;
+        b += ( max - b ) * amt;
     }
 }
 
 extern "C" {
     void filter( float* pixels, int length, float vGamma, float vBrightness, float vContrast, float vVibrance, bool doGamma, bool doDesaturate, bool doBrightness, bool doContrast, bool doVibrance ) {
         float r, g, b, a;
+        float gammaSquared = vGamma * vGamma;
+
         for ( size_t i = 0; i < length; i += 4 ) {
             r = pixels[ i ];
             g = pixels[ i + 1 ];
             b = pixels[ i + 2 ];
 
             if ( doGamma )
-                gamma( vGamma, r, g, b );
+                gamma( gammaSquared, r, g, b );
 
             if ( doDesaturate )
                 desaturate( r, g, b );

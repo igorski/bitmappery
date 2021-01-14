@@ -24,8 +24,10 @@ import FiltersFactory from "@/factories/filters-factory";
 import wasmJs from "@/../public/lib/filters.js";
 import { imageDataAsFloat } from "@/utils/wasm-util";
 
-const MAX_8BIT = 255;
-const HALF     = .5;
+const MAX_8BIT     = 255;
+const HALF_MAX8BIT = 2 / MAX_8BIT;
+const ONE_THIRD    = 1 / 3;
+const HALF         = 0.5;
 
 const defaultFilters = FiltersFactory.create();
 let wasmInstance;
@@ -54,17 +56,13 @@ self.addEventListener( "message", async ({ data }) => {
         // which can be set as onto an ImageData in the main application
 
         case "filterWasm":
-            const s1 = Date.now();
             pixelData = renderFiltersWasm( data.imageData, data.filters );
             self.postMessage({ cmd: "complete", id, pixelData });
-            console.warn("wasm took " + ( Date.now() - s1 ));
             break;
 
         case "filter":
-            const s2 = Date.now();
             pixelData = renderFilters( data.imageData, data.filters );
             self.postMessage({ cmd: "complete", id, pixelData });
-            console.warn("inline took " + ( Date.now() - s2 ));
             break;
     }
 }, false );
@@ -81,6 +79,7 @@ const renderFilters = ( imageData, filters ) => {
     const pixels = imageData.data;
     let r, g, b, a;
     let grayScale, max, avg, amt;
+    const gammaSquared = gamma * gamma;
 
     const doBrightness = filters.brightness !== defaultFilters.brightness;
     const doContrast   = filters.contrast   !== defaultFilters.contrast;
@@ -100,9 +99,9 @@ const renderFilters = ( imageData, filters ) => {
 
         // 1. adjust gamma
         if ( doGamma ) {
-            r = r * gamma * gamma;
-            g = g * gamma * gamma;
-            b = b * gamma * gamma;
+            r = r * gammaSquared;
+            g = g * gammaSquared;
+            b = b * gammaSquared;
         }
 
         // 2. desaturate
@@ -130,8 +129,8 @@ const renderFilters = ( imageData, filters ) => {
         // 5. adjust vibrance
         if ( doVibrance ) {
             max = Math.max( r, g, b );
-            avg = ( r + g + b ) / 3;
-            amt = (( Math.abs( max - avg ) * 2 / MAX_8BIT ) * vibrance ) / 10; // 100;
+            avg = ( r + g + b ) * ONE_THIRD;
+            amt = (( Math.abs( max - avg ) * HALF_MAX8BIT ) * vibrance ) * 0.1; // 0.01;
 
             if ( r !== max ) {
                 r = r + ( max - r ) * amt;
