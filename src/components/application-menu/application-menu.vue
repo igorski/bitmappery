@@ -123,6 +123,13 @@
                         ></button>
                     </li>
                     <li>
+                        <button v-t="'clear'"
+                                type="button"
+                                :disabled="!hasSelection || !activeLayer"
+                                @click="deleteInSelection()"
+                        ></button>
+                    </li>
+                    <li>
                         <button v-t="'pasteAsNewLayer'"
                                 type="button"
                                 :disabled="!hasClipboard"
@@ -264,6 +271,7 @@ export default {
             "requestSelectionCopy",
             "clearSelection",
             "pasteSelection",
+            "deleteInSelection",
             "loadDocument",
         ]),
         requestNewDocument() {

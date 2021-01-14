@@ -137,6 +137,12 @@ function handleKeyDown( event ) {
 
     switch ( keyCode )
     {
+        case 8: // backspace
+            if ( getters.activeDocument?.selection.length && getters.activeLayer ) {
+                dispatch( "deleteInSelection" );
+            }
+            break;
+
         case 9: // tab
             commit( "setToolboxOpened",      !state.toolboxOpened );
             commit( "setOptionsPanelOpened", !state.optionsPanelOpened );

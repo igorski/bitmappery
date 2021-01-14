@@ -11,6 +11,7 @@
         "edit": "Edit",
         "undo": "Undo",
         "redo": "Redo",
+        "clear": "Clear",
         "resizeDocument": "Resize document",
         "selection": "Selection",
         "deselectAll": "Deselect all",

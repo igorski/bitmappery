@@ -24,7 +24,7 @@ import KeyboardService from "@/services/keyboard-service";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory    from "@/factories/layer-factory";
 import { initHistory, enqueueState } from "@/factories/history-state-factory";
-import { getCanvasInstance } from "@/factories/sprite-factory";
+import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { LAYER_IMAGE } from "@/definitions/layer-types";
 import { runSpriteFn } from "@/factories/sprite-factory";
 import canvasModule    from "./modules/canvas-module";
@@ -32,8 +32,10 @@ import documentModule  from "./modules/document-module";
 import historyModule   from "./modules/history-module";
 import imageModule     from "./modules/image-module";
 import toolModule      from "./modules/tool-module";
-import { copySelection } from "@/services/render-service";
+import { cloneCanvas } from "@/utils/canvas-util";
+import { copySelection, deleteSelectionContent } from "@/utils/document-util";
 import { saveBlobAsFile, selectFile } from "@/utils/file-util";
+import { replaceLayerSource } from "@/utils/layer-util";
 import { truncate } from "@/utils/string-util";
 
 export const PROJECT_FILE_EXTENSION = ".bpy";
@@ -220,6 +222,27 @@ export default {
                     commit( "removeLayer", index );
                 },
                 redo: paste
+            });
+        },
+        async deleteInSelection({ getters, state }) {
+            const activeLayer = getters.activeLayer;
+            if ( !activeLayer || !getters.activeDocument?.selection.length ) {
+                return;
+            }
+            const orgContent = cloneCanvas( activeLayer.source );
+            const updatedBitmap = deleteSelectionContent( getters.activeDocument, activeLayer );
+            const replaceSource = newSource => {
+                replaceLayerSource( activeLayer, newSource );
+                getSpriteForLayer( activeLayer )?.resetFilterAndRecache();
+            };
+            replaceSource( updatedBitmap );
+            enqueueState( `deleteFromSelection_${activeLayer.id}`, {
+                undo() {
+                    replaceSource( orgContent );
+                },
+                redo() {
+                    replaceSource( updatedBitmap );
+                }
             });
         },
         /**

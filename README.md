@@ -130,11 +130,15 @@ npm run wasm
 
 #### Benchmarks
 
-On a particular configuration, running all filters on a particular source takes:
+On a particular (low powered) configuration, running all filters on a particular source takes:
 
 * 7 seconds in JavaScript
 * 486 ms in JavaScript inside a WebWorker
 * 621 ms in WebAssembly inside a WebWorker
+
+WebAssembly likely takes a performance hit from transforming the ImageData buffer
+to float32 prior to allocating the memory in the WASM instance. This can benefit from
+further benchmarking and tweaking.
 
 # TODO / Roadmap
 

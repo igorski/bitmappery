@@ -77,7 +77,7 @@ import SelectBox  from '@/components/ui/select-box/select-box';
 import Slider     from "@/components/ui/slider/slider";
 import { mapSelectOptions }  from "@/utils/search-select-util";
 import { EXPORTABLE_FILE_TYPES, typeToExt, isCompressableFileType } from "@/definitions/image-types";
-import { createDocumentSnapshot } from "@/services/render-service";
+import { createDocumentSnapshot } from "@/utils/document-util";
 import { saveBlobAsFile }         from "@/utils/file-util";
 import messages from "./messages.json";
 
