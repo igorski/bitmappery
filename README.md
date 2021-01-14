@@ -22,24 +22,24 @@ under the hood for rendering and bitmap blitting. BitMappery is written on top o
 
 BitMappery works with entities known as _Documents_. A Document contains several _Layers_, each of
 which define their content, transformation, _Effects_, etc. Each of the nested entity properties
-has its own factory (see _@/src/factories/_). The Document is managed by the Vuex _document-module.js_.
+has its own factory (see _/src/factories/_). The Document is managed by the Vuex _document-module.js_.
 
 ## Document rendering and interactions
 
 The Document is rendered one layer at a time onto a Canvas element, using [zCanvas](https://github.com/igorski/zCanvas). Both the rendering and interaction handling is performed by dedicated "Sprite" classes.
 
-All layer rendering and interactions are handled by _@/src/components/ui/zcanvas/layer_sprite.js_.
+All layer rendering and interactions are handled by _/src/components/ui/zcanvas/layer_sprite.js_.
 Note that the purpose of the renderer is solely to delegate interactions events to the Layer entity. The
 renderer should represent the properties of the Layer, the Layer should never reverse-engineer from the onscreen
 content (especially as different window size and scaling factor will greatly complicate these matters when
 performed two-way).
 
-Rendering transformations, text and effects is an asynchronous operation handled by _@/src/services/render-service.js_. The purpose of this service is to perform and cache repeated operations and eventually maintain
+Rendering transformations, text and effects is an asynchronous operation handled by _/src/services/render-service.js_. The purpose of this service is to perform and cache repeated operations and eventually maintain
 the source bitmap represented by the LayerSprite. The LayerSprite invokes the rendering service.
 
 All interactions that work across layers (viewport panning, layer selection by clicking on non-transparent
 pixels and selection drawing) is done by a single top level sprite that covers the entire zCanvas area.
-This is handled by _@/src/components/ui/zcanvas/interaction-pane.js_.
+This is handled by _/src/components/ui/zcanvas/interaction-pane.js_.
 
 ## State history
 
@@ -88,29 +88,53 @@ update( propertyName, newValue ) {
 Requires you to [register a client id or access token](https://www.dropbox.com/developers/apps).
 
 ## Project setup
+
+The project setup is two-fold. You can get all the dependencies through NPM as usual:
+
 ```
 npm install
 ```
 
-### Compiles and hot-reloads for development
+after which you can run:
+
+* ```npm run serve``` to start a local development server with hot module reload
+* ```npm run build``` to compile a production package
+* ```npm run test```  to run the unit tests
+* ```npm run lint``` to run the linter on the source files
+
+The above will suffice when working solely on the JavaScript side of things.
+
+### WebAssembly
+
+BitMappery can also use WebAssembly to increase performance of image manipulation. The source
+code is C based and compiled to WASM using [Emscripten](https://github.com/emscripten-core/emscripten). Because this setup is a little more cumbersome, the repository contains precompiled binaries
+in the _./public/bin/_-folder meaning you can omit this setup if you don't intend to make changes
+to these sources.
+
+If you do wish to make contributions on this end, to compile the source (_/src/wasm/_) C-code to WASM, you
+will first need to prepare your environment (note the last _source_ call does not permanently update your paths):
+
 ```
-npm run serve
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+./emsdk install latest
+./emsdk activate latest
+source ./emsdk_env.sh
 ```
 
-### Compiles and minifies for production
+now you can compile all source files to WASM using:
+
 ```
-npm run build
+npm run wasm
 ```
 
-### Run your unit tests
-```
-npm run test
-```
+#### Benchmarks
 
-### Lints and fixes files
-```
-npm run lint
-```
+On a particular configuration, running all filters on a particular source takes:
+
+* 7 seconds in JavaScript
+* 486 ms in JavaScript inside a WebWorker
+* 621 ms in WebAssembly inside a WebWorker
 
 # TODO / Roadmap
 

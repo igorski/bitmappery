@@ -6,7 +6,8 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "test": "vue-cli-service test:unit",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "wasm": "emcc -O3 src/wasm/filters.cpp -s ENVIRONMENT=worker -s ALLOW_MEMORY_GROWTH=1 -s MODULARIZE=1 -s EXPORTED_FUNCTIONS=\"['_malloc', '_free', '_filter']\" -o public/lib/filters.js"
   },
   "dependencies": {
     "@simonwep/pickr": "^1.8.0",

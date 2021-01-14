@@ -38,6 +38,16 @@ import FilterWorker from "@/workers/filter.worker";
 const jobQueue = [];
 let UID = 0;
 
+// TODO make user configurable
+const USE_WASM = false;//!!( "WebAssembly" in window );
+let wasmWorker;
+
+if ( USE_WASM ) {
+    wasmWorker = new FilterWorker();
+    wasmWorker.onmessage = handleWorkerMessage;
+    wasmWorker.postMessage({ cmd: "initWasm" });
+}
+
 export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
     const { effects } = layer;
     const sprite = getSpriteForLayer( layer );
@@ -86,7 +96,7 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
             //console.info( "reading filtered content from cache" );
             imageData = cached.filterData;
         } else {
-            imageData = await runJob( "filters", cvs, { filters: layer.filters });
+            imageData = await runFilterJob( cvs, { filters: layer.filters });
             //console.info( "writing filtered content to cache" );
             cacheToSet.filters    = { ...layer.filters };
             cacheToSet.filterData = imageData;
@@ -187,37 +197,43 @@ export const copySelection = async ( activeDocument, activeLayer ) => {
 /**
  * Run a image processing job in a dedicated Worker.
  *
- * @param {string} cmd Worker command to execute
  * @param {HTMLCanvasElement} source content to process
  * @param {Object} jobSettings job/cmd-specific properties
  * @return {Promise<ImageData>} processed source as ImageData (can be stored in cache)
  */
-const runJob = ( cmd, source, jobSettings ) => {
+const runFilterJob = ( source, jobSettings ) => {
     const { width, height } = source;
     const imageData = source.getContext( "2d" ).getImageData( 0, 0, width, height );
+    const wasm      = USE_WASM && wasmWorker;
 
     return new Promise( async ( resolve, reject ) => {
         const id = ( ++UID );
-        // Worker is lazily created per process so we can parallelize
-        const worker = new FilterWorker();
-        worker.onmessage = handleWorkerMessage;
-        const disposeWorker = () => worker.terminate();
+        let worker, onComplete;
+        if ( wasm ) {
+            worker = wasmWorker;
+        } else {
+            // when not in WASM mode, Worker is lazily created per process so we can parallelize
+            worker = new FilterWorker();
+            worker.onmessage = handleWorkerMessage;
+            onComplete = () => worker.terminate();
+        }
         jobQueue.push({
             id,
             success: async data => {
-                disposeWorker();
-                resolve( data.imageData );
+                imageData.data.set( data.pixelData );
+                onComplete?.();
+                resolve( imageData );
             },
             error: () => {
-                disposeWorker();
+                onComplete?.();
                 reject();
             }
         });
-        worker.postMessage({ cmd, id, imageData, ...jobSettings });
+        worker.postMessage({ cmd: wasm ? "filterWasm" : "filter", id, imageData, ...jobSettings });
     })
 };
 
-const handleWorkerMessage = ({ data }) => {
+function handleWorkerMessage({ data }) {
     const jobQueueObj = getJobFromQueue( data?.id );
     if ( data?.cmd === "complete" ) {
         jobQueueObj?.success( data );
