@@ -223,10 +223,6 @@ class InteractionPane extends sprite {
         // render selection outline
 
         if ( /*this.mode === MODE_SELECTION && */ this.document.selection ) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.lineWidth = 2 / this.canvas.zoomFactor;
-
             let { selection }   = this.document;
             const firstPoint    = selection[ 0 ];
             const localPointerX = this._pointerX - viewport.left; // local to viewport
@@ -242,21 +238,28 @@ class InteractionPane extends sprite {
                     localPointerY - firstPoint.y + viewport.top
                 );
             }
-            // draw each point in the selection
-            selection.forEach(( point, index ) => {
-                ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x - viewport.left, point.y - viewport.top );
-            });
-
             // for lasso selections, draw line to current cursor position
+            let currentPosition = null;
             if ( !this._isRectangleSelect && !this._selectionClosed ) {
-                ctx.lineTo( localPointerX, localPointerY );
+                currentPosition = { x: localPointerX, y: localPointerY };
             }
-            ctx.stroke();
+            // draw each point in the selection
+            ctx.save();
+            drawSelectionOutline( ctx, this.canvas, viewport, selection, "#000", currentPosition );
+            ctx.restore();
+
+            ctx.save();
+            ctx.setLineDash([ 10 / this.canvas.zoomFactor ]);
+            drawSelectionOutline( ctx, this.canvas, viewport, selection, "#FFF", currentPosition );
+            ctx.restore();
+
+            ctx.save();
 
             // highlight current cursor position for unclosed selections
             if ( !this._selectionClosed ) {
                 ctx.beginPath();
                 ctx.lineWidth *= 1.5;
+                ctx.strokeStyle = "#0db0bc";
                 const size = firstPoint && isPointInRange( this._pointerX, this._pointerY, firstPoint.x, firstPoint.y ) ? 15 : 5;
                 ctx.arc( localPointerX, localPointerY, size / this.canvas.zoomFactor, 0, 2 * Math.PI );
                 ctx.stroke();
@@ -272,6 +275,23 @@ class InteractionPane extends sprite {
 export default InteractionPane;
 
 /* internal methods */
+
+function drawSelectionOutline( ctx, zCanvas, viewport, selection, color, currentPosition = null ) {
+    ctx.lineWidth = 2 / zCanvas.zoomFactor;
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    selection.forEach(( point, index ) => {
+        ctx[ index === 0 ? "moveTo" : "lineTo" ](
+            ( .5 + point.x - viewport.left ) << 0,
+            ( .5 + point.y - viewport.top )  << 0
+        );
+    });
+    // for lasso selections, draw line to current cursor position
+    if ( currentPosition ) {
+        ctx.lineTo(( .5 + currentPosition.x ) << 0, ( .5 + currentPosition.y ) << 0 );
+    }
+    ctx.stroke();
+}
 
 function storeSelectionHistory( document, optPreviousSelection = [] ) {
     const selection = [ ...document.selection ];

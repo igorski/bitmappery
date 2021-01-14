@@ -148,7 +148,6 @@ further benchmarking and tweaking.
 * Implement action queue when drawing, only execute drawing on zCanvas.sprite.update()-hook
 * Maintain cache for source images at the display destination size (invalidate on window resize / zoom), this prevents processing large images that are never displayed at their full scale
 * Dragging of masks on rotated/mirror content is kinda broken
-* Animate selection lines between white and black colors
 * Restored base64 images should be treated as binary once more (see layer-factory)
 * Zoom set original size isn't that accurate (check also on mobile views), needs calculateMaxScaling ?
 * Unload Blobs when images are no longer used in document (see sprite-factory disposeSprite, keep instance count of usages)
