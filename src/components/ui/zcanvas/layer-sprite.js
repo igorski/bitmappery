@@ -59,6 +59,7 @@ class LayerSprite extends sprite {
         this._pointerX    = 0;
         this._pointerY    = 0;
         this._paintQueue  = [];
+        this._paintStart  = null;
 
         this.setActionTarget();
 
@@ -440,12 +441,18 @@ class LayerSprite extends sprite {
         // brush tool active (either draws/erases onto IMAGE_GRAPHIC layer source or on the mask bitmap)
         if ( this._applyPaint ) {
             // actual painting is deferred to render cycle
-            this._paintQueue.push({ x, y });
+            if ( !this._paintQueue.length ) {
+                this._paintQueue.push({ x, y });
+            }
+            if (!this._paintStart) {
+                this._paintStart = { x, y };
+            }
         }
     }
 
     handleRelease( x, y ) {
         this._applyPaint = false;
+        this._paintStart = null;
         if ( this._isPaintMode ) {
             this.forceMoveListener(); // keeps the move listener active
         }
@@ -454,15 +461,42 @@ class LayerSprite extends sprite {
     update( timestamp ) {
         super.update( timestamp );
         const pqLength = this._paintQueue.length;
-        if ( pqLength > 0 ) {
-            const firstPoint    = this._paintQueue[ 0 ];
+        if ( pqLength > 0 && this._paintStart ) {
+            const firstPoint = this._paintStart;
             const pointsToPaint = [ firstPoint ];
             if ( this._toolType !== ToolTypes.FILL ) {
-                const lastPoint = { x: this._pointerX, y: this._pointerY };
-                console.warn(firstPoint,lastPoint);
-            }
-            console.warn("processed " + this._paintQueue.length + " queue items.");
+                const lastPoint  = this._paintQueue[ this._paintQueue.length - 1 ];
+                const firstX = firstPoint.x < lastPoint.x ? firstPoint : lastPoint;
+                const lastX  = firstX === firstPoint ? lastPoint : firstPoint;
+                const firstY = firstPoint.y < lastPoint.y ? firstPoint : lastPoint;
+                const lastY = firstY === firstPoint ? lastPoint : firstPoint;
+                const steps = Math.max( lastX.x - firstX.x, lastY.y - firstY.y );
 
+                const xSteps = lastX.x - firstX.x;
+                const ySteps = lastY.y - firstY.y;
+
+                const xIncrement = xSteps / ( this._radius * 0.5 );
+                const yIncrement = ySteps / ( this._radius * 0.5 );
+
+                console.warn("horizontal steps to draw:" + (( lastX.x - firstX.x ) / xIncrement ));
+                console.warn("vertical steps to draw:" + (( lastY.y - firstY.y ) / yIncrement ));
+
+                let x = firstX.x;
+                let y = firstY.y;
+
+                if ( xSteps >= ySteps ) {
+                    for ( ; x < lastX.x; x += xIncrement ) {
+                        pointsToPaint.push({ x, y });
+                        y += yIncrement;
+                    }
+                } else {
+                    for ( ; y < lastY.y; y += yIncrement ) {
+                        pointsToPaint.push({ x, y });
+                        x += xIncrement;
+                    }
+                }
+                this._paintStart = lastPoint;
+            }
             pointsToPaint.forEach(({ x, y }) => this.paint( x, y ));
             this._paintQueue = [];
         }
