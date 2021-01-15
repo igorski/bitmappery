@@ -58,7 +58,6 @@ describe( "Layer factory", () => {
                 text: mockText,
                 effects: mockEffects,
                 filters: mockFilters,
-                selection: null,
             });
         });
 
@@ -98,7 +97,6 @@ describe( "Layer factory", () => {
                 text: { value: "Lorem ipsum" },
                 effects: { rotation: 270 },
                 filters: { contrast: .7 },
-                selection: null,
             })
         });
     });

@@ -104,10 +104,12 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
+import isEqual from "lodash.isequal";
 import { ToggleButton } from "vue-js-toggle-button";
 import Modal  from "@/components/modal/modal";
 import Slider from "@/components/ui/slider/slider";
 import FiltersFactory from "@/factories/filters-factory";
+import { enqueueState } from "@/factories/history-state-factory";
 import messages from "./messages.json";
 
 export default {
@@ -188,6 +190,21 @@ export default {
             "closeModal",
         ]),
         save() {
+            // if filter settings were changed, store these in state history
+            const store      = this.$store;
+            const index      = this.activeLayerIndex;
+            const orgFilters = this.orgFilters;
+            const filters    = this.internalValue;
+            if ( !isEqual( filters, orgFilters )) {
+                enqueueState( `filters_${this.activeLayer.id}`, {
+                    undo() {
+                        store.commit( "updateLayer", { index, opts: { filters: orgFilters } });
+                    },
+                    redo() {
+                        store.commit( "updateLayer", { index, opts: { filters }});
+                    },
+                });
+            }
             // no need to call update(), computed setters have triggered model update
             this.closeModal();
         },

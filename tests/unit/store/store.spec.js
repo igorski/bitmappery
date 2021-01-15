@@ -16,7 +16,12 @@ jest.mock( "@/factories/document-factory", () => ({
 jest.mock( "@/utils/file-util", () => ({
     selectFile: (...args) => mockUpdateFn?.( "selectFile", ...args ),
     saveBlobAsFile: (...args) => mockUpdateFn?.( "saveBlobAsFile", ...args ),
-}))
+}));
+jest.mock("@/utils/canvas-util", () => ({
+    createCanvas: jest.fn(),
+    imageToBase64: jest.fn(),
+    base64ToLayerImage: jest.fn()
+}));
 
 describe( "Vuex store", () => {
     describe( "getters", () => {
@@ -270,18 +275,11 @@ describe( "Vuex store", () => {
             const state = {
                 selectionContent: { image: { src: "foo" }, size: { width: 40, height: 30 } },
             };
-            const mockedGetters = { activeDocument: { width: 200, height: 150 } };
+            const mockedGetters = { activeDocument: { width: 200, height: 150, layers: [] } };
             const commit   = jest.fn();
             const dispatch = jest.fn();
             await actions.pasteSelection({ state, getters: mockedGetters, commit, dispatch });
-            expect( commit ).toHaveBeenCalledWith( "addLayer", {
-                type: LAYER_IMAGE,
-                source: state.selectionContent.image,
-                width: state.selectionContent.size.width,
-                height: state.selectionContent.size.height,
-                x: 80,
-                y: 60
-            });
+            expect( commit ).toHaveBeenCalledWith( "insertLayerAtIndex", { index: 0, layer: expect.any( Object ) });
             expect( dispatch ).toHaveBeenCalledWith( "clearSelection" );
         });
     });

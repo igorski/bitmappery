@@ -45,9 +45,9 @@ export default {
         cloneOptions  : state => state.options[ ToolTypes.CLONE ],
     },
     mutations: {
-        setActiveTool( state, { tool, activeLayer }) {
+        setActiveTool( state, { tool, document }) {
             state.activeTool = tool;
-            runSpriteFn( sprite => sprite.handleActiveTool( tool, state.options[ state.activeTool ], activeLayer ));
+            runSpriteFn( sprite => sprite.handleActiveTool( tool, state.options[ state.activeTool ], document ));
         },
         setActiveColor( state, color ) {
             state.activeColor = color;

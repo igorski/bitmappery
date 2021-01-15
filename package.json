@@ -6,7 +6,8 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "test": "vue-cli-service test:unit",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "wasm": "emcc -O3 src/wasm/filters.cpp -s ENVIRONMENT=worker -s ALLOW_MEMORY_GROWTH=1 -s MODULARIZE=1 -s EXPORTED_FUNCTIONS=\"['_malloc', '_free', '_filter']\" -o public/lib/filters.js"
   },
   "dependencies": {
     "@simonwep/pickr": "^1.8.0",
@@ -35,9 +36,11 @@
     "bowser": "^2.11.0",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
+    "lodash.isequal": "^4.5.0",
     "lz-string": "^1.4.4",
     "node-sass": "^4.12.0",
     "sass-loader": "^8.0.2",
+    "undo-manager": "^1.0.5",
     "vue-i18n": "^8.22.2",
     "vue-js-toggle-button": "^1.3.3",
     "vue-search-select": "^2.9.3",

@@ -31,10 +31,10 @@ module.exports = {
 		config.module.rule( "js" ).exclude.add( /\.worker\.js$/ );
 	},
     configureWebpack: {
-       plugins: [
-           new CopyWebpackPlugin([
-               { from: `${dirAssets}`, to: "assets", flatten: false }
-           ]),
-       ]
-   }
+        plugins: [
+            new CopyWebpackPlugin([
+                { from: `${dirAssets}`, to: "assets", flatten: false }
+            ]),
+        ]
+    }
 };

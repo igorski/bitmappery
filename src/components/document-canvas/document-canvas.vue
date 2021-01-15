@@ -55,9 +55,9 @@
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import ZoomableCanvas from "@/components/ui/zcanvas/zoomable-canvas";
 import FileImport from "@/components/file-import/file-import";
-import InteractionPane, { MODE_PAN, MODE_LAYER_SELECT } from "@/components/ui/zcanvas/interaction-pane";
+import { MODE_PAN, MODE_LAYER_SELECT, MODE_SELECTION } from "@/components/ui/zcanvas/interaction-pane";
 import Scrollbars from "./scrollbars/scrollbars";
-import ToolTypes, { MAX_ZOOM, calculateMaxScaling } from "@/definitions/tool-types";
+import ToolTypes, { MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@/definitions/tool-types";
 import { scaleToRatio, scaleValue } from "@/math/image-math";
 import { isMobile } from "@/utils/environment-util";
 import {
@@ -95,6 +95,7 @@ export default {
             "windowSize",
             "panMode",
             "layerSelectMode",
+            "selectMode",
         ]),
         ...mapGetters([
             "activeDocument",
@@ -113,6 +114,7 @@ export default {
             handler( document, oldValue = null ) {
                 // no active document or no document content
                 if ( !document?.layers ) {
+                    this.resetHistory();
                     if ( getCanvasInstance() ) {
                         getCanvasInstance().dispose();
                         setCanvasInstance( null );
@@ -129,13 +131,14 @@ export default {
                 const { id } = document;
                 // switching between documents
                 if ( id !== lastDocument ) {
+                    this.resetHistory();
                     lastDocument = id;
                     flushSpriteCache();
                     flushBitmapCache();
                     layerPool.clear();
                     this.calcIdealDimensions();
                     this.$nextTick(() => {
-                        this.setActiveTool({ tool: this.activeTool || ToolTypes.MOVE, layer: this.activeLayer });
+                        this.setActiveTool({ tool: this.activeTool || ToolTypes.MOVE, document: this.activeDocument });
                     });
                 }
             }
@@ -166,6 +169,7 @@ export default {
                     zCanvas.removeChild( sprite );
                     zCanvas.addChild( sprite );
                 });
+                zCanvas?.interactionPane.stayOnTop();
             },
         },
         activeLayer: {
@@ -175,13 +179,19 @@ export default {
                 }
                 const { id } = layer;
                 [ ...layerPool.entries() ].forEach(([ key, sprite ]) => {
-                    sprite.setInteractive( key === id )
+                    sprite.handleActiveLayer( layer );
                 });
             },
         },
         activeTool( tool ) {
-            this.handleCursor();
-            this.setPanMode( tool === ToolTypes.MOVE );
+            if ( usesInteractionPane( tool )) {
+                this.setPanMode( tool === ToolTypes.MOVE );
+                this.setSelectMode([ ToolTypes.SELECTION, ToolTypes.LASSO ].includes( tool ));
+                this.updateInteractionPane();
+            } else {
+                this.handleCursor();
+                getCanvasInstance()?.interactionPane.setInteractive( false );
+            }
         },
         zoomOptions: {
             deep: true,
@@ -197,10 +207,13 @@ export default {
             }
         },
         panMode( value ) {
-            this.createInteractionPane( value, MODE_PAN, "cursor-drag" );
+            this.updateInteractionPane( "cursor-drag" );
         },
         layerSelectMode( value ) {
-            this.createInteractionPane( value, MODE_LAYER_SELECT, "cursor-pointer" );
+            this.updateInteractionPane();
+        },
+        selectMode( value ) {
+            this.updateInteractionPane();
         },
     },
     async mounted() {
@@ -212,7 +225,9 @@ export default {
         ...mapMutations([
             "setZCanvasBaseDimensions",
             "setPanMode",
+            "setSelectMode",
             "setActiveTool",
+            "resetHistory",
         ]),
         ...mapActions([
             "requestDocumentClose",
@@ -226,8 +241,8 @@ export default {
                 smoothing: true,
                 stretchToFit: false,
                 viewport: {
-                    width: this.viewportWidth,
-                    height: this.viewportHeight
+                    width  : this.viewportWidth,
+                    height : this.viewportHeight
                 },
                 handler: this.handleCanvasEvent.bind( this ),
             }, this.$store, this.calcIdealDimensions );
@@ -318,26 +333,31 @@ export default {
                 case ToolTypes.ERASER:
                     canvasClasses.add( "no-cursor" );
                     break;
-                case ToolTypes.LASSO:
-                case ToolTypes.SELECTION:
-                    canvasClasses.add( "cursor-pointer" );
-                    break;
                 case ToolTypes.EYEDROPPER:
                     canvasClasses.add( "cursor-crosshair" );
                     break;
             }
         },
-        createInteractionPane( enabled, mode, pointerStyle ) {
+        updateInteractionPane( pointerStyle = "cursor-pointer" ) {
             const zCanvas = getCanvasInstance();
-            if ( enabled && zCanvas ) {
-                interactionPane = new InteractionPane( zCanvas, mode );
-                zCanvas.addChild( interactionPane );
-                const classList = zCanvas.getElement().classList;
-                classList.remove( ...classList );
-                classList.add( pointerStyle );
-            } else {
-                interactionPane?.dispose();
-                this.handleCursor(); // restore cursor to value appropriate to current tool
+            if ( zCanvas ) {
+                const enabled = this.panMode || this.layerSelectMode || this.selectMode;
+                let mode;
+                if ( this.panMode ) {
+                    mode = MODE_PAN;
+                } else if ( this.layerSelectMode ) {
+                    mode = MODE_LAYER_SELECT;
+                } else if ( this.selectMode ) {
+                    mode = MODE_SELECTION;
+                }
+                zCanvas.interactionPane.setState( enabled, this.activeDocument, mode, this.activeTool );
+                if ( enabled ) {
+                    const classList = zCanvas.getElement().classList;
+                    classList.remove( ...classList );
+                    classList.add( pointerStyle );
+                } else {
+                    this.handleCursor(); // restore cursor to value appropriate to current tool
+                }
             }
         }
     },

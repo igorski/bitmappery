@@ -233,6 +233,20 @@ describe( "Vuex document module", () => {
                     { name: "layer1" }, expect.any( Object )
                 ]);
             });
+
+            it( "should be able to add layers at specific indices in the layer list", () => {
+                const state = {
+                    documents: [ { name: "foo", layers: [{ name: "layer1" }, { name: "layer2" }] }],
+                    activeIndex: 0,
+                    activeLayerIndex: 0,
+                };
+                const layer = { name: "layer3" };
+                mutations.insertLayerAtIndex( state, { index: 1, layer });
+                expect( state.documents[0].layers).toEqual([
+                    { name: "layer1" }, layer, { name: "layer2" }
+                ]);
+                expect( state.activeLayerIndex ).toEqual( 1 );
+            });
         });
 
         describe( "when removing layers", () => {

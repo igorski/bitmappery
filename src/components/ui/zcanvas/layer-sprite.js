@@ -22,16 +22,15 @@
  */
 import Vue from "vue";
 import { sprite } from "zcanvas"
-import { createCanvas, resizeImage, globalToLocal } from "@/utils/canvas-util";
+import { createCanvas, cloneCanvas, resizeImage, globalToLocal } from "@/utils/canvas-util";
 import { renderCross, renderMasked } from "@/utils/render-util";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
-import {
-    isPointInRange, translatePointerRotation, rotatePoints, rectangleToCoordinates
-} from "@/math/image-math";
+import { translatePointerRotation, rotatePoints } from "@/math/image-math";
 import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { flushLayerCache, clearCacheProperty } from "@/services/caches/bitmap-cache";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { enqueueState } from "@/factories/history-state-factory";
 import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
 
 /**
@@ -61,7 +60,6 @@ class LayerSprite extends sprite {
         this._pointerY    = 0;
         this._paintQueue  = [];
 
-        this.cacheBrush( this.canvas?.store.getters.activeColor || "rgba(255,0,0,1)" );
         this.setActionTarget();
 
         if ( layer.source instanceof Image ) {
@@ -147,21 +145,25 @@ class LayerSprite extends sprite {
         return this._bitmap;
     }
 
-    handleActiveTool( tool, toolOptions, activeLayer ) {
-        this.isDragging     = false;
-        this._isPaintMode   = false;
-        this._isSelectMode  = false;
-        this._isColorPicker = false;
-        this._hasSelection  = false;
-        this._toolOptions   = null;
-
+    handleActiveLayer( activeLayer ) {
         this.setInteractive( this.layer === activeLayer );
+    }
+
+    handleActiveTool( tool, toolOptions, activeDocument ) {
+        this.isDragging        = false;
+        this._isPaintMode      = false;
+        this._isColorPicker    = false;
+        this._selection        = null;
+        this._toolOptions      = null;
+        this._cloneStartCoords = null;
+
+        // store pending paint states (if there were any)
+        this.storePaintState();
 
         if ( !this._interactive ) {
             return;
         }
         this._isDragMode        = tool === ToolTypes.DRAG;
-        this._isRectangleSelect = tool === ToolTypes.SELECTION;
         this._toolType          = tool;
         this._toolOptions       = toolOptions;
 
@@ -186,51 +188,16 @@ class LayerSprite extends sprite {
                 this._isPaintMode = true;
 
                 // drawable tools can work alongside an existing selection
-                const selection = activeLayer.selection;
-                if ( isSelectionClosed( selection ) && canDrawOnSelection( activeLayer )) {
-                    this._hasSelection    = true;
-                    this._selectionClosed = true;
-                } else {
-                    this._hasSelection = false;
-                    this.resetSelection();
+                const selection = activeDocument.selection;
+                if ( isSelectionClosed( selection ) && canDrawOnSelection( this.layer )) {
+                    this._selection = selection;
                 }
-                break;
-            case ToolTypes.SELECTION:
-            case ToolTypes.LASSO:
-                this.forceMoveListener();
-                this.setDraggable( true );
-                this._isSelectMode = true;
-                this._hasSelection = activeLayer.selection?.length > 0;
                 break;
             case ToolTypes.EYEDROPPER:
                 this._isColorPicker = true;
                 break;
         }
-        if ( !this._isPaintMode ) {
-            this.resetSelection();
-        }
         this.invalidate();
-    }
-
-    resetSelection() {
-        if ( this._isSelectMode ) {
-            this.setSelection( [] );
-        } else {
-            Vue.delete( this.layer, "selection" );
-            this.invalidate();
-        }
-        this._selectionClosed = false;
-    }
-
-    setSelection( value ) {
-        Vue.set( this.layer, "selection", value );
-        this._selectionClosed = value.length > 1; // TODO: can we determine this from first and last point?
-        this.invalidate();
-    }
-
-    selectAll() {
-        this.setSelection( rectangleToCoordinates( this._bounds.left, this._bounds.top, this._bounds.width, this._bounds.height ));
-        this._isSelectMode = true;
     }
 
     // cheap way to hook into zCanvas.handleMove()-handler so we can keep following the cursor in tool modes
@@ -240,7 +207,13 @@ class LayerSprite extends sprite {
         this._dragStartEventCoordinates = { x: this._pointerX, y: this._pointerY };
     }
 
+    // draw onto the source Bitmap (e.g. brushing / fill tool / eraser)
+
     paint( x, y ) {
+        if ( !this._pendingPaintState ) {
+            this.preparePendingPaintState();
+        }
+
         // translate pointer to translated space, when layer is rotated or mirrored
         const { mirrorX, mirrorY, rotation } = this.layer.effects;
         const rotCenterX = this._bounds.left + this._bounds.width  / 2;
@@ -276,8 +249,8 @@ class LayerSprite extends sprite {
 
         // if there is an active selection, painting will be constrained within
 
-        if ( this.layer.selection ) {
-            let selectionPoints = this.layer.selection;
+        if ( this._selection ) {
+            let selectionPoints = this._selection;
             let sX = this._bounds.left;
             let sY = this._bounds.top;
             if ( this.isRotated() ) {
@@ -306,7 +279,7 @@ class LayerSprite extends sprite {
 
         if ( isFillMode ) {
             ctx.fillStyle = this.canvas?.store.getters.activeColor;
-            if ( this.layer.selection ) {
+            if ( this._selection ) {
                 ctx.fill();
                 ctx.closePath(); // is this necessary ?
             } else {
@@ -330,52 +303,80 @@ class LayerSprite extends sprite {
         this.resetFilterAndRecache();
     }
 
+    /**
+     * As storing Bitmaps will consume a lot of memory fast we debounce this by
+     * a larger interval to prevent creating a big bitmap per brush stroke.
+     * Note that upon switching tools the state is enqueued immediately to
+     * not delay to history state UI from updating more than necessary.
+     */
+    preparePendingPaintState() {
+        this._orgSourceToStore  = cloneCanvas( this.layer.source );
+        this._pendingPaintState = setTimeout( this.storePaintState.bind( this ), 5000 );
+    }
+
+    storePaintState() {
+        if ( !this._pendingPaintState ) {
+            return;
+        }
+        clearTimeout( this._pendingPaintState );
+        this._pendingPaintState = null;
+        const layer    = this.layer;
+        const orgState = this._orgSourceToStore;
+        const newState = cloneCanvas( layer.source );
+        enqueueState( `spritePaint_${layer.id}`, {
+            undo() {
+                restorePaintFromHistory( layer, orgState );
+            },
+            redo() {
+                restorePaintFromHistory( layer, newState);
+            }
+        });
+        this._orgSourceToStore = null;
+    }
+
     /* the following override zCanvas.sprite */
 
     setBounds( x, y, width = 0, height = 0 ) {
-        const bounds        = this._bounds;
+        const bounds = this._bounds;
+        const layer  = this.layer;
+
+        // store current values (for undo)
         const { left, top } = bounds;
+        const oldLayerX = layer.x;
+        const oldLayerY = layer.y;
 
         if ( width === 0 || height === 0 ) {
             ({ width, height } = bounds );
         }
+        // commit change
         super.setBounds( x, y, width, height );
+
+        // store new value (for redo)
+        const newX = bounds.left;
+        const newY = bounds.top;
 
         // update the Layer model by the relative offset
         // (because the Sprite has an alternate position when rotated)
 
-        this.layer.x += bounds.left - left;
-        this.layer.y += bounds.top  - top;
-        this.invalidate();
-    }
+        const newLayerX = layer.x + ( newX - left );
+        const newLayerY = layer.y + ( newY - top );
 
-    handleMove( x, y, { type }) {
-        // store reference to current pointer position (relative to canvas)
-        // note that for touch events this is handled in handlePress() instead
-        if ( !type.startsWith( "touch" )) {
-            this._pointerX = x;
-            this._pointerY = y;
-        }
+        layer.x = newLayerX;
+        layer.y = newLayerY;
 
-        let recacheEffects = false;
-
-        if ( !this._isPaintMode ) {
-            // not drawable, perform default behaviour (drag)
-            if ( this.actionTarget === "mask" ) {
-                this.layer.maskX = this._dragStartOffset.x + (( x - this._bounds.left ) - this._dragStartEventCoordinates.x );
-                this.layer.maskY = this._dragStartOffset.y + (( y - this._bounds.top )  - this._dragStartEventCoordinates.y );
-                this.resetFilterAndRecache();
-            } else if ( this._isDragMode /*!this._isSelectMode*/ ) {
-                super.handleMove( x, y );
-                return;
+        enqueueState( `spritePos_${layer.id}`, {
+            undo() {
+                positionSpriteFromHistory( layer, left, top );
+                layer.x = oldLayerX;
+                layer.y = oldLayerY;
+            },
+            redo() {
+                positionSpriteFromHistory( layer, newX, newY );
+                layer.x = newLayerX;
+                layer.y = newLayerY;
             }
-        }
-
-        // brush tool active (either draws/erases onto IMAGE_GRAPHIC layer source or on the mask bitmap)
-        if ( this._applyPaint ) {
-            // actual painting is deferred to render cycle
-            this._paintQueue.push({ x, y });
-        }
+        });
+        this.invalidate();
     }
 
     handlePress( x, y, { type }) {
@@ -394,39 +395,59 @@ class LayerSprite extends sprite {
             this.canvas.store.commit( "setActiveColor", `rgba(${p[0]},${p[1]},${p[2]},${(p[3]/255)})` );
         }
         else if ( this._isPaintMode ) {
-            if ( this._toolType === ToolTypes.CLONE && !this._toolOptions.coords ) {
-                // pressing down when using the clone tool with no coords yet defined, sets the source coords.
-                this._toolOptions.coords = { x, y };
+            if ( this._toolType === ToolTypes.CLONE ) {
+                // pressing down when using the clone tool with no coords defined in the _toolOptions,
+                // sets the source coords (within the source Layer)
+                if ( !this._toolOptions.coords ) {
+                    this._toolOptions.coords = { x, y };
+                    return;
+                } else if ( !this._cloneStartCoords ) {
+                    // pressing down again indicates the cloning paint operation starts (in handleMove())
+                    // set the start coordinates (of this target Layer) relative to the source Layers coords
+                    this._cloneStartCoords = { x, y };
+                }
             } else if ( this._toolType === ToolTypes.FILL ) {
                 this.paint( x, y );
-            } else {
-                // for any other brush mode state, set the brush application to true (will be applied in handleMove())
-                this._applyPaint = true;
+                return;
+            }
+            // for any other brush mode state, set the brush application to true (will be applied in handleMove())
+            this._applyPaint = true;
+        }
+    }
+
+    handleMove( x, y, { type }) {
+        // store reference to current pointer position (relative to canvas)
+        // note that for touch events this is handled in handlePress() instead
+        if ( !type.startsWith( "touch" )) {
+            this._pointerX = x;
+            this._pointerY = y;
+        }
+
+        let recacheEffects = false;
+
+        if ( !this._isPaintMode ) {
+            // not drawable, perform default behaviour (drag)
+            if ( this.actionTarget === "mask" ) {
+                this.layer.maskX = this._dragStartOffset.x + (( x - this._bounds.left ) - this._dragStartEventCoordinates.x );
+                this.layer.maskY = this._dragStartOffset.y + (( y - this._bounds.top )  - this._dragStartEventCoordinates.y );
+                this.resetFilterAndRecache();
+            } else if ( this._isDragMode ) {
+                super.handleMove( x, y );
+                return;
             }
         }
-        else if ( this._isSelectMode && !this._selectionClosed ) {
-            // selection mode, set the click coordinate as the first point in the selection
-            const firstPoint = this.layer.selection[ 0 ];
-            if ( firstPoint && isPointInRange( x, y, firstPoint.x, firstPoint.y )) {
-                this._selectionClosed = true;
-                x = firstPoint.x;
-                y = firstPoint.y;
-            }
-            this.layer.selection.push({ x, y });
+
+        // brush tool active (either draws/erases onto IMAGE_GRAPHIC layer source or on the mask bitmap)
+        if ( this._applyPaint ) {
+            // actual painting is deferred to render cycle
+            this._paintQueue.push({ x, y });
         }
     }
 
     handleRelease( x, y ) {
         this._applyPaint = false;
-        if ( this._isPaintMode || this._isSelectMode ) {
+        if ( this._isPaintMode ) {
             this.forceMoveListener(); // keeps the move listener active
-            if ( this._isRectangleSelect && this.layer.selection.length > 0 ) {
-                // when releasing in rectangular select mode, set the selection to
-                // the bounding box of the down press coordinate and this release coordinate
-                const firstPoint = this.layer.selection[ 0 ];
-                this.layer.selection = rectangleToCoordinates( firstPoint.x, firstPoint.y, x - firstPoint.x, y - firstPoint.y );
-                this._selectionClosed = true;
-            }
         }
     }
 
@@ -458,9 +479,10 @@ class LayerSprite extends sprite {
                 const { coords } = this._toolOptions;
                 let tx = this._pointerX - viewport.left;
                 let ty = this._pointerY - viewport.top;
+                const relSource = this._cloneStartCoords ?? this._dragStartEventCoordinates;
                 if ( coords ) {
-                    tx = ( coords.x - viewport.left ) + ( this._pointerX - this._dragStartEventCoordinates.x );
-                    ty = ( coords.y - viewport.top  ) + ( this._pointerY - this._dragStartEventCoordinates.y );
+                    tx = ( coords.x - viewport.left ) + ( this._pointerX - relSource.x );
+                    ty = ( coords.y - viewport.top  ) + ( this._pointerY - relSource.y );
                 }
                 // when no source coordinate is set, or when applying the clone stamp, we show a cross to mark the origin
                 if ( !coords || this._applyPaint ) {
@@ -477,46 +499,24 @@ class LayerSprite extends sprite {
             documentContext.stroke();
             documentContext.restore();
         }
-        // render selection outline
-        if (( this._isSelectMode || this._hasSelection ) && this.layer.selection ) {
+
+        // interactive state implies the sprite's Layer is currently active
+        // show a border around the Layer contents to indicate the active area
+        if ( this._interactive ) {
             documentContext.save();
-            documentContext.beginPath();
-            documentContext.lineWidth = 2 / this.canvas.zoomFactor;
-
-            let { selection }   = this.layer;
-            const firstPoint    = selection[ 0 ];
-            const localPointerX = this._pointerX - viewport.left; // local to viewport
-            const localPointerY = this._pointerY - viewport.top;
-
-            // when in rectangular select mode, the outline will draw from the first coordinate
-            // (defined in handlePress()) to the current pointer coordinate
-            if ( this._isRectangleSelect && selection.length && !this._selectionClosed ) {
-                selection = rectangleToCoordinates(
-                    firstPoint.x,
-                    firstPoint.y,
-                    localPointerX - firstPoint.x + viewport.left,
-                    localPointerY - firstPoint.y + viewport.top
-                );
+            documentContext.lineWidth   = 1 / this.canvas.zoomFactor;
+            documentContext.strokeStyle = "#0db0bc";
+            const { x, y, width, height } = this.layer;
+            const destX = x - viewport.left;
+            const destY = y - viewport.top;
+            if ( this.isRotated()) {
+                const tX = destX + ( width  * .5 );
+                const tY = destY + ( height * .5 );
+                documentContext.translate( tX, tY );
+                documentContext.rotate( this.layer.effects.rotation );
+                documentContext.translate( -tX, -tY );
             }
-            // draw each point in the selection
-            selection.forEach(( point, index ) => {
-                documentContext[ index === 0 ? "moveTo" : "lineTo" ]( point.x - viewport.left, point.y - viewport.top );
-            });
-
-            // for lasso selections, draw line to current cursor position
-            if ( !this._isRectangleSelect && !this._selectionClosed ) {
-                documentContext.lineTo( localPointerX, localPointerY );
-            }
-            documentContext.stroke();
-
-            // highlight current cursor position for unclosed selections
-            if ( !this._selectionClosed ) {
-                documentContext.beginPath();
-                documentContext.lineWidth *= 1.5;
-                const size = firstPoint && isPointInRange( this._pointerX, this._pointerY, firstPoint.x, firstPoint.y ) ? 15 : 5;
-                documentContext.arc( localPointerX, localPointerY, size / this.canvas.zoomFactor, 0, 2 * Math.PI );
-                documentContext.stroke();
-            }
+            documentContext.strokeRect( destX, destY, width, height );
             documentContext.restore();
         }
     }
@@ -532,3 +532,23 @@ class LayerSprite extends sprite {
     }
 }
 export default LayerSprite;
+
+/* internal non-instance methods */
+
+// NOTE we use getSpriteForLayer() instead of passing the Sprite by reference
+// as it is possible the Sprite originally rendering the Layer has been disposed
+// and a new one has been created while traversing the change history
+
+function positionSpriteFromHistory( layer, x, y ) {
+    const sprite = getSpriteForLayer( layer );
+    if ( sprite ) {
+        sprite._bounds.left = x;
+        sprite._bounds.top  = y;
+        sprite.invalidate();
+    }
+}
+
+function restorePaintFromHistory( layer, orgState ) {
+    layer.source = orgState;
+    getSpriteForLayer( layer )?.resetFilterAndRecache();
+}

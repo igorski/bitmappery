@@ -83,6 +83,7 @@ import { mapGetters, mapMutations } from "vuex";
 import SelectBox  from '@/components/ui/select-box/select-box';
 import Slider     from "@/components/ui/slider/slider";
 import { mapSelectOptions } from "@/utils/search-select-util";
+import { enqueueState } from "@/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
 import { loadGoogleFont } from "@/services/font-service";
 import { googleFonts } from "@/definitions/font-types";
@@ -125,10 +126,7 @@ export default {
                 this.renderPending = true;
                 window.setTimeout(() => {
                     this.renderPending = false;
-                    this.updateLayer({
-                        index: this.activeLayerIndex,
-                        opts: this.formatOpts({ value })
-                    });
+                    this.update({ value }, "value" );
                 }, 75 );
             }
         },
@@ -137,10 +135,7 @@ export default {
                 return this.activeLayer?.text?.size;
             },
             set( size ) {
-                this.updateLayer({
-                    index: this.activeLayerIndex,
-                    opts: this.formatOpts({ size })
-                });
+                this.update({ size }, "size" );
             }
         },
         lineHeight: {
@@ -148,10 +143,7 @@ export default {
                 return this.activeLayer?.text?.lineHeight;
             },
             set( lineHeight ) {
-                this.updateLayer({
-                    index: this.activeLayerIndex,
-                    opts: this.formatOpts({ lineHeight }),
-                });
+                this.update({ lineHeight }, "lineHeight" );
             }
         },
         spacing: {
@@ -159,10 +151,7 @@ export default {
                 return this.activeLayer?.text?.spacing;
             },
             set( spacing ) {
-                this.updateLayer({
-                    index: this.activeLayerIndex,
-                    opts: this.formatOpts({ spacing }),
-                });
+                this.update({ spacing }, "spacing" );
             }
         },
         color: {
@@ -170,10 +159,7 @@ export default {
                 return this.activeLayer?.text?.color;
             },
             set( color ) {
-                this.updateLayer({
-                    index: this.activeLayerIndex,
-                    opts: this.formatOpts({ color })
-                });
+                this.update({ color }, "color" );
             }
         },
         font: {
@@ -181,10 +167,7 @@ export default {
                 return this.activeLayer?.text?.font;
             },
             set( font ) {
-                this.updateLayer({
-                    index: this.activeLayerIndex,
-                    opts: this.formatOpts({ font })
-                });
+                this.update({ font }, "font" );
             }
         }
     },
@@ -215,18 +198,34 @@ export default {
         handleBlur() {
             KeyboardService.setSuspended( false );
         },
-        formatOpts( textOpts = {} ) {
-            return {
-                text: {
-                    value: this.text,
-                    size: this.size,
-                    lineHeight: this.lineHeight,
-                    spacing: this.spacing,
-                    font: this.font,
-                    color: this.color,
-                    ...textOpts,
-                }
+        update( textOpts = {}, propName = "text" ) {
+            const index = this.activeLayerIndex;
+            const store = this.$store;
+            const orgOpts = {
+                value      : this.text,
+                size       : this.size,
+                lineHeight : this.lineHeight,
+                spacing    : this.spacing,
+                font       : this.font,
+                color      : this.color,
             };
+            const newOpts = {
+                ...orgOpts,
+                ...textOpts,
+            };
+            const commit = () => store.commit( "updateLayer", { index, opts: { text: newOpts } });
+            commit();
+            // TODO: needs updatin' of Sprite offsets
+            /*
+            enqueueState( propName, {
+                undo() {
+                    store.commit( "updateLayer", { index, opts: { text: orgOpts } });
+                },
+                redo() {
+                    commit();
+                },
+            });
+            */
         },
     },
 };

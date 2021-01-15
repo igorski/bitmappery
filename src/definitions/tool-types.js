@@ -24,7 +24,7 @@ import { constrain, isPortrait } from "@/math/image-math";
 import { MAX_IMAGE_SIZE, MAX_MEGAPIXEL } from "@/definitions/image-types";
 import { LAYER_GRAPHIC } from "@/definitions/layer-types";
 
-export default {
+const ToolTypes = {
     MOVE       : "move",  // pans viewport
     DRAG       : "drag",  // drags layer within document
     LASSO      : "lasso",
@@ -38,6 +38,12 @@ export default {
     TEXT       : "text",
     ZOOM       : "zoom",
 };
+export default ToolTypes;
+
+// certain tools are handled by the top layer interaction pane, not individual layer sprites
+
+const PANE_TYPES = [ ToolTypes.MOVE, ToolTypes.LASSO, ToolTypes.SELECTION ];
+export const usesInteractionPane = tool => PANE_TYPES.includes( tool );
 
 export const canDraw = ( activeDocument, activeLayer ) => {
     return activeDocument &&

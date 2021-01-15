@@ -22,14 +22,20 @@
  */
 import KeyboardService from "@/services/keyboard-service";
 import DocumentFactory from "@/factories/document-factory";
+import LayerFactory    from "@/factories/layer-factory";
+import { initHistory, enqueueState } from "@/factories/history-state-factory";
+import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { LAYER_IMAGE } from "@/definitions/layer-types";
 import { runSpriteFn } from "@/factories/sprite-factory";
 import canvasModule    from "./modules/canvas-module";
 import documentModule  from "./modules/document-module";
+import historyModule   from "./modules/history-module";
 import imageModule     from "./modules/image-module";
 import toolModule      from "./modules/tool-module";
-import { copySelection } from "@/services/render-service";
+import { cloneCanvas } from "@/utils/canvas-util";
+import { copySelection, deleteSelectionContent } from "@/utils/document-util";
 import { saveBlobAsFile, selectFile } from "@/utils/file-util";
+import { replaceLayerSource } from "@/utils/layer-util";
 import { truncate } from "@/utils/string-util";
 
 export const PROJECT_FILE_EXTENSION = ".bpy";
@@ -44,6 +50,7 @@ export default {
     modules: {
         canvasModule,
         documentModule,
+        historyModule,
         imageModule,
         toolModule,
     },
@@ -54,6 +61,7 @@ export default {
         selectionContent: null, // clipboard content of copied images ({ image, size })
         blindActive: false,
         panMode: false,         // whether drag interactions with the document will pan its viewport
+        selectMode: false,      // whether the currently active tool is a selection type (works across layers)
         layerSelectMode: false, // whether clicking on the document should act as layer selection
         dialog: null,           // currently opened dialog
         modal: null,            // currently opened modal
@@ -88,6 +96,9 @@ export default {
         },
         setPanMode( state, value ) {
             state.panMode = value;
+        },
+        setSelectMode( state, value ) {
+            state.selectMode = value;
         },
         setLayerSelectMode( state, value ) {
             state.layerSelectMode = value;
@@ -186,19 +197,53 @@ export default {
             commit( "showNotification", { message: translate( "selectionCopied" ) });
             dispatch( "clearSelection" );
         },
-        clearSelection({ getters }) {
-            runSpriteFn( sprite => sprite.resetSelection(), getters.activeDocument );
+        clearSelection() {
+            getCanvasInstance()?.interactionPane.resetSelection();
         },
         pasteSelection({ commit, getters, dispatch, state }) {
-            const { image, size } = state.selectionContent;
-            commit( "addLayer", {
+            const selection       = state.selectionContent;
+            const { image, size } = selection;
+            const layer = LayerFactory.create({
                 type: LAYER_IMAGE,
                 source: image,
                 ...size,
                 x: getters.activeDocument.width  / 2 - size.width  / 2,
                 y: getters.activeDocument.height / 2 - size.height / 2,
             });
-            dispatch( "clearSelection" );
+            const index = getters.activeDocument.layers.length;
+            const paste = () => {
+                commit( "insertLayerAtIndex", { index, layer });
+                dispatch( "clearSelection" );
+            };
+            paste();
+            enqueueState( `paste_${selection.length}`, {
+                undo() {
+                    commit( "setSelectionContent", selection );
+                    commit( "removeLayer", index );
+                },
+                redo: paste
+            });
+        },
+        async deleteInSelection({ getters, state }) {
+            const activeLayer = getters.activeLayer;
+            if ( !activeLayer || !getters.activeDocument?.selection.length ) {
+                return;
+            }
+            const orgContent = cloneCanvas( activeLayer.source );
+            const updatedBitmap = deleteSelectionContent( getters.activeDocument, activeLayer );
+            const replaceSource = newSource => {
+                replaceLayerSource( activeLayer, newSource );
+                getSpriteForLayer( activeLayer )?.resetFilterAndRecache();
+            };
+            replaceSource( updatedBitmap );
+            enqueueState( `deleteFromSelection_${activeLayer.id}`, {
+                undo() {
+                    replaceSource( orgContent );
+                },
+                redo() {
+                    replaceSource( updatedBitmap );
+                }
+            });
         },
         /**
          * Install the services that will listen to global hardware events
@@ -211,6 +256,7 @@ export default {
             const storeReference = this;
             return new Promise( resolve => {
                 KeyboardService.init( storeReference );
+                initHistory( storeReference );
                 resolve();
             });
         },

@@ -88,6 +88,20 @@
                 <a v-t="'edit'" class="title" @click.prevent></a>
                 <ul class="submenu" @click="close()">
                     <li>
+                        <button v-t="'undo'"
+                                type="button"
+                                :disabled="!canUndo"
+                                @click="navigateHistory('undo')"
+                        ></button>
+                    </li>
+                    <li>
+                        <button v-t="'redo'"
+                                type="button"
+                                :disabled="!canRedo"
+                                @click="navigateHistory('redo')"
+                        ></button>
+                    </li>
+                    <li>
                         <button v-t="'resizeDocument'"
                                 type="button"
                                 :disabled="noDocumentsAvailable"
@@ -106,6 +120,13 @@
                                 type="button"
                                 :disabled="!hasSelection"
                                 @click="requestCropToSelection()"
+                        ></button>
+                    </li>
+                    <li>
+                        <button v-t="'clear'"
+                                type="button"
+                                :disabled="!hasSelection || !activeLayer"
+                                @click="deleteInSelection()"
                         ></button>
                     </li>
                     <li>
@@ -188,6 +209,7 @@ import {
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { getRectangleForSelection } from "@/math/selection-math";
 import { getCanvasInstance, runSpriteFn, getSpriteForLayer } from "@/factories/sprite-factory";
+import { enqueueState } from "@/factories/history-state-factory";
 import messages from "./messages.json";
 
 export default {
@@ -203,13 +225,15 @@ export default {
             "documents",
             "activeDocument",
             "activeLayer",
+            "canUndo",
+            "canRedo",
         ]),
         supportsFullscreen,
         noDocumentsAvailable() {
             return !this.activeDocument;
         },
         hasSelection() {
-            return this.activeLayer?.selection?.length > 0;
+            return this.activeDocument?.selection?.length > 0;
         },
         hasSavedSelections() {
             return Object.keys( this.activeDocument?.selections || {} ).length > 0;
@@ -247,6 +271,7 @@ export default {
             "requestSelectionCopy",
             "clearSelection",
             "pasteSelection",
+            "deleteInSelection",
             "loadDocument",
         ]),
         requestNewDocument() {
@@ -267,10 +292,25 @@ export default {
         requestSelectionSave() {
             this.openModal( SAVE_SELECTION );
         },
-        async requestCropToSelection() {
-            const { left, top, width, height } = getRectangleForSelection( this.activeLayer.selection );
-            await this.cropActiveDocumentContent({ left, top });
-            this.setActiveDocumentSize({ width, height });
+        requestCropToSelection() {
+            const store = this.$store;
+            const currentSize = {
+                width: this.activeDocument.width,
+                height: this.activeDocument.height
+            };
+            const { left, top, width, height } = getRectangleForSelection( this.activeDocument.selection );
+            const commit = async () => {
+                await store.commit( "cropActiveDocumentContent", { left, top });
+                store.commit( "setActiveDocumentSize", { width, height });
+            };
+            commit();
+            enqueueState("crop", {
+                async undo() {
+                    await store.commit( "cropActiveDocumentContent", { left: -left, top: -top });
+                    store.commit( "setActiveDocumentSize", currentSize );
+                },
+                redo: commit
+            });
         },
         requestDropboxLoad() {
             this.openModal( DROPBOX_FILE_SELECTOR );
@@ -278,8 +318,11 @@ export default {
         requestDropboxSave() {
             this.openModal( SAVE_DROPBOX_DOCUMENT );
         },
+        navigateHistory( action = "undo" ) {
+            this.$store.dispatch( action );
+        },
         selectAll() {
-            getSpriteForLayer( this.activeLayer )?.selectAll();
+            getCanvasInstance()?.interactionPane.selectAll( this.activeLayer );
         },
         close() {
             this.setMenuOpened( false );

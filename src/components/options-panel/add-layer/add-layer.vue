@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -64,6 +64,7 @@
 import { mapGetters, mapMutations, mapActions } from "vuex";
 import Modal     from "@/components/modal/modal";
 import SelectBox from '@/components/ui/select-box/select-box';
+import { enqueueState } from "@/factories/history-state-factory";
 import { LAYER_GRAPHIC, LAYER_TEXT } from "@/definitions/layer-types";
 
 import messages from "./messages.json";
@@ -80,6 +81,7 @@ export default {
     computed: {
         ...mapGetters([
             "activeDocument",
+            "activeLayerIndex",
             "layers",
         ]),
         layerTypes() {
@@ -98,18 +100,28 @@ export default {
     },
     methods: {
         ...mapMutations([
-            "addLayer",
             "closeModal",
         ]),
         requestLayerAdd() {
             if ( !this.isValid ) {
                 return;
             }
-            this.addLayer({
-                name: this.name,
-                type: this.type,
-                width: this.activeDocument.width,
-                height: this.activeDocument.height
+            const newLayer  = {
+                 name   : this.name,
+                 type   : this.type,
+                 width  : this.activeDocument.width,
+                 height : this.activeDocument.height
+             };
+            const store  = this.$store;
+            const commit = () => store.commit( "addLayer", newLayer );
+            commit();
+            const addedLayerIndex = this.activeLayerIndex;
+
+            enqueueState( "layerAdd", {
+                undo() {
+                    store.commit( "removeLayer", addedLayerIndex );
+                },
+                redo: commit,
             });
             this.closeModal();
         },

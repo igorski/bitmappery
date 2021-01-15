@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -58,7 +58,7 @@ import { mapGetters, mapMutations } from "vuex";
 import ToolTypes from "@/definitions/tool-types";
 import SelectBox  from '@/components/ui/select-box/select-box';
 import { mapSelectOptions }  from "@/utils/search-select-util";
-import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { getCanvasInstance } from "@/factories/sprite-factory";
 import Modal from "@/components/modal/modal";
 
 import messages from "./messages.json";
@@ -74,7 +74,6 @@ export default {
     computed: {
         ...mapGetters([
             "activeDocument",
-            "activeLayer",
         ]),
         selections() {
             return mapSelectOptions( Object.keys( this.activeDocument.selections ));
@@ -92,8 +91,8 @@ export default {
             if ( !this.isValid ) {
                 return;
             }
-            this.setActiveTool({ tool: ToolTypes.LASSO, activeLayer: this.activeLayer });
-            getSpriteForLayer( this.activeLayer )?.setSelection( this.activeDocument.selections[ this.name ]);
+            this.setActiveTool({ tool: ToolTypes.LASSO, document: this.activeDocument });
+            getCanvasInstance()?.interactionPane.setSelection( this.activeDocument.selections[ this.name ]);
             this.closeModal();
         },
     },

@@ -21,19 +21,48 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import FiltersFactory from "@/factories/filters-factory";
+import wasmJs from "@/../public/lib/filters.js";
+import { imageDataAsFloat } from "@/utils/wasm-util";
 
-const MAX_8BIT = 255;
-const HALF     = .5;
+const MAX_8BIT     = 255;
+const HALF_MAX8BIT = 2 / MAX_8BIT;
+const ONE_THIRD    = 1 / 3;
+const HALF         = 0.5;
 
 const defaultFilters = FiltersFactory.create();
+let wasmInstance;
 
 self.addEventListener( "message", async ({ data }) => {
     const { id, cmd } = data;
-    let imageData;
+    let pixelData;
+
     switch ( cmd ) {
-        case "filters":
-            imageData = renderFilters( data.imageData, data.filters );
-            self.postMessage({ cmd: "complete", id, imageData });
+
+        // when using WebAssembly this method needs to be invoked first
+        // as it will load the WASM binary
+
+        case "initWasm":
+            const wasm   = await fetch( "./lib/filters.wasm" );
+            const bytes  = await wasm.arrayBuffer();
+            wasmInstance = await wasmJs({
+                wasmBinary: bytes
+            });
+            self.postMessage({ cmd: "ready" });
+            break;
+
+        // run the filter operation on a {ImageData} object
+        // filterWasm to run the filters using WebAssembly, filter to run
+        // it as JavaScript. Both instances return a filtered {Uint8ClampedArray}
+        // which can be set as onto an ImageData in the main application
+
+        case "filterWasm":
+            pixelData = renderFiltersWasm( data.imageData, data.filters );
+            self.postMessage({ cmd: "complete", id, pixelData });
+            break;
+
+        case "filter":
+            pixelData = renderFilters( data.imageData, data.filters );
+            self.postMessage({ cmd: "complete", id, pixelData });
             break;
     }
 }, false );
@@ -50,6 +79,7 @@ const renderFilters = ( imageData, filters ) => {
     const pixels = imageData.data;
     let r, g, b, a;
     let grayScale, max, avg, amt;
+    const gammaSquared = gamma * gamma;
 
     const doBrightness = filters.brightness !== defaultFilters.brightness;
     const doContrast   = filters.contrast   !== defaultFilters.contrast;
@@ -69,9 +99,9 @@ const renderFilters = ( imageData, filters ) => {
 
         // 1. adjust gamma
         if ( doGamma ) {
-            r = r * gamma * gamma;
-            g = g * gamma * gamma;
-            b = b * gamma * gamma;
+            r = r * gammaSquared;
+            g = g * gammaSquared;
+            b = b * gammaSquared;
         }
 
         // 2. desaturate
@@ -99,8 +129,8 @@ const renderFilters = ( imageData, filters ) => {
         // 5. adjust vibrance
         if ( doVibrance ) {
             max = Math.max( r, g, b );
-            avg = ( r + g + b ) / 3;
-            amt = (( Math.abs( max - avg ) * 2 / MAX_8BIT ) * vibrance ) / 10; // 100;
+            avg = ( r + g + b ) * ONE_THIRD;
+            amt = (( Math.abs( max - avg ) * HALF_MAX8BIT ) * vibrance ) * 0.1; // 0.01;
 
             if ( r !== max ) {
                 r = r + ( max - r ) * amt;
@@ -119,5 +149,30 @@ const renderFilters = ( imageData, filters ) => {
         pixels[ i + 2 ] = b;
         //pixels[ i + 3 ] = a; // currently no filter uses alpha channel
     }
-    return imageData;
+    return imageData.data;
 };
+
+/* internal methods */
+
+function renderFiltersWasm( imageData, filters ) {
+    const brightness     = ( filters.brightness * 2 );//( filters.brightness * 2 ) - 1; // -1 to 1 range
+    const contrast       = Math.pow((( filters.contrast * 100 ) + 100 ) / 100, 2 ); // -100 to 100 range
+    const gamma          = ( filters.gamma * 2 ); // 0 to 2 range
+    const vibrance       = -(( filters.vibrance * 200 ) - 100 ); // -100 to 100 range
+    const { desaturate } = filters; // boolean
+
+    const doBrightness = filters.brightness !== defaultFilters.brightness;
+    const doContrast   = filters.contrast   !== defaultFilters.contrast;
+    const doGamma      = filters.gamma      !== defaultFilters.gamma;
+    const doVibrance   = filters.vibrance   !== defaultFilters.vibrance;
+
+    // run WASM operations
+
+    return imageDataAsFloat( imageData, wasmInstance, ( memory, length ) => {
+        wasmInstance._filter(
+            memory, length,
+            gamma, brightness, contrast, vibrance,
+            doGamma, desaturate, doBrightness, doContrast, doVibrance
+        );
+    });
+}

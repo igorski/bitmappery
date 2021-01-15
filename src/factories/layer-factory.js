@@ -55,8 +55,6 @@ const LayerFactory = {
             text: TextFactory.create( text ),
             effects: EffectsFactory.create( effects ),
             filters: FiltersFactory.create( filters ),
-            // only used at runtime, will not be serialized
-            selection: null,
         }
     },
 

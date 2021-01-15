@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -41,7 +41,8 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from "vuex";
+import { mapGetters } from "vuex";
+import { enqueueState } from "@/factories/history-state-factory";
 import messages  from "./messages.json";
 
 export default {
@@ -53,21 +54,32 @@ export default {
         ]),
     },
     methods: {
-        ...mapMutations([
-            "updateLayerEffects",
-        ]),
         flipHorizontal() {
-            this.updateLayerEffects({
-                index: this.activeLayerIndex,
-                effects: { mirrorX: !this.activeLayerEffects.mirrorX  }
-            });
+            this.update({ mirrorX: !this.activeLayerEffects.mirrorX }, "mirrorX" );
         },
         flipVertical() {
-            this.updateLayerEffects({
-                index: this.activeLayerIndex,
-                effects: { mirrorY: !this.activeLayerEffects.mirrorY  }
-            });
+            this.update({ mirrorY: !this.activeLayerEffects.mirrorY }, "mirrorY" );
         },
+        update( effect, propName = "mirror" ) {
+            const { mirrorX, mirrorY } = this.activeLayerEffects;
+            const newEffects = {
+                mirrorX,
+                mirrorY,
+                ...effect,
+            };
+            const index  = this.activeLayerIndex;
+            const store  = this.$store;
+            const commit = () => store.commit( "updateLayerEffects", { index, effects: newEffects });
+            commit();
+            enqueueState( `${propName}_${index}`, {
+                undo() {
+                    store.commit( "updateLayerEffects", { index, effects: { mirrorX, mirrorY } });
+                },
+                redo() {
+                    commit();
+                },
+            });
+        }
     },
 };
 </script>

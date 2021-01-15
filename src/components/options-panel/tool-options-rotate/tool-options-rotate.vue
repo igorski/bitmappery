@@ -36,6 +36,7 @@
 import { mapGetters, mapMutations } from "vuex";
 import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import Slider    from "@/components/ui/slider/slider";
+import { enqueueState } from "@/factories/history-state-factory";
 import messages  from "./messages.json";
 import { degreesToRadians, radiansToDegrees } from "@/math/image-math";
 
@@ -59,10 +60,7 @@ export default {
                 return radiansToDegrees( this.activeLayerEffects.rotation );
             },
             set( value ) {
-                this.updateLayerEffects({
-                    index: this.activeLayerIndex,
-                    effects: { rotation: degreesToRadians( value % 360 )  }
-                });
+                this.update( degreesToRadians( value % 360 ));
             }
         }
     },
@@ -70,6 +68,21 @@ export default {
         ...mapMutations([
             "updateLayerEffects",
         ]),
+        update( rotation ) {
+            const oldRotation = this.activeLayerEffects.rotation;
+            const index  = this.activeLayerIndex;
+            const store  = this.$store;
+            const commit = () => store.commit( "updateLayerEffects", { index, effects: { rotation } });
+            commit();
+            enqueueState( `rotation_${index}`, {
+                undo() {
+                    store.commit( "updateLayerEffects", { index, effects: { rotation: oldRotation } });
+                },
+                redo() {
+                    commit();
+                },
+            });
+        }
     },
 };
 </script>

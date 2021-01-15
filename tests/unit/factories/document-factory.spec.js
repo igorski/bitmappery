@@ -18,7 +18,8 @@ describe( "Document factory", () => {
                 width: 1000,
                 height: 1000,
                 layers: [ { layer: "1" } ],
-                selections: {}
+                selections: {},
+                selection: null
             });
         });
 
@@ -38,6 +39,7 @@ describe( "Document factory", () => {
                 height: 900,
                 layers,
                 selections: { foo: [{ x: 0, y: 0 }] },
+                selection: null
             });
         });
     });
