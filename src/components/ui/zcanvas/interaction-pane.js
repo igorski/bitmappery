@@ -287,7 +287,7 @@ function drawSelectionOutline( ctx, zCanvas, viewport, selection, color, current
         );
     });
     // for lasso selections, draw line to current cursor position
-    if ( currentPosition?.x !== 0 && currentPosition?.y !== 0 ) {
+    if ( currentPosition && currentPosition.x !== 0 && currentPosition.y !== 0 ) {
         ctx.lineTo(( .5 + currentPosition.x ) << 0, ( .5 + currentPosition.y ) << 0 );
     }
     ctx.stroke();
