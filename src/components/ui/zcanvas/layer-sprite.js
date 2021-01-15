@@ -185,6 +185,7 @@ class LayerSprite extends sprite {
                 this.forceMoveListener();
                 this.setDraggable( true );
                 this._isPaintMode = true;
+                this.cacheBrush( this.canvas.store.getters.activeColor, toolOptions.size );
 
                 // drawable tools can work alongside an existing selection
                 const selection = activeDocument.selection;
