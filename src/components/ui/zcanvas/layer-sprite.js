@@ -149,11 +149,12 @@ class LayerSprite extends sprite {
     }
 
     handleActiveTool( tool, toolOptions, activeDocument ) {
-        this.isDragging     = false;
-        this._isPaintMode   = false;
-        this._isColorPicker = false;
-        this._selection     = null;
-        this._toolOptions   = null;
+        this.isDragging        = false;
+        this._isPaintMode      = false;
+        this._isColorPicker    = false;
+        this._selection        = null;
+        this._toolOptions      = null;
+        this._cloneStartCoords = null;
 
         // store pending paint states (if there were any)
         this.storePaintState();
@@ -204,6 +205,8 @@ class LayerSprite extends sprite {
         this._dragStartOffset = { x: this.getX(), y: this.getY() };
         this._dragStartEventCoordinates = { x: this._pointerX, y: this._pointerY };
     }
+
+    // draw onto the source Bitmap (e.g. brushing / fill tool / eraser)
 
     paint( x, y ) {
         if ( !this._pendingPaintState ) {
@@ -375,6 +378,42 @@ class LayerSprite extends sprite {
         this.invalidate();
     }
 
+    handlePress( x, y, { type }) {
+        if ( type.startsWith( "touch" )) {
+            this._pointerX = x;
+            this._pointerY = y;
+        }
+        if ( this._isColorPicker ) {
+            // color picker mode, get the color below the clicked point
+            const local = globalToLocal( this.canvas, x, y );
+            const p = this.canvas.getElement().getContext( "2d" ).getImageData(
+                local.x - this.canvas._viewport.left,
+                local.y - this.canvas._viewport.top,
+                1, 1
+            ).data;
+            this.canvas.store.commit( "setActiveColor", `rgba(${p[0]},${p[1]},${p[2]},${(p[3]/255)})` );
+        }
+        else if ( this._isPaintMode ) {
+            if ( this._toolType === ToolTypes.CLONE ) {
+                // pressing down when using the clone tool with no coords defined in the _toolOptions,
+                // sets the source coords (within the source Layer)
+                if ( !this._toolOptions.coords ) {
+                    this._toolOptions.coords = { x, y };
+                    return;
+                } else if ( !this._cloneStartCoords ) {
+                    // pressing down again indicates the cloning paint operation starts (in handleMove())
+                    // set the start coordinates (of this target Layer) relative to the source Layers coords
+                    this._cloneStartCoords = { x, y };
+                }
+            } else if ( this._toolType === ToolTypes.FILL ) {
+                this.paint( x, y );
+                return;
+            }
+            // for any other brush mode state, set the brush application to true (will be applied in handleMove())
+            this._applyPaint = true;
+        }
+    }
+
     handleMove( x, y, { type }) {
         // store reference to current pointer position (relative to canvas)
         // note that for touch events this is handled in handlePress() instead
@@ -403,34 +442,6 @@ class LayerSprite extends sprite {
         }
     }
 
-    handlePress( x, y, { type }) {
-        if ( type.startsWith( "touch" )) {
-            this._pointerX = x;
-            this._pointerY = y;
-        }
-        if ( this._isColorPicker ) {
-            // color picker mode, get the color below the clicked point
-            const local = globalToLocal( this.canvas, x, y );
-            const p = this.canvas.getElement().getContext( "2d" ).getImageData(
-                local.x - this.canvas._viewport.left,
-                local.y - this.canvas._viewport.top,
-                1, 1
-            ).data;
-            this.canvas.store.commit( "setActiveColor", `rgba(${p[0]},${p[1]},${p[2]},${(p[3]/255)})` );
-        }
-        else if ( this._isPaintMode ) {
-            if ( this._toolType === ToolTypes.CLONE && !this._toolOptions.coords ) {
-                // pressing down when using the clone tool with no coords yet defined, sets the source coords.
-                this._toolOptions.coords = { x, y };
-            } else if ( this._toolType === ToolTypes.FILL ) {
-                this.paint( x, y );
-            } else {
-                // for any other brush mode state, set the brush application to true (will be applied in handleMove())
-                this._applyPaint = true;
-            }
-        }
-    }
-
     handleRelease( x, y ) {
         this._applyPaint = false;
         if ( this._isPaintMode ) {
@@ -449,9 +460,10 @@ class LayerSprite extends sprite {
                 const { coords } = this._toolOptions;
                 let tx = this._pointerX - viewport.left;
                 let ty = this._pointerY - viewport.top;
+                const relSource = this._cloneStartCoords ?? this._dragStartEventCoordinates;
                 if ( coords ) {
-                    tx = ( coords.x - viewport.left ) + ( this._pointerX - this._dragStartEventCoordinates.x );
-                    ty = ( coords.y - viewport.top  ) + ( this._pointerY - this._dragStartEventCoordinates.y );
+                    tx = ( coords.x - viewport.left ) + ( this._pointerX - relSource.x );
+                    ty = ( coords.y - viewport.top  ) + ( this._pointerY - relSource.y );
                 }
                 // when no source coordinate is set, or when applying the clone stamp, we show a cross to mark the origin
                 if ( !coords || this._applyPaint ) {

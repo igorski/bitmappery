@@ -51,11 +51,12 @@ export const renderCross = ( ctx, x, y, size ) => {
 export const renderMasked = ( destContext, sprite, destX, destY, sourceSprite, brushCvs, maskRadius ) => {
     const { coords, opacity } = sprite._toolOptions;
     const source = sourceSprite.getBitmap();
+    const relSource = sprite._cloneStartCoords ?? sprite._dragStartEventCoordinates;
 
     const sourceX = ( coords.x - sourceSprite.getX()) - maskRadius;
     const sourceY = ( coords.y - sourceSprite.getY()) - maskRadius;
-    const xDelta  = sprite._dragStartOffset.x + (( destX - sprite._bounds.left ) - sprite._dragStartEventCoordinates.x );
-    const yDelta  = sprite._dragStartOffset.y + (( destY - sprite._bounds.top )  - sprite._dragStartEventCoordinates.y );
+    const xDelta  = sprite._dragStartOffset.x + (( destX - sprite._bounds.left ) - relSource.x );
+    const yDelta  = sprite._dragStartOffset.y + (( destY - sprite._bounds.top )  - relSource.y );
 
     // prepare temporary canvas (match size with brush)
     const { cvs, ctx } = tempCanvas;
