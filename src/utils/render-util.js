@@ -27,6 +27,9 @@ import { distanceBetween, angleBetween, pointBetween, translatePointerRotation }
 import { randomInRange } from "@/math/unit-math";
 import { createCanvas, resizeImage } from "@/utils/canvas-util";
 
+const { cos, sin } = Math;
+const TWO_PI = Math.PI * 2;
+
 const tempCanvas = createCanvas();
 
 export const renderCross = ( ctx, x, y, size ) => {
@@ -78,10 +81,12 @@ export const renderBrushStroke = ( sprite, brush, ctx, destinationPoint ) => {
     if ( type === BrushTypes.SPRAY ) {
         ctx.fillStyle = brush.colors[ 0 ];
         for ( let i = doubleRadius; i--; ) {
+            const angle = randomInRange( 0, TWO_PI );
+            const size  = randomInRange( 1, 3 );
             ctx.fillRect(
-                destinationPoint.x + randomInRange( -halfRadius, halfRadius ),
-                destinationPoint.y + randomInRange( -halfRadius, halfRadius ),
-                1, 1
+                destinationPoint.x + randomInRange( -halfRadius, halfRadius ) * cos( angle ),
+                destinationPoint.y + randomInRange( -halfRadius, halfRadius ) * sin( angle ),
+                size, size
             );
         }
         return ctx.restore();

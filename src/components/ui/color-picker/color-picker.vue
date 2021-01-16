@@ -68,9 +68,11 @@ export default {
             }
         });
         pickrInstance.on( "save", this.saveColor.bind( this ));
+        window.pickrInstance = pickrInstance;
     },
     destroy() {
         pickrInstance?.destroyAndRemove();
+        window.pickrInstance = null;
     },
     methods: {
         saveColor( value ) {

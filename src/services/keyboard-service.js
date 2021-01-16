@@ -220,9 +220,13 @@ function handleKeyDown( event ) {
 
         case 67: // C
              // copy current selection
-             if ( hasOption && getters.activeDocument?.selection?.length > 0 ) {
-                 dispatch( "requestSelectionCopy" );
-                 preventDefault( event );
+             if ( hasOption ) {
+                 if ( getters.activeDocument?.selection?.length > 0 ) {
+                     dispatch( "requestSelectionCopy" );
+                     preventDefault( event );
+                 }
+             } else {
+                 window.pickrInstance?.show();
              }
              break;
 
@@ -273,8 +277,10 @@ function handleKeyDown( event ) {
             break;
 
         case 76: // L
-            if ( hasOption && shiftDown ) {
-                openModal( ADD_LAYER );
+            if ( hasOption ) {
+                if ( shiftDown ) {
+                    openModal( ADD_LAYER );
+                }
             } else {
                 commit( "setActiveTool", { tool: ToolTypes.LASSO })
                 setActiveTool( ToolTypes.LASSO );
@@ -337,9 +343,11 @@ function handleKeyDown( event ) {
 
         case 86: // V
             // paste current selection
-            if ( hasOption && !!state.selectionContent ) {
-                dispatch( "pasteSelection" );
-                preventDefault( event ); // override browser paste
+            if ( hasOption ) {
+                if ( !!state.selectionContent ) {
+                    dispatch( "pasteSelection" );
+                    preventDefault( event ); // override browser paste
+                }
             } else if ( getters.activeDocument ) {
                 setActiveTool( ToolTypes.DRAG );
             }
