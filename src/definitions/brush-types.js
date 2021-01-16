@@ -20,32 +20,11 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-const BrushFactory = {
-    create({ radius = 10, color = "rgba(255,0,0,1)", pointer = null, options = {} } = {} ) {
-        const [r, g, b, a] = color.split( "," );
-        const colors = [
-            color,
-            `${r},${g},${b},${parseFloat(a) * 0.5})`,
-            `${r},${g},${b},0)`
-        ];
-        return {
-            radius,
-            colors,
-            pointer,
-            options, // provided by tool-module
-            halfRadius   : radius * 0.5,
-            doubleRadius : radius * 2
-        };
-    }
-};
-export default BrushFactory;
-
-export const createDrawable = ( brush, ctx, x, y ) => {
-    const gradient = ctx.createRadialGradient( x, y, brush.halfRadius, x, y, brush.radius );
-
-    gradient.addColorStop( 0,   brush.colors[ 0 ]);
-    gradient.addColorStop( 0.5, brush.colors[ 1 ]);
-    gradient.addColorStop( 1,   brush.colors[ 2 ]);
-
-    return gradient;
-};
+ export default {
+     LINE           : "0",
+     PEN            : "1",
+     CALLIGRAPHIC   : "2",
+     CURVED_PEN     : "3",
+     PAINT_BRUSH    : "4",
+     SPRAY          : "5",
+ };

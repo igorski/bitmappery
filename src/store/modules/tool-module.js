@@ -22,6 +22,7 @@
  */
 import Vue       from "vue";
 import ToolTypes from "@/definitions/tool-types";
+import BrushTypes from "@/definitions/brush-types";
 import { runSpriteFn } from "@/factories/sprite-factory";
 
 export default {
@@ -29,9 +30,13 @@ export default {
         activeTool: null,
         activeColor: "rgba(255,0,0,1)",
         options: {
+            // see tool-option-zoom.vue
             [ ToolTypes.ZOOM ]  : { level: 1 },
-            [ ToolTypes.BRUSH ] : { size: 10 },
+            // see tool-options-brush.vue
+            [ ToolTypes.BRUSH ] : { size: 10, type: BrushTypes.LINE, strokes: 1 },
+            // see tool-options-eraser.vue
             [ ToolTypes.ERASER ]: { size: 10, opacity: 1 },
+            // see tool-options-clone.vue
             [ ToolTypes.CLONE ] : { size: 10, opacity: 1, source: null, coords: null },
         },
     },
@@ -71,10 +76,10 @@ export default {
     },
 };
 
-function updateLayerSprites( color, { size }) {
+function updateLayerSprites( color, toolOptions ) {
     runSpriteFn( sprite => {
         if ( sprite.isDrawable() ) {
-            sprite.cacheBrush( color, size );
+            sprite.cacheBrush( color, toolOptions );
         }
     });
 }

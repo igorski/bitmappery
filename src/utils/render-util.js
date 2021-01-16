@@ -21,8 +21,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { LAYER_TEXT } from "@/definitions/layer-types";
+import BrushTypes from "@/definitions/brush-types";
 import { createDrawable } from "@/factories/brush-factory";
-import { distanceBetween, angleBetween, translatePointerRotation } from "@/math/point-math";
+import { distanceBetween, angleBetween, pointBetween, translatePointerRotation } from "@/math/point-math";
+import { randomInRange } from "@/math/unit-math";
 import { createCanvas, resizeImage } from "@/utils/canvas-util";
 
 const tempCanvas = createCanvas();
@@ -39,7 +41,8 @@ export const renderCross = ( ctx, x, y, size ) => {
 };
 
 export const renderBrushStroke = ( sprite, brush, ctx, destinationPoint ) => {
-    const { pointer, radius, doubleRadius } = brush;
+    const { pointer, radius, halfRadius, doubleRadius, options } = brush;
+    const { type } = options;
 
     // effects complicate proceedings https://github.com/igorski/bitmappery/issues/2
     const { rotation, mirrorX, mirrorY } = sprite.layer.effects;
@@ -52,19 +55,93 @@ export const renderBrushStroke = ( sprite, brush, ctx, destinationPoint ) => {
     ctx.save();
     ctx.lineJoin = ctx.lineCap = "round";
 
-    const dist  = distanceBetween( pointer, destinationPoint );
-    const angle = angleBetween( pointer, destinationPoint );
+    // paint brush types
 
-    const incr  = brush.radius * 0.25;
-    const sin   = Math.sin( angle );
-    const cos   = Math.cos( angle );
+    if ( type === BrushTypes.PAINT_BRUSH ) {
+        const dist  = distanceBetween( pointer, destinationPoint );
+        const angle = angleBetween( pointer, destinationPoint );
 
-    let x, y;
-    for ( let i = 0; i < dist; i += incr ) {
-        x = pointer.x + ( sin * i );
-        y = pointer.y + ( cos * i );
-        ctx.fillStyle = createDrawable( brush, ctx, x, y )
-        ctx.fillRect( x - radius, y - radius, doubleRadius, doubleRadius );
+        const incr  = brush.radius * 0.25;
+        const sin   = Math.sin( angle );
+        const cos   = Math.cos( angle );
+
+        let x, y, size, doubleSize;
+        for ( let i = 0; i < dist; i += incr ) {
+            x = pointer.x + ( sin * i );
+            y = pointer.y + ( cos * i );
+            ctx.fillStyle = createDrawable( brush, ctx, x, y );
+            ctx.fillRect( x - radius, y - radius, doubleRadius, doubleRadius );
+        }
+        return ctx.restore();
+    }
+
+    if ( type === BrushTypes.SPRAY ) {
+        ctx.fillStyle = brush.colors[ 0 ];
+        for ( let i = doubleRadius; i--; ) {
+            ctx.fillRect(
+                destinationPoint.x + randomInRange( -halfRadius, halfRadius ),
+                destinationPoint.y + randomInRange( -halfRadius, halfRadius ),
+                1, 1
+            );
+        }
+        return ctx.restore();
+    }
+
+    // line types
+
+    ctx.lineWidth   = brush.radius;
+    ctx.strokeStyle = brush.colors[ 0 ];
+
+    if ( type === BrushTypes.LINE ) {
+        ctx.beginPath();
+        ctx.moveTo( pointer.x, pointer.y );
+        ctx.lineTo( destinationPoint.x, destinationPoint.y );
+        ctx.stroke();
+        return ctx.restore();
+    }
+
+    if ( type === BrushTypes.CALLIGRAPHIC ) {
+        ctx.beginPath();
+
+        const min = ( brush.radius * 0.25 ) * 0.66666;
+        const max = ( brush.radius * 0.25 ) * 1.33333;
+
+        [ -max, -min, 0, min, max ].forEach( offset => {
+            ctx.moveTo( pointer.x + offset, pointer.y + offset );
+            ctx.lineTo( destinationPoint.x + offset, destinationPoint.y + offset );
+            ctx.stroke();
+        });
+        return ctx.restore();
+    }
+
+    // multi stroke line types
+
+    let dX = 0;
+    let dY = 0;
+
+    for ( let i = 0; i < options.strokes; ++i ) {
+        switch ( type ) {
+            default:
+            case BrushTypes.PEN:
+                ctx.beginPath();
+                ctx.lineWidth = ( brush.radius * 0.2 ) * randomInRange( 0.5, 1 );
+                ctx.moveTo( pointer.x - dX, pointer.y - dY );
+                ctx.lineTo( destinationPoint.x - dX, destinationPoint.y - dY );
+                ctx.stroke();
+                break;
+
+            // TODO: this one benefits from working with a large point queue
+            case BrushTypes.CURVED_PEN:
+                ctx.beginPath();
+                ctx.moveTo( pointer.x, pointer.y );
+                const midPoint = pointBetween( pointer, destinationPoint );
+                ctx.quadraticCurveTo( pointer.x, pointer.y, midPoint.x, midPoint.y );
+                ctx.lineTo( destinationPoint.x, destinationPoint.y );
+                ctx.stroke();
+                break;
+        }
+        dX += randomInRange( 0, ctx.lineWidth );
+        dY += randomInRange( 0, ctx.lineWidth );
     }
     ctx.restore();
 };

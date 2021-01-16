@@ -37,3 +37,5 @@ export const scale = ( value, maxValue, maxCompareValue ) => {
     const ratio = maxCompareValue / maxValue;
     return Math.min( maxValue, value ) * ratio;
 };
+
+export const randomInRange = ( min, max ) => Math.random() * ( max - min + 1 ) + min;

@@ -33,7 +33,7 @@ let state, getters, commit, dispatch, listener,
 
 const DEFAULT_BLOCKED    = [ 8, 32, 37, 38, 39, 40 ];
 const MOVABLE_TOOL_TYPES = [ ToolTypes.DRAG, ToolTypes.SELECTION, ToolTypes.LASSO ];
-const BRUSH_TYPES        = [ ToolTypes.BRUSH, ToolTypes.ERASER, ToolTypes.CLONE ];
+const BRUSH_TOOL_TYPES   = [ ToolTypes.BRUSH, ToolTypes.ERASER, ToolTypes.CLONE ];
 const noop = () => {};
 const defaultBlock = e => e.preventDefault();
 
@@ -387,7 +387,7 @@ function handleKeyDown( event ) {
             break;
 
         case 219: // [
-            if ( BRUSH_TYPES.includes( getters.activeTool )) {
+            if ( BRUSH_TOOL_TYPES.includes( getters.activeTool )) {
                 commit( "setToolOptionValue", {
                     tool: getters.activeTool, option: "size", value: Math.max( 1, getters.activeToolOptions.size - 5 )
                 });
@@ -396,7 +396,7 @@ function handleKeyDown( event ) {
             break;
 
         case 221: // ]
-            if ( BRUSH_TYPES.includes( getters.activeTool )) {
+            if ( BRUSH_TOOL_TYPES.includes( getters.activeTool )) {
                 commit( "setToolOptionValue", {
                     tool: getters.activeTool, option: "size", value: Math.min( MAX_BRUSH_SIZE, getters.activeToolOptions.size + 5 )
                 });

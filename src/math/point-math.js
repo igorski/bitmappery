@@ -30,6 +30,11 @@ export const angleBetween = ( point1, point2 ) => {
     return atan2( point2.x - point1.x, point2.y - point1.y );
 };
 
+export const pointBetween = ( point1, point2 ) => ({
+    x: point1.x + ( point2.x - point1.x ) * .5,
+    y: point1.y + ( point2.y - point1.y ) * .5,
+});
+
 export const isPointInRange = ( point1x, point1y, point2x, point2y, margin = 5 ) => {
     const left   = point2x - margin;
     const right  = point2x + margin;

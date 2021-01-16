@@ -24,11 +24,28 @@
     <div class="tool-option">
         <h3 v-t="'brush'"></h3>
         <div class="wrapper input">
+            <label v-t="'brushType'"></label>
+            <select-box :options="brushTypes"
+                         v-model="brushType"
+            />
+        </div>
+        <div class="wrapper input">
             <label v-t="'brushSize'"></label>
             <slider
                 v-model="brushSize"
                 :min="1"
                 :max="MAX_BRUSH_SIZE"
+            />
+        </div>
+        <div
+            v-if="canStroke"
+            class="wrapper input"
+         >
+            <label v-t="'strokeAmount'"></label>
+            <slider
+                v-model="strokes"
+                :min="1"
+                :max="5"
             />
         </div>
     </div>
@@ -37,13 +54,16 @@
 <script>
 import { mapGetters, mapMutations }  from "vuex";
 import ToolTypes, { MAX_BRUSH_SIZE } from "@/definitions/tool-types";
-import Slider   from "@/components/ui/slider/slider";
+import BrushTypes from "@/definitions/brush-types";
+import SelectBox from '@/components/ui/select-box/select-box';
+import Slider from "@/components/ui/slider/slider";
 import messages from "./messages.json";
 
 export default {
     i18n: { messages },
     components: {
         Slider,
+        SelectBox,
     },
     data: () => ({
         MAX_BRUSH_SIZE,
@@ -52,23 +72,55 @@ export default {
         ...mapGetters([
             "brushOptions",
         ]),
+        canStroke() {
+            return this.brushType === BrushTypes.PEN;
+        },
+        brushTypes() {
+            return [
+                { text: this.$t( "line" ),         value: BrushTypes.LINE },
+                { text: this.$t( "pen" ),          value: BrushTypes.PEN },
+        //        { text: this.$t( "curvedPen" ),  value: BrushTypes.CURVED_PEN },
+                { text: this.$t( "calligraphic" ), value: BrushTypes.CALLIGRAPHIC },
+                { text: this.$t( "paintBrush" ),   value: BrushTypes.PAINT_BRUSH },
+                { text: this.$t( "sprayCan" ),     value: BrushTypes.SPRAY }
+            ];
+        },
+        brushType: {
+            get() {
+                return this.brushOptions.type;
+            },
+            set( value ) {
+                this.update( "type", value );
+            }
+        },
         brushSize: {
             get() {
                 return this.brushOptions.size;
             },
             set( value ) {
-                this.setToolOptionValue({
-                    tool: ToolTypes.BRUSH,
-                    option: "size",
-                    value,
-                });
+                this.update( "size", value );
+            }
+        },
+        strokes: {
+            get() {
+                return this.brushOptions.strokes;
             },
+            set( value ) {
+                this.update( "strokes", value );
+            }
         },
     },
     methods: {
         ...mapMutations([
             "setToolOptionValue",
         ]),
+        update( option, value ) {
+            this.setToolOptionValue({
+                tool: ToolTypes.BRUSH,
+                option,
+                value,
+            });
+        }
     },
 };
 </script>

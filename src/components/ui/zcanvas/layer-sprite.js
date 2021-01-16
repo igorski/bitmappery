@@ -91,8 +91,13 @@ class LayerSprite extends sprite {
         return this.layer.effects.scale !== 1;
     }
 
-    cacheBrush( color = "rgba(255,0,0,1)", radius = 30 ) {
-        this._brush = BrushFactory.create({ color, radius, pointer: this._brush.pointer });
+    cacheBrush( color = "rgba(255,0,0,1)", toolOptions = { radius: 5, strokes: 1 } ) {
+        this._brush = BrushFactory.create({
+            color,
+            radius: toolOptions.size,
+            pointer: this._brush.pointer,
+            options: toolOptions
+        });
     }
 
     storeBrushPointer( x, y ) {
@@ -160,7 +165,7 @@ class LayerSprite extends sprite {
                 this.forceMoveListener();
                 this.setDraggable( true );
                 this._isPaintMode = true;
-                this.cacheBrush( this.canvas.store.getters.activeColor, toolOptions?.size );
+                this.cacheBrush( this.canvas.store.getters.activeColor, toolOptions );
 
                 // drawable tools can work alongside an existing selection
                 const selection = activeDocument.selection;
