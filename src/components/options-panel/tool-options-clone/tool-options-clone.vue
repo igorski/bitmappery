@@ -83,9 +83,9 @@ export default {
             "cloneOptions",
         ]),
         selectableLayers() {
-            return this.layers.filter(({ visible }) => visible )
-                              .map( layer => ({ text: layer.name, value: layer.id }))
-                              .reverse();
+            return this.layers?.filter(({ visible }) => visible )
+                               .map( layer => ({ text: layer.name, value: layer.id }))
+                               .reverse();
         },
         sourceLayer: {
             get() {

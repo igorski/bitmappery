@@ -1,5 +1,5 @@
 import {
-    fastRound, scaleToRatio, constrain, isPortrait, isLandscape, isSquare, translatePoints, scaleRectangle
+    fastRound, scaleToRatio, constrain, isPortrait, isLandscape, isSquare, scaleRectangle
 } from "@/math/image-math";
 
 describe( "Image math utilities", () => {
@@ -57,15 +57,6 @@ describe( "Image math utilities", () => {
             expect( isSquare( LANDSCAPE.width, LANDSCAPE.height )).toBe( false );
             expect( isSquare( SQUARE.width,    SQUARE.height )).toBe( true );
         });
-    });
-
-    it( "should be able to translate the coordinates within a list", () => {
-        const list = [
-            { x: 10, y: 10 }, { x: 15, y: 15 }
-        ];
-        expect( translatePoints( list, 5, -5 )).toEqual([
-            { x: 15, y: 5 }, { x: 20, y: 10 }
-        ]);
     });
 
     describe( "when scaling rectangles", () => {

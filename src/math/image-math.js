@@ -82,28 +82,6 @@ export const isPortrait  = ( width, height ) => width < height;
 export const isLandscape = ( width, height ) => width > height;
 export const isSquare    = ( width, height ) => width === height;
 
-export const isPointInRange = ( point1x, point1y, point2x, point2y, margin = 5 ) => {
-    const left   = point2x - margin;
-    const right  = point2x + margin;
-    const top    = point2y - margin;
-    const bottom = point2y + margin;
-
-    return point1x >= left && point1x <= right && point1y >= top  && point1y <= bottom;
-};
-
-export const translatePointerRotation = ( x, y, rotationCenterX, rotationCenterY, angleInRadians ) => {
-    const x2 = x - rotationCenterX;
-    const y2 = y - rotationCenterY;
-
-    const cos = Math.cos( -angleInRadians );
-    const sin = Math.sin( -angleInRadians );
-
-    return {
-        x : x2 * cos - y2 * sin + rotationCenterX,
-        y : x2 * sin + y2 * cos + rotationCenterY
-    };
-};
-
 export const getRotationCenter = ({ left, top, width, height }, rounded = false ) => {
     const x = left + width  * .5;
     const y = top  + height * .5;
@@ -156,19 +134,6 @@ export const rectangleToCoordinates = ( x, y, width, height ) => [
     { x: x + width, y: y + height }, { x, y: y + height },  // BR to BL
     { x, y }, // back to TL to close selection
 ];
-
-export const translatePoints = ( coordinateList, xTranslation = 0, yTranslation = 0 ) => {
-    return coordinateList.map(({ x, y }) => ({
-        x: x + xTranslation,
-        y: y + yTranslation,
-    }));
-};
-
-export const rotatePoints = ( coordinateList, rotationCenterX, rotationCenterY, angleInRadians ) => {
-    return coordinateList.map(({ x, y }) => {
-        return translatePointerRotation( x, y, rotationCenterX, rotationCenterY, angleInRadians );
-    });
-};
 
 export const scaleRectangle = ({ left, top, width, height }, scale = 1 ) => {
     const scaledWidth  = width  * scale;
