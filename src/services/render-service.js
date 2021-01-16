@@ -275,7 +275,7 @@ const renderMask = async( layer, ctx, tX = 0, tY = 0 ) => {
     }
     ctx.save();
     ctx.translate( tX, tY );
-    ctx.globalCompositeOperation = "destination-in";
+    ctx.globalCompositeOperation = "destination-out";
     ctx.drawImage( layer.mask, layer.maskX, layer.maskY );
     ctx.restore();
 };
