@@ -1,0 +1,50 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Igor Zinken 2021 - https://www.igorski.nl
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+const BrushFactory = {
+    create({ radius = 10, color = "rgba(255,0,0,1)", pointer = null } = {} ) {
+        const [r, g, b, a] = color.split( "," );
+        const colors = [
+            color,
+            `${r},${g},${b},${parseFloat(a) * 0.5})`,
+            `${r},${g},${b},0)`
+        ];
+        return {
+            radius,
+            colors,
+            pointer,
+            halfRadius   : radius * 0.5,
+            doubleRadius : radius * 2
+        };
+    }
+};
+export default BrushFactory;
+
+export const createDrawable = ( brush, ctx, x, y ) => {
+    const gradient = ctx.createRadialGradient( x, y, brush.halfRadius, x, y, brush.radius );
+
+    gradient.addColorStop( 0,   brush.colors[ 0 ]);
+    gradient.addColorStop( 0.5, brush.colors[ 1 ]);
+    gradient.addColorStop( 1,   brush.colors[ 2 ]);
+
+    return gradient;
+};

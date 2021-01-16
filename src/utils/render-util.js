@@ -20,8 +20,10 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { createCanvas, resizeImage } from "@/utils/canvas-util";
 import { LAYER_TEXT } from "@/definitions/layer-types";
+import { createDrawable } from "@/factories/brush-factory";
+import { distanceBetween, angleBetween, translatePointerRotation } from "@/math/point-math";
+import { createCanvas, resizeImage } from "@/utils/canvas-util";
 
 const tempCanvas = createCanvas();
 
@@ -36,32 +38,63 @@ export const renderCross = ( ctx, x, y, size ) => {
     ctx.restore();
 };
 
+export const renderBrushStroke = ( sprite, brush, ctx, destinationPoint ) => {
+    const { pointer, radius, doubleRadius } = brush;
+
+    // effects complicate proceedings https://github.com/igorski/bitmappery/issues/2
+    const { rotation, mirrorX, mirrorY } = sprite.layer.effects;
+    if ( rotation || mirrorX || mirrorY ) {
+        ctx.fillStyle = createDrawable( brush, ctx, destinationPoint.x, destinationPoint.y )
+        ctx.fillRect( destinationPoint.x - radius, destinationPoint.y - radius, doubleRadius, doubleRadius );
+        return;
+    }
+
+    ctx.save();
+    ctx.lineJoin = ctx.lineCap = "round";
+
+    const dist  = distanceBetween( pointer, destinationPoint );
+    const angle = angleBetween( pointer, destinationPoint );
+
+    const incr  = brush.radius * 0.25;
+    const sin   = Math.sin( angle );
+    const cos   = Math.cos( angle );
+
+    let x, y;
+    for ( let i = 0; i < dist; i += incr ) {
+        x = pointer.x + ( sin * i );
+        y = pointer.y + ( cos * i );
+        ctx.fillStyle = createDrawable( brush, ctx, x, y )
+        ctx.fillRect( x - radius, y - radius, doubleRadius, doubleRadius );
+    }
+    ctx.restore();
+};
+
 /**
  * Masks the contents of given source using given brushCvs, and renders the result onto given destContext.
  * Used by clone stamp tool.
  *
  * @param {CanvasRenderingContext2D} destContext
  * @param {zCanvas.sprite} sprite
- * @param {number} destX destination x-coordinate relative to given destContext
- * @param {number} destY destination y-coordinate relative to given destContext
  * @param {zCanvas.sprite} sourceSprite containing the bitmap to mask (see getBitmap())
- * @param {HTMLCanvasElement} brushCvs mask image to use
- * @param {number} maskRadius radius of the mask (determines mask size)
+ * @param {Object} brush operation to use
+ * @param {{ x: number, y:number }} destinationPoint coordinate relative to given destContext
  */
-export const renderMasked = ( destContext, sprite, destX, destY, sourceSprite, brushCvs, maskRadius ) => {
+export const renderClonedStroke = ( destContext, sprite, sourceSprite, brush, destinationPoint ) => {
+    const maskRadius = brush.radius;
+
     const { coords, opacity } = sprite._toolOptions;
     const source = sourceSprite.getBitmap();
     const relSource = sprite._cloneStartCoords ?? sprite._dragStartEventCoordinates;
 
     const sourceX = ( coords.x - sourceSprite.getX()) - maskRadius;
     const sourceY = ( coords.y - sourceSprite.getY()) - maskRadius;
-    const xDelta  = sprite._dragStartOffset.x + (( destX - sprite._bounds.left ) - relSource.x );
-    const yDelta  = sprite._dragStartOffset.y + (( destY - sprite._bounds.top )  - relSource.y );
+    const xDelta  = sprite._dragStartOffset.x + (( destinationPoint.x - sprite._bounds.left ) - relSource.x );
+    const yDelta  = sprite._dragStartOffset.y + (( destinationPoint.y - sprite._bounds.top )  - relSource.y );
 
     // prepare temporary canvas (match size with brush)
     const { cvs, ctx } = tempCanvas;
-    cvs.width  = brushCvs.width;
-    cvs.height = brushCvs.height;
+    cvs.width  = brush.doubleRadius;
+    cvs.height = brush.doubleRadius;
 
     ctx.globalAlpha = opacity;
 
@@ -73,12 +106,13 @@ export const renderMasked = ( destContext, sprite, destX, destY, sourceSprite, b
 
     // draw the brush above the bitmap, keeping only the overlapping area
     ctx.globalCompositeOperation = "destination-in";
-    ctx.drawImage( brushCvs, 0, 0 );
+    // note we use the brush.pointer as the destination too
+    renderBrushStroke( sprite, brush, ctx, brush.pointer );
 
     // draw the masked result onto the destination canvas
     destContext.drawImage(
         cvs, 0, 0, maskRadius, maskRadius,
-        destX - maskRadius, destY - maskRadius, maskRadius, maskRadius
+        destinationPoint.x - maskRadius, destinationPoint.y - maskRadius, maskRadius, maskRadius
     );
 };
 

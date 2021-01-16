@@ -145,7 +145,6 @@ further benchmarking and tweaking.
 
 * Implement layer sorting and opacity
 * Layer source and mask must not be stored as Vue observables
-* Implement action queue when drawing, only execute drawing on zCanvas.sprite.update()-hook
 * Maintain cache for source images at the display destination size (invalidate on window resize / zoom), this prevents processing large images that are never displayed at their full scale
 * Dragging of masks on rotated/mirror content is kinda broken
 * Restored base64 images should be treated as binary once more (see layer-factory)

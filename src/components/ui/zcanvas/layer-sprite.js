@@ -23,12 +23,14 @@
 import Vue from "vue";
 import { sprite } from "zcanvas"
 import { createCanvas, cloneCanvas, resizeImage, globalToLocal } from "@/utils/canvas-util";
-import { renderCross, renderMasked } from "@/utils/render-util";
+import { renderCross, renderBrushStroke, renderClonedStroke } from "@/utils/render-util";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
-import { translatePointerRotation, rotatePoints, scaleRectangle } from "@/math/image-math";
+import { scaleRectangle } from "@/math/image-math";
 import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
+import { rotatePoints, translatePointerRotation } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { flushLayerCache, clearCacheProperty } from "@/services/caches/bitmap-cache";
+import BrushFactory from "@/factories/brush-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
@@ -51,13 +53,11 @@ class LayerSprite extends sprite {
             layer.source = cvs;
         }
 
-        // create brush (used for both drawing on LAYER_GRAPHIC types and to create layer masks)
-        const brushCanvas = createCanvas();
-        this._brushCvs    = brushCanvas.cvs;
-        this._brushCtx    = brushCanvas.ctx;
-        this._halfRadius  = 0;
-        this._pointerX    = 0;
-        this._pointerY    = 0;
+        this._pointerX = 0;
+        this._pointerY = 0;
+
+        // brush properties (used for both drawing on LAYER_GRAPHIC types and to create layer masks)
+        this._brush = BrushFactory.create();
 
         this.setActionTarget();
 
@@ -91,41 +91,12 @@ class LayerSprite extends sprite {
         return this.layer.effects.scale !== 1;
     }
 
-    cacheBrush( color, radius = 30 ) {
-        this._radius = radius;
+    cacheBrush( color = "rgba(255,0,0,1)", radius = 30 ) {
+        this._brush = BrushFactory.create({ color, radius, pointer: this._brush.pointer });
+    }
 
-        const innerRadius = radius / 10;
-        const outerRadius = radius * 2;
-
-        const x = radius;
-        const y = radius;
-
-        // update brush Canvas size
-        this._brushCvs.width  = outerRadius;
-        this._brushCvs.height = outerRadius;
-
-        if ( !this._brushCtx ) {
-            return; // TODO: this is because in Jenkins on Linux there is no canvas mock available
-        }
-
-        const gradient = this._brushCtx.createRadialGradient( x, y, innerRadius, x, y, outerRadius );
-        gradient.addColorStop( 0, color );
-
-        let color2 = "rgba(255,255,255,0)";
-/*
-        if ( color.startsWith( "rgba" )) {
-            const [r, g, b, a] = color.split( "," );
-            color2 = `${r},${g},${b},0)`;
-        }
-*/
-        gradient.addColorStop( 1, color2 );
-
-        this._brushCtx.clearRect( 0, 0, this._brushCvs.width, this._brushCvs.height );
-        this._brushCtx.arc( x, y, radius, 0, 2 * Math.PI );
-        this._brushCtx.fillStyle = gradient;
-        this._brushCtx.fill();
-
-        this._halfRadius = radius / 2;
+    storeBrushPointer( x, y ) {
+        this._brush.pointer = { x: x - this._bounds.left, y: y - this._bounds.top };
     }
 
     cacheEffects() {
@@ -290,17 +261,17 @@ class LayerSprite extends sprite {
                 ctx.fillRect( 0, 0, width, height );
             }
         } else {
-
             // TODO: when rotated and mirrored, x and y are now in right coordinate space, but not at right point
+            const destination = { x, y };
 
             if ( isCloneStamp ) {
-                renderMasked(
-                    ctx, this, x, y,
+                renderClonedStroke(
+                    ctx, this,
                     getSpriteForLayer({ id: this._toolOptions.sourceLayerId }), // TODO: fugly!!
-                    this._brushCvs, this._radius
+                    this._brush, destination,
                 );
             } else {
-                ctx.drawImage( this._brushCvs, x - this._radius, y - this._radius );
+                renderBrushStroke( this, this._brush, ctx, destination );
             }
         }
         ctx.restore();
@@ -416,7 +387,7 @@ class LayerSprite extends sprite {
                 return;
             }
             // for any other brush mode state, set the brush application to true (will be applied in handleMove())
-            this._applyPaint = true;
+            this.storeBrushPointer( x, y );
         }
     }
 
@@ -443,13 +414,14 @@ class LayerSprite extends sprite {
         }
 
         // brush tool active (either draws/erases onto IMAGE_GRAPHIC layer source or on the mask bitmap)
-        if ( this._applyPaint ) {
+        if ( !!this._brush.pointer ) {
             this.paint( x, y );
+            this.storeBrushPointer( x, y ); // update so next stroke starts from current position
         }
     }
 
     handleRelease( x, y ) {
-        this._applyPaint = false;
+        this._brush.pointer = null;
         if ( this._isPaintMode ) {
             this.forceMoveListener(); // keeps the move listener active
         }
@@ -488,8 +460,8 @@ class LayerSprite extends sprite {
                     ty = ( coords.y - viewport.top  ) + ( this._pointerY - relSource.y );
                 }
                 // when no source coordinate is set, or when applying the clone stamp, we show a cross to mark the origin
-                if ( !coords || this._applyPaint ) {
-                    renderCross( documentContext, tx, ty, this._radius / this.canvas.zoomFactor );
+                if ( !coords || this._brush.pointer ) {
+                    renderCross( documentContext, tx, ty, this._brush.radius / this.canvas.zoomFactor );
                 }
             }
             documentContext.save();
@@ -497,7 +469,7 @@ class LayerSprite extends sprite {
 
             if ( drawBrushOutline ) {
                 // any other brush mode state shows brush outline
-                documentContext.arc( this._pointerX - viewport.left, this._pointerY - viewport.top, this._radius, 0, 2 * Math.PI );
+                documentContext.arc( this._pointerX - viewport.left, this._pointerY - viewport.top, this._brush.radius, 0, 2 * Math.PI );
             }
             documentContext.stroke();
             documentContext.restore();
@@ -536,7 +508,6 @@ class LayerSprite extends sprite {
 
         this._bitmap      = null;
         this._bitmapReady = false;
-        this._brushCvs    = null;
     }
 }
 export default LayerSprite;
