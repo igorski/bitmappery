@@ -416,7 +416,7 @@ class LayerSprite extends sprite {
         // brush tool active (either draws/erases onto IMAGE_GRAPHIC layer source or on the mask bitmap)
         if ( !!this._brush.pointer ) {
             this.paint( x, y );
-            this.storeBrushPointer( x, y );
+            this.storeBrushPointer( x, y ); // update so next stroke starts from current position
         }
     }
 
