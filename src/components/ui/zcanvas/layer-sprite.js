@@ -25,7 +25,7 @@ import { sprite } from "zcanvas"
 import { createCanvas, cloneCanvas, resizeImage, globalToLocal } from "@/utils/canvas-util";
 import { renderCross, renderMasked } from "@/utils/render-util";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
-import { translatePointerRotation, rotatePoints } from "@/math/image-math";
+import { translatePointerRotation, rotatePoints, scaleRectangle } from "@/math/image-math";
 import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { flushLayerCache, clearCacheProperty } from "@/services/caches/bitmap-cache";
@@ -87,6 +87,10 @@ class LayerSprite extends sprite {
 
     isRotated() {
         return ( this.layer.effects.rotation % 360 ) !== 0;
+    }
+
+    isScaled() {
+        return this.layer.effects.scale !== 1;
     }
 
     cacheBrush( color, radius = 30 ) {
@@ -187,6 +191,7 @@ class LayerSprite extends sprite {
                 this.forceMoveListener();
                 this.setDraggable( true );
                 this._isPaintMode = true;
+                this.cacheBrush( this.canvas.store.getters.activeColor, toolOptions?.size );
 
                 // drawable tools can work alongside an existing selection
                 const selection = activeDocument.selection;
@@ -349,6 +354,7 @@ class LayerSprite extends sprite {
         if ( width === 0 || height === 0 ) {
             ({ width, height } = bounds );
         }
+
         // commit change
         super.setBounds( x, y, width, height );
 
@@ -503,6 +509,22 @@ class LayerSprite extends sprite {
     }
 
     draw( documentContext, viewport ) {
+        const scaleDocument = this.isScaled();
+
+        // in case Layer has scale effect, apply it here (we don't resample the
+        // actual Layer source to make this behaviour non-destructive, it's
+        // merely a visualization and thus renderer affair)
+
+        if ( scaleDocument ) {
+            const { scale } = this.layer.effects;
+            const { left, top, width, height } = this._bounds;
+            const xTranslation = ( left + width  * 0.5 ) - viewport.left;
+            const yTranslation = ( top  + height * 0.5 ) - viewport.top;
+            documentContext.save();
+            documentContext.translate( xTranslation, yTranslation );
+            documentContext.scale( scale, scale );
+            documentContext.translate( -xTranslation, -yTranslation );
+        }
         // invoke base class behaviour to render bitmap
         super.draw( documentContext, viewport );
 
@@ -536,6 +558,7 @@ class LayerSprite extends sprite {
 
         // interactive state implies the sprite's Layer is currently active
         // show a border around the Layer contents to indicate the active area
+
         if ( this._interactive ) {
             documentContext.save();
             documentContext.lineWidth   = 1 / this.canvas.zoomFactor;
@@ -553,6 +576,10 @@ class LayerSprite extends sprite {
             documentContext.strokeRect( destX, destY, width, height );
             documentContext.restore();
         }
+
+        if ( scaleDocument ) {
+            documentContext.restore();
+        }
     }
 
     dispose() {
@@ -568,6 +595,13 @@ class LayerSprite extends sprite {
 export default LayerSprite;
 
 /* internal non-instance methods */
+
+function scaleViewport( viewport, scale ) {
+    const scaled    = scaleRectangle( viewport, scale );
+    viewport.right  = viewport.left + viewport.width;
+    viewport.bottom = viewport.top + viewport.height;
+    return scaled;
+}
 
 // NOTE we use getSpriteForLayer() instead of passing the Sprite by reference
 // as it is possible the Sprite originally rendering the Layer has been disposed

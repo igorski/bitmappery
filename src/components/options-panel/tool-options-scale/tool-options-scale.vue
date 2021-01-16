@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -22,9 +22,9 @@
  */
 <template>
     <div class="tool-option">
-        <h3 v-t="'rotation'"></h3>
+        <h3 v-t="'scale'"></h3>
         <slider
-            v-model="rotation"
+            v-model="scale"
             :min="min"
             :max="max"
             :tooltip="'none'"
@@ -41,12 +41,12 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from "vuex";
+import { mapGetters } from "vuex";
 import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import Slider    from "@/components/ui/slider/slider";
 import { enqueueState } from "@/factories/history-state-factory";
+import { scale } from "@/math/unit-math";
 import messages  from "./messages.json";
-import { degreesToRadians, radiansToDegrees } from "@/math/image-math";
 
 export default {
     i18n: { messages },
@@ -54,37 +54,35 @@ export default {
         Slider,
     },
     data: () => ({
-        min: 0,
-        max: 360,
+        min: MIN_ZOOM,
+        max: MAX_ZOOM,
     }),
     computed: {
         ...mapGetters([
             "activeLayerIndex",
             "activeLayerEffects",
         ]),
-        // note rotation is stored in radians but represented visually as degrees
-        rotation: {
+        scale: {
             get() {
-                return radiansToDegrees( this.activeLayerEffects.rotation );
+                return ( this.activeLayerEffects.scale - 1 ) * MAX_ZOOM;
             },
             set( value ) {
-                this.update( degreesToRadians( value % 360 ));
+                this.update( scale( value, MAX_ZOOM, 1 ) + 1 );
             }
         }
     },
     methods: {
-        ...mapMutations([
-            "updateLayerEffects",
-        ]),
-        update( rotation ) {
-            const oldRotation = this.activeLayerEffects.rotation;
+        update( scale ) {
+            const oldScale = this.activeLayerEffects.scale;
             const index  = this.activeLayerIndex;
             const store  = this.$store;
-            const commit = () => store.commit( "updateLayerEffects", { index, effects: { rotation } });
+            const commit = () => {
+                store.commit( "updateLayerEffects", { index, effects: { scale } });
+            };
             commit();
-            enqueueState( `rotation_${index}`, {
+            enqueueState( `scale_${index}`, {
                 undo() {
-                    store.commit( "updateLayerEffects", { index, effects: { rotation: oldRotation } });
+                    store.commit( "updateLayerEffects", { index, effects: { scale: oldScale } });
                 },
                 redo() {
                     commit();
@@ -92,7 +90,7 @@ export default {
             });
         },
         reset() {
-            this.rotation = 0;
+            this.scale = 0;
         },
     },
 };

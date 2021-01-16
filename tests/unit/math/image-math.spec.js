@@ -1,5 +1,5 @@
 import {
-    fastRound, scaleToRatio, constrain, isPortrait, isLandscape, isSquare, translatePoints,
+    fastRound, scaleToRatio, constrain, isPortrait, isLandscape, isSquare, translatePoints, scaleRectangle
 } from "@/math/image-math";
 
 describe( "Image math utilities", () => {
@@ -66,5 +66,37 @@ describe( "Image math utilities", () => {
         expect( translatePoints( list, 5, -5 )).toEqual([
             { x: 15, y: 5 }, { x: 20, y: 10 }
         ]);
+    });
+
+    describe( "when scaling rectangles", () => {
+        it( "should be able to scale a rectangle and maintain its relative offset when scaling up", () => {
+            const rectangle = {
+                left: 50,
+                top: 50,
+                width: 200,
+                height: 400
+            };
+            expect( scaleRectangle( rectangle, 2 )).toEqual({
+                left: -50,
+                top: -150,
+                width: 400,
+                height: 800
+            });
+        });
+
+        it( "should be able to scale a rectangle and maintain its relative offset when scaling down", () => {
+            const rectangle = {
+                left: -50,
+                top: -150,
+                width: 400,
+                height: 800
+            };
+            expect( scaleRectangle( rectangle, 0.5 )).toEqual({
+                left: 50,
+                top: 50,
+                width: 200,
+                height: 400
+            });
+        });
     });
 });

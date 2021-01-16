@@ -7,7 +7,8 @@ describe( "Effects factory", () => {
             expect( effects ).toEqual({
                 mirrorX: false,
                 mirrorY: false,
-                rotation: expect.any( Number )
+                rotation: expect.any( Number ),
+                scale: 1
             });
         });
 
@@ -15,12 +16,14 @@ describe( "Effects factory", () => {
             const effects = EffectsFactory.create({
                 mirrorX: true,
                 mirrorY: true,
-                rotation: -90
+                rotation: -90,
+                scale: 2
             });
             expect( effects ).toEqual({
                 mirrorX: true,
                 mirrorY: true,
-                rotation: -90
+                rotation: -90,
+                scale: 2
             });
         });
     });
@@ -30,7 +33,8 @@ describe( "Effects factory", () => {
             const effects = EffectsFactory.create({
                 mirrorX: true,
                 mirrorY: true,
-                rotation: 270
+                rotation: 270,
+                scale: .5
             });
             const serialized = EffectsFactory.serialize( effects );
             const deserialized = EffectsFactory.deserialize( serialized );

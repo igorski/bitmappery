@@ -86,6 +86,8 @@ export default {
                     return () => import( "./tool-options-clone/tool-options-clone" );
                 case ToolTypes.ROTATE:
                     return () => import( "./tool-options-rotate/tool-options-rotate" );
+                case ToolTypes.SCALE:
+                    return () => import( "./tool-options-scale/tool-options-scale" );
                 case ToolTypes.MIRROR:
                     return () => import( "./tool-options-mirror/tool-options-mirror" );
                 case ToolTypes.TEXT:

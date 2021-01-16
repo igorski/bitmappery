@@ -21,8 +21,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 const EffectFactory = {
-    create({ rotation = 0, mirrorX = false, mirrorY = false } = {}) {
+    create({ scale = 1, rotation = 0, mirrorX = false, mirrorY = false } = {}) {
         return {
+            scale,
             rotation,
             mirrorX,
             mirrorY,
@@ -35,6 +36,7 @@ const EffectFactory = {
      */
     serialize( effects ) {
         return {
+            s: effects.scale,
             r: effects.rotation,
             x: effects.mirrorX,
             y: effects.mirrorY,
@@ -47,16 +49,18 @@ const EffectFactory = {
      */
      deserialize( effects = {} ) {
          return EffectFactory.create({
-             rotation: effects.r,
-             mirrorX: effects.x,
-             mirrorY: effects.y,
+             scale    : effects.s,
+             rotation : effects.r,
+             mirrorX  : effects.x,
+             mirrorY  : effects.y,
          });
      }
 };
 export default EffectFactory;
 
 export const isEqual = ( effects, effectsToCompare = {} ) => {
-    return effects.rotation === effectsToCompare.rotation  &&
-           effects.mirrorX  === effectsToCompare.mirrorX &&
+    return effects.scale    === effectsToCompare.scale    &&
+           effects.rotation === effectsToCompare.rotation &&
+           effects.mirrorX  === effectsToCompare.mirrorX  &&
            effects.mirrorY  === effectsToCompare.mirrorY;
 };

@@ -231,6 +231,8 @@ function handleKeyDown( event ) {
             if ( hasOption ) {
                 dispatch( "clearSelection" );
                 preventDefault( event ); // bookmark
+            } else if ( getters.activeLayer ) {
+                setActiveTool( ToolTypes.SCALE );
             }
             break;
 
