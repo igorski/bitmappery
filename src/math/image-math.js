@@ -169,3 +169,14 @@ export const rotatePoints = ( coordinateList, rotationCenterX, rotationCenterY, 
         return translatePointerRotation( x, y, rotationCenterX, rotationCenterY, angleInRadians );
     });
 };
+
+export const scaleRectangle = ({ left, top, width, height }, scale = 1 ) => {
+    const scaledWidth  = width  * scale;
+    const scaledHeight = height * scale;
+    return {
+        left   : left - ( scaledWidth  * .5 - width  * .5 ),
+        top    : top  - ( scaledHeight * .5 - height * .5 ),
+        width  : scaledWidth,
+        height : scaledHeight
+    };
+};

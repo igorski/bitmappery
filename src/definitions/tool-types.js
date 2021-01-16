@@ -29,6 +29,7 @@ const ToolTypes = {
     DRAG       : "drag",  // drags layer within document
     LASSO      : "lasso",
     SELECTION  : "selection",
+    SCALE      : "scale",
     EYEDROPPER : "eyedropper",
     ROTATE     : "rotate",
     FILL       : "fill",

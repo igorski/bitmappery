@@ -168,6 +168,11 @@ export default {
                     disabled: !clonable, hasOptions: true
                 },
                 {
+                    type: ToolTypes.SCALE,
+                    i18n: "scaleLayer", icon: "resize", key: "D",
+                    disabled: !this.activeLayer, hasOptions: true,
+                },
+                {
                     type: ToolTypes.EYEDROPPER,
                     i18n: "eyedropper", icon: "eyedropper", key: "I",
                     disabled: !this.activeLayer, hasOptions: false

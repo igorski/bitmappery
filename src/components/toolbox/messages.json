@@ -15,6 +15,7 @@
         "brush": "Brush",
         "eraser": "Eraser",
         "cloneStamp": "Clone stamp",
+        "scaleLayer": "Scale layer",
         "text": "Text",
         "newTextLayer": "New text layer",
         "color": "Color"
