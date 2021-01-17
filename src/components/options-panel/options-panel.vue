@@ -112,6 +112,10 @@ export default {
     width: 100%;
     height: 100%;
 
+    .content {
+        padding: $spacing-small $spacing-medium $spacing-medium;
+    }
+
     @include mobile() {
         overflow: hidden;
 
