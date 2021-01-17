@@ -10,10 +10,9 @@
         .select,
         .vue-slider {
             display: inline-block;
-            width: 50%;
+            width: 50% !important;
         }
         .vue-slider {
-            width: 50% !important;
             vertical-align: middle;
         }
         input, textarea {

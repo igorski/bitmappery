@@ -197,8 +197,9 @@ export default {
             commit( "showNotification", { message: translate( "selectionCopied" ) });
             dispatch( "clearSelection" );
         },
-        clearSelection() {
+        clearSelection({ getters }) {
             getCanvasInstance()?.interactionPane.resetSelection();
+            getSpriteForLayer( getters.activeLayer )?.resetSelection();
         },
         pasteSelection({ commit, getters, dispatch, state }) {
             const selection       = state.selectionContent;

@@ -12,7 +12,8 @@ describe( "Brush factory", () => {
                 "rgba(255,0,0,0)"
             ],
             options: {},
-            pointer: null,
+            pointers: [],
+            down: false,
         });
     });
 
@@ -20,7 +21,7 @@ describe( "Brush factory", () => {
         expect( BrushFactory.create({
             radius: 20,
             color: "rgba(128,123,686,.75)",
-            pointer: { x: 10, y: 20 },
+            pointers: [{ x: 10, y: 20 }],
             options: { size: 10 }
         })).toEqual({
             radius: 20,
@@ -31,8 +32,9 @@ describe( "Brush factory", () => {
                 "rgba(128,123,686,0.375)",
                 "rgba(128,123,686,0)"
             ],
-            pointer: { x: 10, y: 20 },
-            options: { size: 10 }
+            pointers: [{ x: 10, y: 20 }],
+            options: { size: 10 },
+            down: false,
         });
     });
 });
