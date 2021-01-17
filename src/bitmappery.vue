@@ -33,7 +33,7 @@
                 class="document-container"
                 :style="{ 'width': docWidth }"
             >
-                <document-canvas ref="documentCanvas" />
+                <component :is="documentCanvas" ref="documentCanvas" />
             </div>
             <options-panel
                 ref="optionsPanel"
@@ -68,7 +68,6 @@ import Vue             from "vue";
 import VueI18n         from "vue-i18n";
 import VTooltip        from "v-tooltip";
 import ApplicationMenu from "@/components/application-menu/application-menu";
-import DocumentCanvas  from "@/components/document-canvas/document-canvas";
 import OptionsPanel    from "@/components/options-panel/options-panel";
 import Toolbox         from "@/components/toolbox/toolbox";
 import DialogWindow    from "@/components/dialog-window/dialog-window";
@@ -102,7 +101,6 @@ export default {
     components: {
         ApplicationMenu,
         DialogWindow,
-        DocumentCanvas,
         Loader,
         Notifications,
         OptionsPanel,
@@ -124,6 +122,9 @@ export default {
             "activeDocument",
             "isLoading",
         ]),
+        documentCanvas() {
+            return () => import( "@/components/document-canvas/document-canvas" );
+        },
         activeModal() {
             switch ( this.modal ) {
                 default:
