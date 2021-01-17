@@ -270,7 +270,7 @@ class LayerSprite extends sprite {
         else {
             // TODO: when rotated and mirrored, x and y are now in right coordinate space, but not at right point
 
-            // get the enqueued pointers which we are to be rendered in this paint cycle
+            // get the enqueued pointers which are to be rendered in this paint cycle
             let { pointers, last } = this._brush;
             pointers = JSON.parse( JSON.stringify( pointers.slice( pointers.length - ( pointers.length - last ) - 1 )));
 
@@ -279,7 +279,7 @@ class LayerSprite extends sprite {
                     renderClonedStroke(
                         ctx, this._brush, this, getSpriteForLayer({ id: this._toolOptions.sourceLayerId }), pointers
                     );
-                    // clone operation is direct-to-Layer source
+                    // clone operation is direct-to-Layer-source
                     this.setBitmap( ctx.canvas );
                 }
             } else {

@@ -71,11 +71,12 @@ export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
     ctx.lineJoin = ctx.lineCap = "round";
 
     for ( let i = 1; i < pointers.length; ++i ) {
+        const isFirst   = i === 1;
         const prevPoint = pointers[ i - 1 ];
         const point     = pointers[ i ];
 
         if ( optOverride ) {
-            if ( i === 1 ) {
+            if ( isFirst ) {
                 prevPoint.x = ( prevPoint.x + optOverride.x ) * optOverride.scale;
                 prevPoint.y = ( prevPoint.y + optOverride.y ) * optOverride.scale;
             }
@@ -123,7 +124,7 @@ export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
         ctx.strokeStyle = brush.colors[ 0 ];
 
         if ( type === BrushTypes.LINE ) {
-            if ( i === 1 ) {
+            if ( isFirst ) {
                 ctx.lineWidth = radius;
                 ctx.beginPath();
                 ctx.moveTo( prevPoint.x, prevPoint.y );
@@ -134,7 +135,7 @@ export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
         }
 
         if ( type === BrushTypes.CALLIGRAPHIC ) {
-            if ( i === 1 ) {
+            if ( isFirst ) {
                 ctx.lineWidth = halfRadius;
                 ctx.beginPath();
             }
@@ -152,7 +153,7 @@ export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
         // this one benefits from working with a large point queue
 
         if ( type === BrushTypes.CURVED_PEN ) {
-            if ( i === 1 ) {
+            if ( isFirst ) {
                 ctx.lineWidth = radius;
                 ctx.beginPath();
                 ctx.moveTo( prevPoint.x, prevPoint.y );
@@ -171,11 +172,10 @@ export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
         let dX = 0
         let dY = 0;
         for ( let j = 0; j < options.strokes; ++j ) {
-            const first = ( i === 1 && j === 0 );
             switch ( type ) {
                 default:
                 case BrushTypes.PEN:
-                    if ( first ) {
+                    if ( isFirst && j === 0 ) {
                         ctx.beginPath();
                         ctx.lineWidth = ( radius * 0.2 ) * randomInRange( 0.5, 1 );
                     }
