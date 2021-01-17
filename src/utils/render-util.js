@@ -43,6 +43,13 @@ export const renderCross = ( ctx, x, y, size ) => {
     ctx.restore();
 };
 
+/**
+ * Render a series of registered pointer offset into a single brush stroke
+ * @param {CanvasRenderingContext2D} ctx to render on
+ * @param {Object} brush properties
+ * @param {zCanvas.sprite} sprite defining relative (on-screen) Layer coordinates
+ * @param {Object=} optional override to use (defines alternate pointers and coordinate scaling)
+ */
 export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
     let { pointers, radius, halfRadius, doubleRadius, options } = brush;
     let scale = 1;
@@ -68,10 +75,12 @@ export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
         const point     = pointers[ i ];
 
         if ( optOverride ) {
-            prevPoint.x = ( prevPoint.x + optOverride.x ) * optOverride.scale;
-            prevPoint.y = ( prevPoint.y + optOverride.y ) * optOverride.scale;
-            point.x     = ( point.x + optOverride.x ) * optOverride.scale;
-            point.y     = ( point.y + optOverride.y ) * optOverride.scale;
+            if ( i === 1 ) {
+                prevPoint.x = ( prevPoint.x + optOverride.x ) * optOverride.scale;
+                prevPoint.y = ( prevPoint.y + optOverride.y ) * optOverride.scale;
+            }
+            point.x = ( point.x + optOverride.x ) * optOverride.scale;
+            point.y = ( point.y + optOverride.y ) * optOverride.scale;
         }
 
         // paint brush types
@@ -85,9 +94,9 @@ export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
             const cos  = Math.cos( angle );
 
             let x, y, size, doubleSize;
-            for ( let i = 0; i < dist; i += incr ) {
-                x = prevPoint.x + ( sin * i );
-                y = prevPoint.y + ( cos * i );
+            for ( let j = 0; j < dist; j += incr ) {
+                x = prevPoint.x + ( sin * j );
+                y = prevPoint.y + ( cos * j );
                 ctx.fillStyle = createDrawable( brush, ctx, x, y, scale );
                 ctx.fillRect( x - radius, y - radius, doubleRadius, doubleRadius );
             }
@@ -96,7 +105,8 @@ export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
 
         if ( type === BrushTypes.SPRAY ) {
             ctx.fillStyle = brush.colors[ 0 ];
-            for ( let i = doubleRadius; i--; ) {
+            let j = doubleRadius;
+            while ( j-- > 0 ) {
                 const angle = randomInRange( 0, TWO_PI );
                 const size  = randomInRange( 1, 3 );
                 ctx.fillRect(
@@ -110,11 +120,11 @@ export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
 
         // line types
 
-        ctx.lineWidth   = radius;
         ctx.strokeStyle = brush.colors[ 0 ];
 
         if ( type === BrushTypes.LINE ) {
             if ( i === 1 ) {
+                ctx.lineWidth = radius;
                 ctx.beginPath();
                 ctx.moveTo( prevPoint.x, prevPoint.y );
             }
@@ -125,6 +135,7 @@ export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
 
         if ( type === BrushTypes.CALLIGRAPHIC ) {
             if ( i === 1 ) {
+                ctx.lineWidth = halfRadius;
                 ctx.beginPath();
             }
             const min = ( radius * 0.25 ) * 0.66666;
@@ -138,32 +149,38 @@ export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
             continue;
         }
 
-        // multi stroke line types
+        // this one benefits from working with a large point queue
+
+        if ( type === BrushTypes.CURVED_PEN ) {
+            if ( i === 1 ) {
+                ctx.lineWidth = radius;
+                ctx.beginPath();
+                ctx.moveTo( prevPoint.x, prevPoint.y );
+            }
+            const midPoint = pointBetween( prevPoint, point );
+            ctx.quadraticCurveTo( prevPoint.x, prevPoint.y, midPoint.x, midPoint.y );
+            if ( i === pointers.length - 1 ) {
+                ctx.lineTo( point.x, point.y );
+                ctx.stroke();
+            }
+            continue;
+        }
+
+        // multi stroke line type
 
         let dX = 0
         let dY = 0;
-        for ( let i = 0; i < options.strokes; ++i ) {
+        for ( let j = 0; j < options.strokes; ++j ) {
+            const first = ( i === 1 && j === 0 );
             switch ( type ) {
                 default:
                 case BrushTypes.PEN:
-                    if ( i === 1 ) {
+                    if ( first ) {
                         ctx.beginPath();
                         ctx.lineWidth = ( radius * 0.2 ) * randomInRange( 0.5, 1 );
                     }
                     ctx.moveTo( prevPoint.x - dX, prevPoint.y - dY );
                     ctx.lineTo( point.x - dX, point.y - dY );
-                    ctx.stroke();
-                    break;
-
-                // this one benefits from working with a large point queue
-                case BrushTypes.CURVED_PEN:
-                    if ( i === 1 ) {
-                        ctx.beginPath();
-                        ctx.moveTo( prevPoint.x, prevPoint.y );
-                    }
-                    const midPoint = pointBetween( prevPoint, point );
-                    ctx.quadraticCurveTo( pointer.x, pointer.y, midPoint.x, midPoint.y );
-                    ctx.lineTo( point.x, point.y );
                     ctx.stroke();
                     break;
             }
@@ -178,10 +195,11 @@ export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
  * Masks the contents of given source using given brushCvs, and renders the result onto given destContext.
  * Used by clone stamp tool.
  *
- * @param {CanvasRenderingContext2D} destContext
- * @param {zCanvas.sprite} sprite
- * @param {zCanvas.sprite} sourceSprite containing the bitmap to mask (see getBitmap())
+ * @param {CanvasRenderingContext2D} destContext context to render on
  * @param {Object} brush operation to use
+ * @param {zCanvas.sprite} sprite containg the relative (on-screen) Layer coordinates
+ * @param {zCanvas.sprite} sourceSprite containing the bitmap to mask (see getBitmap())
+ * @param {Array<{{ x: Number, y: Number }}>=} optPointers optional Array of alternative coordinates
  */
 export const renderClonedStroke = ( destContext, brush, sprite, sourceSprite, optPointers ) => {
     if ( !sourceSprite ) {

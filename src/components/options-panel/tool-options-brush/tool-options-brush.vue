@@ -79,7 +79,7 @@ export default {
             return [
                 { text: this.$t( "line" ),         value: BrushTypes.LINE },
                 { text: this.$t( "pen" ),          value: BrushTypes.PEN },
-        //        { text: this.$t( "curvedPen" ),  value: BrushTypes.CURVED_PEN },
+                { text: this.$t( "curvedPen" ),    value: BrushTypes.CURVED_PEN },
                 { text: this.$t( "calligraphic" ), value: BrushTypes.CALLIGRAPHIC },
                 { text: this.$t( "paintBrush" ),   value: BrushTypes.PAINT_BRUSH },
                 { text: this.$t( "sprayCan" ),     value: BrushTypes.SPRAY }
