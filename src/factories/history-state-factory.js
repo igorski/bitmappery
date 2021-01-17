@@ -41,12 +41,25 @@ export const flushQueue = () => {
 // this ensures that an enqueued state that is reverted within the ENQUEUE_TIMEOUT is restored
 export const forceProcess = processQueue;
 
+/**
+ * Enqueue a state for addition in the history module. By enqueing, duplicate
+ * calls for the same key with new state Objects are merged into a single state.
+ *
+ * @param {String} key unique identifier for this state
+ * @param {{ undo: Function, redo: Function, resources: Array<String> }} Object with
+ *        undo and redo functions and optional list of resources (blob URLs)
+ *        associated with the undo / redo actions. Blob URLs will be revoked when
+ *        state is popped from the history stack to free memory.
+ */
 export const enqueueState = ( key, undoRedoState ) => {
     // new state is for the same property as the previously enqueued state
     // we can discard the previously enqueued states.redo in favour of this more actual one
     if ( stateQueue.has( key )) {
         const existing = stateQueue.get( key );
         existing.redo = undoRedoState.redo;
+        if ( existing.resources && undoRedoState.resources ) {
+            existing.resources.push( ...undoRedoState.resources );
+        }
         return;
     }
     // there is an existing queue for a different property

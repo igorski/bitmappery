@@ -22,7 +22,7 @@
  */
 import Vue from "vue";
 import { sprite } from "zcanvas"
-import { createCanvas, cloneCanvas, resizeImage, globalToLocal } from "@/utils/canvas-util";
+import { createCanvas, canvasToBlob, resizeImage, globalToLocal } from "@/utils/canvas-util";
 import { renderCross, renderBrushStroke, renderClonedStroke } from "@/utils/render-util";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
 import { scaleRectangle } from "@/math/image-math";
@@ -290,7 +290,9 @@ class LayerSprite extends sprite {
      * not delay to history state UI from updating more than necessary.
      */
     preparePendingPaintState() {
-        this._orgSourceToStore  = cloneCanvas( this.layer.source );
+        canvasToBlob( this.layer.source ).then( blob => {
+            this._orgSourceToStore = URL.createObjectURL( blob );
+        });
         this._pendingPaintState = setTimeout( this.storePaintState.bind( this ), 5000 );
     }
 
@@ -302,14 +304,17 @@ class LayerSprite extends sprite {
         this._pendingPaintState = null;
         const layer    = this.layer;
         const orgState = this._orgSourceToStore;
-        const newState = cloneCanvas( layer.source );
-        enqueueState( `spritePaint_${layer.id}`, {
-            undo() {
-                restorePaintFromHistory( layer, orgState );
-            },
-            redo() {
-                restorePaintFromHistory( layer, newState);
-            }
+        canvasToBlob( layer.source ).then( blob => {
+            const newState = URL.createObjectURL( blob );
+            enqueueState( `spritePaint_${layer.id}`, {
+                undo() {
+                    restorePaintFromHistory( layer, orgState );
+                },
+                redo() {
+                    restorePaintFromHistory( layer, newState);
+                },
+                resources: [ orgState, newState ],
+            });
         });
         this._orgSourceToStore = null;
     }
@@ -539,7 +544,13 @@ function positionSpriteFromHistory( layer, x, y ) {
     }
 }
 
-function restorePaintFromHistory( layer, orgState ) {
-    layer.source = orgState;
-    getSpriteForLayer( layer )?.resetFilterAndRecache();
+function restorePaintFromHistory( layer, state ) {
+    const ctx = layer.source.getContext( "2d" );
+    ctx.clearRect( 0, 0, layer.source.width, layer.source.height );
+    const image  = new Image();
+    image.onload = () => {
+        ctx.drawImage( image, 0, 0 );
+        getSpriteForLayer( layer )?.resetFilterAndRecache();
+    };
+    image.src = state;
 }

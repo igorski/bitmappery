@@ -23,19 +23,27 @@
 import UndoManager from "undo-manager";
 import { forceProcess, flushQueue } from "@/factories/history-state-factory";
 
-const STATES_TO_SAVE = 99;
+export const STATES_TO_SAVE = 99;
 
 // a module to store states so the application can undo/redo changes
-// made to the song. We do this by applying save and restore functions for
-// individual changes made to a song. This is preferred over cloning
-// entire song structures as this will consume a large amount of memory!
+// made to a document. We do this by applying save and restore functions for
+// individual changes made to a document. This is preferred over cloning
+// entire document structures as this will consume a large amount of memory!
 // by using Vue.set() and Vue.delete() in the undo/redo functions reactivity
 // will be retained.
 
 const module = {
     state: {
         undoManager: new UndoManager(),
-        historyIndex: -1    // used for reactivity (as undo manager isn"t bound to Vue)
+        historyIndex: -1, // used for reactivity (as undo manager isn't bound to Vue)
+        // states can specify an optional list of Blob URLs associated with their undo/redo
+        // operation. When such a state is popped from the avilable undo stack (because
+        // new states have been added beyond the STATES_TO_SAVE limit), these Blob URLs
+        // are revoked to free up memory.
+        blobUrls: new Map(),
+        // the amount of states registered, this is not equal to the amount of states
+        // available for undo (which is capped at STATES_TO_SAVE).
+        stored: 0,
     },
     getters: {
         canUndo( state ) {
@@ -52,7 +60,7 @@ const module = {
         /**
          * Store a state change inside the history.
          */
-        saveState( state, { undo, redo }) {
+        saveState( state, { undo, redo, resources = null }) {
             if ( process.env.NODE_ENV === "development" ) {
                 if ( typeof undo !== "function" || typeof redo !== "function" ) {
                     throw new Error( "cannot store a state without specifying valid undo and redo actions" );
@@ -60,6 +68,24 @@ const module = {
             }
             state.undoManager.add({ undo, redo });
             state.historyIndex = state.undoManager.getIndex();
+            ++state.stored;
+
+            const storedIndex = state.stored;
+
+            if ( storedIndex > STATES_TO_SAVE ) {
+                // the minimum index that should still be available in the undo stack
+                const minIndex = storedIndex - STATES_TO_SAVE;
+                [ ...state.blobUrls.entries()].forEach(([ index, urls ]) => {
+                    if ( index < minIndex ) {
+                        urls.forEach( url => window.URL.revokeObjectURL( url ));
+                        state.blobUrls.delete( index );
+                    }
+                });
+            }
+
+            if ( Array.isArray( resources )) {
+                state.blobUrls.set( storedIndex, resources );
+            }
         },
         setHistoryIndex( state, value ) {
             state.historyIndex = value;
@@ -71,6 +97,9 @@ const module = {
             flushQueue();
             state.undoManager.clear();
             state.historyIndex = -1;
+            state.stored = 0;
+            state.blobUrls.forEach( urlList => urlList.forEach( url => window.URL.revokeObjectURL( url )));
+            state.blobUrls.clear();
         }
     },
     actions: {
