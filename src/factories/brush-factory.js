@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 const BrushFactory = {
-    create({ radius = 10, color = "rgba(255,0,0,1)", pointer = null, options = {} } = {} ) {
+    create({ radius = 10, color = "rgba(255,0,0,1)", pointers = [], options = {} } = {} ) {
         const [r, g, b, a] = color.split( "," );
         const colors = [
             color,
@@ -31,17 +31,18 @@ const BrushFactory = {
         return {
             radius,
             colors,
-            pointer,
+            pointers,
             options, // provided by tool-module
             halfRadius   : radius * 0.5,
-            doubleRadius : radius * 2
+            doubleRadius : radius * 2,
+            down : false
         };
     }
 };
 export default BrushFactory;
 
-export const createDrawable = ( brush, ctx, x, y ) => {
-    const gradient = ctx.createRadialGradient( x, y, brush.halfRadius, x, y, brush.radius );
+export const createDrawable = ( brush, ctx, x, y, scale = 1 ) => {
+    const gradient = ctx.createRadialGradient( x, y, brush.halfRadius * scale, x, y, brush.radius * scale );
 
     gradient.addColorStop( 0,   brush.colors[ 0 ]);
     gradient.addColorStop( 0.5, brush.colors[ 1 ]);

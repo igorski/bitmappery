@@ -76,7 +76,7 @@ class InteractionPane extends sprite {
             zCanvas.getHeight() / zCanvas.zoomFactor
         );
 
-        if ( mode === MODE_SELECTION ) {
+        if ( document && mode === MODE_SELECTION ) {
             if ( !document.selection ) {
                 this.setSelection( [] );
             }

@@ -43,110 +43,150 @@ export const renderCross = ( ctx, x, y, size ) => {
     ctx.restore();
 };
 
-export const renderBrushStroke = ( sprite, brush, ctx, destinationPoint ) => {
-    const { pointer, radius, halfRadius, doubleRadius, options } = brush;
+/**
+ * Render a series of registered pointer offset into a single brush stroke
+ * @param {CanvasRenderingContext2D} ctx to render on
+ * @param {Object} brush properties
+ * @param {zCanvas.sprite} sprite defining relative (on-screen) Layer coordinates
+ * @param {Object=} optional override to use (defines alternate pointers and coordinate scaling)
+ */
+export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
+    let { pointers, radius, halfRadius, doubleRadius, options } = brush;
+    let scale = 1;
     const { type } = options;
 
-    // effects complicate proceedings https://github.com/igorski/bitmappery/issues/2
-    const { rotation, mirrorX, mirrorY } = sprite.layer.effects;
-    if ( rotation || mirrorX || mirrorY ) {
-        ctx.fillStyle = createDrawable( brush, ctx, destinationPoint.x, destinationPoint.y )
-        ctx.fillRect( destinationPoint.x - radius, destinationPoint.y - radius, doubleRadius, doubleRadius );
+    if ( optOverride ) {
+        pointers      = optOverride.pointers;
+        scale         = optOverride.zoom;
+        radius       *= scale;
+        halfRadius   *= scale;
+        doubleRadius *= scale;
+    }
+
+    if ( pointers.length < 2 ) {
         return;
     }
 
     ctx.save();
     ctx.lineJoin = ctx.lineCap = "round";
 
-    // paint brush types
+    for ( let i = 1; i < pointers.length; ++i ) {
+        const isFirst   = i === 1;
+        const prevPoint = pointers[ i - 1 ];
+        const point     = pointers[ i ];
 
-    if ( type === BrushTypes.PAINT_BRUSH ) {
-        const dist  = distanceBetween( pointer, destinationPoint );
-        const angle = angleBetween( pointer, destinationPoint );
-
-        const incr  = brush.radius * 0.25;
-        const sin   = Math.sin( angle );
-        const cos   = Math.cos( angle );
-
-        let x, y, size, doubleSize;
-        for ( let i = 0; i < dist; i += incr ) {
-            x = pointer.x + ( sin * i );
-            y = pointer.y + ( cos * i );
-            ctx.fillStyle = createDrawable( brush, ctx, x, y );
-            ctx.fillRect( x - radius, y - radius, doubleRadius, doubleRadius );
+        if ( optOverride ) {
+            if ( isFirst ) {
+                prevPoint.x = ( prevPoint.x + optOverride.x ) * optOverride.scale;
+                prevPoint.y = ( prevPoint.y + optOverride.y ) * optOverride.scale;
+            }
+            point.x = ( point.x + optOverride.x ) * optOverride.scale;
+            point.y = ( point.y + optOverride.y ) * optOverride.scale;
         }
-        return ctx.restore();
-    }
 
-    if ( type === BrushTypes.SPRAY ) {
-        ctx.fillStyle = brush.colors[ 0 ];
-        for ( let i = doubleRadius; i--; ) {
-            const angle = randomInRange( 0, TWO_PI );
-            const size  = randomInRange( 1, 3 );
-            ctx.fillRect(
-                destinationPoint.x + randomInRange( -halfRadius, halfRadius ) * cos( angle ),
-                destinationPoint.y + randomInRange( -halfRadius, halfRadius ) * sin( angle ),
-                size, size
-            );
+        // paint brush types
+
+        if ( type === BrushTypes.PAINT_BRUSH ) {
+            const dist  = distanceBetween( prevPoint, point );
+            const angle = angleBetween( prevPoint, point );
+
+            const incr = radius * 0.25;
+            const sin  = Math.sin( angle );
+            const cos  = Math.cos( angle );
+
+            let x, y, size, doubleSize;
+            for ( let j = 0; j < dist; j += incr ) {
+                x = prevPoint.x + ( sin * j );
+                y = prevPoint.y + ( cos * j );
+                ctx.fillStyle = createDrawable( brush, ctx, x, y, scale );
+                ctx.fillRect( x - radius, y - radius, doubleRadius, doubleRadius );
+            }
+            continue;
         }
-        return ctx.restore();
-    }
 
-    // line types
+        if ( type === BrushTypes.SPRAY ) {
+            ctx.fillStyle = brush.colors[ 0 ];
+            let j = doubleRadius;
+            while ( j-- > 0 ) {
+                const angle = randomInRange( 0, TWO_PI );
+                const size  = randomInRange( 1, 3 );
+                ctx.fillRect(
+                    point.x + randomInRange( -halfRadius, halfRadius ) * cos( angle ),
+                    point.y + randomInRange( -halfRadius, halfRadius ) * sin( angle ),
+                    size, size
+                );
+            }
+            continue;
+        }
 
-    ctx.lineWidth   = brush.radius;
-    ctx.strokeStyle = brush.colors[ 0 ];
+        // line types
 
-    if ( type === BrushTypes.LINE ) {
-        ctx.beginPath();
-        ctx.moveTo( pointer.x, pointer.y );
-        ctx.lineTo( destinationPoint.x, destinationPoint.y );
-        ctx.stroke();
-        return ctx.restore();
-    }
+        ctx.strokeStyle = brush.colors[ 0 ];
 
-    if ( type === BrushTypes.CALLIGRAPHIC ) {
-        ctx.beginPath();
-
-        const min = ( brush.radius * 0.25 ) * 0.66666;
-        const max = ( brush.radius * 0.25 ) * 1.33333;
-
-        [ -max, -min, 0, min, max ].forEach( offset => {
-            ctx.moveTo( pointer.x + offset, pointer.y + offset );
-            ctx.lineTo( destinationPoint.x + offset, destinationPoint.y + offset );
+        if ( type === BrushTypes.LINE ) {
+            if ( isFirst ) {
+                ctx.lineWidth = radius;
+                ctx.beginPath();
+                ctx.moveTo( prevPoint.x, prevPoint.y );
+            }
+            ctx.lineTo( point.x, point.y );
             ctx.stroke();
-        });
-        return ctx.restore();
-    }
-
-    // multi stroke line types
-
-    let dX = 0;
-    let dY = 0;
-
-    for ( let i = 0; i < options.strokes; ++i ) {
-        switch ( type ) {
-            default:
-            case BrushTypes.PEN:
-                ctx.beginPath();
-                ctx.lineWidth = ( brush.radius * 0.2 ) * randomInRange( 0.5, 1 );
-                ctx.moveTo( pointer.x - dX, pointer.y - dY );
-                ctx.lineTo( destinationPoint.x - dX, destinationPoint.y - dY );
-                ctx.stroke();
-                break;
-
-            // TODO: this one benefits from working with a large point queue
-            case BrushTypes.CURVED_PEN:
-                ctx.beginPath();
-                ctx.moveTo( pointer.x, pointer.y );
-                const midPoint = pointBetween( pointer, destinationPoint );
-                ctx.quadraticCurveTo( pointer.x, pointer.y, midPoint.x, midPoint.y );
-                ctx.lineTo( destinationPoint.x, destinationPoint.y );
-                ctx.stroke();
-                break;
+            continue;
         }
-        dX += randomInRange( 0, ctx.lineWidth );
-        dY += randomInRange( 0, ctx.lineWidth );
+
+        if ( type === BrushTypes.CALLIGRAPHIC ) {
+            if ( isFirst ) {
+                ctx.lineWidth = halfRadius;
+                ctx.beginPath();
+            }
+            const min = ( radius * 0.25 ) * 0.66666;
+            const max = ( radius * 0.25 ) * 1.33333;
+
+            [ -max, -min, 0, min, max ].forEach( offset => {
+                ctx.moveTo( prevPoint.x + offset, prevPoint.y + offset );
+                ctx.lineTo( point.x + offset, point.y + offset );
+                ctx.stroke();
+            });
+            continue;
+        }
+
+        // this one benefits from working with a large point queue
+
+        if ( type === BrushTypes.CURVED_PEN ) {
+            if ( isFirst ) {
+                ctx.lineWidth = radius;
+                ctx.beginPath();
+                ctx.moveTo( prevPoint.x, prevPoint.y );
+            }
+            const midPoint = pointBetween( prevPoint, point );
+            ctx.quadraticCurveTo( prevPoint.x, prevPoint.y, midPoint.x, midPoint.y );
+            if ( i === pointers.length - 1 ) {
+                ctx.lineTo( point.x, point.y );
+                ctx.stroke();
+            }
+            continue;
+        }
+
+        // multi stroke line type
+
+        let dX = 0
+        let dY = 0;
+        for ( let j = 0; j < options.strokes; ++j ) {
+            switch ( type ) {
+                default:
+                case BrushTypes.PEN:
+                    if ( isFirst && j === 0 ) {
+                        ctx.beginPath();
+                        ctx.lineWidth = ( radius * 0.2 ) * randomInRange( 0.5, 1 );
+                    }
+                    ctx.moveTo( prevPoint.x - dX, prevPoint.y - dY );
+                    ctx.lineTo( point.x - dX, point.y - dY );
+                    ctx.stroke();
+                    break;
+            }
+            dX += randomInRange( 0, ctx.lineWidth );
+            dY += randomInRange( 0, ctx.lineWidth );
+        }
     }
     ctx.restore();
 };
@@ -155,47 +195,59 @@ export const renderBrushStroke = ( sprite, brush, ctx, destinationPoint ) => {
  * Masks the contents of given source using given brushCvs, and renders the result onto given destContext.
  * Used by clone stamp tool.
  *
- * @param {CanvasRenderingContext2D} destContext
- * @param {zCanvas.sprite} sprite
- * @param {zCanvas.sprite} sourceSprite containing the bitmap to mask (see getBitmap())
+ * @param {CanvasRenderingContext2D} destContext context to render on
  * @param {Object} brush operation to use
- * @param {{ x: number, y:number }} destinationPoint coordinate relative to given destContext
+ * @param {zCanvas.sprite} sprite containg the relative (on-screen) Layer coordinates
+ * @param {zCanvas.sprite} sourceSprite containing the bitmap to mask (see getBitmap())
+ * @param {Array<{{ x: Number, y: Number }}>=} optPointers optional Array of alternative coordinates
  */
-export const renderClonedStroke = ( destContext, sprite, sourceSprite, brush, destinationPoint ) => {
-    const maskRadius = brush.radius;
-
+export const renderClonedStroke = ( destContext, brush, sprite, sourceSprite, optPointers ) => {
+    if ( !sourceSprite ) {
+        return;
+    }
     const { coords, opacity } = sprite._toolOptions;
-    const source = sourceSprite.getBitmap();
-    const relSource = sprite._cloneStartCoords ?? sprite._dragStartEventCoordinates;
+    const { radius, doubleRadius, options } = brush;
+    const { type } = options;
+    const pointers = optPointers || brush.pointers;
 
-    const sourceX = ( coords.x - sourceSprite.getX()) - maskRadius;
-    const sourceY = ( coords.y - sourceSprite.getY()) - maskRadius;
-    const xDelta  = sprite._dragStartOffset.x + (( destinationPoint.x - sprite._bounds.left ) - relSource.x );
-    const yDelta  = sprite._dragStartOffset.y + (( destinationPoint.y - sprite._bounds.top )  - relSource.y );
+    const source  = sourceSprite.getBitmap();
+    const sourceX = ( coords.x - sourceSprite.getX()) - radius;
+    const sourceY = ( coords.y - sourceSprite.getY()) - radius;
+
+    const relSource = sprite._cloneStartCoords || sprite._dragStartEventCoordinates;
 
     // prepare temporary canvas (match size with brush)
     const { cvs, ctx } = tempCanvas;
-    cvs.width  = brush.doubleRadius;
-    cvs.height = brush.doubleRadius;
+    cvs.width  = doubleRadius;
+    cvs.height = doubleRadius;
 
-    ctx.globalAlpha = opacity;
+    for ( let i = 0; i < pointers.length; ++i ) {
+        const destinationPoint = pointers[ i ];
 
-    // draw source bitmap data onto temporary canvas
-    ctx.drawImage(
-        source, sourceX + xDelta, sourceY + yDelta, maskRadius, maskRadius,
-        0, 0, maskRadius, maskRadius
-    );
+        const xDelta  = sprite._dragStartOffset.x + (( destinationPoint.x - sprite._bounds.left ) - relSource.x );
+        const yDelta  = sprite._dragStartOffset.y + (( destinationPoint.y - sprite._bounds.top )  - relSource.y );
 
-    // draw the brush above the bitmap, keeping only the overlapping area
-    ctx.globalCompositeOperation = "destination-in";
-    // note we use the brush.pointer as the destination too
-    renderBrushStroke( sprite, brush, ctx, brush.pointer );
+        // draw source bitmap data onto temporary canvas
+        ctx.globalCompositeOperation = "source-over";
+        ctx.globalAlpha = opacity;
 
-    // draw the masked result onto the destination canvas
-    destContext.drawImage(
-        cvs, 0, 0, maskRadius, maskRadius,
-        destinationPoint.x - maskRadius, destinationPoint.y - maskRadius, maskRadius, maskRadius
-    );
+        ctx.clearRect( 0, 0, cvs.width, cvs.height );
+        ctx.drawImage(
+            source, sourceX + xDelta, sourceY + yDelta, radius, radius, 0, 0, radius, radius
+        );
+
+        // draw the brush above the bitmap, keeping only the overlapping area
+        ctx.globalCompositeOperation = "destination-in";
+
+        ctx.fillStyle = createDrawable( brush, ctx, 0, 0 );
+        ctx.fillRect( 0, 0, radius, radius );//point.x - radius, point.y - radius, doubleRadius, doubleRadius );
+
+        // draw the masked result onto the destination canvas
+        destContext.drawImage(
+            cvs, 0, 0, radius, radius,
+            destinationPoint.x - radius, destinationPoint.y - radius, radius, radius
+        );
+    }
 };
 
 export const resizeLayerContent = async ( layer, ratioX, ratioY ) => {
