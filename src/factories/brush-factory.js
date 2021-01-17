@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 const BrushFactory = {
-    create({ radius = 10, color = "rgba(255,0,0,1)", pointer = null, options = {} } = {} ) {
+    create({ radius = 10, color = "rgba(255,0,0,1)", pointer = null, pointList = [], options = {} } = {} ) {
         const [r, g, b, a] = color.split( "," );
         const colors = [
             color,
@@ -32,6 +32,7 @@ const BrushFactory = {
             radius,
             colors,
             pointer,
+            pointList: [],
             options, // provided by tool-module
             halfRadius   : radius * 0.5,
             doubleRadius : radius * 2

@@ -102,6 +102,7 @@ class LayerSprite extends sprite {
 
     storeBrushPointer( x, y ) {
         this._brush.pointer = { x: x - this._bounds.left, y: y - this._bounds.top };
+        this._brush.pointList.push( this._brush.pointer );
     }
 
     cacheEffects() {
@@ -268,16 +269,23 @@ class LayerSprite extends sprite {
         } else {
             // TODO: when rotated and mirrored, x and y are now in right coordinate space, but not at right point
             const destination = { x, y };
+            const tempCanvas = createCanvas( this.canvas._viewport.width, this.canvas._viewport.height );
 
             if ( isCloneStamp ) {
                 renderClonedStroke(
-                    ctx, this,
+                    tempCanvas.ctx, this,
                     getSpriteForLayer({ id: this._toolOptions.sourceLayerId }), // TODO: fugly!!
                     this._brush, destination,
                 );
             } else {
-                renderBrushStroke( this, this._brush, ctx, destination );
+                renderBrushStroke( this, this._brush, tempCanvas.ctx, destination );
             }
+            ctx.drawImage(
+                tempCanvas.cvs,
+                0, 0, this.canvas._viewport.width, this.canvas._viewport.height,
+                0, 0,
+                this.canvas._viewport.width, this.canvas._viewport.height
+            );
         }
         ctx.restore();
         this.resetFilterAndRecache();
@@ -431,7 +439,9 @@ class LayerSprite extends sprite {
     }
 
     handleRelease( x, y ) {
-        this._brush.pointer = null;
+        // TODO: do high res brush rendering
+        this._brush.pointer   = null;
+        this._brush.pointList = [];
         if ( this._isPaintMode ) {
             this.forceMoveListener(); // keeps the move listener active
         }
