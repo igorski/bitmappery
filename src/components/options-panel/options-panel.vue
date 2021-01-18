@@ -41,22 +41,34 @@
             <!-- active tool section -->
             <component :is="activeToolOptions" />
             <!-- layer section -->
-            <layers />
+            <layer-filters
+                v-if="showFilters"
+                @close="showFilters = false"
+            />
+            <layers
+                v-else
+                @openFilters="showFilters = true"
+            />
         </div>
     </div>
 </template>
 
 <script>
 import { mapState, mapGetters, mapMutations } from "vuex";
-import Layers    from "./layers/layers";
-import ToolTypes from "@/definitions/tool-types";
-import messages  from "./messages.json";
+import Layers       from "./layers/layers";
+import LayerFilters from "./layer-filters/layer-filters";
+import ToolTypes    from "@/definitions/tool-types";
+import messages     from "./messages.json";
 
 export default {
     i18n: { messages },
     components: {
         Layers,
+        LayerFilters,
     },
+    data: () => ({
+        showFilters: false,
+    }),
     computed: {
         ...mapState([
             "optionsPanelOpened",

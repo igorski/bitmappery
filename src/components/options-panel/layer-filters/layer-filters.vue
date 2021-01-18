@@ -21,92 +21,87 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <modal>
-        <template #header>
-            <h2 v-t="'filters'"></h2>
-        </template>
-        <template #content>
-            <div class="form" @keyup.enter="requestLayerAdd()">
-                <div class="wrapper input">
-                    <label v-t="'enabled'"></label>
-                    <toggle-button
-                        v-model="internalValue.enabled"
-                        name="enabled"
-                    />
-                </div>
-                <div class="wrapper input">
-                    <label v-t="'gamma'"></label>
-                    <slider
-                        v-model="gamma"
-                        :min="0"
-                        :max="100"
-                        :tooltip="'none'"
-                    />
-                </div>
-                <div class="wrapper input">
-                    <label v-t="'contrast'"></label>
-                    <slider
-                        v-model="contrast"
-                        :min="0"
-                        :max="100"
-                        :tooltip="'none'"
-                    />
-                </div>
-                <div class="wrapper input">
-                    <label v-t="'brightness'"></label>
-                    <slider
-                        v-model="brightness"
-                        :min="0"
-                        :max="100"
-                        :tooltip="'none'"
-                    />
-                </div>
-                <div class="wrapper input">
-                    <label v-t="'vibrance'"></label>
-                    <slider
-                        v-model="vibrance"
-                        :min="0"
-                        :max="100"
-                        :tooltip="'none'"
-                    />
-                </div>
-                <div class="wrapper input">
-                    <label v-t="'desaturate'"></label>
-                    <toggle-button
-                        v-model="internalValue.desaturate"
-                        name="desaturate"
-                    />
-                </div>
+    <div class="tool-option">
+        <h3 class="title">{{ $t( 'filtersForLayer', { name: activeLayer.name })}}</h3>
+        <div class="content">
+            <div class="wrapper input">
+                <label v-t="'enabled'"></label>
+                <toggle-button
+                    v-model="internalValue.enabled"
+                    name="enabled"
+                />
             </div>
-        </template>
-        <template #actions>
-            <button
-                v-t="'save'"
-                type="button"
-                class="button"
-                @click="save()"
-            ></button>
+            <div class="wrapper input">
+                <label v-t="'gamma'"></label>
+                <slider
+                    v-model="gamma"
+                    :min="0"
+                    :max="100"
+                    :tooltip="'none'"
+                />
+            </div>
+            <div class="wrapper input">
+                <label v-t="'contrast'"></label>
+                <slider
+                    v-model="contrast"
+                    :min="0"
+                    :max="100"
+                    :tooltip="'none'"
+                />
+            </div>
+            <div class="wrapper input">
+                <label v-t="'brightness'"></label>
+                <slider
+                    v-model="brightness"
+                    :min="0"
+                    :max="100"
+                    :tooltip="'none'"
+                />
+            </div>
+            <div class="wrapper input">
+                <label v-t="'vibrance'"></label>
+                <slider
+                    v-model="vibrance"
+                    :min="0"
+                    :max="100"
+                    :tooltip="'none'"
+                />
+            </div>
+            <div class="wrapper input">
+                <label v-t="'desaturate'"></label>
+                <toggle-button
+                    v-model="internalValue.desaturate"
+                    name="desaturate"
+                />
+            </div>
+        </div>
+        <div class="actions">
             <button
                 v-t="'reset'"
                 type="button"
-                class="button"
+                class="button button--small"
                 @click="reset()"
             ></button>
             <button
                 v-t="'cancel'"
                 type="button"
-                class="button"
+                class="button button--small"
                 @click="cancel()"
             ></button>
-        </template>
-    </modal>
+            <button
+                v-t="'save'"
+                type="button"
+                class="button button--small"
+                @click="save()"
+            ></button>
+        </div>
+    </div>
 </template>
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import isEqual from "lodash.isequal";
 import { ToggleButton } from "vue-js-toggle-button";
-import Modal  from "@/components/modal/modal";
 import Slider from "@/components/ui/slider/slider";
 import FiltersFactory from "@/factories/filters-factory";
 import { enqueueState } from "@/factories/history-state-factory";
@@ -115,7 +110,6 @@ import messages from "./messages.json";
 export default {
     i18n: { messages },
     components: {
-        Modal,
         Slider,
         ToggleButton,
     },
@@ -206,7 +200,7 @@ export default {
                 });
             }
             // no need to call update(), computed setters have triggered model update
-            this.closeModal();
+            this.$emit( "close" );
         },
         reset() {
             this.internalValue = FiltersFactory.create();
@@ -214,7 +208,7 @@ export default {
         },
         cancel() {
             this.update( this.orgFilters );
-            this.closeModal();
+            this.$emit( "close" );
         },
         update( optData ) {
             const filters = optData || { ...this.internalValue };
@@ -226,3 +220,24 @@ export default {
     },
 };
 </script>
+
+<style lang="scss" scoped>
+@import "@/styles/options-panel";
+@import "@/styles/_mixins";
+
+.title {
+    @include truncate();
+}
+
+.content {
+    padding: $spacing-small 0;
+    @include boxSize();
+    @include truncate();
+    border-top: 1px solid $color-lines;
+    border-bottom: 1px solid $color-lines;
+}
+
+.actions {
+    margin-top: $spacing-medium;
+}
+</style>

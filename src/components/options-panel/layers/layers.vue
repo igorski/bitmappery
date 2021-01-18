@@ -113,7 +113,7 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import { ADD_LAYER, LAYER_FILTERS } from "@/definitions/modal-windows";
+import { ADD_LAYER } from "@/definitions/modal-windows";
 import { createCanvas } from "@/utils/canvas-util";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
@@ -192,7 +192,7 @@ export default {
         },
         handleFiltersClick( index ) {
             this.setActiveLayerIndex( index );
-            this.openModal( LAYER_FILTERS );
+            this.$emit( "openFilters" );
         },
         handleRemoveClick( index ) {
             const layer = this.layers[ index ];

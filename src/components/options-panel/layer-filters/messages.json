@@ -1,14 +1,14 @@
 {
     "en-US": {
-        "filters": "Filters",
+        "filtersForLayer": "Filters for layer \"{name}\"",
         "enabled": "Filters active",
         "gamma": "Gamma",
         "contrast": "Contrast",
         "brightness": "Brightness",
         "vibrance": "Vibrance",
         "desaturate": "Desaturate",
-        "save": "Save",
         "reset": "Reset",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "save": "Save"
     }
 }

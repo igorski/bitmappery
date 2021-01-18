@@ -82,7 +82,7 @@ import store           from "./store";
 import messages        from "./messages.json";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, SAVE_DROPBOX_DOCUMENT, EXPORT_IMAGE,
-    DROPBOX_FILE_SELECTOR, ADD_LAYER, LAYER_FILTERS, LOAD_SELECTION, SAVE_SELECTION, PREFERENCES
+    DROPBOX_FILE_SELECTOR, ADD_LAYER, LOAD_SELECTION, SAVE_SELECTION, PREFERENCES
 } from "@/definitions/modal-windows";
 
 Vue.use( Vuex );
@@ -143,8 +143,6 @@ export default {
                     return () => import( "@/components/file-menu/save-dropbox-document/save-dropbox-document" );
                 case ADD_LAYER:
                     return () => import( "@/components/options-panel/add-layer/add-layer" );
-                case LAYER_FILTERS:
-                    return () => import( "@/components/options-panel/layer-filters/layer-filters" );
                 case LOAD_SELECTION:
                     return () => import( "@/components/selection-menu/load-selection/load-selection" );
                 case SAVE_SELECTION:
