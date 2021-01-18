@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { createCanvas } from "@/utils/canvas-util";
+import { hasSteppedLiveRender } from "@/definitions/brush-types";
 
 let tempCanvas;
 
@@ -72,7 +73,8 @@ export const disposeTempCanvas = () => {
  * @return {Array<{{ x: Number, y:Number }}>}
  */
 export const translatePointers = brush => {
-    const { pointers, last } = brush;
+    const { pointers } = brush;
+    const last = hasSteppedLiveRender( brush ) ? brush.last : undefined;
     return JSON.parse( JSON.stringify( pointers.slice( pointers.length - ( pointers.length - last ) - 1 )));
 };
 

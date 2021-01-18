@@ -158,6 +158,7 @@ export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
 
         if ( type === BrushTypes.CONNECTED ) {
             if ( isFirst ) {
+                ctx.lineWidth = halfRadius * 0.25;
                 ctx.beginPath();
                 ctx.moveTo( prevPoint.x, prevPoint.y );
             }

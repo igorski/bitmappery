@@ -20,11 +20,21 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
- export default {
-     LINE           : "0",
-     PAINT_BRUSH    : "1",
-     PEN            : "2",
-     CALLIGRAPHIC   : "3",
-     CONNECTED      : "4",
-     SPRAY          : "5",
- };
+const BrushTypes = {
+    LINE           : "0",
+    PAINT_BRUSH    : "1",
+    PEN            : "2",
+    CALLIGRAPHIC   : "3",
+    CONNECTED      : "4",
+    SPRAY          : "5",
+};
+export default BrushTypes;
+
+/**
+ * For low-res live rendering purposes, brushes can be rendered
+ * in iterations. However some require their full path to be present
+ * in a single render iteration.
+ *
+ * @param {Object} brush @see brush-factory
+ */
+export const hasSteppedLiveRender = ({ options }) => options.type !== BrushTypes.CONNECTED;
