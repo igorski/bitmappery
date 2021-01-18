@@ -22,6 +22,7 @@
  */
 import UndoManager from "undo-manager";
 import { forceProcess, flushQueue } from "@/factories/history-state-factory";
+import { getSpriteForLayer } from "@/factories/sprite-factory";
 
 export const STATES_TO_SAVE = 99;
 
@@ -106,7 +107,12 @@ const module = {
         /**
          * apply the previously stored state
          */
-        undo({ state, getters, commit }) {
+        async undo({ state, getters, commit }) {
+            // first: if there was a painting sprite, store its deferred state immediately
+            const drawableSprite = getters.activeLayer && getSpriteForLayer( getters.activeLayer );
+            if ( drawableSprite ) {
+                await drawableSprite.storePaintState();
+            }
             forceProcess();
             return new Promise( resolve => {
                 if ( getters.canUndo ) {

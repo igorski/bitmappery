@@ -329,23 +329,27 @@ class LayerSprite extends sprite {
         this.debouncePaintStore();
     }
 
-    debouncePaintStore( timeout = 5000 ) {
+    debouncePaintStore( timeout = 3000 ) {
         this._pendingPaintState = setTimeout( this.storePaintState.bind( this ), timeout );
     }
 
     storePaintState() {
         if ( !this._pendingPaintState ) {
-            return;
+            return true;
         }
         clearTimeout( this._pendingPaintState );
         if ( this._brush.down ) {
             // still painting, debounce again (layer.source only updated on handleRelease())
-            return this.debouncePaintStore( 2000 );
+            this.debouncePaintStore( 1000 );
+            return false;
         }
         this._pendingPaintState = null;
         const layer    = this.layer;
         const orgState = this._orgSourceToStore;
-        canvasToBlob( layer.source ).then( blob => {
+
+        this._orgSourceToStore = null;
+
+        return canvasToBlob( layer.source ).then( blob => {
             const newState = URL.createObjectURL( blob );
             enqueueState( `spritePaint_${layer.id}`, {
                 undo() {
@@ -356,8 +360,8 @@ class LayerSprite extends sprite {
                 },
                 resources: [ orgState, newState ],
             });
+            return true;
         });
-        this._orgSourceToStore = null;
     }
 
     /* the following override zCanvas.sprite */
