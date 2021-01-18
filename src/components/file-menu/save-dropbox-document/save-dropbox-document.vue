@@ -32,6 +32,7 @@
                     <input ref="nameInput"
                            type="text"
                            v-model="name"
+                           class="input-field"
                     />
                 </div>
             </div>

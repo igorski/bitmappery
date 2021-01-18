@@ -21,7 +21,7 @@
 * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 <template>
-    <div class="modal" @keyup.esc="closeModal()">
+    <div class="modal">
         <slot name="header" />
         <button
             type="button"
@@ -49,7 +49,16 @@ export default {
     },
     mounted() {
         this.$refs.content?.focus();
+        this.escListener = ({ keyCode }) => {
+            if ( keyCode === 27 ) {
+                this.closeModal();
+            }
+        };
+        window.addEventListener( "keyup", this.escListener );
     },
+    destroyed() {
+        window.removeEventListener( "keyup", this.escListener );
+    }
 };
 </script>
 <style lang="scss" scoped>

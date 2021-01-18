@@ -49,6 +49,7 @@
                     <input
                         type="text"
                         v-model="name"
+                        class="input-field"
                     />
                 </div>
             </div>

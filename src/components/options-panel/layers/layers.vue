@@ -40,7 +40,7 @@
                 <input
                     v-if="editable && layer.index === activeLayerIndex"
                     ref="nameInput"
-                    class="name-input"
+                    class="input-field name-input"
                     :value="layer.name"
                     @blur="editable = false"
                     @keyup.enter="editable = false"

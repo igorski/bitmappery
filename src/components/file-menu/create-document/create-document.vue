@@ -33,6 +33,7 @@
                         ref="first"
                         v-model="name"
                         name="name"
+                        class="input-field"
                     />
                 </div>
                 <dimensions-formatter

@@ -28,10 +28,11 @@
             <div class="select-combo">
                 <select-box :options="units"
                              v-model="unit"
+                             class="first"
                 />
-                <select-box v-if="showDPI"
-                            v-model="dpi"
+                <select-box v-model="dpi"
                             :options="dpis"
+                            :disabled="!showDPI"
                 />
             </div>
         </div>
@@ -41,6 +42,7 @@
                 v-model.number="translatedWidth"
                 type="number"
                 name="width"
+                class="input-field"
             />
         </div>
         <div class="wrapper input">
@@ -49,6 +51,7 @@
                 v-model.number="translatedHeight"
                 type="number"
                 name="height"
+                class="input-field"
             />
         </div>
     </div>
@@ -86,10 +89,10 @@ export default {
             return this.unit !== "px";
         },
         dpis() {
-            return DPI.map( dpi => ({ text: `${dpi} DPI`, value: dpi.toString() }));
+            return DPI.map( dpi => ({ label: `${dpi} DPI`, value: dpi.toString() }));
         },
         units() {
-            return UNITS.map( unit => ({ text: this.$t( unit ), value: unit }));
+            return UNITS.map( unit => ({ label: this.$t( unit ), value: unit }));
         },
         translatedWidth: {
             get() {
@@ -164,8 +167,7 @@ export default {
     width: 50%;
 }
 
-.select-combo .select {
-    flex: 1;
+.first {
     margin-right: $spacing-small;
 }
 </style>

@@ -84,7 +84,7 @@ export default {
         ]),
         selectableLayers() {
             return this.layers?.filter(({ visible }) => visible )
-                               .map( layer => ({ text: layer.name, value: layer.id }))
+                               .map( layer => ({ label: layer.name, value: layer.id }))
                                .reverse();
         },
         sourceLayer: {

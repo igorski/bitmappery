@@ -30,13 +30,15 @@
             <textarea
                 ref="textInput"
                 v-model="text"
-                class="full"
+                class="input-textarea full"
             />
         </div>
         <div class="wrapper input">
             <label v-t="'font'"></label>
-            <select-box :options="fonts"
-                         v-model="font"
+            <select-box
+                v-model="font"
+                :options="fonts"
+                searchable
             />
         </div>
         <div class="wrapper input">

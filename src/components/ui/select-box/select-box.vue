@@ -21,16 +21,20 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <model-select :options="options"
-                  v-model="internalValue"
-                  class="select"
-    />
+    <div class="select-box-wrapper">
+        <vue-select :options="options"
+                    :searchable="searchable"
+                    :disabled="disabled"
+                    :clearable="false"
+                    v-model="internalValue"
+                    class="select"
+        />
+    </div>
 </template>
 
 <script>
-import { ModelSelect } from "vue-search-select";
-import "semantic-ui-css/components/dropdown.min.css"
-import "vue-search-select/dist/VueSearchSelect.css";
+import VueSelect from "vue-select";
+import "vue-select/dist/vue-select.css";
 
 export default {
     props: {
@@ -42,41 +46,61 @@ export default {
             type: Array,
             default: () => ([]),
         },
+        searchable: {
+            type: Boolean,
+            default: false,
+        },
+        disabled: {
+            type: Boolean,
+            default: false,
+        },
     },
     components: {
-        ModelSelect,
+        VueSelect,
     },
     computed: {
         internalValue: {
             get() {
-                return this.value;
+                return this.options.find(({ value }) => value === this.value );
             },
-            set( value ) {
+            set({ value }) {
                 this.$emit( "input", value );
             }
         },
-    },
+    }
 };
 </script>
 
 <style lang="scss">
+@import "@/styles/_variables";
 @import "@/styles/_mixins";
 
-.select {
-    display: inline-block !important; // semantic-ui-css override
+.select-box-wrapper {
+    display: inline-block;
+    width: 50%;
+}
 
-    &.small-list {
-        max-width: 65px;
+.vs__dropdown-toggle {
+    border-radius: $spacing-small;
+    background-color: #FFF;
+}
+.vs--disabled {
+    .vs__dropdown-toggle {
+        background-color: #666;
     }
-    &.medium-list {
-        max-width: 100px;
+    input,
+    .vs__actions {
+        display: none;
     }
-    &.large-list {
-        max-width: 200px;
-    }
-    .text {
-        @include truncate();
-        width: 100%;
-    }
+}
+
+.vs__selected {
+    margin: $spacing-small $spacing-small 0;
+    font-size: 95%;
+}
+
+.vs__selected-options {
+    height: 38px;
+    @include truncate();
 }
 </style>

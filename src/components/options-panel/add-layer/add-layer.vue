@@ -32,6 +32,7 @@
                     <input ref="nameInput"
                            type="text"
                            v-model="name"
+                           class="input-field"
                     />
                 </div>
                 <div class="wrapper input">
@@ -86,8 +87,8 @@ export default {
         ]),
         layerTypes() {
             return [
-                { text: this.$t( "graphic" ), value: LAYER_GRAPHIC },
-                { text: this.$t( "text" ), value: LAYER_TEXT },
+                { label: this.$t( "graphic" ), value: LAYER_GRAPHIC },
+                { label: this.$t( "text" ), value: LAYER_TEXT },
             ];
         },
         isValid() {

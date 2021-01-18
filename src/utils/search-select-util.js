@@ -32,14 +32,8 @@ export const mapSelectOptions = items => {
         if ( typeof value === "object" ) {
             return value;
         }
-        let text = ucFirst(value.toString());
-
-        // NOTE: values and text MUST be different due to bug described in
-        // https://github.com/moreta/vue-search-select/issues/112
-        if ( text === value ) {
-            text += " ";
-        }
-        return { value, text };
+        const label = ucFirst( value.toString() );
+        return { label, value };
     });
 };
 

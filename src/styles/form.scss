@@ -5,24 +5,23 @@
         margin: $spacing-small 0;
 
         label,
-        input,
-        textarea,
-        .select,
+        .input-field,
+        .input-textarea {
+            display: inline-block;
+            width: 50%;
+        }
         .vue-slider {
             display: inline-block;
             width: 50% !important;
-        }
-        .vue-slider {
             vertical-align: middle;
         }
-        input, textarea {
+        .input-field,
+        .input-textarea {
             box-sizing: border-box;
             border-radius: $spacing-small;
             border: none;
             padding: #{$spacing-small + $spacing-xsmall} $spacing-medium;
-        }
-        input[type='checkbox'] {
-            width: auto;
+            font-size: 95%;
         }
         .full {
             width: 100%;
