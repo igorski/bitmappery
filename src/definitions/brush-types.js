@@ -22,9 +22,9 @@
  */
  export default {
      LINE           : "0",
-     PEN            : "1",
-     CALLIGRAPHIC   : "2",
-     CURVED_PEN     : "3",
-     PAINT_BRUSH    : "4",
+     PAINT_BRUSH    : "1",
+     PEN            : "2",
+     CALLIGRAPHIC   : "3",
+     CONNECTED      : "4",
      SPRAY          : "5",
  };

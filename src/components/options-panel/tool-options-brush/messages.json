@@ -2,13 +2,14 @@
     "en-US": {
         "brush": "Brush",
         "brushType": "Brush type",
-        "line": "Line",
-        "pen": "Pen",
-        "curvedPen": "Curved pen",
-        "calligraphic": "Calligraphic pen",
-        "paintBrush": "Paint brush",
-        "sprayCan": "Spray can",
+        "smoothing": "Smoothing",
         "brushSize": "Brush size",
-        "strokeAmount": "Stroke amount"
+        "strokeAmount": "Stroke amount",
+        "line": "Line",
+        "paintBrush": "Paint brush",
+        "pen": "Pen",
+        "calligraphic": "Calligraphic",
+        "connected": "Connected",
+        "sprayCan": "Spray can"
     }
 }

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -37,17 +37,22 @@
                 :max="MAX_BRUSH_SIZE"
             />
         </div>
-        <div
-            v-if="canStroke"
-            class="wrapper input"
-         >
-            <label v-t="'strokeAmount'"></label>
-            <slider
-                v-model="strokes"
-                :min="1"
-                :max="5"
-            />
-        </div>
+        <template v-if="canStroke">
+            <div class="wrapper input">
+                <label v-t="'strokeAmount'"></label>
+                <slider
+                    v-model="strokes"
+                    :min="1"
+                    :max="5"
+                />
+            </div>
+            <div class="wrapper input">
+                <label v-t="'smoothing'"></label>
+                <toggle-button
+                    v-model="smooth"
+                />
+            </div>
+        </template>
     </div>
 </template>
 
@@ -57,6 +62,7 @@ import ToolTypes, { MAX_BRUSH_SIZE } from "@/definitions/tool-types";
 import BrushTypes from "@/definitions/brush-types";
 import SelectBox from '@/components/ui/select-box/select-box';
 import Slider from "@/components/ui/slider/slider";
+import { ToggleButton } from "vue-js-toggle-button";
 import messages from "./messages.json";
 
 export default {
@@ -64,6 +70,7 @@ export default {
     components: {
         Slider,
         SelectBox,
+        ToggleButton,
     },
     data: () => ({
         MAX_BRUSH_SIZE,
@@ -78,10 +85,10 @@ export default {
         brushTypes() {
             return [
                 { text: this.$t( "line" ),         value: BrushTypes.LINE },
-                { text: this.$t( "pen" ),          value: BrushTypes.PEN },
-                { text: this.$t( "curvedPen" ),    value: BrushTypes.CURVED_PEN },
-                { text: this.$t( "calligraphic" ), value: BrushTypes.CALLIGRAPHIC },
                 { text: this.$t( "paintBrush" ),   value: BrushTypes.PAINT_BRUSH },
+                { text: this.$t( "pen" ),          value: BrushTypes.PEN },
+                { text: this.$t( "calligraphic" ), value: BrushTypes.CALLIGRAPHIC },
+                { text: this.$t( "connected" ),    value: BrushTypes.CONNECTED },
                 { text: this.$t( "sprayCan" ),     value: BrushTypes.SPRAY }
             ];
         },
@@ -107,6 +114,14 @@ export default {
             },
             set( value ) {
                 this.update( "strokes", value );
+            }
+        },
+        smooth: {
+            get() {
+                return this.brushOptions.smooth;
+            },
+            set( value ) {
+                this.update( "smooth", value );
             }
         },
     },

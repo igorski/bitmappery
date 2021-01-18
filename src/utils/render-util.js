@@ -151,19 +151,42 @@ export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
         }
 
         // this one benefits from working with a large point queue
+        // as such when supplying optOverride for live rendering, regular line is drawn instead
 
-        if ( type === BrushTypes.CURVED_PEN ) {
+        if ( type === BrushTypes.CONNECTED ) {
             if ( isFirst ) {
-                ctx.lineWidth = radius;
                 ctx.beginPath();
                 ctx.moveTo( prevPoint.x, prevPoint.y );
             }
-            const midPoint = pointBetween( prevPoint, point );
-            ctx.quadraticCurveTo( prevPoint.x, prevPoint.y, midPoint.x, midPoint.y );
-            if ( i === pointers.length - 1 ) {
+            ctx.lineTo( point.x, point.y );
+            const nearPoint = pointers[ i - 5 ];
+            if ( nearPoint ) {
+                ctx.moveTo( nearPoint.x, nearPoint.y );
                 ctx.lineTo( point.x, point.y );
+            }
+            ctx.stroke();
+            /* // nearest neighbour
+            const penultimate = pointers[ pointers.length - 2 ];
+            const lastPoint   = pointers[ pointers.length - 1 ];
+            if ( isFirst ) {
+                ctx.lineWidth = radius;
+                ctx.beginPath();
+                ctx.moveTo( penultimate.x, penultimate.y );
+                ctx.lineTo( lastPoint.x, lastPoint.y );
                 ctx.stroke();
             }
+            const dx = prevPoint.x - lastPoint.x;
+            const dy = prevPoint.y - lastPoint.y;
+            const d  = dx * dx + dy * dy;
+
+            if ( d < 1000 ) {
+                ctx.beginPath();
+                ctx.strokeStyle = brush.colors[ 1 ];
+                ctx.moveTo( lastPoint.x + (dx * 0.2), lastPoint.y + (dy * 0.2));
+                ctx.lineTo( prevPoint.x - (dx * 0.2), prevPoint.y - (dy * 0.2));
+                ctx.stroke();
+            }
+            */
             continue;
         }
 
@@ -171,6 +194,7 @@ export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
 
         let dX = 0
         let dY = 0;
+        const { smooth } = options;
         for ( let j = 0; j < options.strokes; ++j ) {
             switch ( type ) {
                 default:
@@ -178,10 +202,22 @@ export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
                     if ( isFirst && j === 0 ) {
                         ctx.beginPath();
                         ctx.lineWidth = ( radius * 0.2 ) * randomInRange( 0.5, 1 );
+                        if ( smooth ) {
+                            ctx.moveTo( prevPoint.x - dX, prevPoint.y - dY );
+                        }
                     }
-                    ctx.moveTo( prevPoint.x - dX, prevPoint.y - dY );
-                    ctx.lineTo( point.x - dX, point.y - dY );
-                    ctx.stroke();
+                    if ( smooth ) {
+                        const midPoint = pointBetween( prevPoint, point );
+                        ctx.quadraticCurveTo( prevPoint.x - dX, prevPoint.y - dY, midPoint.x - dX, midPoint.y - dY );
+                    } else {
+                        ctx.moveTo( prevPoint.x - dX, prevPoint.y - dY );
+                        ctx.lineTo( point.x - dX, point.y - dY );
+                        ctx.stroke();
+                    }
+                    if ( smooth && i === pointers.length - 1 ) {
+                        ctx.lineTo( point.x - dX, point.y - dY );
+                        ctx.stroke();
+                    }
                     break;
             }
             dX += randomInRange( 0, ctx.lineWidth );
