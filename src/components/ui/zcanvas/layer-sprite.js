@@ -326,7 +326,11 @@ class LayerSprite extends sprite {
         canvasToBlob( this.layer.source ).then( blob => {
             this._orgSourceToStore = URL.createObjectURL( blob );
         });
-        this._pendingPaintState = setTimeout( this.storePaintState.bind( this ), 5000 );
+        this.debouncePaintStore();
+    }
+
+    debouncePaintStore( timeout = 5000 ) {
+        this._pendingPaintState = setTimeout( this.storePaintState.bind( this ), timeout );
     }
 
     storePaintState() {
@@ -334,6 +338,10 @@ class LayerSprite extends sprite {
             return;
         }
         clearTimeout( this._pendingPaintState );
+        if ( this._brush.down ) {
+            // still painting, debounce again (layer.source only updated on handleRelease())
+            return this.debouncePaintStore( 2000 );
+        }
         this._pendingPaintState = null;
         const layer    = this.layer;
         const orgState = this._orgSourceToStore;
