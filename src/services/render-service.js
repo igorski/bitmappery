@@ -35,15 +35,17 @@ import FilterWorker from "@/workers/filter.worker";
 const jobQueue = [];
 let UID = 0;
 
-// TODO make user configurable
-const USE_WASM = false;//!!( "WebAssembly" in window );
+let useWasm = false;
 let wasmWorker;
 
-if ( USE_WASM ) {
-    wasmWorker = new FilterWorker();
-    wasmWorker.onmessage = handleWorkerMessage;
-    wasmWorker.postMessage({ cmd: "initWasm" });
-}
+export const setWasmFilters = enabled => {
+    useWasm = enabled;
+    if ( enabled && !wasmWorker ) {
+        wasmWorker = new FilterWorker();
+        wasmWorker.onmessage = handleWorkerMessage;
+        wasmWorker.postMessage({ cmd: "initWasm" });
+    }
+};
 
 export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
     const { effects } = layer;
@@ -134,7 +136,7 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
 const runFilterJob = ( source, jobSettings ) => {
     const { width, height } = source;
     const imageData = source.getContext( "2d" ).getImageData( 0, 0, width, height );
-    const wasm      = USE_WASM && wasmWorker;
+    const wasm      = useWasm && wasmWorker;
 
     return new Promise( async ( resolve, reject ) => {
         const id = ( ++UID );

@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <modal>
+    <modal class="preferences">
         <template #header>
             <h2 v-t="'preferences'"></h2>
         </template>
@@ -34,6 +34,15 @@
                     />
                 </div>
                 <p v-t="'lowMemoryExpl'" class="expl"></p>
+                <template v-if="hasWebAssembly">
+                    <div class="wrapper input">
+                        <label v-t="'wasmFilters'"></label>
+                        <toggle-button
+                            v-model="internalValue.wasmFilters"
+                        />
+                    </div>
+                    <p v-t="'wasmFiltersExpl'" class="expl"></p>
+                </template>
             </div>
         </template>
         <template #actions>
@@ -57,6 +66,7 @@
 import { mapGetters, mapMutations, mapActions } from "vuex";
 import Modal from "@/components/modal/modal";
 import { ToggleButton } from "vue-js-toggle-button";
+import { setWasmFilters } from "@/services/render-service";
 import messages from "./messages.json";
 
 export default {
@@ -72,6 +82,17 @@ export default {
         ...mapGetters([
             "preferences",
         ]),
+        hasWebAssembly() {
+            return "WebAssembly" in window;
+        },
+    },
+    watch: {
+        internalValue: {
+            deep: true,
+            handler( value ) {
+                setWasmFilters( !!value.wasmFilters );
+            }
+        }
     },
     created() {
         this.internalValue = { ...this.preferences };
@@ -97,6 +118,14 @@ export default {
 @import "@/styles/_variables";
 @import "@/styles/_colors";
 @import "@/styles/_mixins";
+
+.preferences {
+    @include large() {
+        $height: 450px;
+        height: $height;
+        top: calc(50% - #{($height + 74px ) / 2});
+    }
+}
 
 .expl {
     font-size: 85%;

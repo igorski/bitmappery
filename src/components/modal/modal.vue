@@ -29,7 +29,9 @@
             @click="closeModal()"
         >&#215;</button>
         <div ref="content" class="content">
-            <slot name="content" />
+            <div class="content-wrapper">
+                <slot name="content" />
+            </div>
             <div class="actions">
                 <slot name="actions" />
             </div>
@@ -63,7 +65,11 @@ export default {
 
     .content {
         position: relative;
+    }
 
+    .content-wrapper {
+        overflow-y: auto;
+        height: calc(100% - 50px);
         label {
             font-weight: bold;
             color: #FFF;

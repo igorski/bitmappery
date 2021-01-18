@@ -21,13 +21,15 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { isMobile } from "@/utils/environment-util";
+import { setWasmFilters } from "@/services/render-service";
 
 const STORAGE_KEY = "bpy_pref";
 
 export default {
     state: {
         preferences: {
-            lowMemory : isMobile()
+            lowMemory : isMobile(),
+            wasmFilters: false,
         },
     },
     getters: {
@@ -45,7 +47,9 @@ export default {
             const existing = window.localStorage?.getItem( STORAGE_KEY );
             if ( existing ) {
                 try {
-                    commit( "setPreferences", JSON.parse( existing ));
+                    const preferences = JSON.parse( existing );
+                    commit( "setPreferences", preferences );
+                    setWasmFilters( !!preferences.wasmFilters );
                 } catch {
                     // non-blocking
                 }
