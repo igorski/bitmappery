@@ -22,7 +22,7 @@
  */
 import Vue from "vue";
 import { canvas } from "zcanvas";
-import InteractionPane from "@/components/ui/zcanvas/interaction-pane";
+import InteractionPane from "@/rendering/canvas-elements/interaction-pane";
 import { fastRound } from "@/math/image-math";
 
 class ZoomableCanvas extends canvas {

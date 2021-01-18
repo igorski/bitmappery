@@ -70,7 +70,7 @@ export const disposeTempCanvas = () => {
  * last (which indicates the offset of the last rendered pointer).
  *
  * @param {Object} brush
- * @return {Array<{{ x: Number, y:Number }}>}
+ * @return {Array<{ x: Number, y:Number }>}
  */
 export const translatePointers = brush => {
     const { pointers } = brush;
@@ -86,7 +86,7 @@ export const translatePointers = brush => {
  * @param {ZoomableCanvas} zoomableCanvas
  * @param {Number} x layer X offset
  * @param {Number} y layer Y offset
- * @param {Array<{{ x: Number, y:Number }}>} pointers
+ * @param {Array<{ x: Number, y:Number }>} pointers
  * @return {Object}
  */
 export const createOverrideConfig = ( zoomableCanvas, x, y, pointers ) => ({
@@ -105,20 +105,25 @@ export const createOverrideConfig = ( zoomableCanvas, x, y, pointers ) => ({
  * of translatePointers()
  *
  * @param {Object} overrideConfig
- * @param {{ x: Number, y: Number }} point coordinate to transform
+ * @param {Array<{ x: Number, y: Number }>} pointers coordinates to transform
  */
-export const applyOverrideConfig = ( overrideConfig, point ) => {
+export const applyOverrideConfig = ( overrideConfig, pointers ) => {
     const { x, y, vpX, vpY, scale } = overrideConfig;
+    let i = pointers.length;
+    while ( i-- )
+    {
+        const point = pointers[ i ];
 
-    // correct for low res scaling
+        // correct for low res scaling
 
-    point.x = ( point.x + x ) * scale;
-    point.y = ( point.y + y ) * scale;
+        point.x = ( point.x + x ) * scale;
+        point.y = ( point.y + y ) * scale;
 
-    // correct for viewport offset
+        // correct for viewport offset
 
-    point.x -= vpX;
-    point.y -= vpY;
+        point.x -= vpX;
+        point.y -= vpY;
+    }
 };
 
 /* internal methods */

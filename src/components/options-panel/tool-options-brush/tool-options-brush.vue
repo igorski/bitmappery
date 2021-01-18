@@ -84,12 +84,13 @@ export default {
         },
         brushTypes() {
             return [
-                { text: this.$t( "line" ),         value: BrushTypes.LINE },
-                { text: this.$t( "paintBrush" ),   value: BrushTypes.PAINT_BRUSH },
-                { text: this.$t( "pen" ),          value: BrushTypes.PEN },
-                { text: this.$t( "calligraphic" ), value: BrushTypes.CALLIGRAPHIC },
-                { text: this.$t( "connected" ),    value: BrushTypes.CONNECTED },
-                { text: this.$t( "sprayCan" ),     value: BrushTypes.SPRAY }
+                { text: this.$t( "line" ),             value: BrushTypes.LINE },
+                { text: this.$t( "paintBrush" ),       value: BrushTypes.PAINT_BRUSH },
+                { text: this.$t( "pen" ),              value: BrushTypes.PEN },
+                { text: this.$t( "calligraphic" ),     value: BrushTypes.CALLIGRAPHIC },
+                { text: this.$t( "connectedPoints" ),  value: BrushTypes.CONNECTED },
+            //    { text: this.$t( "nearestNeighbour" ), value: BrushTypes.NEAREST },
+                { text: this.$t( "sprayCan" ),         value: BrushTypes.SPRAY }
             ];
         },
         brushType: {

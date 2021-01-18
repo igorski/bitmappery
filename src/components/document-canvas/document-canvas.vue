@@ -53,9 +53,9 @@
 
 <script>
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
-import ZoomableCanvas from "@/components/ui/zcanvas/zoomable-canvas";
+import ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import FileImport from "@/components/file-import/file-import";
-import { MODE_PAN, MODE_LAYER_SELECT, MODE_SELECTION } from "@/components/ui/zcanvas/interaction-pane";
+import { MODE_PAN, MODE_LAYER_SELECT, MODE_SELECTION } from "@/rendering/canvas-elements/interaction-pane";
 import Scrollbars from "./scrollbars/scrollbars";
 import ToolTypes, { MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@/definitions/tool-types";
 import { scaleToRatio, scaleValue } from "@/math/image-math";

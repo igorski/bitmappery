@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import LayerSprite from "@/components/ui/zcanvas/layer-sprite";
+import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
 import { LAYER_IMAGE, LAYER_GRAPHIC, LAYER_MASK } from "@/definitions/layer-types";
 
 let zCanvasInstance = null; // a non-Vue observable zCanvas instance

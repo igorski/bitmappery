@@ -26,9 +26,12 @@ const BrushTypes = {
     PEN            : "2",
     CALLIGRAPHIC   : "3",
     CONNECTED      : "4",
-    SPRAY          : "5",
+    NEAREST        : "5",
+    SPRAY          : "6",
 };
 export default BrushTypes;
+
+const NON_STEPPABLE_TYPES = [ BrushTypes.CONNECTED, BrushTypes.NEAREST ];
 
 /**
  * For low-res live rendering purposes, brushes can be rendered
@@ -37,4 +40,4 @@ export default BrushTypes;
  *
  * @param {Object} brush @see brush-factory
  */
-export const hasSteppedLiveRender = ({ options }) => options.type !== BrushTypes.CONNECTED;
+export const hasSteppedLiveRender = ({ options }) => !NON_STEPPABLE_TYPES.includes( options.type );

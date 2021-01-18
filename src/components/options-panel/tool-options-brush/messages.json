@@ -9,7 +9,8 @@
         "paintBrush": "Paint brush",
         "pen": "Pen",
         "calligraphic": "Calligraphic",
-        "connected": "Connected",
+        "connectedPoints": "Connected points",
+        "nearestNeighbour": "Nearest neighbour",
         "sprayCan": "Spray can"
     }
 }

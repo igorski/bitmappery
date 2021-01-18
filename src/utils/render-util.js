@@ -64,6 +64,8 @@ export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
         radius       *= scale;
         halfRadius   *= scale;
         doubleRadius *= scale;
+
+        applyOverrideConfig( overrideConfig, pointers );
     }
 
     if ( pointers.length < 2 ) {
@@ -77,15 +79,6 @@ export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
         const isFirst   = i === 1;
         const prevPoint = pointers[ i - 1 ];
         const point     = pointers[ i ];
-
-        // apply the configuration Object, when supplied
-
-        if ( overrideConfig ) {
-            if ( isFirst ) {
-                applyOverrideConfig( overrideConfig, prevPoint );
-            }
-            applyOverrideConfig( overrideConfig, point );
-        }
 
         // paint brush types
 
@@ -169,28 +162,34 @@ export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
                 ctx.lineTo( point.x, point.y );
             }
             ctx.stroke();
-            /* // nearest neighbour
-            const penultimate = pointers[ pointers.length - 2 ];
-            const lastPoint   = pointers[ pointers.length - 1 ];
+            continue;
+        }
+
+        if ( type === BrushTypes.NEAREST ) {
+            const lastPoint = pointers[ pointers.length - 1 ];
+
             if ( isFirst ) {
-                ctx.lineWidth = radius;
+                const penultimate = pointers[ pointers.length - 2 ];
+                ctx.lineWidth = halfRadius;
                 ctx.beginPath();
                 ctx.moveTo( penultimate.x, penultimate.y );
-                ctx.lineTo( lastPoint.x, lastPoint.y );
+                ctx.lineTo( lastPoint.x,   lastPoint.y );
                 ctx.stroke();
             }
-            const dx = prevPoint.x - lastPoint.x;
-            const dy = prevPoint.y - lastPoint.y;
+            const dx = point.x - lastPoint.x;
+            const dy = point.y - lastPoint.y;
             const d  = dx * dx + dy * dy;
 
+            // when distance of line is in range of last point, connect to it
             if ( d < 1000 ) {
+                const xOffset = dx * 0.2;
+                const yOffset = dy * 0.2;
                 ctx.beginPath();
                 ctx.strokeStyle = brush.colors[ 1 ];
-                ctx.moveTo( lastPoint.x + (dx * 0.2), lastPoint.y + (dy * 0.2));
-                ctx.lineTo( prevPoint.x - (dx * 0.2), prevPoint.y - (dy * 0.2));
+                ctx.moveTo( lastPoint.x + xOffset, lastPoint.y + yOffset );
+                ctx.lineTo( point.x - xOffset, point.y - yOffset );
                 ctx.stroke();
             }
-            */
             continue;
         }
 
@@ -239,7 +238,7 @@ export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
  * @param {Object} brush operation to use
  * @param {zCanvas.sprite} sprite containg the relative (on-screen) Layer coordinates
  * @param {zCanvas.sprite} sourceSprite containing the bitmap to mask (see getBitmap())
- * @param {Array<{{ x: Number, y: Number }}>=} optPointers optional Array of alternative coordinates
+ * @param {Array<{ x: Number, y: Number }>=} optPointers optional Array of alternative coordinates
  */
 export const renderClonedStroke = ( destContext, brush, sprite, sourceSprite, optPointers ) => {
     if ( !sourceSprite ) {

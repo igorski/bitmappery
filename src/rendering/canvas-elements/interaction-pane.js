@@ -29,7 +29,7 @@ import { isPointInRange } from "@/math/point-math";
 import { rectangleToCoordinates } from "@/math/image-math";
 import { isSelectionClosed } from "@/math/selection-math";
 import ToolTypes from "@/definitions/tool-types";
-import LayerSprite from "@/components/ui/zcanvas/layer-sprite";
+import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
 
 export const MODE_PAN          = 0;
 export const MODE_LAYER_SELECT = 1;
