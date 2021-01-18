@@ -63,6 +63,11 @@ export default {
 
     .content {
         position: relative;
+
+        label {
+            font-weight: bold;
+            color: #FFF;
+        }
     }
 
     .actions {

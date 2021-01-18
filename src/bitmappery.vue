@@ -82,7 +82,7 @@ import store           from "./store";
 import messages        from "./messages.json";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, SAVE_DROPBOX_DOCUMENT, EXPORT_IMAGE,
-    DROPBOX_FILE_SELECTOR, ADD_LAYER, LAYER_FILTERS, LOAD_SELECTION, SAVE_SELECTION
+    DROPBOX_FILE_SELECTOR, ADD_LAYER, LAYER_FILTERS, LOAD_SELECTION, SAVE_SELECTION, PREFERENCES
 } from "@/definitions/modal-windows";
 
 Vue.use( Vuex );
@@ -149,6 +149,8 @@ export default {
                     return () => import( "@/components/selection-menu/load-selection/load-selection" );
                 case SAVE_SELECTION:
                     return () => import( "@/components/selection-menu/save-selection/save-selection" );
+                case PREFERENCES:
+                    return () => import( "@/components/preferences/preferences" );
             }
         },
     },

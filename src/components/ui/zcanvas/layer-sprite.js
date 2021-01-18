@@ -329,7 +329,7 @@ class LayerSprite extends sprite {
         this.debouncePaintStore();
     }
 
-    debouncePaintStore( timeout = 3000 ) {
+    debouncePaintStore( timeout = 5000 ) {
         this._pendingPaintState = setTimeout( this.storePaintState.bind( this ), timeout );
     }
 
@@ -485,6 +485,10 @@ class LayerSprite extends sprite {
             this._brush.last = 0;
             this.paint( x, y );
             this._brush.pointers = []; // pointers have been rendered, reset
+            // immediately store pending history state when not running in lowMemory mode
+            if ( !this.canvas.store.getters.getPreference( "lowMemory" )) {
+                this.storePaintState();
+            }
         }
         if ( this._isPaintMode ) {
             this.forceMoveListener(); // keeps the move listener active

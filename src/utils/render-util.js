@@ -45,6 +45,8 @@ export const renderCross = ( ctx, x, y, size ) => {
 
 /**
  * Render a series of registered pointer offset into a single brush stroke
+ * Adapted from studies provided by Juriy Zaytsev
+ *
  * @param {CanvasRenderingContext2D} ctx to render on
  * @param {Object} brush properties
  * @param {zCanvas.sprite} sprite defining relative (on-screen) Layer coordinates

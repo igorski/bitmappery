@@ -23,6 +23,7 @@
         "pasteAsNewLayer": "Paste as new layer",
         "window": "Window",
         "windowNumName": "Window #{num}: {name}",
+        "preferences": "Preferences",
         "help": "Help",
         "maximize": "Maximize",
         "minimize": "Minimize"

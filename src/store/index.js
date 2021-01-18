@@ -25,13 +25,14 @@ import DocumentFactory from "@/factories/document-factory";
 import LayerFactory    from "@/factories/layer-factory";
 import { initHistory, enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
-import { LAYER_IMAGE } from "@/definitions/layer-types";
-import { runSpriteFn } from "@/factories/sprite-factory";
-import canvasModule    from "./modules/canvas-module";
-import documentModule  from "./modules/document-module";
-import historyModule   from "./modules/history-module";
-import imageModule     from "./modules/image-module";
-import toolModule      from "./modules/tool-module";
+import { LAYER_IMAGE }   from "@/definitions/layer-types";
+import { runSpriteFn }   from "@/factories/sprite-factory";
+import canvasModule      from "./modules/canvas-module";
+import documentModule    from "./modules/document-module";
+import historyModule     from "./modules/history-module";
+import imageModule       from "./modules/image-module";
+import preferencesModule from "./modules/preferences-module";
+import toolModule        from "./modules/tool-module";
 import { cloneCanvas } from "@/utils/canvas-util";
 import { copySelection, deleteSelectionContent } from "@/utils/document-util";
 import { saveBlobAsFile, selectFile } from "@/utils/file-util";
@@ -52,6 +53,7 @@ export default {
         documentModule,
         historyModule,
         imageModule,
+        preferencesModule,
         toolModule,
     },
     state: {
@@ -252,12 +254,13 @@ export default {
          * @param {Object} i18nReference vue-i18n Object instance so we can
          *                 access translations inside Vuex store modules
          */
-        setupServices( store, i18nReference ) {
+        setupServices({ dispatch }, i18nReference ) {
             i18n = i18nReference;
             const storeReference = this;
             return new Promise( resolve => {
                 KeyboardService.init( storeReference );
                 initHistory( storeReference );
+                dispatch( "restorePreferences" );
                 resolve();
             });
         },

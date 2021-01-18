@@ -1,0 +1,9 @@
+{
+    "en-US": {
+        "preferences": "Preferences",
+        "lowMemoryMode": "Low memory mode",
+        "lowMemoryExpl": "On devices with low memory (like phones), this mode is recommended to reduce the amount of allocated memory. It comes at the expense of combining several brush strokes into a single history state (e.g. undo will go back several strokes instead of one).",
+        "save": "Save",
+        "cancel": "Cancel"
+    }
+}

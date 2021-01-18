@@ -172,6 +172,14 @@
                     </li>
                 </ul>
             </li>
+            <!-- preferences -->
+            <li>
+                <a
+                    v-t="'preferences'"
+                    class="title"
+                    @click.prevent="openPreferences()"
+                ></a>
+            </li>
             <!-- window menu -->
             <li>
                 <a v-t="'window'" class="title" @click.prevent></a>
@@ -204,7 +212,7 @@
 import { mapState, mapGetters, mapMutations, mapActions }  from "vuex";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION,
-    DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT
+    DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT, PREFERENCES
 } from "@/definitions/modal-windows";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { getRectangleForSelection } from "@/math/selection-math";
@@ -291,6 +299,9 @@ export default {
         },
         requestSelectionSave() {
             this.openModal( SAVE_SELECTION );
+        },
+        openPreferences() {
+            this.openModal( PREFERENCES );
         },
         requestCropToSelection() {
             const store = this.$store;
