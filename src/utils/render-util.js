@@ -25,6 +25,7 @@ import BrushTypes from "@/definitions/brush-types";
 import { createDrawable } from "@/factories/brush-factory";
 import { distanceBetween, angleBetween, pointBetween, translatePointerRotation } from "@/math/point-math";
 import { randomInRange } from "@/math/unit-math";
+import { applyOverrideConfig } from "@/rendering/lowres";
 import { createCanvas, resizeImage } from "@/utils/canvas-util";
 
 const { cos, sin } = Math;
@@ -50,16 +51,16 @@ export const renderCross = ( ctx, x, y, size ) => {
  * @param {CanvasRenderingContext2D} ctx to render on
  * @param {Object} brush properties
  * @param {zCanvas.sprite} sprite defining relative (on-screen) Layer coordinates
- * @param {Object=} optional override to use (defines alternate pointers and coordinate scaling)
+ * @param {Object=} overrideConfig optional override to use (defines alternate pointers and coordinate scaling)
  */
-export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
+export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
     let { pointers, radius, halfRadius, doubleRadius, options } = brush;
     let scale = 1;
     const { type } = options;
 
-    if ( optOverride ) {
-        pointers      = optOverride.pointers;
-        scale         = optOverride.zoom;
+    if ( overrideConfig ) {
+        pointers      = overrideConfig.pointers;
+        scale         = overrideConfig.zoom;
         radius       *= scale;
         halfRadius   *= scale;
         doubleRadius *= scale;
@@ -77,13 +78,13 @@ export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
         const prevPoint = pointers[ i - 1 ];
         const point     = pointers[ i ];
 
-        if ( optOverride ) {
+        // apply the configuration Object, when supplied
+
+        if ( overrideConfig ) {
             if ( isFirst ) {
-                prevPoint.x = ( prevPoint.x + optOverride.x ) * optOverride.scale;
-                prevPoint.y = ( prevPoint.y + optOverride.y ) * optOverride.scale;
+                applyOverrideConfig( overrideConfig, prevPoint );
             }
-            point.x = ( point.x + optOverride.x ) * optOverride.scale;
-            point.y = ( point.y + optOverride.y ) * optOverride.scale;
+            applyOverrideConfig( overrideConfig, point );
         }
 
         // paint brush types
@@ -153,7 +154,7 @@ export const renderBrushStroke = ( ctx, brush, sprite, optOverride ) => {
         }
 
         // this one benefits from working with a large point queue
-        // as such when supplying optOverride for live rendering, regular line is drawn instead
+        // as such when supplying overrideConfig for live rendering, regular line is drawn instead
 
         if ( type === BrushTypes.CONNECTED ) {
             if ( isFirst ) {

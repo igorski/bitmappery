@@ -64,7 +64,7 @@ import {
     getCanvasInstance, setCanvasInstance,
     createSpriteForLayer, getSpriteForLayer, flushLayerSprites, flushCache as flushSpriteCache,
 } from "@/factories/sprite-factory";
-import { flushCache as flushBitmapCache } from "@/services/caches/bitmap-cache";
+import { flushCache as flushBitmapCache } from "@/rendering/cache/bitmap-cache";
 
 /* internal non-reactive properties */
 

@@ -1,7 +1,7 @@
 import {
     getLayerCache, setLayerCache, hasLayerCache, clearCacheProperty,
     flushLayerCache, flushCache
-} from "@/services/caches/bitmap-cache";
+} from "@/rendering/cache/bitmap-cache";
 import LayerFactory from "@/factories/layer-factory";
 
 jest.mock( "@/utils/canvas-util", () => ({}));

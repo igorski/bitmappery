@@ -28,7 +28,7 @@ import { isEqual as isTextEqual } from "@/factories/text-factory";
 import { createCanvas, cloneCanvas } from "@/utils/canvas-util";
 import { replaceLayerSource } from "@/utils/layer-util";
 import { fastRound, getRotatedSize, getRotationCenter } from "@/math/image-math";
-import { hasLayerCache, getLayerCache, setLayerCache } from "@/services/caches/bitmap-cache";
+import { hasLayerCache, getLayerCache, setLayerCache } from "@/rendering/cache/bitmap-cache";
 import { loadGoogleFont } from "@/services/font-service";
 import FilterWorker from "@/workers/filter.worker";
 

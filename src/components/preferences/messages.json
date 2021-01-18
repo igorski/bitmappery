@@ -2,9 +2,9 @@
     "en-US": {
         "preferences": "Preferences",
         "lowMemoryMode": "Low memory mode",
-        "lowMemoryExpl": "On devices with low memory (like phones), this mode is recommended to reduce the amount of allocated memory. It comes at the expense of brush history accuracy (e.g. undo will go back several strokes instead of one).",
+        "lowMemoryExpl": "On devices with low memory (like phones), this mode is recommended to reduce the amount of allocated memory. It comes at the expense of brush history accuracy (e.g. undo will instantly go back several strokes instead of one at a time).",
         "wasmFilters": "Web Assembly filters",
-        "wasmFiltersExpl": "Experimental feature. If application of layer filters is slow, you can enable this mode which offers a performance gain depending on your environment.",
+        "wasmFiltersExpl": "Experimental feature. If application of layer filters is slow, you can enable this mode which can offer a performance gain depending on your environment.",
         "save": "Save",
         "cancel": "Cancel"
     }

@@ -29,7 +29,11 @@ import { scaleRectangle } from "@/math/image-math";
 import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
 import { rotatePoints, translatePointerRotation } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
-import { flushLayerCache, clearCacheProperty } from "@/services/caches/bitmap-cache";
+import { clipContextToSelection } from "@/rendering/clipping";
+import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
+import {
+    getTempCanvas, renderTempCanvas, disposeTempCanvas, translatePointers, createOverrideConfig
+} from "@/rendering/lowres";
 import BrushFactory from "@/factories/brush-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
@@ -271,8 +275,7 @@ class LayerSprite extends sprite {
             // TODO: when rotated and mirrored, x and y are now in right coordinate space, but not at right point
 
             // get the enqueued pointers which are to be rendered in this paint cycle
-            let { pointers, last } = this._brush;
-            pointers = JSON.parse( JSON.stringify( pointers.slice( pointers.length - ( pointers.length - last ) - 1 )));
+            const pointers = translatePointers( this._brush );
 
             if ( isCloneStamp ) {
                 if ( this._brush.down ) {
@@ -288,21 +291,13 @@ class LayerSprite extends sprite {
                 let overrides = null;
                 if ( this._brush.down ) {
                     // live update on lower resolution canvas
-                    this.tempCanvas = this.tempCanvas || createCanvas(
-                        this.canvas.getWidth(), this.canvas.getHeight()
-                    );
-                    overrides = {
-                        scale : 1 / this.canvas.documentScale,
-                        zoom  : this.canvas.zoomFactor,
-                        x     : left,
-                        y     : top,
-                        pointers,
-                    };
+                    this.tempCanvas = this.tempCanvas || getTempCanvas( this.canvas );
+                    overrides = createOverrideConfig( this.canvas, left, top, pointers );
                     ctx.restore(); // restore previous context before switching to temp context
                     ctx = this.tempCanvas.ctx;
 
                     if ( selectionPoints && this.tempCanvas ) {
-                        clipContextToSelection( ctx, selectionPoints, isFillMode, sX - left, sY - top, overrides.scale );
+                        clipContextToSelection( ctx, selectionPoints, isFillMode, sX - left, sY - top, overrides );
                     }
                 }
                 renderBrushStroke( ctx, this._brush, this, overrides );
@@ -478,8 +473,9 @@ class LayerSprite extends sprite {
 
     handleRelease( x, y ) {
         if ( this._brush.down ) {
-            // brushing was active, deactivate brushing and render
+            // brushing was active, deactivate brushing and render the
             // high resolution version of the brushed path onto the Layer source
+            disposeTempCanvas();
             this.tempCanvas  = null;
             this._brush.down = false;
             this._brush.last = 0;
@@ -524,12 +520,7 @@ class LayerSprite extends sprite {
 
         // sprite is currently brushing, render low resolution temp contents onto screen
         if ( this.tempCanvas ) {
-            const { cvs } = this.tempCanvas;
-            const scale = this.canvas.documentScale;
-            documentContext.drawImage(
-                cvs, 0, 0, cvs.width, cvs.height,
-                -viewport.left, -viewport.top, cvs.width * scale, cvs.height * scale
-            );
+            renderTempCanvas( this.canvas, documentContext );
         }
 
         // render brush outline at pointer position
@@ -604,17 +595,6 @@ function scaleViewport( viewport, scale ) {
     viewport.right  = viewport.left + viewport.width;
     viewport.bottom = viewport.top + viewport.height;
     return scaled;
-}
-
-function clipContextToSelection( ctx, selectionPoints, isFillMode, offsetX, offsetY, scale = 1 ) {
-    ctx.save();
-    ctx.beginPath();
-    selectionPoints.forEach(( point, index ) => {
-        ctx[ index === 0 ? "moveTo" : "lineTo" ]( ( point.x - offsetX ) * scale, ( point.y - offsetY ) * scale );
-    });
-    if ( !isFillMode ) {
-        ctx.clip();
-    }
 }
 
 // NOTE we use getSpriteForLayer() instead of passing the Sprite by reference
