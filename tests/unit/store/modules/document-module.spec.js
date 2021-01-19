@@ -274,15 +274,15 @@ describe( "Vuex document module", () => {
             const state = {
                 documents: [
                     { name: "foo", layers: [{ name: "fooLayer1" }, { name: "fooLayer2" }] },
-                    { name: "bar", layers: [{ name: "barLayer1" }, { name: "barLayer2" }, { name: "barLayer3" }] }
+                    { name: "bar", layers: [{ name: "barLayer1" }, { name: "barLayer2" }, { name: "barLayer3" }, { name: "barLayer4" }] }
                 ],
                 activeIndex: 1
             };
             const layers = [{ name: "barLayerNew1" } , { name: "barLayerNew2" }];
-            mutations.swapLayers( state, { index1: 1, index2: 2 });
+            mutations.swapLayers( state, { index1: 1, index2: 3 });
             expect( state.documents ).toEqual([
                 { name: "foo", layers: [{ name: "fooLayer1" }, { name: "fooLayer2" }] },
-                { name: "bar", layers: [{ name: "barLayer1" }, { name: "barLayer3" }, { name: "barLayer2" }] }
+                { name: "bar", layers: [{ name: "barLayer1" }, { name: "barLayer4" }, { name: "barLayer3" }, { name: "barLayer2" }] }
             ]);
         });
 
