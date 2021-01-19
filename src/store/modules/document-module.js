@@ -46,7 +46,11 @@ export default {
     mutations: {
         setActiveDocument( state, index ) {
             state.activeIndex = index;
-            runSpriteFn( sprite => sprite.invalidate(), state.documents[ index ] );
+            const document = state.documents[ index ];
+            if ( state.activeLayerIndex >=  document?.layers?.length ) {
+                state.activeLayerIndex = document.layers.length - 1;
+            }
+            runSpriteFn( sprite => sprite.invalidate(), document );
         },
         setActiveDocumentName( state, name ) {
             state.documents[ state.activeIndex ].name = name;
@@ -178,7 +182,7 @@ export default {
         },
     },
     actions: {
-        requestDocumentClose({ commit, getters }) {
+        requestDocumentClose({ state, commit, getters }) {
             if ( !getters.activeDocument ) {
                 return;
             }
@@ -186,7 +190,10 @@ export default {
                 type    : "confirm",
                 title   : getters.t( "areYouSure" ),
                 message : getters.t( "closeDocumentWarning", { document: getters.activeDocument.name } ),
-                confirm : () => commit( "closeActiveDocument" ),
+                confirm : () => {
+                    commit( "closeActiveDocument" );
+                    commit( "setActiveDocument", Math.min( state.documents.length - 1, state.activeIndex ));
+                },
                 cancel  : () => true
             });
         },

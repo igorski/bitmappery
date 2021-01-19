@@ -217,11 +217,6 @@ export default {
                 default:
                     runSpriteFn( sprite => sprite.handleActiveTool( this.activeTool, this.activeToolOptions, this.activeDocument ));
                     return;
-                case ToolTypes.BRUSH:
-                    if ( !layer.mask ) {
-                        this.setTool( null );
-                    }
-                    break;
                 case ToolTypes.TEXT:
                     if ( layer.type !== LAYER_TEXT ) {
                         this.setTool( null );

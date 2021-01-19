@@ -63,8 +63,10 @@ class InteractionPane extends sprite {
         if ( enabled && !this._parent ) {
             this.vp = zCanvas._viewport;
             zCanvas.addChild( this );
-        } else if ( !enabled && this._parent ) {
-            this._parent.removeChild( this );
+        } else if ( !enabled ) {
+            if ( this._parent ) {
+                this._parent.removeChild( this );
+            }
             return;
         }
         this.document = document;

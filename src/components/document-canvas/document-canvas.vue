@@ -137,8 +137,17 @@ export default {
                     flushBitmapCache();
                     layerPool.clear();
                     this.calcIdealDimensions();
-                    this.$nextTick(() => {
-                        this.setActiveTool({ tool: this.activeTool || ToolTypes.MOVE, document: this.activeDocument });
+                    this.$nextTick( async () => {
+                        // previously active tool needs to update to new document ref
+                        const tool = this.activeTool;
+                        if ( tool === null ) {
+                            this.updateInteractionPane();
+                            return;
+                        }
+                        // fugly: to force a change we need to first unset the active tool
+                        this.setActiveTool({ tool: null });
+                        await this.$nextTick();
+                        this.setActiveTool({ tool, document });
                     });
                 }
             }

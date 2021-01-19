@@ -78,11 +78,30 @@ describe( "Vuex document module", () => {
         describe( "when setting the active Document", () => {
             it( "should be able to set the active Document index", () => {
                 const state = {
-                    documents: [{ name: "foo" }, { name: "bar" }],
-                    activeIndex: 0
+                    documents: [
+                        { name: "foo", layers: [ {}, {} ] },
+                        { name: "bar", layers: [ {}, {}, {} ] }
+                    ],
+                    activeIndex: 0,
+                    activeLayerIndex: 1,
                 };
                 mutations.setActiveDocument( state, 1 );
                 expect( state.activeIndex ).toEqual( 1 );
+                expect( state.activeLayerIndex ).toEqual( 1 );
+            });
+
+            it( "when switching to a Document with less layers than the currently active one, it should select the top layer", () => {
+                const state = {
+                    documents: [
+                        { name: "foo", layers: [ {}, {} ] },
+                        { name: "bar", layers: [ {}, {}, {} ] }
+                    ],
+                    activeIndex: 1,
+                    activeLayerIndex: 2,
+                };
+                mutations.setActiveDocument( state, 0 );
+                expect( state.activeIndex ).toEqual( 0 );
+                expect( state.activeLayerIndex ).toEqual( 1 );
             });
 
             it( "should request the invalidate() method on each Sprite for the given Document", () => {
