@@ -26,6 +26,7 @@ import LayerFactory    from "@/factories/layer-factory";
 import { initHistory, enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { LAYER_IMAGE }   from "@/definitions/layer-types";
+import { ACCEPTED_FILE_TYPES } from "@/definitions/image-types";
 import { runSpriteFn }   from "@/factories/sprite-factory";
 import canvasModule      from "./modules/canvas-module";
 import documentModule    from "./modules/document-module";
@@ -161,7 +162,7 @@ export default {
     actions: {
         async loadDocument({ commit }, file = null ) {
             if ( !file ) {
-                const fileList = await selectFile( PROJECT_FILE_EXTENSION, false );
+                const fileList = await selectFile( `${PROJECT_FILE_EXTENSION},${ACCEPTED_FILE_TYPES.split( "," )}`, false );
                 if ( !fileList?.length ) {
                     return;
                 }
