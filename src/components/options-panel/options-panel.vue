@@ -47,7 +47,7 @@
                 @close="showFilters = false"
             />
             <component
-                :is="layerComponent"
+                :is="layersComponent"
                 v-else
                 @openFilters="showFilters = true"
             />
@@ -57,8 +57,8 @@
 
 <script>
 import { mapState, mapGetters, mapMutations } from "vuex";
-import ToolTypes    from "@/definitions/tool-types";
-import messages     from "./messages.json";
+import ToolTypes from "@/definitions/tool-types";
+import messages  from "./messages.json";
 
 export default {
     i18n: { messages },
