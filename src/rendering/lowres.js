@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { createCanvas } from "@/utils/canvas-util";
+import { createCanvas, setCanvasDimensions } from "@/utils/canvas-util";
 import { hasSteppedLiveRender } from "@/definitions/brush-types";
 
 let tempCanvas;
@@ -35,7 +35,7 @@ export const getTempCanvas = zoomableCanvas => {
     if ( !tempCanvas ) {
         tempCanvas = createCanvas();
     }
-    setDimensions( width, height );
+    setCanvasDimensions( tempCanvas, width, height );
     return tempCanvas;
 };
 
@@ -59,7 +59,7 @@ export const renderTempCanvas = ( zoomableCanvas, destinationContext ) => {
  */
 export const disposeTempCanvas = () => {
     if ( tempCanvas ) {
-        setDimensions( 1, 1 );
+        setCanvasDimensions( tempCanvas, 1, 1 );
     }
 };
 
@@ -125,10 +125,3 @@ export const applyOverrideConfig = ( overrideConfig, pointers ) => {
         point.y -= vpY;
     }
 };
-
-/* internal methods */
-
-function setDimensions( width, height ) {
-    tempCanvas.cvs.width  = width;
-    tempCanvas.cvs.height = height;
-}

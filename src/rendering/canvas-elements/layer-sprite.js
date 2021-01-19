@@ -23,13 +23,14 @@
 import Vue from "vue";
 import { sprite } from "zcanvas"
 import { createCanvas, canvasToBlob, resizeImage, globalToLocal } from "@/utils/canvas-util";
-import { renderCross, renderBrushStroke, renderClonedStroke } from "@/utils/render-util";
+import { renderCross, renderBrushStroke } from "@/utils/render-util";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
 import { scaleRectangle } from "@/math/image-math";
 import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
 import { rotatePoints, translatePointerRotation } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { clipContextToSelection } from "@/rendering/clipping";
+import { renderClonedStroke } from "@/rendering/cloning";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
 import {
     getTempCanvas, renderTempCanvas, disposeTempCanvas, translatePointers, createOverrideConfig

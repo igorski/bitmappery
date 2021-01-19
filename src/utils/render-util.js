@@ -26,12 +26,10 @@ import { createDrawable } from "@/factories/brush-factory";
 import { distanceBetween, angleBetween, pointBetween, translatePointerRotation } from "@/math/point-math";
 import { randomInRange } from "@/math/unit-math";
 import { applyOverrideConfig } from "@/rendering/lowres";
-import { createCanvas, resizeImage } from "@/utils/canvas-util";
+import { resizeImage } from "@/utils/canvas-util";
 
 const { cos, sin } = Math;
 const TWO_PI = Math.PI * 2;
-
-const tempCanvas = createCanvas();
 
 export const renderCross = ( ctx, x, y, size ) => {
     ctx.save();
@@ -228,65 +226,6 @@ export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
         }
     }
     ctx.restore();
-};
-
-/**
- * Masks the contents of given source using given brushCvs, and renders the result onto given destContext.
- * Used by clone stamp tool.
- *
- * @param {CanvasRenderingContext2D} destContext context to render on
- * @param {Object} brush operation to use
- * @param {zCanvas.sprite} sprite containg the relative (on-screen) Layer coordinates
- * @param {zCanvas.sprite} sourceSprite containing the bitmap to mask (see getBitmap())
- * @param {Array<{ x: Number, y: Number }>=} optPointers optional Array of alternative coordinates
- */
-export const renderClonedStroke = ( destContext, brush, sprite, sourceSprite, optPointers ) => {
-    if ( !sourceSprite ) {
-        return;
-    }
-    const { coords, opacity } = sprite._toolOptions;
-    const { radius, doubleRadius, options } = brush;
-    const { type } = options;
-    const pointers = optPointers || brush.pointers;
-
-    const source  = sourceSprite.getBitmap();
-    const sourceX = ( coords.x - sourceSprite.getX()) - radius;
-    const sourceY = ( coords.y - sourceSprite.getY()) - radius;
-
-    const relSource = sprite._cloneStartCoords || sprite._dragStartEventCoordinates;
-
-    // prepare temporary canvas (match size with brush)
-    const { cvs, ctx } = tempCanvas;
-    cvs.width  = doubleRadius;
-    cvs.height = doubleRadius;
-
-    for ( let i = 0; i < pointers.length; ++i ) {
-        const destinationPoint = pointers[ i ];
-
-        const xDelta  = sprite._dragStartOffset.x + (( destinationPoint.x - sprite._bounds.left ) - relSource.x );
-        const yDelta  = sprite._dragStartOffset.y + (( destinationPoint.y - sprite._bounds.top )  - relSource.y );
-
-        // draw source bitmap data onto temporary canvas
-        ctx.globalCompositeOperation = "source-over";
-        ctx.globalAlpha = opacity;
-
-        ctx.clearRect( 0, 0, cvs.width, cvs.height );
-        ctx.drawImage(
-            source, sourceX + xDelta, sourceY + yDelta, radius, radius, 0, 0, radius, radius
-        );
-
-        // draw the brush above the bitmap, keeping only the overlapping area
-        ctx.globalCompositeOperation = "destination-in";
-
-        ctx.fillStyle = createDrawable( brush, ctx, 0, 0 );
-        ctx.fillRect( 0, 0, radius, radius );//point.x - radius, point.y - radius, doubleRadius, doubleRadius );
-
-        // draw the masked result onto the destination canvas
-        destContext.drawImage(
-            cvs, 0, 0, radius, radius,
-            destinationPoint.x - radius, destinationPoint.y - radius, radius, radius
-        );
-    }
 };
 
 export const resizeLayerContent = async ( layer, ratioX, ratioY ) => {

@@ -40,6 +40,11 @@ export const createCanvas = ( optWidth = 0, optHeight = 0 ) => {
     return { cvs, ctx };
 };
 
+export const setCanvasDimensions = ( canvas, width, height ) => {
+    canvas.cvs.width  = width;
+    canvas.cvs.height = height;
+};
+
 export const imageToBase64 = ( bitmap, width, height, transparent ) => {
     let cvs;
     if ( bitmap instanceof Image ) {
