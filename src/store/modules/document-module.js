@@ -74,9 +74,6 @@ export default {
             Vue.delete( state.documents, state.activeIndex );
             state.activeIndex = Math.min( state.documents.length - 1, state.activeIndex );
         },
-        setLayers( state, layers ) {
-            state.documents[ state.activeIndex ].layers = layers;
-        },
         addLayer( state, opts = {} ) {
             const document = state.documents[ state.activeIndex ];
             const layers   = document.layers;
@@ -91,6 +88,12 @@ export default {
             const document = state.documents[ state.activeIndex ];
             document.layers.splice( index, 0, layer );
             state.activeLayerIndex = index;
+        },
+        swapLayers( state, { index1, index2 } ) {
+            const layers = state.documents[ state.activeIndex ].layers;
+            const obj1 = layers[ index1 ];
+            Vue.set( layers, index1, layers[ index2 ]);
+            Vue.set( layers, index2, obj1 );
         },
         removeLayer( state, index ) {
             const layer = state.documents[ state.activeIndex ]?.layers[ index ];

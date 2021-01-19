@@ -180,22 +180,6 @@ describe( "Vuex document module", () => {
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "flushLayerSprites", layer3 );
         });
 
-        it( "should be able to set the layers for the currently active Document", () => {
-            const state = {
-                documents: [
-                    { name: "foo", layers: [{ name: "fooLayer1" }, { name: "fooLayer2" }] },
-                    { name: "bar", layers: [{ name: "barLayer1" }] }
-                ],
-                activeIndex: 1
-            };
-            const layers = [{ name: "barLayerNew1" } , { name: "barLayerNew2" }];
-            mutations.setLayers( state, layers );
-            expect( state.documents ).toEqual([
-                { name: "foo", layers: [{ name: "fooLayer1" }, { name: "fooLayer2" }] },
-                { name: "bar", layers }
-            ]);
-        });
-
         describe( "when adding layers", () => {
             it( "should be able to add a Layer to the active Document", () => {
                 const state = {
@@ -284,6 +268,22 @@ describe( "Vuex document module", () => {
                 expect( state.activeLayerIndex ).toEqual( 0 );
                 expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushLayerSprites", layer );
             });
+        });
+
+        it( "should be able to swap the layers in the currently active Document", () => {
+            const state = {
+                documents: [
+                    { name: "foo", layers: [{ name: "fooLayer1" }, { name: "fooLayer2" }] },
+                    { name: "bar", layers: [{ name: "barLayer1" }, { name: "barLayer2" }, { name: "barLayer3" }] }
+                ],
+                activeIndex: 1
+            };
+            const layers = [{ name: "barLayerNew1" } , { name: "barLayerNew2" }];
+            mutations.swapLayers( state, { index1: 1, index2: 2 });
+            expect( state.documents ).toEqual([
+                { name: "foo", layers: [{ name: "fooLayer1" }, { name: "fooLayer2" }] },
+                { name: "bar", layers: [{ name: "barLayer1" }, { name: "barLayer3" }, { name: "barLayer2" }] }
+            ]);
         });
 
         describe( "when setting the active layer content", () => {

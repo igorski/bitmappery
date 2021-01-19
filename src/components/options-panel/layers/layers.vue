@@ -27,10 +27,10 @@
             v-if="reverseLayers.length"
             class="layer-list"
         >
-            <draggable v-model="reverseLayers">
+            <draggable :list="reverseLayers" @end="handleDragEnd">
                 <div
                     v-for="layer in reverseLayers"
-                    :key="`layer_${layer.id}`"
+                    :key="layer.id"
                     class="layer"
                     :class="{
                         'active': layer.index === activeLayerIndex
@@ -139,13 +139,8 @@ export default {
             "activeLayerMask",
             "layers",
         ]),
-        reverseLayers: {
-            get() {
-                return this.layers?.slice().map(( layer, index ) => ({ ...layer, index })).reverse() ?? [];
-            },
-            set( value ) {
-                this.setLayers( value.slice().reverse() );
-            }
+        reverseLayers() {
+            return this.layers?.slice().map(( layer, index ) => ({ ...layer, index })).reverse() ?? [];
         },
         currentLayerHasMask() {
             return !!this.activeLayer?.mask;
@@ -165,7 +160,6 @@ export default {
         ...mapMutations([
             "openModal",
             "removeLayer",
-            "setLayers",
             "setActiveLayerIndex",
             "setActiveLayerMask",
             "openDialog",
@@ -273,6 +267,26 @@ export default {
             this.setActiveLayerMask( layer.index );
             getSpriteForLayer( layer )?.setActionTarget( "mask" );
         },
+        handleDragEnd({ newIndex, oldIndex }) {
+            // keep in mind list appears reversed
+            const obj1 = this.reverseLayers[ oldIndex ];
+            const obj2 = this.reverseLayers[ newIndex ];
+
+            const index1 = this.layers.findIndex(({ id }) => id === obj1.id );
+            const index2 = this.layers.findIndex(({ id }) => id === obj2.id );
+
+            const store = this.$store;
+            const commit = () => {
+                store.commit( "swapLayers", ({ index1, index2 }));
+            }
+            commit();
+            enqueueState( `swapLayers_${obj1.id}_${obj2.id}`, {
+                undo() {
+                    store.commit( "swapLayers", { index1: index2, index2: index1 });
+                },
+                redo: commit,
+            });
+        }
     },
 };
 </script>
