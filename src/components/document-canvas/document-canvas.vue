@@ -102,6 +102,7 @@ export default {
             "layers",
             "activeLayer",
             "activeTool",
+            "activeToolOptions",
             "zoomOptions",
             "zCanvasBaseDimensions",
         ]),
@@ -189,6 +190,7 @@ export default {
                 const { id } = layer;
                 [ ...layerPool.entries() ].forEach(([ key, sprite ]) => {
                     sprite.handleActiveLayer( layer );
+                    sprite.handleActiveTool( this.activeTool, this.activeToolOptions, this.activeDocument );
                 });
             },
         },

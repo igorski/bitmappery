@@ -215,7 +215,6 @@ export default {
             }
             switch ( this.activeTool ) {
                 default:
-                    runSpriteFn( sprite => sprite.handleActiveTool( this.activeTool, this.activeToolOptions, this.activeDocument ));
                     return;
                 case ToolTypes.TEXT:
                     if ( layer.type !== LAYER_TEXT ) {

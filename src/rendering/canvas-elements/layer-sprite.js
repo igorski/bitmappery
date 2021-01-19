@@ -143,17 +143,18 @@ class LayerSprite extends sprite {
         this._isColorPicker    = false;
         this._selection        = null;
         this._toolOptions      = null;
+        this._toolType         = null;
         this._cloneStartCoords = null;
 
         // store pending paint states (if there were any)
         this.storePaintState();
 
-        if ( !this._interactive ) {
+        if ( !this._interactive && !tool ) {
             return;
         }
-        this._isDragMode        = tool === ToolTypes.DRAG;
-        this._toolType          = tool;
-        this._toolOptions       = toolOptions;
+        this._isDragMode  = tool === ToolTypes.DRAG;
+        this._toolType    = tool;
+        this._toolOptions = toolOptions;
 
         // note we use setDraggable() even outside of ToolTypes.DRAG
         // this is because draggable zCanvas.sprites will trigger the handleMove()
