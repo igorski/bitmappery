@@ -27,66 +27,68 @@
             v-if="reverseLayers.length"
             class="layer-list"
         >
-            <div
-                v-for="(layer, index) in reverseLayers"
-                :key="`layer_${index}`"
-                class="layer"
-                :class="{
-                    'active': layer.index === activeLayerIndex
-                }"
-                @dblclick="handleLayerDoubleClick( layer )"
-            >
-                <!-- layer name is an input on double click -->
-                <input
-                    v-if="editable && layer.index === activeLayerIndex"
-                    ref="nameInput"
-                    class="input-field name-input"
-                    :value="layer.name"
-                    @blur="editable = false"
-                    @keyup.enter="editable = false"
-                    @change="updateActiveLayerName"
-                />
-                <span
-                    v-else
-                    v-tooltip="$t( layer.mask && layer.mask === activeLayerMask ? 'clickToEditLayer' : 'dblClickToRename')"
-                    class="name"
+            <draggable v-model="reverseLayers">
+                <div
+                    v-for="layer in reverseLayers"
+                    :key="`layer_${layer.id}`"
+                    class="layer"
                     :class="{
-                        'highlight': layer.index === activeLayerIndex && !activeLayerMask
+                        'active': layer.index === activeLayerIndex
                     }"
-                    @click="handleLayerClick( layer )"
-                >{{ layer.name }}</span>
-                <div class="layer-actions">
-                    <!-- optional layer mask -->
-                    <button
-                        v-if="layer.mask"
-                        v-tooltip="$t('clickToEditMask')"
-                        class="button button--ghost"
+                    @dblclick="handleLayerDoubleClick( layer )"
+                >
+                    <!-- layer name is an input on double click -->
+                    <input
+                        v-if="editable && layer.index === activeLayerIndex"
+                        ref="nameInput"
+                        class="input-field name-input"
+                        :value="layer.name"
+                        @blur="editable = false"
+                        @keyup.enter="editable = false"
+                        @change="updateActiveLayerName"
+                    />
+                    <span
+                        v-else
+                        v-tooltip="$t( layer.mask && layer.mask === activeLayerMask ? 'clickToEditLayer' : 'dblClickToRename')"
+                        class="name"
                         :class="{
-                            'highlight': layer.mask === activeLayerMask
+                            'highlight': layer.index === activeLayerIndex && !activeLayerMask
                         }"
-                        @click="handleLayerMaskClick( layer )"
-                    ><img src="@/assets/icons/icon-mask.svg" /></button>
-                    <button
-                        v-tooltip="$t('toggleVisibility')"
-                        type="button"
-                        class="button button--ghost"
-                        @click="toggleLayerVisibility( layer.index )"
-                        :class="{ 'disabled': !layer.visible }"
-                    ><img src="@/assets/icons/icon-eye.svg" /></button>
-                    <button
-                        v-tooltip="$t('filters')"
-                        type="button"
-                        class="button button--ghost"
-                        @click="handleFiltersClick( layer.index )"
-                    ><img src="@/assets/icons/icon-settings.svg" /></button>
-                    <button
-                        v-tooltip="$t( layer.mask ? 'deleteMask' : 'deleteLayer' )"
-                        type="button"
-                        class="button button--ghost"
-                        @click="handleRemoveClick( layer.index )"
-                    ><img src="@/assets/icons/icon-trashcan.svg" /></button>
+                        @click="handleLayerClick( layer )"
+                    >{{ layer.name }}</span>
+                    <div class="layer-actions">
+                        <!-- optional layer mask -->
+                        <button
+                            v-if="layer.mask"
+                            v-tooltip="$t('clickToEditMask')"
+                            class="button button--ghost"
+                            :class="{
+                                'highlight': layer.mask === activeLayerMask
+                            }"
+                            @click="handleLayerMaskClick( layer )"
+                        ><img src="@/assets/icons/icon-mask.svg" /></button>
+                        <button
+                            v-tooltip="$t('toggleVisibility')"
+                            type="button"
+                            class="button button--ghost"
+                            @click="toggleLayerVisibility( layer.index )"
+                            :class="{ 'disabled': !layer.visible }"
+                        ><img src="@/assets/icons/icon-eye.svg" /></button>
+                        <button
+                            v-tooltip="$t('filters')"
+                            type="button"
+                            class="button button--ghost"
+                            @click="handleFiltersClick( layer.index )"
+                        ><img src="@/assets/icons/icon-settings.svg" /></button>
+                        <button
+                            v-tooltip="$t( layer.mask ? 'deleteMask' : 'deleteLayer' )"
+                            type="button"
+                            class="button button--ghost"
+                            @click="handleRemoveClick( layer.index )"
+                        ><img src="@/assets/icons/icon-trashcan.svg" /></button>
+                    </div>
                 </div>
-            </div>
+            </draggable>
         </div>
         <p
             v-else
@@ -113,6 +115,7 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
+import Draggable from "vuedraggable";
 import { ADD_LAYER } from "@/definitions/modal-windows";
 import { createCanvas } from "@/utils/canvas-util";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
@@ -122,6 +125,9 @@ import messages from "./messages.json";
 
 export default {
     i18n: { messages },
+    components: {
+        Draggable,
+    },
     data: () => ({
         editable: false,
     }),
@@ -133,8 +139,13 @@ export default {
             "activeLayerMask",
             "layers",
         ]),
-        reverseLayers() {
-            return this.layers?.slice().map(( layer, index ) => ({ ...layer, index })).reverse() ?? [];
+        reverseLayers: {
+            get() {
+                return this.layers?.slice().map(( layer, index ) => ({ ...layer, index })).reverse() ?? [];
+            },
+            set( value ) {
+                this.setLayers( value.slice().reverse() );
+            }
         },
         currentLayerHasMask() {
             return !!this.activeLayer?.mask;
@@ -154,6 +165,7 @@ export default {
         ...mapMutations([
             "openModal",
             "removeLayer",
+            "setLayers",
             "setActiveLayerIndex",
             "setActiveLayerMask",
             "openDialog",

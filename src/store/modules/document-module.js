@@ -74,6 +74,9 @@ export default {
             Vue.delete( state.documents, state.activeIndex );
             state.activeIndex = Math.min( state.documents.length - 1, state.activeIndex );
         },
+        setLayers( state, layers ) {
+            state.documents[ state.activeIndex ].layers = layers;
+        },
         addLayer( state, opts = {} ) {
             const document = state.documents[ state.activeIndex ];
             const layers   = document.layers;

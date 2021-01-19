@@ -41,11 +41,13 @@
             <!-- active tool section -->
             <component :is="activeToolOptions" />
             <!-- layer section -->
-            <layer-filters
+            <component
+                :is="layerFiltersComponent"
                 v-if="showFilters"
                 @close="showFilters = false"
             />
-            <layers
+            <component
+                :is="layerComponent"
                 v-else
                 @openFilters="showFilters = true"
             />
@@ -55,17 +57,11 @@
 
 <script>
 import { mapState, mapGetters, mapMutations } from "vuex";
-import Layers       from "./layers/layers";
-import LayerFilters from "./layer-filters/layer-filters";
 import ToolTypes    from "@/definitions/tool-types";
 import messages     from "./messages.json";
 
 export default {
     i18n: { messages },
-    components: {
-        Layers,
-        LayerFilters,
-    },
     data: () => ({
         showFilters: false,
     }),
@@ -84,6 +80,10 @@ export default {
                 this.setOptionsPanelOpened( !value );
             }
         },
+        /**
+         * To cut down on initial bundle size, these components
+         * are loaded asynchronously at runtime
+         */
         activeToolOptions() {
             switch ( this.activeTool ) {
                 default:
@@ -106,6 +106,12 @@ export default {
                     return () => import( "./tool-options-text/tool-options-text" );
             }
         },
+        layersComponent() {
+            return () => import( "./layers/layers" );
+        },
+        layerFiltersComponent() {
+            return () => import( "./layer-filters/layer-filters" );
+        }
     },
     methods: {
         ...mapMutations([

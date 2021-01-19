@@ -143,7 +143,6 @@ further benchmarking and tweaking.
 
 # TODO / Roadmap
 
-* Implement layer sorting and opacity
 * Layer source and mask must not be stored as Vue observables
 * Maintain cache for source images at the display destination size (invalidate on window resize / zoom), this prevents processing large images that are never displayed at their full scale
 * Dragging of masks on rotated/mirror content is kinda broken
