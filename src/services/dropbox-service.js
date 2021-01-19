@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -98,12 +98,12 @@ export const downloadFileAsBlob = async ( path, returnAsURL = false ) => {
     }
 };
 
-export const uploadBlob = async ( blob, fileName ) => {
+export const uploadBlob = async ( fileOrBlob, fileName ) => {
     const path = `/bitmappery/${fileName.split( " " ).join ( "_" )}`;
-    if ( file.size < UPLOAD_FILE_SIZE_LIMIT ) {
+    if ( fileOrBlob.size < UPLOAD_FILE_SIZE_LIMIT ) {
         // File is smaller than 150 Mb - use filesUpload API
         try {
-            const { result } = await dbx.filesUpload({ path, contents: blob, mode: "overwrite" });
+            const { result } = await dbx.filesUpload({ path, contents: fileOrBlob, mode: "overwrite" });
             return !!result.name;
         } catch ( error ) {
             console.error( error );
@@ -114,9 +114,9 @@ export const uploadBlob = async ( blob, fileName ) => {
         const maxBlob   = 8 * 1000 * 1000; // 8Mb - Dropbox JavaScript API suggested max file / chunk size
         const workItems = [];
         let offset = 0;
-        while ( offset < file.size ) {
-            const chunkSize = Math.min( maxBlob, file.size - offset );
-            workItems.push( file.slice( offset, offset + chunkSize ));
+        while ( offset < fileOrBlob.size ) {
+            const chunkSize = Math.min( maxBlob, fileOrBlob.size - offset );
+            workItems.push( fileOrBlob.slice( offset, offset + chunkSize ));
             offset += chunkSize;
         }
 
@@ -139,8 +139,8 @@ export const uploadBlob = async ( blob, fileName ) => {
             } else {
                 // Last chunk of data, close session
                 return acc.then( sessionId => {
-                    const cursor = { session_id: sessionId, offset: file.size - blob.size };
-                    const commit = { path: '/' + file.name, mode: 'add', autorename: true, mute: false };
+                    const cursor = { session_id: sessionId, offset: fileOrBlob.size - blob.size };
+                    const commit = { path: '/' + fileOrBlob.name, mode: 'add', autorename: true, mute: false };
                     return dbx.filesUploadSessionFinish({ cursor: cursor, commit: commit, contents: blob });
                 });
             }
