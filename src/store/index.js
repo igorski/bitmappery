@@ -162,7 +162,8 @@ export default {
     actions: {
         async loadDocument({ commit }, file = null ) {
             if ( !file ) {
-                const fileList = await selectFile( `${PROJECT_FILE_EXTENSION},${ACCEPTED_FILE_TYPES.join( "," )}`, false );
+                const fileList = await selectFile( PROJECT_FILE_EXTENSION, false );
+//                const fileList = await selectFile( `${PROJECT_FILE_EXTENSION},${ACCEPTED_FILE_TYPES.join( "," )}`, false );
                 if ( !fileList?.length ) {
                     return;
                 }
