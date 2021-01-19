@@ -129,8 +129,8 @@ class LayerSprite extends sprite {
         return this._bitmap;
     }
 
-    handleActiveLayer( activeLayer ) {
-        this.setInteractive( this.layer === activeLayer );
+    handleActiveLayer({ id }) {
+        this.setInteractive( this.layer.id === id );
     }
 
     resetSelection() {
@@ -140,19 +140,20 @@ class LayerSprite extends sprite {
     handleActiveTool( tool, toolOptions, activeDocument ) {
         this.isDragging        = false;
         this._isPaintMode      = false;
+        this._isDragMode       = false;
         this._isColorPicker    = false;
         this._selection        = null;
-        this._toolOptions      = null;
         this._toolType         = null;
+        this._toolOptions      = null;
         this._cloneStartCoords = null;
 
         // store pending paint states (if there were any)
         this.storePaintState();
 
-        if ( !this._interactive && !tool ) {
+        if ( !this._interactive || !tool ) {
             return;
         }
-        this._isDragMode  = tool === ToolTypes.DRAG;
+
         this._toolType    = tool;
         this._toolOptions = toolOptions;
 
@@ -165,6 +166,7 @@ class LayerSprite extends sprite {
                 this.setDraggable( false );
                 break;
             case ToolTypes.DRAG:
+                this._isDragMode = true;
                 this.setDraggable( true );
                 break;
             // drawables

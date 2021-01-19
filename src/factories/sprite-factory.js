@@ -99,5 +99,4 @@ export const createSpriteForLayer = ( zCanvasInstance, layer, isInteractive = fa
 
 function disposeSprite( sprite ) {
     sprite?.dispose();
-    // TODO: also free associated bitmap and source ?
 }
