@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { Dropbox } from "dropbox";
+import { blobToResource } from "@/utils/resource-manager";
 
 const UPLOAD_FILE_SIZE_LIMIT = 150 * 1024 * 1024;
 
@@ -80,7 +81,7 @@ export const getThumbnail = async ( path, large = false ) => {
             format: "jpeg",
             size: large ? "w128h128" : "w64h64"
         });
-        return URL.createObjectURL( result.fileBlob );
+        return blobToResource( result.fileBlob );
     } catch {
         return null;
     }
@@ -90,7 +91,7 @@ export const downloadFileAsBlob = async ( path, returnAsURL = false ) => {
     try {
         const { result } = await dbx.filesDownload({ path });
         if ( returnAsURL ) {
-            return URL.createObjectURL( result.fileBlob );
+            return blobToResource( result.fileBlob );
         }
         return result.fileBlob;
     } catch {

@@ -20,6 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { blobToResource, disposeResource } from "@/utils/resource-manager";
+
 self.addEventListener( "message", event => {
     const { cmd, file } = event.data;
 
@@ -28,7 +30,7 @@ self.addEventListener( "message", event => {
             return;
 
         case "loadImageFile":
-            const blobUrl = URL.createObjectURL( file );
+            const blobUrl = blobToResource( file );
             self.createImageBitmap( file )
                 .then( result => {
                     const { width, height } = result;
@@ -41,7 +43,7 @@ self.addEventListener( "message", event => {
                     });
                 })
                 .catch( error => {
-                    URL.revokeObjectURL( blobUrl ); // deallocate as file will be useless
+                    disposeResource( blobUrl ); // deallocate as file will be useless
                     self.postMessage({
                         cmd: "loadError",
                         file: file.name,

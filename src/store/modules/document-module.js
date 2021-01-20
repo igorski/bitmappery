@@ -183,15 +183,17 @@ export default {
     },
     actions: {
         requestDocumentClose({ state, commit, getters }) {
-            if ( !getters.activeDocument ) {
+            const document = getters.activeDocument;
+            if ( !document ) {
                 return;
             }
             commit( "openDialog", {
                 type    : "confirm",
                 title   : getters.t( "areYouSure" ),
-                message : getters.t( "closeDocumentWarning", { document: getters.activeDocument.name } ),
+                message : getters.t( "closeDocumentWarning", { document: document.name } ),
                 confirm : () => {
                     commit( "closeActiveDocument" );
+                    commit( "removeImagesForDocument", document );
                     commit( "setActiveDocument", Math.min( state.documents.length - 1, state.activeIndex ));
                 },
                 cancel  : () => true

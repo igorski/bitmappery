@@ -24,6 +24,7 @@ import Vue from "vue";
 import { sprite } from "zcanvas"
 import { createCanvas, canvasToBlob, resizeImage, globalToLocal } from "@/utils/canvas-util";
 import { renderCross } from "@/utils/render-util";
+import { blobToResource } from "@/utils/resource-manager";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
 import { scaleRectangle } from "@/math/image-math";
 import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
@@ -324,7 +325,7 @@ class LayerSprite extends sprite {
      */
     preparePendingPaintState() {
         canvasToBlob( this.layer.source ).then( blob => {
-            this._orgSourceToStore = URL.createObjectURL( blob );
+            this._orgSourceToStore = blobToResource( blob );
         });
         this.debouncePaintStore();
     }
@@ -350,7 +351,7 @@ class LayerSprite extends sprite {
         this._orgSourceToStore = null;
 
         return canvasToBlob( layer.source ).then( blob => {
-            const newState = URL.createObjectURL( blob );
+            const newState = blobToResource( blob );
             enqueueState( `spritePaint_${layer.id}`, {
                 undo() {
                     restorePaintFromHistory( layer, orgState );

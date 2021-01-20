@@ -6,6 +6,9 @@ jest.mock( "@/factories/layer-factory", () => ({
     serialize: (...args) => mockUpdateFn?.( "serialize", ...args ),
     deserialize: (...args) => mockUpdateFn?.( "deserialize", ...args ),
 }));
+jest.mock( "@/workers/compression.worker", () => ({
+    // nowt... just to resolve import issue
+}));
 
 describe( "Document factory", () => {
     describe( "when creating a new Document", () => {

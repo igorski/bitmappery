@@ -47,11 +47,17 @@ export const imageToResource = async ( imageElement, type = "image/jpeg", optQua
     ctx.drawImage( imageElement, 0, 0 );
 
     const blob = await canvasToBlob( cvs, type, optQuality );
-    return URL.createObjectURL( blob );
+    return blobToResource( blob );
 };
 
-export const disposeResource = imageBlobURL => {
-    URL.revokeObjectURL( imageBlobURL );
+// create a singular interface to create and revoke Blob URLs
+// this makes it easier to backtrack the source of lingering Objects
+
+export const blobToResource = blob => {
+    const blobUrl = URL.createObjectURL( blob );
+    // console.info( `Registed URI "${blobUrl}"` );
+    return blobUrl;
 };
+export const disposeResource = blobURL => URL.revokeObjectURL( blobURL );
 
 export const isResource = imageElement => imageElement.src.startsWith( "blob:" );

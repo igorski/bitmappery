@@ -21,9 +21,10 @@
 * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 import { ACCEPTED_FILE_TYPES } from "@/definitions/image-types";
+import { blobToResource, disposeResource } from "@/utils/resource-manager";
 
 export const saveBlobAsFile = ( blob, fileName ) => {
-    const blobURL = URL.createObjectURL( blob );
+    const blobURL = blobToResource( blob );
     const anchor  = document.createElement( "a" );
     anchor.style.display = "none";
     anchor.href = blobURL;
@@ -36,7 +37,7 @@ export const saveBlobAsFile = ( blob, fileName ) => {
     document.body.appendChild( anchor );
     anchor.click();
     document.body.removeChild( anchor );
-    URL.revokeObjectURL( blobURL );
+    disposeResource( blobURL );
 };
 
 export const selectFile = ( acceptedTypes, multiple = false ) => {

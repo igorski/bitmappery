@@ -137,17 +137,8 @@ On a particular (low powered) configuration, running all filters on a particular
 * 484 ms in JavaScript inside a Web Worker
 * 603 ms in WebAssembly inside a Web Worker
 
-The WebAssembly Web Worker takes a performance hit from converting the ImageData buffer
+Note that the WebAssembly Web Worker takes a performance hit from converting the ImageData buffer
 to float32 prior to allocating the buffer in the WASM instance's memory. This can benefit from
-further benchmarking and tweaking.
+further tweaking to see if it gets closer to the JavaScript Web Worker performance.
 
-# TODO / Roadmap
-
-* Layer source and mask must not be stored as Vue observables
-* Maintain cache for source images at the display destination size (invalidate on window resize / zoom), this prevents processing large images that are never displayed at their full scale
-* Dragging of masks on rotated/mirror content is kinda broken
-* Restored base64 images should be treated as binary once more (see layer-factory)
-* Zoom set original size isn't that accurate (check also on mobile views), needs calculateMaxScaling ?
-* Unload Blobs when images are no longer used in document (see sprite-factory disposeSprite, keep instance count of usages)
-* Implement merged layer selection
-* Scale logic should move from zoomable-canvas into zCanvas (as handleInteraction needs to transform offsets by zoom ratio, see LayerSprite!)
+WebAssembly filtering is a user controllable feature in the preferences pane.

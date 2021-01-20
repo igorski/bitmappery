@@ -24,6 +24,7 @@ import { canvas, loader } from "zcanvas";
 import { JPEG, PNG }      from "@/definitions/image-types";
 import { LAYER_GRAPHIC, LAYER_IMAGE, LAYER_MASK } from "@/definitions/layer-types";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { blobToResource, disposeResource } from "@/utils/resource-manager";
 
 /**
  * Creates a new HTMLCanvasElement, returning both
@@ -184,8 +185,8 @@ export const canvasToBlob = ( cvs, type = "image/png", quality = .9 ) => {
 };
 
 export const blobToCanvas = blob => {
-    const blobURL = URL.createObjectURL( blob );
-    const revoke  = () => URL.revokeObjectURL( blobURL );
+    const blobURL = blobToResource( blob );
+    const revoke  = disposeResource( blobURL );
     return new Promise(( resolve, reject ) => {
         const image = new Image();
         image.onload = () => {

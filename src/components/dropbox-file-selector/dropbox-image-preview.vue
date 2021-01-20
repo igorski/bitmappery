@@ -39,6 +39,8 @@
 
 <script>
 import { getThumbnail } from "@/services/dropbox-service";
+import { disposeResource } from "@/utils/resource-manager";
+
 export default {
     props: {
         path: {
@@ -60,7 +62,7 @@ export default {
     methods: {
         handleImageLoad() {
             // free memory allocated by dropbox-service#getThumbnail()
-            URL.revokeObjectURL( this.src );
+            disposeResource( this.src );
         },
     },
 };

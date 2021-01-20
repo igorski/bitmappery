@@ -7,6 +7,9 @@ jest.mock( "@/factories/history-state-factory", () => ({
     forceProcess: (...args) => mockUpdateFn?.( "forceProcess", ...args ),
     flushQueue: (...args) => mockUpdateFn?.( "flushQueue", ...args )
 }));
+jest.mock( "@/utils/resource-manager", () => ({
+    "disposeResource": (...args) => mockUpdateFn?.( "disposeResource", ...args ),
+}));
 
 describe( "History State module", () => {
     const noop = () => {};
@@ -106,7 +109,7 @@ describe( "History State module", () => {
             });
 
             it( "should free memory associated with optional Blob resources of popped states", () => {
-                window.URL = { revokeObjectURL: jest.fn() };
+                mockUpdateFn = jest.fn();
 
                 // add enough states to exceed the limit to pop old states
                 for ( let i = 0; i < STATES_TO_SAVE + 2; ++i ) {
@@ -117,8 +120,8 @@ describe( "History State module", () => {
                 // assert the first state's resources have been freed while the second still exist
                 expect( state.blobUrls.size ).toEqual( 1 );
                 expect( state.blobUrls.has( 2 )).toBe( true ); // index of second, still available state
-                expect( window.URL.revokeObjectURL ).toHaveBeenNthCalledWith( 1, "resource_0" );
-                expect( window.URL.revokeObjectURL ).toHaveBeenNthCalledWith( 2, "resource__0" );
+                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "disposeResource", "resource_0" );
+                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "disposeResource", "resource__0" );
 
                 // push one more state to pop the second added state from the available undo stack
                 mutations.saveState( state, { undo: noop, redo: noop });
@@ -127,8 +130,8 @@ describe( "History State module", () => {
                 // resources are listed (as no other states were stored with associated resources)
                 expect( state.blobUrls.size ).toEqual( 0 );
                 expect( state.blobUrls.has( 2 )).toBe( false );
-                expect( window.URL.revokeObjectURL ).toHaveBeenNthCalledWith( 3, "resource_1" );
-                expect( window.URL.revokeObjectURL ).toHaveBeenNthCalledWith( 4, "resource__1" );
+                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "disposeResource", "resource_1" );
+                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 4, "disposeResource", "resource__1" );
             });
         });
 
@@ -146,20 +149,18 @@ describe( "History State module", () => {
             mutations.saveState(state, { undo: shouldntRun, redo: shouldntRun, resources: [ "foo", "bar" ] });
             mutations.saveState(state, { undo: shouldntRun, redo: shouldntRun, resources: [ "baz" ] });
 
-            window.URL = { revokeObjectURL: jest.fn() };
-
             mutations.resetHistory( state );
 
-            expect( mockUpdateFn ).toHaveBeenCalledWith( "flushQueue" );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushQueue" );
             expect( state.historyIndex ).toEqual( -1 );
             expect( getters.canUndo( state )).toBe( false ); // expected no undo to be available after flushing of history
             expect( getters.canRedo( state )).toBe( false ); // expected no redo to be available after flushing of history
             expect( getters.amountOfStates( state )).toEqual( 0 ); // expected no states to be present in history
             expect( state.stored ).toEqual( 0 );
 
-            expect( window.URL.revokeObjectURL ).toHaveBeenNthCalledWith( 1, "foo" );
-            expect( window.URL.revokeObjectURL ).toHaveBeenNthCalledWith( 2, "bar" );
-            expect( window.URL.revokeObjectURL ).toHaveBeenNthCalledWith( 3, "baz" );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "disposeResource", "foo" );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "disposeResource", "bar" );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 4, "disposeResource", "baz" );
 
             expect( state.blobUrls.size ).toEqual( 0 );
         });

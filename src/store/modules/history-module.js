@@ -23,6 +23,7 @@
 import UndoManager from "undo-manager";
 import { forceProcess, flushQueue } from "@/factories/history-state-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { disposeResource } from "@/utils/resource-manager";
 
 export const STATES_TO_SAVE = 99;
 
@@ -78,7 +79,7 @@ const module = {
                 const minIndex = storedIndex - STATES_TO_SAVE;
                 [ ...state.blobUrls.entries()].forEach(([ index, urls ]) => {
                     if ( index < minIndex ) {
-                        urls.forEach( url => window.URL.revokeObjectURL( url ));
+                        urls.forEach( url => disposeResource( url ));
                         state.blobUrls.delete( index );
                     }
                 });
@@ -99,7 +100,7 @@ const module = {
             state.undoManager.clear();
             state.historyIndex = -1;
             state.stored = 0;
-            state.blobUrls.forEach( urlList => urlList.forEach( url => window.URL.revokeObjectURL( url )));
+            state.blobUrls.forEach( urlList => urlList.forEach( url => disposeResource( url )));
             state.blobUrls.clear();
         }
     },
