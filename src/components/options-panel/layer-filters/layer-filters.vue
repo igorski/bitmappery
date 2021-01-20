@@ -172,6 +172,11 @@ export default {
                     this.update();
                 }, 250 );
             },
+        },
+        activeLayer( value ) {
+            if ( !value ) {
+                this.close(); // document has been closed
+            }
         }
     },
     created() {
@@ -200,7 +205,7 @@ export default {
                 });
             }
             // no need to call update(), computed setters have triggered model update
-            this.$emit( "close" );
+            this.close();
         },
         reset() {
             this.internalValue = FiltersFactory.create();
@@ -208,6 +213,9 @@ export default {
         },
         cancel() {
             this.update( this.orgFilters );
+            this.close();
+        },
+        close() {
             this.$emit( "close" );
         },
         update( optData ) {
