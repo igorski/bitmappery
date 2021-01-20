@@ -110,7 +110,7 @@ export default {
     @include large() {
         $actionsHeight: 74px;
         $width: 480px;
-        $height: 300px;
+        $height: 320px;
 
         width: $width;
         height: $height + $actionsHeight;

@@ -83,6 +83,7 @@ import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { listFolder, downloadFileAsBlob } from "@/services/dropbox-service";
 import DropboxImagePreview from "./dropbox-image-preview";
 import { truncate } from "@/utils/string-util";
+import { disposeResource } from "@/utils/resource-manager";
 import { ACCEPTED_FILE_EXTENSIONS } from "@/definitions/image-types";
 import { PROJECT_FILE_EXTENSION }   from "@/store";
 import messages from "./messages.json";
@@ -229,7 +230,8 @@ export default {
                     // TODO: loader, error handling and background load (for bulk selection)
                     const url = await downloadFileAsBlob( node.path, true );
                     const { image, size } = await loader.loadImage( url );
-                    this.addLoadedFile({ type: "dropbox", name: node.name }, { image, size });
+                    await this.addLoadedFile({ type: "dropbox", name: node.name }, { image, size });
+                    disposeResource( url ); // Blob has been converted to Layer source
                     this.showNotification({
                         message: this.$t( "importedFileSuccessfully", { file: truncate( node.name, 35 ) })
                     });

@@ -65,7 +65,7 @@ function toggleFullscreen() {
 }
 
 function handleFullscreenChange() {
-    if ( document.webkitIsFullScreen || document.mozFullScreen || document.msFullscreenElement === true )
+    if ( d.webkitIsFullScreen || d.mozFullScreen || d.msFullscreenElement === true )
         fsToggle.innerHTML = minimizeText;
     else
         fsToggle.innerHTML = maximizeText;

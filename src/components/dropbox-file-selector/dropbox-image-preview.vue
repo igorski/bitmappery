@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -56,8 +56,17 @@ export default {
             return !this.src;
         },
     },
-    async mounted() {
-        this.src = await getThumbnail( this.path, true );
+    destroyed() {
+        this._destroyed = true;
+    },
+    mounted() {
+        getThumbnail( this.path, true ).then( blobUrl => {
+                if ( this._destroyed ) {
+                    disposeResource( blobUrl );
+                } else {
+                    this.src = blobUrl;
+                }
+            });
     },
     methods: {
         handleImageLoad() {

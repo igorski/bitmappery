@@ -20,12 +20,6 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { createCanvas, canvasToBlob } from "@/utils/canvas-util";
-
-// for debugging and spotting memory leaks, in Chrome you can access chrome://blob-internals/
-// to view all allocated object URLs
-
-const { URL } = window;
 
 /**
  * Creates a Blob URL for the resource represented by given imageElement.
@@ -39,12 +33,12 @@ const { URL } = window;
  * @return {String} Blob URL
  */
 export const imageToResource = async ( imageElement, type = "image/jpeg", optQuality = .9 ) => {
-    const { cvs, ctx } = createCanvas();
+    const cvs = document.createElement( "canvas" );
 
     cvs.width  = imageElement.naturalWidth  || imageElement.width;
     cvs.height = imageElement.naturalHeight || imageElement.height;
 
-    ctx.drawImage( imageElement, 0, 0 );
+    cvs.getContext( "2d" ).drawImage( imageElement, 0, 0 );
 
     const blob = await canvasToBlob( cvs, type, optQuality );
     return blobToResource( blob );
@@ -52,6 +46,8 @@ export const imageToResource = async ( imageElement, type = "image/jpeg", optQua
 
 // create a singular interface to create and revoke Blob URLs
 // this makes it easier to backtrack the source of lingering Objects
+// for debugging and spotting memory leaks, in Chrome you can access chrome://blob-internals/
+// to view all allocated object URLs
 
 export const blobToResource = blob => {
     const blobUrl = URL.createObjectURL( blob );

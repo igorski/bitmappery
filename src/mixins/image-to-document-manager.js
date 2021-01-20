@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -38,6 +38,7 @@ export default {
             "addNewDocument",
             "addLayer",
             "updateLayer",
+            "setImageSourceUsage",
         ]),
         ...mapActions([
             "addImage",
@@ -62,6 +63,7 @@ export default {
                     // if this is the first content of an existing document, scale document to image size
                     if ( !this.activeDocument ) {
                         this.addNewDocument( file.name );
+                        this.registerUsage( source );
                         return this.updateSizeAndLayer( size, layerOpts );
                     } else if ( currentDocumentIsEmpty ) {
                         this.setActiveDocumentSize( size );
@@ -75,10 +77,14 @@ export default {
                     this.updateSizeAndLayer( size, layerOpts );
                     break;
             }
+            this.registerUsage( source );
         },
         updateSizeAndLayer( size, opts ) {
             this.setActiveDocumentSize( size );
             this.updateLayer({ index: this.layers.length - 1, opts });
         },
+        registerUsage( source ) {
+            this.setImageSourceUsage({ source, document: this.activeDocument });
+        }
      }
 };

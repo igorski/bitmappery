@@ -22,6 +22,7 @@
  */
 import { loader }      from "zcanvas";
 import ImageFileWorker from "@/workers/image-file-to-resource.worker";
+import { blobToResource } from "@/utils/resource-manager";
 
 /**
  * We can use a Worker to load the files to bitmaps so we can retrieve
@@ -74,12 +75,12 @@ function loadFile( file, callback, ctx ) {
     } else {
         return new Promise( async ( resolve, reject ) => {
             try {
-                const imageSource = URL.createObjectURL( file );
+                const imageSource = blobToResource( file );
                 const result = await loader.loadImage( imageSource );
                 await callback( file, result );
                 resolve( result );
             } catch {
-                URL.revokeObjectURL( imageSource );
+                disposeResource( imageSource );
                 reject();
             }
         });

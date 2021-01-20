@@ -44,6 +44,16 @@ export default {
             state.fileTarget = target;
         },
         /**
+         * Registers a document as a user of given image source
+         * this can be used to track usages and free image resources when done.
+         */
+        setImageSourceUsage( state, { source, document }) {
+            const image = state.images.find( image => image.source === source );
+            if ( image && !image.usages.includes( document.id )) {
+                image.usages.push( document.id );
+            }
+        },
+        /**
          * Invoke when we're done using an image in the applications life cycle.
          * This also frees memory allocated in addImage()
          */
@@ -54,6 +64,23 @@ export default {
                 return;
             }
             Vue.delete( state.images, index );
+        },
+        /**
+         * Invoke when closing a document, this frees memory allocated in addImage()
+         * if there are no further usages of the image.
+         */
+        removeImagesForDocument( state, { id }) {
+            let i = state.images.length;
+            while ( i-- ) {
+                const { usages } = state.images[ i ];
+                if ( usages.includes( id )) {
+                    usages.splice( usages.indexOf( id ), 1 );
+                    if ( usages.length === 0 ) {
+                        disposeResource( state.images[ i ].source );
+                        state.images.splice( i, 1 );
+                    }
+                }
+            }
         }
     },
     actions: {
@@ -66,7 +93,7 @@ export default {
             const isValidResource = isResource( image ) || image.src.startsWith( "http" );
 
             const source    = isValidResource ? image.src : await imageToResource( image, file.type );
-            const imageData = { file, size, source };
+            const imageData = { file, size, source, usages: [] };
             state.images.push( imageData );
             return imageData;
         },
