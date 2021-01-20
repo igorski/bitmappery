@@ -278,7 +278,7 @@ function handleKeyDown( event ) {
 
         case 76: // L
             if ( hasOption ) {
-                if ( shiftDown ) {
+                if ( shiftDown && getters.activeDocument ) {
                     openModal( ADD_LAYER );
                 }
             } else {

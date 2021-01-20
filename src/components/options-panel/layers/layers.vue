@@ -27,7 +27,7 @@
             v-if="reverseLayers.length"
             class="layer-list"
         >
-            <draggable :list="reverseLayers" @end="handleDragEnd">
+            <draggable v-model="reverseLayers">
                 <div
                     v-for="layer in reverseLayers"
                     :key="layer.id"
@@ -139,8 +139,29 @@ export default {
             "activeLayerMask",
             "layers",
         ]),
-        reverseLayers() {
-            return this.layers?.slice().map(( layer, index ) => ({ ...layer, index })).reverse() ?? [];
+        reverseLayers: {
+            get() {
+                // we like to see the highest layer on top, so reverse order for v-for templating
+                return this.layers?.slice().map(( layer, index ) => ({ ...layer, index })).reverse() ?? [];
+            },
+            set( value ) {
+                // when updating the Vuex store, we reverse the layers again
+                const originalOrder = this.reverseLayers.map(({ id }) => id ).reverse();
+                const updatedOrder  = value.map(({ id }) => id ).reverse();
+
+                const document = this.activeDocument;
+                const store    = this.$store;
+                const commit = () => {
+                    store.commit( "reorderLayers", { document, layerIds: updatedOrder } );
+                }
+                commit();
+                enqueueState( `reorderLayers_${updatedOrder.join()}`, {
+                    undo() {
+                        store.commit( "reorderLayers", { document, layerIds: originalOrder });
+                    },
+                    redo: commit,
+                });
+            }
         },
         currentLayerHasMask() {
             return !!this.activeLayer?.mask;
@@ -267,26 +288,6 @@ export default {
             this.setActiveLayerMask( layer.index );
             getSpriteForLayer( layer )?.setActionTarget( "mask" );
         },
-        handleDragEnd({ newIndex, oldIndex }) {
-            // keep in mind list appears reversed
-            const obj1 = this.reverseLayers[ oldIndex ];
-            const obj2 = this.reverseLayers[ newIndex ];
-
-            const index1 = this.layers.findIndex(({ id }) => id === obj1.id );
-            const index2 = this.layers.findIndex(({ id }) => id === obj2.id );
-
-            const store = this.$store;
-            const commit = () => {
-                store.commit( "swapLayers", ({ index1, index2 }));
-            }
-            commit();
-            enqueueState( `swapLayers_${obj1.id}_${obj2.id}`, {
-                undo() {
-                    store.commit( "swapLayers", { index1: index2, index2: index1 });
-                },
-                redo: commit,
-            });
-        }
     },
 };
 </script>

@@ -305,6 +305,25 @@ describe( "Vuex document module", () => {
             ]);
         });
 
+        it( "should be able to reorder all layers in the currently active Document", () => {
+            const layers = [
+                { id: "A", name: "layer1" },
+                { id: "B", name: "layer2" },
+                { id: "C", name: "layer3" },
+                { id: "D", name: "layer4" }
+            ];
+            const orgLayers = [ ...layers ];
+            const state = {
+                documents: [{ name: "foo", layers }],
+                activeIndex: 0
+            };
+            mutations.reorderLayers( state, { document: state.documents[ 0 ], layerIds: [ "B", "C", "A", "D" ] });
+            // note we check by reference to ensure all bindings remain
+            expect( state.documents[ 0 ].layers ).toEqual([
+                orgLayers[ 1 ], orgLayers[ 2 ], orgLayers[ 0 ], orgLayers[ 3 ]
+            ]);
+        });
+
         describe( "when setting the active layer content", () => {
             it( "should be able to set the active layer by index", () => {
                 const state = {

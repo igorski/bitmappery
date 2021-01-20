@@ -65,6 +65,7 @@
 import { mapGetters, mapMutations, mapActions } from "vuex";
 import Modal     from "@/components/modal/modal";
 import SelectBox from '@/components/ui/select-box/select-box';
+import LayerFactory from "@/factories/layer-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import { LAYER_GRAPHIC, LAYER_TEXT } from "@/definitions/layer-types";
 
@@ -106,18 +107,18 @@ export default {
             if ( !this.isValid ) {
                 return;
             }
-            const newLayer  = {
+            const newLayer = LayerFactory.create({
                  name   : this.name,
                  type   : this.type,
                  width  : this.activeDocument.width,
                  height : this.activeDocument.height
-             };
+            });
             const store  = this.$store;
             const commit = () => store.commit( "addLayer", newLayer );
             commit();
             const addedLayerIndex = this.activeLayerIndex;
 
-            enqueueState( "layerAdd", {
+            enqueueState( `layerAdd_${addedLayerIndex}`, {
                 undo() {
                     store.commit( "removeLayer", addedLayerIndex );
                 },

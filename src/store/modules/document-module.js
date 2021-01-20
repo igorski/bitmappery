@@ -85,7 +85,7 @@ export default {
                 opts.width  = document.width;
                 opts.height = document.height;
             }
-            layers.push( LayerFactory.create( opts ));
+            layers.push( opts.id ? opts : LayerFactory.create( opts ));
             state.activeLayerIndex = layers.length - 1;
         },
         insertLayerAtIndex( state, { index, layer }) {
@@ -98,6 +98,13 @@ export default {
             const obj1 = layers[ index1 ];
             Vue.set( layers, index1, layers[ index2 ]);
             Vue.set( layers, index2, obj1 );
+        },
+        reorderLayers( state, { document, layerIds }) {
+            const oldLayers = [ ...document.layers ];
+            document.layers.splice( 0, oldLayers.length );
+            layerIds.forEach( id => {
+                document.layers.push( oldLayers.find( layer => layer.id === id));
+            });
         },
         removeLayer( state, index ) {
             const layer = state.documents[ state.activeIndex ]?.layers[ index ];
