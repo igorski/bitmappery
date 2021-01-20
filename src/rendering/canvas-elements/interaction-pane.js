@@ -94,6 +94,14 @@ class InteractionPane extends sprite {
         }
     }
 
+    handleActiveTool( tool, remainInteractive ) {
+        if ( tool !== ToolTypes.LASSO && this.document?.selection && !this._selectionClosed ) {
+            // reset unclosed selection when switching tools
+            this.resetSelection();
+        }
+        this.setInteractive( remainInteractive );
+    }
+
     stayOnTop() {
         if ( !this._enabled ) {
             return;

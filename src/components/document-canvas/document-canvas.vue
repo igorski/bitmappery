@@ -201,7 +201,7 @@ export default {
                 this.updateInteractionPane();
             } else {
                 this.handleCursor();
-                getCanvasInstance()?.interactionPane.setInteractive( false );
+                getCanvasInstance()?.interactionPane?.handleActiveTool( tool, false );
             }
         },
         zoomOptions: {
