@@ -1,7 +1,7 @@
 /**
 * The MIT License (MIT)
 *
-* Igor Zinken 2019-2020 - https://www.igorski.nl
+* Igor Zinken 2019-2021 - https://www.igorski.nl
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 * this software and associated documentation files (the "Software"), to deal in
@@ -67,6 +67,7 @@ export default {
 .modal {
     @include overlay();
     @include component();
+    $headerHeight: 50px;
 
     h2 {
         color: #FFF;
@@ -74,11 +75,12 @@ export default {
 
     .content {
         position: relative;
+        height: calc(100% - #{$headerHeight});
     }
 
     .content-wrapper {
         overflow-y: auto;
-        height: calc(100% - 50px);
+        height: inherit;
         label {
             font-weight: bold;
             color: #FFF;

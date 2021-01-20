@@ -33,8 +33,11 @@
         <ul class="menu-list">
             <!-- file menu -->
             <li>
-                <a v-t="'file'" class="title" @click.prevent></a>
-                <ul class="submenu" @click="close()">
+                <a v-t="'file'" class="title" @click.prevent="openSubMenu('file')"></a>
+                <ul class="submenu"
+                    :class="{ opened: activeSubMenu === 'file' }"
+                    @click="close()"
+                >
                     <li>
                         <button v-t="'newDocument'"
                                 @click="requestNewDocument()"
@@ -85,8 +88,11 @@
             </li>
             <!-- edit menu -->
             <li>
-                <a v-t="'edit'" class="title" @click.prevent></a>
-                <ul class="submenu" @click="close()">
+                <a v-t="'edit'" class="title" @click.prevent="openSubMenu('edit')"></a>
+                <ul class="submenu"
+                    :class="{ opened: activeSubMenu === 'edit' }"
+                    @click="close()"
+                >
                     <li>
                         <button v-t="'undo'"
                                 type="button"
@@ -140,8 +146,11 @@
             </li>
             <!-- selection menu -->
             <li>
-                <a v-t="'selection'" class="title" @click.prevent></a>
-                <ul class="submenu" @click="close()">
+                <a v-t="'selection'" class="title" @click.prevent="openSubMenu('selection')"></a>
+                <ul class="submenu"
+                    :class="{ opened: activeSubMenu === 'selection' }"
+                    @click="close()"
+                >
                     <li>
                         <button v-t="'selectAll'"
                                 type="button"
@@ -182,8 +191,11 @@
             </li>
             <!-- window menu -->
             <li>
-                <a v-t="'window'" class="title" @click.prevent></a>
-                <ul class="submenu" @click="close()">
+                <a v-t="'window'" class="title" @click.prevent="openSubMenu('window')"></a>
+                <ul class="submenu"
+                    :class="{ opened: activeSubMenu === 'window' }"
+                    @click="close()"
+                >
                     <li v-for="(doc, index) in documents"
                         :key="`doc_${index}`"
                     >
@@ -222,6 +234,9 @@ import messages from "./messages.json";
 
 export default {
     i18n: { messages },
+    data: () => ({
+        activeSubMenu: null, // used for mobile views collapsed / expanded view
+    }),
     computed: {
         ...mapState([
             "menuOpened",
@@ -282,6 +297,9 @@ export default {
             "deleteInSelection",
             "loadDocument",
         ]),
+        openSubMenu( name ) {
+            this.activeSubMenu = this.activeSubMenu === name ? null : name;
+        },
         requestNewDocument() {
             this.openModal( CREATE_DOCUMENT );
         },
@@ -337,6 +355,7 @@ export default {
         },
         close() {
             this.setMenuOpened( false );
+            this.activeSubMenu = null;
         }
     }
 };
@@ -383,13 +402,14 @@ $toggle-width: 50px;
 
         &.opened {
             position: absolute;
-            overflow-y: auto;
             height: 100%;
 
             .menu-list {
                 left: 0;
                 display: block;
                 height: 100%;
+                padding-bottom: 46px; // is toggle height
+                overflow-y: auto;
             }
         }
 
@@ -422,8 +442,6 @@ $toggle-width: 50px;
             }
 
             li {
-                padding: $spacing-small $spacing-large;
-
                 .submenu li {
                     padding: $spacing-small 0;
                 }
@@ -527,14 +545,6 @@ h1 {
             &:disabled {
                 color: #666;
             }
-
-            @include mobile() {
-                color: #666;
-
-                &:disabled {
-                    color: #b6b6b6;
-                }
-            }
         }
 
         ul {
@@ -571,7 +581,17 @@ h1 {
         display: none;
 
         .title {
+            padding: $spacing-small $spacing-medium;
+        }
+
+        .submenu {
             display: none;
+
+            &.opened {
+                display: block;
+                padding-left: $spacing-medium;
+                background-image: $color-window-bg;
+            }
         }
     }
 }
