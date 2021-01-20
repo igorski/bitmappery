@@ -57,6 +57,7 @@ class InteractionPane extends sprite {
     setState( enabled, document, mode, activeTool ) {
         this._enabled = enabled;
         this.setDraggable( enabled );
+        this.document = document;
 
         const zCanvas = getCanvasInstance();
 
@@ -69,8 +70,7 @@ class InteractionPane extends sprite {
             }
             return;
         }
-        this.document = document;
-        this.mode     = mode;
+        this.mode = mode;
 
         this.setBounds(
             0, 0,
