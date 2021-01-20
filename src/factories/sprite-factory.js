@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -59,11 +59,9 @@ export const flushLayerSprites = ({ id }) => {
     }
 };
 
-export const hasSpriteForLayer = ({ id }) => {
-    return spriteCache.has( id );
-};
+export const hasSpriteForLayer = ({ id } = {}) => spriteCache.has( id );
 
-export const getSpriteForLayer = ({ id }) => spriteCache.get( id ) || null;
+export const getSpriteForLayer = ({ id } = {}) => spriteCache.get( id ) || null;
 
 /**
  * Clears the entire cache and disposes all Sprites.

@@ -54,10 +54,9 @@ class InteractionPane extends sprite {
         this._vpStartY = 0;
     }
 
-    setState( enabled, document, mode, activeTool ) {
+    setState( enabled, mode, activeTool ) {
         this._enabled = enabled;
         this.setDraggable( enabled );
-        this.document = document;
 
         const zCanvas = getCanvasInstance();
 
@@ -78,6 +77,8 @@ class InteractionPane extends sprite {
             zCanvas.getHeight() / zCanvas.zoomFactor
         );
 
+        const document = this.getActiveDocument();
+
         if ( document && mode === MODE_SELECTION ) {
             if ( !document.selection ) {
                 this.setSelection( [] );
@@ -95,7 +96,7 @@ class InteractionPane extends sprite {
     }
 
     handleActiveTool( tool, remainInteractive ) {
-        if ( tool !== ToolTypes.LASSO && this.document?.selection && !this._selectionClosed ) {
+        if ( tool !== ToolTypes.LASSO && this.getActiveDocument()?.selection && !this._selectionClosed ) {
             // reset unclosed selection when switching tools
             this.resetSelection();
         }
@@ -111,23 +112,29 @@ class InteractionPane extends sprite {
         zCanvas.addChild( this );
     }
 
+    getActiveDocument() {
+        return getCanvasInstance().store.getters.activeDocument;
+    }
+
     resetSelection() {
-        const currentSelection = this.document.selection || [];
+        const document = this.getActiveDocument();
+        const currentSelection = document.selection || [];
         if ( this.mode === MODE_SELECTION ) {
             this.setSelection( [] );
-            storeSelectionHistory( this.document, currentSelection );
+            storeSelectionHistory( document, currentSelection );
         } else {
-            Vue.delete( this.document, "selection" );
+            Vue.delete( document, "selection" );
         }
         this._selectionClosed = false;
         this.invalidate();
     }
 
     setSelection( value, optStoreState = false ) {
-        const currentSelection = this.document.selection || [];
-        Vue.set( this.document, "selection", value );
+        const document = this.getActiveDocument();
+        const currentSelection = document.selection || [];
+        Vue.set( document, "selection", value );
         if ( optStoreState ) {
-            storeSelectionHistory( this.document, currentSelection );
+            storeSelectionHistory( document, currentSelection );
         }
         this._selectionClosed = value.length > 1; // TODO: can we determine this from first and last point?
         this.invalidate();
@@ -175,8 +182,9 @@ class InteractionPane extends sprite {
 
             case MODE_SELECTION:
                 if ( !this._selectionClosed ) {
+                    const document = this.getActiveDocument();
                     // selection mode, set the click coordinate as the first point in the selection
-                    const firstPoint = this.document.selection[ 0 ];
+                    const firstPoint = document.selection[ 0 ];
                     let storeHistory = false;
                     if ( firstPoint && isPointInRange( x, y, firstPoint.x, firstPoint.y )) {
                         this._selectionClosed = true;
@@ -184,9 +192,9 @@ class InteractionPane extends sprite {
                         y = firstPoint.y;
                         storeHistory = true;
                     }
-                    this.document.selection.push({ x, y });
+                    document.selection.push({ x, y });
                     if ( storeHistory ) {
-                        storeSelectionHistory( this.document );
+                        storeSelectionHistory( document );
                     }
                 }
                 break;
@@ -219,22 +227,22 @@ class InteractionPane extends sprite {
     handleRelease( x, y ) {
         if ( this.mode === MODE_SELECTION ) {
             this.forceMoveListener(); // keeps the move listener active
-            if ( this._isRectangleSelect && this.document.selection.length > 0 ) {
+            const document = this.getActiveDocument();
+            if ( this._isRectangleSelect && document.selection.length > 0 ) {
                 // when releasing in rectangular select mode, set the selection to
                 // the bounding box of the down press coordinate and this release coordinate
-                const firstPoint = this.document.selection[ 0 ];
-                this.document.selection = rectangleToCoordinates( firstPoint.x, firstPoint.y, x - firstPoint.x, y - firstPoint.y );
+                const firstPoint = document.selection[ 0 ];
+                document.selection = rectangleToCoordinates( firstPoint.x, firstPoint.y, x - firstPoint.x, y - firstPoint.y );
                 this._selectionClosed = true;
-                storeSelectionHistory( this.document );
+                storeSelectionHistory( document );
             }
         }
     }
 
     draw( ctx, viewport ) {
         // render selection outline
-
-        if ( /*this.mode === MODE_SELECTION && */ this.document.selection ) {
-            let { selection }   = this.document;
+        let { selection } = this.getActiveDocument();
+        if ( /*this.mode === MODE_SELECTION && */ selection ) {
             const firstPoint    = selection[ 0 ];
             const localPointerX = this._pointerX - viewport.left; // local to viewport
             const localPointerY = this._pointerY - viewport.top;
