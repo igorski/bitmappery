@@ -96,7 +96,6 @@ export default {
         },
     },
     mounted() {
-        this.name = this.$t( "newLayerNum", { num: this.layers.length + 1 }),
         this.$refs.nameInput.focus();
     },
     methods: {
