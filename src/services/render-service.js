@@ -25,10 +25,11 @@ import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { isEqual as isEffectsEqual } from "@/factories/effects-factory";
 import { hasFilters, isEqual as isFiltersEqual } from "@/factories/filters-factory";
 import { isEqual as isTextEqual } from "@/factories/text-factory";
-import { createCanvas, cloneCanvas } from "@/utils/canvas-util";
+import { createCanvas, cloneCanvas, matchDimensions } from "@/utils/canvas-util";
 import { replaceLayerSource } from "@/utils/layer-util";
-import { fastRound, getRotatedSize, getRotationCenter } from "@/math/image-math";
+import { getRotatedSize, getRotationCenter } from "@/math/image-math";
 import { hasLayerCache, getLayerCache, setLayerCache } from "@/rendering/cache/bitmap-cache";
+import { renderMultiLineText } from "@/rendering/text";
 import { loadGoogleFont } from "@/services/font-service";
 import FilterWorker from "@/workers/filter.worker";
 
@@ -56,7 +57,7 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
     }
 
     // if source is rotated, calculate the width and height for the current rotation
-    const { width, height } = getRotatedSize( layer, effects.rotation, true );
+    let { width, height } = getRotatedSize( layer, effects.rotation, true );
     const { cvs, ctx } = createCanvas( width, height );
 
     const cached     = useCaching ? getLayerCache( layer ) : null;
@@ -81,6 +82,10 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
             cacheToSet.textData = textData;
             hasCachedFilter = false; // new contents need to be refiltered
         }
+        // update dimensions as text shrinks/expands to fit
+        ({ width, height } = textData );
+        matchDimensions( textData, cvs );
+        // render text onto destination source
         ctx.drawImage( textData, 0, 0 );
     } else if ( !hasCachedFilter ) {
         //console.info( "draw unfiltered source, will apply filter next: " + applyFilter );
@@ -191,53 +196,14 @@ const renderText = async layer => {
     } catch {
         font = "Arial"; // fall back to universally available Arial
     }
-    const { cvs, ctx } = createCanvas( layer.width, layer.height );
+    const { cvs, ctx } = createCanvas();
+    renderMultiLineText( ctx, text );
 
-    ctx.font      = `${text.size}px ${font}`;
-    ctx.fillStyle = text.color;
-
-    const lines    = text.value.split( "\n" );
-    let lineHeight = text.lineHeight;
-    let textMetrics;
-    let yStartOffset = 0;
-
-    textMetrics = ctx.measureText( "Wq" );
-    // if no custom line height was given, calculate optimal height for font
-    if ( !lineHeight ) {
-        lineHeight  = text.size + Math.abs( textMetrics.actualBoundingBoxDescent );
-    }
-    yStartOffset = textMetrics.actualBoundingBoxAscent;
-
-    let width  = 0;
-    let height = 0;
-    let y = 0;
-
-    lines.forEach(( line, lineIndex ) => {
-        y = fastRound( yStartOffset + ( lineIndex * lineHeight ));
-        if ( !text.spacing ) {
-            // write entire line (0 spacing defaults to font spacing)
-            ctx.fillText( line, 0, y );
-            textMetrics = ctx.measureText( line );
-            width = Math.max( width, textMetrics.width );
-        } else {
-            // write letter by letter (yeah... this is why we cache things)
-            const letters = line.split( "" );
-            letters.forEach(( letter, letterIndex ) => {
-                ctx.fillText( letter, fastRound( letterIndex * text.spacing ), y );
-            });
-            width = Math.max( width, letters.length * text.spacing );
-        }
-        height += lineHeight;
-    });
-    width  = Math.ceil( width );
-    height = Math.ceil( height );
-
-    const out = createCanvas( width, height );
-    out.ctx.drawImage( cvs, 0, 0, width, height, 0, 0, width, height );
     // render outlines to debug cropped bounding box
-    //out.ctx.fillStyle = "rgba(255,0,0,.5)";
-    //out.ctx.fillRect( 0, 0, width, height );
-    return out.cvs;
+    //ctx.fillStyle = "rgba(255,0,0,.5)";
+    //ctx.fillRect( 0, 0, cvs.width, cvs.height );
+
+    return cvs;
 };
 
 const renderTransformedSource = async ( layer, ctx, sourceBitmap, width, height, { mirrorX, mirrorY, rotation }) => {

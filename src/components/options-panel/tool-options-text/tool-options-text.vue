@@ -128,7 +128,7 @@ export default {
                 this.renderPending = true;
                 window.setTimeout(() => {
                     this.renderPending = false;
-                    this.update({ value }, "value" );
+                    this.update( null, `value_${this.text}` );
                 }, 75 );
             }
         },

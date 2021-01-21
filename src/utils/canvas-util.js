@@ -46,6 +46,11 @@ export const setCanvasDimensions = ( canvas, width, height ) => {
     canvas.cvs.height = height;
 };
 
+export const matchDimensions = ( sourceCanvas, canvasToMatch ) => {
+    canvasToMatch.width  = sourceCanvas.width;
+    canvasToMatch.height = sourceCanvas.height;
+};
+
 export const imageToBase64 = ( bitmap, width, height, transparent ) => {
     let cvs;
     if ( bitmap instanceof Image ) {
