@@ -83,8 +83,8 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
             hasCachedFilter = false; // new contents need to be refiltered
         }
         // update dimensions as text shrinks/expands to fit
-        ({ width, height } = textData );
-        matchDimensions( textData, cvs );
+        ({ width, height } = getRotatedSize( textData, effects.rotation, true ));
+        matchDimensions({ width, height }, cvs );
         // render text onto destination source
         ctx.drawImage( textData, 0, 0 );
     } else if ( !hasCachedFilter ) {
