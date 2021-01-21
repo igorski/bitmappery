@@ -27,7 +27,7 @@ const TextFactory = {
     create({
         value = "",
         font = googleFonts[ 0 ],
-        size = 16,
+        size = 24,
         lineHeight = 0,
         spacing = 0,
         color = "red"
