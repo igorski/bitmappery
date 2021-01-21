@@ -37,6 +37,17 @@
                 :max="MAX_BRUSH_SIZE"
             />
         </div>
+        <div
+            v-if="hasThickness"
+            class="wrapper input"
+        >
+            <label v-t="'thickness'"></label>
+            <slider
+                v-model="thickness"
+                :min="0"
+                :max="100"
+            />
+        </div>
         <template v-if="canStroke">
             <div class="wrapper input">
                 <label v-t="'strokeAmount'"></label>
@@ -79,6 +90,9 @@ export default {
         ...mapGetters([
             "brushOptions",
         ]),
+        hasThickness() {
+            return this.brushType === BrushTypes.PAINT_BRUSH;
+        },
         canStroke() {
             return this.brushType === BrushTypes.PEN;
         },
@@ -125,6 +139,14 @@ export default {
                 this.update( "smooth", value );
             }
         },
+        thickness: {
+            get() {
+                return this.brushOptions.thickness * 100;
+            },
+            set( value ) {
+                this.update( "thickness", value / 100 );
+            }
+        }
     },
     methods: {
         ...mapMutations([

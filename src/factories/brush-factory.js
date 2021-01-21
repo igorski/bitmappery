@@ -43,10 +43,11 @@ export default BrushFactory;
 
 export const createDrawable = ( brush, ctx, x, y, scale = 1 ) => {
     const gradient = ctx.createRadialGradient( x, y, brush.halfRadius * scale, x, y, brush.radius * scale );
+    const { thickness } = brush.options;
 
-    gradient.addColorStop( 0,   brush.colors[ 0 ]);
-    gradient.addColorStop( 0.5, brush.colors[ 1 ]);
-    gradient.addColorStop( 1,   brush.colors[ 2 ]);
+    gradient.addColorStop( 0, brush.colors[ 0 ]);
+    gradient.addColorStop( thickness, brush.colors[ 1 ]);
+    gradient.addColorStop( 1, brush.colors[ 2 ]);
 
     return gradient;
 };

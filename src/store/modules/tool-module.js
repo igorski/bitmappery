@@ -33,7 +33,7 @@ export default {
             // see tool-option-zoom.vue
             [ ToolTypes.ZOOM ]  : { level: 1 },
             // see tool-options-brush.vue
-            [ ToolTypes.BRUSH ] : { size: 10, type: BrushTypes.LINE, strokes: 1 },
+            [ ToolTypes.BRUSH ] : { size: 10, type: BrushTypes.LINE, strokes: 1, thickness: .5 },
             // see tool-options-eraser.vue
             [ ToolTypes.ERASER ]: { size: 10, opacity: 1 },
             // see tool-options-clone.vue
