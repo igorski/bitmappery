@@ -132,7 +132,10 @@ export default {
             state.maskActive = !!state.documents[ state.activeIndex ].layers[ layerIndex ].mask;
         },
         updateLayer( state, { index, opts = {} }) {
-            let layer = state.documents[ state.activeIndex ].layers[ index ];
+            let layer = state.documents[ state.activeIndex ]?.layers[ index ];
+            if ( !layer ) {
+                return; // likely document unload during async update operation
+            }
             layer = {
                 ...layer,
                 ...opts

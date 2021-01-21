@@ -33,13 +33,17 @@
                 class="input-textarea full"
             />
         </div>
+        <h3 v-t="'fontProperties'"></h3>
         <div class="wrapper input">
-            <label v-t="'font'"></label>
-            <select-box
+            <vue-select
                 v-model="font"
                 :options="fonts"
                 searchable
-            />
+            >
+                <template #option="{ value }">
+                    <font-preview :font="value" />
+                </template>
+            </vue-select>
         </div>
         <div class="wrapper input">
             <label v-t="'size'"></label>
@@ -82,8 +86,9 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import SelectBox  from '@/components/ui/select-box/select-box';
-import Slider     from "@/components/ui/slider/slider";
+import VueSelect from "vue-select";
+import Slider    from "@/components/ui/slider/slider";
+import FontPreview from "./font-preview/font-preview";
 import { mapSelectOptions } from "@/utils/search-select-util";
 import { enqueueState } from "@/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
@@ -94,8 +99,9 @@ import messages  from "./messages.json";
 export default {
     i18n: { messages },
     components: {
-        SelectBox,
+        FontPreview,
         Slider,
+        VueSelect,
     },
     data: () => ({
         internalText: "",
@@ -129,7 +135,7 @@ export default {
                 window.setTimeout(() => {
                     this.renderPending = false;
                     this.update( null, `value_${this.text}` );
-                }, 75 );
+                }, 50 );
             }
         },
         size: {
@@ -168,8 +174,8 @@ export default {
             get() {
                 return this.activeLayer?.text?.font;
             },
-            set( font ) {
-                this.update({ font }, "font" );
+            set({ value } ) {
+                this.update({ font: value }, "font" );
             }
         }
     },

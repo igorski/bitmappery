@@ -1,7 +1,7 @@
 {
     "en-US": {
         "text": "Text",
-        "font": "Font",
+        "fontProperties": "Font properties",
         "size": "Size",
         "lineHeight": "Line height",
         "letterSpacing": "Letter spacing",
