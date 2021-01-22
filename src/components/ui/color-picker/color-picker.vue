@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -31,8 +31,6 @@ import "@simonwep/pickr/dist/themes/nano.min.css";
 //import Pickr from "@simonwep/pickr/dist/pickr.es5.min"; // 3 x size of modern bundle
 import Pickr from "@simonwep/pickr";
 
-let pickrInstance;
-
 const FRAC_VALUE = 0;
 
 export default {
@@ -45,11 +43,11 @@ export default {
     },
     watch: {
         value( color ) {
-            pickrInstance?.setColor( color );
+            this.pickrInstance?.setColor( color );
         }
     },
     mounted() {
-        pickrInstance = Pickr.create({
+        this.pickrInstance = Pickr.create({
             el: this.$refs.picker,
             theme: "nano",
             default: this.value,
@@ -67,12 +65,18 @@ export default {
                 }
             }
         });
-        pickrInstance.on( "save", this.saveColor.bind( this ));
-        window.pickrInstance = pickrInstance;
+        this.pickrInstance.on( "save", this.saveColor.bind( this ));
+        // hacky way to assign keyboard-service shortcut to open this picker
+        if ( !window.pickrInstance ) {
+            window.pickrInstance = this.pickrInstance;
+            this.globalInstance = true;
+        }
     },
     destroy() {
-        pickrInstance?.destroyAndRemove();
-        window.pickrInstance = null;
+        this.pickrInstance?.destroyAndRemove();
+        if ( this.globalInstance ) {
+            window.pickrInstance = null;
+        }
     },
     methods: {
         saveColor( value ) {
@@ -84,7 +88,7 @@ export default {
             const alpha = rgba[ 3 ];
 
             this.$emit( "input", `rgba(${red},${green},${blue},${alpha})` );
-            pickrInstance.hide();
+            this.pickrInstance.hide();
         },
     },
 };
