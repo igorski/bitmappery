@@ -38,7 +38,7 @@
             <vue-select
                 v-model="font"
                 :options="fonts"
-                searchable
+                :searchable="canSearchFonts"
             >
                 <template #option="{ value }">
                     <font-preview :font="value" />
@@ -94,6 +94,7 @@ import { enqueueState } from "@/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
 import { loadGoogleFont } from "@/services/font-service";
 import { googleFonts } from "@/definitions/font-types";
+import { isMobile } from "@/utils/environment-util";
 import messages  from "./messages.json";
 
 export default {
@@ -113,6 +114,9 @@ export default {
             "activeLayerIndex",
             "activeLayer",
         ]),
+        canSearchFonts() {
+            return !isMobile(); // only show preview list on mobile
+        },
         colorPicker() {
             // load async as this adds to the bundle size
             return () => import( "@/components/ui/color-picker/color-picker" );
