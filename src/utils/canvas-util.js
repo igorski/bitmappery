@@ -59,7 +59,7 @@ export const imageToBase64 = ( bitmap, width, height, transparent ) => {
         return cvs.toDataURL( transparent ? PNG : JPEG );
     } else if ( bitmap instanceof HTMLCanvasElement ) {
         cvs = bitmap;
-        return cvs.toDataURL( PNG ); // Canvas sources are always transparent
+        return cvs.toDataURL( transparent ? PNG : JPEG );
     }
     return "";
 };
