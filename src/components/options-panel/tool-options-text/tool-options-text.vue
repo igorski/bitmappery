@@ -225,19 +225,18 @@ export default {
                 ...orgOpts,
                 ...textOpts,
             };
+            // hold a reference to the original layer rectangle as text updates alter its bounding box
+            const { x, y, width, height } = this.activeLayer;
             const commit = () => store.commit( "updateLayer", { index, opts: { text: newOpts } });
             commit();
-            // TODO: needs updatin' of Sprite offsets
-            /*
-            enqueueState( propName, {
+            enqueueState( `text_${index}`, {
                 undo() {
-                    store.commit( "updateLayer", { index, opts: { text: orgOpts } });
+                    store.commit( "updateLayer", { index, opts: { x, y, width, height, text: orgOpts } });
                 },
                 redo() {
                     commit();
                 },
             });
-            */
         },
     },
 };
