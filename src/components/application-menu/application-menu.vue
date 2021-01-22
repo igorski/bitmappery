@@ -158,6 +158,20 @@
                                 @click="duplicateLayer()"
                         ></button>
                     </li>
+                    <li>
+                        <button v-t="'copyLayerFilters'"
+                                type="button"
+                                :disabled="!activeLayer"
+                                @click="copyLayerFilters()"
+                        ></button>
+                    </li>
+                    <li>
+                        <button v-t="'pasteLayerFilters'"
+                                type="button"
+                                :disabled="!activeLayer || !clonedFilters"
+                                @click="pasteLayerFilters()"
+                        ></button>
+                    </li>
                 </ul>
             </li>
             <!-- selection menu -->
@@ -257,6 +271,7 @@ export default {
     i18n: { messages },
     data: () => ({
         activeSubMenu: null, // used for mobile views collapsed / expanded view
+        clonedFilters: null,
     }),
     computed: {
         ...mapState([
@@ -304,6 +319,7 @@ export default {
     methods: {
         ...mapMutations([
             "setMenuOpened",
+            "showNotification",
             "openModal",
             "setActiveDocument",
             "setActiveDocumentSize",
@@ -389,6 +405,24 @@ export default {
             enqueueState( `duplicate_${index}`, {
                 undo() {
                     store.commit( "removeLayer", index );
+                },
+                redo: commit,
+            });
+        },
+        copyLayerFilters() {
+            this.clonedFilters = { ...this.activeLayer.filters };
+            this.showNotification({ message: this.$t( "filtersCopied" ) });
+        },
+        pasteLayerFilters() {
+            const orgFilters = { ...this.activeLayer.filters };
+            const filters    = { ...this.clonedFilters };
+            const index      = this.activeLayerIndex;
+            const store      = this.$store;
+            const commit     = () => store.commit( "updateLayer", { index, opts: { filters } });
+            commit();
+            enqueueState( `pasteFilters_${index}`, {
+                undo() {
+                    store.commit( "updateLayer", { index, opts: { filters: { ...orgFilters } }});
                 },
                 redo: commit,
             });
