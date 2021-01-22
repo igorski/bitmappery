@@ -186,7 +186,7 @@ class InteractionPane extends sprite {
                     // selection mode, set the click coordinate as the first point in the selection
                     const firstPoint = document.selection[ 0 ];
                     let storeHistory = false;
-                    if ( firstPoint && isPointInRange( x, y, firstPoint.x, firstPoint.y )) {
+                    if ( firstPoint && isPointInRange( x, y, firstPoint.x, firstPoint.y, 5 / this.canvas.zoomFactor )) {
                         this._selectionClosed = true;
                         x = firstPoint.x;
                         y = firstPoint.y;
@@ -262,13 +262,15 @@ class InteractionPane extends sprite {
             if ( !this._isRectangleSelect && !this._selectionClosed ) {
                 currentPosition = { x: localPointerX, y: localPointerY };
             }
+            const { zoomFactor } = this.canvas;
+
             // draw each point in the selection
             ctx.save();
             drawSelectionOutline( ctx, this.canvas, viewport, selection, "#000", currentPosition );
             ctx.restore();
 
             ctx.save();
-            ctx.setLineDash([ 10 / this.canvas.zoomFactor ]);
+            ctx.setLineDash([ 10 / zoomFactor ]);
             drawSelectionOutline( ctx, this.canvas, viewport, selection, "#FFF", currentPosition );
             ctx.restore();
 
@@ -277,10 +279,10 @@ class InteractionPane extends sprite {
             // highlight current cursor position for unclosed selections
             if ( !this._selectionClosed ) {
                 ctx.beginPath();
-                ctx.lineWidth *= 1.5;
+                ctx.lineWidth   = ctx.lineWidth * ( 2 / zoomFactor );
                 ctx.strokeStyle = "#0db0bc";
-                const size = firstPoint && isPointInRange( this._pointerX, this._pointerY, firstPoint.x, firstPoint.y ) ? 15 : 5;
-                ctx.arc( localPointerX, localPointerY, size / this.canvas.zoomFactor, 0, 2 * Math.PI );
+                const size = firstPoint && isPointInRange( this._pointerX, this._pointerY, firstPoint.x, firstPoint.y, 5 / zoomFactor ) ? 15 : 5;
+                ctx.arc( localPointerX, localPointerY, size / zoomFactor, 0, 2 * Math.PI );
                 ctx.stroke();
             }
             ctx.restore();
