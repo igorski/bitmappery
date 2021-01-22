@@ -64,24 +64,15 @@ export const imageToBase64 = ( bitmap, width, height, transparent ) => {
     return "";
 };
 
-export const base64ToLayerImage = async( base64, type, width, height ) => {
+export const base64ToLayerCanvas = async( base64, type, width, height ) => {
     if ( !base64 ) {
         return null;
     }
     const { image, size } = await loader.loadImage( base64 );
-    switch ( type ) {
-        default:
-        case LAYER_GRAPHIC:
-        case LAYER_MASK:
-            const { cvs, ctx } = createCanvas( width, height );
-            ctx.drawImage( image, 0, 0 );
-            return cvs;
 
-        case LAYER_IMAGE:
-            // TODO: make Blob
-            return image;
-    }
-    return null;
+    const { cvs, ctx } = createCanvas( width, height );
+    ctx.drawImage( image, 0, 0 );
+    return cvs;
 };
 
 export const resizeImage = async ( image, srcWidth, srcHeight, targetWidth, targetHeight ) => {

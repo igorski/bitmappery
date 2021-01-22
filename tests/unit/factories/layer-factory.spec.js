@@ -4,7 +4,7 @@ import { LAYER_GRAPHIC, LAYER_IMAGE, LAYER_MASK } from "@/definitions/layer-type
 let mockUpdateFn;
 jest.mock( "@/utils/canvas-util", () => ({
     imageToBase64: (...args) => mockUpdateFn?.( "imageToBase64", ...args ),
-    base64ToLayerImage: (...args) => mockUpdateFn?.( "base64ToLayerImage", ...args ),
+    base64ToLayerCanvas: (...args) => mockUpdateFn?.( "base64ToLayerCanvas", ...args ),
 }));
 jest.mock( "@/factories/effects-factory", () => ({
     create: (...args) => mockUpdateFn?.( "createEffects", ...args ),
@@ -129,8 +129,8 @@ describe( "Layer factory", () => {
 
             mockUpdateFn = jest.fn(( fn, data ) => data );
             const deserialized = await LayerFactory.deserialize( serialized );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "base64ToLayerImage", expect.any( Object ), LAYER_IMAGE, layer.width, layer.height );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "base64ToLayerImage", expect.any( Object ), LAYER_MASK, layer.width, layer.height );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "base64ToLayerCanvas", expect.any( Object ), LAYER_IMAGE, layer.width, layer.height );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "base64ToLayerCanvas", expect.any( Object ), LAYER_MASK, layer.width, layer.height );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "deserializeText",    layer.text );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 4, "deserializeEffects", layer.effects );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 5, "deserializeFilters", layer.filters );
