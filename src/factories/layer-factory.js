@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { LAYER_GRAPHIC, LAYER_MASK }         from "@/definitions/layer-types";
+import { LAYER_GRAPHIC, LAYER_MASK } from "@/definitions/layer-types";
 import { imageToBase64, base64ToLayerCanvas } from "@/utils/canvas-util";
 import EffectsFactory from "@/factories/effects-factory";
 import FiltersFactory from "@/factories/filters-factory";

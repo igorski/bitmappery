@@ -144,6 +144,22 @@
                     </li>
                 </ul>
             </li>
+            <!-- layer menu -->
+            <li>
+                <a v-t="'layer'" class="title" @click.prevent="openSubMenu('layer')"></a>
+                <ul class="submenu"
+                    :class="{ opened: activeSubMenu === 'layer' }"
+                    @click="close()"
+                >
+                    <li>
+                        <button v-t="'duplicateLayer'"
+                                type="button"
+                                :disabled="!activeLayer"
+                                @click="duplicateLayer()"
+                        ></button>
+                    </li>
+                </ul>
+            </li>
             <!-- selection menu -->
             <li>
                 <a v-t="'selection'" class="title" @click.prevent="openSubMenu('selection')"></a>
@@ -196,13 +212,16 @@
                     :class="{ opened: activeSubMenu === 'window' }"
                     @click="close()"
                 >
-                    <li v-for="(doc, index) in documents"
-                        :key="`doc_${index}`"
-                    >
-                        <button @click="setActiveDocument( index )">
-                            {{ $t( "windowNumName", { num: index + 1, name: doc.name }) }}
-                        </button>
-                    </li>
+                    <template v-if="documents.length">
+                        <li v-for="(doc, index) in documents"
+                            :key="`doc_${index}`"
+                        >
+                            <button @click="setActiveDocument( index )">
+                                {{ $t( "windowNumName", { num: index + 1, name: doc.name }) }}
+                            </button>
+                        </li>
+                    </template>
+                    <li v-else><span v-t="'noDocumentsOpen'"></span></li>
                 </ul>
             </li>
             <!-- help menu -->
@@ -221,15 +240,17 @@
 </template>
 
 <script>
-import { mapState, mapGetters, mapMutations, mapActions }  from "vuex";
+import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
+import cloneDeep from "lodash.clonedeep";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION,
     DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT, PREFERENCES
 } from "@/definitions/modal-windows";
-import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { getRectangleForSelection } from "@/math/selection-math";
 import { getCanvasInstance, runSpriteFn, getSpriteForLayer } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
+import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
+import { cloneCanvas } from "@/utils/canvas-util";
 import messages from "./messages.json";
 
 export default {
@@ -248,6 +269,7 @@ export default {
             "documents",
             "activeDocument",
             "activeLayer",
+            "activeLayerIndex",
             "canUndo",
             "canRedo",
         ]),
@@ -349,6 +371,27 @@ export default {
         },
         navigateHistory( action = "undo" ) {
             this.$store.dispatch( action );
+        },
+        duplicateLayer() {
+            const indexToAdd = this.activeLayerIndex + 1;
+            let layer = {
+                ...cloneDeep( this.activeLayer ),
+                id: undefined, // store will generate new one
+                name: `${this.activeLayer.name} #2`,
+                source: cloneCanvas( this.activeLayer.source ),
+                mask: this.activeLayer.mask ? cloneCanvas( this.activeLayer.mask ) : null
+            };
+            const store  = this.$store;
+            const commit = () => store.commit( "insertLayerAtIndex", { index: indexToAdd, layer });
+            commit();
+            const index = this.activeLayerIndex;
+            layer = this.activeLayer; // update layer ref with constructed Layer instance
+            enqueueState( `duplicate_${index}`, {
+                undo() {
+                    store.commit( "removeLayer", index );
+                },
+                redo: commit,
+            });
         },
         selectAll() {
             getCanvasInstance()?.interactionPane.selectAll( this.activeLayer );
