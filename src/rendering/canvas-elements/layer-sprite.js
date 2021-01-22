@@ -299,7 +299,7 @@ class LayerSprite extends sprite {
                     // live update on lower resolution canvas
                     this.tempCanvas = this.tempCanvas || getTempCanvas( this.canvas );
                     overrides = createOverrideConfig( this.canvas, left, top, pointers );
-                    ctx.restore(); // restore previous context before switching to temp context
+                    ctx.restore(); // restore previous context before switching to lowres context
                     ctx = this.tempCanvas.ctx;
 
                     if ( selectionPoints && this.tempCanvas ) {
@@ -526,13 +526,18 @@ class LayerSprite extends sprite {
 
         // sprite is currently brushing, render low resolution temp contents onto screen
         if ( this.tempCanvas ) {
+            documentContext.save();
+            if ( this._toolType === ToolTypes.ERASER ) {
+                documentContext.globalCompositeOperation = "destination-out";
+            }
             renderTempCanvas( this.canvas, documentContext );
+            documentContext.restore();
         }
 
         if ( !omitOutlines ) {
 
             // render brush outline at pointer position
-            
+
             if ( this._isPaintMode ) {
                 const drawBrushOutline = this._toolType !== ToolTypes.CLONE || !!this._toolOptions.coords;
                 if ( this._toolType === ToolTypes.CLONE ) {
