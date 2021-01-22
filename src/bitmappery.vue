@@ -251,8 +251,6 @@ html, body {
     background-image: linear-gradient(to bottom, #282828 35%, #383838 90%);
     height: 100%;
     @include noSelect();
-    // prevent double tap to zoom
-    touch-action: manipulation;
 
     .main {
         @include boxSize();
