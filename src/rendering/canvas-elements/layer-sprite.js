@@ -136,6 +136,12 @@ class LayerSprite extends sprite {
         this.setInteractive( this.layer.id === id );
     }
 
+    setSelection( selection ) {
+        if ( isSelectionClosed( selection ) && canDrawOnSelection( this.layer )) {
+            this._selection = selection;
+        }
+    }
+
     resetSelection() {
         this._selection = null;
     }
@@ -183,10 +189,7 @@ class LayerSprite extends sprite {
                 this.cacheBrush( this.canvas.store.getters.activeColor, toolOptions );
 
                 // drawable tools can work alongside an existing selection
-                const selection = activeDocument.selection;
-                if ( isSelectionClosed( selection ) && canDrawOnSelection( this.layer )) {
-                    this._selection = selection;
-                }
+                this.setSelection( activeDocument.selection );
                 break;
             case ToolTypes.EYEDROPPER:
                 this._isColorPicker = true;

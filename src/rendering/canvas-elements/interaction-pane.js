@@ -121,7 +121,9 @@ class InteractionPane extends sprite {
         const currentSelection = document.selection || [];
         if ( this.mode === MODE_SELECTION ) {
             this.setSelection( [] );
-            storeSelectionHistory( document, currentSelection );
+            if ( isSelectionClosed( currentSelection )) {
+                storeSelectionHistory( document, currentSelection );
+            }
         } else {
             Vue.delete( document, "selection" );
         }
@@ -318,7 +320,11 @@ function storeSelectionHistory( document, optPreviousSelection = [] ) {
     const selection = [ ...document.selection ];
     enqueueState( `selection_${document.name}`, {
         undo() {
-            getCanvasInstance()?.interactionPane.setSelection( optPreviousSelection );
+            const cvs = getCanvasInstance();
+            if ( cvs ) {
+                cvs.interactionPane.setSelection( optPreviousSelection );
+                getSpriteForLayer( cvs.store.getters.activeLayer )?.setSelection( optPreviousSelection );
+            }
         },
         redo() {
             getCanvasInstance()?.interactionPane.setSelection( selection );
