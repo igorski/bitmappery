@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -29,6 +29,14 @@
                 v-model="eraserSize"
                 :min="1"
                 :max="MAX_BRUSH_SIZE"
+            />
+        </div>
+        <div class="wrapper input">
+            <label v-t="'thickness'"></label>
+            <slider
+                v-model="thickness"
+                :min="0"
+                :max="100"
             />
         </div>
         <div class="wrapper input">
@@ -60,16 +68,20 @@ export default {
         ...mapGetters([
             "eraserOptions",
         ]),
+        thickness: {
+            get() {
+                return this.eraserOptions.thickness * 100;
+            },
+            set( value ) {
+                this.updateValue( "thickness", value / 100 );
+            }
+        },
         opacity: {
             get() {
                 return this.eraserOptions.opacity * 100;
             },
             set( value ) {
-                this.setToolOptionValue({
-                    tool: ToolTypes.ERASER,
-                    option: "opacity",
-                    value: value / 100,
-                });
+                this.updateValue( "opacity", value / 100 );
             },
         },
         eraserSize: {
@@ -77,11 +89,7 @@ export default {
                 return this.eraserOptions.size;
             },
             set( value ) {
-                this.setToolOptionValue({
-                    tool: ToolTypes.ERASER,
-                    option: "size",
-                    value,
-                });
+                this.updateValue( "size", value );
             },
         },
     },
@@ -89,6 +97,9 @@ export default {
         ...mapMutations([
             "setToolOptionValue",
         ]),
+        updateValue( option, value ) {
+            this.setToolOptionValue({ tool: ToolTypes.ERASER, option, value });
+        }
     },
 };
 </script>

@@ -37,6 +37,14 @@
                 :max="MAX_BRUSH_SIZE"
             />
         </div>
+        <!-- <div class="wrapper input">
+            <label v-t="'thickness'"></label>
+            <slider
+                v-model="thickness"
+                :min="0"
+                :max="100"
+            />
+        </div> -->
         <div class="wrapper input">
             <label v-t="'opacity'"></label>
             <slider
@@ -103,6 +111,15 @@ export default {
                 this.updateValue( "size", value );
             },
         },
+        /*
+        thickness: {
+            get() {
+                return this.cloneOptions.thickness * 100;
+            },
+            set( value ) {
+                this.updateValue( "thickness", value / 100 );
+            }
+        },*/
         opacity: {
             get() {
                 return this.cloneOptions.opacity * 100;
