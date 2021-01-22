@@ -504,7 +504,7 @@ class LayerSprite extends sprite {
         }
     }
 
-    draw( documentContext, viewport ) {
+    draw( documentContext, viewport, omitOutlines = false ) {
         const scaleDocument = this.isScaled();
 
         // in case Layer has scale effect, apply it here (we don't resample the
@@ -529,53 +529,57 @@ class LayerSprite extends sprite {
             renderTempCanvas( this.canvas, documentContext );
         }
 
-        // render brush outline at pointer position
-        if ( this._isPaintMode ) {
-            const drawBrushOutline = this._toolType !== ToolTypes.CLONE || !!this._toolOptions.coords;
-            if ( this._toolType === ToolTypes.CLONE ) {
-                const { coords } = this._toolOptions;
-                let tx = this._pointerX - viewport.left;
-                let ty = this._pointerY - viewport.top;
-                const relSource = this._cloneStartCoords ?? this._dragStartEventCoordinates;
-                if ( coords ) {
-                    tx = ( coords.x - viewport.left ) + ( this._pointerX - relSource.x );
-                    ty = ( coords.y - viewport.top  ) + ( this._pointerY - relSource.y );
+        if ( !omitOutlines ) {
+
+            // render brush outline at pointer position
+            
+            if ( this._isPaintMode ) {
+                const drawBrushOutline = this._toolType !== ToolTypes.CLONE || !!this._toolOptions.coords;
+                if ( this._toolType === ToolTypes.CLONE ) {
+                    const { coords } = this._toolOptions;
+                    let tx = this._pointerX - viewport.left;
+                    let ty = this._pointerY - viewport.top;
+                    const relSource = this._cloneStartCoords ?? this._dragStartEventCoordinates;
+                    if ( coords ) {
+                        tx = ( coords.x - viewport.left ) + ( this._pointerX - relSource.x );
+                        ty = ( coords.y - viewport.top  ) + ( this._pointerY - relSource.y );
+                    }
+                    // when no source coordinate is set, or when applying the clone stamp, we show a cross to mark the origin
+                    if ( !coords || this._brush.down ) {
+                        renderCross( documentContext, tx, ty, this._brush.radius / this.canvas.zoomFactor );
+                    }
                 }
-                // when no source coordinate is set, or when applying the clone stamp, we show a cross to mark the origin
-                if ( !coords || this._brush.down ) {
-                    renderCross( documentContext, tx, ty, this._brush.radius / this.canvas.zoomFactor );
+                documentContext.save();
+                documentContext.beginPath();
+
+                if ( drawBrushOutline ) {
+                    // any other brush mode state shows brush outline
+                    documentContext.arc( this._pointerX - viewport.left, this._pointerY - viewport.top, this._brush.radius, 0, 2 * Math.PI );
                 }
+                documentContext.stroke();
+                documentContext.restore();
             }
-            documentContext.save();
-            documentContext.beginPath();
 
-            if ( drawBrushOutline ) {
-                // any other brush mode state shows brush outline
-                documentContext.arc( this._pointerX - viewport.left, this._pointerY - viewport.top, this._brush.radius, 0, 2 * Math.PI );
+            // interactive state implies the sprite's Layer is currently active
+            // show a border around the Layer contents to indicate the active area
+
+            if ( this._interactive ) {
+                documentContext.save();
+                documentContext.lineWidth   = 1 / this.canvas.zoomFactor;
+                documentContext.strokeStyle = "#0db0bc";
+                const { x, y, width, height } = this.layer;
+                const destX = x - viewport.left;
+                const destY = y - viewport.top;
+                if ( this.isRotated()) {
+                    const tX = destX + ( width  * .5 );
+                    const tY = destY + ( height * .5 );
+                    documentContext.translate( tX, tY );
+                    documentContext.rotate( this.layer.effects.rotation );
+                    documentContext.translate( -tX, -tY );
+                }
+                documentContext.strokeRect( destX, destY, width, height );
+                documentContext.restore();
             }
-            documentContext.stroke();
-            documentContext.restore();
-        }
-
-        // interactive state implies the sprite's Layer is currently active
-        // show a border around the Layer contents to indicate the active area
-
-        if ( this._interactive ) {
-            documentContext.save();
-            documentContext.lineWidth   = 1 / this.canvas.zoomFactor;
-            documentContext.strokeStyle = "#0db0bc";
-            const { x, y, width, height } = this.layer;
-            const destX = x - viewport.left;
-            const destY = y - viewport.top;
-            if ( this.isRotated()) {
-                const tX = destX + ( width  * .5 );
-                const tY = destY + ( height * .5 );
-                documentContext.translate( tX, tY );
-                documentContext.rotate( this.layer.effects.rotation );
-                documentContext.translate( -tX, -tY );
-            }
-            documentContext.strokeRect( destX, destY, width, height );
-            documentContext.restore();
         }
 
         if ( scaleDocument ) {

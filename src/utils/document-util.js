@@ -40,7 +40,7 @@ export const createDocumentSnapshot = async ( activeDocument, type, quality ) =>
         const layer = layers[ i ];
         const sprite = getSpriteForLayer( layer );
         await renderEffectsForLayer( layer, false );
-        sprite.draw( ctx, zcvs._viewport );
+        sprite.draw( ctx, zcvs._viewport, true );
     }
     quality = parseFloat(( quality / 100 ).toFixed( 2 ));
     let base64 = cvs.toDataURL( type, quality );
@@ -76,7 +76,7 @@ export const copySelection = async ( activeDocument, activeLayer ) => {
     ctx.clip();
 
     // draw active layer onto temporary canvas at full document scale
-    sprite.draw( ctx, zcvs._viewport );
+    sprite.draw( ctx, zcvs._viewport, true );
     ctx.restore();
 
     // when calculating the source rectangle we must take the device pixel ratio into account
