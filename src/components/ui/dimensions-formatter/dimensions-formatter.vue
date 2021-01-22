@@ -62,7 +62,7 @@ import SelectBox from "@/components/ui/select-box/select-box";
 import { pixelsToInch, pixelsToCm, pixelsToMm, inchesToPixels, cmToPixels, mmToPixels,  } from "@/math/unit-math";
 import messages from "./messages.json";
 
-const DPI   = [ 72, 97, 150, 300, 600, 1200 ];
+const DPI   = [ 72, 97, 150, 300, 600 ];
 const UNITS = [ "px", "in", "cm", "mm" ];
 
 const toFixedFloat = ( value, exp = 2 ) => parseFloat( value.toFixed( exp ));
@@ -118,6 +118,12 @@ export default {
         internalValue( value ) {
             this.$emit( "input", value );
         },
+        dpi( value, oldValue = value ) {
+            const ratio = value / oldValue;
+            // when changing DPI we keep the dimensions for the current unit the same
+            this.internalValue.width  *= ratio;
+            this.internalValue.height *= ratio;
+        }
     },
     methods: {
         valueFromPx( valueInPx ) {
