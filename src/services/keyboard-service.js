@@ -26,6 +26,7 @@ import {
     CREATE_DOCUMENT, ADD_LAYER, EXPORT_DOCUMENT, DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT
 } from "@/definitions/modal-windows";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
+import { enqueueState } from "@/factories/history-state-factory";
 import { translatePoints } from "@/math/point-math";
 
 let state, getters, commit, dispatch, listener,
@@ -334,7 +335,15 @@ function handleKeyDown( event ) {
         case 84: // T
             if ( getters.activeDocument ) {
                 if ( getters.activeLayer?.type !== LAYER_TEXT ) {
-                    commit( "addLayer", { type: LAYER_TEXT });
+                    const fn = () => commit( "addLayer", { type: LAYER_TEXT });
+                    fn();
+                    const addedLayerIndex = getters.activeLayerIndex;
+                    enqueueState( `layerAdd_${addedLayerIndex}`, {
+                        undo() {
+                            commit( "removeLayer", addedLayerIndex );
+                        },
+                        redo: fn,
+                    });
                 }
                 setActiveTool( ToolTypes.TEXT );
                 preventDefault( event );
