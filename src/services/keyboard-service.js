@@ -26,10 +26,10 @@ import {
     CREATE_DOCUMENT, ADD_LAYER, EXPORT_DOCUMENT, DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT
 } from "@/definitions/modal-windows";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
-import { enqueueState } from "@/factories/history-state-factory";
 import { translatePoints } from "@/math/point-math";
+import { addTextLayer } from "@/utils/layer-util";
 
-let state, getters, commit, dispatch, listener,
+let store, state, getters, commit, dispatch, listener,
     suspended = false, blockDefaults = true, optionDown = false, shiftDown = false;
 
 const DEFAULT_BLOCKED    = [ 8, 32, 37, 38, 39, 40 ];
@@ -46,6 +46,7 @@ const defaultBlock = e => e.preventDefault();
 const KeyboardService =
 {
     init( storeReference ) {
+        store = storeReference;
         ({ state, getters, commit, dispatch } = storeReference );
 
         // these handlers remain active for the entire application lifetime
@@ -335,15 +336,7 @@ function handleKeyDown( event ) {
         case 84: // T
             if ( getters.activeDocument ) {
                 if ( getters.activeLayer?.type !== LAYER_TEXT ) {
-                    const fn = () => commit( "addLayer", { type: LAYER_TEXT });
-                    fn();
-                    const addedLayerIndex = getters.activeLayerIndex;
-                    enqueueState( `layerAdd_${addedLayerIndex}`, {
-                        undo() {
-                            commit( "removeLayer", addedLayerIndex );
-                        },
-                        redo: fn,
-                    });
+                    addTextLayer( store );
                 }
                 setActiveTool( ToolTypes.TEXT );
                 preventDefault( event );

@@ -92,6 +92,7 @@ import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
 import { runSpriteFn } from "@/factories/sprite-factory";
 import { isMobile } from "@/utils/environment-util";
+import { addTextLayer } from "@/utils/layer-util";
 import ToolTypes, { canDraw, canClone } from "@/definitions/tool-types";
 import messages  from "./messages.json";
 
@@ -244,7 +245,7 @@ export default {
         },
         setTool( tool ) {
             if ( tool === ToolTypes.TEXT && this.activeLayer?.type !== LAYER_TEXT ) {
-                this.addLayer({ type: LAYER_TEXT, name: this.$t( "newTextLayer") });
+                addTextLayer( this.$store );
             }
             this.setActiveTool({ tool, document: this.activeDocument });
         },
