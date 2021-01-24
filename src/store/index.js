@@ -234,10 +234,11 @@ export default {
             if ( !activeLayer || !getters.activeDocument?.selection.length ) {
                 return;
             }
-            const orgContent = cloneCanvas( activeLayer.source );
+            const hasMask       = !!activeLayer.mask;
+            const orgContent    = cloneCanvas( hasMask ? activeLayer.mask : activeLayer.source );
             const updatedBitmap = deleteSelectionContent( getters.activeDocument, activeLayer );
             const replaceSource = newSource => {
-                replaceLayerSource( activeLayer, newSource );
+                replaceLayerSource( activeLayer, newSource, hasMask );
                 getSpriteForLayer( activeLayer )?.resetFilterAndRecache();
             };
             replaceSource( updatedBitmap );

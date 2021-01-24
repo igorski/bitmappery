@@ -96,9 +96,10 @@ export const copySelection = async ( activeDocument, activeLayer ) => {
 export const deleteSelectionContent = ( activeDocument, activeLayer ) => {
     const { x, y, width, height } = activeLayer;
     const { cvs, ctx } = createCanvas( width, height );
+    const hasMask = !!activeLayer.mask;
 
     // draw active layer onto temporary canvas at full document scale
-    ctx.drawImage( activeLayer.source, 0, 0 );
+    ctx.drawImage( hasMask ? activeLayer.mask : activeLayer.source, 0, 0 );
 
     // erase content in selection area by filling with transparent pixels
     ctx.save();
