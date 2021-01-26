@@ -26,7 +26,6 @@ import { createCanvas, canvasToBlob, resizeImage, globalToLocal } from "@/utils/
 import { renderCross } from "@/utils/render-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
-import { scaleRectangle } from "@/math/image-math";
 import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
 import { rotatePoints, translatePointerRotation } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
@@ -611,13 +610,6 @@ class LayerSprite extends sprite {
 export default LayerSprite;
 
 /* internal non-instance methods */
-
-function scaleViewport( viewport, scale ) {
-    const scaled    = scaleRectangle( viewport, scale );
-    viewport.right  = viewport.left + viewport.width;
-    viewport.bottom = viewport.top + viewport.height;
-    return scaled;
-}
 
 // NOTE we use getSpriteForLayer() instead of passing the Sprite by reference
 // as it is possible the Sprite originally rendering the Layer has been disposed
