@@ -539,9 +539,12 @@ class LayerSprite extends sprite {
 
         if ( !omitOutlines ) {
 
+            const { zoomFactor } = this.canvas;
+
             // render brush outline at pointer position
 
             if ( this._isPaintMode ) {
+                documentContext.lineWidth = 2 / zoomFactor;
                 const drawBrushOutline = this._toolType !== ToolTypes.CLONE || !!this._toolOptions.coords;
                 if ( this._toolType === ToolTypes.CLONE ) {
                     const { coords } = this._toolOptions;
@@ -554,7 +557,7 @@ class LayerSprite extends sprite {
                     }
                     // when no source coordinate is set, or when applying the clone stamp, we show a cross to mark the origin
                     if ( !coords || this._brush.down ) {
-                        renderCross( documentContext, tx, ty, this._brush.radius / this.canvas.zoomFactor );
+                        renderCross( documentContext, tx, ty, this._brush.radius / zoomFactor );
                     }
                 }
                 documentContext.save();
@@ -563,6 +566,7 @@ class LayerSprite extends sprite {
                 if ( drawBrushOutline ) {
                     // any other brush mode state shows brush outline
                     documentContext.arc( this._pointerX - viewport.left, this._pointerY - viewport.top, this._brush.radius, 0, 2 * Math.PI );
+                    documentContext.strokeStyle = "#999";
                 }
                 documentContext.stroke();
                 documentContext.restore();
@@ -573,7 +577,7 @@ class LayerSprite extends sprite {
 
             if ( this._interactive ) {
                 documentContext.save();
-                documentContext.lineWidth   = 1 / this.canvas.zoomFactor;
+                documentContext.lineWidth   = 1 / zoomFactor;
                 documentContext.strokeStyle = "#0db0bc";
                 const { x, y, width, height } = this.layer;
                 const destX = x - viewport.left;

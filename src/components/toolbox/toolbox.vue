@@ -34,9 +34,11 @@
         >
             <img :src="`./assets/icons/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
         </button>
+        <!-- click.stop.prevent is to prevent document scroll on double tap on iOS -->
         <div
             v-if="!collapsed"
             class="content"
+            @click.stop.prevent=""
         >
             <!-- history states -->
             <button
