@@ -89,7 +89,7 @@ import { PROJECT_FILE_EXTENSION }   from "@/store";
 import messages from "./messages.json";
 
 // we allow listing of both BitMappery Documents and all accepted image types
-const FILE_EXTENSIONS = [ ...ACCEPTED_FILE_EXTENSIONS, ...PROJECT_FILE_EXTENSION ];
+const FILE_EXTENSIONS = [ ...ACCEPTED_FILE_EXTENSIONS, PROJECT_FILE_EXTENSION ];
 
 function mapEntry( entry, children = [], parent = null ) {
     let type = entry[ ".tag" ]; // folder/file
