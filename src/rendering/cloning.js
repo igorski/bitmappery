@@ -80,19 +80,19 @@ export const renderClonedStroke = ( destContext, brush, sprite, sourceLayerId, o
 
         ctx.clearRect( 0, 0, cvs.width, cvs.height );
         ctx.drawImage(
-            source, sourceX + xDelta, sourceY + yDelta, radius, radius, 0, 0, radius, radius
+            source, sourceX + xDelta, sourceY + yDelta, doubleRadius, doubleRadius, 0, 0, doubleRadius, doubleRadius
         );
 
         // draw the brush above the bitmap, keeping only the overlapping area
         ctx.globalCompositeOperation = "destination-in";
 
-        ctx.fillStyle = createDrawable( brush, ctx, 0, 0 );
-        ctx.fillRect( 0, 0, radius, radius );//point.x - radius, point.y - radius, doubleRadius, doubleRadius );
+        ctx.fillStyle = createDrawable( brush, ctx, radius, radius );
+        ctx.fillRect( 0, 0, doubleRadius, doubleRadius );
 
         // draw the masked result onto the destination canvas
         destContext.drawImage(
-            cvs, 0, 0, radius, radius,
-            destinationPoint.x - radius, destinationPoint.y - radius, radius, radius
+            cvs, 0, 0, doubleRadius, doubleRadius,
+            destinationPoint.x - radius, destinationPoint.y - radius, doubleRadius, doubleRadius
         );
     }
     setCanvasDimensions( tempCanvas, 1, 1 ); // conserve memory allocated to Canvas instances

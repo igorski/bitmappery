@@ -37,7 +37,7 @@ export default {
             // see tool-options-eraser.vue
             [ ToolTypes.ERASER ]: { size: 10, type: BrushTypes.PAINT_BRUSH, opacity: 1, thickness: .5 },
             // see tool-options-clone.vue
-            [ ToolTypes.CLONE ] : { size: 10, type: BrushTypes.PAINT_BRUSH, opacity: 1, thickness: .5, sourceLayerId: TOOL_SRC_MERGED, coords: null },
+            [ ToolTypes.CLONE ] : { size: 10, type: BrushTypes.PAINT_BRUSH, opacity: .5, thickness: .5, sourceLayerId: TOOL_SRC_MERGED, coords: null },
         },
     },
     getters: {
