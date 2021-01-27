@@ -34,14 +34,15 @@ export const createDocumentSnapshot = async ( activeDocument, type, quality ) =>
     const { zcvs, cvs, ctx } = createFullSizeCanvas( activeDocument );
     const { width, height }  = activeDocument;
 
-    // draw existing layers onto temporary canvas at full document scale
+    // ensure all layer effects are rendered, note we omit caching
     const { layers } = activeDocument;
     for ( let i = 0, l = layers.length; i < l; ++i ) {
-        const layer = layers[ i ];
-        const sprite = getSpriteForLayer( layer );
-        await renderEffectsForLayer( layer, false );
-        sprite.draw( ctx, zcvs._viewport, true );
+        await renderEffectsForLayer( layers[ i ], false );
     }
+    // draw existing layers onto temporary canvas at full document scale
+    layers.forEach( layer => {
+        getSpriteForLayer( layer )?.draw( ctx, zcvs._viewport, true );
+    });
     quality = parseFloat(( quality / 100 ).toFixed( 2 ));
     let base64 = cvs.toDataURL( type, quality );
     zcvs.dispose();
