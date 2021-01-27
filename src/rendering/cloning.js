@@ -21,7 +21,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { createDrawable } from "@/factories/brush-factory";
+import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { createCanvas, setCanvasDimensions } from "@/utils/canvas-util";
+import { renderFullSize } from "@/utils/document-util";
+import { TOOL_SRC_MERGED } from "@/definitions/tool-types";
 
 const tempCanvas = createCanvas();
 
@@ -32,16 +35,26 @@ const tempCanvas = createCanvas();
  * @param {CanvasRenderingContext2D} destContext context to render on
  * @param {Object} brush operation to use
  * @param {zCanvas.sprite} sprite containg the relative (on-screen) Layer coordinates
- * @param {zCanvas.sprite} sourceSprite containing the bitmap to mask (see getBitmap())
+ * @param {String|Number} sourceLayerId identifier of the Layer to use as source, can also be TOOL_SRC_MERGED
  * @param {Array<{ x: Number, y: Number }>=} optPointers optional Array of alternative coordinates
  */
-export const renderClonedStroke = ( destContext, brush, sprite, sourceSprite, optPointers ) => {
-    if ( !sourceSprite ) {
+export const renderClonedStroke = ( destContext, brush, sprite, sourceLayerId, optPointers ) => {
+    let left = 0;
+    let top  = 0;
+    let source;
+    if ( sourceLayerId === TOOL_SRC_MERGED ) {
+        source = renderFullSize( getCanvasInstance().getActiveDocument() );
+    } else {
+        const sourceSprite = getSpriteForLayer({ id: sourceLayerId });
+        if ( sourceSprite ) {
+            ({ left, top } = sourceSprite.getBounds());
+            source = sourceSprite.getBitmap();
+        }
+    }
+    if ( !source ) {
         return;
     }
     const { coords, opacity } = sprite._toolOptions;
-    const { left, top } = sourceSprite.getBounds();
-    const source        = sourceSprite.getBitmap();
     const { radius, doubleRadius, options } = brush;
     const { type } = options;
     const pointers = optPointers || brush.pointers;

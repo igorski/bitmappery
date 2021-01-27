@@ -20,8 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import Vue       from "vue";
-import ToolTypes from "@/definitions/tool-types";
+import Vue from "vue";
+import ToolTypes, { TOOL_SRC_MERGED } from "@/definitions/tool-types";
 import BrushTypes from "@/definitions/brush-types";
 import { runSpriteFn } from "@/factories/sprite-factory";
 
@@ -37,7 +37,7 @@ export default {
             // see tool-options-eraser.vue
             [ ToolTypes.ERASER ]: { size: 10, type: BrushTypes.PAINT_BRUSH, opacity: 1, thickness: .5 },
             // see tool-options-clone.vue
-            [ ToolTypes.CLONE ] : { size: 10, type: BrushTypes.PAINT_BRUSH, opacity: 1, thickness: .5, source: null, coords: null },
+            [ ToolTypes.CLONE ] : { size: 10, type: BrushTypes.PAINT_BRUSH, opacity: 1, thickness: .5, sourceLayerId: TOOL_SRC_MERGED, coords: null },
         },
     },
     getters: {

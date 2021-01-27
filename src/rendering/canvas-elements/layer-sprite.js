@@ -287,9 +287,7 @@ class LayerSprite extends sprite {
 
             if ( isCloneStamp ) {
                 if ( this._brush.down ) {
-                    renderClonedStroke(
-                        ctx, this._brush, this, getSpriteForLayer({ id: this._toolOptions.sourceLayerId }), pointers
-                    );
+                    renderClonedStroke( ctx, this._brush, this, this._toolOptions.sourceLayerId, pointers );
                     // clone operation is direct-to-Layer-source
                     this.setBitmap( ctx.canvas );
                 }

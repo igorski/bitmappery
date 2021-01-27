@@ -69,6 +69,10 @@ class ZoomableCanvas extends canvas {
         }
     }
 
+    getActiveDocument() {
+        return this.store.getters.activeDocument;
+    }
+
     setZoomFactor( scale ) {
         this.zoomFactor = scale;
 

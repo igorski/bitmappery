@@ -67,6 +67,8 @@ export const canDrawOnSelection = activeLayer => {
     return (( effects.rotation % 360 ) === 0 ) && !activeLayer.effects.mirrorX && !activeLayer.effects.mirrorY;
 };
 
+export const TOOL_SRC_MERGED = "Merged"; // constant to define that a tools source context are all layers merged
+
 // UI variables
 export const MAX_BRUSH_SIZE = 100;
 export const MIN_ZOOM       = -50; // zooming out from base (which is 0)
