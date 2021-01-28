@@ -34,7 +34,7 @@ import { renderClonedStroke } from "@/rendering/cloning";
 import { renderBrushStroke } from "@/rendering/drawing";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
 import {
-    getTempCanvas, renderTempCanvas, disposeTempCanvas, translatePointers, createOverrideConfig
+    getTempCanvas, renderTempCanvas, disposeTempCanvas, slicePointers, createOverrideConfig
 } from "@/rendering/lowres";
 import BrushFactory from "@/factories/brush-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
@@ -211,7 +211,6 @@ class LayerSprite extends sprite {
             this.preparePendingPaintState();
         }
         const { left, top } = this._bounds;
-        // translate pointer to translated space, when layer is rotated or mirrored
         const { mirrorX, mirrorY, rotation } = this.layer.effects;
 
         const drawOnMask   = this.isMaskable();
@@ -263,15 +262,14 @@ class LayerSprite extends sprite {
             }
         }
         else {
-            // TODO: when rotated and mirrored, x and y are now in right coordinate space, but not at right point
-
             // get the enqueued pointers which are to be rendered in this paint cycle
-            const pointers = translatePointers( this._brush );
+            const pointers = slicePointers( this._brush );
 
             if ( isCloneStamp ) {
                 if ( this._brush.down ) {
                     renderClonedStroke(
-                        ctx, this._brush, this, getSpriteForLayer({ id: this._toolOptions.sourceLayerId }), pointers
+                        ctx, this._brush, this, getSpriteForLayer({ id: this._toolOptions.sourceLayerId }),
+                        rotatePointerLists( pointers, this.layer, width, height )
                     );
                     // clone operation is direct-to-Layer-source
                     this.setBitmap( ctx.canvas );
@@ -291,21 +289,7 @@ class LayerSprite extends sprite {
                         clipContextToSelection( ctx, selectionPoints, isFillMode, sX - left, sY - top, overrides );
                     }
                 } else {
-                    // we take layer.x instead of bounds.left as it provides the unrotated Layer offset
-                    const { x, y } = this.layer;
-                    this._brush.pointers.forEach( point => {
-                        // translate recorded pointer towards rotated point
-                        // and against layer position
-                        const p = translatePointerRotation( point.x - x, point.y - y, width / 2, height / 2, rotation );
-                        if ( mirrorX ) {
-                            p.x -= width;
-                        }
-                        if ( mirrorY ) {
-                            p.y -= height;
-                        }
-                        point.x = p.x;
-                        point.y = p.y;
-                    });
+                    rotatePointerLists( this._brush.pointers, this.layer, width, height );
                 }
                 renderBrushStroke( ctx, this._brush, this, overrides );
             }
@@ -609,6 +593,27 @@ class LayerSprite extends sprite {
 export default LayerSprite;
 
 /* internal non-instance methods */
+
+function rotatePointerLists( pointers, layer, sourceWidth, sourceHeight ) {
+    // we take layer.x instead of bounds.left as it provides the unrotated Layer offset
+    const { x, y } = layer;
+    // translate pointer to translated space, when layer is rotated or mirrored
+    const { mirrorX, mirrorY, rotation } = layer.effects;
+    pointers.forEach( point => {
+        // translate recorded pointer towards rotated point
+        // and against layer position
+        const p = translatePointerRotation( point.x - x, point.y - y, sourceWidth * 0.5, sourceHeight * 0.5, rotation );
+        if ( mirrorX ) {
+            p.x -= sourceWidth;
+        }
+        if ( mirrorY ) {
+            p.y -= sourceHeight;
+        }
+        point.x = p.x;
+        point.y = p.y;
+    });
+    return pointers;
+}
 
 // NOTE we use getSpriteForLayer() instead of passing the Sprite by reference
 // as it is possible the Sprite originally rendering the Layer has been disposed

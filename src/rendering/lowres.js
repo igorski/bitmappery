@@ -64,7 +64,7 @@ export const disposeTempCanvas = () => {
 };
 
 /**
- * Translate all pointers within a brush stroke for low res preview rendering.
+ * Slice a selection of pointers within a brush stroke for low res preview rendering.
  * This creates a deep copy of the pointers, leaving the original list unchanged.
  * This can be called in rendering iterations by supplying a positive value for
  * last (which indicates the offset of the last rendered pointer).
@@ -72,7 +72,7 @@ export const disposeTempCanvas = () => {
  * @param {Object} brush
  * @return {Array<{ x: Number, y:Number }>}
  */
-export const translatePointers = brush => {
+export const slicePointers = brush => {
     const { pointers } = brush;
     const last = hasSteppedLiveRender( brush ) ? brush.last : undefined;
     return JSON.parse( JSON.stringify( pointers.slice( pointers.length - ( pointers.length - last ) - 1 )));
