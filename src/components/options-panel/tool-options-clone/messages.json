@@ -5,6 +5,7 @@
         "brushSize": "Brush size",
         "thickness": "Thickness",
         "opacity": "Opacity",
-        "selectSourceCoordinate": "Select source coordinate"
+        "selectSourceCoordinate": "Select source coordinate",
+        "merged": "Merged"
     }
 }

@@ -67,7 +67,7 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import ToolTypes, { MAX_BRUSH_SIZE } from "@/definitions/tool-types";
+import ToolTypes, { MAX_BRUSH_SIZE, TOOL_SRC_MERGED } from "@/definitions/tool-types";
 import SelectBox from '@/components/ui/select-box/select-box';
 import Slider from "@/components/ui/slider/slider";
 import messages from "./messages.json";
@@ -91,9 +91,12 @@ export default {
             "cloneOptions",
         ]),
         selectableLayers() {
-            return this.layers?.filter(({ visible }) => visible )
-                               .map( layer => ({ label: layer.name, value: layer.id }))
-                               .reverse();
+            return [
+                ...( this.layers || [] ).filter(({ visible }) => visible ),
+                { name: this.$t( "merged" ), id: TOOL_SRC_MERGED }
+            ]
+            .map( layer => ({ label: layer.name, value: layer.id }))
+            .reverse();
         },
         sourceLayer: {
             get() {
