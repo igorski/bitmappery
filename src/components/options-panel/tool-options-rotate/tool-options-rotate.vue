@@ -36,6 +36,24 @@
                 class="button button--small"
                 @click="reset()"
             ></button>
+            <button
+                v-t="'90degLeft'"
+                type="button"
+                class="button button--small"
+                @click="rotate(270)"
+            ></button>
+            <button
+                v-t="'flip'"
+                type="button"
+                class="button button--small"
+                @click="rotate(180)"
+            ></button>
+            <button
+                v-t="'90degRight'"
+                type="button"
+                class="button button--small"
+                @click="rotate(90)"
+            ></button>
         </div>
     </div>
 </template>
@@ -94,10 +112,17 @@ export default {
         reset() {
             this.rotation = 0;
         },
+        rotate( amountInDegrees ) {
+            this.rotation = amountInDegrees;
+        }
     },
 };
 </script>
 
 <style lang="scss" scoped>
 @import "@/styles/options-panel";
+
+.actions button {
+    margin: 0 $spacing-xxsmall;
+}
 </style>

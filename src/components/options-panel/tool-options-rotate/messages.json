@@ -1,6 +1,9 @@
 {
     "en-US": {
         "rotation": "Rotation",
-        "reset": "Reset"
+        "reset": "Reset",
+        "90degLeft": "90°←",
+        "90degRight": "90°→",
+        "flip": "Flip"
     }
 }
