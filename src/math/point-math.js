@@ -48,12 +48,12 @@ export const translatePointerRotation = ( x, y, rotationCenterX, rotationCenterY
     const x2 = x - rotationCenterX;
     const y2 = y - rotationCenterY;
 
-    const cos = Math.cos( -angleInRadians );
-    const sin = Math.sin( -angleInRadians );
+    const cos = Math.cos( angleInRadians );
+    const sin = Math.sin( angleInRadians );
 
     return {
-        x : x2 * cos - y2 * sin + rotationCenterX,
-        y : x2 * sin + y2 * cos + rotationCenterY
+        x : ( cos * x2 ) + ( sin * y2 ) + rotationCenterX,
+        y : ( cos * y2 ) - ( sin * x2 ) + rotationCenterY
     };
 };
 

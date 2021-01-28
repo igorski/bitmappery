@@ -108,7 +108,7 @@ class LayerSprite extends sprite {
 
     storeBrushPointer( x, y ) {
         this._brush.down = true;
-        this._brush.pointers.push({ x: x - this._bounds.left, y: y - this._bounds.top });
+        this._brush.pointers.push({ x, y });
     }
 
     cacheEffects() {
@@ -206,20 +206,14 @@ class LayerSprite extends sprite {
 
     // draw onto the source Bitmap (e.g. brushing / fill tool / eraser)
 
-    paint( x, y ) {
+    paint() {
         if ( !this._pendingPaintState ) {
             this.preparePendingPaintState();
         }
-
         const { left, top } = this._bounds;
         // translate pointer to translated space, when layer is rotated or mirrored
         const { mirrorX, mirrorY, rotation } = this.layer.effects;
-        const rotCenterX = left + this._bounds.width  / 2;
-        const rotCenterY = top  + this._bounds.height / 2;
 
-        if ( this.isRotated() ) {
-            ({ x, y } = translatePointerRotation( x, y, rotCenterX, rotCenterY, rotation ));
-        }
         const drawOnMask   = this.isMaskable();
         const isEraser     = this._toolType === ToolTypes.ERASER;
         const isCloneStamp = this._toolType === ToolTypes.CLONE;
@@ -235,20 +229,12 @@ class LayerSprite extends sprite {
             ctx.globalCompositeOperation = "destination-out";
         }
 
-        if ( mirrorX ) {
-            x -= width;
-        }
-        if ( mirrorY ) {
-            y -= height;
-        }
-        // correct pointer offset w/regards to layer pan position
-        x -= this.layer.x;
-        y -= this.layer.y;
-
         // if there is an active selection, painting will be constrained within
         let selectionPoints = this._selection;
         let sX, sY;
         if ( selectionPoints ) {
+            const rotCenterX = this._bounds.width  * 0.5;
+            const rotCenterY = this._bounds.height * 0.5;
             sX = left;
             sY = top;
             if ( this.isRotated() ) {
@@ -265,9 +251,6 @@ class LayerSprite extends sprite {
 
         // transform destination context in case the current layer is rotated or mirrored
         ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
-        ctx.translate( x, y );
-        ctx.rotate( rotation );
-        ctx.translate( -x, -y );
 
         if ( isFillMode )
         {
@@ -300,13 +283,29 @@ class LayerSprite extends sprite {
                 if ( this._brush.down ) {
                     // live update on lower resolution canvas
                     this.tempCanvas = this.tempCanvas || getTempCanvas( this.canvas );
-                    overrides = createOverrideConfig( this.canvas, left, top, pointers );
+                    overrides = createOverrideConfig( this.canvas, pointers );
                     ctx.restore(); // restore previous context before switching to lowres context
                     ctx = this.tempCanvas.ctx;
 
                     if ( selectionPoints && this.tempCanvas ) {
                         clipContextToSelection( ctx, selectionPoints, isFillMode, sX - left, sY - top, overrides );
                     }
+                } else {
+                    // we take layer.x instead of bounds.left as it provides the unrotated Layer offset
+                    const { x, y } = this.layer;
+                    this._brush.pointers.forEach( point => {
+                        // translate recorded pointer towards rotated point
+                        // and against layer position
+                        const p = translatePointerRotation( point.x - x, point.y - y, width / 2, height / 2, rotation );
+                        if ( mirrorX ) {
+                            p.x -= width;
+                        }
+                        if ( mirrorY ) {
+                            p.y -= height;
+                        }
+                        point.x = p.x;
+                        point.y = p.y;
+                    });
                 }
                 renderBrushStroke( ctx, this._brush, this, overrides );
             }
@@ -441,7 +440,7 @@ class LayerSprite extends sprite {
                     this._cloneStartCoords = { x, y };
                 }
             } else if ( this._toolType === ToolTypes.FILL ) {
-                this.paint( x, y );
+                this.paint();
                 return;
             }
             // for any other brush mode state, set the brush application to true (will be applied in handleMove())
@@ -487,7 +486,7 @@ class LayerSprite extends sprite {
             this.tempCanvas  = null;
             this._brush.down = false;
             this._brush.last = 0;
-            this.paint( x, y );
+            this.paint();
             this._brush.pointers = []; // pointers have been rendered, reset
             // immediately store pending history state when not running in lowMemory mode
             if ( !this.canvas.store.getters.getPreference( "lowMemory" )) {
@@ -501,7 +500,7 @@ class LayerSprite extends sprite {
 
     update() {
         if ( this._brush.down ) {
-            this.paint( this._pointerX, this._pointerY );
+            this.paint();
             this._brush.last = this._brush.pointers.length;
         }
     }

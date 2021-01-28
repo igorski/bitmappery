@@ -89,13 +89,11 @@ export const translatePointers = brush => {
  * @param {Array<{ x: Number, y:Number }>} pointers
  * @return {Object}
  */
-export const createOverrideConfig = ( zoomableCanvas, x, y, pointers ) => ({
+export const createOverrideConfig = ( zoomableCanvas, pointers ) => ({
     scale : 1 / zoomableCanvas.documentScale,
     zoom  : zoomableCanvas.zoomFactor,
     vpX   : zoomableCanvas._viewport.left,
     vpY   : zoomableCanvas._viewport.top,
-    x,
-    y,
     pointers,
 });
 
@@ -108,7 +106,7 @@ export const createOverrideConfig = ( zoomableCanvas, x, y, pointers ) => ({
  * @param {Array<{ x: Number, y: Number }>} pointers coordinates to transform
  */
 export const applyOverrideConfig = ( overrideConfig, pointers ) => {
-    const { x, y, vpX, vpY, scale } = overrideConfig;
+    const { vpX, vpY, scale } = overrideConfig;
     let i = pointers.length;
     while ( i-- )
     {
@@ -116,8 +114,8 @@ export const applyOverrideConfig = ( overrideConfig, pointers ) => {
 
         // correct for low res scaling
 
-        point.x = ( point.x + x ) * scale;
-        point.y = ( point.y + y ) * scale;
+        point.x = point.x * scale;
+        point.y = point.y * scale;
 
         // correct for viewport offset
 
