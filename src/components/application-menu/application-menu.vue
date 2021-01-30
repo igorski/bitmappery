@@ -108,31 +108,24 @@
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'resizeDocument'"
-                                type="button"
-                                :disabled="noDocumentsAvailable"
-                                @click="requestDocumentResize()"
-                        ></button>
-                    </li>
-                    <li>
-                        <button v-t="'copySelection'"
-                                type="button"
-                                :disabled="!hasSelection"
-                                @click="requestSelectionCopy()"
-                        ></button>
-                    </li>
-                    <li>
-                        <button v-t="'cutSelection'"
+                        <button v-t="'cut'"
                                 type="button"
                                 :disabled="!hasSelection"
                                 @click="requestSelectionCut()"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'cropToSelection'"
+                        <button v-t="'copy'"
                                 type="button"
                                 :disabled="!hasSelection"
-                                @click="requestCropToSelection()"
+                                @click="requestSelectionCopy()"
+                        ></button>
+                    </li>
+                    <li>
+                        <button v-t="'pasteAsNewLayer'"
+                                type="button"
+                                :disabled="!hasClipboard || !activeDocument"
+                                @click="pasteSelection()"
                         ></button>
                     </li>
                     <li>
@@ -142,11 +135,27 @@
                                 @click="deleteInSelection()"
                         ></button>
                     </li>
+                </ul>
+            </li>
+            <!-- document menu -->
+            <li>
+                <a v-t="'document'" class="title" @click.prevent="openSubMenu('document')"></a>
+                <ul class="submenu"
+                    :class="{ opened: activeSubMenu === 'document' }"
+                    @click="close()"
+                >
                     <li>
-                        <button v-t="'pasteAsNewLayer'"
+                        <button v-t="'resizeDocument'"
                                 type="button"
-                                :disabled="!hasClipboard"
-                                @click="pasteSelection()"
+                                :disabled="noDocumentsAvailable"
+                                @click="requestDocumentResize()"
+                        ></button>
+                    </li>
+                    <li>
+                        <button v-t="'cropToSelection'"
+                                type="button"
+                                :disabled="!hasSelection"
+                                @click="requestCropToSelection()"
                         ></button>
                     </li>
                 </ul>
