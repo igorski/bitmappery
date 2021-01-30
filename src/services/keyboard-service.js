@@ -366,8 +366,10 @@ function handleKeyDown( event ) {
         case 88: // X
             // cut current selection
             if ( hasOption ) {
-                // ...
-                preventDefault( event ); // override browser cut
+                if ( getters.activeDocument?.selection?.length ) {
+                    dispatch( "requestSelectionCut" );
+                    preventDefault( event ); // override browser cut
+                }
             }
             break;
 

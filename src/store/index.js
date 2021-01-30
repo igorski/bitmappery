@@ -199,7 +199,10 @@ export default {
             commit( "setSelectionContent", selectionImage );
             commit( "setActiveTool", { tool: null, activeLayer: getters.activeLayer });
             commit( "showNotification", { message: translate( "selectionCopied" ) });
-            dispatch( "clearSelection" );
+        },
+        async requestSelectionCut({ dispatch }) {
+            dispatch( "requestSelectionCopy" );
+            dispatch( "deleteInSelection" );
         },
         clearSelection({ getters }) {
             getCanvasInstance()?.interactionPane.resetSelection();

@@ -122,6 +122,13 @@
                         ></button>
                     </li>
                     <li>
+                        <button v-t="'cutSelection'"
+                                type="button"
+                                :disabled="!hasSelection"
+                                @click="requestSelectionCut()"
+                        ></button>
+                    </li>
+                    <li>
                         <button v-t="'cropToSelection'"
                                 type="button"
                                 :disabled="!hasSelection"
@@ -330,6 +337,7 @@ export default {
         ...mapActions([
             "requestDocumentClose",
             "requestSelectionCopy",
+            "requestSelectionCut",
             "clearSelection",
             "pasteSelection",
             "deleteInSelection",
