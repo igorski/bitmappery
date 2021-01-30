@@ -27,7 +27,7 @@ import { renderCross } from "@/utils/render-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
 import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
-import { rotatePoints, translatePointerRotation } from "@/math/point-math";
+import { translatePointerRotation } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { clipContextToSelection } from "@/rendering/clipping";
 import { renderClonedStroke } from "@/rendering/cloning";
@@ -227,25 +227,18 @@ class LayerSprite extends sprite {
         if ( isEraser ) {
             ctx.globalCompositeOperation = "destination-out";
         }
+        // as long as the brush is held down, render paint in low res preview mode
+        const isLowResPreview = this._brush.down;
 
         // if there is an active selection, painting will be constrained within
         let selectionPoints = this._selection;
-        let sX, sY;
         if ( selectionPoints ) {
-            const rotCenterX = this._bounds.width  * 0.5;
-            const rotCenterY = this._bounds.height * 0.5;
-            sX = left;
-            sY = top;
-            if ( this.isRotated() ) {
-                selectionPoints = rotatePoints( selectionPoints, rotCenterX, rotCenterY, rotation );
-                const rect = getRectangleForSelection( selectionPoints );
-                // TODO: 0, 0 coordinate is fine when layer isn't panned...
-                //const pts = translatePointerRotation( 0, 0, rect.width / 2, rect.height / 2, rotation );
-                //console.warn(pts);
-                sX = 0;//pts.x;
-                sY = 0;//pts.y;
+            let { x, y } = this.layer;
+            if ( this.isRotated() && !isLowResPreview ) {
+                selectionPoints = rotatePointerLists( selectionPoints, this.layer, width, height );
+                x = y = 0; // pointers have been rotated within clipping context
             }
-            clipContextToSelection( ctx, selectionPoints, isFillMode, sX, sY );
+            clipContextToSelection( ctx, selectionPoints, isFillMode, x, y );
         }
 
         // transform destination context in case the current layer is rotated or mirrored
@@ -266,7 +259,7 @@ class LayerSprite extends sprite {
             const pointers = slicePointers( this._brush );
 
             if ( isCloneStamp ) {
-                if ( this._brush.down ) {
+                if ( isLowResPreview ) {
                     renderClonedStroke( ctx, this._brush, this, this._toolOptions.sourceLayerId,
                         rotatePointerLists( pointers, this.layer, width, height )
                     );
@@ -277,7 +270,7 @@ class LayerSprite extends sprite {
                 // brush operations are done on a lower resolution canvas during live update
                 // upon release, this will be rendered to the Layer source (see handleRelease())
                 let overrides = null;
-                if ( this._brush.down ) {
+                if ( isLowResPreview ) {
                     // live update on lower resolution canvas
                     this.tempCanvas = this.tempCanvas || getTempCanvas( this.canvas );
                     overrides = createOverrideConfig( this.canvas, pointers );
@@ -285,18 +278,18 @@ class LayerSprite extends sprite {
                     ctx = this.tempCanvas.ctx;
 
                     if ( selectionPoints && this.tempCanvas ) {
-                        clipContextToSelection( ctx, selectionPoints, isFillMode, sX - left, sY - top, overrides );
+                        clipContextToSelection( ctx, selectionPoints, isFillMode, 0, 0, overrides );
                     }
                 } else {
-                    rotatePointerLists( this._brush.pointers, this.layer, width, height );
+                    this._brush.pointers = rotatePointerLists( this._brush.pointers, this.layer, width, height );
                 }
                 renderBrushStroke( ctx, this._brush, this, overrides );
             }
         }
         ctx.restore();
 
-        // when brushing, defer recache of filters to handleRelease()
-        if ( !this._brush.down ) {
+        // during low res preview brushing, defer recache of filters to handleRelease()
+        if ( !isLowResPreview ) {
             this.resetFilterAndRecache();
         }
     }
@@ -594,6 +587,7 @@ export default LayerSprite;
 /* internal non-instance methods */
 
 function rotatePointerLists( pointers, layer, sourceWidth, sourceHeight ) {
+    const out = [];
     // we take layer.x instead of bounds.left as it provides the unrotated Layer offset
     const { x, y } = layer;
     // translate pointer to translated space, when layer is rotated or mirrored
@@ -608,10 +602,9 @@ function rotatePointerLists( pointers, layer, sourceWidth, sourceHeight ) {
         if ( mirrorY ) {
             p.y -= sourceHeight;
         }
-        point.x = p.x;
-        point.y = p.y;
+        out.push( p );
     });
-    return pointers;
+    return out;
 }
 
 // NOTE we use getSpriteForLayer() instead of passing the Sprite by reference

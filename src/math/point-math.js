@@ -63,9 +63,3 @@ export const translatePoints = ( coordinateList, xTranslation = 0, yTranslation 
         y: y + yTranslation,
     }));
 };
-
-export const rotatePoints = ( coordinateList, rotationCenterX, rotationCenterY, angleInRadians ) => {
-    return coordinateList.map(({ x, y }) => {
-        return translatePointerRotation( x, y, rotationCenterX, rotationCenterY, angleInRadians );
-    });
-};
