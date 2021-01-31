@@ -116,21 +116,31 @@ export default {
             "closeModal",
             "setActiveDocumentSize",
             "resizeActiveDocumentContent",
+            "openDialog",
+            "resetHistory"
         ]),
-        lockSync() {
+        async lockSync() {
             this.syncLock = true;
-            this.$nextTick(() => {
-                this.syncLock = false;
-            });
+            await this.$nextTick();
+            this.syncLock = false;
         },
-        async save() {
-            const { width, height } = this.dimensions;
-            const scaleX = width  / this.activeDocument.width;
-            const scaleY = height / this.activeDocument.height;
+        save() {
+            this.openDialog({
+                type: "confirm",
+                title: this.$t( "areYouSure" ),
+                message: this.$t( "resizeIsPermanent" ),
+                confirm: async () => {
+                    const { width, height } = this.dimensions;
+                    const scaleX = width  / this.activeDocument.width;
+                    const scaleY = height / this.activeDocument.height;
 
-            await this.resizeActiveDocumentContent({ scaleX, scaleY });
-            this.setActiveDocumentSize({ width: Math.round( width ), height: Math.round( height ) });
-            this.closeModal();
+                    await this.resizeActiveDocumentContent({ scaleX, scaleY });
+                    this.setActiveDocumentSize({ width: Math.round( width ), height: Math.round( height ) });
+                    this.resetHistory();
+                    this.closeModal();
+                },
+                cancel: () => {},
+            });
         },
     }
 };

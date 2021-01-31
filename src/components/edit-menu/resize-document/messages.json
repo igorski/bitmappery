@@ -2,6 +2,8 @@
     "en-US": {
         "resizeDocument": "Resize document",
         "maintainAspectRatio": "Maintain aspect ratio",
+        "areYouSure": "Are you sure?",
+        "resizeIsPermanent": "Resizing a document is permanent and cannot be undone.",
         "save": "Save",
         "cancel": "Cancel"
     }
