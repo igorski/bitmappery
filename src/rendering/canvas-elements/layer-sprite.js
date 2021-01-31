@@ -21,12 +21,13 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Vue from "vue";
-import { sprite } from "zcanvas"
+import ZoomableSprite from "./zoomable-sprite";
 import { createCanvas, canvasToBlob, resizeImage, globalToLocal } from "@/utils/canvas-util";
 import { renderCross } from "@/utils/render-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
 import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
+import { scaleRectangle } from "@/math/image-math";
 import { translatePointerRotation } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { clipContextToSelection } from "@/rendering/clipping";
@@ -41,12 +42,14 @@ import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
 
+const HALF = 0.5;
+
 /**
  * A LayerSprite is the renderer for a Documents Layer.
  * It handles all tool interactions with the layer and also provides interaction with the Layers Mask.
  * It inherits from the zCanvas Sprite to be an interactive Canvas drawable.
  */
-class LayerSprite extends sprite {
+class LayerSprite extends ZoomableSprite {
     constructor( layer ) {
         const { bitmap, x, y, width, height } = layer;
         super({ bitmap, x, y, width, height }); // zCanvas inheritance
@@ -481,25 +484,45 @@ class LayerSprite extends sprite {
         }
     }
 
+    drawCropped( canvasContext, size ) {
+        if ( !this.isScaled() ) {
+            return super.drawCropped( canvasContext, size );
+        }
+        const scale = 1 / this.layer.effects.scale;
+        const { src, dest } = size;
+        canvasContext.drawImage(
+            this._bitmap,
+            ( HALF + src.left * scale )    << 0,
+            ( HALF + src.top * scale )     << 0,
+            ( HALF + src.width * scale )   << 0,
+            ( HALF + src.height * scale )  << 0,
+            ( HALF + dest.left )   << 0,
+            ( HALF + dest.top )    << 0,
+            ( HALF + dest.width )  << 0,
+            ( HALF + dest.height ) << 0
+        );
+    }
+
     draw( documentContext, viewport, omitOutlines = false ) {
-        const scaleDocument = this.isScaled();
+        let orgBounds;
 
         // in case Layer has scale effect, apply it here (we don't resample the
         // actual Layer source to make this behaviour non-destructive, it's
         // merely a visualization and thus renderer affair)
 
-        if ( scaleDocument ) {
+        if ( this.isScaled() ) {
             const { scale } = this.layer.effects;
-            const { left, top, width, height } = this._bounds;
-            const xTranslation = ( left + width  * 0.5 ) - viewport.left;
-            const yTranslation = ( top  + height * 0.5 ) - viewport.top;
-            documentContext.save();
-            documentContext.translate( xTranslation, yTranslation );
-            documentContext.scale( scale, scale );
-            documentContext.translate( -xTranslation, -yTranslation );
+            // we could scale the canvas context instead, but scaling the bounds means
+            // that viewport pan logic will work "out of the box"
+            orgBounds = this._bounds;
+            this._bounds = scaleRectangle( orgBounds, scale );
         }
         // invoke base class behaviour to render bitmap
         super.draw( documentContext, viewport );
+
+        if ( orgBounds ) {
+            this._bounds = orgBounds;
+        }
 
         // sprite is currently brushing, render low resolution temp contents onto screen
         if ( this.tempCanvas ) {
@@ -566,10 +589,6 @@ class LayerSprite extends sprite {
                 documentContext.strokeRect( destX, destY, width, height );
                 documentContext.restore();
             }
-        }
-
-        if ( scaleDocument ) {
-            documentContext.restore();
         }
     }
 
