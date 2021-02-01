@@ -58,6 +58,7 @@
 <script>
 import { mapGetters, mapMutations, mapActions } from "vuex";
 import Modal from "@/components/modal/modal";
+import { focus } from "@/utils/environment-util";
 
 import messages from "./messages.json";
 export default {
@@ -78,7 +79,7 @@ export default {
     },
     mounted() {
         this.name = this.activeDocument.name.split( "." )[ 0 ];
-        this.$refs.nameInput.focus();
+        focus( this.$refs.nameInput );
     },
     methods: {
         ...mapMutations([

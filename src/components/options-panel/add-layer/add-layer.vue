@@ -68,6 +68,7 @@ import SelectBox from '@/components/ui/select-box/select-box';
 import LayerFactory from "@/factories/layer-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import { LAYER_GRAPHIC, LAYER_TEXT } from "@/definitions/layer-types";
+import { focus } from "@/utils/environment-util";
 
 import messages from "./messages.json";
 export default {
@@ -97,7 +98,7 @@ export default {
         },
     },
     mounted() {
-        this.$refs.nameInput.focus();
+        focus( this.$refs.nameInput );
     },
     methods: {
         ...mapMutations([

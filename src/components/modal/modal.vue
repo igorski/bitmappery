@@ -41,6 +41,8 @@
 
 <script>
 import { mapMutations } from "vuex";
+import { focus } from "@/utils/environment-util";
+
 export default {
     methods: {
         ...mapMutations([
@@ -48,7 +50,7 @@ export default {
         ]),
     },
     mounted() {
-        this.$refs.content?.focus();
+        focus( this.$refs.content );
         this.escListener = ({ keyCode }) => {
             if ( keyCode === 27 ) {
                 this.closeModal();

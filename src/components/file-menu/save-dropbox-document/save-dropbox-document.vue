@@ -60,6 +60,7 @@ import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal";
 import { uploadBlob } from "@/services/dropbox-service";
 import DocumentFactory from "@/factories/document-factory";
+import { focus } from "@/utils/environment-util";
 import { PROJECT_FILE_EXTENSION } from "@/store";
 
 import messages from "./messages.json";
@@ -81,7 +82,7 @@ export default {
     },
     mounted() {
         this.name = this.activeDocument.name.split( "." )[ 0 ];
-        this.$refs.nameInput.focus();
+        focus( this.$refs.nameInput );
     },
     methods: {
         ...mapMutations([

@@ -121,6 +121,7 @@ import { createCanvas } from "@/utils/canvas-util";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
+import { focus } from "@/utils/environment-util";
 import messages from "./messages.json";
 
 export default {
@@ -172,7 +173,7 @@ export default {
             KeyboardService.setSuspended( value );
             if ( value ) {
                 this.$nextTick(() => {
-                    this.$refs.nameInput[0]?.focus();
+                    focus( this.$refs.nameInput[0] );
                 });
             }
         },

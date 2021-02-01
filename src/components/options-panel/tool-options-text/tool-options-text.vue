@@ -95,6 +95,7 @@ import KeyboardService from "@/services/keyboard-service";
 import { loadGoogleFont } from "@/services/font-service";
 import { googleFonts } from "@/definitions/font-types";
 import { isMobile } from "@/utils/environment-util";
+import { focus } from "@/utils/environment-util";
 import messages  from "./messages.json";
 
 export default {
@@ -195,7 +196,7 @@ export default {
         },
     },
     mounted() {
-        this.$refs.textInput?.focus();
+        focus( this.$refs.textInput );
     },
     destroyed() {
         this.handleBlur();

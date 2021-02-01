@@ -63,6 +63,7 @@ import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal";
 import DocumentFactory from "@/factories/document-factory";
 import DimensionsFormatter from "@/components/ui/dimensions-formatter/dimensions-formatter";
+import { focus } from "@/utils/environment-util";
 import messages from "./messages.json";
 
 export default {
@@ -85,7 +86,7 @@ export default {
     },
     mounted() {
         this.name = this.$t( "newDocumentNum", { num: this.documents.length + 1 });
-        this.$refs.first.focus();
+        focus( this.$refs.first );
     },
     methods: {
         ...mapMutations([
