@@ -131,7 +131,7 @@ export default {
             switch ( this.unit ) {
                 default:
                 case "px":
-                    return valueInPx;
+                    return Math.round( valueInPx );
                 case "in":
                     return toFixedFloat( pixelsToInch( valueInPx, dpi ));
                 case "cm":
@@ -144,7 +144,7 @@ export default {
             switch ( this.unit ) {
                 default:
                 case "px":
-                    return value;
+                    return Math.round( value );
                 case "in":
                     return inchesToPixels( value, this.dpi );
                     break;
