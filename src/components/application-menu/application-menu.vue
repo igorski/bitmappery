@@ -152,6 +152,13 @@
                         ></button>
                     </li>
                     <li>
+                        <button v-t="'canvasSize'"
+                                type="button"
+                                :disabled="noDocumentsAvailable"
+                                @click="requestCanvasResize()"
+                        ></button>
+                    </li>
+                    <li>
                         <button v-t="'cropToSelection'"
                                 type="button"
                                 :disabled="!hasSelection"
@@ -274,7 +281,7 @@ import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import cloneDeep from "lodash.clonedeep";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION,
-    DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT, PREFERENCES
+    DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT, PREFERENCES, RESIZE_CANVAS
 } from "@/definitions/modal-windows";
 import { getRectangleForSelection } from "@/math/selection-math";
 import { getCanvasInstance, runSpriteFn, getSpriteForLayer } from "@/factories/sprite-factory";
@@ -363,6 +370,9 @@ export default {
         },
         requestDocumentResize() {
             this.openModal( RESIZE_DOCUMENT );
+        },
+        requestCanvasResize() {
+            this.openModal( RESIZE_CANVAS );
         },
         requestDocumentExport() {
             this.openModal( EXPORT_DOCUMENT );

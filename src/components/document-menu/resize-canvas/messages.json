@@ -1,0 +1,19 @@
+{
+    "en-US": {
+        "resizeCanvas": "Resize canvas",
+        "width": "Width",
+        "height": "Height",
+        "contentAlignment": "Content alignment",
+        "topLeft": "Top left",
+        "topCenter": "Top center",
+        "topRight": "Top right",
+        "centerLeft": "Center left",
+        "centered": "Centered",
+        "centerRight": "Center right",
+        "bottomLeft": "Bottom left",
+        "bottomCenter": "Bottom center",
+        "bottomRight": "Bottom right",
+        "resize": "Resize",
+        "cancel": "Cancel"
+    }
+}

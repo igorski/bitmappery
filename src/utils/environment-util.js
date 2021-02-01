@@ -28,6 +28,10 @@ let maximizeText, minimizeText;
 
 export const isMobile = () => window.screen.availWidth <= 640; // see _variables.scss
 
+// on non-mobile environments we allow focusing of the first form element wihtin a component
+// on mobile we don't do this as (depending on OS) this would force the keyboard to popup
+export const focus = element => !isMobile() && element?.focus();
+
 export const supportsFullscreen = () => !Bowser.ios;
 
 export const setToggleButton = ( element, maximizeCopy, minimizeCopy, optCallback ) => {

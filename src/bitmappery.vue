@@ -82,7 +82,7 @@ import store           from "./store";
 import messages        from "./messages.json";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, SAVE_DROPBOX_DOCUMENT, EXPORT_IMAGE,
-    DROPBOX_FILE_SELECTOR, ADD_LAYER, LOAD_SELECTION, SAVE_SELECTION, PREFERENCES
+    DROPBOX_FILE_SELECTOR, ADD_LAYER, LOAD_SELECTION, SAVE_SELECTION, PREFERENCES, RESIZE_CANVAS
 } from "@/definitions/modal-windows";
 
 Vue.use( Vuex );
@@ -132,7 +132,7 @@ export default {
                 case CREATE_DOCUMENT:
                     return () => import( "@/components/file-menu/create-document/create-document" );
                 case RESIZE_DOCUMENT:
-                    return () => import( "@/components/edit-menu/resize-document/resize-document" );
+                    return () => import( "@/components/document-menu/resize-document/resize-document" );
                 case EXPORT_DOCUMENT:
                     return () => import( "@/components/file-menu/export-document/export-document" );
                 case EXPORT_IMAGE:
@@ -149,6 +149,8 @@ export default {
                     return () => import( "@/components/selection-menu/save-selection/save-selection" );
                 case PREFERENCES:
                     return () => import( "@/components/preferences/preferences" );
+                case RESIZE_CANVAS:
+                    return () => import( "@/components/document-menu/resize-canvas/resize-canvas" );
             }
         },
     },

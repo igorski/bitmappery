@@ -30,3 +30,4 @@ export const ADD_LAYER             = 7;
 export const SAVE_SELECTION        = 8;
 export const LOAD_SELECTION        = 9;
 export const PREFERENCES           = 10;
+export const RESIZE_CANVAS         = 11;
