@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-const { pow, sqrt, atan2 } = Math;
+const { pow, sqrt, atan2, round, cos, sin, PI } = Math;
 
 export const distanceBetween = ( point1, point2 ) => {
     return sqrt( pow( point2.x - point1.x, 2 ) + pow( point2.y - point1.y, 2 ));
@@ -62,4 +62,29 @@ export const translatePoints = ( coordinateList, xTranslation = 0, yTranslation 
         x: x + xTranslation,
         y: y + yTranslation,
     }));
+};
+
+/**
+ * Calculates the coordinate relative to given x, y and sourcePoint for an incremental snap
+ *
+ * @param {Number} x coordinate to snap to
+ * @param {Number} y coordinate to snap to
+ * @param {{ x: Number, y: Number }} sourcePoint coordinate to snap from
+ * @param {{ left: Number, top: Number }} viewport in case coordinates are panned
+ * @param {Number=} steps defaults to 4 (45 degree increments)
+ */
+export const snapToAngle = ( x, y, sourcePoint, { left = 0, top = 0 } = {}, steps = 4 ) => {
+    const deltaX = ( x - sourcePoint.x ) + left;
+    const deltaY = ( y - sourcePoint.y ) + top;
+    let dist = sqrt( pow( deltaX, 2 ) + pow( deltaY, 2 ));
+
+    const newAngle     = atan2( deltaY, deltaX );
+    const shiftedAngle = round( newAngle / PI * steps ) / steps * PI;
+
+    dist *= cos( shiftedAngle - newAngle ); // closer to x, y
+
+    return {
+        x: sourcePoint.x - left + dist * cos( shiftedAngle ),
+        y: sourcePoint.y - top  + dist * sin( shiftedAngle )
+    };
 };

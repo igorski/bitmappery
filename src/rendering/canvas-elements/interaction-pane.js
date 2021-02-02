@@ -25,11 +25,12 @@ import { sprite } from "zcanvas";
 import { isInsideTransparentArea } from "@/utils/canvas-util";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
-import { isPointInRange } from "@/math/point-math";
+import { isPointInRange, snapToAngle } from "@/math/point-math";
 import { rectangleToCoordinates } from "@/math/image-math";
 import { isSelectionClosed } from "@/math/selection-math";
 import ToolTypes from "@/definitions/tool-types";
 import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
+import KeyboardService from "@/services/keyboard-service";
 
 export const MODE_PAN          = 0;
 export const MODE_LAYER_SELECT = 1;
@@ -184,17 +185,24 @@ class InteractionPane extends sprite {
 
             case MODE_SELECTION:
                 if ( !this._selectionClosed ) {
-                    const document = this.getActiveDocument();
+                    const document      = this.getActiveDocument();
+                    const { selection } = document;
                     // selection mode, set the click coordinate as the first point in the selection
-                    const firstPoint = document.selection[ 0 ];
+                    const firstPoint = selection[ 0 ];
                     let storeHistory = false;
-                    if ( firstPoint && isPointInRange( x, y, firstPoint.x, firstPoint.y, 5 / this.canvas.zoomFactor )) {
-                        this._selectionClosed = true;
-                        x = firstPoint.x;
-                        y = firstPoint.y;
-                        storeHistory = true;
+                    if ( firstPoint ) {
+                        if ( KeyboardService.hasShift() ) {
+                            ({ x, y } = snapToAngle( x, y, selection[ selection.length - 1 ] ));
+                        }
+                        else if ( isPointInRange( x, y, firstPoint.x, firstPoint.y, 5 / this.canvas.zoomFactor )) {
+                            // point was in range of start coordinate, snap and close selection
+                            this._selectionClosed = true;
+                            x = firstPoint.x;
+                            y = firstPoint.y;
+                            storeHistory = true;
+                        }
                     }
-                    document.selection.push({ x, y });
+                    selection.push({ x, y });
                     if ( storeHistory ) {
                         storeSelectionHistory( document );
                     }
@@ -262,7 +270,9 @@ class InteractionPane extends sprite {
             // for lasso selections, draw line to current cursor position
             let currentPosition = null;
             if ( !this._isRectangleSelect && !this._selectionClosed ) {
-                currentPosition = { x: localPointerX, y: localPointerY };
+                currentPosition = KeyboardService.hasShift() ?
+                    snapToAngle( localPointerX, localPointerY, selection[ selection.length - 1 ], viewport )
+                : { x: localPointerX, y: localPointerY };
             }
             const { zoomFactor } = this.canvas;
 
