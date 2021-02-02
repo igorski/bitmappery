@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import BrushTypes from "@/definitions/brush-types";
+import BrushTypes, { getSizeForBrush } from "@/definitions/brush-types";
 import { createDrawable } from "@/factories/brush-factory";
 import { randomInRange } from "@/math/unit-math";
 import { applyOverrideConfig } from "@/rendering/lowres";
@@ -57,6 +57,8 @@ export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
         return;
     }
 
+    const lineWidth = getSizeForBrush( brush );
+
     ctx.save();
     ctx.lineJoin = ctx.lineCap = "round";
 
@@ -92,8 +94,8 @@ export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
                 const angle = randomInRange( 0, TWO_PI );
                 const size  = randomInRange( 1, 3 );
                 ctx.fillRect(
-                    point.x + randomInRange( -halfRadius, halfRadius ) * cos( angle ),
-                    point.y + randomInRange( -halfRadius, halfRadius ) * sin( angle ),
+                    point.x + randomInRange( -radius, radius ) * cos( angle ),
+                    point.y + randomInRange( -radius, radius ) * sin( angle ),
                     size, size
                 );
             }
@@ -106,7 +108,7 @@ export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
 
         if ( type === BrushTypes.LINE ) {
             if ( isFirst ) {
-                ctx.lineWidth = radius;
+                ctx.lineWidth = lineWidth;
                 ctx.beginPath();
                 ctx.moveTo( prevPoint.x, prevPoint.y );
             }
@@ -117,11 +119,11 @@ export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
 
         if ( type === BrushTypes.CALLIGRAPHIC ) {
             if ( isFirst ) {
-                ctx.lineWidth = halfRadius;
+                ctx.lineWidth = lineWidth;
                 ctx.beginPath();
             }
-            const min = ( radius * 0.25 ) * 0.66666;
-            const max = ( radius * 0.25 ) * 1.33333;
+            const min = ( radius * 0.2 ) * 0.66666;
+            const max = ( radius * 0.2 ) * 1.33333;
 
             [ -max, -min, 0, min, max ].forEach( offset => {
                 ctx.moveTo( prevPoint.x + offset, prevPoint.y + offset );
@@ -136,7 +138,7 @@ export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
 
         if ( type === BrushTypes.CONNECTED ) {
             if ( isFirst ) {
-                ctx.lineWidth = halfRadius * 0.25;
+                ctx.lineWidth = lineWidth;
                 ctx.beginPath();
                 ctx.moveTo( prevPoint.x, prevPoint.y );
             }
@@ -155,7 +157,7 @@ export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
 
             if ( isFirst ) {
                 const penultimate = pointers[ pointers.length - 2 ];
-                ctx.lineWidth = halfRadius;
+                ctx.lineWidth = lineWidth;
                 ctx.beginPath();
                 ctx.moveTo( penultimate.x, penultimate.y );
                 ctx.lineTo( lastPoint.x,   lastPoint.y );
@@ -189,7 +191,7 @@ export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
                 case BrushTypes.PEN:
                     if ( isFirst && j === 0 ) {
                         ctx.beginPath();
-                        ctx.lineWidth = ( radius * 0.2 ) * randomInRange( 0.5, 1 );
+                        ctx.lineWidth = lineWidth * randomInRange( 0.5, 1 );
                         if ( smooth ) {
                             ctx.moveTo( prevPoint.x - dX, prevPoint.y - dY );
                         }

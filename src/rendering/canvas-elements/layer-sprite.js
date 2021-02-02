@@ -26,6 +26,7 @@ import { createCanvas, canvasToBlob, resizeImage, globalToLocal } from "@/utils/
 import { renderCross } from "@/utils/render-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
+import { getSizeForBrush } from "@/definitions/brush-types";
 import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
 import { scaleRectangle } from "@/math/image-math";
 import { translatePointerRotation } from "@/math/point-math";
@@ -42,7 +43,8 @@ import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
 
-const HALF = 0.5;
+const HALF   = 0.5;
+const TWO_PI = 2 * Math.PI;
 
 /**
  * A LayerSprite is the renderer for a Documents Layer.
@@ -541,12 +543,12 @@ class LayerSprite extends ZoomableSprite {
             // render brush outline at pointer position
 
             if ( this._isPaintMode ) {
+                let tx = this._pointerX - viewport.left;
+                let ty = this._pointerY - viewport.top;
                 documentContext.lineWidth = 2 / zoomFactor;
                 const drawBrushOutline = this._toolType !== ToolTypes.CLONE || !!this._toolOptions.coords;
                 if ( this._toolType === ToolTypes.CLONE ) {
                     const { coords } = this._toolOptions;
-                    let tx = this._pointerX - viewport.left;
-                    let ty = this._pointerY - viewport.top;
                     const relSource = this._cloneStartCoords ?? this._dragStartEventCoordinates;
                     if ( coords ) {
                         tx = ( coords.x - viewport.left ) + ( this._pointerX - relSource.x );
@@ -562,7 +564,7 @@ class LayerSprite extends ZoomableSprite {
 
                 if ( drawBrushOutline ) {
                     // any other brush mode state shows brush outline
-                    documentContext.arc( this._pointerX - viewport.left, this._pointerY - viewport.top, this._brush.radius, 0, 2 * Math.PI );
+                    documentContext.arc( tx, ty, getSizeForBrush( this._brush ), 0, TWO_PI );
                     documentContext.strokeStyle = "#999";
                 }
                 documentContext.stroke();

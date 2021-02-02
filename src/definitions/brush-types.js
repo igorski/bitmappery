@@ -41,3 +41,18 @@ const NON_STEPPABLE_TYPES = [ BrushTypes.CONNECTED, BrushTypes.NEAREST ];
  * @param {Object} brush @see brush-factory
  */
 export const hasSteppedLiveRender = ({ options }) => !NON_STEPPABLE_TYPES.includes( options.type );
+
+export const getSizeForBrush = ({ options, radius, halfRadius }) => {
+    switch ( options.type ) {
+        default:
+            return radius;
+        case BrushTypes.PEN:
+            return radius * 0.2;
+        case BrushTypes.CALLIGRAPHIC:
+            return halfRadius;
+        case BrushTypes.CONNECTED:
+            return halfRadius * 0.25;
+        case BrushTypes.NEAREST:
+            return halfRadius;
+    }
+};
