@@ -53,6 +53,8 @@ class InteractionPane extends sprite {
         this._pointerY = 0;
         this._vpStartX = 0;
         this._vpStartY = 0;
+
+        this._lastRelease = 0;
     }
 
     setState( enabled, mode, activeTool, activeToolOptions ) {
@@ -236,19 +238,32 @@ class InteractionPane extends sprite {
     }
 
     handleRelease( x, y ) {
+        const now = Date.now();
+
         if ( this.mode === MODE_SELECTION ) {
             this.forceMoveListener(); // keeps the move listener active
             const document = this.getActiveDocument();
-            if ( this._isRectangleSelect && document.selection.length > 0 ) {
-                // when releasing in rectangular select mode, set the selection to
-                // the bounding box of the down press coordinate and this release coordinate
-                const firstPoint = document.selection[ 0 ];
-                const { width, height } = calculateSelectionSize( firstPoint, x, y, this.toolOptions );
-                document.selection = rectangleToCoordinates( firstPoint.x, firstPoint.y, width, height );
-                this._selectionClosed = true;
-                storeSelectionHistory( document );
+            if ( this._isRectangleSelect ) {
+                if ( document.selection.length > 0 ) {
+                    // when releasing in rectangular select mode, set the selection to
+                    // the bounding box of the down press coordinate and this release coordinate
+                    const firstPoint = document.selection[ 0 ];
+                    const { width, height } = calculateSelectionSize( firstPoint, x, y, this.toolOptions );
+                    document.selection = rectangleToCoordinates( firstPoint.x, firstPoint.y, width, height );
+                    this._selectionClosed = true;
+                    storeSelectionHistory( document );
+                }
+            }
+            else {
+                // lasso tool
+                if (( now - this._lastRelease ) < 250 && !this._selectionClosed ) {
+                    // double click means closing of selection
+                    document.selection.push({ ...document.selection[ 0 ] });
+                    this._selectionClosed = true;
+                }
             }
         }
+        this._lastRelease = now;
     }
 
     draw( ctx, viewport ) {
@@ -258,16 +273,17 @@ class InteractionPane extends sprite {
             const firstPoint    = selection[ 0 ];
             const localPointerX = this._pointerX - viewport.left; // local to viewport
             const localPointerY = this._pointerY - viewport.top;
+            const hasUnclosedSelection = selection.length && !this._selectionClosed;
 
             // when in rectangular select mode, the outline will draw from the first coordinate
             // (defined in handlePress()) to the current pointer coordinate
-            if ( this._isRectangleSelect && selection.length && !this._selectionClosed ) {
+            if ( this._isRectangleSelect && hasUnclosedSelection ) {
                 const { width, height } = calculateSelectionSize( firstPoint, this._pointerX, this._pointerY, this.toolOptions );
                 selection = rectangleToCoordinates( firstPoint.x, firstPoint.y, width, height );
             }
             // for unclosed lasso selections, draw line to current cursor position
             let currentPosition = null;
-            if ( !this._isRectangleSelect && !this._selectionClosed ) {
+            if ( !this._isRectangleSelect && hasUnclosedSelection ) {
                 currentPosition = KeyboardService.hasShift() ?
                     snapToAngle( localPointerX, localPointerY, selection[ selection.length - 1 ], viewport )
                 : { x: localPointerX, y: localPointerY };
