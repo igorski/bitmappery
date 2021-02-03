@@ -25,7 +25,7 @@ import { sprite } from "zcanvas";
 import { isInsideTransparentArea } from "@/utils/canvas-util";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
-import { isPointInRange, snapToAngle } from "@/math/point-math";
+import { isPointInRange, translatePoints, snapToAngle } from "@/math/point-math";
 import { rectangleToCoordinates } from "@/math/image-math";
 import { isSelectionClosed } from "@/math/selection-math";
 import ToolTypes from "@/definitions/tool-types";
@@ -126,7 +126,7 @@ class InteractionPane extends sprite {
         if ( this.mode === MODE_SELECTION ) {
             this.setSelection( [] );
             if ( isSelectionClosed( currentSelection )) {
-                storeSelectionHistory( document, currentSelection );
+                storeSelectionHistory( document, currentSelection, "reset" );
             }
         } else {
             Vue.delete( document, "selection" );
@@ -163,6 +163,7 @@ class InteractionPane extends sprite {
     /* zCanvas.sprite overrides */
 
     handlePress( x, y ) {
+        this.pointerDown = true;
         switch ( this.mode ) {
             default:
                 if ( this.isDragging ) {
@@ -223,8 +224,17 @@ class InteractionPane extends sprite {
         }
         switch ( this.mode ) {
             default:
-            case MODE_LAYER_SELECT:
-                return; // we only care about handlePress() in this mode
+                return;
+            case MODE_SELECTION:
+                // when mouse is down and selection is closed, drag the selection
+                if ( this._selectionClosed && this.pointerDown ) {
+                    const document = this.getActiveDocument();
+                    const currentSelection = document.selection;
+                    document.selection = translatePoints( currentSelection, x - this._dragStartEventCoordinates.x, y - this._dragStartEventCoordinates.y);
+                    this._dragStartEventCoordinates = { x, y }; // update to current position so we can easily move the selection using relative deltas
+                    storeSelectionHistory( document, currentSelection, "drag" );
+                }
+                break;
             case MODE_PAN:
                 const distX = this.vp.left - this._vpStartX;
                 const distY = this.vp.top  - this._vpStartY;
@@ -238,13 +248,14 @@ class InteractionPane extends sprite {
     }
 
     handleRelease( x, y ) {
+        this.pointerDown = false;
         const now = Date.now();
 
         if ( this.mode === MODE_SELECTION ) {
             this.forceMoveListener(); // keeps the move listener active
             const document = this.getActiveDocument();
             if ( this._isRectangleSelect ) {
-                if ( document.selection.length > 0 ) {
+                if ( document.selection.length > 0 && !this._selectionClosed ) {
                     // when releasing in rectangular select mode, set the selection to
                     // the bounding box of the down press coordinate and this release coordinate
                     const firstPoint = document.selection[ 0 ];
@@ -354,9 +365,9 @@ function calculateSelectionSize( firstPoint, destX, destY, { lockRatio, xRatio, 
     };
 }
 
-function storeSelectionHistory( document, optPreviousSelection = [] ) {
+function storeSelectionHistory( document, optPreviousSelection = [], optType = "" ) {
     const selection = [ ...document.selection ];
-    enqueueState( `selection_${document.name}`, {
+    enqueueState( `selection_${document.name}${optType}`, {
         undo() {
             const cvs = getCanvasInstance();
             if ( cvs ) {
