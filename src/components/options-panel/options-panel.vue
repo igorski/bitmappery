@@ -88,6 +88,8 @@ export default {
             switch ( this.activeTool ) {
                 default:
                     return null;
+                case ToolTypes.SELECTION:
+                    return () => import( "./tool-options-selection/tool-options-selection" );
                 case ToolTypes.ZOOM:
                     return () => import( "./tool-options-zoom/tool-options-zoom" );
                 case ToolTypes.ERASER:

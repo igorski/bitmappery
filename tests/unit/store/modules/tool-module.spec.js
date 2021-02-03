@@ -9,10 +9,11 @@ describe( "Vuex tool module", () => {
             activeTool: ToolTypes.ZOOM,
             activeColor: "red",
             options: {
-                [ ToolTypes.ZOOM ]   : { level: 1 },
-                [ ToolTypes.BRUSH ]  : { size: 10 },
-                [ ToolTypes.ERASER ] : { size: 10, opacity: 1 },
-                [ ToolTypes.CLONE ]  : { size: 10, opacity: 1, source: null, coords: null },
+                [ ToolTypes.ZOOM ]      : { level: 1 },
+                [ ToolTypes.BRUSH ]     : { size: 10 },
+                [ ToolTypes.ERASER ]    : { size: 10, opacity: 1 },
+                [ ToolTypes.CLONE ]     : { size: 10, opacity: 1, source: null, coords: null },
+                [ ToolTypes.SELECTION ] : { lockRatio: false, xRatio: 1, yRatio: 1 },
             }
         }
         it( "should be able to return the active tool", () => {
@@ -25,6 +26,10 @@ describe( "Vuex tool module", () => {
 
         it( "should be able to return the active color", () => {
             expect( getters.activeColor( state )).toEqual( "red" );
+        });
+
+        it( "should be able to retrieve the selection options", () => {
+            expect( getters.selectionOptions( state )).toEqual({ lockRatio: false, xRatio: 1, yRatio: 1 });
         });
 
         it( "should be able to retrieve the zoom options", () => {

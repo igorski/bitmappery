@@ -38,16 +38,19 @@ export default {
             [ ToolTypes.ERASER ]: { size: 10, type: BrushTypes.PAINT_BRUSH, opacity: 1, thickness: .5 },
             // see tool-options-clone.vue
             [ ToolTypes.CLONE ] : { size: 10, type: BrushTypes.PAINT_BRUSH, opacity: .5, thickness: .5, sourceLayerId: TOOL_SRC_MERGED, coords: null },
+            // see tool-options-selection
+            [ ToolTypes.SELECTION ] : { lockRatio: false, xRatio: 1, yRatio: 1 },
         },
     },
     getters: {
-        activeTool    : state => state.activeTool,
-        activeColor   : state => state.activeColor,
+        activeTool        : state => state.activeTool,
+        activeColor       : state => state.activeColor,
         activeToolOptions : state => state.options[ state.activeTool ],
-        zoomOptions   : state => state.options[ ToolTypes.ZOOM ],
-        brushOptions  : state => state.options[ ToolTypes.BRUSH ],
-        eraserOptions : state => state.options[ ToolTypes.ERASER ],
-        cloneOptions  : state => state.options[ ToolTypes.CLONE ],
+        selectionOptions  : state => state.options[ ToolTypes.SELECTION ],
+        zoomOptions       : state => state.options[ ToolTypes.ZOOM ],
+        brushOptions      : state => state.options[ ToolTypes.BRUSH ],
+        eraserOptions     : state => state.options[ ToolTypes.ERASER ],
+        cloneOptions      : state => state.options[ ToolTypes.CLONE ],
     },
     mutations: {
         setActiveTool( state, { tool, document }) {

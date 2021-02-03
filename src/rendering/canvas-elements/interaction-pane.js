@@ -55,7 +55,7 @@ class InteractionPane extends sprite {
         this._vpStartY = 0;
     }
 
-    setState( enabled, mode, activeTool ) {
+    setState( enabled, mode, activeTool, activeToolOptions ) {
         this._enabled = enabled;
         this.setDraggable( enabled );
 
@@ -94,6 +94,7 @@ class InteractionPane extends sprite {
             // unsets move listener
             this.isDragging = false;
         }
+        this.toolOptions = activeToolOptions;
     }
 
     handleActiveTool( tool, remainInteractive ) {
@@ -242,7 +243,8 @@ class InteractionPane extends sprite {
                 // when releasing in rectangular select mode, set the selection to
                 // the bounding box of the down press coordinate and this release coordinate
                 const firstPoint = document.selection[ 0 ];
-                document.selection = rectangleToCoordinates( firstPoint.x, firstPoint.y, x - firstPoint.x, y - firstPoint.y );
+                const { width, height } = calculateSelectionSize( firstPoint, x, y, this.toolOptions );
+                document.selection = rectangleToCoordinates( firstPoint.x, firstPoint.y, width, height );
                 this._selectionClosed = true;
                 storeSelectionHistory( document );
             }
@@ -260,14 +262,10 @@ class InteractionPane extends sprite {
             // when in rectangular select mode, the outline will draw from the first coordinate
             // (defined in handlePress()) to the current pointer coordinate
             if ( this._isRectangleSelect && selection.length && !this._selectionClosed ) {
-                selection = rectangleToCoordinates(
-                    firstPoint.x,
-                    firstPoint.y,
-                    localPointerX - firstPoint.x + viewport.left,
-                    localPointerY - firstPoint.y + viewport.top
-                );
+                const { width, height } = calculateSelectionSize( firstPoint, this._pointerX, this._pointerY, this.toolOptions );
+                selection = rectangleToCoordinates( firstPoint.x, firstPoint.y, width, height );
             }
-            // for lasso selections, draw line to current cursor position
+            // for unclosed lasso selections, draw line to current cursor position
             let currentPosition = null;
             if ( !this._isRectangleSelect && !this._selectionClosed ) {
                 currentPosition = KeyboardService.hasShift() ?
@@ -324,6 +322,20 @@ function drawSelectionOutline( ctx, zCanvas, viewport, selection, color, current
         ctx.lineTo(( .5 + currentPosition.x ) << 0, ( .5 + currentPosition.y ) << 0 );
     }
     ctx.stroke();
+}
+
+function calculateSelectionSize( firstPoint, destX, destY, { lockRatio, xRatio, yRatio }) {
+    if ( !lockRatio && !KeyboardService.hasShift() ) {
+        return {
+            width  : destX - firstPoint.x,
+            height : destY - firstPoint.y
+        };
+    }
+    const width = destX - firstPoint.x;
+    return {
+        width,
+        height: width * ( yRatio / xRatio )
+    };
 }
 
 function storeSelectionHistory( document, optPreviousSelection = [] ) {

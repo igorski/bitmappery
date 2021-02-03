@@ -361,7 +361,7 @@ export default {
                 } else if ( this.selectMode ) {
                     mode = MODE_SELECTION;
                 }
-                zCanvas.interactionPane.setState( enabled, mode, this.activeTool );
+                zCanvas.interactionPane.setState( enabled, mode, this.activeTool, this.activeToolOptions );
                 if ( enabled ) {
                     const classList = zCanvas.getElement().classList;
                     classList.remove( ...classList );
