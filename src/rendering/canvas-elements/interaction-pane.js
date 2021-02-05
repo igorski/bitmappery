@@ -83,8 +83,12 @@ class InteractionPane extends sprite {
         const document = this.getActiveDocument();
 
         if ( document && mode === MODE_SELECTION ) {
+            // create empty selection (or reset to empty selection when switching between
+            // rectangle selection tool modes)
             if ( !document.selection ) {
                 this.setSelection( [] );
+            } else if ( this._lastTool !== activeTool ) {
+                this.resetSelection();
             }
             this._hasSelection    = document.selection.length > 0;
             this._selectionClosed = isSelectionClosed( document.selection );
@@ -97,6 +101,7 @@ class InteractionPane extends sprite {
             this.isDragging = false;
         }
         this.toolOptions = activeToolOptions;
+        this._lastTool   = activeTool;
     }
 
     handleActiveTool( tool, remainInteractive ) {
@@ -249,10 +254,16 @@ class InteractionPane extends sprite {
 
     handleRelease( x, y ) {
         this.pointerDown = false;
-        const now = Date.now();
+        const now           = Date.now();
+        const isDoubleClick = ( now - this._lastRelease ) < 250;
+        this._lastRelease   = now;
 
         if ( this.mode === MODE_SELECTION ) {
-            this.forceMoveListener(); // keeps the move listener active
+            this.forceMoveListener(); // keep the move listener active
+            if ( isDoubleClick && this._selectionClosed ) {
+                this.resetSelection();
+                return;
+            }
             const document = this.getActiveDocument();
             if ( this._isRectangleSelect ) {
                 if ( document.selection.length > 0 && !this._selectionClosed ) {
@@ -265,16 +276,12 @@ class InteractionPane extends sprite {
                     storeSelectionHistory( document );
                 }
             }
-            else {
-                // lasso tool
-                if (( now - this._lastRelease ) < 250 && !this._selectionClosed ) {
-                    // double click means closing of selection
-                    document.selection.push({ ...document.selection[ 0 ] });
-                    this._selectionClosed = true;
-                }
+            else if ( isDoubleClick && !this._selectionClosed ) {
+                // double click on unclosed lasso tool selections auto-closes the selection
+                document.selection.push({ ...document.selection[ 0 ] });
+                this._selectionClosed = true;
             }
         }
-        this._lastRelease = now;
     }
 
     draw( ctx, viewport ) {
