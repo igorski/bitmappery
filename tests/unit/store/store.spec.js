@@ -20,6 +20,7 @@ jest.mock( "@/utils/file-util", () => ({
 jest.mock("@/utils/canvas-util", () => ({
     createCanvas: jest.fn(),
     imageToBase64: jest.fn(),
+    imageToCanvas: jest.fn(),
     base64ToLayerImage: jest.fn()
 }));
 

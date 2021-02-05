@@ -54,14 +54,19 @@ export const matchDimensions = ( sourceCanvas, canvasToMatch ) => {
 export const imageToBase64 = ( bitmap, width, height, transparent ) => {
     let cvs;
     if ( bitmap instanceof Image ) {
-        ({ cvs } = createCanvas( width, height ));
-        cvs.getContext( "2d" ).drawImage( bitmap, 0, 0 );
+        cvs = imageToCanvas( bitmap, width, height );
         return cvs.toDataURL( transparent ? PNG : JPEG );
     } else if ( bitmap instanceof HTMLCanvasElement ) {
         cvs = bitmap;
         return cvs.toDataURL( transparent ? PNG : JPEG );
     }
     return "";
+};
+
+export const imageToCanvas = ( bitmap, width, height ) => {
+    const { cvs, ctx } = createCanvas( width, height );
+    ctx.drawImage( bitmap, 0, 0 );
+    return cvs;
 };
 
 export const base64ToLayerCanvas = async( base64, type, width, height ) => {

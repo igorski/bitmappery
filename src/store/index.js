@@ -25,7 +25,7 @@ import DocumentFactory from "@/factories/document-factory";
 import LayerFactory    from "@/factories/layer-factory";
 import { initHistory, enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
-import { LAYER_IMAGE }   from "@/definitions/layer-types";
+import { LAYER_GRAPHIC } from "@/definitions/layer-types";
 import { ACCEPTED_FILE_TYPES } from "@/definitions/image-types";
 import { runSpriteFn }   from "@/factories/sprite-factory";
 import canvasModule      from "./modules/canvas-module";
@@ -34,7 +34,7 @@ import historyModule     from "./modules/history-module";
 import imageModule       from "./modules/image-module";
 import preferencesModule from "./modules/preferences-module";
 import toolModule        from "./modules/tool-module";
-import { cloneCanvas } from "@/utils/canvas-util";
+import { cloneCanvas, imageToCanvas } from "@/utils/canvas-util";
 import { copySelection, deleteSelectionContent } from "@/utils/document-util";
 import { saveBlobAsFile, selectFile } from "@/utils/file-util";
 import { replaceLayerSource } from "@/utils/layer-util";
@@ -212,8 +212,8 @@ export default {
             const selection       = state.selectionContent;
             const { image, size } = selection;
             const layer = LayerFactory.create({
-                type: LAYER_IMAGE,
-                source: image,
+                type: LAYER_GRAPHIC,
+                source: imageToCanvas( image, size.width, size.height ),
                 ...size,
                 x: getters.activeDocument.width  / 2 - size.width  / 2,
                 y: getters.activeDocument.height / 2 - size.height / 2,
