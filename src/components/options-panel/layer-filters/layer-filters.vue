@@ -32,6 +32,15 @@
                 />
             </div>
             <div class="wrapper input">
+                <label v-t="'opacity'"></label>
+                <slider
+                    v-model="opacity"
+                    :min="0"
+                    :max="100"
+                    :tooltip="'none'"
+                />
+            </div>
+            <div class="wrapper input">
                 <label v-t="'gamma'"></label>
                 <slider
                     v-model="gamma"
@@ -124,6 +133,14 @@ export default {
         filters() {
             return this.activeLayer.filters;
         },
+        opacity: {
+            get() {
+                return this.internalValue.opacity * 100;
+            },
+            set( value ) {
+                this.internalValue.opacity = value / 100;
+            }
+        },
         gamma: {
             get() {
                 return this.internalValue.gamma * 100;
@@ -173,9 +190,13 @@ export default {
                 }, 250 );
             },
         },
-        activeLayer( value ) {
+        activeLayer( value, oldValue ) {
             if ( !value ) {
                 this.close(); // document has been closed
+            } else if ( oldValue && value.id !== oldValue.id ) {
+                this.cancel( this.orgLayerId ); // layer has switched
+            } else {
+                this.optLayerIndex = this.activeLayerIndex;
             }
         }
     },
@@ -211,17 +232,17 @@ export default {
             this.internalValue = FiltersFactory.create();
             this.update();
         },
-        cancel() {
-            this.update( this.orgFilters );
+        cancel( optLayerIndex ) {
+            this.update( this.orgFilters, optLayerIndex );
             this.close();
         },
         close() {
             this.$emit( "close" );
         },
-        update( optData ) {
+        update( optData, optLayerIndex ) {
             const filters = optData || { ...this.internalValue };
             this.updateLayer({
-                index: this.activeLayerIndex,
+                index: optLayerIndex ?? this.activeLayerIndex,
                 opts: { filters }
             });
         }

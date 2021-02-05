@@ -519,6 +519,11 @@ class LayerSprite extends ZoomableSprite {
             orgBounds = this._bounds;
             this._bounds = scaleRectangle( orgBounds, scale );
         }
+        const { enabled, opacity } = this.layer.filters;
+        const altOpacity = enabled && opacity !== 1;
+        if ( altOpacity ) {
+            documentContext.globalAlpha = opacity;
+        }
         // invoke base class behaviour to render bitmap
         super.draw( documentContext, viewport );
 
@@ -535,7 +540,10 @@ class LayerSprite extends ZoomableSprite {
             renderTempCanvas( this.canvas, documentContext );
             documentContext.restore();
         }
-
+        if ( altOpacity ) {
+            documentContext.globalAlpha = 1; // restore document opacity
+        }
+        
         if ( !omitOutlines ) {
 
             const { zoomFactor } = this.canvas;

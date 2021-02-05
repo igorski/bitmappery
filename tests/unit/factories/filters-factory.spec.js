@@ -6,6 +6,7 @@ describe( "Filters factory", () => {
             const filters = FiltersFactory.create();
             expect( filters ).toEqual({
                 enabled: true,
+                opacity: 1,
                 gamma: .5,
                 brightness: .5,
                 contrast: 0,
@@ -17,6 +18,7 @@ describe( "Filters factory", () => {
         it( "should be able to create a filters list from given arguments", () => {
             const filters = FiltersFactory.create({
                 enabled: false,
+                opacity: .3,
                 gamma: .7,
                 brightness: .6,
                 contrast: .3,
@@ -25,6 +27,7 @@ describe( "Filters factory", () => {
             });
             expect( filters ).toEqual({
                 enabled: false,
+                opacity: .3,
                 gamma: .7,
                 brightness: .6,
                 contrast: .3,
@@ -38,6 +41,7 @@ describe( "Filters factory", () => {
         it( "should do so without data loss", async () => {
             const filters = FiltersFactory.create({
                 enabled: false,
+                opacity: .4,
                 gamma: .7,
                 brightness: .6,
                 contrast: .3,
@@ -58,7 +62,10 @@ describe( "Filters factory", () => {
         });
 
         it( "should consider a configuration where one of the properties deviates from the default as active", () => {
-            let filter = FiltersFactory.create({ gamma: .7 });
+            let filter = FiltersFactory.create({ opacity: .5 });
+            expect( hasFilters( filter )).toBe( true );
+
+            filter = FiltersFactory.create({ gamma: .7 });
             expect( hasFilters( filter )).toBe( true );
 
             filter = FiltersFactory.create({ brightness: .3 });
@@ -77,8 +84,8 @@ describe( "Filters factory", () => {
 
     it( "should know when two filters instances are equal", () => {
         const defaultFilter = FiltersFactory.create();
-        [ "enabled", "gamma", "brightness", "contrast", "vibrance", "desaturate" ].forEach( property => {
-            const filters = FiltersFactory.create({ [ property ]: 1 });
+        [ "enabled", "opacity", "gamma", "brightness", "contrast", "vibrance", "desaturate" ].forEach( property => {
+            const filters = FiltersFactory.create({ [ property ]: .88 });
             expect( isEqual( filters, defaultFilter )).toBe( false );
         });
         expect( isEqual( defaultFilter, FiltersFactory.create() )).toBe( true );

@@ -25,6 +25,7 @@ let defaultFilters = null;
 const FiltersFactory = {
     create({
         enabled    = true,
+        opacity    = 1,
         gamma      = .5,
         brightness = .5,
         contrast   = 0,
@@ -33,6 +34,7 @@ const FiltersFactory = {
     } = {}) {
         return {
             enabled,
+            opacity,
             gamma,
             brightness,
             contrast,
@@ -48,6 +50,7 @@ const FiltersFactory = {
     serialize( filters ) {
         return {
             e: filters.enabled,
+            o: filters.opacity,
             g: filters.gamma,
             b: filters.brightness,
             c: filters.contrast,
@@ -63,6 +66,7 @@ const FiltersFactory = {
      deserialize( filters = {} ) {
          return FiltersFactory.create({
              enabled: filters.e,
+             opacity: filters.o,
              gamma: filters.g,
              brightness: filters.b,
              contrast: filters.c,
@@ -85,6 +89,7 @@ export const hasFilters = filters => {
 
 export const isEqual = ( filters, filtersToCompareTo = {} ) => {
     return filters.enabled    === filtersToCompareTo.enabled    &&
+           filters.opacity    === filtersToCompareTo.opacity    &&
            filters.gamma      === filtersToCompareTo.gamma      &&
            filters.brightness === filtersToCompareTo.brightness &&
            filters.contrast   === filtersToCompareTo.contrast   &&
