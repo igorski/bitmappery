@@ -35,7 +35,7 @@
                 </div>
                 <div
                     v-if="hasQualityOptions"
-                    class="wrapper input"
+                    class="wrapper slider"
                 >
                     <label v-t="'imageQuality'"></label>
                     <slider

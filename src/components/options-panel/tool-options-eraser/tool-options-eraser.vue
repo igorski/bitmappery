@@ -23,7 +23,7 @@
 <template>
     <div class="tool-option">
         <h3 v-t="'eraser'"></h3>
-        <div class="wrapper input">
+        <div class="wrapper slider">
             <label v-t="'eraserSize'"></label>
             <slider
                 v-model="eraserSize"
@@ -31,7 +31,7 @@
                 :max="MAX_BRUSH_SIZE"
             />
         </div>
-        <div class="wrapper input">
+        <div class="wrapper slider">
             <label v-t="'thickness'"></label>
             <slider
                 v-model="thickness"
@@ -39,7 +39,7 @@
                 :max="100"
             />
         </div>
-        <div class="wrapper input">
+        <div class="wrapper slider">
             <label v-t="'opacity'"></label>
             <slider
                 v-model="opacity"

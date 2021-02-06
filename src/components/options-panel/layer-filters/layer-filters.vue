@@ -29,9 +29,10 @@
                 <toggle-button
                     v-model="internalValue.enabled"
                     name="enabled"
+                    sync
                 />
             </div>
-            <div class="wrapper input">
+            <div class="wrapper slider">
                 <label v-t="'opacity'"></label>
                 <slider
                     v-model="opacity"
@@ -40,7 +41,7 @@
                     :tooltip="'none'"
                 />
             </div>
-            <div class="wrapper input">
+            <div class="wrapper slider">
                 <label v-t="'gamma'"></label>
                 <slider
                     v-model="gamma"
@@ -49,7 +50,7 @@
                     :tooltip="'none'"
                 />
             </div>
-            <div class="wrapper input">
+            <div class="wrapper slider">
                 <label v-t="'contrast'"></label>
                 <slider
                     v-model="contrast"
@@ -58,7 +59,7 @@
                     :tooltip="'none'"
                 />
             </div>
-            <div class="wrapper input">
+            <div class="wrapper slider">
                 <label v-t="'brightness'"></label>
                 <slider
                     v-model="brightness"
@@ -67,7 +68,7 @@
                     :tooltip="'none'"
                 />
             </div>
-            <div class="wrapper input">
+            <div class="wrapper slider">
                 <label v-t="'vibrance'"></label>
                 <slider
                     v-model="vibrance"
@@ -81,6 +82,7 @@
                 <toggle-button
                     v-model="internalValue.desaturate"
                     name="desaturate"
+                    sync
                 />
             </div>
         </div>

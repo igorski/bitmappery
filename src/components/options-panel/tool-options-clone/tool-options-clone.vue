@@ -29,7 +29,7 @@
                          v-model="sourceLayer"
             />
         </div>
-        <div class="wrapper input">
+        <div class="wrapper slider">
             <label v-t="'brushSize'"></label>
             <slider
                 v-model="brushSize"
@@ -37,7 +37,7 @@
                 :max="MAX_BRUSH_SIZE"
             />
         </div>
-        <!-- <div class="wrapper input">
+        <!-- <div class="wrapper slider">
             <label v-t="'thickness'"></label>
             <slider
                 v-model="thickness"
@@ -45,7 +45,7 @@
                 :max="100"
             />
         </div> -->
-        <div class="wrapper input">
+        <div class="wrapper slider">
             <label v-t="'opacity'"></label>
             <slider
                 v-model="opacity"

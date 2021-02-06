@@ -23,12 +23,14 @@
 <template>
     <div class="tool-option">
         <h3 v-t="'scale'"></h3>
-        <slider
-            v-model="scale"
-            :min="min"
-            :max="max"
-            :tooltip="'none'"
-        />
+        <div class="wrapper full slider">
+            <slider
+                v-model="scale"
+                :min="min"
+                :max="max"
+                :tooltip="'none'"
+            />
+        </div>
         <div class="actions">
             <button
                 v-t="'reset'"

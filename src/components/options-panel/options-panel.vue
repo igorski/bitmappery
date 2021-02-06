@@ -128,6 +128,7 @@ export default {
 
 .options-panel-wrapper {
     @include component();
+    overflow-x: hidden;
     overflow-y: auto;
     width: 100%;
     height: 100%;

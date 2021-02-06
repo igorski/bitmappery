@@ -45,7 +45,7 @@
                 </template>
             </vue-select>
         </div>
-        <div class="wrapper input">
+        <div class="wrapper slider">
             <label v-t="'size'"></label>
             <slider
                 v-model="size"
@@ -54,7 +54,7 @@
                 :tooltip="'none'"
             />
         </div>
-        <div class="wrapper input">
+        <div class="wrapper slider">
             <label v-t="'lineHeight'"></label>
             <slider
                 v-model="lineHeight"
@@ -63,7 +63,7 @@
                 :tooltip="'none'"
             />
         </div>
-        <div class="wrapper input">
+        <div class="wrapper slider">
             <label v-t="'letterSpacing'"></label>
             <slider
                 v-model="spacing"

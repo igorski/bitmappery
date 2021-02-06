@@ -31,6 +31,7 @@
                     <label v-t="'lowMemoryMode'"></label>
                     <toggle-button
                         v-model="internalValue.lowMemory"
+                        sync
                     />
                 </div>
                 <p v-t="'lowMemoryExpl'" class="expl"></p>
@@ -39,6 +40,7 @@
                         <label v-t="'wasmFilters'"></label>
                         <toggle-button
                             v-model="internalValue.wasmFilters"
+                            sync
                         />
                     </div>
                     <p v-t="'wasmFiltersExpl'" class="expl"></p>

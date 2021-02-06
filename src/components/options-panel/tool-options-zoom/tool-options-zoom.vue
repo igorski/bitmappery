@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,12 +23,14 @@
 <template>
     <div class="tool-option">
         <h3 v-t="'zoomLevel'"></h3>
-        <slider
-            v-model="zoomLevel"
-            :min="min"
-            :max="max"
-            :tooltip="'none'"
-        />
+        <div class="wrapper full slider">
+            <slider
+                v-model="zoomLevel"
+                :min="min"
+                :max="max"
+                :tooltip="'none'"
+            />
+        </div>
         <div class="actions">
             <button
                 v-t="'bestFit'"

@@ -29,7 +29,7 @@
                          v-model="brushType"
             />
         </div>
-        <div class="wrapper input">
+        <div class="wrapper slider">
             <label v-t="'brushSize'"></label>
             <slider
                 v-model="brushSize"
@@ -39,7 +39,7 @@
         </div>
         <div
             v-if="hasThickness"
-            class="wrapper input"
+            class="wrapper slider"
         >
             <label v-t="'thickness'"></label>
             <slider
@@ -49,7 +49,7 @@
             />
         </div>
         <template v-if="canStroke">
-            <div class="wrapper input">
+            <div class="wrapper slider">
                 <label v-t="'strokeAmount'"></label>
                 <slider
                     v-model="strokes"
@@ -61,6 +61,7 @@
                 <label v-t="'smoothing'"></label>
                 <toggle-button
                     v-model="smooth"
+                    sync
                 />
             </div>
         </template>

@@ -28,6 +28,7 @@
             <toggle-button
                 v-model="maintainRatio"
                 name="ratio"
+                sync
             />
         </div>
         <div class="wrapper input">

@@ -4,6 +4,19 @@
     .wrapper {
         margin: $spacing-small 0;
 
+        &.slider {
+            .vue-slider {
+                width: calc(48% - #{$spacing-medium}) !important;
+                margin-left: $spacing-small;
+            }
+        }
+
+        // use where there is no <label> element
+        &.full {
+            width: 200%;
+            margin-left: $spacing-xsmall;
+        }
+
         label,
         .input-field,
         .input-textarea {
