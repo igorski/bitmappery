@@ -172,7 +172,13 @@ export default {
     },
     mounted() {
         if ( process.env.NODE_ENV !== "development" ) {
-            window.onbeforeunload = e => this.activeDocument ? () => this.$t( "warningUnload" ) : true;
+            window.onbeforeunload = e => {
+                if ( this.activeDocument ) {
+                    e.preventDefault();
+                    return this.$t( "warningUnload" );
+                }
+                return true;
+            };
         }
 
         // if File content is pasted or dragged into the application, parse and load image files within

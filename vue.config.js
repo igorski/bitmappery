@@ -19,22 +19,25 @@ module.exports = {
             template: "public/index-app.html",
         }
     },
-    chainWebpack: config => {
-        // inline Workers as Blobs
-		config.module
-			.rule( "worker" )
-			.test( /\.worker\.js$/ )
-			.use( "worker-loader" )
-			.loader( "worker-loader" )
-			.end();
-
-		config.module.rule( "js" ).exclude.add( /\.worker\.js$/ );
-	},
     configureWebpack: {
         plugins: [
             new CopyWebpackPlugin([
                 { from: `${dirAssets}`, to: "assets", flatten: false }
             ]),
         ]
-    }
+    },
+    chainWebpack: config => {
+        // inline Workers as Blobs
+        config.module
+            .rule( "worker" )
+            .test( /\.worker\.js$/ )
+            .use( "worker-loader" )
+            .loader( "worker-loader" )
+            .end();
+
+        config.module.rule( "js" ).exclude.add( /\.worker\.js$/ );
+
+        // this solves an issue with hot module reload on Safari...
+        config.plugins.delete( "preload" );
+    },
 };
