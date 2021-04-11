@@ -30,7 +30,7 @@ const { cos, sin } = Math;
 const TWO_PI = Math.PI * 2;
 
 /**
- * Render a series of registered pointer offset into a single brush stroke
+ * Render a series of registered pointer offsets into a single brush stroke
  * Adapted from studies provided by Juriy Zaytsev
  *
  * @param {CanvasRenderingContext2D} ctx to render on

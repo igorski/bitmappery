@@ -272,23 +272,37 @@ class LayerSprite extends ZoomableSprite {
                     this.setBitmap( ctx.canvas );
                 }
             } else {
+                const orgContext = ctx;
+
                 // brush operations are done on a lower resolution canvas during live update
-                // upon release, this will be rendered to the Layer source (see handleRelease())
+                // where each individual brush stroke is rendered in successive iterations.
+                // upon release, the full stroke is rendered on the Layer source (see handleRelease())
                 let overrides = null;
                 if ( isLowResPreview ) {
                     // live update on lower resolution canvas
                     this.tempCanvas = this.tempCanvas || getTempCanvas( this.canvas );
                     overrides = createOverrideConfig( this.canvas, pointers );
-                    ctx.restore(); // restore previous context before switching to lowres context
                     ctx = this.tempCanvas.ctx;
 
                     if ( selectionPoints && this.tempCanvas ) {
                         clipContextToSelection( ctx, selectionPoints, isFillMode, 0, 0, overrides );
                     }
+                    ctx.globalAlpha = this._brush.options.opacity;
                 } else {
+                    // render full brush stroke path directly onto the Layer source
+                    ctx = createCanvas( ctx.canvas.width, ctx.canvas.height ).ctx;
                     this._brush.pointers = rotatePointerLists( this._brush.pointers, this.layer, width, height );
                 }
+                orgContext.restore(); // restore previous context before rendering on temp context
                 renderBrushStroke( ctx, this._brush, this, overrides );
+
+                if ( !isLowResPreview ) {
+                    // draw the temp context with the fully rendered brush path
+                    // onto the destination Layer source, at the given opacity (prevents overdraw)
+                    orgContext.globalAlpha = this._brush.options.opacity;
+                    orgContext.drawImage( ctx.canvas, 0, 0 );
+                    ctx = orgContext;
+                }
             }
         }
         ctx.restore();
@@ -543,7 +557,7 @@ class LayerSprite extends ZoomableSprite {
         if ( altOpacity ) {
             documentContext.globalAlpha = 1; // restore document opacity
         }
-        
+
         if ( !omitOutlines ) {
 
             const { zoomFactor } = this.canvas;

@@ -65,6 +65,14 @@
                 />
             </div>
         </template>
+        <div class="wrapper slider">
+            <label v-t="'opacity'"></label>
+            <slider
+                v-model="opacity"
+                :min="0"
+                :max="100"
+            />
+        </div>
     </div>
 </template>
 
@@ -147,7 +155,15 @@ export default {
             set( value ) {
                 this.update( "thickness", value / 100 );
             }
-        }
+        },
+        opacity: {
+            get() {
+                return this.brushOptions.opacity * 100;
+            },
+            set( value ) {
+                this.update( "opacity", value / 100 );
+            },
+        },
     },
     methods: {
         ...mapMutations([
