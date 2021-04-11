@@ -30,7 +30,8 @@ import { translatePoints } from "@/math/point-math";
 import { addTextLayer } from "@/utils/layer-util";
 
 let store, state, getters, commit, dispatch, listener,
-    suspended = false, blockDefaults = true, optionDown = false, shiftDown = false;
+    suspended = false, blockDefaults = true, optionDown = false, shiftDown = false,
+    lastKeyDown = 0, lastKeyCode = "";
 
 const DEFAULT_BLOCKED    = [ 8, 32, 37, 38, 39, 40 ];
 const MOVABLE_TOOL_TYPES = [ ToolTypes.DRAG, ToolTypes.SELECTION, ToolTypes.LASSO ];
@@ -133,6 +134,7 @@ function handleKeyDown( event ) {
         return;
     }
     const hasOption = KeyboardService.hasOption( event );
+    const now       = Date.now();
 
     //if ( !hasOption && !shiftDown )
     //    handleInputForMode( keyCode );
@@ -205,6 +207,28 @@ function handleKeyDown( event ) {
             break;
 
         case 46: // delete
+            break;
+
+        case 48:
+        case 49:
+        case 50:
+        case 51:
+        case 52:
+        case 53:
+        case 54:
+        case 55:
+        case 56:
+        case 57:
+            // numeric 1 to 0, used for percentile range control for...
+            const num = String.fromCharCode( keyCode );
+            // ...brush opacity
+            if ( BRUSH_TOOL_TYPES.includes( getters.activeTool )) {
+                // if this number was typed shortly after the previous one, combine their values for decimal precision
+                const value = ( now - lastKeyDown < 500 ) ? String.fromCharCode( lastKeyCode ) + num : num + "0";
+                commit( "setToolOptionValue",
+                    { tool: getters.activeTool, option: "opacity", value: parseFloat( value ) / 100 }
+                );
+            }
             break;
 
         case 65: // A
@@ -416,6 +440,8 @@ function handleKeyDown( event ) {
             }
             break;
     }
+    lastKeyCode = keyCode;
+    lastKeyDown = now;
 }
 
 function handleKeyUp( event ) {
