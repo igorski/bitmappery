@@ -91,7 +91,7 @@ class LayerSprite extends ZoomableSprite {
     }
 
     isMaskable() {
-        return !!this.layer.mask && this.canvas.store.getters.activeLayerMask === this.layer.mask;
+        return !!this.layer.mask && this.canvas?.store.getters.activeLayerMask === this.layer.mask;
     }
 
     isRotated() {
@@ -229,9 +229,6 @@ class LayerSprite extends ZoomableSprite {
 
         ctx.save();
 
-        if ( isEraser ) {
-            ctx.globalCompositeOperation = "destination-out";
-        }
         // as long as the brush is held down, render paint in low res preview mode
         const isLowResPreview = this._brush.down;
 
@@ -292,15 +289,19 @@ class LayerSprite extends ZoomableSprite {
                     ctx = createCanvas( ctx.canvas.width, ctx.canvas.height ).ctx;
                     this._brush.pointers = rotatePointerLists( this._brush.pointers, this.layer, width, height );
                 }
-                orgContext.restore(); // restore previous context before rendering on temp context
                 renderBrushStroke( ctx, this._brush, this, overrides );
 
                 if ( !isLowResPreview ) {
                     // draw the temp context with the fully rendered brush path
                     // onto the destination Layer source, at the given opacity (prevents overdraw)
                     orgContext.globalAlpha = this._brush.options.opacity;
+                    if ( isEraser ) {
+                        orgContext.globalCompositeOperation = "destination-out";
+                    }
                     orgContext.drawImage( ctx.canvas, 0, 0 );
                     ctx = orgContext;
+                } else {
+                    orgContext.restore(); // restore previous context before rendering on temp context
                 }
             }
         }
