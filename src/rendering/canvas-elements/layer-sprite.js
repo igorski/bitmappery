@@ -230,7 +230,8 @@ class LayerSprite extends ZoomableSprite {
         ctx.save();
 
         // as long as the brush is held down, render paint in low res preview mode
-        const isLowResPreview = this._brush.down;
+        // unless we are erasing contents on a layer mask
+        const isLowResPreview = this._brush.down && !( drawOnMask && isEraser );
 
         // if there is an active selection, painting will be constrained within
         let selectionPoints = this._selection;
