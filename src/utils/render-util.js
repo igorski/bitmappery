@@ -62,10 +62,13 @@ export const resizeLayerContent = async ( layer, ratioX, ratioY ) => {
 };
 
 export const cropLayerContent = async ( layer, left, top ) => {
+    /*
     if ( layer.mask ) {
+        // no, mask coordinates are relative to layer
         layer.maskX -= left;
         layer.maskY -= top;
     }
+    */
     layer.x -= left;
     layer.y -= top;
 };
