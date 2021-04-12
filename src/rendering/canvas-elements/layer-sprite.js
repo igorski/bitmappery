@@ -457,9 +457,24 @@ class LayerSprite extends ZoomableSprite {
         if ( !this._isPaintMode ) {
             // not drawable, perform default behaviour (drag)
             if ( this.actionTarget === "mask" ) {
-                this.layer.maskX = this._dragStartOffset.x + (( x - this._bounds.left ) - this._dragStartEventCoordinates.x );
-                this.layer.maskY = this._dragStartOffset.y + (( y - this._bounds.top )  - this._dragStartEventCoordinates.y );
-                this.resetFilterAndRecache();
+                const layer = this.layer;
+                const { maskX, maskY } = layer;
+                const newMaskX = this._dragStartOffset.x + (( x - this._bounds.left ) - this._dragStartEventCoordinates.x );
+                const newMaskY = this._dragStartOffset.y + (( y - this._bounds.top )  - this._dragStartEventCoordinates.y );
+                const commit = () => {
+                    layer.maskX = newMaskX;
+                    layer.maskY = newMaskY;
+                    getSpriteForLayer( layer )?.resetFilterAndRecache();
+                };
+                commit();
+                enqueueState( `maskPos_${layer.id}`, {
+                    undo() {
+                        layer.maskX = maskX;
+                        layer.maskY = maskY;
+                        getSpriteForLayer( layer )?.resetFilterAndRecache();
+                    },
+                    redo: commit
+                });
             } else if ( this._isDragMode ) {
                 super.handleMove( x, y );
                 return;
