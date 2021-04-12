@@ -91,7 +91,7 @@ class LayerSprite extends ZoomableSprite {
     }
 
     isMaskable() {
-        return !!this.layer.mask;
+        return !!this.layer.mask && this.canvas.store.getters.activeLayerMask === this.layer.mask;
     }
 
     isRotated() {

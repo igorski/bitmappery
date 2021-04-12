@@ -250,14 +250,19 @@ export default {
             });
         },
         requestMaskAdd() {
-            const index  = this.activeLayerIndex;
-            const mask   = createCanvas( this.activeLayer.width, this.activeLayer.height ).cvs;
-            const store  = this.$store;
-            const commit = () => store.commit( "updateLayer", { index, opts: { mask } });
+            const index   = this.activeLayerIndex;
+            const mask    = createCanvas( this.activeLayer.width, this.activeLayer.height ).cvs;
+            const curMask = this.activeLayerMask;
+            const store   = this.$store;
+            const commit  = () => {
+                store.commit( "updateLayer", { index, opts: { mask } });
+                store.commit( "setActiveLayerMask", index );
+            };
             commit();
             enqueueState( `maskAdd_${index}`, {
                 undo() {
                     store.commit( "updateLayer", { index, opts: { mask: null } });
+                    store.commit( "setActiveLayerMask", curMask );
                 },
                 redo: commit,
             });

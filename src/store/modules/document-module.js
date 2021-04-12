@@ -130,7 +130,7 @@ export default {
         },
         setActiveLayerMask( state, layerIndex ) {
             state.activeLayerIndex = layerIndex;
-            state.maskActive = !!state.documents[ state.activeIndex ].layers[ layerIndex ].mask;
+            state.maskActive = !!state.documents[ state.activeIndex ]?.layers[ layerIndex ]?.mask;
         },
         updateLayer( state, { index, opts = {} }) {
             let layer = state.documents[ state.activeIndex ]?.layers[ index ];
