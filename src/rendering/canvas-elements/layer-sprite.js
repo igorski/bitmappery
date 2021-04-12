@@ -549,7 +549,7 @@ class LayerSprite extends ZoomableSprite {
         if ( this.tempCanvas ) {
             documentContext.save();
             documentContext.globalAlpha = this._brush.options.opacity;
-            if ( this._toolType === ToolTypes.ERASER ) {
+            if ( this._toolType === ToolTypes.ERASER || this.isMaskable() ) {
                 documentContext.globalCompositeOperation = "destination-out";
             }
             renderTempCanvas( this.canvas, documentContext );
