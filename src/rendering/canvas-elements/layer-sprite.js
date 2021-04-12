@@ -287,7 +287,6 @@ class LayerSprite extends ZoomableSprite {
                     if ( selectionPoints && this.tempCanvas ) {
                         clipContextToSelection( ctx, selectionPoints, isFillMode, 0, 0, overrides );
                     }
-                    ctx.globalAlpha = this._brush.options.opacity;
                 } else {
                     // render full brush stroke path directly onto the Layer source
                     ctx = createCanvas( ctx.canvas.width, ctx.canvas.height ).ctx;
@@ -548,6 +547,7 @@ class LayerSprite extends ZoomableSprite {
         // sprite is currently brushing, render low resolution temp contents onto screen
         if ( this.tempCanvas ) {
             documentContext.save();
+            documentContext.globalAlpha = this._brush.options.opacity;
             if ( this._toolType === ToolTypes.ERASER ) {
                 documentContext.globalCompositeOperation = "destination-out";
             }
