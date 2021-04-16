@@ -87,7 +87,8 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import VueSelect from "vue-select";
-import Slider    from "@/components/ui/slider/slider";
+import Slider from "@/components/ui/slider/slider";
+import { DEFAULT_LAYER_NAME } from "@/definitions/layer-types";
 import FontPreview from "./font-preview/font-preview";
 import { mapSelectOptions } from "@/utils/search-select-util";
 import { enqueueState } from "@/factories/history-state-factory";
@@ -96,6 +97,7 @@ import { loadGoogleFont } from "@/services/font-service";
 import { googleFonts } from "@/definitions/font-types";
 import { isMobile } from "@/utils/environment-util";
 import { focus } from "@/utils/environment-util";
+import { truncate } from "@/utils/string-util";
 import messages  from "./messages.json";
 
 export default {
@@ -190,6 +192,7 @@ export default {
             handler( layer ) {
                 if ( layer && this.layerId !== layer.id ) {
                     this.internalText = layer.text?.value;
+                    this.syncText     = this.internalText === layer.name || layer.name === DEFAULT_LAYER_NAME;
                     this.layerId      = layer.id;
                 }
             }
@@ -226,13 +229,20 @@ export default {
                 ...orgOpts,
                 ...textOpts,
             };
+            const orgName = this.activeLayer.name;
+            let newName   = orgName;
+            // when active layer uses the default layer name or is synced to
+            // the text content, keep the layer name in sync with the text
+            if ( orgName === DEFAULT_LAYER_NAME || this.syncText ) {
+                newName = truncate( this.internalText || DEFAULT_LAYER_NAME, 64 );
+            }
             // hold a reference to the original layer rectangle as text updates alter its bounding box
             const { x, y, width, height } = this.activeLayer;
-            const commit = () => store.commit( "updateLayer", { index, opts: { text: newOpts } });
+            const commit = () => store.commit( "updateLayer", { index, opts: { name: newName, text: newOpts } });
             commit();
             enqueueState( `text_${index}`, {
                 undo() {
-                    store.commit( "updateLayer", { index, opts: { x, y, width, height, text: orgOpts } });
+                    store.commit( "updateLayer", { index, opts: { x, y, width, height, name: orgName, text: orgOpts } });
                 },
                 redo() {
                     commit();

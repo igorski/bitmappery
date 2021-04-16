@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { LAYER_GRAPHIC, LAYER_MASK } from "@/definitions/layer-types";
+import { LAYER_GRAPHIC, LAYER_MASK, DEFAULT_LAYER_NAME } from "@/definitions/layer-types";
 import { imageToBase64, base64ToLayerCanvas } from "@/utils/canvas-util";
 import EffectsFactory from "@/factories/effects-factory";
 import FiltersFactory from "@/factories/filters-factory";
@@ -33,7 +33,7 @@ const LayerFactory = {
      * Creates a new layer for use within a Document
      */
     create({
-        name = "New Layer",
+        name = DEFAULT_LAYER_NAME,
         type = LAYER_GRAPHIC, transparent = true, source = null, mask = null,
         x = 0, y = 0, maskX = 0, maskY = 0, width = 1, height = 1, visible = true,
         effects = {}, filters = {}, text = {}
