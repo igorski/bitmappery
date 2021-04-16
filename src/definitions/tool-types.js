@@ -46,6 +46,11 @@ export default ToolTypes;
 const PANE_TYPES = [ ToolTypes.MOVE, ToolTypes.LASSO, ToolTypes.SELECTION ];
 export const usesInteractionPane = tool => PANE_TYPES.includes( tool );
 
+// on touch screen devices, certain (non-drawing/selecting) tools (in addition to MOVE) should allow viewport panning on touch drag
+
+const DRAGGABLE_TYPES = [ ToolTypes.SCALE, ToolTypes.ROTATE, ToolTypes.TEXT, ToolTypes.ZOOM ];
+export const canDragOnTouchScreen = tool => DRAGGABLE_TYPES.includes( tool );
+
 export const canDraw = ( activeDocument, activeLayer ) => {
     return activeDocument &&
     ( activeLayer?.mask || activeLayer?.type === LAYER_GRAPHIC ) &&

@@ -57,7 +57,7 @@ import ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import FileImport from "@/components/file-import/file-import";
 import { MODE_PAN, MODE_LAYER_SELECT, MODE_SELECTION } from "@/rendering/canvas-elements/interaction-pane";
 import Scrollbars from "./scrollbars/scrollbars";
-import ToolTypes, { MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@/definitions/tool-types";
+import ToolTypes, { MAX_ZOOM, calculateMaxScaling, usesInteractionPane, canDragOnTouchScreen } from "@/definitions/tool-types";
 import { scaleToRatio, scaleValue } from "@/math/image-math";
 import { isMobile } from "@/utils/environment-util";
 import {
@@ -195,8 +195,9 @@ export default {
             },
         },
         activeTool( tool ) {
-            if ( usesInteractionPane( tool )) {
-                this.setPanMode( tool === ToolTypes.MOVE );
+            const forceTouchPan = this.usesTouch && canDragOnTouchScreen( tool );
+            if ( usesInteractionPane( tool ) || forceTouchPan ) {
+                this.setPanMode( tool === ToolTypes.MOVE || forceTouchPan );
                 this.setSelectMode([ ToolTypes.SELECTION, ToolTypes.LASSO ].includes( tool ));
                 this.updateInteractionPane();
             } else {
@@ -228,6 +229,13 @@ export default {
         },
     },
     async mounted() {
+        // we'd like to know whether the application is being used on a touch screen
+        const handler = () => {
+            document.body.removeEventListener( "touchstart", handler );
+            this.usesTouch = true;
+        };
+        document.body.addEventListener( "touchstart", handler );
+
         await this.$nextTick();
         this.cacheContainerSize();
         this.scaleWrapper();

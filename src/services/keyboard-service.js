@@ -455,7 +455,7 @@ function handleKeyUp( event ) {
             document.removeEventListener( "contextmenu", defaultBlock );
             break;
         case 32: // spacebar
-            if ( getters.activeTool !== ToolTypes.MOVE ) {
+            if ( getters.activeTool !== ToolTypes.TEXT && getters.activeTool !== ToolTypes.MOVE ) {
                 commit( "setPanMode", false );
             }
             break;
