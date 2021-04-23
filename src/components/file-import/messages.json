@@ -2,7 +2,7 @@
     "en-US": {
         "letsGetStarted": "Let's get started",
         "chooseContentCreationMethod": "Choose how you wish to start creating your content:",
-        "orImportFile": "Or import a saved document or image file:",
+        "orImportFile": "Or import a saved document or image file (you can also drag a file into this window)",
         "createNewDocument": "Create new document",
         "importFromDropbox": "Import from Dropbox",
         "openImageAsNew": "Open image as new",
