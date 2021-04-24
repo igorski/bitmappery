@@ -41,6 +41,7 @@
                 @click="reset()"
             ></button>
             <button
+                v-if="isSaveable"
                 v-t="'save'"
                 type="button"
                 class="button button--small"
@@ -54,12 +55,15 @@
 <script>
 import { mapGetters } from "vuex";
 import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
+import { LAYER_GRAPHIC, LAYER_IMAGE } from "@/definitions/layer-types";
 import Slider    from "@/components/ui/slider/slider";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { scale } from "@/math/unit-math";
 import { cloneCanvas, resizeImage } from "@/utils/canvas-util";
 import messages  from "./messages.json";
+
+const SAVEABLE_TYPES = [ LAYER_GRAPHIC, LAYER_IMAGE ];
 
 export default {
     i18n: { messages },
@@ -86,6 +90,9 @@ export default {
         },
         isScaled() {
             return this.activeLayerEffects.scale !== 1;
+        },
+        isSaveable() {
+            return SAVEABLE_TYPES.includes( this.activeLayer.type );
         },
     },
     methods: {
@@ -123,7 +130,7 @@ export default {
             const scaledImage = await resizeImage(
                 orgImage, targetWidth, targetHeight,
                 offsetX, offsetY,
-                sourceWidth, sourceHeight
+                Math.round( sourceWidth ), Math.round( sourceHeight )
             );
 
             const commit = () => {
