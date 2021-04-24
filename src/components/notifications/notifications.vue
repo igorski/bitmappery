@@ -1,7 +1,7 @@
 /**
 * The MIT License (MIT)
 *
-* Igor Zinken 2019-2020 - https://www.igorski.nl
+* Igor Zinken 2019-2021 - https://www.igorski.nl
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 * this software and associated documentation files (the "Software"), to deal in
@@ -92,16 +92,17 @@ export default {
 <style lang="scss" scoped>
 @import "@/styles/_mixins.scss";
 
-    .notifications {
-      position: fixed;
-      z-index: 1000;
-      top: 45px;
-      right: 0;
-      width: 33%;
-      max-width: 300px;
+.notifications {
+    position: fixed;
+    z-index: 1000;
+    top: 45px;
+    right: 0;
+    width: 33%;
+    max-width: 300px;
 
-      .notification-window {
+    .notification-window {
         @include boxSize();
+        @include truncate();
         display: block;
         position: relative;
         padding: $spacing-small $spacing-large;
@@ -115,12 +116,12 @@ export default {
         box-shadow: 0 0 0 rgba(0,255,255,0);
 
         &.destroyed {
-          display: none;
+            display: none;
         }
 
         &.active {
-          right: $spacing-medium;
-          box-shadow: 0 0 $spacing-small rgba(0,255,255,.35);
+            right: $spacing-medium;
+            box-shadow: 0 0 $spacing-small rgba(0,255,255,.35);
         }
 
         h3 {
@@ -129,36 +130,36 @@ export default {
         }
 
         p {
-          margin: $spacing-xsmall 0;
-        }
-      }
-    }
-
-    @include large() {
-        .notification-window {
-           border-radius: $spacing-small;
+            margin: $spacing-xsmall 0;
         }
     }
+}
 
-    @include mobile() {
-      .notifications {
+@include large() {
+    .notification-window {
+        border-radius: $spacing-small;
+    }
+}
+
+@include mobile() {
+    .notifications {
         width: 100%;
         max-width: 100%;
         left: 0;
         right: auto;
 
         .notification-window {
-          width: 100%;
-          left: 0;
-          right: auto;
-          top: -500px;
-          padding: $spacing-medium;
-          margin: 0;
+            width: 100%;
+            left: 0;
+            right: auto;
+            top: -500px;
+            padding: $spacing-medium;
+            margin: 0;
 
-          &.active {
-            top: 0;
-          }
+            &.active {
+                top: 0;
+            }
         }
-      }
     }
+}
 </style>
