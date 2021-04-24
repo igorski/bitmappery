@@ -22,7 +22,7 @@
  */
 import Vue from "vue";
 import ZoomableSprite from "./zoomable-sprite";
-import { createCanvas, canvasToBlob, resizeImage, globalToLocal } from "@/utils/canvas-util";
+import { createCanvas, canvasToBlob, globalToLocal } from "@/utils/canvas-util";
 import { renderCross } from "@/utils/render-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
@@ -100,6 +100,19 @@ class LayerSprite extends ZoomableSprite {
 
     isScaled() {
         return this.layer.effects.scale !== 1;
+    }
+
+    // forces sychronizing this Sprites positions to the layer position
+    // to be called when outside factors have adjusted the Sprite source
+    // otherwise use setBounds() for relative positioning with state history
+
+    syncPosition() {
+        let { x, y, width, height, effects } = this.layer;
+        if ( this.isRotated() ) {
+            ({ x, y } = translatePointerRotation( x, y, width / 2, height / 2, effects.rotation ));
+        }
+        this.setX( x );
+        this.setY( y );
     }
 
     cacheBrush( color = "rgba(255,0,0,1)", toolOptions = { radius: 5, strokes: 1 } ) {
@@ -385,7 +398,7 @@ class LayerSprite extends ZoomableSprite {
         const newY = bounds.top;
 
         // update the Layer model by the relative offset
-        // (because the Sprite has an alternate position when rotated)
+        // (because the Sprite maintains an alternate position when the Layer is rotated)
 
         const newLayerX = layer.x + ( newX - left );
         const newLayerY = layer.y + ( newY - top );

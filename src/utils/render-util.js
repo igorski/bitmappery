@@ -37,13 +37,9 @@ export const renderCross = ( ctx, x, y, size ) => {
 export const resizeLayerContent = async ( layer, ratioX, ratioY ) => {
     const { source, mask } = layer;
 
-    layer.source = await resizeImage(
-        source, source.width, source.height, source.width * ratioX, source.height * ratioY
-    );
+    layer.source = await resizeImage( source, source.width * ratioX, source.height * ratioY );
     if ( mask ) {
-        layer.mask = await resizeImage(
-            mask, mask.width, mask.height, mask.width * ratioX, mask.height * ratioY
-        );
+        layer.mask = await resizeImage( mask, mask.width * ratioX, mask.height * ratioY );
         layer.maskX *= ratioX;
         layer.maskY *= ratioY;
     }

@@ -80,31 +80,49 @@ export const base64ToLayerCanvas = async( base64, type, width, height ) => {
     return cvs;
 };
 
-export const resizeImage = async ( image, srcWidth, srcHeight, targetWidth, targetHeight ) => {
-    if ( srcWidth === targetWidth && srcHeight === targetHeight ) {
-        return image;
-    }
+/**
+ * Resizes an image to the specified target dimensions. Additionally, the image can
+ * also be cropped from a specific rectangle by specifying alternate source coordinates and dimensions.
+ * Note that this does not preserve ratios, so images will stretch when source and
+ * destination dimensions are of different ratios.
+ *
+ * @param {CanvasImageSource|string} image
+ * @param {Number} targetWidth desired width of the resized output
+ * @param {Number} targetHeight desired height of the resized output
+ * @param {Number=} optSourceX optional x coordinate within the source image rectangle
+ * @param {Number=} optSourceY optional y coordinate within the source image rectangle
+ * @param {Number=} optSrcWidth optional width to use within the source image rectangle
+ * @param {Number=} optSrcHeight optional height to use within the source image rectangle
+ * @return {HTMLCanvasElement}
+ */
+export const resizeImage = async ( image, targetWidth, targetHeight,
+    optSourceX = 0, optSourceY = 0, optSrcWidth = image.width, optSrcHeight = image.height ) => {
     if ( typeof image === "string" ) {
         let size;
         ({ image, size } = await loader.loadImage( image ));
-        srcWidth  = size.width;
-        srcHeight = size.height;
+        if ( typeof optSrcWidth !== "number" || typeof optSrcHeight !== "number" ) {
+            optSrcWidth  = size.width;
+            optSrcHeight = size.height;
+        }
+    }
+    if ( optSrcWidth === targetWidth && optSrcHeight === targetHeight && optSourceX === 0 && optSourceY === 0 ) {
+        return image;
     }
     const { cvs, ctx } = createCanvas( targetWidth, targetHeight );
     ctx.drawImage(
-        image, 0, 0, srcWidth, srcHeight, 0, 0, targetWidth, targetHeight
+        image, optSourceX, optSourceY, optSrcWidth, optSrcHeight, 0, 0, targetWidth, targetHeight
     );
     return cvs;
 };
 
-export const resizeToBase64 = async ( image, srcWidth, srcHeight, targetWidth, targetHeight, mime, encoderOptions ) => {
+export const resizeToBase64 = async ( image, targetWidth, targetHeight, mime, encoderOptions, srcWidth, srcHeight ) => {
     if ( typeof image === "string" ) {
         if ( srcWidth === targetWidth && srcHeight === targetHeight ) {
             return image;
         }
         ({ image } = await loader.loadImage( image ));
     }
-    const cvs = await resizeImage( image, srcWidth, srcHeight, targetWidth, targetHeight );
+    const cvs = await resizeImage( image, targetWidth, targetHeight, 0, 0, srcWidth, srcHeight );
     return cvs.toDataURL( mime, encoderOptions );
 };
 

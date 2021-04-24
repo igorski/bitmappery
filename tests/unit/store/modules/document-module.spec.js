@@ -391,7 +391,6 @@ describe( "Vuex document module", () => {
                     name: "layer2 updated",
                     x: 100,
                     y: 200,
-                    source: new Image(),
                     width: 100,
                     height: 150,
                     type: LAYER_IMAGE
@@ -408,6 +407,22 @@ describe( "Vuex document module", () => {
                 });
                 expect( mockUpdateFn ).toHaveBeenCalledWith( "getSpriteForLayer", state.documents[ 0 ].layers[ index ] );
                 expect( mockSprite.cacheEffects ).toHaveBeenCalled();
+            });
+
+            it( "should be able to update the source image of a specific layer within the active Document, invoking a filter recache on the sprite", () => {
+                const index = 1;
+                const opts  = {
+                    name: "layer2 updated",
+                    source: new Image(),
+                    type: LAYER_IMAGE
+                };
+                const mockSprite = { src: "bitmap", resetFilterAndRecache: jest.fn() };
+                mockUpdateFn = jest.fn( fn => {
+                    if ( fn === "getSpriteForLayer" ) return mockSprite;
+                    return true;
+                });
+                mutations.updateLayer( state, { index, opts });
+                expect( mockSprite.resetFilterAndRecache ).toHaveBeenCalled();
             });
 
             it( "should be able to update the effects of a specific layer within the active Document", () => {

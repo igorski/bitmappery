@@ -51,10 +51,10 @@ export const createDocumentSnapshot = async ( activeDocument, type, quality ) =>
     // to actual dimensions of the document
     const resizedImage = await resizeToBase64(
         base64,
-        width  * ( window.devicePixelRatio || 1 ),
-        height * ( window.devicePixelRatio || 1 ),
         width, height,
-        type, quality
+        type, quality,
+        width  * ( window.devicePixelRatio || 1 ),
+        height * ( window.devicePixelRatio || 1 )
     );
     // fetch final base64 data so we can convert it easily to binary
     base64 = await fetch( resizedImage );

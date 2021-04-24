@@ -23,6 +23,7 @@
 <template>
     <div class="tool-option">
         <h3 v-t="'scale'"></h3>
+        <p v-t="'drawingDisabledUntilSaved'"></p>
         <div class="wrapper full slider">
             <slider
                 v-model="scale"
@@ -36,7 +37,15 @@
                 v-t="'reset'"
                 type="button"
                 class="button button--small"
+                :disabled="!isScaled"
                 @click="reset()"
+            ></button>
+            <button
+                v-t="'save'"
+                type="button"
+                class="button button--small"
+                :disabled="!isScaled"
+                @click="save()"
             ></button>
         </div>
     </div>
@@ -47,7 +56,9 @@ import { mapGetters } from "vuex";
 import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import Slider    from "@/components/ui/slider/slider";
 import { enqueueState } from "@/factories/history-state-factory";
+import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { scale } from "@/math/unit-math";
+import { cloneCanvas, resizeImage } from "@/utils/canvas-util";
 import messages  from "./messages.json";
 
 export default {
@@ -61,6 +72,7 @@ export default {
     }),
     computed: {
         ...mapGetters([
+            "activeLayer",
             "activeLayerIndex",
             "activeLayerEffects",
         ]),
@@ -71,7 +83,10 @@ export default {
             set( value ) {
                 this.update( scale( value, MAX_ZOOM, 1 ) + 1 );
             }
-        }
+        },
+        isScaled() {
+            return this.activeLayerEffects.scale !== 1;
+        },
     },
     methods: {
         update( scale ) {
@@ -86,10 +101,46 @@ export default {
                 undo() {
                     store.commit( "updateLayerEffects", { index, effects: { scale: oldScale } });
                 },
-                redo() {
-                    commit();
-                },
+                redo: commit
             });
+        },
+        async save() {
+            const { activeLayer } = this;
+            const { x, y, width, height } = activeLayer;
+            const { scale } = activeLayer.effects;
+            const index = this.activeLayerIndex;
+            const store = this.$store;
+            const orgImage = cloneCanvas( this.activeLayer.source );
+
+            // when saving a scale layer, we crop the image to the visible area (equals layer size)
+            const targetWidth = orgImage.width;
+            const targetHeight = orgImage.height;
+            const sourceWidth = targetWidth / scale;
+            const sourceHeight = targetHeight / scale;
+            const offsetX = (( targetWidth - sourceWidth ) / 2 ) - ( x / scale );
+            const offsetY = (( targetHeight - sourceHeight ) / 2 ) - ( y / scale );
+
+            const scaledImage = await resizeImage(
+                orgImage, targetWidth, targetHeight,
+                offsetX, offsetY,
+                sourceWidth, sourceHeight
+            );
+
+            const commit = () => {
+                store.commit( "updateLayer", { index, opts: { source: scaledImage, x: 0, y: 0, width: targetWidth, height: targetHeight } });
+                // unset layer scale (the resized image should display at a reset scale)
+                store.commit( "updateLayerEffects", { index, effects: { scale: 1 } });
+                getSpriteForLayer( activeLayer )?.syncPosition();
+            };
+            commit();
+            enqueueState( `saveScale_${scale}`, {
+                undo() {
+                    store.commit( "updateLayer", { index, opts: { source: orgImage, x, y, width, height } });
+                    store.commit( "updateLayerEffects", { index, effects: { scale } });
+                    getSpriteForLayer( activeLayer )?.syncPosition();
+                },
+                redo: commit,
+            })
         },
         reset() {
             this.scale = 0;

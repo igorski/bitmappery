@@ -146,7 +146,7 @@ export default {
             const sprite = getSpriteForLayer( layer );
             if ( sprite ) {
                 sprite.layer = layer;
-                sprite.cacheEffects();
+                opts.source ? sprite.resetFilterAndRecache() : sprite.cacheEffects();
             }
         },
         updateLayerEffects( state, { index, effects = {} }) {

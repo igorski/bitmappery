@@ -1,6 +1,8 @@
 {
     "en-US": {
         "scale": "Scale",
-        "reset": "Reset"
+        "reset": "Reset",
+        "save": "Save",
+        "drawingDisabledUntilSaved": "Scaled layers are not drawable until the scale is made permanent."
     }
 }
