@@ -26,7 +26,7 @@
         :style="{ 'height': wrapperHeight }"
     >
         <template v-if="activeDocument">
-            <h2>{{ activeDocument.name }}</h2>
+            <h2>{{ documentTitle }}</h2>
             <button
                 type="button"
                 class="close-button"
@@ -65,6 +65,7 @@ import {
     createSpriteForLayer, getSpriteForLayer, flushLayerSprites, flushCache as flushSpriteCache,
 } from "@/factories/sprite-factory";
 import { flushCache as flushBitmapCache } from "@/rendering/cache/bitmap-cache";
+import { PROJECT_FILE_EXTENSION } from "@/store";
 
 /* internal non-reactive properties */
 
@@ -106,6 +107,13 @@ export default {
             "zoomOptions",
             "zCanvasBaseDimensions",
         ]),
+        documentTitle() {
+            const { name } = this.activeDocument;
+            if ( name.includes( "." )) {
+                return name; // is local image
+            }
+            return `${name}${PROJECT_FILE_EXTENSION}`;
+        },
     },
     watch: {
         windowSize() {
