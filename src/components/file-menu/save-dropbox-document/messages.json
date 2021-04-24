@@ -2,7 +2,7 @@
     "en-US": {
         "saveDocumentInDropbox": "Save document in Dropbox",
         "documentTitle": "Document title",
-        "fileSavedInDropbox": "File \"{file}\" saved in your Dropbox",
+        "fileSavedInDropbox": "\"{file}\" saved in your Dropbox",
         "errorOccurred": "An error occurred while saving document. Verify your Dropbox connection or export the document locally.",
         "save": "Save",
         "cancel": "Cancel"
