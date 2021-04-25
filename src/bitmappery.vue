@@ -73,6 +73,7 @@ import Toolbox         from "@/components/toolbox/toolbox";
 import DialogWindow    from "@/components/dialog-window/dialog-window";
 import Notifications   from "@/components/notifications/notifications";
 import Loader          from "@/components/loader/loader";
+import DocumentFactory from "@/factories/document-factory";
 import { isMobile }    from "@/utils/environment-util";
 import { loadImageFiles }     from "@/services/file-loader-queue";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
@@ -182,11 +183,17 @@ export default {
         }
 
         // if File content is pasted or dragged into the application, parse and load image files within
-        // this reuses addLoadedFile from the mixin
+
+        const loadFiles = ({ images, documents }) => {
+            loadImageFiles( images, this.addLoadedFile.bind( this ));
+            documents.forEach( async file => {
+                const document = await DocumentFactory.fromBlob( file );
+                this.addNewDocument( document );
+            });
+        };
 
         window.addEventListener( "paste", event => {
-            const files = readClipboardFiles( event?.clipboardData );
-            loadImageFiles( files, this.addLoadedFile.bind( this ));
+            loadFiles( readClipboardFiles( event?.clipboardData ));
         }, false );
 
         this.$el.addEventListener( "dragover", event => {
@@ -195,8 +202,7 @@ export default {
             event.dataTransfer.dropEffect = "copy";
         }, false );
         this.$el.addEventListener( "drop", event => {
-            const files = readDroppedFiles( event?.dataTransfer );
-            loadImageFiles( files, this.addLoadedFile.bind( this ));
+            loadFiles( readDroppedFiles( event?.dataTransfer ));
             event.preventDefault();
             event.stopPropagation();
         }, false );
@@ -208,6 +214,7 @@ export default {
             "setToolboxOpened",
             "setOptionsPanelOpened",
             "setToolOptionValue",
+            "addNewDocument",
         ]),
         ...mapActions([
             "setupServices",

@@ -20,7 +20,7 @@
 * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-import { ACCEPTED_FILE_TYPES } from "@/definitions/image-types";
+import { ACCEPTED_FILE_TYPES, PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
 import { blobToResource, disposeResource } from "@/utils/resource-manager";
 
 export const saveBlobAsFile = ( blob, fileName ) => {
@@ -73,29 +73,31 @@ export const readFile = ( file, optEncoding = "UTF-8" ) => {
 };
 
 export const readClipboardFiles = clipboardData => {
-    const items = clipboardData?.items;
-    const files = [];
-    if ( items?.length ) {
-        items.forEach( item => {
-            if ( item.kind === "file" ) {
-                if ( ACCEPTED_FILE_TYPES.includes( item.type )) {
-                    files.push( item.getAsFile());
-                }
-            }
-        });
-    }
-    return files;
+    const items = [ ...( clipboardData?.items || []) ];
+    const images = items
+        .filter( item => item.kind === "file" && isImageFile( item ))
+        .map( item => item.getAsFile());
+
+    const documents = items
+        .filter( item => item.kind === "file" && isProjectFile( item.getAsFile() ))
+        .map( item => item.getAsFile());
+
+    return { images, documents };
 };
 
 export const readDroppedFiles = dataTransfer => {
-    const items = dataTransfer?.files;
-    const files = [];
-    if ( items?.length ) {
-        items.forEach( item => {
-            if ( ACCEPTED_FILE_TYPES.includes( item.type )) {
-                files.push( item );
-            }
-        });
+    const items = [ ...( dataTransfer?.files || []) ];
+    return {
+        images: items.filter( isImageFile ),
+        documents: items.filter( isProjectFile )
     }
-    return files;
 };
+
+function isImageFile( item ) {
+    return ACCEPTED_FILE_TYPES.includes( item.type );
+}
+
+function isProjectFile( file ) {
+    const [ name, ext ] = file.name.split( "." );
+    return `.${ext}` === PROJECT_FILE_EXTENSION;
+}
