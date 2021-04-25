@@ -110,7 +110,9 @@ export const resizeImage = async ( image, targetWidth, targetHeight,
     }
     const { cvs, ctx } = createCanvas( targetWidth, targetHeight );
     ctx.drawImage(
-        image, Math.round( optSourceX ), Math.round( optSourceY ), optSrcWidth, optSrcHeight, 0, 0, targetWidth, targetHeight
+        image,
+        Math.round( optSourceX ), Math.round( optSourceY ), Math.round( optSrcWidth ), Math.round( optSrcHeight ),
+        0, 0, Math.round( targetWidth ), Math.round( targetHeight )
     );
     return cvs;
 };

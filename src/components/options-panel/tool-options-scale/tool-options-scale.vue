@@ -130,7 +130,7 @@ export default {
             const scaledImage = await resizeImage(
                 orgImage, targetWidth, targetHeight,
                 offsetX, offsetY,
-                Math.round( sourceWidth ), Math.round( sourceHeight )
+                sourceWidth, sourceHeight
             );
 
             const commit = () => {
