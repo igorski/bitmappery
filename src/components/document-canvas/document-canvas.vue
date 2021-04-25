@@ -65,7 +65,7 @@ import {
     createSpriteForLayer, getSpriteForLayer, flushLayerSprites, flushCache as flushSpriteCache,
 } from "@/factories/sprite-factory";
 import { flushCache as flushBitmapCache } from "@/rendering/cache/bitmap-cache";
-import { PROJECT_FILE_EXTENSION } from "@/store";
+import { PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
 
 /* internal non-reactive properties */
 

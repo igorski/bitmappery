@@ -37,11 +37,10 @@
 
 <script>
 import { mapActions } from "vuex";
-import { ACCEPTED_FILE_TYPES }    from "@/definitions/image-types";
-import { loadImageFiles }         from "@/services/file-loader-queue";
-import ImageToDocumentManager     from "@/mixins/image-to-document-manager";
-import { PROJECT_FILE_EXTENSION } from "@/store";
-import messages                   from "./messages.json";
+import { ACCEPTED_FILE_TYPES, PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
+import { loadImageFiles } from "@/services/file-loader-queue";
+import ImageToDocumentManager from "@/mixins/image-to-document-manager";
+import messages from "./messages.json";
 
 // we allow selection of both BitMappery Documents and all accepted image types
 const FILE_EXTENSIONS = [ ...ACCEPTED_FILE_TYPES, PROJECT_FILE_EXTENSION ];

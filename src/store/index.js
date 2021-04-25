@@ -26,7 +26,7 @@ import LayerFactory    from "@/factories/layer-factory";
 import { initHistory, enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { LAYER_GRAPHIC } from "@/definitions/layer-types";
-import { ACCEPTED_FILE_TYPES } from "@/definitions/image-types";
+import { ACCEPTED_FILE_TYPES, PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
 import { runSpriteFn }   from "@/factories/sprite-factory";
 import canvasModule      from "./modules/canvas-module";
 import documentModule    from "./modules/document-module";
@@ -39,8 +39,6 @@ import { copySelection, deleteSelectionContent } from "@/utils/document-util";
 import { saveBlobAsFile, selectFile } from "@/utils/file-util";
 import { replaceLayerSource } from "@/utils/layer-util";
 import { truncate } from "@/utils/string-util";
-
-export const PROJECT_FILE_EXTENSION = ".bpy";
 
 // cheat a little by exposing the vue-i18n translations directly to the
 // store so we can commit translated error/success messages from actions

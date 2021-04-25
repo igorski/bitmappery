@@ -29,6 +29,7 @@ const TRANSPARENT_TYPES = [ PNG, GIF ];
 export const ACCEPTED_FILE_TYPES      = [ JPEG, PNG, GIF ];
 export const ACCEPTED_FILE_EXTENSIONS = [ "jpg", "jpeg", "png", "gif" ];
 export const EXPORTABLE_FILE_TYPES    = [ JPEG, PNG ];
+export const PROJECT_FILE_EXTENSION   = ".bpy"; // BitMappery document
 
 export const isCompressableFileType = type => type === JPEG;
 

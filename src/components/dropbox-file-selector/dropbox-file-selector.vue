@@ -84,8 +84,7 @@ import { listFolder, downloadFileAsBlob } from "@/services/dropbox-service";
 import DropboxImagePreview from "./dropbox-image-preview";
 import { truncate } from "@/utils/string-util";
 import { disposeResource } from "@/utils/resource-manager";
-import { ACCEPTED_FILE_EXTENSIONS } from "@/definitions/image-types";
-import { PROJECT_FILE_EXTENSION }   from "@/store";
+import { ACCEPTED_FILE_EXTENSIONS, PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
 import messages from "./messages.json";
 
 // we allow listing of both BitMappery Documents and all accepted image types

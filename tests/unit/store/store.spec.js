@@ -1,4 +1,5 @@
-import store, { PROJECT_FILE_EXTENSION } from "@/store";
+import store from "@/store";
+import { PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
 import { LAYER_IMAGE } from "@/definitions/layer-types";
 
 const { getters, mutations, actions } = store;

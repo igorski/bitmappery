@@ -61,7 +61,7 @@ import Modal from "@/components/modal/modal";
 import { uploadBlob } from "@/services/dropbox-service";
 import DocumentFactory from "@/factories/document-factory";
 import { focus } from "@/utils/environment-util";
-import { PROJECT_FILE_EXTENSION } from "@/store";
+import { PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
 
 import messages from "./messages.json";
 export default {
