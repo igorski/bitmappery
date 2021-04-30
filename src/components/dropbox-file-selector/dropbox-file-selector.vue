@@ -90,6 +90,8 @@ import messages from "./messages.json";
 // we allow listing of both BitMappery Documents and all accepted image types
 const FILE_EXTENSIONS = [ ...ACCEPTED_FILE_EXTENSIONS, PROJECT_FILE_EXTENSION ];
 
+const LAST_DROPBOX_FOLDER = "bpy_dropboxDb";
+
 function mapEntry( entry, children = [], parent = null ) {
     let type = entry[ ".tag" ]; // folder/file
     if ( entry.name.endsWith( PROJECT_FILE_EXTENSION )) {
@@ -175,7 +177,15 @@ export default {
         },
     },
     created() {
-        this.retrieveFiles( this.tree.path );
+        let pathToRetrieve = this.tree.path;
+        try {
+            const { tree, path } = JSON.parse( sessionStorage.getItem( LAST_DROPBOX_FOLDER ));
+            this.tree = { ...this.tree, ...tree };
+            pathToRetrieve = path;
+        } catch {
+            // no tree stored in SessionStorage, continue.
+        }
+        this.retrieveFiles( pathToRetrieve );
     },
     methods: {
         ...mapMutations([
@@ -210,6 +220,7 @@ export default {
                 this.leaf = leaf;
             } catch {
                 this.openDialog({ type: "error", message: this.$t( "couldNotRetrieveFilesForPath", { path } ) });
+                sessionStorage.removeItem( LAST_DROPBOX_FOLDER );
             }
             this.loading = false;
         },
@@ -218,6 +229,8 @@ export default {
             switch ( node.type ) {
                 case "folder":
                     await this.retrieveFiles( node.path );
+                    // cache the currently visited tree
+                    sessionStorage.setItem( LAST_DROPBOX_FOLDER, JSON.stringify({ path: node.path, tree: this.tree }));
                     break;
                 case "bpy":
                     const blob = await downloadFileAsBlob( node.path );
