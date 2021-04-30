@@ -20,6 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import Vue from "vue";
 import { LAYER_TEXT } from "@/definitions/layer-types";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { isEqual as isEffectsEqual } from "@/factories/effects-factory";
@@ -39,6 +40,9 @@ let UID = 0;
 let useWasm = false;
 let wasmWorker;
 
+// expose an Object in which we can keep treck of pending render jobs
+export const renderState = Vue.observable({ pending: 0, reset: () => renderState.pending = 0 });
+
 export const setWasmFilters = enabled => {
     useWasm = enabled;
     if ( enabled && !wasmWorker ) {
@@ -55,6 +59,8 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
     if ( !sprite || !layer.source ) {
         return;
     }
+
+    ++renderState.pending;
 
     // if source is rotated, calculate the width and height for the current rotation
     let { width, height } = getRotatedSize( layer, effects.rotation, true );
@@ -122,6 +128,8 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
     if ( useCaching && Object.keys( cacheToSet ).length ) {
         setLayerCache( layer, cacheToSet );
     }
+
+    renderState.pending = Math.max( 0, renderState.pending - 1 );
 
     // note that updating the bitmap will also adjust the sprite bounds
     // as appropriate (e.g. on rotation), the Layer model remains unaffected by this

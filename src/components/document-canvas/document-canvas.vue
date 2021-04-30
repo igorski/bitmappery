@@ -65,6 +65,7 @@ import {
     createSpriteForLayer, getSpriteForLayer, flushLayerSprites, flushCache as flushSpriteCache,
 } from "@/factories/sprite-factory";
 import { flushCache as flushBitmapCache } from "@/rendering/cache/bitmap-cache";
+import { renderState } from "@/services/render-service";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
 
 /* internal non-reactive properties */
@@ -144,6 +145,7 @@ export default {
                     lastDocument = id;
                     flushSpriteCache();
                     flushBitmapCache();
+                    renderState.reset();
                     layerPool.clear();
                     this.calcIdealDimensions();
                     this.$nextTick( async () => {

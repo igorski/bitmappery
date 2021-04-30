@@ -92,7 +92,7 @@ export default {
             return this.activeLayerEffects.scale !== 1;
         },
         isSaveable() {
-            return SAVEABLE_TYPES.includes( this.activeLayer.type );
+            return SAVEABLE_TYPES.includes( this.activeLayer?.type );
         },
     },
     methods: {

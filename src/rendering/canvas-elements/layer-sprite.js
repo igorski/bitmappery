@@ -134,9 +134,11 @@ class LayerSprite extends ZoomableSprite {
             return; // debounced to only occur once before next render cycle
         }
         this._rafFx = true;
+        this.canvas?.setLock( true );
         requestAnimationFrame( async () => {
             await renderEffectsForLayer( this.layer );
             this._rafFx = false;
+            this.canvas?.setLock( false );
         });
     }
 

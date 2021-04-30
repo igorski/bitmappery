@@ -24,6 +24,7 @@ import Vue from "vue";
 import { canvas } from "zcanvas";
 import InteractionPane from "@/rendering/canvas-elements/interaction-pane";
 import { fastRound } from "@/math/image-math";
+import { renderState } from "@/services/render-service";
 
 class ZoomableCanvas extends canvas {
     constructor( opts, store, rescaleFn ) {
@@ -83,6 +84,18 @@ class ZoomableCanvas extends canvas {
         this.invalidate();
     }
 
+    setLock( locked ) {
+        this.locked = locked; // freezes current Canvas contents for a single render cycle
+    }
+
+    requestDeferredRender( force = this._animate ) {
+        // keeps render loop going when Canvas is animatable
+        if ( !this._disposed && force && !this._renderPending ) {
+            this._renderPending = true;
+            this._renderId = window.requestAnimationFrame( this._renderHandler );
+        }
+    }
+
     /* zCanvas.canvas overrides */
 
     // see QQQ comments to see what the difference is. Ideally these changes
@@ -95,8 +108,16 @@ class ZoomableCanvas extends canvas {
         this._renderPending = false;
         this._lastRender    = now - ( delta % this._renderInterval );
 
+        // QQQ to prevent flickering between frames in which states update, we
+        // can lock the canvas to keep the existing contents on screen
+        if ( renderState.pending > 0 || this.locked ) {
+            // console.info("no render. pending:" + renderState.pending + " lock:" + this.locked);
+            this.locked = false;
+            return this.requestDeferredRender( true );
+        }
+
         // in case a resize was requested execute it now as we will
-        // immediately draw nwe contents onto the screen
+        // immediately draw new contents onto the screen
 
         if ( this._enqueuedSize ) {
             updateCanvasSize( this );
@@ -151,13 +172,7 @@ class ZoomableCanvas extends canvas {
                 theSprite = theSprite.next;
             }
         }
-
-        // keep render loop going if Canvas is animatable
-
-        if ( !this._disposed && this._animate && !this._renderPending ) {
-            this._renderPending = true;
-            this._renderId = window.requestAnimationFrame( this._renderHandler );
-        }
+        this.requestDeferredRender();
     }
 
     handleInteraction( aEvent ) {

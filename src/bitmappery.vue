@@ -56,7 +56,7 @@
                 @close="closeModal()"
             />
         </div>
-        <loader v-if="isLoading" />
+        <loader v-if="showLoader" />
         <!-- notifications -->
         <notifications />
     </div>
@@ -75,7 +75,8 @@ import Notifications   from "@/components/notifications/notifications";
 import Loader          from "@/components/loader/loader";
 import DocumentFactory from "@/factories/document-factory";
 import { isMobile }    from "@/utils/environment-util";
-import { loadImageFiles }     from "@/services/file-loader-queue";
+import { loadImageFiles } from "@/services/file-loader-queue";
+import { renderState } from "@/services/render-service";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { readClipboardFiles, readDroppedFiles } from "@/utils/file-util";
 import ToolTypes       from "@/definitions/tool-types";
@@ -153,6 +154,9 @@ export default {
                 case RESIZE_CANVAS:
                     return () => import( "@/components/document-menu/resize-canvas/resize-canvas" );
             }
+        },
+        showLoader() {
+            return this.isLoading || renderState.pending > 0;
         },
     },
     watch: {
