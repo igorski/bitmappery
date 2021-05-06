@@ -24,15 +24,14 @@ import { canvas, loader } from "zcanvas";
 import { PNG } from "@/definitions/image-types";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
-import { createCanvas, resizeToBase64 } from "@/utils/canvas-util";
+import { createCanvas } from "@/utils/canvas-util";
 import { getRectangleForSelection } from "@/math/selection-math";
 
 /**
- * Creates a snapshot of the current document at its full size, returns a Blob.
+ * Creates a snapshot of the current document at its full size.
  */
-export const createDocumentSnapshot = async ( activeDocument, type, quality ) => {
+export const createDocumentSnapshot = async ( activeDocument, type = PNG, quality = 95 ) => {
     const { zcvs, cvs, ctx } = createFullSizeCanvas( activeDocument );
-    const { width, height }  = activeDocument;
 
     // ensure all layer effects are rendered, note we omit caching
     const { layers } = activeDocument;
@@ -43,22 +42,8 @@ export const createDocumentSnapshot = async ( activeDocument, type, quality ) =>
     layers.forEach( layer => {
         getSpriteForLayer( layer )?.draw( ctx, zcvs._viewport, true );
     });
-    quality = parseFloat(( quality / 100 ).toFixed( 2 ));
-    let base64 = cvs.toDataURL( type, quality );
     zcvs.dispose();
-
-    // zCanvas magnifies content by the pixel ratio for a crisper result, downscale
-    // to actual dimensions of the document
-    const resizedImage = await resizeToBase64(
-        base64,
-        width, height,
-        type, quality,
-        width  * ( window.devicePixelRatio || 1 ),
-        height * ( window.devicePixelRatio || 1 )
-    );
-    // fetch final base64 data so we can convert it easily to binary
-    base64 = await fetch( resizedImage );
-    return await base64.blob();
+    return cvs;
 };
 
 /**
@@ -81,10 +66,11 @@ export const renderFullSize = activeDocument => {
 /**
  * Copy the selection defined in activeLayer into a separate Image
  */
-export const copySelection = async ( activeDocument, activeLayer ) => {
-    const { zcvs, cvs, ctx } = createFullSizeCanvas( activeDocument );
-    const sprite = getSpriteForLayer( activeLayer );
+export const copySelection = async ( activeDocument, activeLayer, copyMerged = false ) => {
+    // render all layers if a merged copy was requested
+    const merged = copyMerged ? await createDocumentSnapshot( activeDocument ) : null;
 
+    const { zcvs, cvs, ctx } = createFullSizeCanvas( activeDocument );
     ctx.beginPath();
     activeDocument.selection.forEach(( point, index ) => {
         ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x, point.y );
@@ -93,8 +79,13 @@ export const copySelection = async ( activeDocument, activeLayer ) => {
     ctx.save();
     ctx.clip();
 
-    // draw active layer onto temporary canvas at full document scale
-    sprite.draw( ctx, zcvs._viewport, true );
+    if ( copyMerged ) {
+        ctx.drawImage( merged, 0, 0 );
+    } else {
+        // draw active layer onto temporary canvas at full document scale
+        const sprite = getSpriteForLayer( activeLayer );
+        sprite.draw( ctx, zcvs._viewport, true );
+    }
     ctx.restore();
 
     // when calculating the source rectangle we must take the device pixel ratio into account

@@ -26,6 +26,7 @@
         "loadSelection": "Load selection",
         "saveSelection": "Save selection",
         "copy": "Copy",
+        "copyMerged": "Copy merged",
         "cut": "Cut",
         "cropToSelection": "Crop to selection",
         "pasteAsNewLayer": "Paste as new layer",

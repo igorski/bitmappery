@@ -118,7 +118,14 @@
                         <button v-t="'copy'"
                                 type="button"
                                 :disabled="!hasSelection"
-                                @click="requestSelectionCopy()"
+                                @click="requestSelectionCopy( false )"
+                        ></button>
+                    </li>
+                    <li>
+                        <button v-t="'copyMerged'"
+                                type="button"
+                                :disabled="!hasSelection"
+                                @click="requestSelectionCopy( true )"
                         ></button>
                     </li>
                     <li>

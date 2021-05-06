@@ -79,7 +79,8 @@ import Slider     from "@/components/ui/slider/slider";
 import { mapSelectOptions }  from "@/utils/search-select-util";
 import { EXPORTABLE_FILE_TYPES, typeToExt, isCompressableFileType } from "@/definitions/image-types";
 import { createDocumentSnapshot } from "@/utils/document-util";
-import { saveBlobAsFile }         from "@/utils/file-util";
+import { resizeToBase64 } from "@/utils/canvas-util";
+import { saveBlobAsFile } from "@/utils/file-util";
 import messages from "./messages.json";
 
 export default {
@@ -117,7 +118,25 @@ export default {
         async exportImage() {
             this.closeModal();
             this.setLoading( "exp" );
-            const blob = await createDocumentSnapshot( this.activeDocument, this.type, this.quality );
+
+            const snapshotCvs = await createDocumentSnapshot( this.activeDocument );
+            const { width, height } = this.activeDocument;
+            const quality = parseFloat(( this.quality / 100 ).toFixed( 2 ));
+            let base64 = snapshotCvs.toDataURL( this.type, quality );
+
+            // zCanvas magnifies content by the pixel ratio for a crisper result, downscale
+            // to actual dimensions of the document
+            const resizedImage = await resizeToBase64(
+                base64,
+                width, height,
+                this.type, quality,
+                width  * ( window.devicePixelRatio || 1 ),
+                height * ( window.devicePixelRatio || 1 )
+            );
+            // fetch final base64 data so we can convert it easily to binary
+            base64 = await fetch( resizedImage );
+            const blob = await base64.blob();
+
             saveBlobAsFile( blob, `${this.name}.${typeToExt(this.type)}` );
             this.unsetLoading( "exp" );
         },

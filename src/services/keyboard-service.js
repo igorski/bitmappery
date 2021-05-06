@@ -245,16 +245,16 @@ function handleKeyDown( event ) {
             break;
 
         case 67: // C
-             // copy current selection
-             if ( hasOption ) {
-                 if ( getters.activeDocument?.selection?.length > 0 ) {
-                     dispatch( "requestSelectionCopy" );
-                     preventDefault( event );
-                 }
-             } else {
-                 window.pickrInstance?.show();
-             }
-             break;
+            // copy current selection
+            if ( hasOption ) {
+                if ( getters.activeDocument?.selection?.length > 0 ) {
+                    dispatch( "requestSelectionCopy", shiftDown );
+                    preventDefault( event );
+                }
+            } else {
+                window.pickrInstance?.show();
+            }
+            break;
 
         case 68: // D
             // deselect all

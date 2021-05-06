@@ -192,8 +192,8 @@ export default {
                 message: translate( "savedFileSuccessfully" , { file: truncate( name, 35 ) })
             });
         },
-        async requestSelectionCopy({ commit, dispatch, getters }) {
-            const selectionImage = await copySelection( getters.activeDocument, getters.activeLayer );
+        async requestSelectionCopy({ commit, dispatch, getters }, copyMerged = false ) {
+            const selectionImage = await copySelection( getters.activeDocument, getters.activeLayer, copyMerged );
             commit( "setSelectionContent", selectionImage );
             commit( "setActiveTool", { tool: null, activeLayer: getters.activeLayer });
             commit( "showNotification", { message: translate( "selectionCopied" ) });
