@@ -57,7 +57,7 @@ export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
         return;
     }
 
-    const lineWidth = getSizeForBrush( brush );
+    const lineWidth = getSizeForBrush( brush ) * scale;
 
     ctx.save();
     ctx.lineJoin = ctx.lineCap = "round";
