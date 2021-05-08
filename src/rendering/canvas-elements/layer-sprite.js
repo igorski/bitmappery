@@ -158,7 +158,7 @@ class LayerSprite extends ZoomableSprite {
     setSelection( document, onlyWhenClosed = false ) {
         const { selection } = document;
         if ( !onlyWhenClosed || ( isSelectionClosed( selection ) && canDrawOnSelection( this.layer ))) {
-            this._selection = selection;
+            this._selection = selection.length ? selection : null;
         } else {
             this._selection = null;
         }

@@ -59,9 +59,9 @@ export const clipContextToSelection = ( ctx, selectionPoints, useFloodFill, offs
 export const createInverseClipping = ( ctx, selection, x, y, width, height ) => {
     // when the selection is inverted, we can reverse the clipping operation
     // by drawing the rectangular outline over the clipping path
-     if ( isSelectionRectangular( selection )) {
-         ctx.rect( width - x, -y, -width, height );
-     } else {
-         ctx.rect( width - x, height - y, -width, -height );
-     }
- };
+    if ( isSelectionRectangular( selection )) {
+        ctx.rect( width - x, -y, -width, height );
+    } else {
+        ctx.rect( width - x, height - y, -width, -height );
+    }
+};
