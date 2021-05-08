@@ -21,12 +21,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <modal>
+    <modal class="export-modal">
         <template #header>
             <h2 v-t="'exportImage'"></h2>
         </template>
         <template #content>
-            <div class="form" @keup.enter="exportImage">
+            <div class="form export-form" @keyup.enter="exportImage">
                 <div class="wrapper input">
                     <label v-t="'imageType'"></label>
                     <select-box :options="fileTypes"
@@ -53,12 +53,19 @@
                     />
                 </div>
             </div>
+            <div
+                v-if="base64preview"
+                class="preview-container"
+            >
+                <img :src="base64preview" class="preview-image" />
+            </div>
         </template>
         <template #actions>
             <button
                 v-t="'export'"
                 type="button"
                 class="button"
+                :disabled="isLoading"
                 @click="exportImage()"
             ></button>
             <button
@@ -94,10 +101,12 @@ export default {
         name: "",
         type: EXPORTABLE_FILE_TYPES[ 0 ],
         quality: 95,
+        base64preview: null,
     }),
     computed: {
         ...mapGetters([
             "activeDocument",
+            "isLoading",
         ]),
         fileTypes() {
             return mapSelectOptions( EXPORTABLE_FILE_TYPES );
@@ -105,9 +114,24 @@ export default {
         hasQualityOptions() {
             return isCompressableFileType( this.type );
         },
+        qualityPercentile() {
+            return parseFloat(( this.quality / 100 ).toFixed( 2 ));
+        },
+    },
+    watch: {
+        quality() {
+            this.renderPreview();
+        },
+        type() {
+            this.renderPreview();
+        },
     },
     created() {
         this.name = this.activeDocument.name.split( "." )[ 0 ];
+        this.renderPreview();
+    },
+    beforeDestroy() {
+        this.base64preview = null;
     },
     methods: {
         ...mapMutations([
@@ -119,27 +143,74 @@ export default {
             this.closeModal();
             this.setLoading( "exp" );
 
-            const snapshotCvs = await createDocumentSnapshot( this.activeDocument );
-            const { width, height } = this.activeDocument;
-            const quality = parseFloat(( this.quality / 100 ).toFixed( 2 ));
-            let base64 = snapshotCvs.toDataURL( this.type, quality );
-
             // zCanvas magnifies content by the pixel ratio for a crisper result, downscale
             // to actual dimensions of the document
+            const { width, height } = this.activeDocument;
             const resizedImage = await resizeToBase64(
-                base64,
-                width, height,
-                this.type, quality,
+                this.base64preview,
+                width,
+                height,
+                this.type,
+                this.qualityPercentile,
                 width  * ( window.devicePixelRatio || 1 ),
                 height * ( window.devicePixelRatio || 1 )
             );
             // fetch final base64 data so we can convert it easily to binary
-            base64 = await fetch( resizedImage );
+            const base64 = await fetch( resizedImage );
             const blob = await base64.blob();
 
             saveBlobAsFile( blob, `${this.name}.${typeToExt(this.type)}` );
             this.unsetLoading( "exp" );
         },
+        async renderPreview() {
+            this.setLoading( "preview" );
+
+            const snapshotCvs = await createDocumentSnapshot( this.activeDocument );
+            const { width, height } = this.activeDocument;
+            const quality = parseFloat(( this.quality / 100 ).toFixed( 2 ));
+            this.base64preview = snapshotCvs.toDataURL( this.type, this.qualityPercentile );
+
+            this.unsetLoading( "preview" );
+        },
+
     },
 };
 </script>
+
+<style lang="scss" scoped>
+@import "@/styles/component";
+
+.export-modal {
+    $idealWidth: 990px;
+    $idealHeight: 600px;
+    $actionsHeight: 74px;
+
+    @include componentIdeal( $idealWidth, $idealHeight ) {
+        width: $idealWidth;
+        height: $idealHeight;
+        left: calc(50% - #{$idealWidth / 2});
+        top: calc(50% - #{($idealHeight) / 2});
+        position: relative;
+
+        .form {
+            position: absolute;
+            right: $spacing-medium;
+        }
+
+        .preview-container {
+            float: left;
+            width: 68%;
+        }
+    }
+
+    @include componentFallback( $idealWidth, $idealHeight ) {
+        .preview-image {
+            margin: $spacing-medium 0;
+        }
+    }
+}
+
+.preview-image {
+    width: 100%;
+}
+</style>

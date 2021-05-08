@@ -117,7 +117,7 @@ export default {
         width: $width;
         height: $height + $actionsHeight;
         left: calc(50% - #{$width / 2});
-        top: calc(50% - #{($height + $actionsHeight ) / 2});
+        top: calc(50% - #{($height + $actionsHeight) / 2});
     }
 }
 </style>

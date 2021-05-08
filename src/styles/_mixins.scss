@@ -17,6 +17,19 @@
     }
 }
 
+// everything matching the ideal dimensions for the component
+@mixin componentIdeal( $width, $height ) {
+    @media screen and ( min-width: $width ) and ( min-height: $height ) {
+        @content;
+    }
+}
+// everything below the ideal dimensions for the component
+@mixin componentFallback( $width, $height ) {
+    @media screen and ( max-width: $width ), ( max-height: $height ) {
+        @content;
+    }
+}
+
 /* element behaviours */
 
 @mixin noSelect {
