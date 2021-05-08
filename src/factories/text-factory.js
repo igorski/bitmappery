@@ -63,7 +63,11 @@ const TextFactory = {
      */
      async deserialize( text = {} ) {
          const font = text.f;
-         await loadGoogleFont( font ); // ensure font is loaded and ready
+         try {
+             await loadGoogleFont( font ); // ensure font is loaded and ready
+         } catch {
+             console.log( `Could not load font "${font}", continuing with fallback font.` );
+         }
          return TextFactory.create({
              font,
              value: text.v,
