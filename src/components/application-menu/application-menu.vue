@@ -226,6 +226,13 @@
                         ></button>
                     </li>
                     <li>
+                        <button v-t="'invertSelection'"
+                                type="button"
+                                :disabled="!hasSelection"
+                                @click="invertSelection()"
+                        ></button>
+                    </li>
+                    <li>
                         <button v-t="'loadSelection'"
                                 type="button"
                                 :disabled="!hasSavedSelections"
@@ -363,6 +370,7 @@ export default {
             "requestSelectionCut",
             "clearSelection",
             "pasteSelection",
+            "invertSelection",
             "deleteInSelection",
             "loadDocument",
         ]),

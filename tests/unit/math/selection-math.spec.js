@@ -1,4 +1,4 @@
-import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
+import { getRectangleForSelection, createSelectionForRectangle, isSelectionRectangular, isSelectionClosed } from "@/math/selection-math";
 
 describe( "selection math", () => {
     it( "should be able to calculate the bounding box of the selection", () => {
@@ -13,6 +13,55 @@ describe( "selection math", () => {
             top: 100,
             width: 51,
             height: 799
+        });
+    });
+
+    it( "should be able to convert a rectangle into a valid list of selection coordinates", () => {
+        expect( createSelectionForRectangle( 400, 300, 50, 75 )).toEqual([
+            { x: 50,  y: 75 },
+            { x: 450, y: 75 },
+            { x: 450, y: 375 },
+            { x: 50,  y: 375 },
+            { x: 50,  y: 75 }
+        ]);
+    });
+
+    describe(" when determining whether a selection is rectangular", () => {
+        it( "should recognize unclosed selections", () => {
+            expect(isSelectionRectangular([
+                { x: 50,  y: 50 },
+                { x: 250, y: 50 },
+                { x: 250, y: 150 },
+                { x: 50,  y: 150 }
+            ])).toBe( false );
+        });
+
+        it( "should recognize non-rectangular selections", () => {
+            expect(isSelectionRectangular([
+                { x: 50,  y: 50 },
+                { x: 250, y: 50 },
+                { x: 150, y: 150 },
+                { x: 50,  y: 150 },
+                { x: 50,  y: 50 }
+            ])).toBe( false );
+
+            expect(isSelectionRectangular([
+                { x: 50,  y: 50 },
+                { x: 250, y: 50 },
+                { x: 250, y: 150 },
+                { x: 50,  y: 75 },
+                { x: 50,  y: 50 }
+            ])).toBe( false );
+        });
+
+        it( "should recognize a rectangular selection", () => {
+            expect(isSelectionRectangular([
+                { x: 50,  y: 50 },
+                { x: 250, y: 50 },
+                { x: 250, y: 150 },
+                { x: 50,  y: 150 },
+                { x: 50,  y: 50 }
+            ])).toBe( true );
         });
     });
 

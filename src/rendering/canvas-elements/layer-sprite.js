@@ -155,14 +155,14 @@ class LayerSprite extends ZoomableSprite {
         this.setInteractive( this.layer.id === id );
     }
 
-    setSelection( selection ) {
-        if ( isSelectionClosed( selection ) && canDrawOnSelection( this.layer )) {
+    setSelection( document, onlyWhenClosed = false ) {
+        const { selection } = document;
+        if ( !onlyWhenClosed || ( isSelectionClosed( selection ) && canDrawOnSelection( this.layer ))) {
             this._selection = selection;
+        } else {
+            this._selection = null;
         }
-    }
-
-    resetSelection() {
-        this._selection = null;
+        this._invertSelection = this._selection && document.invertSelection;
     }
 
     handleActiveTool( tool, toolOptions, activeDocument ) {
@@ -208,7 +208,7 @@ class LayerSprite extends ZoomableSprite {
                 this.cacheBrush( this.canvas.store.getters.activeColor, toolOptions );
 
                 // drawable tools can work alongside an existing selection
-                this.setSelection( activeDocument.selection );
+                this.setSelection( activeDocument, true );
                 break;
             case ToolTypes.EYEDROPPER:
                 this._isColorPicker = true;
@@ -256,7 +256,7 @@ class LayerSprite extends ZoomableSprite {
                 selectionPoints = rotatePointerLists( selectionPoints, this.layer, width, height );
                 x = y = 0; // pointers have been rotated within clipping context
             }
-            clipContextToSelection( ctx, selectionPoints, isFillMode, x, y );
+            clipContextToSelection( ctx, selectionPoints, isFillMode, x, y, this._invertSelection );
         }
 
         // transform destination context in case the current layer is rotated or mirrored
@@ -298,7 +298,7 @@ class LayerSprite extends ZoomableSprite {
                     ctx = this.tempCanvas.ctx;
 
                     if ( selectionPoints && this.tempCanvas ) {
-                        clipContextToSelection( ctx, selectionPoints, isFillMode, 0, 0, overrides );
+                        clipContextToSelection( ctx, selectionPoints, isFillMode, 0, 0, this._invertSelection, overrides );
                     }
                 } else {
                     // render full brush stroke path directly onto the Layer source

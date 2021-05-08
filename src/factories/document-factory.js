@@ -45,6 +45,7 @@ const DocumentFactory = {
             selections,
             // only used at runtime, will not be serialized
             selection: null,
+            invertSelection: false,
         };
     },
 

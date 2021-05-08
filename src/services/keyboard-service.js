@@ -296,7 +296,14 @@ function handleKeyDown( event ) {
 
         case 73: // I
             if ( hasOption ) {
-                dispatch( "loadDocument" );
+                if ( shiftDown ) { // invert selection
+                    if ( getters.activeDocument.selection ) {
+                        dispatch( "invertSelection" );
+                        preventDefault( event ); // import Mail
+                    }
+                } else { // load document
+                    dispatch( "loadDocument" );
+                }
             } else if ( getters.activeLayer ) {
                 setActiveTool( ToolTypes.EYEDROPPER );
             }

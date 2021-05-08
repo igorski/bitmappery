@@ -202,9 +202,12 @@ export default {
             dispatch( "requestSelectionCopy" );
             dispatch( "deleteInSelection" );
         },
-        clearSelection({ getters }) {
+        clearSelection({ commit }) {
             getCanvasInstance()?.interactionPane.resetSelection();
-            getSpriteForLayer( getters.activeLayer )?.resetSelection();
+        },
+        invertSelection({ commit }) {
+            getCanvasInstance()?.interactionPane.invertSelection();
+            commit( "showNotification", { message: translate( "selectionInverted") });
         },
         pasteSelection({ commit, getters, dispatch, state }) {
             const selection       = state.selectionContent;

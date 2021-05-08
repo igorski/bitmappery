@@ -25,7 +25,8 @@ import { PNG } from "@/definitions/image-types";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { createCanvas } from "@/utils/canvas-util";
-import { getRectangleForSelection } from "@/math/selection-math";
+import { createInverseClipping } from "@/rendering/clipping";
+import { getRectangleForSelection, isSelectionRectangular } from "@/math/selection-math";
 
 /**
  * Creates a snapshot of the current document at its full size.
@@ -76,6 +77,9 @@ export const copySelection = async ( activeDocument, activeLayer, copyMerged = f
         ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x, point.y );
     });
     ctx.closePath();
+    if ( activeDocument.invertSelection ) {
+        createInverseClipping( ctx, activeDocument.selection, 0, 0, activeDocument.width, activeDocument.height );
+    }
     ctx.save();
     ctx.clip();
 
@@ -124,6 +128,9 @@ export const deleteSelectionContent = ( activeDocument, activeLayer ) => {
     activeDocument.selection.forEach(( point, index ) => {
         ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x - x, point.y - y );
     });
+    if ( activeDocument.invertSelection ) {
+        createInverseClipping( ctx, activeDocument.selection, x, y, width, height );
+    }
     ctx.fill();
     ctx.restore();
 
@@ -143,4 +150,4 @@ function createFullSizeCanvas( object ) {
      const ctx  = cvs.getContext( "2d" );
 
      return { zcvs, cvs, ctx };
- };
+}

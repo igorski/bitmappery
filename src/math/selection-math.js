@@ -40,6 +40,25 @@ export const getRectangleForSelection = selection => {
     };
 };
 
+export const createSelectionForRectangle = ( width, height, x = 0, y = 0 ) => [
+    { x, y },
+    { x: x + width, y },
+    { x: x + width, y: y + height },
+    { x, y: y + height },
+    { x, y }
+];
+
+export const isSelectionRectangular = selection => {
+    if ( selection.length !== 5 ) {
+        return false;
+    }
+    if ( selection[ 1 ].x !== selection[ 2 ].x ||
+         selection[ 2 ].y !== selection[ 3 ].y ) {
+        return false;
+    }
+    return isSelectionClosed( selection );
+};
+
 export const isSelectionClosed = selection => {
     // smallest selection is four point polygon
     if ( !selection || selection.length < 3 ) {

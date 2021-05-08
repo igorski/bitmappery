@@ -23,6 +23,7 @@
         "selection": "Selection",
         "deselectAll": "Deselect all",
         "selectAll": "Select all",
+        "invertSelection": "Invert selection",
         "loadSelection": "Load selection",
         "saveSelection": "Save selection",
         "copy": "Copy",

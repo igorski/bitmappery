@@ -27,7 +27,7 @@ import { enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { isPointInRange, translatePoints, snapToAngle } from "@/math/point-math";
 import { rectangleToCoordinates } from "@/math/image-math";
-import { isSelectionClosed } from "@/math/selection-math";
+import { isSelectionClosed, createSelectionForRectangle } from "@/math/selection-math";
 import ToolTypes from "@/definitions/tool-types";
 import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
 import KeyboardService from "@/services/keyboard-service";
@@ -136,7 +136,9 @@ class InteractionPane extends sprite {
         } else {
             Vue.delete( document, "selection" );
         }
+        Vue.set( document, "invertSelection", false );
         this._selectionClosed = false;
+        syncSelection();
         this.invalidate();
     }
 
@@ -149,6 +151,26 @@ class InteractionPane extends sprite {
         }
         this._selectionClosed = value.length > 1; // TODO: can we determine this from first and last point?
         this.invalidate();
+    }
+
+    invertSelection() {
+        const document = this.getActiveDocument();
+        if ( document.selection?.length > 0 ) {
+            const curValue = document.invertSelection;
+            const updateFn = value => {
+                Vue.set( document, "invertSelection", value );
+                syncSelection();
+                this.invalidate?.();
+            };
+            const commit = () => updateFn( !curValue );
+            commit();
+            enqueueState( "invert", {
+                undo() {
+                    updateFn( curValue );
+                },
+                redo: commit
+            });
+        }
     }
 
     selectAll( targetLayer = null ) {
@@ -286,7 +308,7 @@ class InteractionPane extends sprite {
 
     draw( ctx, viewport ) {
         // render selection outline
-        let { selection } = this.getActiveDocument();
+        let { selection, invertSelection, width, height } = this.getActiveDocument();
         if ( /*this.mode === MODE_SELECTION && */ selection ) {
             const firstPoint    = selection[ 0 ];
             const localPointerX = this._pointerX - viewport.left; // local to viewport
@@ -306,22 +328,17 @@ class InteractionPane extends sprite {
                     snapToAngle( localPointerX, localPointerY, selection[ selection.length - 1 ], viewport )
                 : { x: localPointerX, y: localPointerY };
             }
-            const { zoomFactor } = this.canvas;
 
             // draw each point in the selection
-            ctx.save();
-            drawSelectionOutline( ctx, this.canvas, viewport, selection, "#000", currentPosition );
-            ctx.restore();
-
-            ctx.save();
-            ctx.setLineDash([ 10 / zoomFactor ]);
-            drawSelectionOutline( ctx, this.canvas, viewport, selection, "#FFF", currentPosition );
-            ctx.restore();
-
-            ctx.save();
+            drawSelection( ctx, this.canvas, viewport, selection, currentPosition );
+            if ( invertSelection && !hasUnclosedSelection ) {
+                drawSelection( ctx, this.canvas, viewport, createSelectionForRectangle( width, height ), currentPosition );
+            }
 
             // highlight current cursor position for unclosed selections
+            ctx.save();
             if ( !this._selectionClosed ) {
+                const { zoomFactor } = this.canvas;
                 ctx.beginPath();
                 ctx.lineWidth   = ctx.lineWidth * ( 2 / zoomFactor );
                 ctx.strokeStyle = "#0db0bc";
@@ -340,6 +357,17 @@ class InteractionPane extends sprite {
 export default InteractionPane;
 
 /* internal methods */
+
+function drawSelection( ctx, zCanvas, viewport, selection, currentPosition ) {
+    ctx.save();
+    drawSelectionOutline( ctx, zCanvas, viewport, selection, "#000", currentPosition );
+    ctx.restore();
+
+    ctx.save();
+    ctx.setLineDash([ 10 / zCanvas.zoomFactor ]);
+    drawSelectionOutline( ctx, zCanvas, viewport, selection, "#FFF", currentPosition );
+    ctx.restore();
+}
 
 function drawSelectionOutline( ctx, zCanvas, viewport, selection, color, currentPosition = null ) {
     ctx.lineWidth = 2 / zCanvas.zoomFactor;
@@ -372,6 +400,14 @@ function calculateSelectionSize( firstPoint, destX, destY, { lockRatio, xRatio, 
     };
 }
 
+// synchronizes the selection with the layer Sprite representing the
+// currently active layer (e.g. for draw operations)
+
+function syncSelection() {
+    const { getters } = getCanvasInstance().store;
+    getSpriteForLayer( getters.activeLayer )?.setSelection( getters.activeDocument );
+}
+
 function storeSelectionHistory( document, optPreviousSelection = [], optType = "" ) {
     const selection = [ ...document.selection ];
     enqueueState( `selection_${document.name}${optType}`, {
@@ -379,7 +415,7 @@ function storeSelectionHistory( document, optPreviousSelection = [], optType = "
             const cvs = getCanvasInstance();
             if ( cvs ) {
                 cvs.interactionPane.setSelection( optPreviousSelection );
-                getSpriteForLayer( cvs.store.getters.activeLayer )?.setSelection( optPreviousSelection );
+                syncSelection();
             }
         },
         redo() {

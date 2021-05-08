@@ -8,6 +8,7 @@
         "errorLoadingFile": "An error occured during the loading of \"{file}\"",
         "selectionCopied": "Selection copied",
         "warningUnload": "You are about to close BitMappery. Confirmation means you have either saved your pending changes or are aware these will otherwise be lost.",
+        "selectionInverted": "Selection inverted",
         "title": {
             "success": "Success",
             "error": "Error"
