@@ -3,7 +3,7 @@
         "file": "File",
         "newDocument": "New document",
         "closeDocument": "Close document",
-        "importDocument": "Import document",
+        "openFile": "Open file",
         "exportDocument": "Export document",
         "loadDropboxDocument": "Load from Dropbox",
         "saveDropboxDocument": "Save in Dropbox",

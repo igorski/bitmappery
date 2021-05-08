@@ -21,8 +21,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { mapGetters, mapMutations, mapActions } from "vuex";
-import { isTransparent } from "@/definitions/image-types";
-import { LAYER_IMAGE }   from "@/definitions/layer-types";
+import { isTransparent, PROJECT_FILE_EXTENSION, FILE_EXTENSIONS } from "@/definitions/image-types";
+import { LAYER_IMAGE } from "@/definitions/layer-types";
+import { loadImageFiles } from "@/services/file-loader-queue";
 
 export default {
     computed: {
@@ -31,6 +32,9 @@ export default {
             "fileTarget",
             "layers",
         ])
+    },
+    created() {
+        this.acceptedImageTypes = FILE_EXTENSIONS;
     },
     methods: {
         ...mapMutations([
@@ -42,6 +46,7 @@ export default {
         ]),
         ...mapActions([
             "addImage",
+            "loadDocument",
         ]),
         async addLoadedFile( file, { image, size }) {
             const { source } = await this.addImage({ file, image, size });
@@ -78,6 +83,39 @@ export default {
                     break;
             }
             this.registerUsage( source );
+        },
+        async handleFileSelect({ target }) {
+            const files = target?.files;
+            if ( !files || files.length === 0 ) {
+                return;
+            }
+
+            // separate BitMappery documents from image files
+
+            const bpyDocuments = [];
+            const imageFiles   = [];
+
+            for ( let i = 0, l = files.length; i < l; ++i ) {
+                const file = files[ i ];
+                const [ name, ext ] = file.name.split( "." );
+                if ( ext === PROJECT_FILE_EXTENSION.replace( ".", "" )) {
+                    bpyDocuments.push( file );
+                } else {
+                    imageFiles.push( file );
+                }
+            }
+
+            // load the image files
+
+            const start = Date.now();
+            await loadImageFiles( imageFiles, this.addLoadedFile.bind( this ));
+            const elapsed = Date.now() - start;
+
+            // load the BitMappery documents
+
+            bpyDocuments.forEach( doc => {
+                this.loadDocument( doc );
+            });
         },
         updateSizeAndLayer( size, opts ) {
             this.setActiveDocumentSize( size );

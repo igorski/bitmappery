@@ -44,8 +44,9 @@
                 <component :is="cloudImportType" />
                 <div class="wrapper input padded">
                     <label v-t="'openImageAsNew'"></label>
-                    <select-box :options="fileTargetOptions"
-                                 v-model="importTarget"
+                    <select-box
+                        :options="fileTargetOptions"
+                        v-model="importTarget"
                     />
                 </div>
             </div>

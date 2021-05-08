@@ -59,9 +59,9 @@
                         </li>
                     </template>
                     <li>
-                        <button v-t="'importDocument'"
+                        <button v-t="'openFile'"
                                 type="button"
-                                @click="loadDocument()"
+                                @click="openFileSelector()"
                         ></button>
                     </li>
                     <li>
@@ -84,6 +84,14 @@
                                 @click="requestImageExport()"
                         ></button>
                     </li>
+                    <input
+                        ref="fileSelector"
+                        type="file"
+                        multiple
+                        :accept="acceptedImageTypes"
+                        class="file-selector"
+                        @change="handleFileSelect"
+                    />
                 </ul>
             </li>
             <!-- edit menu -->
@@ -297,7 +305,9 @@ import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION,
     DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT, PREFERENCES, RESIZE_CANVAS
 } from "@/definitions/modal-windows";
+import { FILE_EXTENSIONS } from "@/definitions/image-types";
 import { getRectangleForSelection } from "@/math/selection-math";
+import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { getCanvasInstance, runSpriteFn, getSpriteForLayer } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
@@ -306,6 +316,7 @@ import messages from "./messages.json";
 
 export default {
     i18n: { messages },
+    mixins: [ ImageToDocumentManager ],
     data: () => ({
         activeSubMenu: null, // used for mobile views collapsed / expanded view
         clonedFilters: null,
@@ -379,6 +390,9 @@ export default {
         },
         requestNewDocument() {
             this.openModal( CREATE_DOCUMENT );
+        },
+        openFileSelector() {
+            this.$refs.fileSelector?.click();
         },
         requestImageExport() {
             this.openModal( EXPORT_IMAGE );
@@ -727,6 +741,10 @@ h1 {
             }
         }
     }
+}
+
+.file-selector {
+    display: none;
 }
 
 .fullscreen-button {

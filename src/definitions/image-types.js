@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -30,6 +30,9 @@ export const ACCEPTED_FILE_TYPES      = [ JPEG, PNG, GIF ];
 export const ACCEPTED_FILE_EXTENSIONS = [ "jpg", "jpeg", "png", "gif" ];
 export const EXPORTABLE_FILE_TYPES    = [ JPEG, PNG ];
 export const PROJECT_FILE_EXTENSION   = ".bpy"; // BitMappery document
+
+// for file input selectors, we allow selection of both BitMappery Documents and all accepted image types
+export const FILE_EXTENSIONS = [ ...ACCEPTED_FILE_TYPES, PROJECT_FILE_EXTENSION ];
 
 export const isCompressableFileType = type => type === JPEG;
 
