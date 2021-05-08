@@ -597,20 +597,18 @@ class LayerSprite extends ZoomableSprite {
             // render brush outline at pointer position
 
             if ( this._isPaintMode ) {
-                let tx = this._pointerX - viewport.left;
-                let ty = this._pointerY - viewport.top;
+                const tx = this._pointerX - viewport.left;
+                const ty = this._pointerY - viewport.top;
                 documentContext.lineWidth = 2 / zoomFactor;
                 const drawBrushOutline = this._toolType !== ToolTypes.CLONE || !!this._toolOptions.coords;
                 if ( this._toolType === ToolTypes.CLONE ) {
                     const { coords } = this._toolOptions;
                     const relSource = this._cloneStartCoords ?? this._dragStartEventCoordinates;
-                    if ( coords ) {
-                        tx = ( coords.x - viewport.left ) + ( this._pointerX - relSource.x );
-                        ty = ( coords.y - viewport.top  ) + ( this._pointerY - relSource.y );
-                    }
+                    const cx = coords ? ( coords.x - viewport.left ) + ( this._pointerX - relSource.x ) : tx;
+                    const cy = coords ? ( coords.y - viewport.top  ) + ( this._pointerY - relSource.y ) : ty;
                     // when no source coordinate is set, or when applying the clone stamp, we show a cross to mark the origin
                     if ( !coords || this._brush.down ) {
-                        renderCross( documentContext, tx, ty, this._brush.radius / zoomFactor );
+                        renderCross( documentContext, cx, cy, this._brush.radius / zoomFactor );
                     }
                 }
                 documentContext.save();
