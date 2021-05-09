@@ -194,12 +194,12 @@ export default {
 
         .form {
             position: absolute;
-            right: $spacing-medium;
+            right: $spacing-xlarge;
         }
 
         .preview-container {
             float: left;
-            width: 68%;
+            width: 67%;
         }
     }
 
