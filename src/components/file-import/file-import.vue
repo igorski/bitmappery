@@ -56,7 +56,7 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations, mapActions } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 import { CREATE_DOCUMENT } from "@/definitions/modal-windows";
 import FileSelector from "./file-selector/file-selector";
 import SelectBox    from "@/components/ui/select-box/select-box";
@@ -103,8 +103,6 @@ export default {
     methods: {
         ...mapMutations([
             "openModal",
-        ]),
-        ...mapActions([
             "setFileTarget",
         ]),
         requestNewDocument() {
