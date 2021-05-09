@@ -39,13 +39,32 @@
                     @click="close()"
                 >
                     <li>
-                        <button v-t="'newDocument'"
+                        <button v-t="'new'"
                                 @click="requestNewDocument()"
+                        ></button>
+                    </li>
+                    <li>
+                        <button v-t="'open'"
+                                type="button"
+                                @click="openFileSelector()"
+                        ></button>
+                    </li>
+                    <li>
+                        <button v-t="'close'"
+                                :disabled="noDocumentsAvailable"
+                                @click="requestDocumentClose()"
+                        ></button>
+                    </li>
+                    <li>
+                        <button v-t="'save'"
+                                type="button"
+                                :disabled="noDocumentsAvailable"
+                                @click="requestDocumentExport()"
                         ></button>
                     </li>
                     <template v-if="dropboxConnected">
                         <li>
-                            <button v-t="'loadDropboxDocument'"
+                            <button v-t="'openDropboxDocument'"
                                     type="button"
                                     @click="requestDropboxLoad()"
                             ></button>
@@ -58,25 +77,6 @@
                             ></button>
                         </li>
                     </template>
-                    <li>
-                        <button v-t="'openFile'"
-                                type="button"
-                                @click="openFileSelector()"
-                        ></button>
-                    </li>
-                    <li>
-                        <button v-t="'exportDocument'"
-                                type="button"
-                                :disabled="noDocumentsAvailable"
-                                @click="requestDocumentExport()"
-                        ></button>
-                    </li>
-                    <li>
-                        <button v-t="'closeDocument'"
-                                :disabled="noDocumentsAvailable"
-                                @click="requestDocumentClose()"
-                        ></button>
-                    </li>
                     <li>
                         <button v-t="'exportImage'"
                                 type="button"
@@ -210,6 +210,20 @@
                                 @click="pasteLayerFilters()"
                         ></button>
                     </li>
+                    <li>
+                        <button v-t="'mergeDown'"
+                                type="button"
+                                :disabled="!activeLayer || activeLayerIndex === 0"
+                                @click="mergeLayerDown()"
+                        ></button>
+                    </li>
+                    <li>
+                        <button v-t="'flattenImage'"
+                                type="button"
+                                :disabled="!activeLayer || activeDocument.layers.length < 2"
+                                @click="mergeLayerDown( true )"
+                        ></button>
+                    </li>
                 </ul>
             </li>
             <!-- selection menu -->
@@ -310,8 +324,10 @@ import { getRectangleForSelection } from "@/math/selection-math";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { getCanvasInstance, runSpriteFn, getSpriteForLayer } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
+import LayerFactory from "@/factories/layer-factory";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { cloneCanvas } from "@/utils/canvas-util";
+import { renderFullSize } from "@/utils/document-util";
 import messages from "./messages.json";
 
 export default {
@@ -461,6 +477,43 @@ export default {
             enqueueState( `duplicate_${index}`, {
                 undo() {
                     store.commit( "removeLayer", index );
+                },
+                redo: commit,
+            });
+        },
+        mergeLayerDown( allLayers = false ) {
+            let layers = [];
+            let layerIndices = [];
+            // collect the layers in ascending order
+            if ( allLayers ) {
+                this.activeDocument.layers.forEach(( layer, index ) => {
+                    layers.push( layer );
+                    layerIndices.push( index );
+                });
+            } else {
+                layerIndices = [ this.activeLayerIndex - 1, this.activeLayerIndex ];
+                layers = [ this.activeDocument.layers[ layerIndices[ 0 ]], this.activeLayer ];
+            }
+            const mergeIndex = allLayers ? 0 : layerIndices[ 0 ];
+            const newLayer = LayerFactory.create({
+                name: this.$t( "mergedLayer" ),
+                source: renderFullSize( this.activeDocument, layerIndices ),
+                width: this.activeDocument.width,
+                height: this.activeDocument.height
+            });
+            const store = this.$store;
+            const commit = () => {
+                let i = layerIndices.length;
+                while ( i-- ) {
+                    store.commit( "removeLayer", layerIndices[ i ] );
+                }
+                store.commit( "insertLayerAtIndex", { index: mergeIndex, layer: newLayer });
+            };
+            commit();
+            enqueueState( `merge_${mergeIndex}_${layers.length}`, {
+                undo() {
+                    store.commit( "removeLayer", mergeIndex );
+                    layers.forEach(( layer, index ) => store.commit( "insertLayerAtIndex", { index: layerIndices[ index ], layer }));
                 },
                 redo: commit,
             });

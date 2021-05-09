@@ -51,15 +51,18 @@ export const createDocumentSnapshot = async ( activeDocument, type = PNG, qualit
  * Creates a full size render of the current Document contents synchronously.
  * NOTE: this assumes all effects are currently cached (!)
  */
-export const renderFullSize = activeDocument => {
+export const renderFullSize = ( activeDocument, optLayerIndices = [] ) => {
     const { zcvs, cvs, ctx } = createFullSizeCanvas( activeDocument );
-    const { width, height }  = activeDocument;
 
     // draw existing layers onto temporary canvas at full document scale
     const { layers } = activeDocument;
-    for ( let i = 0, l = layers.length; i < l; ++i ) {
-        getSpriteForLayer( layers[ i ] )?.draw( ctx, zcvs._viewport, true );
-    }
+    layers.forEach(( layer, index ) => {
+        // if a whitelist of layers has been provided, apply filter here
+        if ( optLayerIndices.length && !optLayerIndices.includes( index )) {
+            return;
+        }
+        getSpriteForLayer( layer )?.draw( ctx, zcvs._viewport, true );
+    });
     zcvs.dispose();
     return cvs;
 };
