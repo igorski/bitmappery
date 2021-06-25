@@ -59,13 +59,14 @@ export default {
                 interaction: {
                     rgba: true,
                     hex: true,
+                    hsla: true,
+                    hsva: true,
                     cmyk: true,
-                    input: true,
-                    save: true
+                    input: true
                 }
             }
         });
-        this.pickrInstance.on( "save", this.saveColor.bind( this ));
+        this.pickrInstance.on( "change", this.saveColor.bind( this ));
         // hacky way to assign keyboard-service shortcut to open this picker
         if ( !window.pickrInstance ) {
             window.pickrInstance = this.pickrInstance;
@@ -88,7 +89,6 @@ export default {
             const alpha = rgba[ 3 ];
 
             this.$emit( "input", `rgba(${red},${green},${blue},${alpha})` );
-            this.pickrInstance.hide();
         },
     },
 };
