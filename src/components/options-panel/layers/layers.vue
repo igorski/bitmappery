@@ -292,9 +292,11 @@ export default {
         handleLayerClick( layer ) {
             this.setActiveLayerIndex( layer.index );
             getSpriteForLayer( layer )?.setActionTarget( "source" );
+            /*
             if ( layer.type === LAYER_TEXT ) {
                 this.setActiveTool({ tool: ToolTypes.TEXT });
-;            }
+            }
+            */
         },
         handleLayerMaskClick( layer ) {
             this.setActiveLayerMask( layer.index );
