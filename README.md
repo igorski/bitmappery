@@ -60,7 +60,7 @@ as it is used by the undo/redo methods to update a specific Layer. _activeLayerI
 the application lifetime before the undo/redo handler fires which would otherwise lead to the _wrong Layer_
 being updated.
 
-```
+```javascript
 update( propertyName, newValue ) {
     // cache the existing values of the property value we are about to mutate...
     const existingValue = this.getterForExistingValue;
@@ -114,7 +114,7 @@ to these sources.
 If you do wish to make contributions on this end, to compile the source (_/src/wasm/_) C-code to WASM, you
 will first need to prepare your environment (note the last _source_ call does not permanently update your paths):
 
-```
+```bash
 git clone https://github.com/emscripten-core/emsdk.git
 cd emsdk
 ./emsdk install latest
