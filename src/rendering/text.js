@@ -66,7 +66,7 @@ function measureLines( lines, text, ctx ) {
     let textMetrics = ctx.measureText( "Wq" );
     // if no custom line height was given, calculate optimal height for font
     if ( !lineHeight ) {
-        lineHeight = text.size + Math.abs( textMetrics.actualBoundingBoxDescent );
+        lineHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
     }
     const yStartOffset = textMetrics.actualBoundingBoxAscent;
     let y = 0;
@@ -93,4 +93,4 @@ function measureLines( lines, text, ctx ) {
 function applyTextStyleToContext( text, ctx ) {
     ctx.font      = `${text.size}px ${text.font}`;
     ctx.fillStyle = text.color;
-};
+}
