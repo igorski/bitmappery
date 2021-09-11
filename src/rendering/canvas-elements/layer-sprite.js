@@ -34,6 +34,7 @@ import { renderEffectsForLayer } from "@/services/render-service";
 import { clipContextToSelection } from "@/rendering/clipping";
 import { renderClonedStroke } from "@/rendering/cloning";
 import { renderBrushStroke } from "@/rendering/drawing";
+import { snapSpriteToGuide } from "@/rendering/snapping";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
 import {
     getTempCanvas, renderTempCanvas, disposeTempCanvas, slicePointers, createOverrideConfig
@@ -90,8 +91,12 @@ class LayerSprite extends ZoomableSprite {
         return this.layer.type === LAYER_GRAPHIC || this.isMaskable();
     }
 
+    getStore() {
+        return this.canvas?.store;
+    }
+
     isMaskable() {
-        return !!this.layer.mask && this.canvas?.store.getters.activeLayerMask === this.layer.mask;
+        return !!this.layer.mask && this.getStore().getters.activeLayerMask === this.layer.mask;
     }
 
     isRotated() {
@@ -264,7 +269,7 @@ class LayerSprite extends ZoomableSprite {
 
         if ( isFillMode )
         {
-            ctx.fillStyle = this.canvas?.store.getters.activeColor;
+            ctx.fillStyle = this.getStore().getters.activeColor;
             if ( this._selection ) {
                 ctx.fill();
                 ctx.closePath(); // is this necessary ?
@@ -436,7 +441,7 @@ class LayerSprite extends ZoomableSprite {
                 local.y - this.canvas._viewport.top,
                 1, 1
             ).data;
-            this.canvas.store.commit( "setActiveColor", `rgba(${p[0]},${p[1]},${p[2]},${(p[3]/255)})` );
+            this.getStore().commit( "setActiveColor", `rgba(${p[0]},${p[1]},${p[2]},${(p[3]/255)})` );
         }
         else if ( this._isPaintMode ) {
             if ( this._toolType === ToolTypes.CLONE ) {
@@ -456,6 +461,8 @@ class LayerSprite extends ZoomableSprite {
             }
             // for any other brush mode state, set the brush application to true (will be applied in handleMove())
             this.storeBrushPointer( x, y );
+        } else if ( this._isDragMode ) {
+            this.canvas.draggingSprite = this;
         }
     }
 
@@ -505,6 +512,7 @@ class LayerSprite extends ZoomableSprite {
     }
 
     handleRelease( x, y ) {
+        const { getters } = this.getStore();
         if ( this._brush.down ) {
             // brushing was active, deactivate brushing and render the
             // high resolution version of the brushed path onto the Layer source
@@ -515,12 +523,21 @@ class LayerSprite extends ZoomableSprite {
             this.paint();
             this._brush.pointers = []; // pointers have been rendered, reset
             // immediately store pending history state when not running in lowMemory mode
-            if ( !this.canvas.store.getters.getPreference( "lowMemory" )) {
+            if ( !getters.getPreference( "lowMemory" )) {
                 this.storePaintState();
             }
         }
         if ( this._isPaintMode ) {
             this.forceMoveListener(); // keeps the move listener active
+        }
+        else if ( this._isDragMode ) {
+            // check whether we need to snap to a guide
+            if ( getters.snapAlign ) {
+                for ( const guide of this.canvas.guides ) {
+                    snapSpriteToGuide( this, guide );
+                }
+            }
+            this.canvas.draggingSprite = null;
         }
     }
 

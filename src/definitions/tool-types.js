@@ -77,6 +77,7 @@ export const TOOL_SRC_MERGED = "Merged"; // constant to define that a tools sour
 export const MAX_BRUSH_SIZE = 100;
 export const MIN_ZOOM       = -50; // zooming out from base (which is 0)
 export const MAX_ZOOM       = 50;  // zooming in from base (which is 0)
+export const SNAP_MARGIN    = 25;  // amount of pixels within which we allow snapping to guides
 
 /**
  * Ideally we'd like to zoom the document in and out by the MAX_SCALE defined above, however

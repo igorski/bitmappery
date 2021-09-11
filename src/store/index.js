@@ -264,10 +264,10 @@ export default {
         setupServices({ dispatch }, i18nReference ) {
             i18n = i18nReference;
             const storeReference = this;
-            return new Promise( resolve => {
+            return new Promise( async resolve => {
                 KeyboardService.init( storeReference );
                 initHistory( storeReference );
-                dispatch( "restorePreferences" );
+                await dispatch( "restorePreferences" );
                 resolve();
             });
         },

@@ -27,9 +27,9 @@ import { runSpriteFn } from "@/factories/sprite-factory";
 
 export default {
     state: {
-        activeTool: null,
-        activeColor: "rgba(255,0,0,1)",
-        options: {
+        activeTool  : null,
+        activeColor : "rgba(255,0,0,1)",
+        options : {
             // see tool-option-zoom.vue
             [ ToolTypes.ZOOM ]  : { level: 1 },
             // see tool-options-brush.vue
@@ -41,6 +41,7 @@ export default {
             // see tool-options-selection
             [ ToolTypes.SELECTION ] : { lockRatio: false, xRatio: 1, yRatio: 1 },
         },
+        snapAlign : true,
     },
     getters: {
         activeTool        : state => state.activeTool,
@@ -51,6 +52,7 @@ export default {
         brushOptions      : state => state.options[ ToolTypes.BRUSH ],
         eraserOptions     : state => state.options[ ToolTypes.ERASER ],
         cloneOptions      : state => state.options[ ToolTypes.CLONE ],
+        snapAlign         : state => state.snapAlign,
     },
     mutations: {
         setActiveTool( state, { tool, document }) {
@@ -76,6 +78,9 @@ export default {
                     break;
             }
         },
+        setSnapAlign( state, value ) {
+            state.snapAlign = value;
+        }
     },
 };
 

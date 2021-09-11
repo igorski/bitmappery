@@ -36,12 +36,22 @@ export const pointBetween = ( point1, point2 ) => ({
 });
 
 export const isPointInRange = ( point1x, point1y, point2x, point2y, margin = 5 ) => {
+    return isCoordinateInHorizontalRange( point1x, point2x, margin ) &&
+           isCoordinateInVerticalRange( point1y, point2y, margin );
+};
+
+export const isCoordinateInHorizontalRange = ( point1x, point2x, margin = 5 ) => {
     const left   = point2x - margin;
     const right  = point2x + margin;
+
+    return point1x >= left && point1x <= right;
+};
+
+export const isCoordinateInVerticalRange = ( point1y, point2y, margin = 5 ) => {
     const top    = point2y - margin;
     const bottom = point2y + margin;
 
-    return point1x >= left && point1x <= right && point1y >= top  && point1y <= bottom;
+    return point1y >= top && point1y <= bottom;
 };
 
 export const translatePointerRotation = ( x, y, rotationCenterX, rotationCenterY, angleInRadians ) => {

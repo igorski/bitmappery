@@ -278,6 +278,18 @@
                     @click.prevent="openPreferences()"
                 ></a>
             </li>
+            <!-- view menu -->
+            <li>
+                <a v-t="'view'" class="title" @click.prevent="openSubMenu('view')"></a>
+                <ul class="submenu"
+                    :class="{ opened: activeSubMenu === 'view' }"
+                    @click="close()"
+                >
+                    <li>
+                        <button v-t="'snapAlign'" :class="{ checked: snapAlign }" type="button" @click="canSnapAndAlign = !canSnapAndAlign"></button>
+                    </li>
+                </ul>
+            </li>
             <!-- window menu -->
             <li>
                 <a v-t="'window'" class="title" @click.prevent="openSubMenu('window')"></a>
@@ -351,6 +363,8 @@ export default {
             "activeLayerIndex",
             "canUndo",
             "canRedo",
+            "getPreferences",
+            "snapAlign",
         ]),
         supportsFullscreen,
         noDocumentsAvailable() {
@@ -365,6 +379,16 @@ export default {
         hasClipboard() {
             return !!this.selectionContent;
         },
+        canSnapAndAlign: {
+            get() {
+                return this.snapAlign;
+            },
+            async set( value ) {
+                this.setSnapAlign( value );
+                this.setPreferences({ snapAlign: value });
+                await this.storePreferences();
+            }
+        }
     },
     watch: {
         blindActive( isOpen, wasOpen ) {
@@ -390,6 +414,8 @@ export default {
             "closeActiveDocument",
             "setSelectionContent",
             "cropActiveDocumentContent",
+            "setPreferences",
+            "setSnapAlign",
         ]),
         ...mapActions([
             "requestDocumentClose",
@@ -400,6 +426,7 @@ export default {
             "invertSelection",
             "deleteInSelection",
             "loadDocument",
+            "storePreferences",
         ]),
         openSubMenu( name ) {
             this.activeSubMenu = this.activeSubMenu === name ? null : name;
@@ -730,6 +757,11 @@ h1 {
 
             &:disabled {
                 color: #666;
+            }
+
+            &.checked::before {
+                content: "\2713";
+                margin-right: $spacing-small;
             }
         }
 

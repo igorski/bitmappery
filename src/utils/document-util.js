@@ -26,6 +26,7 @@ import { renderEffectsForLayer } from "@/services/render-service";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { createCanvas } from "@/utils/canvas-util";
 import { createInverseClipping } from "@/rendering/clipping";
+import { areEqual } from "@/math/rectangle-math";
 import { getRectangleForSelection, isSelectionRectangular } from "@/math/selection-math";
 
 /**
@@ -139,6 +140,39 @@ export const deleteSelectionContent = ( activeDocument, activeLayer ) => {
 
     return cvs;
 };
+
+export const getAlignableObjects = ( document, excludeLayer ) => {
+    const documentBounds = { x: 0, y: 0, width: document.width, height: document.height };
+    return [ documentBounds, ...document.layers ].reduce(( acc, rectangle ) => {
+        if ( rectangle !== documentBounds && areEqual( documentBounds, rectangle )) {
+            return acc;
+        }
+        if ( excludeLayer && rectangle.id === excludeLayer.id ) {
+            return acc;
+        }
+        // TODO take rotation into account ?
+        const { x, y, width, height } = rectangle;
+        // 1. vertical top, center and bottom
+        let guideWidth = document.width, guideHeight = 0;
+        if ( y > 0 ) {
+            acc.push({ x: 0, y, width: guideWidth, height: guideHeight });
+        }
+        acc.push({ x: 0, y: y + height / 2, width: guideWidth, height: guideHeight });
+        if (( y + height ) < documentBounds.height ) {
+            acc.push({ x: 0, y: y + height, width: guideWidth, height: guideHeight });
+        }
+        // 2. horizontal left, center and right
+        guideWidth = 0, guideHeight = document.height;
+        if ( x > 0 ) {
+            acc.push({ x, y: 0, width: guideWidth, height: guideHeight });
+        }
+        acc.push({ x: x + width / 2, y: 0, width: guideWidth, height: guideHeight });
+        if (( x + width ) < documentBounds.width ) {
+            acc.push({ x: x + width, y: 0, width: guideWidth, height: guideHeight });
+        }
+        return acc;
+    }, []);
+}
 
 /* internal methods */
 

@@ -14,7 +14,8 @@ describe( "Vuex tool module", () => {
                 [ ToolTypes.ERASER ]    : { size: 10, opacity: 1 },
                 [ ToolTypes.CLONE ]     : { size: 10, opacity: 1, source: null, coords: null },
                 [ ToolTypes.SELECTION ] : { lockRatio: false, xRatio: 1, yRatio: 1 },
-            }
+            },
+            snapAlign: true,
         }
         it( "should be able to return the active tool", () => {
             expect( getters.activeTool( state )).toEqual( ToolTypes.ZOOM );
@@ -47,6 +48,10 @@ describe( "Vuex tool module", () => {
         it( "should be able to retrieve the clone stamp options", () => {
             expect( getters.cloneOptions( state )).toEqual({ size: 10, opacity: 1, source: null, coords: null });
         });
+
+        it( "should be able to retrieve the current snap and alignment state", () => {
+            expect( getters.snapAlign ( state )).toBe( true );
+        });
     });
 
     describe( "mutations", () => {
@@ -75,6 +80,11 @@ describe( "Vuex tool module", () => {
                 [ ToolTypes.ZOOM ]: { level: 10 },
                 [ ToolTypes.BRUSH ]: { size: 10 }
             });
+        });
+
+        it( "should be able to set the snap and align state", () => {
+            mutations.setSnapAlign( state, false );
+            expect( state.snapAlign ).toBe( false );
         });
     });
 });

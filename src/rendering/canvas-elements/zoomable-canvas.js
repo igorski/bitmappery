@@ -38,6 +38,9 @@ class ZoomableCanvas extends canvas {
         this.documentScale = 1;
         this.setZoomFactor( 1 );
         this.interactionPane = new InteractionPane();
+
+        // reference to Sprite that is being dragged (see LayerSprite)
+        this.draggingSprite = null;
     }
 
     setDocumentScale( targetWidth, targetHeight, scale, zoom, activeDocument = null ) {
@@ -86,6 +89,10 @@ class ZoomableCanvas extends canvas {
 
     setLock( locked ) {
         this.locked = locked; // freezes current Canvas contents for a single render cycle
+    }
+
+    setGuides( guides ) {
+        this.guides = guides;
     }
 
     requestDeferredRender( force = this._animate ) {
@@ -164,7 +171,6 @@ class ZoomableCanvas extends canvas {
             theSprite = this._children[ 0 ];
 
             while ( theSprite ) {
-
                 if ( !useExternalUpdateHandler ) {
                     theSprite.update( now );
                 }
@@ -207,8 +213,8 @@ class ZoomableCanvas extends canvas {
                             const touch          = touches[ i ];
                             const { identifier } = touch;
 
-                            eventOffsetX = ( touches[ 0 ].pageX - offset.x ) / this.zoomFactor ; // QQQ
-                            eventOffsetY = ( touches[ 0 ].pageY - offset.y ) / this.zoomFactor;  // QQQ
+                            eventOffsetX = ( touches[ 0 ].pageX - offset.x ) / this.zoomFactor; // QQQ
+                            eventOffsetY = ( touches[ 0 ].pageY - offset.y ) / this.zoomFactor; // QQQ
 
                             switch ( event.type ) {
                                 // on touchstart events, when we a Sprite handles the event, we

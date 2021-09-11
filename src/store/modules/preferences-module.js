@@ -28,8 +28,9 @@ const STORAGE_KEY = "bpy_pref";
 export default {
     state: {
         preferences: {
-            lowMemory : isMobile(),
-            wasmFilters: false,
+            lowMemory   : isMobile(),
+            wasmFilters : false,
+            snapAlign   : false,
         },
     },
     getters: {
@@ -49,6 +50,10 @@ export default {
                 try {
                     const preferences = JSON.parse( existing );
                     commit( "setPreferences", preferences );
+                    // certain preferences need registration in different store modules
+                    if ( typeof preferences.snapAlign === "boolean" ) {
+                        commit( "setSnapAlign", preferences.snapAlign );
+                    }
                     setWasmFilters( !!preferences.wasmFilters );
                 } catch {
                     // non-blocking

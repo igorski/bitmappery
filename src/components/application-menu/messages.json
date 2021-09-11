@@ -34,6 +34,8 @@
         "cut": "Cut",
         "cropToSelection": "Crop to selection",
         "pasteAsNewLayer": "Paste as new layer",
+        "view": "View",
+        "snapAlign": "Snap / auto align",
         "window": "Window",
         "noDocumentsOpen": "There are no open documents",
         "windowNumName": "Window #{num}: {name}",

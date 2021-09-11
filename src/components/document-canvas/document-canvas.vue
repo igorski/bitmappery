@@ -54,11 +54,13 @@
 <script>
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
+import GuideRenderer from "@/rendering/canvas-elements/guide-renderer";
 import FileImport from "@/components/file-import/file-import";
 import { MODE_PAN, MODE_LAYER_SELECT, MODE_SELECTION } from "@/rendering/canvas-elements/interaction-pane";
 import Scrollbars from "./scrollbars/scrollbars";
 import ToolTypes, { MAX_ZOOM, calculateMaxScaling, usesInteractionPane, canDragOnTouchScreen } from "@/definitions/tool-types";
 import { scaleToRatio, scaleValue } from "@/math/image-math";
+import { getAlignableObjects } from "@/utils/document-util";
 import { isMobile } from "@/utils/environment-util";
 import {
     getCanvasInstance, setCanvasInstance,
@@ -71,7 +73,7 @@ import { PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
 /* internal non-reactive properties */
 
 const mobileView = isMobile();
-let lastDocument, containerSize, interactionPane;
+let lastDocument, containerSize, interactionPane, guideRenderer;
 // maintain a pool of sprites representing the layers within the active document
 // the sprites themselves are cached within the sprite-factory, this is merely
 // used for change detection in the current editing session (see watchers)
@@ -105,6 +107,7 @@ export default {
             "activeLayer",
             "activeTool",
             "activeToolOptions",
+            "snapAlign",
             "zoomOptions",
             "zCanvasBaseDimensions",
         ]),
@@ -190,19 +193,19 @@ export default {
                     zCanvas.addChild( sprite );
                 });
                 zCanvas?.interactionPane.stayOnTop();
+                this.snapAlign && guideRenderer.stayOnTop();
             },
         },
-        activeLayer: {
-            handler( layer ) {
-                if ( !layer ) {
-                    return;
-                }
-                const { id } = layer;
-                [ ...layerPool.entries() ].forEach(([ key, sprite ]) => {
-                    sprite.handleActiveLayer( layer );
-                    sprite.handleActiveTool( this.activeTool, this.activeToolOptions, this.activeDocument );
-                });
-            },
+        activeLayer( layer ) {
+            if ( !layer ) {
+                return;
+            }
+            const { id } = layer;
+            [ ...layerPool.entries() ].forEach(([ key, sprite ]) => {
+                sprite.handleActiveLayer( layer );
+                sprite.handleActiveTool( this.activeTool, this.activeToolOptions, this.activeDocument );
+            });
+            this.handleGuides();
         },
         activeTool( tool ) {
             const forceTouchPan = this.usesTouch && canDragOnTouchScreen( tool );
@@ -214,6 +217,7 @@ export default {
                 this.handleCursor();
                 getCanvasInstance()?.interactionPane?.handleActiveTool( tool, false );
             }
+            this.handleGuides();
         },
         zoomOptions: {
             deep: true,
@@ -237,6 +241,9 @@ export default {
         selectMode( value ) {
             this.updateInteractionPane();
         },
+        snapAlign( value ) {
+            getCanvasInstance()?.[ value ? "addChild" : "removeChild" ]( guideRenderer );
+        }
     },
     async mounted() {
         // we'd like to know whether the application is being used on a touch screen
@@ -276,6 +283,7 @@ export default {
                 handler: this.handleCanvasEvent.bind( this ),
             }, this.$store, this.calcIdealDimensions );
             setCanvasInstance( zCanvas );
+            guideRenderer = new GuideRenderer( this.snapAlign ? zCanvas : null );
             return zCanvas;
         },
         cacheContainerSize() {
@@ -366,6 +374,16 @@ export default {
                     canvasClasses.add( "cursor-crosshair" );
                     break;
             }
+        },
+        handleGuides() {
+            if ( !this.snapAlign ) {
+                return;
+            }
+            let alignableObjects = null;
+            if ( this.activeTool === ToolTypes.DRAG ) {
+                alignableObjects = getAlignableObjects( this.activeDocument, this.activeLayer );
+            }
+            getCanvasInstance()?.setGuides( alignableObjects );
         },
         updateInteractionPane( pointerStyle = "cursor-pointer" ) {
             const zCanvas = getCanvasInstance();
