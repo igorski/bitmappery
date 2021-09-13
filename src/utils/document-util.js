@@ -142,16 +142,21 @@ export const deleteSelectionContent = ( activeDocument, activeLayer ) => {
 };
 
 export const getAlignableObjects = ( document, excludeLayer ) => {
-    const documentBounds = { x: 0, y: 0, width: document.width, height: document.height };
-    return [ documentBounds, ...document.layers ].reduce(( acc, rectangle ) => {
-        if ( rectangle !== documentBounds && areEqual( documentBounds, rectangle )) {
-            return acc;
-        }
-        if ( excludeLayer && rectangle.id === excludeLayer.id ) {
+    // create a rectangle describing the document boundaries
+    const documentBounds = { x: 0, y: 0, width: document.width, height: document.height, visible: true };
+    // create bounding boxes for all eligible objects
+    return [ documentBounds, ...document.layers ].reduce(( acc, object ) => {
+        // ignore this object in case
+        // 1. it is an invisible layer
+        // 2. it matches the size of the document (which is an alignable object in itself)
+        // 3. it is the optionally provided excludeLayer
+        if ( !object.visible ||
+             ( object !== documentBounds && areEqual( documentBounds, object )) ||
+             ( excludeLayer && object.id === excludeLayer.id )) {
             return acc;
         }
         // TODO take rotation into account ?
-        const { x, y, width, height } = rectangle;
+        const { x, y, width, height } = object;
         // 1. vertical top, center and bottom
         let guideWidth = document.width, guideHeight = 0;
         if ( y > 0 ) {

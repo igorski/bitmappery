@@ -19,6 +19,16 @@ describe( "Document utilities", () => {
             ]);
         });
 
+        it( "should ignore layers that are currently invisible", () => {
+            const layer = LayerFactory.create({ x: 10, y: 10, width: width / 2, height: height / 2, visible: false });
+            document.layers.push( layer );
+            const alignableObjects = getAlignableObjects( document );
+            expect( alignableObjects ).toEqual([
+                { x: 0, y: height / 2, width, height: 0 }, // vertical document center
+                { x: width / 2, y: 0, width: 0, height }   // horizontal document center
+            ]);
+        });
+
         it( "should ignore layers that occupy the same bounding box as the document to prevent duplicates", () => {
             document.layers.push( LayerFactory.create({ x: 0, y: 0, width, height }));
             const alignableObjects = getAlignableObjects( document );
