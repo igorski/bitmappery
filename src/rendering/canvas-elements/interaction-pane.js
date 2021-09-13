@@ -26,7 +26,7 @@ import { isInsideTransparentArea } from "@/utils/canvas-util";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { isPointInRange, translatePoints, snapToAngle } from "@/math/point-math";
-import { rectangleToCoordinates } from "@/math/image-math";
+import { rectangleToCoordinates } from "@/math/rectangle-math";
 import { isSelectionClosed, createSelectionForRectangle } from "@/math/selection-math";
 import ToolTypes from "@/definitions/tool-types";
 import LayerSprite from "@/rendering/canvas-elements/layer-sprite";

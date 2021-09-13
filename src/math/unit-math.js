@@ -20,6 +20,12 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+export const degreesToRadians = deg => deg * Math.PI / 180;
+export const radiansToDegrees = rad => rad * 180 / Math.PI;
+
+// Safari greatly benefits from round numbers as subpixel content is sometimes ommitted from rendering...
+export const fastRound = num => num > 0 ? ( num + .5 ) << 0 : num | 0;
+
 const CM_PER_INCH = 2.54;
 const MM_PER_INCH = CM_PER_INCH * 10;
 

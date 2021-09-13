@@ -22,7 +22,7 @@
  */
 import { sprite } from "zcanvas";
 import { SNAP_MARGIN } from "@/definitions/tool-types";
-import { fastRound } from "@/math/image-math";
+import { fastRound } from "@/math/unit-math";
 import { isCoordinateInHorizontalRange, isCoordinateInVerticalRange } from "@/math/point-math";
 import { getClosestSnappingPoints } from "@/rendering/snapping";
 

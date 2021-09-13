@@ -26,7 +26,7 @@ import { renderEffectsForLayer } from "@/services/render-service";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { createCanvas } from "@/utils/canvas-util";
 import { createInverseClipping } from "@/rendering/clipping";
-import { areEqual } from "@/math/rectangle-math";
+import { rotateRectangle, areEqual } from "@/math/rectangle-math";
 import { getRectangleForSelection, isSelectionRectangular } from "@/math/selection-math";
 
 /**
@@ -143,7 +143,9 @@ export const deleteSelectionContent = ( activeDocument, activeLayer ) => {
 
 export const getAlignableObjects = ( document, excludeLayer ) => {
     // create a rectangle describing the document boundaries
-    const documentBounds = { x: 0, y: 0, width: document.width, height: document.height, visible: true };
+    const documentBounds = {
+        x: 0, y: 0, width: document.width, height: document.height, visible: true
+    };
     // create bounding boxes for all eligible objects
     return [ documentBounds, ...document.layers ].reduce(( acc, object ) => {
         // ignore this object in case
@@ -155,8 +157,7 @@ export const getAlignableObjects = ( document, excludeLayer ) => {
              ( excludeLayer && object.id === excludeLayer.id )) {
             return acc;
         }
-        // TODO take rotation into account ?
-        const { x, y, width, height } = object;
+        const { x, y, width, height } = rotateRectangle( object, object.effects?.rotation );
         // 1. vertical top, center and bottom
         let guideWidth = document.width, guideHeight = 0;
         if ( y > 0 ) {

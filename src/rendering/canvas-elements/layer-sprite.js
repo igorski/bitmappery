@@ -28,7 +28,7 @@ import { blobToResource } from "@/utils/resource-manager";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
 import { getSizeForBrush } from "@/definitions/brush-types";
 import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
-import { scaleRectangle } from "@/math/image-math";
+import { scaleRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { clipContextToSelection } from "@/rendering/clipping";

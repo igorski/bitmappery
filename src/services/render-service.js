@@ -28,7 +28,7 @@ import { hasFilters, isEqual as isFiltersEqual } from "@/factories/filters-facto
 import { isEqual as isTextEqual } from "@/factories/text-factory";
 import { createCanvas, cloneCanvas, matchDimensions } from "@/utils/canvas-util";
 import { replaceLayerSource } from "@/utils/layer-util";
-import { getRotatedSize, getRotationCenter } from "@/math/image-math";
+import { rotateRectangle, getRotationCenter } from "@/math/rectangle-math";
 import { hasLayerCache, getLayerCache, setLayerCache } from "@/rendering/cache/bitmap-cache";
 import { renderMultiLineText } from "@/rendering/text";
 import { loadGoogleFont } from "@/services/font-service";
@@ -63,7 +63,7 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
     ++renderState.pending;
 
     // if source is rotated, calculate the width and height for the current rotation
-    let { width, height } = getRotatedSize( layer, effects.rotation, true );
+    let { width, height } = rotateRectangle( layer, effects.rotation, true );
     const { cvs, ctx } = createCanvas( width, height );
 
     const cached     = useCaching ? getLayerCache( layer ) : null;
@@ -89,7 +89,7 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
             hasCachedFilter = false; // new contents need to be refiltered
         }
         // update dimensions as text shrinks/expands to fit
-        ({ width, height } = getRotatedSize( textData, effects.rotation, true ));
+        ({ width, height } = rotateRectangle( textData, effects.rotation, true ));
         matchDimensions({ width, height }, cvs );
         // render text onto destination source
         ctx.drawImage( textData, 0, 0 );

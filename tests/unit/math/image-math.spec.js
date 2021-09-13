@@ -1,18 +1,6 @@
-import {
-    fastRound, scaleToRatio, constrain, isPortrait, isLandscape, isSquare, scaleRectangle
-} from "@/math/image-math";
+import { scaleToRatio, constrain, isPortrait, isLandscape, isSquare } from "@/math/image-math";
 
 describe( "Image math utilities", () => {
-    describe( "When rounding numbers", () => {
-        it( "should be able to round positive numbers", () => {
-            expect( fastRound( 13.67689767 )).toEqual( 14 );
-        });
-
-        it( "should be able to round negative numbers", () => {
-            expect( fastRound( -12.534523 )).toEqual( -12 );
-        });
-    });
-
     describe( "When constrainting an image to the maximum supported size in megapixels", () => {
         it ( "should not adjust the dimensions of images below this threshold", () => {
             expect( constrain( 7999, 7999, 8000 * 8000 )).toEqual({ width: 7999, height: 7999 });
@@ -56,38 +44,6 @@ describe( "Image math utilities", () => {
             expect( isSquare( PORTRAIT.width,  PORTRAIT.height )).toBe( false );
             expect( isSquare( LANDSCAPE.width, LANDSCAPE.height )).toBe( false );
             expect( isSquare( SQUARE.width,    SQUARE.height )).toBe( true );
-        });
-    });
-
-    describe( "when scaling rectangles", () => {
-        it( "should be able to scale a rectangle and maintain its relative offset when scaling up", () => {
-            const rectangle = {
-                left: 50,
-                top: 50,
-                width: 200,
-                height: 400
-            };
-            expect( scaleRectangle( rectangle, 2 )).toEqual({
-                left: -50,
-                top: -150,
-                width: 400,
-                height: 800
-            });
-        });
-
-        it( "should be able to scale a rectangle and maintain its relative offset when scaling down", () => {
-            const rectangle = {
-                left: -50,
-                top: -150,
-                width: 400,
-                height: 800
-            };
-            expect( scaleRectangle( rectangle, 0.5 )).toEqual({
-                left: 50,
-                top: 50,
-                width: 200,
-                height: 400
-            });
         });
     });
 });
