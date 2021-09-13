@@ -533,9 +533,7 @@ class LayerSprite extends ZoomableSprite {
         else if ( this._isDragMode ) {
             // check whether we need to snap to a guide
             if ( getters.snapAlign ) {
-                for ( const guide of this.canvas.guides ) {
-                    snapSpriteToGuide( this, guide );
-                }
+                snapSpriteToGuide( this, this.canvas.guides );
             }
             this.canvas.draggingSprite = null;
         }

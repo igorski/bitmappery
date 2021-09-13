@@ -24,7 +24,7 @@ import { sprite } from "zcanvas";
 import { SNAP_MARGIN } from "@/definitions/tool-types";
 import { fastRound } from "@/math/image-math";
 import { isCoordinateInHorizontalRange, isCoordinateInVerticalRange } from "@/math/point-math";
-import { getSnappableAreas } from "@/rendering/snapping";
+import { getClosestSnappingPoints } from "@/rendering/snapping";
 
 class GuideRenderer extends sprite  {
     constructor( zCanvasInstance = null ) {
@@ -36,8 +36,8 @@ class GuideRenderer extends sprite  {
 
     stayOnTop() {
         const zCanvas = this.canvas;
-        zCanvas.removeChild( this );
-        zCanvas.addChild( this );
+        zCanvas?.removeChild( this );
+        zCanvas?.addChild( this );
     }
 
     draw( ctx, viewport = null ) {
@@ -48,33 +48,18 @@ class GuideRenderer extends sprite  {
         const top  = viewport?.top  || 0;
 
         // we can snap the currently draggingSprite against its edge and center
-        const { horizontal, vertical } = getSnappableAreas( this.canvas.draggingSprite );
-
+        const guides = getClosestSnappingPoints( this.canvas.draggingSprite, this.canvas.guides );
         ctx.strokeStyle = "red";
 
-        for ( const { x, y, width, height } of this.canvas.guides ) {
-            const isVerticalGuide = height > 0;
-
+        for ( const { x, y, width, height } of guides ) {
             // make up for canvas viewport offset
             const localX = x - left;
             const localY = y - top;
 
-            // only render guides that are within snapping distance
-            for ( const cX of horizontal ) {
-                for ( const cY of vertical ) {
-                    if ( isVerticalGuide ) {
-                        if ( !isCoordinateInHorizontalRange( x, cX, SNAP_MARGIN )) {
-                            continue;
-                        }
-                    } else if ( !isCoordinateInVerticalRange( y, cY, SNAP_MARGIN )) {
-                        continue;
-                    }
-                    ctx.beginPath();
-                    ctx.moveTo( fastRound( localX ), fastRound( localY ));
-                    ctx.lineTo( fastRound( localX + width ), fastRound( localY + height ));
-                    ctx.stroke();
-                }
-            }
+            ctx.beginPath();
+            ctx.moveTo( fastRound( localX ), fastRound( localY ));
+            ctx.lineTo( fastRound( localX + width ), fastRound( localY + height ));
+            ctx.stroke();
         }
     }
 };
