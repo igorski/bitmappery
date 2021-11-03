@@ -23,6 +23,7 @@
 import { Dropbox } from "dropbox";
 import { blobToResource } from "@/utils/resource-manager";
 
+const PROJECT_FOLDER = "/bitmappery";
 const UPLOAD_FILE_SIZE_LIMIT = 150 * 1024 * 1024;
 
 let accessToken;
@@ -100,7 +101,7 @@ export const downloadFileAsBlob = async ( path, returnAsURL = false ) => {
 };
 
 export const uploadBlob = async ( fileOrBlob, fileName ) => {
-    const path = `/bitmappery/${fileName.split( " " ).join ( "_" )}`;
+    const path = `${PROJECT_FOLDER}/${fileName.split( " " ).join ( "_" )}`;
     if ( fileOrBlob.size < UPLOAD_FILE_SIZE_LIMIT ) {
         // File is smaller than 150 Mb - use filesUpload API
         try {

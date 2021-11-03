@@ -50,6 +50,7 @@
                         <template v-for="node in filesAndFolders">
                             <div
                                 v-if="node.type === 'folder'"
+                                :key="`folder_${node.path}`"
                                 class="entry entry__folder"
                                 @click="handleNodeClick( node )"
                             >
@@ -57,6 +58,7 @@
                             </div>
                             <div
                                 v-else-if="node.type === 'bpy'"
+                                :key="`document_${node.path}`"
                                 class="entry entry__document"
                                 @click="handleNodeClick( node )"
                             >
@@ -64,6 +66,7 @@
                             </div>
                             <dropbox-image-preview
                                 v-else
+                                :key="`preview_${node.path}`"
                                 :path="node.path"
                                 class="image-preview"
                                 @click="handleNodeClick( node )"
