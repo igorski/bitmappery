@@ -43,7 +43,7 @@ function handleWorkerMessage({ data }) {
         jobQueueObj?.success( data.data );
     }
     if ( data?.cmd === "loadError" ) {
-        jobQueueObj?.error( file, data?.error );
+        jobQueueObj?.error( data?.error );
     }
 }
 
