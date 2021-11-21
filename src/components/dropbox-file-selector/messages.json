@@ -3,6 +3,10 @@
         "files": "Files",
         "noImageFiles": "This folder contains no image files",
         "couldNotRetrieveFilesForPath": "Could not retrieve files for \"{path}\"",
-        "importedFileSuccessfully": "Imported \"{file}\" successfully."
+        "importedFileSuccessfully": "Imported \"{file}\" successfully.",
+        "delete": "Delete",
+        "deleteEntryWarning": "Are you sure you wish to delete \"{entry}\" ? You can recover files and folders deleted from your Dropbox, but only through the Dropbox app or site.",
+        "entryDeletedSuccessfully": "\"{entry}\" deleted successfully",
+        "couldNotDeleteEntry": "An error occurred while attempting to delete \"{entry}\""
     }
 }

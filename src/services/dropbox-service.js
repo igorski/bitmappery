@@ -100,6 +100,15 @@ export const downloadFileAsBlob = async ( path, returnAsURL = false ) => {
     }
 };
 
+export const deleteEntry = async path => {
+    try {
+        const { result } = await dbx.filesDelete({ path });
+        return !!result;
+    } catch {
+        return false;
+    }
+};
+
 export const uploadBlob = async ( fileOrBlob, fileName ) => {
     const path = `${PROJECT_FOLDER}/${fileName.split( " " ).join ( "_" )}`;
     if ( fileOrBlob.size < UPLOAD_FILE_SIZE_LIMIT ) {

@@ -47,31 +47,38 @@
                     <!-- files and folders within current leaf -->
                     <p v-if="!filesAndFolders.length" v-t="'noImageFiles'"></p>
                     <template v-else>
-                        <template v-for="node in filesAndFolders">
+                        <div
+                            v-for="node in filesAndFolders"
+                            :key="`entry_${node.path}`"
+                            class="entry"
+                        >
                             <div
                                 v-if="node.type === 'folder'"
-                                :key="`folder_${node.path}`"
-                                class="entry entry__folder"
+                                class="entry__icon entry__icon--folder"
                                 @click="handleNodeClick( node )"
                             >
                                 <span class="title">{{ node.name }}</span>
                             </div>
                             <div
                                 v-else-if="node.type === 'bpy'"
-                                :key="`document_${node.path}`"
-                                class="entry entry__document"
+                                class="entry__icon entry__icon--document"
                                 @click="handleNodeClick( node )"
                             >
                                 <span class="title">{{ node.name }}</span>
                             </div>
                             <dropbox-image-preview
                                 v-else
-                                :key="`preview_${node.path}`"
                                 :path="node.path"
-                                class="image-preview"
+                                class="entry__icon entry__icon--image-preview"
                                 @click="handleNodeClick( node )"
                             />
-                        </template>
+                            <button
+                                type="button"
+                                class="entry__delete-button"
+                                :title="$t('delete')"
+                                @click="handleDeleteClick( node )"
+                            >x</button>
+                        </div>
                     </template>
                 </template>
             </div>
@@ -83,7 +90,7 @@
 import { mapMutations, mapActions } from "vuex";
 import { loader } from "zcanvas";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
-import { listFolder, downloadFileAsBlob } from "@/services/dropbox-service";
+import { listFolder, downloadFileAsBlob, deleteEntry } from "@/services/dropbox-service";
 import DropboxImagePreview from "./dropbox-image-preview";
 import { truncate } from "@/utils/string-util";
 import { disposeResource } from "@/utils/resource-manager";
@@ -255,6 +262,26 @@ export default {
             }
             this.unsetLoading( "dbox" );
         },
+        handleDeleteClick({ path }) {
+            this.openDialog({
+                type: "confirm",
+                message: this.$t( "deleteEntryWarning", { entry: path }),
+                confirm: async () => {
+                    const success = await deleteEntry( path );
+                    if ( success ) {
+                        this.showNotification({
+                            message: this.$t( "entryDeletedSuccessfully", { entry: path })
+                        });
+                        this.retrieveFiles( this.leaf.path );
+                    } else {
+                        this.openDialog({
+                            type: "error",
+                            message: this.$t( "couldNotDeleteEntry", { entry: path })
+                        });
+                    }
+                },
+            });
+        },
     },
 };
 </script>
@@ -293,6 +320,7 @@ export default {
     button {
         display: inline;
         position: relative;
+        cursor: pointer;
         margin-right: $spacing-small;
         border: none;
         background: none;
@@ -316,11 +344,6 @@ export default {
     cursor: pointer;
     @include customFont();
 
-    &:hover {
-        background-color: $color-1;
-        color: #FFF;
-    }
-
     .title {
         position: absolute;
         bottom: $spacing-medium;
@@ -329,14 +352,44 @@ export default {
         @include truncate();
     }
 
-    &__folder {
-        background: url("../../assets/images/folder.png") no-repeat 50% $spacing-xlarge;
-        background-size: 50%;
+    &__icon {
+        width: inherit;
+        height: inherit;
+
+        &--folder {
+            background: url("../../assets/images/folder.png") no-repeat 50% $spacing-xlarge;
+            background-size: 50%;
+        }
+
+        &--document {
+            background: url("../../assets/icons/icon-bpy.svg") no-repeat 50% $spacing-xlarge;
+            background-size: 50%;
+        }
     }
 
-    &__document {
-        background: url("../../assets/icons/icon-bpy.svg") no-repeat 50% $spacing-xlarge;
-        background-size: 50%;
+    &__delete-button {
+        display: none;
+        position: absolute;
+        cursor: pointer;
+        top: -$spacing-small;
+        right: -$spacing-small;
+        background-color: #FFF;
+        color: $color-1;
+        width: $spacing-large;
+        height: $spacing-large;
+        border: none;
+        border-radius: 50%;
+    }
+
+    &:hover {
+        .entry__icon {
+            background-color: $color-1;
+            color: #FFF;
+        }
+
+        .entry__delete-button {
+            display: block;
+        }
     }
 }
 </style>
