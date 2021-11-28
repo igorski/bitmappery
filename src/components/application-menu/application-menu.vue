@@ -315,12 +315,23 @@
             </li>
         </ul>
         <!-- fullscreen button -->
-        <div v-if="supportsFullscreen"
-            v-t="'maximize'"
+        <button
+            v-if="supportsFullscreen"
             ref="fullscreenBtn"
             class="fullscreen-button"
-            data-api-fullscreen
-        ></div>
+            :title="$t( isFullscreen ? 'minimize' : 'maximize' )"
+        >
+            <img
+                v-if="isFullscreen"
+                src="@/assets/icons/icon-minimize.svg"
+                :alt="$t( 'minimize' )"
+            />
+            <img
+                v-else
+                src="@/assets/icons/icon-maximize.svg"
+                :alt="$t( 'maximize' )"
+            />
+        </button>
     </nav>
 </template>
 
@@ -348,6 +359,7 @@ export default {
     data: () => ({
         activeSubMenu: null, // used for mobile views collapsed / expanded view
         clonedFilters: null,
+        isFullscreen: false,
     }),
     computed: {
         ...mapState([
@@ -399,7 +411,8 @@ export default {
     },
     mounted() {
         if ( this.$refs.fullscreenBtn ) {
-            setToggleButton( this.$refs.fullscreenBtn, this.$t( "maximize" ), this.$t( "minimize" ), () => {
+            setToggleButton( this.$refs.fullscreenBtn, isFullscreen => {
+                this.isFullscreen = isFullscreen;
                 getCanvasInstance()?.rescaleFn();
             });
         }
@@ -837,10 +850,11 @@ h1 {
     top: $spacing-small;
     right: $spacing-medium;
     cursor: pointer;
-    @include customFont();
+    background: transparent;
+    border: none;
 
     &:hover {
-        color: $color-1;
+        filter: brightness(0) invert(1);
     }
 }
 </style>

@@ -42,6 +42,6 @@
         "preferences": "Preferences",
         "help": "Help",
         "maximize": "Maximize",
-        "minimize": "Minimize"
+        "minimize": "Exit fullscreen"
     }
 }

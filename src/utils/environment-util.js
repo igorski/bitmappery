@@ -23,8 +23,7 @@
 import Bowser from "bowser";
 
 const d = window.document;
-let fsToggle;
-let maximizeText, minimizeText;
+let fsToggle, fsCallback;
 
 export const isMobile = () => window.screen.availWidth <= 640; // see _variables.scss
 
@@ -34,22 +33,16 @@ export const focus = element => !isMobile() && element?.focus();
 
 export const supportsFullscreen = () => !Bowser.ios;
 
-export const setToggleButton = ( element, maximizeCopy, minimizeCopy, optCallback ) => {
+export const setToggleButton = ( element, callback ) => {
     fsToggle = element;
     fsToggle.addEventListener( "click", toggleFullscreen );
 
-    maximizeText = maximizeCopy;
-    minimizeText = minimizeCopy;
-
-    const callback = () => {
-        handleFullscreenChange();
-        optCallback?.();
-    }
+    fsCallback = callback;
 
     [
         "webkitfullscreenchange", "mozfullscreenchange", "fullscreenchange", "MSFullscreenChange"
     ]
-    .forEach( event => d.addEventListener( event, callback, false ));
+    .forEach( event => d.addEventListener( event, handleFullscreenChange, false ));
 };
 
 /* internal methods */
@@ -63,14 +56,11 @@ function toggleFullscreen() {
         requestMethod = d.body.requestFullScreen || d.body.webkitRequestFullScreen || d.body.mozRequestFullScreen || d.body.msRequestFullscreen;
         element = d.body;
     }
-
-    if ( requestMethod )
+    if ( requestMethod ) {
         requestMethod.call( element );
+    }
 }
 
 function handleFullscreenChange() {
-    if ( d.webkitIsFullScreen || d.mozFullScreen || d.msFullscreenElement === true )
-        fsToggle.innerHTML = minimizeText;
-    else
-        fsToggle.innerHTML = maximizeText;
+    fsCallback( document.webkitIsFullScreen || document.mozFullScreen || document.msFullscreenElement === true );
 }
