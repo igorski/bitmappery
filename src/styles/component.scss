@@ -3,7 +3,7 @@
 @mixin component {
     position: relative;
     box-shadow: 0 0 5px rgba(0,0,0,.5);
-    background-color: #666;
+    background-color: $color-bg;
 
     h2 {
         display: block;

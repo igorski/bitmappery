@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -119,21 +119,17 @@ export default {
 <style lang="scss" scoped>
 @import "@/styles/_variables";
 @import "@/styles/_colors";
-@import "@/styles/_mixins";
+@import "@/styles/ui";
 
 .preferences {
-    @include large() {
-        $height: 450px;
-        height: $height;
-        top: calc(50% - #{($height + 74px ) / 2});
-    }
+    @include modalBase( 480px, 370px );
 }
 
 .expl {
     font-size: 85%;
     padding: $spacing-medium;
     @include boxSize();
-    background-image: $color-window-bg;
+    border: 1px solid $color-lines;
     border-radius: $spacing-medium;
 }
 </style>

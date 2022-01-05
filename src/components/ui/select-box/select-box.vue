@@ -86,7 +86,7 @@ export default {
 }
 .vs--disabled {
     .vs__dropdown-toggle {
-        background-color: #666;
+        background-color: $color-bg;
     }
     input,
     .vs__actions {

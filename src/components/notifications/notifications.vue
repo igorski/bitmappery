@@ -1,7 +1,7 @@
 /**
 * The MIT License (MIT)
 *
-* Igor Zinken 2019-2021 - https://www.igorski.nl
+* Igor Zinken 2019-2022 - https://www.igorski.nl
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 * this software and associated documentation files (the "Software"), to deal in
@@ -105,7 +105,7 @@ export default {
         @include truncate();
         display: block;
         position: relative;
-        padding: $spacing-small $spacing-large;
+        padding: $spacing-small $spacing-medium;
         margin-bottom: $spacing-small;
         right: -500px;
         background-color: #393b40;

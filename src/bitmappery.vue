@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -253,23 +253,15 @@ export default {
  * here we set the global typography and layout styles
  * we expect to use throughout
  */
+@import "@/styles/_global";
 @import "@/styles/_mixins";
-@import "@/styles/ui";
-@import "@/styles/form";
-@import "@/styles/typography";
-@import "@/styles/tooltip";
 
-html, body {
-    margin: 0;
-    height: 100%;
-    overflow: hidden;
-    overscroll-behavior-x: none; /* disable navigation back/forward swipe on Chrome */
-}
 #app {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-image: linear-gradient(to bottom, #282828 35%, #383838 90%);
+    background-image: linear-gradient(to bottom, $color-bg-light 35%, $color-bg-dark 90%);
     height: 100%;
+    font-size: 15px;
     @include noSelect();
 
     .main {

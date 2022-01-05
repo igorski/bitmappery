@@ -1,7 +1,7 @@
 /**
 * The MIT License (MIT)
 *
-* Igor Zinken 2019-2021 - https://www.igorski.nl
+* Igor Zinken 2019-2022 - https://www.igorski.nl
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 * this software and associated documentation files (the "Software"), to deal in
@@ -65,28 +65,36 @@ export default {
 </script>
 <style lang="scss" scoped>
 @import "@/styles/component";
+@import "@/styles/ui";
 
 .modal {
     @include overlay();
     @include component();
-    $headerHeight: 50px;
+    @include modalBase( 480px, 320px );
+    background-image: $color-window-bg;
+    $headerHeight: 48px;
 
     h2 {
         color: #FFF;
+        height: $headerHeight;
+        padding: #{$spacing-xsmall + $spacing-small} $spacing-medium 0 #{$spacing-medium + $spacing-small};
+    }
+
+    .close-button {
+        top: #{$spacing-xsmall + $spacing-small};
+        right: #{$spacing-medium + $spacing-small};
     }
 
     .content {
         position: relative;
         height: calc(100% - #{$headerHeight});
+        padding: $spacing-medium #{$spacing-medium + $spacing-small};
     }
 
     .content-wrapper {
+        overflow-x: hidden;
         overflow-y: auto;
         height: inherit;
-        label {
-            font-weight: bold;
-            color: #FFF;
-        }
     }
 
     .actions {
@@ -103,21 +111,6 @@ export default {
             flex: 1;
             margin: $spacing-small;
         }
-
-        @include mobile() {
-            position: fixed;
-        }
-    }
-
-    @include large() {
-        $actionsHeight: 74px;
-        $width: 480px;
-        $height: 340px;
-
-        width: $width;
-        height: $height + $actionsHeight;
-        left: calc(50% - #{$width / 2});
-        top: calc(50% - #{($height + $actionsHeight) / 2});
     }
 }
 </style>

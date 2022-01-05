@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -316,11 +316,10 @@ h3 {
 }
 
 .layer-list {
-    padding: $spacing-small 0;
+    padding: 0;
     @include boxSize();
     @include truncate();
     border-top: 1px solid $color-lines;
-    border-bottom: 1px solid $color-lines;
 }
 
 .layer {
@@ -331,12 +330,13 @@ h3 {
     @include customFont();
     display: flex;
 
-    &:hover,
-    &.active {
-        background-color: $color-1;
+    &:hover {
+        background-color: $color-4;
         color: #000;
     }
     &.active {
+        background-color: $color-1;
+        color: #FFF;
         border: none;
     }
 
@@ -344,18 +344,18 @@ h3 {
     .name-input {
         flex: 3;
         @include truncate();
-        padding: $spacing-small 0 0 $spacing-xsmall;
+        font-size: 90%;
+        padding: $spacing-small $spacing-small 0;
     }
     .highlight {
         color: #FFF;
-        text-decoration: underline;
     }
 }
 
 .layer-actions {
     .button {
         width: 30px;
-        height: 40px;
+        height: 32px;
         padding: 0;
 
         &.disabled {

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -26,54 +26,60 @@
             <h2 v-t="'exportImage'"></h2>
         </template>
         <template #content>
-            <div class="form export-form" @keyup.enter="exportImage">
-                <div class="wrapper input">
-                    <label v-t="'imageType'"></label>
-                    <select-box :options="fileTypes"
-                                 v-model="type"
-                    />
+            <div class="export-ui">
+                <div class="form export-form" @keyup.enter="exportImage">
+                    <div class="wrapper input">
+                        <label v-t="'imageType'"></label>
+                        <select-box :options="fileTypes"
+                                     v-model="type"
+                        />
+                    </div>
+                    <div
+                        v-if="hasQualityOptions"
+                        class="wrapper slider"
+                    >
+                        <label v-t="'imageQuality'"></label>
+                        <slider
+                            v-model="quality"
+                            :min="0"
+                            :max="100"
+                        />
+                    </div>
+                    <div class="wrapper input">
+                        <label v-t="'fileName'"></label>
+                        <input
+                            type="text"
+                            v-model="name"
+                            class="input-field"
+                        />
+                    </div>
                 </div>
                 <div
-                    v-if="hasQualityOptions"
-                    class="wrapper slider"
+                    v-if="base64preview"
+                    class="preview-wrapper"
                 >
-                    <label v-t="'imageQuality'"></label>
-                    <slider
-                        v-model="quality"
-                        :min="0"
-                        :max="100"
-                    />
+                    <div class="preview-container">
+                        <img :src="base64preview" class="preview-image" />
+                    </div>
                 </div>
-                <div class="wrapper input">
-                    <label v-t="'fileName'"></label>
-                    <input
-                        type="text"
-                        v-model="name"
-                        class="input-field"
-                    />
-                </div>
-            </div>
-            <div
-                v-if="base64preview"
-                class="preview-container"
-            >
-                <img :src="base64preview" class="preview-image" />
             </div>
         </template>
         <template #actions>
-            <button
-                v-t="'export'"
-                type="button"
-                class="button"
-                :disabled="isLoading"
-                @click="exportImage()"
-            ></button>
-            <button
-                v-t="'cancel'"
-                type="button"
-                class="button"
-                @click="closeModal()"
-            ></button>
+            <div class="export-actions">
+                <button
+                    v-t="'export'"
+                    type="button"
+                    class="button"
+                    :disabled="isLoading"
+                    @click="exportImage()"
+                ></button>
+                <button
+                    v-t="'cancel'"
+                    type="button"
+                    class="button"
+                    @click="closeModal()"
+                ></button>
+            </div>
         </template>
     </modal>
 </template>
@@ -179,27 +185,40 @@ export default {
 
 <style lang="scss" scoped>
 @import "@/styles/component";
+@import "@/styles/ui";
 
 .export-modal {
     $idealWidth: 990px;
-    $idealHeight: 600px;
-    $actionsHeight: 74px;
+    $idealHeight: 500px;
+    @include modalBase( $idealWidth, $idealHeight );
 
     @include componentIdeal( $idealWidth, $idealHeight ) {
-        width: $idealWidth;
-        height: $idealHeight;
-        left: calc(50% - #{$idealWidth / 2});
-        top: calc(50% - #{($idealHeight) / 2});
         position: relative;
 
-        .form {
-            position: absolute;
-            right: $spacing-xlarge;
+        .export-ui {
+            display: flex;
+            justify-content: space-between;
         }
 
-        .preview-container {
-            float: left;
-            width: 67%;
+        .export-form,
+        .export-actions {
+            flex: 0.4;
+            margin-right: $spacing-xlarge;
+        }
+
+        .preview-wrapper {
+            flex: 0.6;
+            height: 450px;
+            overflow-x: hidden; // image is always full width
+            overflow-y: scroll;
+        }
+
+        .export-actions {
+            display: flex;
+
+            button {
+                flex: 0.5;
+            }
         }
     }
 

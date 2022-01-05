@@ -325,7 +325,7 @@ export default {
 
     &:disabled {
         background-color: #444;
-        color: #666;
+        color: $color-bg;
     }
 
     @include large() {

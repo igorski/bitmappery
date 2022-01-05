@@ -207,7 +207,7 @@ $size: 20px;
 
 .scroll {
     position: absolute;
-    background-color: #666;
+    background-color: $color-bg;
 
     &__handle {
         position: absolute;

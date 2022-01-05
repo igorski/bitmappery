@@ -30,9 +30,40 @@
     }
 }
 
+// components (such as modal windows) that have an ideal width x height size
+// can specify styles at the cutoff points using the following mixins:
+
+// everything matching the ideal width for the component
+@mixin minWidth( $width ) {
+    @media screen and ( min-width: $width ) {
+        @content;
+    }
+}
+
+// everything below the ideal width for the component
+@mixin minWidthFallback( $width ) {
+    @media screen and ( max-width: $width ) {
+        @content;
+    }
+}
+
+// everything matching the ideal width for the component
+@mixin minHeight( $height ) {
+    @media screen and ( min-height: $height ) {
+        @content;
+    }
+}
+
+// everything below the ideal width for the component
+@mixin minHeightFallback( $height ) {
+    @media screen and ( max-height: $height ) {
+        @content;
+    }
+}
+
 /* element behaviours */
 
-@mixin noSelect {
+@mixin noSelect() {
     -webkit-touch-callout: none;
       -webkit-user-select: none;
        -khtml-user-select: none;
@@ -41,54 +72,19 @@
               user-select: none;
 }
 
-@mixin noEvents {
+@mixin noEvents() {
     pointer-events: none;
-}
-
-@mixin overlay {
-    // mobile first, override in custom inheriting classes
-    // what the desktop / tablet views should look like
-    position: fixed;
-    z-index: 500;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-
-    .header {
-        width: 100%;
-        display: inline-block;
-
-        h2 {
-            float: left;
-            margin: 0;
-        }
-
-        .help-button {
-            position: absolute;
-            top: $spacing-medium;
-            right: ($spacing-xlarge + $spacing-medium);
-        }
-
-        .close-button {
-            position: absolute;
-            top: $spacing-medium;
-            right: $spacing-large;
-            cursor: pointer;
-            background-color: $color-1;
-        }
-    }
 }
 
 /* generic styles */
 
-@mixin boxSize {
+@mixin boxSize() {
     -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
        -moz-box-sizing: border-box; /* Firefox, other Gecko */
             box-sizing: border-box;
 }
 
-@mixin truncate {
+@mixin truncate() {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

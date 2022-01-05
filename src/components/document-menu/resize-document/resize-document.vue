@@ -1,7 +1,7 @@
 /**
 * The MIT License (MIT)
 *
-* Igor Zinken 2020-2021 - https://www.igorski.nl
+* Igor Zinken 2020-2022 - https://www.igorski.nl
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 * this software and associated documentation files (the "Software"), to deal in
@@ -21,7 +21,7 @@
 * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 <template>
-    <modal>
+    <modal class="resize-document">
         <template #header>
             <h2 v-t="'resizeDocument'"></h2>
         </template>
@@ -145,3 +145,11 @@ export default {
     }
 };
 </script>
+
+<style lang="scss" scoped>
+@import "@/styles/ui";
+
+.resize-document {
+    @include modalBase( 480px, 300px );
+}
+</style>

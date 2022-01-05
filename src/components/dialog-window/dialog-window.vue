@@ -1,7 +1,7 @@
 /**
 * The MIT License (MIT)
 *
-* Igor Zinken 2016-2020 - https://www.igorski.nl
+* Igor Zinken 2016-2022 - https://www.igorski.nl
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 * this software and associated documentation files (the "Software"), to deal in
@@ -26,19 +26,21 @@
         @keyup.enter="handleConfirm()"
         @keyup.esc="handleCancel()"
     >
-        <h4>{{ title }}</h4>
-        <p>{{ message }}</p>
-        <div class="actions">
-            <button v-t="'ok'"
-                    type="button"
-                    class="button"
-                    @click="handleConfirm()"
+        <h4 class="dialog-window__title">{{ title }}</h4>
+        <p class="dialog-window__message">{{ message }}</p>
+        <div class="dialog-window__actions">
+            <button
+                v-t="'ok'"
+                type="button"
+                class="button"
+                @click="handleConfirm()"
             ></button>
-            <button v-t="'cancel'"
-                    v-if="type === 'confirm'"
-                    type="button"
-                    class="button"
-                    @click="handleCancel()"
+            <button
+                v-t="'cancel'"
+                v-if="type === 'confirm'"
+                type="button"
+                class="button"
+                @click="handleCancel()"
             ></button>
         </div>
     </div>
@@ -93,7 +95,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/_mixins.scss";
+@import "@/styles/_mixins";
+@import "@/styles/ui";
 
 .dialog-window {
     @include overlay();
@@ -106,15 +109,15 @@ export default {
     top: 50%;
     transform: translate(-50%, -50%);
     background-image: $color-window-bg;
-
     padding: $spacing-small $spacing-large $spacing-large;
     border-radius: $spacing-small;
     box-shadow: 0 0 25px rgba(0,0,0,.5);
 
-    h4 {
+    &__title {
         margin: $spacing-medium 0;
-        color: $color-1;
+        color: $color-4;
         font-weight: bold;
+        font-size: 115%;
     }
 
     button {
@@ -138,13 +141,17 @@ export default {
         }
     }
 
-    .actions {
+    &__actions {
         margin: $spacing-small 0;
         display: flex;
+        justify-content: space-between;
 
         button {
-            flex: 1;
-            margin: 0 $spacing-small;
+            border: 2px solid #555;
+
+            &:hover {
+                border: none;
+            }
         }
     }
 }
