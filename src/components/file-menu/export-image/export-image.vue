@@ -192,6 +192,10 @@ export default {
     $idealHeight: 500px;
     @include modalBase( $idealWidth, $idealHeight );
 
+    .export-actions {
+        display: flex;
+    }
+
     @include componentIdeal( $idealWidth, $idealHeight ) {
         position: relative;
 
@@ -214,8 +218,6 @@ export default {
         }
 
         .export-actions {
-            display: flex;
-
             button {
                 flex: 0.5;
             }
@@ -225,6 +227,9 @@ export default {
     @include componentFallback( $idealWidth, $idealHeight ) {
         .preview-image {
             margin: $spacing-medium 0;
+        }
+        .export-actions {
+            width: 100%;
         }
     }
 }
