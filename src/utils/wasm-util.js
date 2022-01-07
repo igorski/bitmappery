@@ -43,12 +43,12 @@ export const imageDataAsFloat = ( imageData, wasmInstance, fn ) => {
     // run WASM operations on float32 data
     fn( memory, length );
 
-    // retrieve operation result to be returned to JS and free WASM memory
-    const processedImageData = wasmInstance.HEAPF32.subarray(
+    // retrieve operation result to be returned to JS
+    const processedImageData = new Uint8ClampedArray( wasmInstance.HEAPF32.subarray(
         memory / sizeofFloat,
         memory / sizeofFloat + length
-    );
-    wasmInstance._free( memory );
+    ));
+    wasmInstance._free( memory ); // ...and free WASM memory
 
     return processedImageData;
 };

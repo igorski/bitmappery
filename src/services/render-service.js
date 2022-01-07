@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -106,10 +106,17 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
             //console.info( "reading filtered content from cache" );
             imageData = cached.filterData;
         } else {
-            imageData = await runFilterJob( cvs, { filters: layer.filters });
-            //console.info( "writing filtered content to cache" );
-            cacheToSet.filters    = { ...layer.filters };
-            cacheToSet.filterData = imageData;
+            try {
+                imageData = await runFilterJob( cvs, { filters: layer.filters });
+                //console.info( "writing filtered content to cache" );
+                cacheToSet.filters    = { ...layer.filters };
+                cacheToSet.filterData = imageData;
+            } catch ( error ) {
+                // TODO: communicate error ?
+                console.info( `Caught error "${error}" during runFilterJob()` );
+                renderState.pending = Math.max( 0, renderState.pending - 1 );
+                return;
+            }
         }
         ctx.clearRect( 0, 0, width, height );
         ctx.putImageData( imageData, 0, 0 );
@@ -169,9 +176,10 @@ const runFilterJob = ( source, jobSettings ) => {
                 onComplete?.();
                 resolve( imageData );
             },
-            error: () => {
+            error: optError => {
+                // TODO: when wasm, disable wasm mode and return to JS worker ?
                 onComplete?.();
-                reject();
+                reject( optError );
             }
         });
         worker.postMessage({ cmd: wasm ? "filterWasm" : "filter", id, imageData, ...jobSettings });
@@ -184,7 +192,7 @@ function handleWorkerMessage({ data }) {
         jobQueueObj?.success( data );
     }
     if ( data?.cmd === "error" ) {
-        jobQueueObj?.error( file, data?.error );
+        jobQueueObj?.error( data?.error );
     }
 };
 
