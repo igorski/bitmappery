@@ -53,6 +53,10 @@
                             class="input-field"
                         />
                     </div>
+                    <div v-if="fileSize" class="wrapper input">
+                        <label v-t="'fileSize'"></label>
+                        <div class="form-element">{{ fileSize }}</div>
+                    </div>
                 </div>
                 <div
                     v-if="base64preview"
@@ -94,6 +98,7 @@ import { EXPORTABLE_FILE_TYPES, typeToExt, isCompressableFileType } from "@/defi
 import { createDocumentSnapshot } from "@/utils/document-util";
 import { resizeToBase64 } from "@/utils/canvas-util";
 import { saveBlobAsFile } from "@/utils/file-util";
+import { displayAsKb } from "@/utils/string-util";
 import messages from "./messages.json";
 
 export default {
@@ -122,6 +127,12 @@ export default {
         },
         qualityPercentile() {
             return parseFloat(( this.quality / 100 ).toFixed( 2 ));
+        },
+        fileSize() {
+            if ( !this.base64preview ) {
+                return null;
+            }
+            return displayAsKb( Math.round( this.base64preview.length * 6 / 8 ));
         },
     },
     watch: {
@@ -178,7 +189,6 @@ export default {
 
             this.unsetLoading( "preview" );
         },
-
     },
 };
 </script>

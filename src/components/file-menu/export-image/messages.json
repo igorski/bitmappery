@@ -4,6 +4,7 @@
         "imageType": "Image type",
         "imageQuality": "Image quality",
         "fileName": "File name",
+        "fileSize": "File size",
         "export": "Export",
         "cancel": "Cancel"
     }
