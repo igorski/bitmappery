@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2017-2021 - https://www.igorski.nl
+ * Igor Zinken 2017-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -22,32 +22,33 @@
  */
 import Bowser from "bowser";
 
-const d = window.document;
-let fsToggle, fsCallback;
+let fsToggle, fsCallback, clientData;
 
 export const isMobile = () => window.screen.availWidth <= 640; // see _variables.scss
 
-// on non-mobile environments we allow focusing of the first form element wihtin a component
+// on non-mobile environments we allow focusing of the first form element within a component
 // on mobile we don't do this as (depending on OS) this would force the keyboard to popup
 export const focus = element => !isMobile() && element?.focus();
 
-export const supportsFullscreen = () => !Bowser.ios;
+export const supportsFullscreen = () => getClientData().os?.name !== "iOS";
+
+export const isSafari = () => getClientData().browser?.name === "Safari";
 
 export const setToggleButton = ( element, callback ) => {
+    const d = window.document;
     fsToggle = element;
     fsToggle.addEventListener( "click", toggleFullscreen );
 
     fsCallback = callback;
 
-    [
-        "webkitfullscreenchange", "mozfullscreenchange", "fullscreenchange", "MSFullscreenChange"
-    ]
+    [ "webkitfullscreenchange", "mozfullscreenchange", "fullscreenchange", "MSFullscreenChange" ]
     .forEach( event => d.addEventListener( event, handleFullscreenChange, false ));
 };
 
 /* internal methods */
 
 function toggleFullscreen() {
+    const d = window.document;
     let requestMethod, element;
     if ( d.fullscreenElement || d.webkitFullscreenElement ) {
         requestMethod = d.exitFullscreen || d.webkitExitFullscreen || d.mozCancelFullScreen || d.msExitFullscreen;
@@ -63,4 +64,11 @@ function toggleFullscreen() {
 
 function handleFullscreenChange() {
     fsCallback( document.webkitIsFullScreen || document.mozFullScreen || document.msFullscreenElement === true );
+}
+
+function getClientData() {
+    if ( !clientData && typeof window !== "undefined" ) {
+        clientData = Bowser.getParser( window.navigator.userAgent ).parsedResult;
+    }
+    return clientData || {};
 }

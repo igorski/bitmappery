@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -32,7 +32,7 @@ import { getRectangleForSelection, isSelectionRectangular } from "@/math/selecti
 /**
  * Creates a snapshot of the current document at its full size.
  */
-export const createDocumentSnapshot = async ( activeDocument, type = PNG, quality = 95 ) => {
+export const createDocumentSnapshot = async ( activeDocument, type = PNG.mime, quality = 95 ) => {
     const { zcvs, cvs, ctx } = createFullSizeCanvas( activeDocument );
 
     // ensure all layer effects are rendered, note we omit caching
@@ -107,7 +107,7 @@ export const copySelection = async ( activeDocument, activeLayer, copyMerged = f
         0, 0, selectionRectangle.width, selectionRectangle.height
     );
     zcvs.dispose();
-    return await loader.loadImage( selectionCanvas.cvs.toDataURL( PNG ));
+    return await loader.loadImage( selectionCanvas.cvs.toDataURL( PNG.mime ));
 };
 
 export const deleteSelectionContent = ( activeDocument, activeLayer ) => {

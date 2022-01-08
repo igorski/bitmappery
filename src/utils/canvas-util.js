@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -55,10 +55,10 @@ export const imageToBase64 = ( bitmap, width, height, transparent ) => {
     let cvs;
     if ( bitmap instanceof Image ) {
         cvs = imageToCanvas( bitmap, width, height );
-        return cvs.toDataURL( transparent ? PNG : JPEG );
+        return cvs.toDataURL( transparent ? PNG.mime : JPEG.mime );
     } else if ( bitmap instanceof HTMLCanvasElement ) {
         cvs = bitmap;
-        return cvs.toDataURL( transparent ? PNG : JPEG );
+        return cvs.toDataURL( transparent ? PNG.mime : JPEG.mime );
     }
     return "";
 };
@@ -193,7 +193,7 @@ export const cloneCanvas = canvasToClone => {
     return cvs;
 };
 
-export const canvasToBlob = ( cvs, type = "image/png", quality = .9 ) => {
+export const canvasToBlob = ( cvs, type = PNG.mime, quality = .9 ) => {
     return new Promise(( resolve, reject ) => {
         try {
             cvs.toBlob(( blob ) => {

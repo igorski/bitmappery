@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,41 +20,59 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-export const JPEG = "image/jpeg";
-export const PNG  = "image/png";
-export const GIF  = "image/gif";
+import { isSafari } from "@/utils/environment-util";
 
-const TRANSPARENT_TYPES = [ PNG, GIF ];
+// 1. all image formats supported by BitMappery
 
-export const ACCEPTED_FILE_TYPES      = [ JPEG, PNG, GIF ];
-export const ACCEPTED_FILE_EXTENSIONS = [ "jpg", "jpeg", "png", "gif" ];
-export const EXPORTABLE_FILE_TYPES    = [ JPEG, PNG ];
+export const JPEG = { mime: "image/jpeg", ext: "jpg" };
+export const PNG  = { mime: "image/png",  ext: "png" };
+export const GIF  = { mime: "image/gif",  ext: "gif" };
+export const WEBP = { mime: "image/webp", ext: "webp" };
+
+const ALL_TYPES          = [ JPEG, PNG, GIF, WEBP ];
+const COMPRESSABLE_TYPES = [ JPEG, WEBP ];
+const TRANSPARENT_TYPES  = [ PNG, GIF, WEBP ];
+
+// 2. all image formats supported by all supported platforms
+
+export const ACCEPTED_FILE_TYPES      = [ JPEG.mime, PNG.mime, GIF.mime ];
+export const ACCEPTED_FILE_EXTENSIONS = [ JPEG.ext, "jpeg", PNG.ext, GIF.ext ];
+export const EXPORTABLE_FILE_TYPES    = [ JPEG.mime, PNG.mime ];
 export const PROJECT_FILE_EXTENSION   = ".bpy"; // BitMappery document
+
+// 3. environment specific overrides
+
+if ( !isSafari() ) {
+    // webp is currently supported by every browser with exception of Safari, see
+    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL#browser_compatibility
+    const { mime, ext } = WEBP;
+
+    ACCEPTED_FILE_TYPES.push( mime );
+    ACCEPTED_FILE_EXTENSIONS.push( ext );
+    EXPORTABLE_FILE_TYPES.push( mime );
+}
+
+// 4. utility methods
 
 // for file input selectors, we allow selection of both BitMappery Documents and all accepted image types
 export const FILE_EXTENSIONS = [ ...ACCEPTED_FILE_TYPES, PROJECT_FILE_EXTENSION ];
 
-export const isCompressableFileType = type => type === JPEG;
+export const isCompressableFileType = type => COMPRESSABLE_TYPES.some(({ mime }) => mime === type );
 
 export const isTransparent = ({ name, type }) => {
     if ( type === "dropbox" ) {
         // files imported from Dropbox don't list their mime type, derive from filename instead
-        return name.includes( ".png" ) || name.includes( ".gif" );
+        return TRANSPARENT_TYPES.some(({ ext }) => name.includes( ext ));
     }
-    return TRANSPARENT_TYPES.includes( type );
+    return TRANSPARENT_TYPES.some(({ mime }) => mime === type );
 }
 
-export const typeToExt = type => {
-    switch ( type ) {
-        default:
-            throw new Error( `Unsupported type ${type} provided` );
-        case JPEG:
-            return ACCEPTED_FILE_EXTENSIONS[ 0 ];
-        case PNG:
-            return ACCEPTED_FILE_EXTENSIONS[ 2 ];
-        case GIF:
-            return ACCEPTED_FILE_EXTENSIONS[ 3 ];
+export const typeToExt = mimeType => {
+    const format = ALL_TYPES.find(({ mime }) => mime === mimeType );
+    if ( !format ) {
+        throw new Error( `Unsupported type ${mimeType} provided` );
     }
+    return format.ext;
 };
 
 // the maximum size we support for an image, this is for the dominant side of the image
