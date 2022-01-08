@@ -222,7 +222,7 @@ export default {
 
         .preview-wrapper {
             flex: 0.6;
-            height: 450px;
+            height: 445px;
             overflow-x: hidden; // image is always full width
             overflow-y: scroll;
         }

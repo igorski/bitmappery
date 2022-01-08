@@ -150,6 +150,6 @@ export default {
 @import "@/styles/ui";
 
 .resize-document {
-    @include modalBase( 480px, 300px );
+    @include modalBase( 480px, 310px );
 }
 </style>

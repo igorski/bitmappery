@@ -21,7 +21,7 @@
 * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 <template>
-    <modal>
+    <modal class="create-document">
         <template #header>
             <h2 v-t="'newDocument'"></h2>
         </template>
@@ -104,3 +104,11 @@ export default {
     }
 };
 </script>
+
+<style lang="scss" scoped>
+@import "@/styles/ui";
+
+.create-document {
+    @include modalBase( 480px, 325px );
+}
+</style>
