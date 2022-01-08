@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -25,14 +25,17 @@
         class="image-preview"
         :class="{ 'loading': isLoading }"
     >
-        <img v-if="isLoading"
-             src="@/assets/animations/loader.svg"
-             class="loader"
+        <img
+            v-if="isLoading"
+            src="@/assets/animations/loader.svg"
+            class="image-preview__loader"
         />
-        <img v-else
-             :src="src"
-             v-on="$listeners"
-             @load="handleImageLoad"
+        <img
+            v-else
+            :src="src"
+            v-on="$listeners"
+            class="image-preview__image"
+            @load="handleImageLoad"
         />
     </div>
 </template>
@@ -90,11 +93,17 @@ export default {
     &:hover {
         transform: scale(1.05);
     }
-}
 
-.loader {
-    width: $spacing-xxlarge;
-    height: $spacing-xxlarge;
-    margin: #{(128px - $spacing-xxlarge) / 2};
+    &__loader {
+        width: $spacing-xxlarge;
+        height: $spacing-xxlarge;
+        margin: #{(128px - $spacing-xxlarge) / 2};
+    }
+
+    &__image {
+        object-fit: cover;
+        width: calc(100% - #{$spacing-small});
+        height: calc(100% - #{$spacing-small});
+    }
 }
 </style>

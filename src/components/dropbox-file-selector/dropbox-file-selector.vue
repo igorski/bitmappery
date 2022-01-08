@@ -354,6 +354,9 @@ export default {
     }
 
     &__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         width: inherit;
         height: inherit;
 
@@ -371,6 +374,7 @@ export default {
     &__delete-button {
         display: none;
         position: absolute;
+        z-index: 1;
         cursor: pointer;
         top: -$spacing-small;
         right: -$spacing-small;
