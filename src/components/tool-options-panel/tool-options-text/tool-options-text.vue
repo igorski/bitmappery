@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -25,11 +25,11 @@
          @focusin="handleFocus"
          @focusout="handleBlur"
     >
-        <h3 v-t="'text'"></h3>
         <div class="wrapper input">
             <textarea
                 ref="textInput"
                 v-model="text"
+                :placeholder="$t('typeYourTextHere')"
                 class="input-textarea full"
             />
         </div>
@@ -215,6 +215,9 @@ export default {
             KeyboardService.setSuspended( false );
         },
         update( textOpts = {}, propName = "text" ) {
+            if ( !this.activeLayer ) {
+                return;
+            }
             const index = this.activeLayerIndex;
             const store = this.$store;
             const orgOpts = {
@@ -254,7 +257,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/options-panel";
+@import "@/styles/tool-option";
 
 .color-picker {
     width: 50%;

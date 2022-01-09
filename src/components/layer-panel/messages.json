@@ -1,6 +1,7 @@
 {
     "en-US": {
         "layers": "Layers",
+        "filtersForLayer": "Filters for layer \"{name}\"",
         "noLayers": "There are no layers in this document",
         "addLayer": "Add layer",
         "addMask": "Add mask",

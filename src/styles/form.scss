@@ -1,12 +1,15 @@
 @import "_mixins";
 
+$labelWidth: 35%;
+$inputWidth: 65%;
+
 .form {
     .wrapper {
         margin: $spacing-small 0;
 
         &.slider {
             .vue-slider {
-                width: calc(48% - #{$spacing-medium}) !important;
+                width: calc(#{($inputWidth - 2%)} - #{$spacing-medium}) !important;
                 margin-left: $spacing-small;
             }
         }
@@ -17,16 +20,20 @@
             margin-left: $spacing-xsmall;
         }
 
-        label,
+        label {
+            display: inline-block;
+            width: $labelWidth;
+        }
+
         .input-field,
         .input-textarea,
         .form-element {
             display: inline-block;
-            width: 50%;
+            width: $inputWidth;
         }
         .vue-slider {
             display: inline-block;
-            width: 50% !important;
+            width: $inputWidth !important;
             vertical-align: middle;
         }
         .input-field,

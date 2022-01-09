@@ -1,0 +1,47 @@
+@import "@/styles/component";
+
+@mixin panel() {
+    @include component();
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    .content {
+        padding: $spacing-small $spacing-medium $spacing-medium;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    @include mobile() {
+        .content {
+            max-height: calc(100% - #{$heading-height});
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding: $spacing-small $spacing-medium;
+        }
+    }
+
+    .close-button {
+        top: $spacing-small - $spacing-xxsmall;
+        right: $spacing-xxsmall;
+        width: 36px;
+        height: 29px;
+
+        img {
+            width: $spacing-medium + $spacing-small;
+            height: $spacing-medium + $spacing-small;
+        }
+    }
+
+    .actions {
+        margin: $spacing-small 0;
+        padding: 0 $spacing-medium;
+        box-sizing: border-box;
+        display: flex;
+
+        button {
+            flex: 1;
+            margin: 0 $spacing-small;
+        }
+    }
+}

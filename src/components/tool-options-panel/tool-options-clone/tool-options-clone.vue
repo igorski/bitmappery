@@ -181,7 +181,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/options-panel";
+@import "@/styles/tool-option";
 
 .color-picker {
     width: 50%;

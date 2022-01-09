@@ -103,7 +103,7 @@ export default {
     computed: {
         ...mapState([
             "toolboxOpened",
-            "optionsPanelOpened",
+            "panelsOpened",
         ]),
         ...mapGetters([
             "activeTool",
@@ -232,7 +232,7 @@ export default {
             "addLayer",
             "setActiveTool",
             "setToolboxOpened",
-            "setOptionsPanelOpened",
+            "setPanelsOpened",
             "setActiveColor",
         ]),
         ...mapActions([
@@ -241,8 +241,8 @@ export default {
         ]),
         handleToolClick({ type, hasOptions }) {
             this.setTool( type );
-            if ( isMobile() && hasOptions && !this.optionsPanelOpened ) {
-                this.setOptionsPanelOpened( true );
+            if ( isMobile() && hasOptions && !this.panelsOpened ) {
+                this.setPanelsOpened( true );
             }
         },
         setTool( tool ) {

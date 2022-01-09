@@ -49,9 +49,9 @@ describe( "Vuex store", () => {
         });
 
         it( "should be able to toggle the opened state of the options panel", () => {
-            const state = { optionsPanelOpened: false };
-            mutations.setOptionsPanelOpened( state, true );
-            expect( state.optionsPanelOpened ).toBe( true );
+            const state = { panelsOpened: false };
+            mutations.setPanelsOpened( state, true );
+            expect( state.panelsOpened ).toBe( true );
         });
 
         it( "should be able to set the current selection content", () => {

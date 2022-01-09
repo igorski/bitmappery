@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,9 +21,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div class="tool-option">
-        <h3 class="title">{{ $t( 'filtersForLayer', { name: activeLayer.name })}}</h3>
-        <div class="content">
+    <div class="layer-filters">
+        <div class="content form">
             <div class="wrapper input">
                 <label v-t="'enabled'"></label>
                 <toggle-button
@@ -253,11 +252,13 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/options-panel";
+@import "@/styles/panel";
 @import "@/styles/_mixins";
 
-.title {
-    @include truncate();
+.layer-filters {
+    @include panel();
+    display: flex;
+    flex-direction: column;
 }
 
 .content {

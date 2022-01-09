@@ -149,7 +149,7 @@ function handleKeyDown( event ) {
 
         case 9: // tab
             commit( "setToolboxOpened",      !state.toolboxOpened );
-            commit( "setOptionsPanelOpened", !state.optionsPanelOpened );
+            commit( "setPanelsOpened", !state.panelsOpened );
             event.preventDefault();
             break;
 

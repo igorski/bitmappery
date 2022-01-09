@@ -35,11 +35,18 @@
             >
                 <component :is="documentCanvas" ref="documentCanvas" />
             </div>
-            <options-panel
-                ref="optionsPanel"
-                class="options-panel"
-                :class="{ 'collapsed': !optionsPanelOpened }"
-            />
+            <div
+                ref="panels"
+                class="panels"
+                :class="{ 'collapsed': !panelsOpened }"
+            >
+                <tool-options-panel
+                    class="tool-options-panel"
+                />
+                <layer-panel
+                    class="layer-panel"
+                />
+            </div>
         </section>
         <!-- dialog window used for information messages, alerts and confirmations -->
         <dialog-window
@@ -65,24 +72,25 @@
 
 <script>
 import Vuex, { mapState, mapGetters, mapMutations, mapActions } from "vuex";
-import Vue             from "vue";
-import VueI18n         from "vue-i18n";
-import VTooltip        from "v-tooltip";
+import Vue from "vue";
+import VueI18n from "vue-i18n";
+import VTooltip from "v-tooltip";
 import ApplicationMenu from "@/components/application-menu/application-menu";
-import OptionsPanel    from "@/components/options-panel/options-panel";
-import Toolbox         from "@/components/toolbox/toolbox";
-import DialogWindow    from "@/components/dialog-window/dialog-window";
-import Notifications   from "@/components/notifications/notifications";
-import Loader          from "@/components/loader/loader";
+import ToolOptionsPanel from "@/components/tool-options-panel/tool-options-panel";
+import LayerPanel from "@/components/layer-panel/layer-panel";
+import Toolbox from "@/components/toolbox/toolbox";
+import DialogWindow from "@/components/dialog-window/dialog-window";
+import Notifications from "@/components/notifications/notifications";
+import Loader from "@/components/loader/loader";
 import DocumentFactory from "@/factories/document-factory";
-import { isMobile }    from "@/utils/environment-util";
+import { isMobile } from "@/utils/environment-util";
 import { loadImageFiles } from "@/services/file-loader-queue";
 import { renderState } from "@/services/render-service";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { readClipboardFiles, readDroppedFiles } from "@/utils/file-util";
-import ToolTypes       from "@/definitions/tool-types";
-import store           from "./store";
-import messages        from "./messages.json";
+import ToolTypes from "@/definitions/tool-types";
+import store from "./store";
+import messages from "./messages.json";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, SAVE_DROPBOX_DOCUMENT, EXPORT_IMAGE,
     DROPBOX_FILE_SELECTOR, ADD_LAYER, LOAD_SELECTION, SAVE_SELECTION, PREFERENCES, RESIZE_CANVAS
@@ -106,7 +114,8 @@ export default {
         DialogWindow,
         Loader,
         Notifications,
-        OptionsPanel,
+        ToolOptionsPanel,
+        LayerPanel,
         Toolbox,
     },
     data: () => ({
@@ -116,7 +125,7 @@ export default {
         ...mapState([
             "blindActive",
             "toolboxOpened",
-            "optionsPanelOpened",
+            "panelsOpened",
             "dialog",
             "modal",
             "windowSize",
@@ -145,7 +154,7 @@ export default {
                 case SAVE_DROPBOX_DOCUMENT:
                     return () => import( "@/components/file-menu/save-dropbox-document/save-dropbox-document" );
                 case ADD_LAYER:
-                    return () => import( "@/components/options-panel/add-layer/add-layer" );
+                    return () => import( "@/components/new-layer-window/new-layer-window" );
                 case LOAD_SELECTION:
                     return () => import( "@/components/selection-menu/load-selection/load-selection" );
                 case SAVE_SELECTION:
@@ -164,7 +173,7 @@ export default {
         toolboxOpened() {
             this.$nextTick( this.scaleContainer );
         },
-        optionsPanelOpened() {
+        panelsOpened() {
             this.$nextTick( this.scaleContainer );
         },
     },
@@ -174,7 +183,7 @@ export default {
         window.addEventListener( "resize", this.handleResize.bind( this ));
         // prepare adaptive view for mobile environment
         this.setToolboxOpened( true );
-        this.setOptionsPanelOpened( !isMobile() );
+        this.setPanelsOpened( !isMobile() );
     },
     mounted() {
         if ( process.env.NODE_ENV !== "development" ) {
@@ -217,7 +226,7 @@ export default {
             "setWindowSize",
             "closeModal",
             "setToolboxOpened",
-            "setOptionsPanelOpened",
+            "setPanelsOpened",
             "setToolOptionValue",
             "addNewDocument",
         ]),
@@ -239,7 +248,7 @@ export default {
                 return;
             }
             const toolboxWidth      = this.$refs.toolbox?.$el.clientWidth;
-            const optionsPanelWidth = this.$refs.optionsPanel?.$el.clientWidth;
+            const optionsPanelWidth = this.$refs.panels?.clientWidth;
             this.docWidth = `calc(100% - ${toolboxWidth + optionsPanelWidth + 32}px)`;
             this.$nextTick(() => this.$refs.documentCanvas?.calcIdealDimensions());
         },
@@ -294,22 +303,33 @@ export default {
     @include large() {
         .toolbox,
         .document-container,
-        .options-panel {
+        .panels {
             display: inline-block;
             vertical-align: top;
         }
         .toolbox,
-        .options-panel {
+        .panels {
             &.collapsed {
                 width: $heading-height;
                 min-height: $heading-height;
+            }
+        }
+        .panels {
+            $optionsHeight: 250px;
+            height: 100%;
+            .tool-options-panel {
+                height: calc(#{$optionsHeight - ($spacing-medium / 2 )});
+            }
+            .layer-panel {
+                height: calc(100% - #{$optionsHeight + ($spacing-medium / 2 )});
+                margin-top: $spacing-medium;
             }
         }
 
         .toolbox {
             width: 113px;
         }
-        .options-panel {
+        .panels {
             width: 300px;
         }
     }
@@ -323,12 +343,14 @@ export default {
             width: 100%;
             height: $menu-height;
         }
-        .options-panel {
+        .panels {
             position: fixed;
             width: 100%;
-            max-height: 33%;
+            max-height: 50%;
             //max-height: calc(100% - #{$menu-height * 3});
             bottom: 0;
+            overflow-y: scroll;
+            border-top: 1px solid $color-bg;
 
             &.collapsed {
                 height: $menu-height;

@@ -42,7 +42,7 @@
                     @click="dropbox = true"
                 ></button>
                 <component :is="cloudImportType" />
-                <div class="wrapper input padded">
+                <div class="wrapper input">
                     <label v-t="'openImageAsNew'"></label>
                     <select-box
                         :options="fileTargetOptions"

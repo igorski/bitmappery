@@ -22,10 +22,10 @@
  */
 <template>
     <div class="tool-option">
-        <h3 v-t="'rotation'"></h3>
+        <h3 v-t="'zoomLevel'"></h3>
         <div class="wrapper full slider">
             <slider
-                v-model="rotation"
+                v-model="zoomLevel"
                 :min="min"
                 :max="max"
                 :tooltip="'none'"
@@ -33,28 +33,16 @@
         </div>
         <div class="actions">
             <button
-                v-t="'reset'"
+                v-t="'bestFit'"
                 type="button"
                 class="button button--small"
-                @click="reset()"
+                @click="setBestFit()"
             ></button>
             <button
-                v-t="'90degLeft'"
+                v-t="'original'"
                 type="button"
                 class="button button--small"
-                @click="rotate(270)"
-            ></button>
-            <button
-                v-t="'flip'"
-                type="button"
-                class="button button--small"
-                @click="rotate(180)"
-            ></button>
-            <button
-                v-t="'90degRight'"
-                type="button"
-                class="button button--small"
-                @click="rotate(90)"
+                @click="setOriginalSize()"
             ></button>
         </div>
     </div>
@@ -64,9 +52,7 @@
 import { mapGetters, mapMutations } from "vuex";
 import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import Slider    from "@/components/ui/slider/slider";
-import { enqueueState } from "@/factories/history-state-factory";
 import messages  from "./messages.json";
-import { degreesToRadians, radiansToDegrees } from "@/math/unit-math";
 
 export default {
     i18n: { messages },
@@ -74,57 +60,42 @@ export default {
         Slider,
     },
     data: () => ({
-        min: 0,
-        max: 360,
+        min: MIN_ZOOM,
+        max: MAX_ZOOM,
     }),
     computed: {
         ...mapGetters([
-            "activeLayerIndex",
-            "activeLayerEffects",
+            "activeDocument",
+            "zoomOptions",
+            "zCanvasBaseDimensions",
         ]),
-        // note rotation is stored in radians but represented visually as degrees
-        rotation: {
+        zoomLevel: {
             get() {
-                return radiansToDegrees( this.activeLayerEffects.rotation );
+                return this.zoomOptions.level;
             },
             set( value ) {
-                this.update( degreesToRadians( value % 360 ));
+                this.setToolOptionValue({
+                    tool: ToolTypes.ZOOM,
+                    option: "level",
+                    value
+                });
             }
         }
     },
     methods: {
         ...mapMutations([
-            "updateLayerEffects",
+            "setToolOptionValue",
         ]),
-        update( rotation ) {
-            const oldRotation = this.activeLayerEffects.rotation;
-            const index  = this.activeLayerIndex;
-            const store  = this.$store;
-            const commit = () => store.commit( "updateLayerEffects", { index, effects: { rotation } });
-            commit();
-            enqueueState( `rotation_${index}`, {
-                undo() {
-                    store.commit( "updateLayerEffects", { index, effects: { rotation: oldRotation } });
-                },
-                redo() {
-                    commit();
-                },
-            });
+        setBestFit() {
+            this.zoomLevel = 0;
         },
-        reset() {
-            this.rotation = 0;
+        setOriginalSize() {
+            this.zoomLevel  = ( this.activeDocument.width / this.zCanvasBaseDimensions.width ) * window.devicePixelRatio;
         },
-        rotate( amountInDegrees ) {
-            this.rotation = amountInDegrees;
-        }
     },
 };
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/options-panel";
-
-.actions button {
-    margin: 0 $spacing-xxsmall;
-}
+@import "@/styles/tool-option";
 </style>

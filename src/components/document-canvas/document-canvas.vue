@@ -132,6 +132,9 @@ export default {
                         getCanvasInstance().dispose();
                         setCanvasInstance( null );
                     }
+                    if ( mobileView ) {
+                        this.setPanelsOpened( false );
+                    }
                     return;
                 }
                 if ( !getCanvasInstance() ) {
@@ -260,9 +263,10 @@ export default {
     methods: {
         ...mapMutations([
             "setZCanvasBaseDimensions",
+            "setActiveTool",
+            "setPanelsOpened",
             "setPanMode",
             "setSelectMode",
-            "setActiveTool",
             "resetHistory",
         ]),
         ...mapActions([

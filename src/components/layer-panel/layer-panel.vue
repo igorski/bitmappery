@@ -21,80 +21,89 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div>
-        <h3 v-t="'layers'"></h3>
+    <div class="layer-panel-wrapper">
+        <h2 class="title">{{ showFilters ? $t( 'filtersForLayer', { name: activeLayer.name }) : $t( 'layers' ) }}</h2>
+        <layer-filters
+            v-if="showFilters"
+            @close="showFilters = false"
+        />
         <div
-            v-if="reverseLayers.length"
-            class="layer-list"
-        >
-            <draggable v-model="reverseLayers">
-                <div
-                    v-for="layer in reverseLayers"
-                    :key="layer.id"
-                    class="layer"
-                    :class="{
-                        'active': layer.index === activeLayerIndex
-                    }"
-                    @dblclick="handleLayerDoubleClick( layer )"
-                >
-                    <!-- layer name is an input on double click -->
-                    <input
-                        v-if="editable && layer.index === activeLayerIndex"
-                        ref="nameInput"
-                        class="input-field name-input"
-                        :value="layer.name"
-                        @blur="editable = false"
-                        @keyup.enter="editable = false"
-                        @change="updateActiveLayerName"
-                    />
-                    <span
-                        v-else
-                        v-tooltip="$t( layer.mask && layer.mask === activeLayerMask ? 'clickToEditLayer' : 'dblClickToRename')"
-                        class="name"
-                        :class="{
-                            'highlight': layer.index === activeLayerIndex && !activeLayerMask
-                        }"
-                        @click="handleLayerClick( layer )"
-                    >{{ layer.name }}</span>
-                    <div class="layer-actions">
-                        <!-- optional layer mask -->
-                        <button
-                            v-if="layer.mask"
-                            v-tooltip="$t('clickToEditMask')"
-                            class="button button--ghost"
-                            :class="{
-                                'highlight': layer.mask === activeLayerMask
-                            }"
-                            @click="handleLayerMaskClick( layer )"
-                        ><img src="@/assets/icons/icon-mask.svg" /></button>
-                        <button
-                            v-tooltip="$t('toggleVisibility')"
-                            type="button"
-                            class="button button--ghost"
-                            @click="toggleLayerVisibility( layer.index )"
-                            :class="{ 'disabled': !layer.visible }"
-                        ><img src="@/assets/icons/icon-eye.svg" /></button>
-                        <button
-                            v-tooltip="$t('filters')"
-                            type="button"
-                            class="button button--ghost"
-                            @click="handleFiltersClick( layer.index )"
-                        ><img src="@/assets/icons/icon-settings.svg" /></button>
-                        <button
-                            v-tooltip="$t( layer.mask ? 'deleteMask' : 'deleteLayer' )"
-                            type="button"
-                            class="button button--ghost"
-                            @click="handleRemoveClick( layer.index )"
-                        ><img src="@/assets/icons/icon-trashcan.svg" /></button>
-                    </div>
-                </div>
-            </draggable>
-        </div>
-        <p
             v-else
-            v-t="'noLayers'"
-        ></p>
-        <div class="actions">
+            class="content form"
+        >
+            <div
+                v-if="reverseLayers.length"
+                class="layer-list"
+            >
+                <draggable v-model="reverseLayers">
+                    <div
+                        v-for="layer in reverseLayers"
+                        :key="layer.id"
+                        class="layer"
+                        :class="{
+                            'active': layer.index === activeLayerIndex
+                        }"
+                        @dblclick="handleLayerDoubleClick( layer )"
+                    >
+                        <!-- layer name is an input on double click -->
+                        <input
+                            v-if="editable && layer.index === activeLayerIndex"
+                            ref="nameInput"
+                            class="input-field name-input"
+                            :value="layer.name"
+                            @blur="editable = false"
+                            @keyup.enter="editable = false"
+                            @change="updateActiveLayerName"
+                        />
+                        <span
+                            v-else
+                            v-tooltip="$t( layer.mask && layer.mask === activeLayerMask ? 'clickToEditLayer' : 'dblClickToRename')"
+                            class="name"
+                            :class="{
+                                'highlight': layer.index === activeLayerIndex && !activeLayerMask
+                            }"
+                            @click="handleLayerClick( layer )"
+                        >{{ layer.name }}</span>
+                        <div class="layer-actions">
+                            <!-- optional layer mask -->
+                            <button
+                                v-if="layer.mask"
+                                v-tooltip="$t('clickToEditMask')"
+                                class="button button--ghost"
+                                :class="{
+                                    'highlight': layer.mask === activeLayerMask
+                                }"
+                                @click="handleLayerMaskClick( layer )"
+                            ><img src="@/assets/icons/icon-mask.svg" /></button>
+                            <button
+                                v-tooltip="$t('toggleVisibility')"
+                                type="button"
+                                class="button button--ghost"
+                                @click="toggleLayerVisibility( layer.index )"
+                                :class="{ 'disabled': !layer.visible }"
+                            ><img src="@/assets/icons/icon-eye.svg" /></button>
+                            <button
+                                v-tooltip="$t('filters')"
+                                type="button"
+                                class="button button--ghost"
+                                @click="handleFiltersClick( layer.index )"
+                            ><img src="@/assets/icons/icon-settings.svg" /></button>
+                            <button
+                                v-tooltip="$t( layer.mask ? 'deleteMask' : 'deleteLayer' )"
+                                type="button"
+                                class="button button--ghost"
+                                @click="handleRemoveClick( layer.index )"
+                            ><img src="@/assets/icons/icon-trashcan.svg" /></button>
+                        </div>
+                    </div>
+                </draggable>
+            </div>
+            <p
+                v-else
+                v-t="'noLayers'"
+            ></p>
+        </div>
+        <div v-if="!showFilters" class="actions">
             <button
                 v-t="'addLayer'"
                 type="button"
@@ -115,7 +124,6 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import Draggable from "vuedraggable";
 import { ADD_LAYER } from "@/definitions/modal-windows";
 import { LAYER_TEXT } from "@/definitions/layer-types";
 import ToolTypes from "@/definitions/tool-types";
@@ -129,10 +137,12 @@ import messages from "./messages.json";
 export default {
     i18n: { messages },
     components: {
-        Draggable,
+        Draggable    : () => import( "vuedraggable" ),
+        LayerFilters : () => import( "@/components/layer-filters/layer-filters" )
     },
     data: () => ({
         editable: false,
+        showFilters: false,
     }),
     computed: {
         ...mapGetters([
@@ -223,7 +233,7 @@ export default {
         },
         handleFiltersClick( index ) {
             this.setActiveLayerIndex( index );
-            this.$emit( "openFilters" );
+            this.showFilters = true;
         },
         handleRemoveClick( index ) {
             const layer = this.layers[ index ];
@@ -308,11 +318,13 @@ export default {
 
 <style lang="scss" scoped>
 @import "@/styles/_mixins";
+@import "@/styles/panel";
 @import "@/styles/typography";
-@import "@/styles/options-panel";
 
-h3 {
-    color: #FFF;
+.layer-panel-wrapper {
+    @include panel();
+    display: flex;
+    flex-direction: column;
 }
 
 .layer-list {

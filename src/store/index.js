@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -58,7 +58,7 @@ export default {
     state: {
         menuOpened: false,
         toolboxOpened: false,
-        optionsPanelOpened: true,
+        panelsOpened: true,
         selectionContent: null, // clipboard content of copied images ({ image, size })
         blindActive: false,
         panMode: false,         // whether drag interactions with the document will pan its viewport
@@ -86,8 +86,8 @@ export default {
         setToolboxOpened( state, value ) {
             state.toolboxOpened = !!value;
         },
-        setOptionsPanelOpened( state, value ) {
-            state.optionsPanelOpened = !!value;
+        setPanelsOpened( state, value ) {
+            state.panelsOpened = !!value;
         },
         setSelectionContent( state, image ) {
             state.selectionContent = image;

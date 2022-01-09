@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,7 +24,7 @@
     <div class="options-panel-wrapper">
         <h2
             v-if="!collapsed"
-            v-t="'optionsPanel'"
+            v-t="'toolOptions'"
             v-tooltip="'(Tab)'"
         ></h2>
         <button
@@ -40,17 +40,6 @@
         >
             <!-- active tool section -->
             <component :is="activeToolOptions" />
-            <!-- layer section -->
-            <component
-                :is="layerFiltersComponent"
-                v-if="showFilters"
-                @close="showFilters = false"
-            />
-            <component
-                :is="layersComponent"
-                v-else
-                @openFilters="showFilters = true"
-            />
         </div>
     </div>
 </template>
@@ -62,22 +51,19 @@ import messages  from "./messages.json";
 
 export default {
     i18n: { messages },
-    data: () => ({
-        showFilters: false,
-    }),
     computed: {
         ...mapState([
-            "optionsPanelOpened",
+            "panelsOpened",
         ]),
         ...mapGetters([
             "activeTool",
         ]),
         collapsed: {
             get() {
-                return !this.optionsPanelOpened;
+                return !this.panelsOpened;
             },
             set( value ) {
-                this.setOptionsPanelOpened( !value );
+                this.setPanelsOpened( !value );
             }
         },
         /**
@@ -108,60 +94,19 @@ export default {
                     return () => import( "./tool-options-text/tool-options-text" );
             }
         },
-        layersComponent() {
-            return () => import( "./layers/layers" );
-        },
-        layerFiltersComponent() {
-            return () => import( "./layer-filters/layer-filters" );
-        }
     },
     methods: {
         ...mapMutations([
-            "setOptionsPanelOpened",
+            "setPanelsOpened",
         ]),
     }
 };
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/component";
+@import "@/styles/panel";
 
 .options-panel-wrapper {
-    @include component();
-    overflow-x: hidden;
-    overflow-y: auto;
-    width: 100%;
-    height: 100%;
-
-    .content {
-        padding: $spacing-small $spacing-medium $spacing-medium;
-    }
-
-    @include mobile() {
-        overflow: hidden;
-
-        .content {
-            max-height: calc(100% - #{$heading-height});
-            overflow-x: hidden;
-            overflow-y: auto;
-            padding: $spacing-small $spacing-medium;
-        }
-    }
-
-    .close-button {
-        top: $spacing-small - $spacing-xxsmall;
-        right: $spacing-xxsmall;
-        width: 36px;
-        height: 29px;
-
-        img {
-            width: $spacing-medium + $spacing-small;
-            height: $spacing-medium + $spacing-small;
-        }
-    }
-}
-
-.padded {
-    margin: $spacing-small 0;
+    @include panel();
 }
 </style>

@@ -1,6 +1,5 @@
 {
     "en-US": {
-        "filtersForLayer": "Filters for layer \"{name}\"",
         "enabled": "Filters active",
         "opacity": "Opacity",
         "gamma": "Gamma",

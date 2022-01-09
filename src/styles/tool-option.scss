@@ -1,0 +1,24 @@
+@import "_mixins";
+
+.tool-option {
+    margin: 0;
+    padding: 0;
+
+    h3 {
+        color: #FFF;
+    }
+
+    label {
+        font-size: 90%;
+    }
+
+    .actions {
+        margin: $spacing-small 0;
+        display: flex;
+
+        button {
+            flex: 1;
+            margin: 0 $spacing-small 0 0;
+        }
+    }
+}

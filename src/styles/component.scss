@@ -10,6 +10,7 @@
         margin: 0;
         padding: $spacing-small $spacing-medium;
         @include boxSize();
+        @include truncate();
         color: #FFF;
         background-image: $color-window-bg;
         height: $heading-height;
