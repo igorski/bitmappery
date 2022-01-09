@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2016-2021 - https://www.igorski.nl
+ * Igor Zinken 2016-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -27,6 +27,7 @@ import {
 } from "@/definitions/modal-windows";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { translatePoints } from "@/math/point-math";
+import { supportsFullscreen, toggleFullscreen } from "@/utils/environment-util";
 import { addTextLayer } from "@/utils/layer-util";
 
 let store, state, getters, commit, dispatch, listener,
@@ -275,7 +276,12 @@ function handleKeyDown( event ) {
             break;
 
         case 70: // F
-            if ( getters.activeLayer ) {
+            if ( shiftDown ) {
+                if ( supportsFullscreen() ) {
+                    toggleFullscreen();
+                }
+            }
+            else if ( getters.activeLayer ) {
                 if ( optionDown ) {
                     const filters = getters.activeLayer.filters;
                     commit( "updateLayer", {

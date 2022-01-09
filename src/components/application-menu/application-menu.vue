@@ -325,6 +325,7 @@
         <!-- fullscreen button -->
         <button
             v-if="supportsFullscreen"
+            v-tooltip="fullscreenTooltip"
             ref="fullscreenBtn"
             class="fullscreen-button"
             :title="$t( isFullscreen ? 'minimize' : 'maximize' )"
@@ -411,7 +412,10 @@ export default {
                 this.setPreferences({ snapAlign: value });
                 await this.storePreferences();
             }
-        }
+        },
+        fullscreenTooltip() {
+            return `${this.isFullscreen ? this.$t( "minimize" ) : this.$t( "maximize" )} (Shift + F)`;
+        },
     },
     watch: {
         blindActive( isOpen, wasOpen ) {

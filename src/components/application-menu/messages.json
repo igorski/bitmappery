@@ -23,7 +23,7 @@
         "copyLayerFilters": "Copy layer filters",
         "pasteLayerFilters": "Paste copied filters",
         "filtersCopied": "Filters copied",
-        "disableLayerFilters": "Disable filters",
+        "disableLayerFilters": "Disable layer filters",
         "enableLayerFilters": "Enable layer filters",
         "selection": "Selection",
         "deselectAll": "Deselect all",

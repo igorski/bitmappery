@@ -47,7 +47,7 @@ export const setToggleButton = ( element, callback ) => {
 
 /* internal methods */
 
-function toggleFullscreen() {
+export const toggleFullscreen = () => {
     const d = window.document;
     let requestMethod, element;
     if ( d.fullscreenElement || d.webkitFullscreenElement ) {
