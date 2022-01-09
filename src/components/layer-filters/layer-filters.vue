@@ -50,18 +50,18 @@
                 />
             </div>
             <div class="wrapper slider">
-                <label v-t="'contrast'"></label>
+                <label v-t="'brightness'"></label>
                 <slider
-                    v-model="contrast"
+                    v-model="brightness"
                     :min="0"
                     :max="100"
                     :tooltip="'none'"
                 />
             </div>
             <div class="wrapper slider">
-                <label v-t="'brightness'"></label>
+                <label v-t="'contrast'"></label>
                 <slider
-                    v-model="brightness"
+                    v-model="contrast"
                     :min="0"
                     :max="100"
                     :tooltip="'none'"

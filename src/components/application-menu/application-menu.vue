@@ -211,6 +211,14 @@
                         ></button>
                     </li>
                     <li>
+                        <button
+                            v-t="activeLayerHasFilters ? 'disableLayerFilters' : 'enableLayerFilters'"
+                            type="button"
+                            :disabled="!activeLayer"
+                            @click="toggleLayerFilters()"
+                        ></button>
+                    </li>
+                    <li>
                         <button v-t="'mergeDown'"
                                 type="button"
                                 :disabled="!activeLayer || activeLayerIndex === 0"
@@ -391,6 +399,9 @@ export default {
         hasClipboard() {
             return !!this.selectionContent;
         },
+        activeLayerHasFilters() {
+            return this.activeLayer?.filters?.enabled;
+        },
         canSnapAndAlign: {
             get() {
                 return this.snapAlign;
@@ -429,6 +440,7 @@ export default {
             "cropActiveDocumentContent",
             "setPreferences",
             "setSnapAlign",
+            "updateLayer",
         ]),
         ...mapActions([
             "requestDocumentClose",
@@ -574,6 +586,14 @@ export default {
                     store.commit( "updateLayer", { index, opts: { filters: { ...orgFilters } }});
                 },
                 redo: commit,
+            });
+        },
+        toggleLayerFilters() {
+            const enabled = this.activeLayerHasFilters;
+            const filters = this.activeLayer.filters;
+            this.updateLayer({
+                index: this.activeLayerIndex,
+                opts: { filters: { ...filters, enabled: !enabled} }
             });
         },
         selectAll() {

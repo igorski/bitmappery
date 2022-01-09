@@ -144,6 +144,6 @@ export default {
 }
 
 .file-target-label {
-    width: 50%;
+    width: 50% !important;
 }
 </style>
