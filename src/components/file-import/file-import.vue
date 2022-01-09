@@ -43,7 +43,7 @@
                 ></button>
                 <component :is="cloudImportType" />
                 <div class="wrapper input">
-                    <label v-t="'openImageAsNew'"></label>
+                    <label v-t="'openImageAsNew'" class="file-target-label"></label>
                     <select-box
                         :options="fileTargetOptions"
                         v-model="importTarget"
@@ -141,5 +141,9 @@ export default {
 .new-document-button {
     width: 100%;
     margin-bottom: $spacing-small;
+}
+
+.file-target-label {
+    width: 50%;
 }
 </style>
