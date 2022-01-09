@@ -74,10 +74,11 @@ export default {
 <style lang="scss">
 @import "@/styles/_variables";
 @import "@/styles/_mixins";
+@import "@/styles/form";
 
 .select-box-wrapper {
     display: inline-block;
-    width: 50%;
+    width: $inputWidth;
 }
 
 .vs__dropdown-toggle {

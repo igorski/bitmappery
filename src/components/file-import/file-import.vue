@@ -47,6 +47,7 @@
                     <select-box
                         :options="fileTargetOptions"
                         v-model="importTarget"
+                        class="file-target-select"
                     />
                 </div>
             </div>
@@ -143,7 +144,8 @@ export default {
     margin-bottom: $spacing-small;
 }
 
-.file-target-label {
+.file-target-label,
+.file-target-select {
     width: 50% !important;
 }
 </style>
