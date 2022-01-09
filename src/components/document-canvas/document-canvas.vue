@@ -127,13 +127,9 @@ export default {
             handler( document, oldValue = null ) {
                 // no active document or no document content
                 if ( !document?.layers ) {
-                    this.resetHistory();
                     if ( getCanvasInstance() ) {
                         getCanvasInstance().dispose();
                         setCanvasInstance( null );
-                    }
-                    if ( mobileView ) {
-                        this.setPanelsOpened( false );
                     }
                     return;
                 }
@@ -147,7 +143,6 @@ export default {
                 const { id } = document;
                 // switching between documents
                 if ( id !== lastDocument ) {
-                    this.resetHistory();
                     lastDocument = id;
                     flushSpriteCache();
                     flushBitmapCache();
@@ -264,10 +259,8 @@ export default {
         ...mapMutations([
             "setZCanvasBaseDimensions",
             "setActiveTool",
-            "setPanelsOpened",
             "setPanMode",
             "setSelectMode",
-            "resetHistory",
         ]),
         ...mapActions([
             "requestDocumentClose",

@@ -12,6 +12,10 @@ $inputWidth: 65%;
                 width: calc(#{($inputWidth - 2%)} - #{$spacing-medium}) !important;
                 margin-left: $spacing-small;
             }
+
+            &.full .vue-slider {
+                width: calc(48% - #{$spacing-medium}) !important;
+            }
         }
 
         // use where there is no <label> element
@@ -33,7 +37,7 @@ $inputWidth: 65%;
         }
         .vue-slider {
             display: inline-block;
-            width: $inputWidth !important;
+            width: 50% !important;
             vertical-align: middle;
         }
         .input-field,
@@ -44,6 +48,7 @@ $inputWidth: 65%;
             padding: #{$spacing-small + $spacing-xsmall} $spacing-medium;
             font-size: 95%;
         }
+
         .full {
             width: 100%;
         }

@@ -104,6 +104,7 @@ Vue.use( VTooltip, { defaultDelay: 500 });
 const i18n = new VueI18n({
     messages
 });
+let lastDocumentId = null;
 
 export default {
     i18n,
@@ -170,6 +171,20 @@ export default {
         },
     },
     watch: {
+        activeDocument( document ) {
+            if ( !document?.layers ) {
+                this.resetHistory();
+                if ( isMobile() ) {
+                    this.setPanelsOpened( false );
+                }
+            } else {
+                const { id } = document;
+                if ( id !== lastDocumentId ) {
+                    lastDocumentId = id;
+                    this.resetHistory();
+                }
+            }
+        },
         toolboxOpened() {
             this.$nextTick( this.scaleContainer );
         },
@@ -225,6 +240,7 @@ export default {
         ...mapMutations([
             "setWindowSize",
             "closeModal",
+            "resetHistory",
             "setToolboxOpened",
             "setPanelsOpened",
             "setToolOptionValue",
@@ -317,12 +333,24 @@ export default {
         .panels {
             $optionsHeight: 250px;
             height: 100%;
+
             .tool-options-panel {
                 height: calc(#{$optionsHeight - ($spacing-medium / 2 )});
             }
             .layer-panel {
                 height: calc(100% - #{$optionsHeight + ($spacing-medium / 2 )});
                 margin-top: $spacing-medium;
+            }
+
+            @include minHeight( 900px ) {
+                $optionsHeight: 390px;
+                .tool-options-panel {
+                    height: calc(#{$optionsHeight - ($spacing-medium / 2 )});
+                }
+                .layer-panel {
+                    height: calc(100% - #{$optionsHeight + ($spacing-medium / 2 )});
+                    margin-top: $spacing-medium;
+                }
             }
         }
 
