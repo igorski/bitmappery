@@ -203,15 +203,17 @@ export default {
 <style lang="scss" scoped>
 @import "@/styles/_mixins";
 
-$size: 20px;
+$size: $spacing-medium;
 
 .scroll {
     position: absolute;
-    background-color: $color-bg;
+    background-color: $color-2;
+    cursor: pointer;
 
     &__handle {
         position: absolute;
-        background-color: #B6B6B6;
+        background-color: $color-bg;
+        border-radius: $spacing-small;
         @include noEvents(); /* the background captures the events */
     }
 
