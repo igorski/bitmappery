@@ -2,9 +2,9 @@ $color-1: #0db0bc; // blue
 $color-2: #292929; // jet
 $color-3: #fb8b24; // dark orange
 $color-4: #F44174; // paradise pink
-$color-window-bg: linear-gradient(to bottom, #282828 35%, #383838 90%);
+$color-bg: #666;
+$color-bg-dark: #282828;
+$color-bg-light: #383838;
+$color-window-bg: linear-gradient(to bottom, $color-bg-dark 35%, $color-bg-light 90%);
 $color-page-text: #f5f5f5;
 $color-lines: #b6b6b6;
-$color-bg: #666;
-$color-bg-light: #282828;
-$color-bg-dark: #383838;

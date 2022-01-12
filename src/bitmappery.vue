@@ -284,7 +284,7 @@ export default {
 #app {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-image: linear-gradient(to bottom, $color-bg-light 35%, $color-bg-dark 90%);
+    background-image: linear-gradient(to bottom, $color-bg-dark 35%, $color-bg-light 90%);
     height: 100%;
     font-size: 15px;
     @include noSelect();

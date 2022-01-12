@@ -23,6 +23,7 @@
 <template>
     <div
         class="canvas-wrapper"
+        :class="{ 'has-content': activeDocument }"
         :style="{ 'height': wrapperHeight }"
     >
         <template v-if="activeDocument">
@@ -417,6 +418,10 @@ export default {
     display: inline-block;
     width: 100%;
     @include component();
+
+    &.has-content {
+        background-color: $color-bg-light;
+    }
 
     .close-button {
         @include closeButton();
