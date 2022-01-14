@@ -38,7 +38,7 @@
             <div
                 ref="panels"
                 class="panels"
-                :class="{ 'collapsed': !panelsOpened }"
+                :class="{ 'collapsed': !openedPanels.length }"
             >
                 <tool-options-panel
                     class="tool-options-panel"
@@ -126,7 +126,7 @@ export default {
         ...mapState([
             "blindActive",
             "toolboxOpened",
-            "panelsOpened",
+            "openedPanels",
             "dialog",
             "modal",
             "windowSize",
@@ -175,7 +175,7 @@ export default {
             if ( !document?.layers ) {
                 this.resetHistory();
                 if ( isMobile() ) {
-                    this.setPanelsOpened( false );
+                    this.closeOpenedPanels();
                 }
             } else {
                 const { id } = document;
@@ -188,7 +188,7 @@ export default {
         toolboxOpened() {
             this.$nextTick( this.scaleContainer );
         },
-        panelsOpened() {
+        openedPanels() {
             this.$nextTick( this.scaleContainer );
         },
     },
@@ -198,7 +198,9 @@ export default {
         window.addEventListener( "resize", this.handleResize.bind( this ));
         // prepare adaptive view for mobile environment
         this.setToolboxOpened( true );
-        this.setPanelsOpened( !isMobile() );
+        if ( isMobile() ) {
+            this.closeOpenedPanels();
+        }
     },
     mounted() {
         if ( process.env.NODE_ENV !== "development" ) {
@@ -240,9 +242,9 @@ export default {
         ...mapMutations([
             "setWindowSize",
             "closeModal",
+            "closeOpenedPanels",
             "resetHistory",
             "setToolboxOpened",
-            "setPanelsOpened",
             "setToolOptionValue",
             "addNewDocument",
         ]),
@@ -280,6 +282,7 @@ export default {
  */
 @import "@/styles/_global";
 @import "@/styles/_mixins";
+@import "@/styles/panel";
 
 #app {
     -webkit-font-smoothing: antialiased;
@@ -326,7 +329,7 @@ export default {
         .toolbox,
         .panels {
             &.collapsed {
-                width: $heading-height;
+                width: $collapsed-panel-width;
                 min-height: $heading-height;
             }
         }

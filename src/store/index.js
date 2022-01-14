@@ -25,8 +25,9 @@ import DocumentFactory from "@/factories/document-factory";
 import LayerFactory    from "@/factories/layer-factory";
 import { initHistory, enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
-import { LAYER_GRAPHIC } from "@/definitions/layer-types";
 import { ACCEPTED_FILE_TYPES, PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
+import { LAYER_GRAPHIC } from "@/definitions/layer-types";
+import { PANEL_TOOL_OPTIONS, PANEL_LAYERS } from "@/definitions/panel-types";
 import { runSpriteFn }   from "@/factories/sprite-factory";
 import canvasModule      from "./modules/canvas-module";
 import documentModule    from "./modules/document-module";
@@ -58,7 +59,7 @@ export default {
     state: {
         menuOpened: false,
         toolboxOpened: false,
-        panelsOpened: true,
+        openedPanels: [ PANEL_TOOL_OPTIONS, PANEL_LAYERS ],
         selectionContent: null, // clipboard content of copied images ({ image, size })
         blindActive: false,
         panMode: false,         // whether drag interactions with the document will pan its viewport
@@ -86,8 +87,15 @@ export default {
         setToolboxOpened( state, value ) {
             state.toolboxOpened = !!value;
         },
-        setPanelsOpened( state, value ) {
-            state.panelsOpened = !!value;
+        setOpenedPanel( state, panel ) {
+            if ( state.openedPanels.includes( panel )) {
+                state.openedPanels.splice( state.openedPanels.indexOf( panel ), 1 );
+            } else {
+                state.openedPanels.push( panel );
+            }
+        },
+        closeOpenedPanels( state ) {
+            state.openedPanels = [];
         },
         setSelectionContent( state, image ) {
             state.selectionContent = image;

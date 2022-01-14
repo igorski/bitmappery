@@ -81,7 +81,7 @@
                 <component
                     :is="colorPicker"
                     v-model="color"
-                    v-tooltip="$t('color')"
+                    v-tooltip="`${$t('color')} (C)`"
                     class="color-picker"
                 />
             </div>
@@ -92,6 +92,7 @@
 <script>
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
+import { PANEL_TOOL_OPTIONS } from "@/definitions/panel-types";
 import { runSpriteFn } from "@/factories/sprite-factory";
 import { isMobile } from "@/utils/environment-util";
 import { addTextLayer } from "@/utils/layer-util";
@@ -103,7 +104,7 @@ export default {
     computed: {
         ...mapState([
             "toolboxOpened",
-            "panelsOpened",
+            "openedPanels",
         ]),
         ...mapGetters([
             "activeTool",
@@ -232,7 +233,7 @@ export default {
             "addLayer",
             "setActiveTool",
             "setToolboxOpened",
-            "setPanelsOpened",
+            "setOpenedPanel",
             "setActiveColor",
         ]),
         ...mapActions([
@@ -241,8 +242,9 @@ export default {
         ]),
         handleToolClick({ type, hasOptions }) {
             this.setTool( type );
-            if ( isMobile() && hasOptions && !this.panelsOpened ) {
-                this.setPanelsOpened( true );
+            // ensure that the tool options panel opens in case it was collapsed
+            if ( isMobile() && hasOptions && !this.openedPanels.includes( PANEL_TOOL_OPTIONS )) {
+                this.setOpenedPanel( PANEL_TOOL_OPTIONS );
             }
         },
         setTool( tool ) {

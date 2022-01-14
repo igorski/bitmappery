@@ -1,5 +1,8 @@
 @import "@/styles/component";
 
+$collapsed-panel-width: 40px; // large view
+$collapsed-panel-height: 40px; // mobile view
+
 @mixin panel() {
     @include component();
     width: 100%;
@@ -42,6 +45,16 @@
         button {
             flex: 1;
             margin: 0 $spacing-small;
+        }
+    }
+
+    &.collapsed {
+        @include large() {
+            width: $collapsed-panel-width;
+
+            .title {
+                display: none;
+            }
         }
     }
 }

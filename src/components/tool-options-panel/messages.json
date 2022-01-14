@@ -1,5 +1,6 @@
 {
     "en-US": {
-        "toolOptions": "Tool options"
+        "toolOptions": "Tool options",
+        "noToolOptions": "No active tool or active tool has no customizable options"
     }
 }

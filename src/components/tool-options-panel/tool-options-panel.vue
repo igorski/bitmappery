@@ -21,11 +21,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div class="options-panel-wrapper">
+    <div
+        class="options-panel-wrapper"
+        :class="{ collapsed }"
+    >
         <h2
-            v-if="!collapsed"
             v-t="'toolOptions'"
             v-tooltip="'(Tab)'"
+            class="title"
         ></h2>
         <button
             type="button"
@@ -39,13 +42,15 @@
             class="content form"
         >
             <!-- active tool section -->
-            <component :is="activeToolOptions" />
+            <p v-if="!activeToolOptions" v-t="'noToolOptions'"></p>
+            <component v-else :is="activeToolOptions" />
         </div>
     </div>
 </template>
 
 <script>
 import { mapState, mapGetters, mapMutations } from "vuex";
+import { PANEL_TOOL_OPTIONS } from "@/definitions/panel-types";
 import ToolTypes from "@/definitions/tool-types";
 import messages  from "./messages.json";
 
@@ -53,17 +58,17 @@ export default {
     i18n: { messages },
     computed: {
         ...mapState([
-            "panelsOpened",
+            "openedPanels",
         ]),
         ...mapGetters([
             "activeTool",
         ]),
         collapsed: {
             get() {
-                return !this.panelsOpened;
+                return !this.openedPanels.includes( PANEL_TOOL_OPTIONS );
             },
             set( value ) {
-                this.setPanelsOpened( !value );
+                this.setOpenedPanel( PANEL_TOOL_OPTIONS );
             }
         },
         /**
@@ -97,7 +102,7 @@ export default {
     },
     methods: {
         ...mapMutations([
-            "setPanelsOpened",
+            "setOpenedPanel",
         ]),
     }
 };
@@ -108,5 +113,15 @@ export default {
 
 .options-panel-wrapper {
     @include panel();
+
+    @include mobile() {
+        position: fixed;
+        bottom: $collapsed-panel-height;
+        height: 40%;
+
+        &.collapsed {
+            height: $collapsed-panel-height;
+        }
+    }
 }
 </style>

@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { LAYER_TEXT } from "@/definitions/layer-types";
+import { ALL_PANELS } from "@/definitions/panel-types";
 import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM, canDraw, canClone } from "@/definitions/tool-types";
 import {
     CREATE_DOCUMENT, ADD_LAYER, EXPORT_DOCUMENT, DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT
@@ -149,8 +150,12 @@ function handleKeyDown( event ) {
             break;
 
         case 9: // tab
-            commit( "setToolboxOpened",      !state.toolboxOpened );
-            commit( "setPanelsOpened", !state.panelsOpened );
+            commit( "setToolboxOpened", !state.toolboxOpened );
+            if ( state.openedPanels.length > 0 ) {
+                commit( "closeOpenedPanels" );
+            } else {
+                ALL_PANELS.forEach( panel => commit( "setOpenedPanel", panel ));
+            }
             event.preventDefault();
             break;
 

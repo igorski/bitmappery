@@ -48,10 +48,24 @@ describe( "Vuex store", () => {
             expect( state.toolboxOpened ).toBe( true );
         });
 
-        it( "should be able to toggle the opened state of the options panel", () => {
-            const state = { panelsOpened: false };
-            mutations.setPanelsOpened( state, true );
-            expect( state.panelsOpened ).toBe( true );
+        describe( "when managing the opened panels", () => {
+            it( "should be able to add individual panels to the opened panels list", () => {
+                const state = { openedPanels: [ "foo" ] };
+                mutations.setOpenedPanel( state, "bar" );
+                expect( state.openedPanels ).toEqual([ "foo", "bar" ]);
+            });
+
+            it( "should be able to close individual panels in the opened panels list", () => {
+                const state = { openedPanels: [ "foo", "bar" ] };
+                mutations.setOpenedPanel( state, "foo" );
+                expect( state.openedPanels ).toEqual([ "bar" ]);
+            });
+
+            it( "should be able to close all opened panels", () => {
+                const state = { openedPanels: [ "foo", "bar" ] };
+                mutations.closeOpenedPanels( state );
+                expect( state.openedPanels ).toHaveLength( 0 );
+            });
         });
 
         it( "should be able to set the current selection content", () => {
