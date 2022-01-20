@@ -1,0 +1,13 @@
+{
+    "en-US": {
+        "sliceGridToLayers": "Slice grid to layers",
+        "gridSliceExpl": "You can slice the current document content using a grid whose blocks reflect the dimensions specified below. The document content will be flattened, the canvas resized to the grid dimensions and each grid block will appear on a new layer.",
+        "currentDocumentSize": "Current document size: {width} x {height}",
+        "width": "Width",
+        "height": "Height",
+        "layerVisibilityExpl": "Enable if all sliced layers should by default be visible (not recommended for transparent content). When disabled, only the last new layer will be visible.",
+        "allLayersVisible": "All layers visible",
+        "slice": "Slice",
+        "cancel": "Cancel"
+    }
+}

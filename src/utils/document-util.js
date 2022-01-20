@@ -31,9 +31,14 @@ import { getRectangleForSelection, isSelectionRectangular } from "@/math/selecti
 
 /**
  * Creates a snapshot of the current document at its full size.
+ *
+ * @param {Object} activeDocument
+ * @param {String=} type optional, defaults to PNG
+ * @param {Number=} quality optional, defaults to 95 (for lossy formats only)
+ * @return {HTMLCanvasElement}
  */
 export const createDocumentSnapshot = async ( activeDocument, type = PNG.mime, quality = 95 ) => {
-    const { zcvs, cvs, ctx } = createFullSizeCanvas( activeDocument );
+    const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
 
     // ensure all layer effects are rendered, note we omit caching
     const { layers } = activeDocument;
@@ -51,9 +56,14 @@ export const createDocumentSnapshot = async ( activeDocument, type = PNG.mime, q
 /**
  * Creates a full size render of the current Document contents synchronously.
  * NOTE: this assumes all effects are currently cached (!)
+ *
+ * @param {Object} activeDocument
+ * @param {Array<Number>=} optLayerIndices optional whitelist of layers to render, defaults
+                           to render all layers unless specified
+ * @return {HTMLCanvasElement}
  */
 export const renderFullSize = ( activeDocument, optLayerIndices = [] ) => {
-    const { zcvs, cvs, ctx } = createFullSizeCanvas( activeDocument );
+    const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
 
     // draw existing layers onto temporary canvas at full document scale
     const { layers } = activeDocument;
@@ -69,13 +79,44 @@ export const renderFullSize = ( activeDocument, optLayerIndices = [] ) => {
 };
 
 /**
+ * Slice the contents of given bitmap using a grid of given dimensions
+ * into a list of grid-sized bitmaps
+ *
+ * @param {HTMLImageElement} sourceBitmap
+ * @param {Number} tileWidth width of a single grid tile
+ * @param {Number} tileHeight height of a single grid tile
+ * @return {Array<HTMLCanvasElement>
+ */
+export const sliceTiles = ( sourceBitmap, tileWidth, tileHeight ) => {
+    const { width, height } = sourceBitmap;
+    const out = [];
+
+    for ( let y = 0; y < height; y += tileHeight ) {
+        for ( let x = 0; x < width; x += tileWidth ) {
+            // ensure the current slice isn't exceeding the sourceBitmap bounds
+            const w = ( x + tileWidth > width ) ? ( x + tileWidth - width ) : width;
+            const h = ( y + tileHeight > height ) ? ( y + tileHeight - height ) : height;
+            const { cvs, ctx } = createCanvas( w, h );
+            ctx.drawImage( sourceBitmap, x, y, w, h, 0, 0, w, h );
+            out.push( cvs );
+        }
+    }
+    return out;
+};
+
+/**
  * Copy the selection defined in activeLayer into a separate Image
+ *
+ * @param {Object} activeDocument
+ * @param {Object} activeLayer
+ * @param {Boolean=} copyMerged optional, defaults to false
+ * @return {HTMLImageElement}
  */
 export const copySelection = async ( activeDocument, activeLayer, copyMerged = false ) => {
     // render all layers if a merged copy was requested
     const merged = copyMerged ? await createDocumentSnapshot( activeDocument ) : null;
 
-    const { zcvs, cvs, ctx } = createFullSizeCanvas( activeDocument );
+    const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
     ctx.beginPath();
     activeDocument.selection.forEach(( point, index ) => {
         ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x, point.y );
@@ -110,6 +151,13 @@ export const copySelection = async ( activeDocument, activeLayer, copyMerged = f
     return await loader.loadImage( selectionCanvas.cvs.toDataURL( PNG.mime ));
 };
 
+/**
+ * Deletes the pixel content inside the active selection of the document.
+ *
+ * @param {Object} activeDocument
+ * @param {Object} activeLayer
+ * @return {HTMLCanvasElement} document bitmap with erased selection contents
+ */
 export const deleteSelectionContent = ( activeDocument, activeLayer ) => {
     const { x, y, width, height } = activeLayer;
     const { cvs, ctx } = createCanvas( width, height );
@@ -141,6 +189,14 @@ export const deleteSelectionContent = ( activeDocument, activeLayer ) => {
     return cvs;
 };
 
+/**
+ * Retrieve a list of rectangles that describe the bounding boxes of
+ * elements inside the document that can snapped/aligned to
+ *
+ * @param {Object} document
+ * @param {Object=} excludeLayer optional layer to exclude
+ * @return {Array<Object>} list of rectangles to align to
+ */
 export const getAlignableObjects = ( document, excludeLayer ) => {
     // create a rectangle describing the document boundaries
     const documentBounds = {
@@ -186,7 +242,7 @@ export const getAlignableObjects = ( document, excludeLayer ) => {
  * Create a (temporary) instance of zCanvas at the full document size.
  * (as the current on-screen instance is a "best fit" for the screen size)
  */
-function createFullSizeCanvas( object ) {
+function createFullSizeZCanvas( object ) {
      const { width, height } = object;
      const zcvs = new canvas({ width, height, viewport: { width: width * 10, height: height * 10 } });
      const cvs  = zcvs.getElement();

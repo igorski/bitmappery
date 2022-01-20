@@ -15,6 +15,7 @@
         "document": "Document",
         "resizeDocument": "Resize document",
         "canvasSize": "Canvas size",
+        "sliceGridToLayers": "Slice grid to layers",
         "layer": "Layer",
         "duplicateLayer": "Duplicate layer",
         "mergeDown": "Merge down",

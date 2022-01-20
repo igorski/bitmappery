@@ -118,7 +118,7 @@ export default {
 
 <style lang="scss" scoped>
 @import "@/styles/_variables";
-@import "@/styles/_colors";
+@import "@/styles/typography";
 @import "@/styles/ui";
 
 .preferences {
@@ -126,10 +126,6 @@ export default {
 }
 
 .expl {
-    font-size: 85%;
-    padding: $spacing-medium;
-    @include boxSize();
-    border: 1px solid $color-lines;
-    border-radius: $spacing-medium;
+    @include smallText();
 }
 </style>

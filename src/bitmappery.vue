@@ -93,7 +93,8 @@ import store from "./store";
 import messages from "./messages.json";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, SAVE_DROPBOX_DOCUMENT, EXPORT_IMAGE,
-    DROPBOX_FILE_SELECTOR, ADD_LAYER, LOAD_SELECTION, SAVE_SELECTION, PREFERENCES, RESIZE_CANVAS
+    DROPBOX_FILE_SELECTOR, ADD_LAYER, LOAD_SELECTION, SAVE_SELECTION, PREFERENCES, RESIZE_CANVAS,
+    GRID_TO_LAYERS
 } from "@/definitions/modal-windows";
 
 Vue.use( Vuex );
@@ -145,7 +146,7 @@ export default {
                 case CREATE_DOCUMENT:
                     return () => import( "@/components/file-menu/create-document/create-document" );
                 case RESIZE_DOCUMENT:
-                    return () => import( "@/components/document-menu/resize-document/resize-document" );
+                    return () => import( "@/components/resize-document-window/resize-document-window" );
                 case EXPORT_DOCUMENT:
                     return () => import( "@/components/file-menu/export-document/export-document" );
                 case EXPORT_IMAGE:
@@ -163,7 +164,9 @@ export default {
                 case PREFERENCES:
                     return () => import( "@/components/preferences/preferences" );
                 case RESIZE_CANVAS:
-                    return () => import( "@/components/document-menu/resize-canvas/resize-canvas" );
+                    return () => import( "@/components/resize-canvas-window/resize-canvas-window" );
+                case GRID_TO_LAYERS:
+                    return () => import( "@/components/grid-to-layers-window/grid-to-layers-window" );
             }
         },
         showLoader() {

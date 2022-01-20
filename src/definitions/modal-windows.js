@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -31,3 +31,4 @@ export const SAVE_SELECTION        = 8;
 export const LOAD_SELECTION        = 9;
 export const PREFERENCES           = 10;
 export const RESIZE_CANVAS         = 11;
+export const GRID_TO_LAYERS        = 12;

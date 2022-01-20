@@ -160,24 +160,35 @@
                     @click="close()"
                 >
                     <li>
-                        <button v-t="'resizeDocument'"
-                                type="button"
-                                :disabled="noDocumentsAvailable"
-                                @click="requestDocumentResize()"
+                        <button
+                            v-t="'resizeDocument'"
+                            type="button"
+                            :disabled="noDocumentsAvailable"
+                            @click="requestDocumentResize()"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'canvasSize'"
-                                type="button"
-                                :disabled="noDocumentsAvailable"
-                                @click="requestCanvasResize()"
+                        <button
+                            v-t="'canvasSize'"
+                            type="button"
+                            :disabled="noDocumentsAvailable"
+                            @click="requestCanvasResize()"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'cropToSelection'"
-                                type="button"
-                                :disabled="!hasSelection"
-                                @click="requestCropToSelection()"
+                        <button
+                            v-t="'cropToSelection'"
+                            type="button"
+                            :disabled="!hasSelection"
+                            @click="requestCropToSelection()"
+                        ></button>
+                    </li>
+                    <li>
+                        <button
+                            v-t="'sliceGridToLayers'"
+                            type="button"
+                            :disabled="noDocumentsAvailable"
+                            @click="requestGridToLayers()"
                         ></button>
                     </li>
                 </ul>
@@ -190,24 +201,27 @@
                     @click="close()"
                 >
                     <li>
-                        <button v-t="'duplicateLayer'"
-                                type="button"
-                                :disabled="!activeLayer"
-                                @click="duplicateLayer()"
+                        <button
+                            v-t="'duplicateLayer'"
+                            type="button"
+                            :disabled="!activeLayer"
+                            @click="duplicateLayer()"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'copyLayerFilters'"
-                                type="button"
-                                :disabled="!activeLayer"
-                                @click="copyLayerFilters()"
+                        <button
+                            v-t="'copyLayerFilters'"
+                            type="button"
+                            :disabled="!activeLayer"
+                            @click="copyLayerFilters()"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'pasteLayerFilters'"
-                                type="button"
-                                :disabled="!activeLayer || !clonedFilters"
-                                @click="pasteLayerFilters()"
+                        <button
+                            v-t="'pasteLayerFilters'"
+                            type="button"
+                            :disabled="!activeLayer || !clonedFilters"
+                            @click="pasteLayerFilters()"
                         ></button>
                     </li>
                     <li>
@@ -219,17 +233,19 @@
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'mergeDown'"
-                                type="button"
-                                :disabled="!activeLayer || activeLayerIndex === 0"
-                                @click="mergeLayerDown()"
+                        <button
+                            v-t="'mergeDown'"
+                            type="button"
+                            :disabled="!activeLayer || activeLayerIndex === 0"
+                            @click="mergeLayerDown()"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'flattenImage'"
-                                type="button"
-                                :disabled="!activeLayer || activeDocument.layers.length < 2"
-                                @click="mergeLayerDown( true )"
+                        <button
+                            v-t="'flattenImage'"
+                            type="button"
+                            :disabled="!activeLayer || activeDocument.layers.length < 2"
+                            @click="mergeLayerDown( true )"
                         ></button>
                     </li>
                 </ul>
@@ -349,7 +365,7 @@ import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import cloneDeep from "lodash.clonedeep";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION,
-    DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT, PREFERENCES, RESIZE_CANVAS
+    DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT, PREFERENCES, RESIZE_CANVAS, GRID_TO_LAYERS
 } from "@/definitions/modal-windows";
 import { FILE_EXTENSIONS } from "@/definitions/image-types";
 import { getRectangleForSelection } from "@/math/selection-math";
@@ -474,6 +490,9 @@ export default {
         },
         requestCanvasResize() {
             this.openModal( RESIZE_CANVAS );
+        },
+        requestGridToLayers() {
+            this.openModal( GRID_TO_LAYERS );
         },
         requestDocumentExport() {
             this.openModal( EXPORT_DOCUMENT );
