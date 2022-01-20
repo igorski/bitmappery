@@ -185,6 +185,7 @@ export default {
     },
     beforeDestroy() {
         this.base64preview = null;
+        this.snapshots = null;
     },
     methods: {
         ...mapMutations([
@@ -223,8 +224,10 @@ export default {
             let snapshotCvs;
 
             if ( this.layersToSpriteSheet ) {
-                const snapshots = await Promise.all( this.activeDocument.layers.map( createLayerSnapshot ));
-                snapshotCvs = tilesToSingle( snapshots, width, height, parseFloat( this.sheetCols ));
+                if ( !this.snapshots ) {
+                    this.snapshots = await Promise.all( this.activeDocument.layers.map( createLayerSnapshot ));
+                }
+                snapshotCvs = tilesToSingle( this.snapshots, width, height, parseFloat( this.sheetCols ));
             } else {
                 snapshotCvs = await createDocumentSnapshot( this.activeDocument );
             }

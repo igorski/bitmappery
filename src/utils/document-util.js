@@ -33,11 +33,9 @@ import { getRectangleForSelection, isSelectionRectangular } from "@/math/selecti
  * Creates a snapshot of the current document at its full size.
  *
  * @param {Object} activeDocument
- * @param {String=} type optional, defaults to PNG
- * @param {Number=} quality optional, defaults to 95 (for lossy formats only)
  * @return {HTMLCanvasElement}
  */
-export const createDocumentSnapshot = async ( activeDocument, type = PNG.mime, quality = 95 ) => {
+export const createDocumentSnapshot = async ( activeDocument ) => {
     const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
 
     // ensure all layer effects are rendered, note we omit caching
@@ -57,11 +55,9 @@ export const createDocumentSnapshot = async ( activeDocument, type = PNG.mime, q
  * Creates a snapshot of the given layer at its full size.
  *
  * @param {Object} layer
- * @param {String=} type optional, defaults to PNG
- * @param {Number=} quality optional, defaults to 95 (for lossy formats only)
  * @return {HTMLCanvasElement}
  */
-export const createLayerSnapshot = async ( layer, type = PNG.mime, quality = 95 ) => {
+export const createLayerSnapshot = async ( layer ) => {
     const { zcvs, cvs, ctx } = createFullSizeZCanvas( layer );
 
     // if the layer is currently invisible, it has no sprite, create it lazily here.
