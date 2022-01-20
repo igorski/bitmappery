@@ -23,7 +23,7 @@
 import { canvas, loader } from "zcanvas";
 import { PNG } from "@/definitions/image-types";
 import { renderEffectsForLayer } from "@/services/render-service";
-import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { createSpriteForLayer, getSpriteForLayer } from "@/factories/sprite-factory";
 import { createCanvas } from "@/utils/canvas-util";
 import { createInverseClipping } from "@/rendering/clipping";
 import { rotateRectangle, areEqual } from "@/math/rectangle-math";
@@ -50,6 +50,30 @@ export const createDocumentSnapshot = async ( activeDocument, type = PNG.mime, q
         getSpriteForLayer( layer )?.draw( ctx, zcvs._viewport, true );
     });
     zcvs.dispose();
+    return cvs;
+};
+
+/**
+ * Creates a snapshot of the given layer at its full size.
+ *
+ * @param {Object} layer
+ * @param {String=} type optional, defaults to PNG
+ * @param {Number=} quality optional, defaults to 95 (for lossy formats only)
+ * @return {HTMLCanvasElement}
+ */
+export const createLayerSnapshot = async ( layer, type = PNG.mime, quality = 95 ) => {
+    const { zcvs, cvs, ctx } = createFullSizeZCanvas( layer );
+
+    // if the layer is currently invisible, it has no sprite, create it lazily here.
+    const sprite = !layer.visible ? createSpriteForLayer( zcvs, layer ) : getSpriteForLayer( layer );
+
+    // ensure all layer effects are rendered, note we omit caching
+    await renderEffectsForLayer( layer, false );
+
+    // draw existing layers onto temporary canvas at full document scale
+    sprite?.draw( ctx, zcvs._viewport, true );
+    zcvs.dispose();
+
     return cvs;
 };
 
@@ -102,6 +126,33 @@ export const sliceTiles = ( sourceBitmap, tileWidth, tileHeight ) => {
         }
     }
     return out;
+};
+
+/**
+ * Combines the contents of a list of tiles into a single image where the tiles
+ * are spread across the given amountOfColumns for as many rows as necessary
+ *
+ * @param {Array<CanvasImageSource>} tiles
+ * @param {Number} tileWidth width of an individual tile
+ * @param {Number} tileHeight height of an individual tile
+ * @param {Number} amountOfColumns amount of columns to generate in the destination image
+ * @return {HTMLCanvasElement}
+ */
+export const tilesToSingle = ( tiles, tileWidth, tileHeight, amountOfColumns ) => {
+    const amountOfRows = Math.ceil( tiles.length / amountOfColumns );
+    const width  = amountOfColumns * tileWidth;
+    const height = amountOfRows * tileHeight;
+
+    const { cvs, ctx } = createCanvas( width, height );
+    let x = 0, y = 0;
+    tiles.forEach( tile => {
+        ctx.drawImage( tile, 0, 0, tile.width, tile.height, x * tileWidth, y * tileHeight, tileWidth, tileHeight );
+        if ( ++x === amountOfColumns ) {
+            x = 0;
+            ++y;
+        }
+    });
+    return cvs;
 };
 
 /**

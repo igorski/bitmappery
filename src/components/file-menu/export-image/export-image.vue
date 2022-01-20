@@ -57,6 +57,26 @@
                         <label v-t="'fileSize'"></label>
                         <div class="form-element">{{ fileSize }}</div>
                     </div>
+                    <template v-if="canCreateSpriteSheet">
+                        <p v-t="'layersToSheetExpl'" class="expl"></p>
+                        <div class="wrapper input">
+                            <label v-t="'layersToSpriteSheet'"></label>
+                            <toggle-button
+                                v-model="layersToSpriteSheet"
+                                name="layersToSpritesheet"
+                            />
+                        </div>
+                        <template v-if="layersToSpriteSheet">
+                            <div class="wrapper input">
+                                <label v-t="'columnAmount'"></label>
+                                <input
+                                    type="number"
+                                    v-model="sheetCols"
+                                    class="input-field"
+                                />
+                            </div>
+                        </template>
+                    </template>
                 </div>
                 <div
                     v-if="base64preview"
@@ -90,12 +110,13 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import Modal      from "@/components/modal/modal";
-import SelectBox  from '@/components/ui/select-box/select-box';
-import Slider     from "@/components/ui/slider/slider";
+import { ToggleButton } from "vue-js-toggle-button";
+import Modal from "@/components/modal/modal";
+import SelectBox from '@/components/ui/select-box/select-box';
+import Slider from "@/components/ui/slider/slider";
 import { mapSelectOptions }  from "@/utils/search-select-util";
 import { EXPORTABLE_FILE_TYPES, typeToExt, isCompressableFileType } from "@/definitions/image-types";
-import { createDocumentSnapshot } from "@/utils/document-util";
+import { createDocumentSnapshot, createLayerSnapshot, tilesToSingle } from "@/utils/document-util";
 import { resizeToBase64 } from "@/utils/canvas-util";
 import { saveBlobAsFile } from "@/utils/file-util";
 import { displayAsKb } from "@/utils/string-util";
@@ -107,12 +128,15 @@ export default {
         Modal,
         SelectBox,
         Slider,
+        ToggleButton,
     },
     data: () => ({
         name: "",
         type: EXPORTABLE_FILE_TYPES[ 0 ],
         quality: 95,
         base64preview: null,
+        layersToSpriteSheet: false,
+        sheetCols: 4,
     }),
     computed: {
         ...mapGetters([
@@ -134,6 +158,10 @@ export default {
             }
             return displayAsKb( Math.round( this.base64preview.length * 6 / 8 ));
         },
+        canCreateSpriteSheet() {
+            // TODO: magic number should go to definitions file
+            return this.activeDocument.layers.length > 1 && this.activeDocument.width < 600;
+        },
     },
     watch: {
         quality() {
@@ -142,6 +170,14 @@ export default {
         type() {
             this.renderPreview();
         },
+        layersToSpriteSheet() {
+            this.renderPreview();
+        },
+        sheetCols( amount ) {
+            if ( this.layersToSpriteSheet ) {
+                this.renderPreview();
+            }
+        }
     },
     created() {
         this.name = this.activeDocument.name.split( "." )[ 0 ];
@@ -172,6 +208,7 @@ export default {
                 width  * ( window.devicePixelRatio || 1 ),
                 height * ( window.devicePixelRatio || 1 )
             );
+
             // fetch final base64 data so we can convert it easily to binary
             const base64 = await fetch( resizedImage );
             const blob = await base64.blob();
@@ -182,11 +219,16 @@ export default {
         async renderPreview() {
             this.setLoading( "preview" );
 
-            const snapshotCvs = await createDocumentSnapshot( this.activeDocument );
             const { width, height } = this.activeDocument;
-            const quality = parseFloat(( this.quality / 100 ).toFixed( 2 ));
-            this.base64preview = snapshotCvs.toDataURL( this.type, this.qualityPercentile );
+            let snapshotCvs;
 
+            if ( this.layersToSpriteSheet ) {
+                const snapshots = await Promise.all( this.activeDocument.layers.map( createLayerSnapshot ));
+                snapshotCvs = tilesToSingle( snapshots, width, height, parseFloat( this.sheetCols ));
+            } else {
+                snapshotCvs = await createDocumentSnapshot( this.activeDocument );
+            }
+            this.base64preview = snapshotCvs.toDataURL( this.type, this.qualityPercentile );
             this.unsetLoading( "preview" );
         },
     },
@@ -195,6 +237,7 @@ export default {
 
 <style lang="scss" scoped>
 @import "@/styles/component";
+@import "@/styles/typography";
 @import "@/styles/ui";
 
 .export-modal {
@@ -246,5 +289,9 @@ export default {
 
 .preview-image {
     width: 100%;
+}
+
+.expl {
+    @include smallText();
 }
 </style>

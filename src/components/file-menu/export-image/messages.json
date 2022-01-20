@@ -5,6 +5,9 @@
         "imageQuality": "Image quality",
         "fileName": "File name",
         "fileSize": "File size",
+        "layersToSheetExpl": "This document contains layers and seems to be of appropriate size. You can combine the layers into a grid layout (e.g. create a spritesheet)",
+        "layersToSpriteSheet": "Merge into sheet",
+        "columnAmount": "Column amount",
         "export": "Export",
         "cancel": "Cancel"
     }
