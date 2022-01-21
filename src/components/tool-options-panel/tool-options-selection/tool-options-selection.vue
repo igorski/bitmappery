@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,39 +21,98 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div class="tool-option">
+    <div
+        class="tool-option"
+        @focusin="handleFocus"
+        @focusout="handleBlur"
+    >
         <h3 v-t="'selection'"></h3>
+        <template v-if="!isLassoSelection">
+            <div class="wrapper input">
+                <label v-t="'lockedRatio'" v-tooltip="$t('shiftKey')"></label>
+                <toggle-button
+                    v-model="maintainRatio"
+                    name="ratio"
+                    sync
+                />
+            </div>
+            <div class="wrapper input">
+                <label v-t="'widthToHeight'"></label>
+                <input
+                    type="text"
+                    v-model.number="xRatio"
+                    class="input-field half"
+                    :disabled="!maintainRatio"
+                />
+                <input
+                    type="text"
+                    v-model.number="yRatio"
+                    class="input-field half"
+                    :disabled="!maintainRatio"
+                />
+            </div>
+        </template>
+        <h3 v-t="'existingSelection'"></h3>
         <div class="wrapper input">
-            <label v-t="'lockAspectRatio'" v-tooltip="$t('shiftKey')"></label>
-            <toggle-button
-                v-model="maintainRatio"
-                name="ratio"
-                sync
+            <label v-t="'x'"></label>
+            <input
+                type="text"
+                v-model.number="x"
+                class="input-field"
+                :min="0"
+                :max="activeDocument.width - 1"
+                :disabled="!hasSelection"
+
             />
         </div>
         <div class="wrapper input">
-            <label v-t="'widthByHeight'"></label>
+            <label v-t="'y'"></label>
             <input
                 type="text"
-                v-model.number="xRatio"
-                class="input-field half"
-                :disabled="!maintainRatio"
-            />
-            <input
-                type="text"
-                v-model.number="yRatio"
-                class="input-field half"
-                :disabled="!maintainRatio"
+                v-model.number="y"
+                class="input-field"
+                :min="0"
+                :max="activeDocument.height - 1"
+                :disabled="!hasSelection"
             />
         </div>
+        <template v-if="!isLassoSelection">
+            <div class="wrapper input">
+                <label v-t="'width'"></label>
+                <input
+                    type="text"
+                    v-model.number="width"
+                    class="input-field"
+                    :min="1"
+                    :max="activeDocument.width - x"
+                    :disabled="!hasSelection"
+                />
+            </div>
+            <div class="wrapper input">
+                <label v-t="'height'"></label>
+                <input
+                    type="text"
+                    v-model.number="height"
+                    class="input-field"
+                    :min="1"
+                    :max="activeDocument.height - y"
+                    :disabled="!hasSelection"
+                />
+            </div>
+        </template>
     </div>
 </template>
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import ToolTypes from "@/definitions/tool-types";
 import { ToggleButton } from "vue-js-toggle-button";
+import ToolTypes from "@/definitions/tool-types";
+import KeyboardService from "@/services/keyboard-service";
+import { getCanvasInstance } from "@/factories/sprite-factory";
+
 import messages from "./messages.json";
+
+const clamp = value => value === Infinity ? 1 : value === -Infinity ? 0 : value;
 
 export default {
     i18n: { messages },
@@ -67,6 +126,9 @@ export default {
     }),
     computed: {
         ...mapGetters([
+            "activeDocument",
+            "activeTool",
+            "hasSelection",
             "selectionOptions",
         ]),
         maintainRatio: {
@@ -92,12 +154,98 @@ export default {
             set( value ) {
                 this.setToolOptionValue({ tool: ToolTypes.SELECTION, option: "yRatio", value });
             }
-        }
+        },
+        /* existing selection coordinates */
+        x: {
+            get() {
+                return Math.round( this.cachedSelectionBounds.x );
+            },
+            set( value ) {
+                this.moveSelection( value - this.x );
+            }
+        },
+        y: {
+            get() {
+                return Math.round( this.cachedSelectionBounds.y );
+            },
+            set( value ) {
+                this.moveSelection( 0, value - this.y );
+            }
+        },
+        width: {
+            get() {
+                return Math.round( this.cachedSelectionBounds.width );
+            },
+            set( value ) {
+                this.adjustSelectionSize( value || 1, this.height );
+            }
+        },
+        height: {
+            get() {
+                return Math.round( this.cachedSelectionBounds.height );
+            },
+            set( value ) {
+                this.adjustSelectionSize( this.width, value || 1 );
+            }
+        },
+        cachedSelectionBounds() {
+            if ( !this.hasSelection ) {
+                return { x: 0, y: 0, width: 0, height: 0 };
+            }
+            let x = Infinity;
+            let y = Infinity;
+            let r = -Infinity;
+            let b = -Infinity;
+            this.activeDocument.selection.forEach( point => {
+                x = point.x < x ? point.x : x;
+                y = point.y < y ? point.y : y;
+                r = point.x > r ? point.x : r;
+                b = point.y > b ? point.y : b;
+            });
+            return {
+                x      : clamp( x ),
+                y      : clamp( y ),
+                width  : clamp( r - x ),
+                height : clamp( b - y )
+            };
+        },
+        isLassoSelection() {
+            return this.activeTool === ToolTypes.LASSO;
+        },
     },
     methods: {
         ...mapMutations([
             "setToolOptionValue",
         ]),
+        handleFocus() {
+            KeyboardService.setSuspended( true );
+        },
+        handleBlur() {
+            KeyboardService.setSuspended( false );
+        },
+        moveSelection( deltaX = 0, deltaY = 0 ) {
+            getCanvasInstance()?.interactionPane.setSelection(
+                this.activeDocument.selection.map(({ x, y }) => ({
+                    x: x + deltaX,
+                    y: y + deltaY
+                })), true
+            );
+        },
+        adjustSelectionSize( newWidth = 1, newHeight = 1 ) {
+            const wider  = newWidth  > this.width;
+            const taller = newHeight > this.height;
+            const maxX   = this.x + newWidth;
+            const maxY   = this.y + newHeight;
+            const prevRight = this.x + this.width;
+            const prevBottom = this.y + this.height;
+
+            getCanvasInstance()?.interactionPane.setSelection(
+                this.activeDocument.selection.map(({ x, y }) => ({
+                    x: wider  && x === prevRight  ? Math.max( maxX, x ) : Math.min( maxX, x ),
+                    y: taller && y === prevBottom ? Math.max( maxY, y ) : Math.min( maxY, y ),
+                })), true
+            );
+        }
     }
 };
 </script>

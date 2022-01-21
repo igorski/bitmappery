@@ -80,6 +80,7 @@ export default {
                 default:
                     return null;
                 case ToolTypes.SELECTION:
+                case ToolTypes.LASSO:
                     return () => import( "./tool-options-selection/tool-options-selection" );
                 case ToolTypes.ZOOM:
                     return () => import( "./tool-options-zoom/tool-options-zoom" );

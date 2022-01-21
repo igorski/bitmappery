@@ -21,9 +21,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div class="tool-option"
-         @focusin="handleFocus"
-         @focusout="handleBlur"
+    <div
+        class="tool-option"
+        @focusin="handleFocus"
+        @focusout="handleBlur"
     >
         <div class="wrapper input">
             <textarea

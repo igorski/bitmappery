@@ -405,14 +405,12 @@ export default {
             "canUndo",
             "canRedo",
             "getPreferences",
+            "hasSelection",
             "snapAlign",
         ]),
         supportsFullscreen,
         noDocumentsAvailable() {
             return !this.activeDocument;
-        },
-        hasSelection() {
-            return this.activeDocument?.selection?.length > 0;
         },
         hasSavedSelections() {
             return Object.keys( this.activeDocument?.selections || {} ).length > 0;

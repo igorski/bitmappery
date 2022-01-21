@@ -11,6 +11,11 @@ html, body {
     overscroll-behavior-x: none; /* disable navigation back/forward swipe on Chrome */
 }
 
+.divider {
+    border: none;
+    border-bottom: 1px dashed $color-lines;
+}
+
 /* shared Vue components */
 
 .vue-js-switch {

@@ -72,6 +72,17 @@ describe( "Vuex document module", () => {
             const mockedGetters = { activeLayer: { name: "layer1", effects: [{ rotation: 1 }] } };
             expect( getters.activeLayerEffects( {}, mockedGetters )).toEqual( mockedGetters.activeLayer.effects );
         });
+
+        it( "should know when the current Document has an active selection", () => {
+            const mockedGetters = { activeDocument: { selection: null } };
+            expect( getters.hasSelection( {}, mockedGetters )).toBe( false );
+
+            mockedGetters.activeDocument.selection = [];
+            expect( getters.hasSelection( {}, mockedGetters )).toBe( false );
+
+            mockedGetters.activeDocument.selection = [{ x: 0, y: 0 }];
+            expect( getters.hasSelection( {}, mockedGetters )).toBe( true );
+        });
     });
 
     describe( "mutations", () => {

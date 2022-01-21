@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -42,6 +42,7 @@ export default {
         activeLayer: ( state, getters ) => getters.layers?.[ state.activeLayerIndex ],
         activeLayerMask: ( state, getters ) => ( state.maskActive && getters.activeLayer.mask ) || null,
         activeLayerEffects: ( state, getters ) => getters.activeLayer?.effects || [],
+        hasSelection: ( state, getters ) => getters.activeDocument?.selection?.length > 0,
     },
     mutations: {
         setActiveDocument( state, index ) {

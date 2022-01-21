@@ -1,8 +1,13 @@
 {
     "en-US": {
         "selection": "Selection",
-        "lockAspectRatio": "Lock aspect ratio",
-        "shiftKey": "Hold Shift while dragging",
-        "widthByHeight": "Width x height"
+        "lockedRatio": "Locked ratio",
+        "shiftKey": "Hold Shift while drawing selection",
+        "widthToHeight": "Width : height",
+        "existingSelection": "Existing selection",
+        "width": "Width",
+        "height": "Height",
+        "x": "x",
+        "y": "y"
     }
 }
