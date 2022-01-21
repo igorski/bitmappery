@@ -5,9 +5,7 @@
         "shiftKey": "Hold Shift while drawing selection",
         "widthToHeight": "Width : height",
         "existingSelection": "Existing selection",
-        "width": "Width",
-        "height": "Height",
-        "x": "x",
-        "y": "y"
+        "coordinates": "Coordinates",
+        "dimensions": "Dimensions"
     }
 }

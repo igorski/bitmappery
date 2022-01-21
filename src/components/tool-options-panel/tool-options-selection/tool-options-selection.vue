@@ -52,50 +52,43 @@
                 />
             </div>
         </template>
-        <h3 v-t="'existingSelection'"></h3>
+        <p v-t="'existingSelection'"></p>
         <div class="wrapper input">
-            <label v-t="'x'"></label>
+            <label v-t="'coordinates'"></label>
             <input
                 type="text"
                 v-model.number="x"
-                class="input-field"
-                :min="0"
-                :max="activeDocument.width - 1"
+                class="input-field half"
+                :min="-maxWidth"
+                :max="maxWidth"
                 :disabled="!hasSelection"
-
             />
-        </div>
-        <div class="wrapper input">
-            <label v-t="'y'"></label>
             <input
                 type="text"
                 v-model.number="y"
-                class="input-field"
-                :min="0"
-                :max="activeDocument.height - 1"
+                class="input-field half"
+                :min="-maxHeight"
+                :max="maxHeight"
                 :disabled="!hasSelection"
             />
         </div>
         <template v-if="!isLassoSelection">
             <div class="wrapper input">
-                <label v-t="'width'"></label>
+                <label v-t="'dimensions'"></label>
                 <input
                     type="text"
                     v-model.number="width"
-                    class="input-field"
+                    class="input-field half"
                     :min="1"
-                    :max="activeDocument.width - x"
+                    :max="activeDocument.width"
                     :disabled="!hasSelection"
                 />
-            </div>
-            <div class="wrapper input">
-                <label v-t="'height'"></label>
                 <input
                     type="text"
                     v-model.number="height"
-                    class="input-field"
+                    class="input-field half"
                     :min="1"
-                    :max="activeDocument.height - y"
+                    :max="activeDocument.height"
                     :disabled="!hasSelection"
                 />
             </div>
@@ -161,6 +154,9 @@ export default {
                 return Math.round( this.cachedSelectionBounds.x );
             },
             set( value ) {
+                if ( isNaN( value )) {
+                    return;
+                }
                 this.moveSelection( value - this.x );
             }
         },
@@ -169,6 +165,10 @@ export default {
                 return Math.round( this.cachedSelectionBounds.y );
             },
             set( value ) {
+                if ( isNaN( value )) {
+                    return;
+                }
+                console.warn("move selection in y from " + this.y + " to " + value + "!");
                 this.moveSelection( 0, value - this.y );
             }
         },
@@ -177,7 +177,10 @@ export default {
                 return Math.round( this.cachedSelectionBounds.width );
             },
             set( value ) {
-                this.adjustSelectionSize( value || 1, this.height );
+                if ( isNaN( value )) {
+                    return;
+                }
+                this.adjustSelectionSize( Math.min( this.maxWidth - this.x, Math.abs( value )), this.height );
             }
         },
         height: {
@@ -185,7 +188,10 @@ export default {
                 return Math.round( this.cachedSelectionBounds.height );
             },
             set( value ) {
-                this.adjustSelectionSize( this.width, value || 1 );
+                if ( isNaN( value )) {
+                    return;
+                }
+                this.adjustSelectionSize( this.width, Math.min( this.maxHeight - this.y, Math.abs( value )));
             }
         },
         cachedSelectionBounds() {
@@ -213,6 +219,10 @@ export default {
             return this.activeTool === ToolTypes.LASSO;
         },
     },
+    created() {
+        this.maxWidth  = this.activeDocument.width - 1;
+        this.maxHeight = this.activeDocument.height - 1;
+    },
     methods: {
         ...mapMutations([
             "setToolOptionValue",
@@ -232,8 +242,8 @@ export default {
             );
         },
         adjustSelectionSize( newWidth = 1, newHeight = 1 ) {
-            const wider  = newWidth  > this.width;
-            const taller = newHeight > this.height;
+            const wider  = newWidth  >= this.width;
+            const taller = newHeight >= this.height;
             const maxX   = this.x + newWidth;
             const maxY   = this.y + newHeight;
             const prevRight = this.x + this.width;
@@ -254,7 +264,7 @@ export default {
 @import "@/styles/tool-option";
 
 .half {
-    width: 20% !important;
+    width: 30% !important;
     &:first-of-type {
         margin-right: $spacing-small;
     }
