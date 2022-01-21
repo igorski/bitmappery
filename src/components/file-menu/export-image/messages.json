@@ -9,6 +9,7 @@
         "layersToSpriteSheet": "Merge into sheet",
         "columnAmount": "Column amount",
         "export": "Export",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "viewActualSize": "View actual size"
     }
 }

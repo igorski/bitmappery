@@ -81,9 +81,16 @@
                 <div
                     v-if="base64preview"
                     class="preview-wrapper"
+                    :class="{
+                        'preview-wrapper--landscape': isLandscape,
+                        'preview-wrapper--actual' : actualSize
+                    }"
                 >
                     <div class="preview-container">
-                        <img :src="base64preview" class="preview-image" />
+                        <img
+                            :src="base64preview"
+                            class="preview-image"
+                        />
                     </div>
                 </div>
             </div>
@@ -104,6 +111,13 @@
                     @click="closeModal()"
                 ></button>
             </div>
+            <div class="wrapper input actual-size-button">
+                <label v-t="'viewActualSize'"></label>
+                <toggle-button
+                    v-model="actualSize"
+                    name="actualSize"
+                />
+            </div>
         </template>
     </modal>
 </template>
@@ -116,6 +130,7 @@ import SelectBox from '@/components/ui/select-box/select-box';
 import Slider from "@/components/ui/slider/slider";
 import { mapSelectOptions }  from "@/utils/search-select-util";
 import { EXPORTABLE_FILE_TYPES, typeToExt, isCompressableFileType } from "@/definitions/image-types";
+import { isLandscape, isSquare } from "@/math/image-math";
 import { createDocumentSnapshot, createLayerSnapshot, tilesToSingle } from "@/utils/document-util";
 import { resizeToBase64 } from "@/utils/canvas-util";
 import { saveBlobAsFile } from "@/utils/file-util";
@@ -137,6 +152,9 @@ export default {
         base64preview: null,
         layersToSpriteSheet: false,
         sheetCols: 4,
+        width: 1,
+        height: 1,
+        actualSize: false,
     }),
     computed: {
         ...mapGetters([
@@ -161,6 +179,9 @@ export default {
         canCreateSpriteSheet() {
             // TODO: magic number should go to definitions file
             return this.activeDocument.layers.length > 1 && this.activeDocument.width < 600;
+        },
+        isLandscape() {
+            return isLandscape( this.width, this.height ) || isSquare( this.width, this.height );
         },
     },
     watch: {
@@ -227,10 +248,12 @@ export default {
                 if ( !this.snapshots ) {
                     this.snapshots = await Promise.all( this.activeDocument.layers.map( createLayerSnapshot ));
                 }
-                snapshotCvs = tilesToSingle( this.snapshots, width, height, parseFloat( this.sheetCols ));
+                snapshotCvs = tilesToSingle( this.snapshots, width, height, parseFloat( this.sheetCols || "4" ));
             } else {
                 snapshotCvs = await createDocumentSnapshot( this.activeDocument );
             }
+            this.width  = snapshotCvs.width;
+            this.height = snapshotCvs.height;
             this.base64preview = snapshotCvs.toDataURL( this.type, this.qualityPercentile );
             this.unsetLoading( "preview" );
         },
@@ -246,6 +269,8 @@ export default {
 .export-modal {
     $idealWidth: 990px;
     $idealHeight: 500px;
+    $maxPreviewHeight: 445px;
+
     @include modalBase( $idealWidth, $idealHeight );
 
     .export-actions {
@@ -268,7 +293,7 @@ export default {
 
         .preview-wrapper {
             flex: 0.6;
-            height: 445px;
+            height: $maxPreviewHeight;
             overflow-x: hidden; // image is always full width
             overflow-y: scroll;
         }
@@ -278,20 +303,61 @@ export default {
                 flex: 0.5;
             }
         }
+
+        .actual-size-button {
+            margin-left: auto;
+            margin-top: $spacing-medium;
+
+            label {
+                margin-right: $spacing-small;
+            }
+        }
     }
 
     @include componentFallback( $idealWidth, $idealHeight ) {
+        .preview-container {
+            height: $maxPreviewHeight !important;
+        }
         .preview-image {
             margin: $spacing-medium 0;
         }
         .export-actions {
             width: 100%;
         }
+        .actual-size-button {
+            display: none;
+        }
     }
-}
 
-.preview-image {
-    width: 100%;
+    .preview-wrapper {
+        .preview-image {
+            width: 100%;
+        }
+
+        &--landscape {
+            overflow-y: hidden;
+            overflow-x: auto;
+
+            .preview-container {
+                height: 100%;
+            }
+
+            .preview-image {
+                width: auto;
+                height: 100%;
+            }
+        }
+
+        &--actual {
+            overflow-x: auto;
+            overflow-y: auto;
+
+            .preview-image {
+                width: auto !important;
+                height: auto !important;
+            }
+        }
+    }
 }
 
 .expl {
