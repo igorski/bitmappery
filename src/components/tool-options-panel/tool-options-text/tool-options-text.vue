@@ -40,6 +40,7 @@
                 v-model="font"
                 :options="fonts"
                 :searchable="canSearchFonts"
+                append-to-body
             >
                 <template #option="{ value }">
                     <font-preview :font="value" />
