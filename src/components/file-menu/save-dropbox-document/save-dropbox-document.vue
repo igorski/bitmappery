@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <modal>
+    <modal class="save-dropbox-modal">
         <template #header>
             <h2 v-t="'saveDocumentInDropbox'"></h2>
         </template>
@@ -29,12 +29,22 @@
             <div class="form" @keyup.enter="requestSave()">
                 <div class="wrapper input">
                     <label v-t="'documentTitle'"></label>
-                    <input ref="nameInput"
-                           type="text"
-                           v-model="name"
-                           class="input-field"
+                    <input
+                        ref="nameInput"
+                        type="text"
+                        v-model="name"
+                        class="input-field"
                     />
                 </div>
+                <div class="wrapper input">
+                    <label v-t="'folder'"></label>
+                    <input
+                        type="text"
+                        v-model="folder"
+                        class="input-field"
+                    />
+                </div>
+                <p v-t="'folderExpl'" class="expl"></p>
             </div>
         </template>
         <template #actions>
@@ -58,7 +68,7 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal";
-import { uploadBlob } from "@/services/dropbox-service";
+import { getCurrentFolder, setCurrentFolder, uploadBlob } from "@/services/dropbox-service";
 import DocumentFactory from "@/factories/document-factory";
 import { focus } from "@/utils/environment-util";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
@@ -71,6 +81,7 @@ export default {
     },
     data: () => ({
         name: "",
+        folder: "",
     }),
     computed: {
         ...mapGetters([
@@ -81,7 +92,8 @@ export default {
         },
     },
     mounted() {
-        this.name = this.activeDocument.name.split( "." )[ 0 ];
+        this.name   = this.activeDocument.name.split( "." )[ 0 ];
+        this.folder = getCurrentFolder();
         focus( this.$refs.nameInput );
     },
     methods: {
@@ -102,7 +114,11 @@ export default {
             this.setLoading( "save" );
             try {
                 const blob = await DocumentFactory.toBlob( this.activeDocument );
-                await uploadBlob( blob, `${this.name}${PROJECT_FILE_EXTENSION}` );
+                const result = await uploadBlob( blob, this.folder, `${this.name}${PROJECT_FILE_EXTENSION}` );
+                if ( !result ) {
+                    throw new Error();
+                }
+                setCurrentFolder( this.folder );
                 this.showNotification({ message: this.$t( "fileSavedInDropbox", { file: this.name }) });
             } catch ( e ) {
                 this.openDialog({ type: "error", message: this.$t( "errorOccurred" ) });
@@ -112,3 +128,16 @@ export default {
     },
 };
 </script>
+
+<style lang="scss" scoped>
+@import "@/styles/typography";
+@import "@/styles/ui";
+
+.save-dropbox-modal {
+    @include modalBase( 480px, 250px );
+}
+
+.expl {
+    @include smallText();
+}
+</style>

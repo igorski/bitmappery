@@ -98,19 +98,7 @@ export default {
     }
 
     .actions {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        text-align: center;
-        display: flex;
-        padding: $spacing-small $spacing-medium;
-        box-sizing: border-box;
-
-        button {
-            flex: 1;
-            margin: $spacing-small;
-        }
+        @include actionsFooter();
     }
 }
 </style>

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,11 +23,11 @@
 import { Dropbox } from "dropbox";
 import { blobToResource } from "@/utils/resource-manager";
 
-const PROJECT_FOLDER = "/bitmappery";
 const UPLOAD_FILE_SIZE_LIMIT = 150 * 1024 * 1024;
 
 let accessToken;
 let dbx;
+let currentFolder = "";
 
 /**
  * Authentication step 1: for interacting with Dropbox : request access token
@@ -36,7 +36,7 @@ let dbx;
 export const requestLogin = ( clientId, loginUrl ) => {
     dbx = new Dropbox({ clientId });
     return dbx.auth.getAuthenticationUrl( loginUrl );
-}
+};
 
 /**
  * Authentication step 2: user has received access token, register it in the
@@ -72,8 +72,24 @@ export const listFolder = async ( path = "" ) => {
         ({ result } = await dbx.filesListFolderContinue({ cursor: result.cursor }));
         entries.push( ...result.entries );
     }
+    currentFolder = path;
     return entries;
 };
+
+export const createFolder = async ( path = "/", folder = "folder" ) => {
+    try {
+        const { result } = await dbx.filesCreateFolderV2({
+            path: `${sanitizePath( path )}/${folder}`
+        });
+        return true;
+    } catch {
+        return false;
+    }
+};
+
+export const getCurrentFolder = () => currentFolder;
+
+export const setCurrentFolder = folder => currentFolder = folder;
 
 export const getThumbnail = async ( path, large = false ) => {
     try {
@@ -109,8 +125,8 @@ export const deleteEntry = async path => {
     }
 };
 
-export const uploadBlob = async ( fileOrBlob, fileName ) => {
-    const path = `${PROJECT_FOLDER}/${fileName.split( " " ).join ( "_" )}`;
+export const uploadBlob = async ( fileOrBlob, folder, fileName ) => {
+    const path = `${sanitizePath( folder )}/${fileName.split( " " ).join ( "_" )}`;
     if ( fileOrBlob.size < UPLOAD_FILE_SIZE_LIMIT ) {
         // File is smaller than 150 Mb - use filesUpload API
         try {
@@ -158,3 +174,10 @@ export const uploadBlob = async ( fileOrBlob, fileName ) => {
         }, Promise.resolve());
     }
 };
+
+/* internal methods */
+
+function sanitizePath( path = "" ) {
+    path = path.charAt( path.length - 1 ) === "/" ? path.substr( 0, path.length - 1 ) : path;
+    return ( path.charAt( 0 ) !== "/" && path.length > 1 ) ? `/${path}` : path;
+}

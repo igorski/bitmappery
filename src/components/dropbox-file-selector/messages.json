@@ -7,6 +7,10 @@
         "delete": "Delete",
         "deleteEntryWarning": "Are you sure you wish to delete \"{entry}\" ? You can recover files and folders deleted from your Dropbox, but only through the Dropbox app or site.",
         "entryDeletedSuccessfully": "\"{entry}\" deleted successfully",
-        "couldNotDeleteEntry": "An error occurred while attempting to delete \"{entry}\""
+        "couldNotDeleteEntry": "An error occurred while attempting to delete \"{entry}\"",
+        "newFolderName": "New folder name",
+        "createFolder": "Create folder",
+        "folderCreatedSuccessfully": "Folder \"{folder}\" created successfully",
+        "couldNotCreateFolder": "Could not create folder \"{folder}\""
     }
 }

@@ -2,6 +2,8 @@
     "en-US": {
         "saveDocumentInDropbox": "Save document in Dropbox",
         "documentTitle": "Document title",
+        "folder": "Folder",
+        "folderExpl": "You can create a folder structure directly in your Dropbox by typing a new folder name. Nested folders are separated with a slash (/).",
         "fileSavedInDropbox": "\"{file}\" saved in your Dropbox",
         "errorOccurred": "An error occurred while saving document. Verify your Dropbox connection or export the document locally.",
         "save": "Save",

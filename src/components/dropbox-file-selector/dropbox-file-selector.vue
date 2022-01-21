@@ -29,7 +29,7 @@
             @click="closeModal()"
         >&#215;</button>
         <div class="content">
-            <div v-if="leaf">
+            <div v-if="leaf" class="content__wrapper">
                 <div class="breadcrumbs">
                     <!-- parent folders -->
                     <button v-for="parent in breadcrumbs"
@@ -43,7 +43,7 @@
                         class="active"
                     >{{ leaf.name }}</button>
                 </div>
-                <template v-if="!loading">
+                <div v-if="!loading" class="content__folders">
                     <!-- files and folders within current leaf -->
                     <p v-if="!filesAndFolders.length" v-t="'noImageFiles'"></p>
                     <template v-else>
@@ -80,7 +80,28 @@
                             >x</button>
                         </div>
                     </template>
-                </template>
+                </div>
+            </div>
+        </div>
+        <div class="actions">
+            <div class="actions__content">
+                <div class="form actions__form">
+                    <div class="wrapper input">
+                        <input
+                            v-model="newFolderName"
+                            :placeholder="$t('newFolderName')"
+                            type="text"
+                            class="input-field full"
+                        />
+                    </div>
+                </div>
+                <button
+                    v-t="'createFolder'"
+                    type="button"
+                    class="button"
+                    :disabled="!newFolderName"
+                    @click="handleCreateFolderClick()"
+                ></button>
             </div>
         </div>
     </div>
@@ -90,7 +111,7 @@
 import { mapMutations, mapActions } from "vuex";
 import { loader } from "zcanvas";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
-import { listFolder, downloadFileAsBlob, deleteEntry } from "@/services/dropbox-service";
+import { listFolder, createFolder, downloadFileAsBlob, deleteEntry } from "@/services/dropbox-service";
 import DropboxImagePreview from "./dropbox-image-preview";
 import { truncate } from "@/utils/string-util";
 import { disposeResource } from "@/utils/resource-manager";
@@ -165,6 +186,7 @@ export default {
             children: [],
         },
         leaf: null,
+        newFolderName: "",
     }),
     computed: {
         breadcrumbs() {
@@ -282,14 +304,35 @@ export default {
                 },
             });
         },
+        async handleCreateFolderClick() {
+            try {
+                const folder = this.newFolderName;
+                const result = await createFolder( this.leaf.path, folder );
+                if ( !result ) {
+                    throw new Error();
+                }
+                this.retrieveFiles( this.leaf.path );
+                this.newFolderName = "";
+                this.showNotification({
+                    message: this.$t( "folderCreatedSuccessfully", { folder })
+                });
+            } catch {
+                this.showNotification({
+                    message: this.$t( "couldNotCreateFolder", { folder })
+                });
+            }
+        },
     },
 };
 </script>
 
 <style lang="scss" scoped>
 @import "@/styles/component";
+@import "@/styles/form";
 @import "@/styles/typography";
 @import "@/styles/ui";
+
+$actionsHeight: 74px;
 
 .dropbox-file-modal {
     @include overlay();
@@ -301,15 +344,44 @@ export default {
 
     @include large() {
         width: 80%;
-        height: 75%;
+        height: 85%;
         max-width: 1280px;
         left: 50%;
         top: 50%;
         transform: translate(-50%, -50%);
     }
 
-    .content {
+    .content__wrapper {
+        height: 100%;
+    }
+
+    .content__folders {
         overflow: auto;
+        height: calc(100% - #{$heading-height + $actionsHeight});
+    }
+
+    @include mobile() {
+        .content {
+            height: calc(100% - #{$actionsHeight});
+        }
+    }
+
+    .actions {
+        @include actionsFooter();
+        background-image: $color-window-bg;
+        padding: $spacing-xxsmall $spacing-medium;
+
+        &__content {
+            display: flex;
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            align-items: baseline;
+        }
+
+        &__form {
+            flex: 2;
+        }
     }
 }
 
