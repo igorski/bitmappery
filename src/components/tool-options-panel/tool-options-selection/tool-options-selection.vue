@@ -80,7 +80,7 @@
                     v-model.number="width"
                     class="input-field half"
                     :min="1"
-                    :max="activeDocument.width"
+                    :max="maxWidth"
                     :disabled="!hasSelection"
                 />
                 <input
@@ -88,7 +88,7 @@
                     v-model.number="height"
                     class="input-field half"
                     :min="1"
-                    :max="activeDocument.height"
+                    :max="maxHeight"
                     :disabled="!hasSelection"
                 />
             </div>

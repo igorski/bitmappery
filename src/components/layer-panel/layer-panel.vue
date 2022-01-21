@@ -143,6 +143,7 @@ import { LAYER_TEXT } from "@/definitions/layer-types";
 import { PANEL_LAYERS } from "@/definitions/panel-types";
 import ToolTypes from "@/definitions/tool-types";
 import { createCanvas } from "@/utils/canvas-util";
+import { toggleLayerVisibility } from "@/factories/action-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
@@ -247,16 +248,7 @@ export default {
             });
         },
         toggleLayerVisibility( index ) {
-            const originalVisibility = this.layers[ index ].visible;
-            const store  = this.$store;
-            const commit = () => store.commit( "updateLayer", { index, opts: { visible: !originalVisibility } });
-            commit();
-            enqueueState( `layerVisibility_${index}`, {
-                undo() {
-                    store.commit( "updateLayer", { index, opts: { visible: originalVisibility } });
-                },
-                redo: commit,
-            });
+            toggleLayerVisibility( this.$store, index );
         },
         handleFiltersClick( index ) {
             this.setActiveLayerIndex( index );

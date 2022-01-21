@@ -26,6 +26,7 @@ import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM, canDraw, canClone } from
 import {
     CREATE_DOCUMENT, ADD_LAYER, EXPORT_DOCUMENT, DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT
 } from "@/definitions/modal-windows";
+import { toggleLayerVisibility } from "@/factories/action-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { translatePoints } from "@/math/point-math";
 import { supportsFullscreen, toggleFullscreen } from "@/utils/environment-util";
@@ -324,6 +325,8 @@ function handleKeyDown( event ) {
             if ( hasOption ) {
                 if ( shiftDown && getters.activeDocument ) {
                     openModal( ADD_LAYER );
+                } else {
+                    toggleLayerVisibility( store, getters.activeLayerIndex );
                 }
             } else {
                 commit( "setActiveTool", { tool: ToolTypes.LASSO })
