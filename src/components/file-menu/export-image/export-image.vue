@@ -207,6 +207,7 @@ export default {
     beforeDestroy() {
         this.base64preview = null;
         this.snapshots = null;
+        this.snapshot = null;
     },
     methods: {
         ...mapMutations([
@@ -250,7 +251,10 @@ export default {
                 }
                 snapshotCvs = tilesToSingle( this.snapshots, width, height, parseFloat( this.sheetCols || "4" ));
             } else {
-                snapshotCvs = await createDocumentSnapshot( this.activeDocument );
+                if ( !this.snapshot ) {
+                    this.snapshot = await createDocumentSnapshot( this.activeDocument );
+                }
+                snapshotCvs = this.snapshot;
             }
             this.width  = snapshotCvs.width;
             this.height = snapshotCvs.height;
