@@ -140,7 +140,7 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from "vuex";
+import { mapState, mapGetters, mapMutations } from "vuex";
 import { ToggleButton } from "vue-js-toggle-button";
 import Modal from "@/components/modal/modal";
 import SelectBox from '@/components/ui/select-box/select-box';
@@ -179,6 +179,9 @@ export default {
         canChooseSize: true,
     }),
     computed: {
+        ...mapState([
+            "loadingStates",
+        ]),
         ...mapGetters([
             "activeDocument",
             "isLoading",
@@ -244,7 +247,6 @@ export default {
             "unsetLoading",
         ]),
         async exportImage() {
-            this.closeModal();
             this.setLoading( "exp" );
 
             // zCanvas magnifies content by the pixel ratio for a crisper result, downscale
@@ -263,14 +265,20 @@ export default {
 
             saveBlobAsFile( blob, `${this.name}.${typeToExt(this.type)}` );
             this.unsetLoading( "exp" );
+            this.closeModal();
         },
         async renderPreview() {
-            this.setLoading( "preview" );
+            const LOADING_KEY = "preview";
+            if ( this.loadingStates.includes( LOADING_KEY )) {
+                this.reRenderOnCompletion = true;
+                return; // don't overload the preview renderer
+            }
+            this.setLoading( LOADING_KEY );
 
             const { width, height } = this.activeDocument;
             let snapshotCvs;
 
-            const multiLayerExport = this.layersToAnimatedGIF || this.layersToSpriteSheet;
+            const multiLayerExport = ( this.type === GIF.mime && this.layersToAnimatedGIF ) || this.layersToSpriteSheet;
             if ( multiLayerExport ) {
                 // if we are going to work with individual layers, lazily create a list of layer snapshots
                 if ( !this.snapshots ) {
@@ -289,7 +297,7 @@ export default {
                 }
                 snapshotCvs = this.snapshot;
             }
-            
+
             if ( snapshotCvs ) {
                 this.width  = snapshotCvs.width;
                 this.height = snapshotCvs.height;
@@ -304,7 +312,12 @@ export default {
                 this.actualSize = true;
                 this.canChooseSize = false;
             }
-            this.unsetLoading( "preview" );
+            this.unsetLoading( LOADING_KEY );
+
+            if ( this.reRenderOnCompletion ) {
+                this.reRenderOnCompletion = false;
+                this.renderPreview();
+            }
         },
         async canvasToImageFormat( canvas ) {
             if ( this.type === GIF.mime ) {
