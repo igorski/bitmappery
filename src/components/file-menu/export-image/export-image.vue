@@ -57,6 +57,23 @@
                         <label v-t="'fileSize'"></label>
                         <div class="form-element">{{ fileSize }}</div>
                     </div>
+                    <template v-if="canCreateAnimatedGIF">
+                        <div class="wrapper input">
+                            <label v-t="'layersToAnimation'"></label>
+                            <toggle-button
+                                v-model="layersToAnimatedGIF"
+                                name="createAnimatedGIF"
+                            />
+                        </div>
+                        <div v-if="layersToAnimatedGIF" class="wrapper input">
+                            <label v-t="'frameDuration'"></label>
+                            <input
+                                type="number"
+                                v-model="frameDurationMs"
+                                class="input-field"
+                            />
+                        </div>
+                    </template>
                     <template v-if="canCreateSpriteSheet">
                         <p v-t="'layersToSheetExpl'" class="expl"></p>
                         <div class="wrapper input">
@@ -129,12 +146,13 @@ import Modal from "@/components/modal/modal";
 import SelectBox from '@/components/ui/select-box/select-box';
 import Slider from "@/components/ui/slider/slider";
 import { MAX_SPRITESHEET_WIDTH } from "@/definitions/editor-properties";
+import { EXPORTABLE_FILE_TYPES, GIF, typeToExt, isCompressableFileType } from "@/definitions/image-types";
+import { supportsGIF, createGIF, createAnimatedGIF } from "@/services/gif-creation-service";
 import { mapSelectOptions }  from "@/utils/search-select-util";
-import { EXPORTABLE_FILE_TYPES, typeToExt, isCompressableFileType } from "@/definitions/image-types";
 import { isLandscape, isSquare } from "@/math/image-math";
 import { createDocumentSnapshot, createLayerSnapshot, tilesToSingle } from "@/utils/document-util";
 import { resizeToBase64 } from "@/utils/canvas-util";
-import { saveBlobAsFile } from "@/utils/file-util";
+import { saveBlobAsFile, base64toBlob } from "@/utils/file-util";
 import { displayAsKb } from "@/utils/string-util";
 import messages from "./messages.json";
 
@@ -152,6 +170,8 @@ export default {
         quality: 95,
         base64preview: null,
         layersToSpriteSheet: false,
+        layersToAnimatedGIF: false,
+        frameDurationMs: 100,
         sheetCols: 4,
         width: 1,
         height: 1,
@@ -164,7 +184,8 @@ export default {
             "isLoading",
         ]),
         fileTypes() {
-            return mapSelectOptions( EXPORTABLE_FILE_TYPES );
+            const types = this.canCreateGIF ? [ ...EXPORTABLE_FILE_TYPES, GIF.mime ] : EXPORTABLE_FILE_TYPES;
+            return mapSelectOptions( types );
         },
         hasQualityOptions() {
             return isCompressableFileType( this.type );
@@ -179,22 +200,19 @@ export default {
             return displayAsKb( Math.round( this.base64preview.length * 6 / 8 ));
         },
         canCreateSpriteSheet() {
-            return this.activeDocument.layers.length > 1 && this.activeDocument.width <= MAX_SPRITESHEET_WIDTH;
+            return this.activeDocument.layers.length > 1 &&
+                   this.activeDocument.width <= MAX_SPRITESHEET_WIDTH &&
+                   !this.layersToAnimatedGIF;
+        },
+        canCreateAnimatedGIF() {
+            return this.canCreateGIF && this.type === GIF.mime && this.activeDocument.layers.length > 1;
         },
         isLandscape() {
             return isLandscape( this.width, this.height ) || isSquare( this.width, this.height );
         },
     },
     watch: {
-        quality() {
-            this.renderPreview();
-        },
-        type() {
-            this.renderPreview();
-        },
-        layersToSpriteSheet() {
-            this.renderPreview();
-        },
+        // see additional watchers added in created hook
         sheetCols( amount ) {
             if ( this.layersToSpriteSheet ) {
                 this.renderPreview();
@@ -202,7 +220,16 @@ export default {
         }
     },
     created() {
+        this.canCreateGIF = supportsGIF();
         this.name = this.activeDocument.name.split( "." )[ 0 ];
+        [
+            // changes to any of the export properties should trigger a re-render
+            "quality", "type", "layersToSpriteSheet", "layersToAnimatedGIF", "frameDurationMs"
+        ].forEach( property => {
+            this.$watch( property, () => {
+                this.renderPreview();
+            });
+        });
         this.renderPreview();
     },
     beforeDestroy() {
@@ -232,10 +259,7 @@ export default {
                 width  * ( window.devicePixelRatio || 1 ),
                 height * ( window.devicePixelRatio || 1 )
             );
-
-            // fetch final base64 data so we can convert it easily to binary
-            const base64 = await fetch( resizedImage );
-            const blob = await base64.blob();
+            const blob = await base64toBlob( resizedImage );
 
             saveBlobAsFile( blob, `${this.name}.${typeToExt(this.type)}` );
             this.unsetLoading( "exp" );
@@ -246,20 +270,34 @@ export default {
             const { width, height } = this.activeDocument;
             let snapshotCvs;
 
-            if ( this.layersToSpriteSheet ) {
+            const multiLayerExport = this.layersToAnimatedGIF || this.layersToSpriteSheet;
+            if ( multiLayerExport ) {
+                // if we are going to work with individual layers, lazily create a list of layer snapshots
                 if ( !this.snapshots ) {
                     this.snapshots = await Promise.all( this.activeDocument.layers.map( createLayerSnapshot ));
                 }
-                snapshotCvs = tilesToSingle( this.snapshots, width, height, parseFloat( this.sheetCols || "4" ));
+                if ( this.layersToAnimatedGIF ) {
+                    this.base64preview = await createAnimatedGIF( this.snapshots, this.frameDurationMs / 100 );
+                }
+                else if ( this.layersToSpriteSheet ) {
+                    snapshotCvs = tilesToSingle( this.snapshots, width, height, parseFloat( this.sheetCols || "4" ));
+                }
             } else {
+                // merged layer export
                 if ( !this.snapshot ) {
                     this.snapshot = await createDocumentSnapshot( this.activeDocument );
                 }
                 snapshotCvs = this.snapshot;
             }
-            this.width  = snapshotCvs.width;
-            this.height = snapshotCvs.height;
-            this.base64preview = snapshotCvs.toDataURL( this.type, this.qualityPercentile );
+            
+            if ( snapshotCvs ) {
+                this.width  = snapshotCvs.width;
+                this.height = snapshotCvs.height;
+                this.base64preview = await this.canvasToImageFormat( snapshotCvs );
+            } else {
+                this.width  = width;
+                this.height = height;
+            }
 
             // force actual size preview for small images
             if ( !this.actualSize && this.width < 400 && this.height < 400 ) {
@@ -267,6 +305,13 @@ export default {
                 this.canChooseSize = false;
             }
             this.unsetLoading( "preview" );
+        },
+        async canvasToImageFormat( canvas ) {
+            if ( this.type === GIF.mime ) {
+                const base64gif = await createGIF( canvas );
+                return base64gif;
+            }
+            return canvas.toDataURL( this.type, this.qualityPercentile );
         },
     },
 };

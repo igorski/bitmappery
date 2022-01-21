@@ -37,7 +37,7 @@ const TRANSPARENT_TYPES  = [ PNG, GIF, WEBP ];
 
 export const ACCEPTED_FILE_TYPES      = [ JPEG.mime, PNG.mime, GIF.mime ];
 export const ACCEPTED_FILE_EXTENSIONS = [ JPEG.ext, "jpeg", PNG.ext, GIF.ext ];
-export const EXPORTABLE_FILE_TYPES    = [ JPEG.mime, PNG.mime ];
+export const EXPORTABLE_FILE_TYPES    = [ JPEG.mime, PNG.mime ]; // GIF can be exported using library
 export const PROJECT_FILE_EXTENSION   = ".bpy"; // BitMappery document
 
 // 3. environment specific overrides

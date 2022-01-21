@@ -1,7 +1,7 @@
 /**
 * The MIT License (MIT)
 *
-* Igor Zinken 2019-2021 - https://www.igorski.nl
+* Igor Zinken 2019-2022 - https://www.igorski.nl
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 * this software and associated documentation files (the "Software"), to deal in
@@ -23,6 +23,12 @@
 import { ACCEPTED_FILE_TYPES, PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
 import { blobToResource, disposeResource } from "@/utils/resource-manager";
 
+/**
+ * Saves the binary data in given blob to a file of given fileName
+ *
+ * @param {Blob|File} blob
+ * @param {String} fileName
+ */
 export const saveBlobAsFile = ( blob, fileName ) => {
     const blobURL = blobToResource( blob );
     const anchor  = document.createElement( "a" );
@@ -38,6 +44,18 @@ export const saveBlobAsFile = ( blob, fileName ) => {
     anchor.click();
     document.body.removeChild( anchor );
     disposeResource( blobURL );
+};
+
+/**
+ * Converts a base64 encoded String to a binary blob
+ *
+ * @param {String} base64string
+ * @return {Promise<Blob>}
+ */
+export const base64toBlob = async base64string => {
+    const base64 = await fetch( base64string );
+    const blob   = await base64.blob();
+    return blob;
 };
 
 export const selectFile = ( acceptedTypes, multiple = false ) => {

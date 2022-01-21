@@ -13,6 +13,7 @@
     "@simonwep/pickr": "^1.8.0",
     "core-js": "^3.6.5",
     "dropbox": "^8.2.0",
+    "gifshot": "^0.4.5",
     "register-service-worker": "^1.7.1",
     "v-tooltip": "^2.0.3",
     "vue": "^2.6.11",
