@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -25,8 +25,9 @@
         <h3 v-t="'cloneBrush'"></h3>
         <div class="wrapper input">
             <label v-t="'sourceLayer'"></label>
-            <select-box :options="selectableLayers"
-                         v-model="sourceLayer"
+            <select-box
+                v-model="sourceLayer"
+                :options="selectableLayers"
             />
         </div>
         <div class="wrapper slider">
@@ -59,7 +60,7 @@
                 v-tooltip="'(Alt + Click)'"
                 type="button"
                 class="button button--small full"
-                @click="resetSourceCoordinate"
+                @click="resetSourceCoordinate()"
             ></button>
         </div>
     </div>
@@ -160,7 +161,7 @@ export default {
                     default:
                     case "keyup":
                         // when alt key is released and no new source coordinates
-                        // were defined, revert to previously set coordinates (when exiting)
+                        // were defined, revert to previously set coordinates (when existing)
                         if ( !this.cloneOptions.coords ) {
                             this.updateValue( "coords", orgCoords );
                         }

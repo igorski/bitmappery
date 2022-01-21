@@ -449,6 +449,7 @@ class LayerSprite extends ZoomableSprite {
                 // sets the source coords (within the source Layer)
                 if ( !this._toolOptions.coords ) {
                     this._toolOptions.coords = { x, y };
+                    this._cloneStartCoords = null;
                     return;
                 } else if ( !this._cloneStartCoords ) {
                     // pressing down again indicates the cloning paint operation starts (in handleMove())
