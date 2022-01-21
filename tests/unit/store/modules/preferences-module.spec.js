@@ -12,6 +12,7 @@ describe( "Vuex preferences module", () => {
                 lowMemory   : false,
                 wasmFilters : true,
                 snapAlign   : true,
+                antiAlias   : true,
             }
         };
 
@@ -30,13 +31,15 @@ describe( "Vuex preferences module", () => {
                 preferences: {
                     lowMemory   : false,
                     wasmFilters : true,
+                    antiAlias   : true,
                 }
             };
             mutations.setPreferences( state, { lowMemory: true, snapAlign: false });
             expect( state.preferences ).toEqual({
                 lowMemory   : true,
                 wasmFilters : true,
-                snapAlign   : false
+                snapAlign   : false,
+                antiAlias   : true,
             });
         });
     });
@@ -46,12 +49,14 @@ describe( "Vuex preferences module", () => {
             mockStorageData = {
                 lowMemory   : false,
                 wasmFilters : true,
-                snapAlign   : true
+                snapAlign   : true,
+                antiAlias   : false
             };
             const commit = jest.fn();
             await actions.restorePreferences({ commit });
             expect( commit ).toHaveBeenNthCalledWith( 1, "setPreferences", mockStorageData );
             expect( commit ).toHaveBeenNthCalledWith( 2, "setSnapAlign", mockStorageData.snapAlign );
+            expect( commit ).toHaveBeenNthCalledWith( 3, "setAntiAlias", mockStorageData.antiAlias );
         });
     });
 });

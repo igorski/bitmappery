@@ -111,7 +111,7 @@
                     @click="closeModal()"
                 ></button>
             </div>
-            <div class="wrapper input actual-size-button">
+            <div v-if="canChooseSize" class="wrapper input actual-size-button">
                 <label v-t="'viewActualSize'"></label>
                 <toggle-button
                     v-model="actualSize"
@@ -128,6 +128,7 @@ import { ToggleButton } from "vue-js-toggle-button";
 import Modal from "@/components/modal/modal";
 import SelectBox from '@/components/ui/select-box/select-box';
 import Slider from "@/components/ui/slider/slider";
+import { MAX_SPRITESHEET_WIDTH } from "@/definitions/editor-properties";
 import { mapSelectOptions }  from "@/utils/search-select-util";
 import { EXPORTABLE_FILE_TYPES, typeToExt, isCompressableFileType } from "@/definitions/image-types";
 import { isLandscape, isSquare } from "@/math/image-math";
@@ -155,6 +156,7 @@ export default {
         width: 1,
         height: 1,
         actualSize: false,
+        canChooseSize: true,
     }),
     computed: {
         ...mapGetters([
@@ -177,8 +179,7 @@ export default {
             return displayAsKb( Math.round( this.base64preview.length * 6 / 8 ));
         },
         canCreateSpriteSheet() {
-            // TODO: magic number should go to definitions file
-            return this.activeDocument.layers.length > 1 && this.activeDocument.width < 600;
+            return this.activeDocument.layers.length > 1 && this.activeDocument.width <= MAX_SPRITESHEET_WIDTH;
         },
         isLandscape() {
             return isLandscape( this.width, this.height ) || isSquare( this.width, this.height );
@@ -259,6 +260,12 @@ export default {
             this.width  = snapshotCvs.width;
             this.height = snapshotCvs.height;
             this.base64preview = snapshotCvs.toDataURL( this.type, this.qualityPercentile );
+
+            // force actual size preview for small images
+            if ( !this.actualSize && this.width < 400 && this.height < 400 ) {
+                this.actualSize = true;
+                this.canChooseSize = false;
+            }
             this.unsetLoading( "preview" );
         },
     },

@@ -39,6 +39,7 @@
         "pasteAsNewLayer": "Paste as new layer",
         "view": "View",
         "snapAlign": "Snap / auto align",
+        "antiAlias": "Anti-alias",
         "window": "Window",
         "noDocumentsOpen": "There are no open documents",
         "windowNumName": "Window #{num}: {name}",

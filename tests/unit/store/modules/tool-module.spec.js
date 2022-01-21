@@ -16,6 +16,7 @@ describe( "Vuex tool module", () => {
                 [ ToolTypes.SELECTION ] : { lockRatio: false, xRatio: 1, yRatio: 1 },
             },
             snapAlign: true,
+            antiAlias: true,
         }
         it( "should be able to return the active tool", () => {
             expect( getters.activeTool( state )).toEqual( ToolTypes.ZOOM );
@@ -52,6 +53,10 @@ describe( "Vuex tool module", () => {
         it( "should be able to retrieve the current snap and alignment state", () => {
             expect( getters.snapAlign ( state )).toBe( true );
         });
+
+        it( "should be able to retrieve the current anti-aliasing state", () => {
+            expect( getters.antiAlias ( state )).toBe( true );
+        });
     });
 
     describe( "mutations", () => {
@@ -61,7 +66,9 @@ describe( "Vuex tool module", () => {
             options: {
                 [ ToolTypes.ZOOM ]: { level: 1 },
                 [ ToolTypes.BRUSH ]: { size: 10 },
-            }
+            },
+            snapAlign: true,
+            antiAlias: true,
         };
 
         it( "should be able to set the active tool", () => {
@@ -85,6 +92,11 @@ describe( "Vuex tool module", () => {
         it( "should be able to set the snap and align state", () => {
             mutations.setSnapAlign( state, false );
             expect( state.snapAlign ).toBe( false );
+        });
+
+        it( "should be able to set the anti-aliasing state", () => {
+            mutations.setAntiAlias( state, false );
+            expect( state.antiAlias ).toBe( false );
         });
     });
 });

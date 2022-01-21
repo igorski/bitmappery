@@ -312,6 +312,9 @@
                     <li>
                         <button v-t="'snapAlign'" :class="{ checked: snapAlign }" type="button" @click="canSnapAndAlign = !canSnapAndAlign"></button>
                     </li>
+                    <li>
+                        <button v-t="'antiAlias'" :class="{ checked: antiAlias }" type="button" @click="useAntiAlias = !useAntiAlias"></button>
+                    </li>
                 </ul>
             </li>
             <!-- window menu -->
@@ -398,6 +401,7 @@ export default {
             "activeDocument",
             "activeLayer",
             "activeLayerIndex",
+            "antiAlias",
             "canUndo",
             "canRedo",
             "getPreferences",
@@ -426,6 +430,16 @@ export default {
             async set( value ) {
                 this.setSnapAlign( value );
                 this.setPreferences({ snapAlign: value });
+                await this.storePreferences();
+            }
+        },
+        useAntiAlias: {
+            get() {
+                return this.antiAlias;
+            },
+            async set( value ) {
+                this.setAntiAlias( value );
+                this.setPreferences({ antiAlias: value });
                 await this.storePreferences();
             }
         },
@@ -460,6 +474,7 @@ export default {
             "cropActiveDocumentContent",
             "setPreferences",
             "setSnapAlign",
+            "setAntiAlias",
             "updateLayer",
         ]),
         ...mapActions([

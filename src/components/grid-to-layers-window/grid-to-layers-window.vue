@@ -118,8 +118,12 @@ export default {
     methods: {
         ...mapMutations([
             "closeModal",
+            "setLoading",
+            "unsetLoading",
         ]),
         requestSlice() {
+            this.setLoading( "slice" );
+
             // collect existing layers
             const originalLayers = [ ...this.activeDocument.layers ];
             const originalWidth  = this.activeDocument.width;
@@ -164,6 +168,7 @@ export default {
                 },
                 redo: commit,
             });
+            this.unsetLoading( "slice" );
             this.closeModal();
         },
     },

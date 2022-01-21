@@ -108,6 +108,7 @@ export default {
             "activeLayer",
             "activeTool",
             "activeToolOptions",
+            "antiAlias",
             "snapAlign",
             "zoomOptions",
             "zCanvasBaseDimensions",
@@ -242,7 +243,10 @@ export default {
         },
         snapAlign( value ) {
             getCanvasInstance()?.[ value ? "addChild" : "removeChild" ]( guideRenderer );
-        }
+        },
+        antiAlias( value ) {
+            getCanvasInstance()?.setSmoothing( value );
+        },
     },
     async mounted() {
         // we'd like to know whether the application is being used on a touch screen
@@ -272,7 +276,7 @@ export default {
                 width: this.cvsWidth,
                 height: this.cvsHeight,
                 animate: false,
-                smoothing: true,
+                smoothing: this.antiAlias,
                 stretchToFit: false,
                 viewport: {
                     width  : this.viewportWidth,

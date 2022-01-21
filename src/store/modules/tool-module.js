@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -42,6 +42,7 @@ export default {
             [ ToolTypes.SELECTION ] : { lockRatio: false, xRatio: 1, yRatio: 1 },
         },
         snapAlign : true,
+        antiAlias : true,
     },
     getters: {
         activeTool        : state => state.activeTool,
@@ -53,6 +54,7 @@ export default {
         eraserOptions     : state => state.options[ ToolTypes.ERASER ],
         cloneOptions      : state => state.options[ ToolTypes.CLONE ],
         snapAlign         : state => state.snapAlign,
+        antiAlias         : state => state.antiAlias,
     },
     mutations: {
         setActiveTool( state, { tool, document }) {
@@ -80,7 +82,10 @@ export default {
         },
         setSnapAlign( state, value ) {
             state.snapAlign = value;
-        }
+        },
+        setAntiAlias( state, value ) {
+            state.antiAlias = value;
+        },
     },
 };
 
