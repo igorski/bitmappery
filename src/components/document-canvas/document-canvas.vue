@@ -109,9 +109,9 @@ export default {
             "activeTool",
             "activeToolOptions",
             "antiAlias",
+            "canvasDimensions",
             "snapAlign",
             "zoomOptions",
-            "zCanvasBaseDimensions",
         ]),
         documentTitle() {
             const { name } = this.activeDocument;
@@ -151,6 +151,7 @@ export default {
                     renderState.reset();
                     layerPool.clear();
                     this.calcIdealDimensions();
+                    this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value: 1 }); // reset zoom
                     this.$nextTick( async () => {
                         // previously active tool needs to update to new document ref
                         const tool = this.activeTool;
@@ -262,10 +263,11 @@ export default {
     },
     methods: {
         ...mapMutations([
-            "setZCanvasBaseDimensions",
+            "setCanvasDimensions",
             "setActiveTool",
             "setPanMode",
             "setSelectMode",
+            "setToolOptionValue",
         ]),
         ...mapActions([
             "requestDocumentClose",
@@ -309,20 +311,30 @@ export default {
             if ( calculateBestFit ) {
                 const { width, height } = this.activeDocument;
                 const scaledSize = scaleToRatio( width, height, containerSize.width, containerSize.height );
-                this.setZCanvasBaseDimensions( scaledSize );
-                xScale = scaledSize.width  / this.activeDocument.width;
-                yScale = scaledSize.height / this.activeDocument.height;
                 const maxScaling = calculateMaxScaling( scaledSize.width, scaledSize.height, width, containerSize.width );
+
                 maxInScale  = maxScaling.in;
                 maxOutScale = maxScaling.out;
+
+                this.setCanvasDimensions({
+                    ...scaledSize,
+                    visibleWidth  : containerSize.width,
+                    visibleHeight : containerSize.height,
+                    maxInScale,
+                    maxOutScale
+                });
+
+                xScale = scaledSize.width  / this.activeDocument.width;
+                yScale = scaledSize.height / this.activeDocument.height;
+
                 this.viewportWidth  = containerSize.width;
                 this.viewportHeight = containerSize.height;
                 zCanvas.setViewport( this.viewportWidth, this.viewportHeight );
             }
             this.scaleWrapper();
             // replace below with updated zCanvas lib to not multiply by zoom
-            this.cvsWidth  = this.zCanvasBaseDimensions.width  * zoom;
-            this.cvsHeight = this.zCanvasBaseDimensions.height * zoom;
+            this.cvsWidth  = this.canvasDimensions.width  * zoom;
+            this.cvsHeight = this.canvasDimensions.height * zoom;
             zCanvas.setDocumentScale( this.cvsWidth, this.cvsHeight, xScale, zoom, this.activeDocument );
             this.centerCanvas = zCanvas.getWidth() < containerSize.width || zCanvas.getHeight() < containerSize.height ;
         },

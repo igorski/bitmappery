@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -22,15 +22,17 @@
  */
 <template>
     <div class="form">
-        <label v-t="'importLocalFile'"
-               for="file"
-               class="file-label button button--block"
+        <label
+            v-t="'importLocalFile'"
+            for="file"
+            class="file-label button button--block"
         ></label>
-        <input type="file"
-               id="file"
-               multiple
-               :accept="acceptedImageTypes"
-               @change="handleFileSelect"
+        <input
+            type="file"
+            id="file"
+            multiple
+            :accept="acceptedFileTypes"
+            @change="handleFileSelect"
         />
     </div>
 </template>

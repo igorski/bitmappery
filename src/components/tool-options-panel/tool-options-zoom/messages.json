@@ -2,6 +2,7 @@
     "en-US": {
         "zoomLevel": "Zoom level",
         "bestFit": "Best fit",
+        "fitWindow": "Fit window",
         "original": "Original"
     }
 }

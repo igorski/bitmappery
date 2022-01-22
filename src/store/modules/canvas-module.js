@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,20 +24,28 @@ import Vue from "vue";
 
 export default {
     state: {
-        // the base dimensions describe the "best fit" scale to represent
-        // the currently active document at the current window size, this
-        // is basically the base line used for the unzoomed document view
-        zCanvasBaseDimensions: {
-            width: 0,
-            height: 0,
+        canvasDimensions: {
+            // the base dimensions describe the "best fit" scale to represent
+            // the currently active document at the current window size, this
+            // is basically the baseline used for the unzoomed document view
+            width         : 0,
+            height        : 0,
+            // the visible area of the canvas (as it is positioned inside a container
+            // that offers scrollable overflow)
+            visibleWidth  : 0,
+            visibleHeight : 0,
+            // the maximum in- and out zoom level supported for the currently
+            // open document at the current available screen dimensions
+            maxInScale    : 1,
+            maxOutScale   : 1,
         },
     },
     getters: {
-        zCanvasBaseDimensions: state => state.zCanvasBaseDimensions,
+        canvasDimensions: state => state.canvasDimensions,
     },
     mutations: {
-        setZCanvasBaseDimensions( state, { width, height }) {
-            Vue.set( state, "zCanvasBaseDimensions", { width, height });
+        setCanvasDimensions( state, { width, height, visibleWidth, visibleHeight, maxInScale, maxOutScale }) {
+            Vue.set( state, "canvasDimensions", { width, height, visibleWidth, visibleHeight, maxInScale, maxOutScale });
         },
     },
 };
