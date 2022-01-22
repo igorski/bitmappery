@@ -259,6 +259,7 @@ const renderMask = async( layer, ctx, tX = 0, tY = 0 ) => {
     }
     ctx.save();
     ctx.translate( tX, tY );
+    // commenting out the next line allows you to debug by seeing the mask
     ctx.globalCompositeOperation = "destination-out";
     ctx.drawImage( layer.mask, layer.maskX, layer.maskY );
     ctx.restore();

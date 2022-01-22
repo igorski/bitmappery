@@ -52,39 +52,56 @@ async function psdToBitMapperyDocument( psd, psdFileReference ) {
     for ( const layerObj of treeLayerObjects ) {
         const { layer } = layerObj;
 
+        // 1. determine layer bounding box
+
         if ( !layer.width || !layer.height ) {
             // these are likely adjustment layers, which we don't support
             continue;
         }
 
+        let layerX      = layer.left;
+        let layerY      = layer.top;
+        let layerWidth  = layer.width;
+        let layerHeight = layer.height;
+
+        // 2. determine whether layer uses masking
+
         const maskProps = {};
+
         if ( layer.image.hasMask ) {
+            // note that we position the mask at the 0, 0 coordinate relative to the layer, whereas Photoshop
+            // positions the mask relative to the document
             const { cvs, ctx } = createCanvas( layer.mask.width, layer.mask.height );
             ctx.putImageData( new ImageData(
                 new Uint8ClampedArray( layer.image.maskData.buffer ), layer.mask.width, layer.mask.height
-            ), 0, 0 );
+            ), layer.mask.left - layerX, layer.mask.top - layerY );
+
+            // Photoshop masks use inverted colours compared to our Canvas masking
             inverseMask( cvs );
 
-            maskProps.mask  = cvs;
-            maskProps.maskX = layer.mask.left;
-            maskProps.maskY = layer.mask.top;
+            maskProps.mask = cvs;
         }
+
+        // 3. retrieve layer source
+
         const source = layer.image ? await base64toCanvas( layer.image.toBase64(), layer.image.width(), layer.image.height() ) : null;
 
         layers.push( LayerFactory.create({
             name    : layerObj.name,
-            x       : layer.left,
-            y       : layer.top,
-            width   : layer.width,
-            height  : layer.height,
             visible : layer.visible,
+            x       : layerX,
+            y       : layerY,
+            width   : layerWidth,
+            height  : layerHeight,
             source,
             ...maskProps,
             filters : FiltersFactory.create({
                 opacity: ( layer.opacity ?? 255 ) / 255,
             }),
         }));
-        await debounce(); // layer bitmap parsing can be heavy, unblock CPU on each iteration
+
+        // layer bitmap parsing can be heavy, unblock CPU on each iteration
+        await debounce();
     }
 
     if ( !layers.length ) {
