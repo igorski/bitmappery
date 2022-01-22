@@ -82,7 +82,7 @@ export const SNAP_MARGIN    = 20;  // amount of pixels within which we allow sna
 /**
  * Ideally we'd like to zoom the document in and out by the MAX_SCALE defined above, however
  * if the max zoom exceeds the maximum image size, the magnification is scaled
- * down to a value that relates to this maximum image size. The returned in magnification
+ * down to a value that relates to this maximum image size. The returned in-magnification value
  * should lead to the maximum scale relative to the document size, making the max displayed
  * value equal across window sizes.
  */

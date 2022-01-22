@@ -35,7 +35,7 @@ export default {
         ])
     },
     created() {
-        this.acceptedImageTypes = ACCEPTED_FILE_EXTENSIONS;
+        this.acceptedFileTypes = ACCEPTED_FILE_EXTENSIONS.map( ext => `.${ext}` ).join( "," );
     },
     methods: {
         ...mapMutations([

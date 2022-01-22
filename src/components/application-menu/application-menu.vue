@@ -88,7 +88,7 @@
                         ref="fileSelector"
                         type="file"
                         multiple
-                        :accept="acceptedImageTypes"
+                        :accept="acceptedFileTypes"
                         class="file-selector"
                         @change="handleFileSelect"
                     />
