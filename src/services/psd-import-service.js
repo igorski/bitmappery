@@ -52,39 +52,79 @@ async function psdToBitMapperyDocument( psd, psdFileReference ) {
     for ( const layerObj of treeLayerObjects ) {
         const { layer } = layerObj;
 
+        // 1. determine layer bounding box
+
         if ( !layer.width || !layer.height ) {
             // these are likely adjustment layers, which we don't support
             continue;
         }
 
+        let layerX      = layer.left;
+        let layerY      = layer.top;
+        let layerWidth  = layer.width;
+        let layerHeight = layer.height;
+
+        // 2. determine whether layer uses masking
+
         const maskProps = {};
+
         if ( layer.image.hasMask ) {
             const { cvs, ctx } = createCanvas( layer.mask.width, layer.mask.height );
             ctx.putImageData( new ImageData(
                 new Uint8ClampedArray( layer.image.maskData.buffer ), layer.mask.width, layer.mask.height
             ), 0, 0 );
+
+            // Photoshop masks use inverted colours compared to our Canvas masking
             inverseMask( cvs );
 
             maskProps.mask  = cvs;
             maskProps.maskX = layer.mask.left;
             maskProps.maskY = layer.mask.top;
         }
-        const source = layer.image ? await base64toCanvas( layer.image.toBase64(), layer.image.width(), layer.image.height() ) : null;
+
+        // 3. retrieve layer source
+
+        const bitmap = layer.image ? await base64toCanvas( layer.image.toBase64(), layer.image.width(), layer.image.height() ) : null;
+        let source = null;
+        if ( bitmap ) {
+            if ( maskProps.mask ) {
+                // when using a mask, ensure mask occupies full document width and height
+                // TODO: is this actually a bug in the BitMappery renderer ?
+                let { cvs, ctx } = createCanvas( width, height );
+                ctx.drawImage( bitmap, layer.left, layer.top );
+                source      = cvs;
+                layerX      = 0;
+                layerY      = 0;
+                layerWidth  = width;
+                layerHeight = height;
+
+                ({ cvs , ctx } = createCanvas( width, height ));
+                ctx.drawImage( maskProps.mask, maskProps.maskX, maskProps.maskY );
+
+                maskProps.mask  = cvs;
+                maskProps.maskX = 0;
+                maskProps.maskY = 0;
+            } else {
+                source = bitmap;
+            }
+        }
 
         layers.push( LayerFactory.create({
             name    : layerObj.name,
-            x       : layer.left,
-            y       : layer.top,
-            width   : layer.width,
-            height  : layer.height,
             visible : layer.visible,
+            x       : layerX,
+            y       : layerY,
+            width   : layerWidth,
+            height  : layerHeight,
             source,
             ...maskProps,
             filters : FiltersFactory.create({
                 opacity: ( layer.opacity ?? 255 ) / 255,
             }),
         }));
-        await debounce(); // layer bitmap parsing can be heavy, unblock CPU on each iteration
+
+        // layer bitmap parsing can be heavy, unblock CPU on each iteration
+        await debounce();
     }
 
     if ( !layers.length ) {
