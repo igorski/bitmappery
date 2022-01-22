@@ -69,7 +69,8 @@ async function psdToBitMapperyDocument( psd, psdFileReference ) {
         const maskProps = {};
 
         if ( layer.image.hasMask ) {
-            // note that the mask is always positioned at the 0, 0 coordinate of the layer itself
+            // note that we position mask the mask at the 0, 0 relative to the layer, whereas Photoshop positions
+            // it relative to the entire document
             const { cvs, ctx } = createCanvas( layer.mask.width, layer.mask.height );
             ctx.putImageData( new ImageData(
                 new Uint8ClampedArray( layer.image.maskData.buffer ), layer.mask.width, layer.mask.height
