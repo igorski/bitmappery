@@ -1,5 +1,5 @@
 import store from "@/store";
-import { PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
+import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { LAYER_IMAGE } from "@/definitions/layer-types";
 
 const { getters, mutations, actions } = store;
@@ -283,7 +283,7 @@ describe( "Vuex store", () => {
             // assert the active document is serialized by DocumentFactory.toBlob
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "toBlob", mockedGetters.activeDocument );
             // assert the resulting Blob will be saved to a File
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "saveBlobAsFile", expect.any( Object ), `foo${PROJECT_FILE_EXTENSION}` );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "saveBlobAsFile", expect.any( Object ), `foo.${PROJECT_FILE_EXTENSION}` );
             expect( commit ).toHaveBeenCalledWith( "showNotification", expect.any( Object ));
         });
 

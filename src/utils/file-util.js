@@ -20,8 +20,10 @@
 * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-import { ACCEPTED_FILE_TYPES, PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
-import { isImageFile, isProjectFile, isThirdPartyDocument } from "@/definitions/file-types";
+import {
+    ACCEPTED_FILE_TYPES, PROJECT_FILE_EXTENSION,
+    isImageFile, isProjectFile, isThirdPartyDocument,
+} from "@/definitions/file-types";
 import { blobToResource, disposeResource } from "@/utils/resource-manager";
 
 /**
@@ -122,5 +124,5 @@ export const readDroppedFiles = dataTransfer => {
         images     : items.filter( isImageFile ),
         documents  : items.filter( isProjectFile ),
         thirdParty : items.filter( isThirdPartyDocument ),
-    }
+    };
 };

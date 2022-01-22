@@ -370,7 +370,6 @@ import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION,
     DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT, PREFERENCES, RESIZE_CANVAS, GRID_TO_LAYERS
 } from "@/definitions/modal-windows";
-import { FILE_EXTENSIONS } from "@/definitions/image-types";
 import { getRectangleForSelection } from "@/math/selection-math";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { getCanvasInstance, runSpriteFn, getSpriteForLayer } from "@/factories/sprite-factory";

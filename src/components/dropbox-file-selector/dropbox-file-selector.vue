@@ -115,13 +115,10 @@ import { listFolder, createFolder, downloadFileAsBlob, deleteEntry } from "@/ser
 import DropboxImagePreview from "./dropbox-image-preview";
 import { truncate } from "@/utils/string-util";
 import { disposeResource } from "@/utils/resource-manager";
-import { ACCEPTED_FILE_EXTENSIONS, PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
+import { ACCEPTED_FILE_EXTENSIONS, PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { isThirdPartyDocument } from "@/definitions/file-types";
 
 import messages from "./messages.json";
-
-// we allow listing of both BitMappery Documents and all accepted image types
-const FILE_EXTENSIONS = [ ...ACCEPTED_FILE_EXTENSIONS, PROJECT_FILE_EXTENSION ];
 
 const LAST_DROPBOX_FOLDER = "bpy_dropboxDb";
 
@@ -204,7 +201,7 @@ export default {
             return this.leaf.children.filter( entry => {
                 // only show folders and image files
                 if ( entry.type === "file" ) {
-                    return FILE_EXTENSIONS.some( ext => entry.name.includes( `.${ext}` ));
+                    return ACCEPTED_FILE_EXTENSIONS.some( ext => entry.name.includes( `.${ext}` ));
                 }
                 return true;
             });

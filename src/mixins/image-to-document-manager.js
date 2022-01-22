@@ -21,8 +21,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { mapGetters, mapMutations, mapActions } from "vuex";
-import { isTransparent, PROJECT_FILE_EXTENSION, FILE_EXTENSIONS, PSD } from "@/definitions/image-types";
-import { isProjectFile, isThirdPartyDocument } from "@/definitions/file-types";
+import { isTransparent } from "@/definitions/image-types";
+import { ACCEPTED_FILE_EXTENSIONS, isImageFile, isProjectFile, isThirdPartyDocument } from "@/definitions/file-types";
 import { LAYER_IMAGE } from "@/definitions/layer-types";
 import { loadImageFiles } from "@/services/file-loader-queue";
 
@@ -35,7 +35,7 @@ export default {
         ])
     },
     created() {
-        this.acceptedImageTypes = FILE_EXTENSIONS;
+        this.acceptedImageTypes = ACCEPTED_FILE_EXTENSIONS;
     },
     methods: {
         ...mapMutations([
@@ -44,6 +44,8 @@ export default {
             "addLayer",
             "updateLayer",
             "setImageSourceUsage",
+            "setLoading",
+            "unsetLoading",
         ]),
         ...mapActions([
             "addImage",
@@ -103,10 +105,13 @@ export default {
                     bpyDocuments.push( file );
                 } else if ( isThirdPartyDocument( file )) {
                     tpyDocuments.push( file );
-                } else {
+                } else if ( isImageFile( file )) {
                     imageFiles.push( file );
                 }
             }
+
+            const LOADING_KEY = `itd_${Date.now()}`;
+            this.setLoading( LOADING_KEY );
 
             // load the image files
 
@@ -116,12 +121,14 @@ export default {
 
             // load the BitMappery documents
 
-            bpyDocuments.forEach( doc => {
-                this.loadDocument( doc );
-            });
+            for ( const doc of bpyDocuments ) {
+                await this.loadDocument( doc );
+            }
 
             // load the third party Documents
             await this.loadThirdPartyDocuments( tpyDocuments );
+
+            this.unsetLoading( LOADING_KEY );
         },
         async loadThirdPartyDocuments( documents = [] ) {
             if ( documents.length ) {

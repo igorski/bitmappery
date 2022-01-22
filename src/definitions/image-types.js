@@ -34,16 +34,11 @@ export const ALL_IMAGE_TYPES = [ JPEG, PNG, GIF, WEBP ];
 const COMPRESSABLE_TYPES = [ JPEG, WEBP ];
 const TRANSPARENT_TYPES  = [ PNG, GIF, WEBP ];
 
-// 1.1 special file types
-
-export const PSD = { mime: "image/vnd.adobe.photoshop", ext: "psd" };
-
 // 2. all image formats supported by all supported platforms
 
-export const ACCEPTED_FILE_TYPES      = [ JPEG.mime, PNG.mime, GIF.mime, PSD.mime ];
-export const ACCEPTED_FILE_EXTENSIONS = [ JPEG.ext, "jpeg", PNG.ext, GIF.ext, PSD.ext ];
-export const EXPORTABLE_FILE_TYPES    = [ JPEG.mime, PNG.mime ]; // GIF can be exported using library
-export const PROJECT_FILE_EXTENSION   = ".bpy"; // BitMappery document
+export const ACCEPTED_IMAGE_TYPES      = [ JPEG.mime, PNG.mime, GIF.mime ];
+export const ACCEPTED_IMAGE_EXTENSIONS = [ JPEG.ext, "jpeg", PNG.ext, GIF.ext ];
+export const EXPORTABLE_IMAGE_TYPES    = [ JPEG.mime, PNG.mime ]; // GIF can be exported using library
 
 // 3. environment specific overrides
 
@@ -52,15 +47,12 @@ if ( !isSafari() ) {
     // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL#browser_compatibility
     const { mime, ext } = WEBP;
 
-    ACCEPTED_FILE_TYPES.push( mime );
-    ACCEPTED_FILE_EXTENSIONS.push( ext );
-    EXPORTABLE_FILE_TYPES.push( mime );
+    ACCEPTED_IMAGE_TYPES.push( mime );
+    ACCEPTED_IMAGE_EXTENSIONS.push( ext );
+    EXPORTABLE_IMAGE_TYPES.push( mime );
 }
 
 // 4. utility methods
-
-// for file input selectors, we allow selection of both BitMappery Documents and all accepted image types
-export const FILE_EXTENSIONS = [ ...ACCEPTED_FILE_TYPES, PROJECT_FILE_EXTENSION ];
 
 export const isCompressableFileType = type => COMPRESSABLE_TYPES.some(({ mime }) => mime === type );
 

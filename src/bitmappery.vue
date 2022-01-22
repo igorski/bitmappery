@@ -219,12 +219,19 @@ export default {
         // if File content is pasted or dragged into the application, parse and load image files within
 
         const loadFiles = async ({ images, documents, thirdParty }) => {
-            loadImageFiles( images, this.addLoadedFile.bind( this ));
-            for ( const file of documents ) {
-                const document = await DocumentFactory.fromBlob( file );
-                this.addNewDocument( document );
+            const LOADING_KEY = `drop_${Date.now()}`;
+            this.setLoading( LOADING_KEY );
+            try {
+                loadImageFiles( images, this.addLoadedFile.bind( this ));
+                for ( const file of documents ) {
+                    const document = await DocumentFactory.fromBlob( file );
+                    this.addNewDocument( document );
+                }
+                await this.loadThirdPartyDocuments( thirdParty );
+            } catch {
+                // aren't these caught internally ?
             }
-            await this.loadThirdPartyDocuments( thirdParty );
+            this.unsetLoading( LOADING_KEY );
         };
 
         window.addEventListener( "paste", event => {
@@ -251,6 +258,8 @@ export default {
             "setToolboxOpened",
             "setToolOptionValue",
             "addNewDocument",
+            "setLoading",
+            "unsetLoading",
         ]),
         ...mapActions([
             "setupServices",

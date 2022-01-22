@@ -25,7 +25,7 @@ import DocumentFactory from "@/factories/document-factory";
 import LayerFactory    from "@/factories/layer-factory";
 import { initHistory, enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
-import { ACCEPTED_FILE_TYPES, PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
+import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { LAYER_GRAPHIC } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS, PANEL_LAYERS } from "@/definitions/panel-types";
 import { runSpriteFn }   from "@/factories/sprite-factory";
@@ -168,8 +168,7 @@ export default {
     actions: {
         async loadDocument({ commit }, file = null ) {
             if ( !file ) {
-                const fileList = await selectFile( PROJECT_FILE_EXTENSION, false );
-//                const fileList = await selectFile( `${PROJECT_FILE_EXTENSION},${ACCEPTED_FILE_TYPES.join( "," )}`, false );
+                const fileList = await selectFile( `.${PROJECT_FILE_EXTENSION}`, false );
                 if ( !fileList?.length ) {
                     return;
                 }
@@ -195,7 +194,7 @@ export default {
                 name = getters.activeDocument.name;
             }
             const binary = await DocumentFactory.toBlob( getters.activeDocument );
-            saveBlobAsFile( binary, `${name.split( "." )[ 0 ]}${PROJECT_FILE_EXTENSION}` );
+            saveBlobAsFile( binary, `${name.split( "." )[ 0 ]}.${PROJECT_FILE_EXTENSION}` );
             commit( "showNotification", {
                 message: translate( "savedFileSuccessfully" , { file: truncate( name, 35 ) })
             });

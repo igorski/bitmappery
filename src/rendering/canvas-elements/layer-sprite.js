@@ -25,7 +25,7 @@ import ZoomableSprite from "./zoomable-sprite";
 import { createCanvas, canvasToBlob, globalToLocal } from "@/utils/canvas-util";
 import { renderCross } from "@/utils/render-util";
 import { blobToResource } from "@/utils/resource-manager";
-import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
+import { LAYER_GRAPHIC, LAYER_TEXT } from "@/definitions/layer-types";
 import { getSizeForBrush } from "@/definitions/brush-types";
 import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
 import { scaleRectangle } from "@/math/rectangle-math";

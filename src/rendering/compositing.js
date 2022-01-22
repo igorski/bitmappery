@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,23 +20,22 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { ACCEPTED_IMAGE_TYPES, ACCEPTED_IMAGE_EXTENSIONS } from "@/definitions/image-types";
+import { createCanvas } from "@/utils/canvas-util";
 
-export const PROJECT_FILE_EXTENSION = "bpy"; // BitMappery document
-export const PSD = { mime: "image/vnd.adobe.photoshop", ext: "psd" };
+/**
+ * Applies an inverse colour operation onto a bitmap that contains
+ * masked content of various opacities
+ *
+ * @param {HTMLCanvasElement} bitmap
+ */
+export const inverseMask = bitmap => {
+    const { width, height } = bitmap;
+    const ctx = bitmap.getContext( "2d" );
 
-export const ACCEPTED_FILE_TYPES      = [ ...ACCEPTED_IMAGE_TYPES, PSD.mime ];
-export const ACCEPTED_FILE_EXTENSIONS = [ ...ACCEPTED_IMAGE_EXTENSIONS, PROJECT_FILE_EXTENSION, PSD.ext ];
+    const orgCompositeOperation = ctx.globalCompositeOperation;
 
-export const isImageFile = item => ACCEPTED_IMAGE_TYPES.includes( item.type );
-
-export const isProjectFile = file => {
-    const [ name, ext ] = file.name.split( "." );
-    return ext === PROJECT_FILE_EXTENSION;
-};
-
-export const isThirdPartyDocument = file => {
-    const [ name, ext ] = file.name.split( "." );
-    // currently only Photoshop documents are supported
-    return ext === PSD.ext;
+    ctx.globalCompositeOperation = "source-out";
+    ctx.fillStyle = "black";
+    ctx.fillRect( 0, 0, width, height );
+    ctx.globalCompositeOperation = orgCompositeOperation;
 };

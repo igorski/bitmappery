@@ -1,5 +1,8 @@
-import { isImageFile, isProjectFile, isThirdPartyDocument } from "@/definitions/file-types";
-import { ALL_IMAGE_TYPES, PROJECT_FILE_EXTENSION, PSD } from "@/definitions/image-types";
+import {
+    PROJECT_FILE_EXTENSION, PSD,
+    isImageFile, isProjectFile, isThirdPartyDocument
+} from "@/definitions/file-types";
+import { ALL_IMAGE_TYPES } from "@/definitions/image-types";
 
 jest.mock( "@/utils/environment-util", () => ({
     isSafari: () => false, // forces webp support
@@ -7,7 +10,7 @@ jest.mock( "@/utils/environment-util", () => ({
 
 describe( "file types", () => {
     const imageFiles = ALL_IMAGE_TYPES.map(({ mime, ext }) => ({ type: mime, name: `file.${ext}` }));
-    const bpyFile    = { name: `file${PROJECT_FILE_EXTENSION}` };
+    const bpyFile    = { name: `file.${PROJECT_FILE_EXTENSION}` };
     const psdFile    = { name: `file.${PSD.ext}` };
 
     it( "should be able to recognize the supported image files", () => {

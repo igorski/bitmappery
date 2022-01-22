@@ -69,7 +69,7 @@ import {
 } from "@/factories/sprite-factory";
 import { flushCache as flushBitmapCache } from "@/rendering/cache/bitmap-cache";
 import { renderState } from "@/services/render-service";
-import { PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
+import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 
 /* internal non-reactive properties */
 
@@ -118,7 +118,7 @@ export default {
             if ( name.includes( "." )) {
                 return name; // is local image
             }
-            return `${name}${PROJECT_FILE_EXTENSION}`;
+            return `${name}.${PROJECT_FILE_EXTENSION}`;
         },
     },
     watch: {

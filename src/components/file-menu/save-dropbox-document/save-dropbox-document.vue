@@ -71,7 +71,7 @@ import Modal from "@/components/modal/modal";
 import { getCurrentFolder, setCurrentFolder, uploadBlob } from "@/services/dropbox-service";
 import DocumentFactory from "@/factories/document-factory";
 import { focus } from "@/utils/environment-util";
-import { PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
+import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 
 import messages from "./messages.json";
 export default {
@@ -114,7 +114,7 @@ export default {
             this.setLoading( "save" );
             try {
                 const blob = await DocumentFactory.toBlob( this.activeDocument );
-                const result = await uploadBlob( blob, this.folder, `${this.name}${PROJECT_FILE_EXTENSION}` );
+                const result = await uploadBlob( blob, this.folder, `${this.name}.${PROJECT_FILE_EXTENSION}` );
                 if ( !result ) {
                     throw new Error();
                 }

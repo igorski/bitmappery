@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,8 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { LAYER_GRAPHIC, LAYER_MASK, DEFAULT_LAYER_NAME } from "@/definitions/layer-types";
-import { imageToBase64, base64ToLayerCanvas } from "@/utils/canvas-util";
+import { LAYER_GRAPHIC, DEFAULT_LAYER_NAME } from "@/definitions/layer-types";
+import { imageToBase64, base64toCanvas } from "@/utils/canvas-util";
 import EffectsFactory from "@/factories/effects-factory";
 import FiltersFactory from "@/factories/filters-factory";
 import TextFactory    from "@/factories/text-factory";
@@ -87,8 +87,8 @@ const LayerFactory = {
      * inside a stored project
      */
     async deserialize( layer ) {
-        const source = await base64ToLayerCanvas( layer.s, layer.t, layer.w, layer.h );
-        const mask   = await base64ToLayerCanvas( layer.m, LAYER_MASK, layer.w, layer.h );
+        const source = await base64toCanvas( layer.s, layer.w, layer.h );
+        const mask   = await base64toCanvas( layer.m, layer.w, layer.h );
         const text   = await TextFactory.deserialize( layer.tx );
         return LayerFactory.create({
             name: layer.n,

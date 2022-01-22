@@ -63,13 +63,25 @@ export const imageToBase64 = ( bitmap, width, height, transparent ) => {
     return "";
 };
 
+/**
+ * @param {CanvasImageSource} bitmap
+ * @param {Number} width
+ * @param {Number} height
+ * @return {HTMLCanvasElement}
+ */
 export const imageToCanvas = ( bitmap, width, height ) => {
     const { cvs, ctx } = createCanvas( width, height );
     ctx.drawImage( bitmap, 0, 0 );
     return cvs;
 };
 
-export const base64ToLayerCanvas = async( base64, type, width, height ) => {
+/**
+ * @param {String} base64 encoded image
+ * @param {Number} width
+ * @param {Number} height
+ * @returns {Promise<HTMLCanvasElement>}
+ */
+export const base64toCanvas = async ( base64, width, height ) => {
     if ( !base64 ) {
         return null;
     }

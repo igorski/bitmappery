@@ -24,11 +24,15 @@ import PSD from "psd.js";
 import DocumentFactory from "@/factories/document-factory";
 import FiltersFactory from "@/factories/filters-factory";
 import LayerFactory from "@/factories/layer-factory";
+import { inverseMask } from "@/rendering/compositing";
+import { createCanvas, base64toCanvas } from "@/utils/canvas-util";
+import { debounce } from "@/utils/debounce-util";
 
 export const importPSD = async psdFileReference => {
     try {
         const psd = await PSD.fromDroppedFile( psdFileReference );
-        return psdToBitMapperyDocument( psd, psdFileReference );
+        const doc = await psdToBitMapperyDocument( psd, psdFileReference );
+        return doc;
     } catch ( error ) {
         console.error( error );
         return null;
@@ -37,20 +41,35 @@ export const importPSD = async psdFileReference => {
 
 /* internal methods */
 
-function psdToBitMapperyDocument( psd, psdFileReference ) {
+async function psdToBitMapperyDocument( psd, psdFileReference ) {
     const psdTree = psd.tree();
     const { width, height } = psdTree;
 
     // collect layers
     const layers = [];
 
-    psdTree.children().reverse().forEach( layerObj => {
+    const treeLayerObjects = psdTree.children().reverse();
+    for ( const layerObj of treeLayerObjects ) {
         const { layer } = layerObj;
 
         if ( !layer.width || !layer.height ) {
             // these are likely adjustment layers, which we don't support
-            return;
+            continue;
         }
+
+        const maskProps = {};
+        if ( layer.image.hasMask ) {
+            const { cvs, ctx } = createCanvas( layer.mask.width, layer.mask.height );
+            ctx.putImageData( new ImageData(
+                new Uint8ClampedArray( layer.image.maskData.buffer ), layer.mask.width, layer.mask.height
+            ), 0, 0 );
+            inverseMask( cvs );
+
+            maskProps.mask  = cvs;
+            maskProps.maskX = layer.mask.left;
+            maskProps.maskY = layer.mask.top;
+        }
+        const source = layer.image ? await base64toCanvas( layer.image.toBase64(), layer.image.width(), layer.image.height() ) : null;
 
         layers.push( LayerFactory.create({
             name    : layerObj.name,
@@ -59,12 +78,25 @@ function psdToBitMapperyDocument( psd, psdFileReference ) {
             width   : layer.width,
             height  : layer.height,
             visible : layer.visible,
-            source  : layer.image ? layer.image.toPng() : null,
+            source,
+            ...maskProps,
             filters : FiltersFactory.create({
                 opacity: ( layer.opacity ?? 255 ) / 255,
             }),
         }));
-    });
+        await debounce(); // layer bitmap parsing can be heavy, unblock CPU on each iteration
+    }
+
+    if ( !layers.length ) {
+        // we likely ran into some incompatibility issue, just take the merged output
+        layers.push( LayerFactory.create({
+            name: "Merged",
+            width,
+            height,
+            source: psd.image.toPng()
+        }));
+    }
+
     return DocumentFactory.create({
         name: psdTree.name || psdFileReference.name,
         width,

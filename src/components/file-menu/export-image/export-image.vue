@@ -146,12 +146,13 @@ import Modal from "@/components/modal/modal";
 import SelectBox from '@/components/ui/select-box/select-box';
 import Slider from "@/components/ui/slider/slider";
 import { MAX_SPRITESHEET_WIDTH } from "@/definitions/editor-properties";
-import { EXPORTABLE_FILE_TYPES, GIF, typeToExt, isCompressableFileType } from "@/definitions/image-types";
+import { EXPORTABLE_IMAGE_TYPES, GIF, typeToExt, isCompressableFileType } from "@/definitions/image-types";
 import { supportsGIF, createGIF, createAnimatedGIF } from "@/services/gif-creation-service";
 import { mapSelectOptions }  from "@/utils/search-select-util";
 import { isLandscape, isSquare } from "@/math/image-math";
 import { createDocumentSnapshot, createLayerSnapshot, tilesToSingle } from "@/utils/document-util";
 import { resizeToBase64 } from "@/utils/canvas-util";
+import { debounce } from "@/utils/debounce-util";
 import { saveBlobAsFile, base64toBlob } from "@/utils/file-util";
 import { displayAsKb } from "@/utils/string-util";
 import messages from "./messages.json";
@@ -166,7 +167,7 @@ export default {
     },
     data: () => ({
         name: "",
-        type: EXPORTABLE_FILE_TYPES[ 0 ],
+        type: EXPORTABLE_IMAGE_TYPES[ 0 ],
         quality: 95,
         base64preview: null,
         layersToSpriteSheet: false,
@@ -187,7 +188,7 @@ export default {
             "isLoading",
         ]),
         fileTypes() {
-            const types = this.canCreateGIF ? [ ...EXPORTABLE_FILE_TYPES, GIF.mime ] : EXPORTABLE_FILE_TYPES;
+            const types = this.canCreateGIF ? [ ...EXPORTABLE_IMAGE_TYPES, GIF.mime ] : EXPORTABLE_IMAGE_TYPES;
             return mapSelectOptions( types );
         },
         hasQualityOptions() {
@@ -316,6 +317,7 @@ export default {
 
             if ( this.reRenderOnCompletion ) {
                 this.reRenderOnCompletion = false;
+                await debounce(); // unblock CPU prior to continuing next iteration
                 this.renderPreview();
             }
         },
