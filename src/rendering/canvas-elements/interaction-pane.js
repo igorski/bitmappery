@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -149,7 +149,7 @@ class InteractionPane extends sprite {
         if ( optStoreState ) {
             storeSelectionHistory( document, currentSelection );
         }
-        this._selectionClosed = value.length > 1; // TODO: can we determine this from first and last point?
+        this._selectionClosed = value?.length > 1; // TODO: can we determine this from first and last point?
         this.invalidate();
     }
 

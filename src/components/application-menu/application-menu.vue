@@ -522,19 +522,22 @@ export default {
         requestCropToSelection() {
             const store = this.$store;
             const currentSize = {
-                width: this.activeDocument.width,
-                height: this.activeDocument.height
+                width  : this.activeDocument.width,
+                height : this.activeDocument.height
             };
-            const { left, top, width, height } = getRectangleForSelection( this.activeDocument.selection );
+            const selection = [ ...this.activeDocument.selection ];
+            const { left, top, width, height } = getRectangleForSelection( selection );
             const commit = async () => {
                 await store.commit( "cropActiveDocumentContent", { left, top });
                 store.commit( "setActiveDocumentSize", { width, height });
+                getCanvasInstance()?.interactionPane.setSelection( null, false );
             };
             commit();
-            enqueueState("crop", {
+            enqueueState( "crop", {
                 async undo() {
                     await store.commit( "cropActiveDocumentContent", { left: -left, top: -top });
                     store.commit( "setActiveDocumentSize", currentSize );
+                    getCanvasInstance()?.interactionPane.setSelection( selection, false );
                 },
                 redo: commit
             });
