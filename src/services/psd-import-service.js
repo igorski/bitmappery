@@ -69,45 +69,21 @@ async function psdToBitMapperyDocument( psd, psdFileReference ) {
         const maskProps = {};
 
         if ( layer.image.hasMask ) {
+            // note that the mask is always positioned at the 0, 0 coordinate of the layer itself
             const { cvs, ctx } = createCanvas( layer.mask.width, layer.mask.height );
             ctx.putImageData( new ImageData(
                 new Uint8ClampedArray( layer.image.maskData.buffer ), layer.mask.width, layer.mask.height
-            ), 0, 0 );
+            ), layer.mask.left - layerX, layer.mask.top - layerY );
 
             // Photoshop masks use inverted colours compared to our Canvas masking
             inverseMask( cvs );
 
-            maskProps.mask  = cvs;
-            maskProps.maskX = layer.mask.left;
-            maskProps.maskY = layer.mask.top;
+            maskProps.mask = cvs;
         }
 
         // 3. retrieve layer source
 
-        const bitmap = layer.image ? await base64toCanvas( layer.image.toBase64(), layer.image.width(), layer.image.height() ) : null;
-        let source = null;
-        if ( bitmap ) {
-            if ( maskProps.mask ) {
-                // when using a mask, ensure mask occupies full document width and height
-                // TODO: is this actually a bug in the BitMappery renderer ?
-                let { cvs, ctx } = createCanvas( width, height );
-                ctx.drawImage( bitmap, layer.left, layer.top );
-                source      = cvs;
-                layerX      = 0;
-                layerY      = 0;
-                layerWidth  = width;
-                layerHeight = height;
-
-                ({ cvs , ctx } = createCanvas( width, height ));
-                ctx.drawImage( maskProps.mask, maskProps.maskX, maskProps.maskY );
-
-                maskProps.mask  = cvs;
-                maskProps.maskX = 0;
-                maskProps.maskY = 0;
-            } else {
-                source = bitmap;
-            }
-        }
+        const source = layer.image ? await base64toCanvas( layer.image.toBase64(), layer.image.width(), layer.image.height() ) : null;
 
         layers.push( LayerFactory.create({
             name    : layerObj.name,
