@@ -39,13 +39,13 @@
             <div class="wrapper input">
                 <label v-t="'widthToHeight'"></label>
                 <input
-                    type="text"
+                    type="number"
                     v-model.number="xRatio"
                     class="input-field half"
                     :disabled="!maintainRatio"
                 />
                 <input
-                    type="text"
+                    type="number"
                     v-model.number="yRatio"
                     class="input-field half"
                     :disabled="!maintainRatio"
@@ -56,7 +56,7 @@
         <div class="wrapper input">
             <label v-t="'coordinates'"></label>
             <input
-                type="text"
+                type="number"
                 v-model.number="x"
                 class="input-field half"
                 :min="-maxWidth"
@@ -64,7 +64,7 @@
                 :disabled="!hasSelection"
             />
             <input
-                type="text"
+                type="number"
                 v-model.number="y"
                 class="input-field half"
                 :min="-maxHeight"
@@ -76,7 +76,7 @@
             <div class="wrapper input">
                 <label v-t="'dimensions'"></label>
                 <input
-                    type="text"
+                    type="number"
                     v-model.number="width"
                     class="input-field half"
                     :min="1"
@@ -84,7 +84,7 @@
                     :disabled="!hasSelection"
                 />
                 <input
-                    type="text"
+                    type="number"
                     v-model.number="height"
                     class="input-field half"
                     :min="1"
@@ -168,7 +168,6 @@ export default {
                 if ( isNaN( value )) {
                     return;
                 }
-                console.warn("move selection in y from " + this.y + " to " + value + "!");
                 this.moveSelection( 0, value - this.y );
             }
         },
