@@ -209,7 +209,9 @@ export default {
                    !this.layersToAnimatedGIF;
         },
         canCreateAnimatedGIF() {
-            return this.canCreateGIF && this.type === GIF.mime && this.activeDocument.layers.length > 1;
+            return this.canCreateGIF && this.type === GIF.mime &&
+                   this.activeDocument.layers.length > 1 &&
+                   this.activeDocument.width <= MAX_SPRITESHEET_WIDTH;
         },
         isLandscape() {
             return isLandscape( this.width, this.height ) || isSquare( this.width, this.height );
