@@ -116,6 +116,8 @@ import DropboxImagePreview from "./dropbox-image-preview";
 import { truncate } from "@/utils/string-util";
 import { disposeResource } from "@/utils/resource-manager";
 import { ACCEPTED_FILE_EXTENSIONS, PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
+import { isThirdPartyDocument } from "@/definitions/file-types";
+
 import messages from "./messages.json";
 
 // we allow listing of both BitMappery Documents and all accepted image types
@@ -271,15 +273,27 @@ export default {
                     this.closeModal();
                     break;
                 case "file":
-                    // TODO: loader, error handling and background load (for bulk selection)
-                    const url = await downloadFileAsBlob( node.path, true );
-                    const { image, size } = await loader.loadImage( url );
-                    await this.addLoadedFile({ type: "dropbox", name: node.name }, { image, size });
-                    disposeResource( url ); // Blob has been converted to Layer source
-                    this.showNotification({
-                        message: this.$t( "importedFileSuccessfully", { file: truncate( node.name, 35 ) })
-                    });
-                    this.closeModal();
+                    // TODO: error handling and background load (for bulk selection)
+                    try {
+                        const url = await downloadFileAsBlob( node.path, true );
+                        if ( isThirdPartyDocument( node )) {
+                            const blob = await fetch( url ).then( r => r.blob() );
+                            await this.loadThirdPartyDocuments([ blob ]);
+                        } else {
+                            const { image, size } = await loader.loadImage( url );
+                            await this.addLoadedFile({ type: "dropbox", name: node.name }, { image, size });
+                        }
+                        disposeResource( url ); // Blob has been converted to internal resource
+                        this.showNotification({
+                            message: this.$t( "importedFileSuccessfully", { file: truncate( node.name, 35 ) })
+                        });
+                        this.closeModal();
+                    } catch {
+                        this.openDialog({
+                            type: "error",
+                            message: this.$t( "errorImportingFile", { file: truncate( node.name, 35 ) })
+                        });
+                    }
                     break;
             }
             this.unsetLoading( "dbox" );

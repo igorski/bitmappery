@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,7 +21,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { mapGetters, mapMutations, mapActions } from "vuex";
-import { isTransparent, PROJECT_FILE_EXTENSION, FILE_EXTENSIONS } from "@/definitions/image-types";
+import { isTransparent, PROJECT_FILE_EXTENSION, FILE_EXTENSIONS, PSD } from "@/definitions/image-types";
+import { isProjectFile, isThirdPartyDocument } from "@/definitions/file-types";
 import { LAYER_IMAGE } from "@/definitions/layer-types";
 import { loadImageFiles } from "@/services/file-loader-queue";
 
@@ -90,16 +91,18 @@ export default {
                 return;
             }
 
-            // separate BitMappery documents from image files
+            // separate BitMappery documents from image files and third party documents
 
             const bpyDocuments = [];
+            const tpyDocuments = [];
             const imageFiles   = [];
 
             for ( let i = 0, l = files.length; i < l; ++i ) {
                 const file = files[ i ];
-                const [ name, ext ] = file.name.split( "." );
-                if ( ext === PROJECT_FILE_EXTENSION.replace( ".", "" )) {
+                if ( isProjectFile( file )) {
                     bpyDocuments.push( file );
+                } else if ( isThirdPartyDocument( file )) {
+                    tpyDocuments.push( file );
                 } else {
                     imageFiles.push( file );
                 }
@@ -116,6 +119,21 @@ export default {
             bpyDocuments.forEach( doc => {
                 this.loadDocument( doc );
             });
+
+            // load the third party Documents
+            await this.loadThirdPartyDocuments( tpyDocuments );
+        },
+        async loadThirdPartyDocuments( documents = [] ) {
+            if ( documents.length ) {
+                // currently only PSD is supported
+                const { importPSD } = await import( "@/services/psd-import-service" );
+                for ( const psd of documents ) {
+                    const document = await importPSD( psd );
+                    if ( document !== null ) {
+                        this.addNewDocument( document );
+                    }
+                }
+            }
         },
         updateSizeAndLayer( size, opts ) {
             this.setActiveDocumentSize( size );
@@ -123,6 +141,6 @@ export default {
         },
         registerUsage( source ) {
             this.setImageSourceUsage({ source, document: this.activeDocument });
-        }
+        },
      }
 };

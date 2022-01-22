@@ -21,6 +21,7 @@
 * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 import { ACCEPTED_FILE_TYPES, PROJECT_FILE_EXTENSION } from "@/definitions/image-types";
+import { isImageFile, isProjectFile, isThirdPartyDocument } from "@/definitions/file-types";
 import { blobToResource, disposeResource } from "@/utils/resource-manager";
 
 /**
@@ -57,6 +58,14 @@ export const base64toBlob = async base64string => {
     const blob   = await base64.blob();
     return blob;
 };
+
+/**
+ * Retrieves the binary data pointed to by given blobUrl
+ *
+ * @param {String} blobUrl
+ * @return {Promise<Blob>}
+ */
+export const blobUriToBlob = async blobUrl => await fetch( blobUrl ).then( r => r.blob() );
 
 export const selectFile = ( acceptedTypes, multiple = false ) => {
     const fileBrowser = document.createElement( "input" );
@@ -100,22 +109,18 @@ export const readClipboardFiles = clipboardData => {
         .filter( item => item.kind === "file" && isProjectFile( item.getAsFile() ))
         .map( item => item.getAsFile());
 
-    return { images, documents };
+    const thirdParty = items
+        .filter( item => item.kind === "file" && isThirdPartyDocument( item.getAsFile() ))
+        .map( item => item.getAsFile());
+
+    return { images, documents, thirdParty };
 };
 
 export const readDroppedFiles = dataTransfer => {
     const items = [ ...( dataTransfer?.files || []) ];
     return {
-        images: items.filter( isImageFile ),
-        documents: items.filter( isProjectFile )
+        images     : items.filter( isImageFile ),
+        documents  : items.filter( isProjectFile ),
+        thirdParty : items.filter( isThirdPartyDocument ),
     }
 };
-
-function isImageFile( item ) {
-    return ACCEPTED_FILE_TYPES.includes( item.type );
-}
-
-function isProjectFile( file ) {
-    const [ name, ext ] = file.name.split( "." );
-    return `.${ext}` === PROJECT_FILE_EXTENSION;
-}

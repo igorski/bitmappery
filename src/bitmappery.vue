@@ -218,12 +218,13 @@ export default {
 
         // if File content is pasted or dragged into the application, parse and load image files within
 
-        const loadFiles = ({ images, documents }) => {
+        const loadFiles = async ({ images, documents, thirdParty }) => {
             loadImageFiles( images, this.addLoadedFile.bind( this ));
-            documents.forEach( async file => {
+            for ( const file of documents ) {
                 const document = await DocumentFactory.fromBlob( file );
                 this.addNewDocument( document );
-            });
+            }
+            await this.loadThirdPartyDocuments( thirdParty );
         };
 
         window.addEventListener( "paste", event => {

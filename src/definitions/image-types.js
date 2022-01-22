@@ -29,14 +29,19 @@ export const PNG  = { mime: "image/png",  ext: "png" };
 export const GIF  = { mime: "image/gif",  ext: "gif" };
 export const WEBP = { mime: "image/webp", ext: "webp" };
 
-const ALL_TYPES          = [ JPEG, PNG, GIF, WEBP ];
+export const ALL_IMAGE_TYPES = [ JPEG, PNG, GIF, WEBP ];
+
 const COMPRESSABLE_TYPES = [ JPEG, WEBP ];
 const TRANSPARENT_TYPES  = [ PNG, GIF, WEBP ];
 
+// 1.1 special file types
+
+export const PSD = { mime: "image/vnd.adobe.photoshop", ext: "psd" };
+
 // 2. all image formats supported by all supported platforms
 
-export const ACCEPTED_FILE_TYPES      = [ JPEG.mime, PNG.mime, GIF.mime ];
-export const ACCEPTED_FILE_EXTENSIONS = [ JPEG.ext, "jpeg", PNG.ext, GIF.ext ];
+export const ACCEPTED_FILE_TYPES      = [ JPEG.mime, PNG.mime, GIF.mime, PSD.mime ];
+export const ACCEPTED_FILE_EXTENSIONS = [ JPEG.ext, "jpeg", PNG.ext, GIF.ext, PSD.ext ];
 export const EXPORTABLE_FILE_TYPES    = [ JPEG.mime, PNG.mime ]; // GIF can be exported using library
 export const PROJECT_FILE_EXTENSION   = ".bpy"; // BitMappery document
 
@@ -68,7 +73,7 @@ export const isTransparent = ({ name, type }) => {
 }
 
 export const typeToExt = mimeType => {
-    const format = ALL_TYPES.find(({ mime }) => mime === mimeType );
+    const format = ALL_IMAGE_TYPES.find(({ mime }) => mime === mimeType );
     if ( !format ) {
         throw new Error( `Unsupported type ${mimeType} provided` );
     }
