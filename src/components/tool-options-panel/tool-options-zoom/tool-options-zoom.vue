@@ -57,7 +57,6 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
-import { scaleValue, isPortrait, isLandscape } from "@/math/image-math";
 import Slider from "@/components/ui/slider/slider";
 import messages from "./messages.json";
 
@@ -100,28 +99,31 @@ export default {
             const { width, height } = this.activeDocument;
             const { visibleWidth, visibleHeight, maxOutScale } = this.canvasDimensions;
 
-            const isWidthDominantSide = isLandscape( width, height );
+            const isWidthDominantSide = this.canvasDimensions.height === visibleHeight;
+
+            let minZoomWidth, minZoomHeight, widthAtZeroZoom, heightAtZeroZoom, pixelsPerZoomUnit;
 
             if ( isWidthDominantSide ) {
                 // width is dominant, meaning zoom level 0 has image occupying full visibleHeight
-                const minZoomHeight     = visibleHeight / maxOutScale;
-                const minZoomWidth      = minZoomHeight * ( width / height );
-                const heightAtZeroZoom  = visibleHeight;
-                const widthAtZeroZoom   = ( width / height ) * heightAtZeroZoom;
-                const pixelsPerZoomUnit = ( widthAtZeroZoom - minZoomWidth ) / MIN_ZOOM;
+                minZoomHeight     = visibleHeight / maxOutScale;
+                minZoomWidth      = minZoomHeight * ( width / height );
+                heightAtZeroZoom  = visibleHeight;
+                widthAtZeroZoom   = ( width / height ) * heightAtZeroZoom;
+                pixelsPerZoomUnit = ( widthAtZeroZoom - minZoomWidth ) / MIN_ZOOM;
 
                 this.setZoomLevel(( widthAtZeroZoom - visibleWidth ) / pixelsPerZoomUnit );
             }
             else {
                 // height is dominant, meaning zoom level 0 has image occupying full visibleWidth
-                const minZoomWidth      = visibleWidth / maxOutScale;
-                const minZoomHeight     = minZoomWidth * ( height / width );
-                const widthAtZeroZoom   = visibleWidth;
-                const heightAtZeroZoom  = ( height / width ) * widthAtZeroZoom;
-                const pixelsPerZoomUnit = ( widthAtZeroZoom - minZoomWidth ) / MIN_ZOOM;
+                minZoomWidth      = visibleWidth / maxOutScale;
+                minZoomHeight     = minZoomWidth * ( height / width );
+                widthAtZeroZoom   = visibleWidth;
+                heightAtZeroZoom  = ( height / width ) * widthAtZeroZoom;
+                pixelsPerZoomUnit = ( widthAtZeroZoom - minZoomWidth ) / MIN_ZOOM;
 
                 this.setZoomLevel(( heightAtZeroZoom - visibleHeight ) / pixelsPerZoomUnit );
             }
+            //console.log( `cvs dims: ${JSON.stringify(this.canvasDimensions)}, doc size: ${width}x${height}, min zoom: ${minZoomWidth}x${minZoomHeight}, when zero: ${widthAtZeroZoom}x${heightAtZeroZoom}`);
         },
         setOriginalSize() {
             this.zoomLevel  = ( this.activeDocument.width / this.canvasDimensions.width ) * window.devicePixelRatio;
