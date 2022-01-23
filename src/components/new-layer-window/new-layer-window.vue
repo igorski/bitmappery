@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -108,20 +108,20 @@ export default {
             if ( !this.isValid ) {
                 return;
             }
-            const newLayer = LayerFactory.create({
+            const layer = LayerFactory.create({
                  name   : this.name,
                  type   : this.type,
                  width  : this.activeDocument.width,
                  height : this.activeDocument.height
             });
+            const index  = this.activeLayerIndex + 1;
             const store  = this.$store;
-            const commit = () => store.commit( "addLayer", newLayer );
+            const commit = () => store.commit( "insertLayerAtIndex", { index, layer });
             commit();
-            const addedLayerIndex = this.activeLayerIndex;
 
-            enqueueState( `layerAdd_${addedLayerIndex}`, {
+            enqueueState( `layerAdd_${index}`, {
                 undo() {
-                    store.commit( "removeLayer", addedLayerIndex );
+                    store.commit( "removeLayer", index );
                 },
                 redo: commit,
             });
