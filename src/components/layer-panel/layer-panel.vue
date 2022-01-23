@@ -300,7 +300,7 @@ export default {
             });
         },
         requestMaskRemove( index ) {
-            const mask = this.activeLayer.mask;
+            const mask = this.layers[ index ].mask;
             this.openDialog({
                 type: "confirm",
                 title: this.$t( "areYouSure" ),
