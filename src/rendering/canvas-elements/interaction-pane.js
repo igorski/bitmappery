@@ -302,6 +302,7 @@ class InteractionPane extends sprite {
                 // double click on unclosed lasso tool selections auto-closes the selection
                 document.selection.push({ ...document.selection[ 0 ] });
                 this._selectionClosed = true;
+                storeSelectionHistory( document );
             }
         }
     }
