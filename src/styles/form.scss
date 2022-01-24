@@ -8,12 +8,12 @@ $inputWidth: 65%;
         margin: $spacing-small 0;
 
         &.slider {
-            .vue-slider {
+            .slider-input {
                 width: calc(#{($inputWidth - 2%)} - #{$spacing-medium}) !important;
                 margin-left: $spacing-small;
             }
 
-            &.full .vue-slider {
+            &.full .slider-input {
                 width: calc(48% - #{$spacing-medium}) !important;
             }
         }
@@ -35,7 +35,7 @@ $inputWidth: 65%;
             display: inline-block;
             width: $inputWidth;
         }
-        .vue-slider {
+        .slider-input {
             display: inline-block;
             width: 50% !important;
             vertical-align: middle;

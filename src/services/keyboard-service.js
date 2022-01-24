@@ -96,12 +96,16 @@ const KeyboardService =
     /**
      * the KeyboardService can be suspended so it
      * will not fire its callback to the listeners
-     *
-     * @param {boolean} value
      */
-    setSuspended( value ) {
-        suspended = value;
-    },
+     getSuspended( value ){
+         return suspended;
+     },
+     /**
+      * @param {boolean} value
+      */
+     setSuspended( value ) {
+         suspended = value;
+     },
     /**
      * whether to block default behaviour on certain keys
      *
