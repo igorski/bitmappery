@@ -86,10 +86,14 @@ export default {
 .vs__dropdown-toggle {
     border-radius: $spacing-small;
     background-color: #FFF;
+    border-color: #FFF;
+    padding: 0;
 }
+
 .vs--disabled {
     .vs__dropdown-toggle {
         background-color: $color-bg;
+        border-color: $color-bg;
     }
     input,
     .vs__actions {
@@ -98,7 +102,7 @@ export default {
 }
 
 .vs__selected {
-    margin: $spacing-small $spacing-small 0;
+    margin: $spacing-small $spacing-small;
     font-size: 95%;
 }
 
