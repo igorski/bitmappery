@@ -371,7 +371,7 @@ export default {
         }
 
         .toolbox {
-            width: 113px;
+            width: 105px;
         }
         .panels {
             width: 300px;

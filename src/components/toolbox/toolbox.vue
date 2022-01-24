@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,7 +24,7 @@
     <div class="toolbox-wrapper">
         <h2
             v-if="!collapsed"
-            v-t="'toolbox'"
+            v-t="'tools'"
             v-tooltip="'(Tab)'"
         ></h2>
         <button
@@ -267,6 +267,7 @@ export default {
     @include large() {
         .content {
             margin-right: -$spacing-small;
+            padding: $spacing-small + $spacing-xsmall;
         }
 
         .close-button {
@@ -294,6 +295,14 @@ export default {
 
         h2,
         .close-button {
+            display: none;
+        }
+    }
+
+    @media screen and (min-height: 815px) {
+        width: 60px !important;
+
+        .color-panel__label {
             display: none;
         }
     }

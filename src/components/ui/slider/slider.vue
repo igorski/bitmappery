@@ -107,8 +107,8 @@ export default {
 @import "@/styles/_mixins";
 
 $track-color: #333;
-$thumb-color: $color-2;
-$thumb-color-hover: $color-1;
+$thumb-color: #FFF;
+$thumb-color-hover: #FFF;
 $thumb-color-disabled: #666;
 
 $thumb-radius: 50%;

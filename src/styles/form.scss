@@ -7,21 +7,14 @@ $inputWidth: 65%;
     .wrapper {
         margin: $spacing-small 0;
 
-        &.slider {
-            .slider-input {
-                width: calc(#{($inputWidth - 2%)} - #{$spacing-medium}) !important;
-                margin-left: $spacing-small;
-            }
-
-            &.full .slider-input {
-                width: calc(48% - #{$spacing-medium}) !important;
-            }
-        }
-
         // use where there is no <label> element
         &.full {
             width: 200%;
             margin-left: $spacing-xsmall;
+
+            &.slider .slider-input {
+                width: 48% !important;
+            }
         }
 
         label {
@@ -31,13 +24,12 @@ $inputWidth: 65%;
 
         .input-field,
         .input-textarea,
+        .slider-input,
         .form-element {
             display: inline-block;
             width: $inputWidth;
         }
         .slider-input {
-            display: inline-block;
-            width: 50% !important;
             vertical-align: middle;
         }
         .input-field,

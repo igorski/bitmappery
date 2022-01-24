@@ -1,6 +1,6 @@
 {
     "en-US": {
-        "toolbox": "Toolbox",
+        "tools": "Tools",
         "undo": "Undo action",
         "redo": "Redo action",
         "panViewport": "Pan viewport",
