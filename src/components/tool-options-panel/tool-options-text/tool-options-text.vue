@@ -49,11 +49,15 @@
         </div>
         <div class="wrapper slider">
             <label v-t="'size'"></label>
-            <slider
+            <input
                 v-model="size"
-                :min="6"
-                :max="172"
-                :tooltip="'none'"
+                class="input-field half"
+                type="number"
+            />
+            <select-box
+                v-model="unit"
+                :options="unitOptions"
+                class="half"
             />
         </div>
         <div class="wrapper slider">
@@ -89,6 +93,7 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import VueSelect from "vue-select";
+import SelectBox from "@/components/ui/select-box/select-box";
 import Slider from "@/components/ui/slider/slider";
 import { DEFAULT_LAYER_NAME } from "@/definitions/layer-types";
 import FontPreview from "./font-preview/font-preview";
@@ -108,6 +113,7 @@ export default {
         FontPreview,
         Slider,
         VueSelect,
+        SelectBox,
     },
     data: () => ({
         internalText: "",
@@ -128,6 +134,9 @@ export default {
         },
         fonts() {
             return mapSelectOptions( [ ...googleFonts ].sort() );
+        },
+        unitOptions() {
+            return [{ label: this.$t( "pixels" ), value: "px" }, { label: this.$t( "points" ), value: "pt" }];
         },
         text: {
             get() {
@@ -152,8 +161,21 @@ export default {
                 return this.activeLayer?.text?.size;
             },
             set( size ) {
+                size = parseFloat( size );
+                if ( isNaN( size )) {
+                    return;
+                }
+                size = Math.max( 1, Math.min( 999, size ));
                 this.update({ size }, "size" );
             }
+        },
+        unit: {
+            get() {
+                return this.activeLayer?.text?.unit;
+            },
+            set( unit ) {
+                this.update({ unit }, "unit" );
+            },
         },
         lineHeight: {
             get() {
@@ -225,6 +247,7 @@ export default {
             const orgOpts = {
                 value      : this.text,
                 size       : this.size,
+                unit       : this.unit,
                 lineHeight : this.lineHeight,
                 spacing    : this.spacing,
                 font       : this.font,
@@ -265,5 +288,10 @@ export default {
     width: 50%;
     display: inline-block;
     transform: translateY(-$spacing-xsmall);
+}
+
+.half {
+    width: 75px !important;
+    margin-right: $spacing-small;
 }
 </style>

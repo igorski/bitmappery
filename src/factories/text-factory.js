@@ -28,6 +28,7 @@ const TextFactory = {
         value = "",
         font = googleFonts[ 0 ],
         size = 24,
+        unit = "px",
         lineHeight = 0,
         spacing = 0,
         color = "red"
@@ -36,6 +37,7 @@ const TextFactory = {
             value,
             font,
             size,
+            unit,
             lineHeight,
             spacing,
             color,
@@ -51,6 +53,7 @@ const TextFactory = {
             f: text.font,
             v: text.value,
             s: text.size,
+            u: text.unit,
             l: text.lineHeight,
             p: text.spacing,
             c: text.color,
@@ -72,6 +75,7 @@ const TextFactory = {
              font,
              value: text.v,
              size: text.s,
+             unit: text.u,
              lineHeight: text.l,
              spacing: text.p,
              color: text.c,
@@ -84,6 +88,7 @@ export const isEqual = ( text, textToCompare = {} ) => {
     return text.font       === textToCompare.font &&
            text.value      === textToCompare.value &&
            text.size       === textToCompare.size &&
+           text.unit       === textToCompare.unit &&
            text.lineHeight === textToCompare.lineHeight &&
            text.spacing    === textToCompare.spacing &&
            text.color      === textToCompare.color;

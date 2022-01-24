@@ -5,6 +5,8 @@
         "size": "Size",
         "lineHeight": "Line height",
         "letterSpacing": "Letter spacing",
-        "color": "Color"
+        "color": "Color",
+        "pixels": "Px",
+        "points": "Pts"
     }
 }

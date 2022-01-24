@@ -12,6 +12,7 @@ describe( "Text factory", () => {
             const text = TextFactory.create();
             expect( text ).toEqual({
                 size: expect.any( Number ),
+                unit: "px",
                 lineHeight: expect.any( Number ),
                 spacing: 0,
                 value: "",
@@ -23,6 +24,7 @@ describe( "Text factory", () => {
         it( "should be able to create a Text structure from given arguments", () => {
             const text = TextFactory.create({
                 size: 10,
+                unit: "pt",
                 lineHeight: 30,
                 spacing: 50,
                 font: "Helvetica",
@@ -31,6 +33,7 @@ describe( "Text factory", () => {
             });
             expect( text ).toEqual({
                 size: 10,
+                unit: "pt",
                 lineHeight: 30,
                 spacing: 50,
                 font: "Helvetica",
@@ -45,6 +48,7 @@ describe( "Text factory", () => {
             mockUpdateFn = jest.fn();
             const text = TextFactory.create({
                 size: 10,
+                unit: "pt",
                 lineHeight: 40,
                 spacing: 10,
                 font: "Helvetica",
@@ -61,7 +65,7 @@ describe( "Text factory", () => {
 
     it( "should know when two text instances are equal", () => {
         const defaultText = TextFactory.create();
-        [ "size", "lineHeight", "spacing", "font", "value", "color" ].forEach( property => {
+        [ "size", "lineHeight", "spacing", "font", "unit", "value", "color" ].forEach( property => {
             const text = TextFactory.create({ [ property ]: 1 });
             expect( isEqual( text, defaultText )).toBe( false );
         });
