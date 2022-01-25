@@ -7,11 +7,15 @@
     font-family: "Nunito", sans-serif;
 }
 
+@mixin bodyFont() {
+    font-family: "Helvetica Neue", Helvetica, Verdana, sans-serif;
+}
+
 body {
     color: #b7babe;
     font-size: $spacing-medium;
-    font-family: "Helvetica Neue", Helvetica, Verdana, sans-serif;
     line-height: 1.5;
+    @include bodyFont();
 }
 
 h1, h2, h3, h4, h5, h6 {

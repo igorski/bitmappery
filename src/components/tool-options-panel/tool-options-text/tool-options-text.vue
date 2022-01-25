@@ -136,7 +136,12 @@ export default {
             return mapSelectOptions( [ ...googleFonts ].sort() );
         },
         unitOptions() {
-            return [{ label: this.$t( "pixels" ), value: "px" }, { label: this.$t( "points" ), value: "pt" }];
+            return [
+                { label: this.$t( "pixels" ), value: "px" },
+                { label: this.$t( "points" ), value: "pt" },
+                { label: this.$t( "millis" ), value: "mm" },
+                { label: this.$t( "centis" ), value: "cm" },
+            ];
         },
         text: {
             get() {
