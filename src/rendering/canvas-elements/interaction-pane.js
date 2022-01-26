@@ -310,7 +310,7 @@ class InteractionPane extends sprite {
     draw( ctx, viewport ) {
         // render selection outline
         let { selection, invertSelection, width, height } = this.getActiveDocument();
-        if ( /*this.mode === MODE_SELECTION && */ selection ) {
+        if ( /*this.mode === MODE_SELECTION && */ selection?.length ) {
             const firstPoint    = selection[ 0 ];
             const localPointerX = this._pointerX - viewport.left; // local to viewport
             const localPointerY = this._pointerY - viewport.top;
