@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -75,6 +75,14 @@ class ZoomableCanvas extends canvas {
 
     getActiveDocument() {
         return this.store.getters.activeDocument;
+    }
+
+    setInteractive( isInteractive ) {
+        this._interactionBlocked = !isInteractive;
+    }
+
+    getViewport() {
+        return this._viewport;
     }
 
     setZoomFactor( scale ) {
@@ -182,6 +190,9 @@ class ZoomableCanvas extends canvas {
     }
 
     handleInteraction( aEvent ) {
+        if ( this._interactionBlocked ) {
+            return;
+        }
         const numChildren = this._children.length;
         const viewport    = this._viewport;
         let theChild, touches, found;

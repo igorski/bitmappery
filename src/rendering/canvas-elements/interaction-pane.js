@@ -64,7 +64,7 @@ class InteractionPane extends sprite {
         const zCanvas = getCanvasInstance();
 
         if ( enabled && !this._parent ) {
-            this.vp = zCanvas._viewport;
+            this.vp = zCanvas.getViewport();
             zCanvas.addChild( this );
         } else if ( !enabled ) {
             if ( this._parent ) {

@@ -21,16 +21,49 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
- /**
-  * Returns a Promise that resolves when given timeToWait has expired.
-  * This uses setTimeout and as such can guarantee to free up the execution
-  * stack of the main thread (for instance: to keep animations going during
-  * heavy operations)
-  *
-  * @param {Number=} timeToWait in milliseconds
-  */
- export const debounce = ( timeToWait = 4 ) => {
-     return new Promise( resolve => {
-         window.setTimeout( resolve, timeToWait );
-     });
- };
+/**
+ * Returns a Promise that resolves when given timeToWait has expired.
+ * The Promise is no-op in that it performs no action.
+ *
+ * As this uses setTimeout, it is guaranteed to free up the execution
+ * stack of the main thread (for instance: to keep animations going during
+ * heavy operations). As such you can use it in between heavy operations
+ * to give the UI time to update.
+ *
+ * @param {Number=} timeToWait in milliseconds
+ */
+export const debounce = ( timeToWait = 4 ) => {
+    return new Promise( resolve => {
+        window.setTimeout( resolve, timeToWait );
+    });
+};
+
+/**
+ * Creates an API to debounce execution to given callback by given time.
+ * It is able to cancel existing executions or reset the timer on
+ * repeated invocations. Note that it will not start the timer until
+ * reset() is called.
+ *
+ * @param {Function} callback fn to execute when delay has expired
+ * @param {Number=} timeToWait in milliseconds
+ * @returns {{
+ *     cancel : Function,
+ *     reset  : Function
+ * }}
+ */
+export const cancelableCallback = ( callback, timeToWait = 250 ) => {
+    let timerId;
+    const startTimeout = () => {
+        timerId = window.setTimeout( callback, timeToWait );
+    };
+    const cancelTimeout = () => {
+        window.clearTimeout( timerId );
+    };
+    return {
+        cancel : cancelTimeout,
+        reset  : () => {
+            cancelTimeout();
+            startTimeout();
+        }
+    };
+};

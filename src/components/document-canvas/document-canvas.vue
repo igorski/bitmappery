@@ -59,7 +59,8 @@ import GuideRenderer from "@/rendering/canvas-elements/guide-renderer";
 import FileImport from "@/components/file-import/file-import";
 import { MODE_PAN, MODE_LAYER_SELECT, MODE_SELECTION } from "@/rendering/canvas-elements/interaction-pane";
 import Scrollbars from "./scrollbars/scrollbars";
-import ToolTypes, { MAX_ZOOM, calculateMaxScaling, usesInteractionPane, canDragOnTouchScreen } from "@/definitions/tool-types";
+import TouchDecorator from "./decorators/touch-decorator";
+import ToolTypes, { MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@/definitions/tool-types";
 import { scaleToRatio, scaleValue } from "@/math/image-math";
 import { getAlignableObjects } from "@/utils/document-util";
 import { isMobile } from "@/utils/environment-util";
@@ -87,6 +88,7 @@ export default {
         Scrollbars,
         FileImport,
     },
+    mixins: [ TouchDecorator ],
     data: () => ({
         wrapperHeight: "100%",
         centerCanvas: false,
@@ -134,6 +136,7 @@ export default {
                 // no active document or no document content
                 if ( !document?.layers ) {
                     if ( getCanvasInstance() ) {
+                        this.removeTouchListeners();
                         getCanvasInstance().dispose();
                         setCanvasInstance( null );
                     }
@@ -213,9 +216,8 @@ export default {
             this.handleGuides();
         },
         activeTool( tool ) {
-            const forceTouchPan = this.usesTouch && canDragOnTouchScreen( tool );
-            if ( usesInteractionPane( tool ) || forceTouchPan ) {
-                this.setPanMode( tool === ToolTypes.MOVE || forceTouchPan );
+            if ( usesInteractionPane( tool )) {
+                this.setPanMode( tool === ToolTypes.MOVE );
                 this.setSelectMode([ ToolTypes.SELECTION, ToolTypes.LASSO ].includes( tool ));
                 this.updateInteractionPane();
             } else {
@@ -251,6 +253,7 @@ export default {
         },
         snapAlign( value ) {
             this.updateGuideModes();
+            this.handleGuides();
         },
         pixelGrid( value ) {
             this.updateGuideModes();
@@ -260,13 +263,7 @@ export default {
         },
     },
     async mounted() {
-        // we'd like to know whether the application is being used on a touch screen
-        const handler = () => {
-            document.body.removeEventListener( "touchstart", handler );
-            this.usesTouch = true;
-        };
-        document.body.addEventListener( "touchstart", handler );
-
+        this.detectTouch();
         await this.$nextTick();
         this.cacheContainerSize();
         this.scaleWrapper();
@@ -299,6 +296,7 @@ export default {
             setCanvasInstance( zCanvas );
             guideRenderer = new GuideRenderer( this.hasGuideRenderer ? zCanvas : null );
             this.updateGuideModes();
+            this.addTouchListeners( getCanvasInstance().getElement() );
             return zCanvas;
         },
         cacheContainerSize() {
@@ -401,7 +399,7 @@ export default {
             }
         },
         updateGuideModes() {
-            guideRenderer.setModes( this.snapAlign, this.pixelGrid );
+            guideRenderer?.setModes( this.snapAlign, this.pixelGrid );
         },
         handleGuides() {
             if ( !this.snapAlign ) {
