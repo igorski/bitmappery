@@ -43,6 +43,7 @@ export default {
         },
         snapAlign : true,
         antiAlias : true,
+        pixelGrid : false,
     },
     getters: {
         activeTool        : state => state.activeTool,
@@ -55,6 +56,7 @@ export default {
         cloneOptions      : state => state.options[ ToolTypes.CLONE ],
         snapAlign         : state => state.snapAlign,
         antiAlias         : state => state.antiAlias,
+        pixelGrid         : state => state.pixelGrid,
     },
     mutations: {
         setActiveTool( state, { tool, document }) {
@@ -85,6 +87,9 @@ export default {
         },
         setAntiAlias( state, value ) {
             state.antiAlias = value;
+        },
+        setPixelGrid( state, value ) {
+            state.pixelGrid = value;
         },
     },
 };

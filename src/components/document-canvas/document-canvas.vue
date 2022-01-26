@@ -111,6 +111,7 @@ export default {
             "antiAlias",
             "canvasDimensions",
             "snapAlign",
+            "pixelGrid",
             "zoomOptions",
         ]),
         documentTitle() {
@@ -119,6 +120,9 @@ export default {
                 return name; // is local image
             }
             return `${name}.${PROJECT_FILE_EXTENSION}`;
+        },
+        hasGuideRenderer() {
+            return this.snapAlign || this.pixelGrid;
         },
     },
     watch: {
@@ -194,7 +198,7 @@ export default {
                     zCanvas.addChild( sprite );
                 });
                 zCanvas?.interactionPane.stayOnTop();
-                this.snapAlign && guideRenderer.stayOnTop();
+                this.hasGuideRenderer && guideRenderer.stayOnTop();
             },
         },
         activeLayer( layer ) {
@@ -242,8 +246,14 @@ export default {
         selectMode( value ) {
             this.updateInteractionPane();
         },
-        snapAlign( value ) {
+        hasGuideRenderer( value ) {
             getCanvasInstance()?.[ value ? "addChild" : "removeChild" ]( guideRenderer );
+        },
+        snapAlign( value ) {
+            this.updateGuideModes();
+        },
+        pixelGrid( value ) {
+            this.updateGuideModes();
         },
         antiAlias( value ) {
             getCanvasInstance()?.setSmoothing( value );
@@ -287,7 +297,8 @@ export default {
                 handler: this.handleCanvasEvent.bind( this ),
             }, this.$store, this.calcIdealDimensions );
             setCanvasInstance( zCanvas );
-            guideRenderer = new GuideRenderer( this.snapAlign ? zCanvas : null );
+            guideRenderer = new GuideRenderer( this.hasGuideRenderer ? zCanvas : null );
+            this.updateGuideModes();
             return zCanvas;
         },
         cacheContainerSize() {
@@ -388,6 +399,9 @@ export default {
                     canvasClasses.add( "cursor-crosshair" );
                     break;
             }
+        },
+        updateGuideModes() {
+            guideRenderer.setModes( this.snapAlign, this.pixelGrid );
         },
         handleGuides() {
             if ( !this.snapAlign ) {

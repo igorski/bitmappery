@@ -310,10 +310,19 @@
                     @click="close()"
                 >
                     <li>
-                        <button v-t="'snapAlign'" :class="{ checked: snapAlign }" type="button" @click="canSnapAndAlign = !canSnapAndAlign"></button>
+                        <button v-t="'snapAlign'" type="button" :class="{ checked: snapAlign }" @click="canSnapAndAlign = !canSnapAndAlign"></button>
                     </li>
                     <li>
-                        <button v-t="'antiAlias'" :class="{ checked: antiAlias }" type="button" @click="useAntiAlias = !useAntiAlias"></button>
+                        <button v-t="'antiAlias'" type="button" :class="{ checked: antiAlias }" @click="useAntiAlias = !useAntiAlias"></button>
+                    </li>
+                    <li>
+                        <button
+                            v-t="'pixelGrid'"
+                            type="button"
+                            :class="{ checked: pixelGrid }"
+                            :disabled="!canUsePixelGrid"
+                            @click="usePixelGrid = !usePixelGrid"
+                        ></button>
                     </li>
                 </ul>
             </li>
@@ -366,6 +375,7 @@
 <script>
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import cloneDeep from "lodash.clonedeep";
+import { MAX_SPRITESHEET_WIDTH } from "@/definitions/editor-properties";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION,
     DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT, PREFERENCES, RESIZE_CANVAS, GRID_TO_LAYERS
@@ -406,6 +416,7 @@ export default {
             "getPreferences",
             "hasSelection",
             "snapAlign",
+            "pixelGrid",
         ]),
         supportsFullscreen,
         noDocumentsAvailable() {
@@ -440,8 +451,19 @@ export default {
                 await this.storePreferences();
             }
         },
+        usePixelGrid: {
+            get() {
+                return this.pixelGrid;
+            },
+            set( value ) {
+                this.setPixelGrid( value );
+            },
+        },
         fullscreenTooltip() {
             return `${this.isFullscreen ? this.$t( "minimize" ) : this.$t( "maximize" )} (Shift + F)`;
+        },
+        canUsePixelGrid() {
+            return this.activeDocument?.width <= MAX_SPRITESHEET_WIDTH;
         },
     },
     watch: {
@@ -449,7 +471,12 @@ export default {
             if ( !isOpen && wasOpen === true ) {
                 this.setMenuOpened( false );
             }
-        }
+        },
+        canUsePixelGrid( value ) {
+            if ( !value && this.usePixelGrid ) {
+                this.usePixelGrid = false;
+            }
+        },
     },
     mounted() {
         if ( this.$refs.fullscreenBtn ) {
@@ -472,6 +499,7 @@ export default {
             "setPreferences",
             "setSnapAlign",
             "setAntiAlias",
+            "setPixelGrid",
             "updateLayer",
         ]),
         ...mapActions([

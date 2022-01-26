@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -26,6 +26,8 @@ import { fastRound } from "@/math/unit-math";
 import { isCoordinateInHorizontalRange, isCoordinateInVerticalRange } from "@/math/point-math";
 import { getClosestSnappingPoints } from "@/rendering/snapping";
 
+const AMOUNT_OF_PIXELS = 1; // currently only 1 pixel grid supported
+
 class GuideRenderer extends sprite  {
     constructor( zCanvasInstance = null ) {
         super({ interactive: false });
@@ -40,12 +42,42 @@ class GuideRenderer extends sprite  {
         zCanvas?.addChild( this );
     }
 
+    setModes( drawGuides, drawPixelGrid ) {
+        this.drawGuides    = drawGuides;
+        this.drawPixelGrid = drawPixelGrid;
+    }
+
     draw( ctx, viewport = null ) {
-        if ( !this.canvas.guides || !this.canvas.draggingSprite ) {
+
+        /* grid */
+
+        if ( this.drawPixelGrid ) {
+            const width  = viewport?.width  || this.canvas.getWidth();
+            const height = viewport?.height || this.canvas.getHeight();
+
+            ctx.strokeStyle = "000";
+            ctx.lineWidth = 1 / this.canvas.zoomFactor;
+
+            ctx.beginPath();
+            for ( let x = 0; x < width; x += AMOUNT_OF_PIXELS ) {
+                ctx.moveTo( x, 0 );
+                ctx.lineTo( x, height );
+            }
+            for ( let y = 0; y < height; y += AMOUNT_OF_PIXELS ) {
+                ctx.moveTo( 0, y );
+                ctx.lineTo( width, y );
+            }
+            ctx.stroke();
+        }
+
+        /* guides */
+
+        if ( !this.drawGuides || !this.canvas.guides || !this.canvas.draggingSprite ) {
             return;
         }
-        const left = viewport?.left || 0;
-        const top  = viewport?.top  || 0;
+
+        const left = viewport?.left   || 0;
+        const top  = viewport?.top    || 0;
 
         // we can snap the currently draggingSprite against its edge and center
         const guides = getClosestSnappingPoints( this.canvas.draggingSprite, this.canvas.guides );

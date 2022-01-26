@@ -650,8 +650,8 @@ class LayerSprite extends ZoomableSprite {
                 const destX = x - viewport.left;
                 const destY = y - viewport.top;
                 if ( this.isRotated()) {
-                    const tX = destX + ( width  * .5 );
-                    const tY = destY + ( height * .5 );
+                    const tX = destX + ( width  * HALF );
+                    const tY = destY + ( height * HALF );
                     documentContext.translate( tX, tY );
                     documentContext.rotate( this.layer.effects.rotation );
                     documentContext.translate( -tX, -tY );
@@ -684,7 +684,7 @@ function rotatePointerLists( pointers, layer, sourceWidth, sourceHeight ) {
     pointers.forEach( point => {
         // translate recorded pointer towards rotated point
         // and against layer position
-        const p = translatePointerRotation( point.x - x, point.y - y, sourceWidth * 0.5, sourceHeight * 0.5, rotation );
+        const p = translatePointerRotation( point.x - x, point.y - y, sourceWidth * HALF, sourceHeight * HALF, rotation );
         if ( mirrorX ) {
             p.x -= sourceWidth;
         }
