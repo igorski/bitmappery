@@ -175,7 +175,6 @@ export default {
             }
         },
         layers: {
-            deep: true,
             handler( layers ) {
                 const seen    = [];
                 const zCanvas = getCanvasInstance();
