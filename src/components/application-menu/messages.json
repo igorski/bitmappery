@@ -12,6 +12,7 @@
         "undo": "Undo",
         "redo": "Redo",
         "clear": "Clear",
+        "stroke": "Stroke",
         "document": "Document",
         "resizeDocument": "Resize document",
         "canvasSize": "Canvas size",

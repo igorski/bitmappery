@@ -102,52 +102,67 @@
                     @click="close()"
                 >
                     <li>
-                        <button v-t="'undo'"
-                                type="button"
-                                :disabled="!canUndo"
-                                @click="navigateHistory('undo')"
+                        <button
+                            v-t="'undo'"
+                            type="button"
+                            :disabled="!canUndo"
+                            @click="navigateHistory('undo')"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'redo'"
-                                type="button"
-                                :disabled="!canRedo"
-                                @click="navigateHistory('redo')"
+                        <button
+                            v-t="'redo'"
+                            type="button"
+                            :disabled="!canRedo"
+                            @click="navigateHistory('redo')"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'cut'"
-                                type="button"
-                                :disabled="!hasSelection"
-                                @click="requestSelectionCut()"
+                        <button
+                            v-t="'cut'"
+                            type="button"
+                            :disabled="!hasSelection"
+                            @click="requestSelectionCut()"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'copy'"
-                                type="button"
-                                :disabled="!hasSelection"
-                                @click="requestSelectionCopy( false )"
+                        <button
+                            v-t="'copy'"
+                            type="button"
+                            :disabled="!hasSelection"
+                            @click="requestSelectionCopy( false )"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'copyMerged'"
-                                type="button"
-                                :disabled="!hasSelection"
-                                @click="requestSelectionCopy( true )"
+                        <button
+                            v-t="'copyMerged'"
+                            type="button"
+                            :disabled="!hasSelection"
+                            @click="requestSelectionCopy( true )"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'pasteAsNewLayer'"
-                                type="button"
-                                :disabled="!hasClipboard || !activeDocument"
-                                @click="pasteSelection()"
+                        <button
+                            v-t="'pasteAsNewLayer'"
+                            type="button"
+                            :disabled="!hasClipboard || !activeDocument"
+                            @click="pasteSelection()"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'clear'"
-                                type="button"
-                                :disabled="!hasSelection || !activeLayer"
-                                @click="deleteInSelection()"
+                        <button
+                            v-t="'clear'"
+                            type="button"
+                            :disabled="!hasSelection || !activeLayer"
+                            @click="deleteInSelection()"
+                        ></button>
+                    </li>
+                    <li>
+                        <button
+                            v-t="'stroke'"
+                            type="button"
+                            :disabled="!hasSelection || !activeLayer"
+                            @click="strokeSelection()"
                         ></button>
                     </li>
                 </ul>
@@ -378,11 +393,11 @@ import cloneDeep from "lodash.clonedeep";
 import { MAX_SPRITESHEET_WIDTH } from "@/definitions/editor-properties";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION,
-    DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT, PREFERENCES, RESIZE_CANVAS, GRID_TO_LAYERS
+    DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT, PREFERENCES, RESIZE_CANVAS, GRID_TO_LAYERS, STROKE_SELECTION
 } from "@/definitions/modal-windows";
 import { getRectangleForSelection } from "@/math/selection-math";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
-import { getCanvasInstance, runSpriteFn, getSpriteForLayer } from "@/factories/sprite-factory";
+import { getCanvasInstance } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
@@ -545,6 +560,9 @@ export default {
         },
         openPreferences() {
             this.openModal( PREFERENCES );
+        },
+        strokeSelection() {
+            this.openModal( STROKE_SELECTION );
         },
         requestCropToSelection() {
             const store = this.$store;

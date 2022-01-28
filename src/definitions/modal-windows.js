@@ -32,3 +32,4 @@ export const LOAD_SELECTION        = 9;
 export const PREFERENCES           = 10;
 export const RESIZE_CANVAS         = 11;
 export const GRID_TO_LAYERS        = 12;
+export const STROKE_SELECTION      = 13;

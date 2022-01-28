@@ -94,7 +94,7 @@ import messages from "./messages.json";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, SAVE_DROPBOX_DOCUMENT, EXPORT_IMAGE,
     DROPBOX_FILE_SELECTOR, ADD_LAYER, LOAD_SELECTION, SAVE_SELECTION, PREFERENCES, RESIZE_CANVAS,
-    GRID_TO_LAYERS
+    GRID_TO_LAYERS, STROKE_SELECTION
 } from "@/definitions/modal-windows";
 
 Vue.use( Vuex );
@@ -167,6 +167,8 @@ export default {
                     return () => import( "@/components/resize-canvas-window/resize-canvas-window" );
                 case GRID_TO_LAYERS:
                     return () => import( "@/components/grid-to-layers-window/grid-to-layers-window" );
+                case STROKE_SELECTION:
+                    return () => import( "@/components/stroke-selection-window/stroke-selection-window" );
             }
         },
         showLoader() {

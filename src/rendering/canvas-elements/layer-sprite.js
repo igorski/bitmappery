@@ -231,7 +231,7 @@ class LayerSprite extends ZoomableSprite {
 
     // draw onto the source Bitmap (e.g. brushing / fill tool / eraser)
 
-    paint() {
+    paint( optAction = null ) {
         if ( !this._pendingPaintState ) {
             this.preparePendingPaintState();
         }
@@ -254,7 +254,7 @@ class LayerSprite extends ZoomableSprite {
         const isLowResPreview = this._brush.down && !( drawOnMask && isEraser );
 
         // if there is an active selection, painting will be constrained within
-        let selectionPoints = this._selection;
+        let selectionPoints = optAction?.selection || this._selection;
         if ( selectionPoints ) {
             let { x, y } = this.layer;
             if ( this.isRotated() && !isLowResPreview ) {
@@ -267,8 +267,13 @@ class LayerSprite extends ZoomableSprite {
         // transform destination context in case the current layer is rotated or mirrored
         ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
 
-        if ( isFillMode )
-        {
+        if ( optAction ) {
+            if ( optAction.type === "stroke" ) {
+                ctx.strokeStyle = optAction.color;
+                ctx.lineWidth   = ( optAction.size || 1 ) / this.canvas.documentScale;
+                ctx.stroke();
+            }
+        } else if ( isFillMode ) {
             ctx.fillStyle = this.getStore().getters.activeColor;
             if ( this._selection ) {
                 ctx.fill();
@@ -276,8 +281,7 @@ class LayerSprite extends ZoomableSprite {
             } else {
                 ctx.fillRect( 0, 0, width, height );
             }
-        }
-        else {
+        } else {
             // get the enqueued pointers which are to be rendered in this paint cycle
             const pointers = slicePointers( this._brush );
 
