@@ -14,6 +14,7 @@ describe( "Vuex tool module", () => {
                 [ ToolTypes.ERASER ]    : { size: 10, opacity: 1 },
                 [ ToolTypes.CLONE ]     : { size: 10, opacity: 1, source: null, coords: null },
                 [ ToolTypes.SELECTION ] : { lockRatio: false, xRatio: 1, yRatio: 1 },
+                [ ToolTypes.FILL ]      : { smartFill: true },
             },
             snapAlign: true,
             antiAlias: true,
@@ -49,6 +50,10 @@ describe( "Vuex tool module", () => {
         it( "should be able to retrieve the clone stamp options", () => {
             expect( getters.cloneOptions( state )).toEqual({ size: 10, opacity: 1, source: null, coords: null });
         });
+
+        it( "should be able to retrieve the fill options", () => {
+            expect( getters.fillOptions( state )).toEqual({ smartFill: true });
+        })
 
         it( "should be able to retrieve the current snap and alignment state", () => {
             expect( getters.snapAlign ( state )).toBe( true );

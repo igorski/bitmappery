@@ -24,24 +24,22 @@ import { isSelectionRectangular } from "@/math/selection-math";
 
 /**
  * Prepares a clipping path corresponding to given selections outline, transformed
- * appropriately to the destination coordinates. NOTE: don't forget to restore the ctx when done.
+ * appropriately to the destination coordinates.
  *
  * @param {CanvasRenderingContext2D} ctx destination context to clip
  * @param {Array<{{ x: Number, y: Number }}>} selectionPoints all coordinates within the selection
- * @param {Boolean} useFloodFill whether selection will be filled using .fill() (requires different clipping preparation)
  * @param {Number} offsetX destination offset to shift selection by (bounds relative to viewport)
  * @param {Number} offsetY destination offset to shift selection by (bounds relative to viewport)
  * @param {Boolean=} invert optional whether to invert the selection
  * @param {Object=} overrideConfig optional override Object when workin in lowres preview mode
  */
-export const clipContextToSelection = ( ctx, selectionPoints, useFloodFill, offsetX, offsetY, invert = false, overrideConfig = null ) => {
+export const clipContextToSelection = ( ctx, selectionPoints, offsetX, offsetY, invert = false, overrideConfig = null ) => {
     let scale = 1;
     let vpX   = 0;
     let vpY   = 0;
     if ( overrideConfig ) {
         ({ scale, vpX, vpY } = overrideConfig );
     }
-    ctx.save();
     ctx.beginPath();
     selectionPoints.forEach(( point, index ) => {
         ctx[ index === 0 ? "moveTo" : "lineTo" ]( (( point.x - offsetX ) * scale ) - vpX, (( point.y - offsetY ) * scale ) - vpY );
@@ -51,9 +49,7 @@ export const clipContextToSelection = ( ctx, selectionPoints, useFloodFill, offs
     if ( invert ) {
         createInverseClipping( ctx, selectionPoints, offsetX, offsetY, ctx.canvas.width, ctx.canvas.height );
     }
-    if ( !useFloodFill ) {
-        ctx.clip();
-    }
+    ctx.clip();
 };
 
 export const createInverseClipping = ( ctx, selection, x, y, width, height ) => {
