@@ -575,8 +575,8 @@ export default {
             const commit = async () => {
                 await store.commit( "cropActiveDocumentContent", { left, top });
                 store.commit( "setActiveDocumentSize", {
-                    width  : Math.min( currentSize.width,  width ),
-                    height : Math.min( currentSize.height, height )
+                    width  : Math.min( currentSize.width  - left, width ),
+                    height : Math.min( currentSize.height - top,  height )
                 });
                 getCanvasInstance()?.interactionPane.setSelection( null, false );
             };
