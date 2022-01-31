@@ -63,13 +63,13 @@ export const floodFill = ( ctx, sourceX, sourceY, fillColor, feather = 5 ) => {
 
     // linearIndex is the first index inside the imageData Array for the compare point
     // (note each point spans 4 indices for each color in the RGBA sequence)
-    
+
     let linearIndex = ( y * canvasWidth + x ) * 4;
     while ( y >= 0 ) {
-        const new_linearIndex = (( y - 1 ) * canvasWidth + x ) * 4;
-        if ( equalPixel( new_linearIndex )) {
+        const newLinearIndex = (( y - 1 ) * canvasWidth + x ) * 4;
+        if ( equalPixel( newLinearIndex )) {
             --y;
-            linearIndex = new_linearIndex;
+            linearIndex = newLinearIndex;
         } else {
             break;
         }
