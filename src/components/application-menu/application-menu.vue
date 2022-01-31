@@ -574,7 +574,10 @@ export default {
             const { left, top, width, height } = getRectangleForSelection( selection );
             const commit = async () => {
                 await store.commit( "cropActiveDocumentContent", { left, top });
-                store.commit( "setActiveDocumentSize", { width, height });
+                store.commit( "setActiveDocumentSize", {
+                    width  : Math.min( currentSize.width,  width ),
+                    height : Math.min( currentSize.height, height )
+                });
                 getCanvasInstance()?.interactionPane.setSelection( null, false );
             };
             commit();
