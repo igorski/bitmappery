@@ -34,6 +34,7 @@ import { renderEffectsForLayer } from "@/services/render-service";
 import { clipContextToSelection } from "@/rendering/clipping";
 import { renderClonedStroke } from "@/rendering/cloning";
 import { renderBrushStroke } from "@/rendering/drawing";
+import { floodFill } from "@/rendering/fill";
 import { snapSpriteToGuide } from "@/rendering/snapping";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
 import {
@@ -247,7 +248,7 @@ class LayerSprite extends ZoomableSprite {
         let ctx = ( drawOnMask ? this.layer.mask : this.layer.source ).getContext( "2d" );
         const { width, height } = ctx.canvas;
 
-        ctx.save();
+        ctx.save(); // save() preparation
 
         // as long as the brush is held down, render paint in low res preview mode
         // unless we are erasing contents on a layer mask
@@ -261,7 +262,8 @@ class LayerSprite extends ZoomableSprite {
                 selectionPoints = rotatePointerLists( selectionPoints, this.layer, width, height );
                 x = y = 0; // pointers have been rotated within clipping context
             }
-            clipContextToSelection( ctx, selectionPoints, isFillMode, x, y, this._invertSelection );
+            ctx.save(); // save() clipping
+            clipContextToSelection( ctx, selectionPoints, x, y, this._invertSelection );
         }
 
         // transform destination context in case the current layer is rotated or mirrored
@@ -274,12 +276,20 @@ class LayerSprite extends ZoomableSprite {
                 ctx.stroke();
             }
         } else if ( isFillMode ) {
-            ctx.fillStyle = this.getStore().getters.activeColor;
-            if ( this._selection ) {
-                ctx.fill();
-                ctx.closePath(); // is this necessary ?
+            const color = this.getStore().getters.activeColor;
+            if ( this._toolOptions.smartFill ) {
+                const point = rotatePointer( this._pointerX, this._pointerY, this.layer, width, height );
+                floodFill( ctx, point.x, point.y, color );
             } else {
-                ctx.fillRect( 0, 0, width, height );
+                ctx.fillStyle = this.getStore().getters.activeColor;
+                if ( this._selection ) {
+                    ctx.fill();
+                } else {
+                    ctx.fillRect( 0, 0, width, height );
+                }
+            }
+            if ( this._selection ) {
+                ctx.closePath(); // is this necessary ?
             }
         } else {
             // get the enqueued pointers which are to be rendered in this paint cycle
@@ -307,7 +317,8 @@ class LayerSprite extends ZoomableSprite {
                     ctx = this.tempCanvas.ctx;
 
                     if ( selectionPoints && this.tempCanvas ) {
-                        clipContextToSelection( ctx, selectionPoints, isFillMode, 0, 0, this._invertSelection, overrides );
+                        ctx.save(); // save() tempCanvas clipping
+                        clipContextToSelection( ctx, selectionPoints, 0, 0, this._invertSelection, overrides );
                     }
                 } else {
                     // render full brush stroke path directly onto the Layer source
@@ -325,12 +336,15 @@ class LayerSprite extends ZoomableSprite {
                     }
                     orgContext.drawImage( ctx.canvas, 0, 0 );
                     ctx = orgContext;
-                } else {
-                    orgContext.restore(); // restore previous context before rendering on temp context
+                } else if ( selectionPoints && this.tempCanvas ) {
+                    orgContext.restore(); // restore() tempCanvas clipping
                 }
             }
         }
-        ctx.restore();
+        if ( selectionPoints ) {
+            ctx.restore(); // restore() clipping
+        }
+        ctx.restore(); // restore() preparation
 
         // during low res preview brushing, defer recache of filters to handleRelease()
         if ( !isLowResPreview ) {
@@ -698,6 +712,10 @@ function rotatePointerLists( pointers, layer, sourceWidth, sourceHeight ) {
         out.push( p );
     });
     return out;
+}
+
+function rotatePointer( x, y, layer, sourceWidth, sourceHeight ) {
+    return rotatePointerLists([{ x, y }], layer, sourceWidth, sourceHeight )?.[ 0 ] || { x, y };
 }
 
 // NOTE we use getSpriteForLayer() instead of passing the Sprite by reference

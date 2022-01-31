@@ -30,7 +30,7 @@ export default {
         activeTool  : null,
         activeColor : "rgba(255,0,0,1)",
         options : {
-            // see tool-option-zoom.vue
+            // see tool-options-zoom.vue
             [ ToolTypes.ZOOM ]  : { level: 1 },
             // see tool-options-brush.vue
             [ ToolTypes.BRUSH ] : { size: 10, type: BrushTypes.LINE, opacity: 1, strokes: 1, thickness: .5 },
@@ -40,6 +40,8 @@ export default {
             [ ToolTypes.CLONE ] : { size: 10, type: BrushTypes.PAINT_BRUSH, opacity: .5, thickness: .5, sourceLayerId: TOOL_SRC_MERGED, coords: null },
             // see tool-options-selection
             [ ToolTypes.SELECTION ] : { lockRatio: false, xRatio: 1, yRatio: 1 },
+            // see tool-options-fill.vue
+            [ ToolTypes.FILL ] : { smartFill: true },
         },
         snapAlign : true,
         antiAlias : true,
@@ -54,6 +56,7 @@ export default {
         brushOptions      : state => state.options[ ToolTypes.BRUSH ],
         eraserOptions     : state => state.options[ ToolTypes.ERASER ],
         cloneOptions      : state => state.options[ ToolTypes.CLONE ],
+        fillOptions       : state => state.options[ ToolTypes.FILL ],
         snapAlign         : state => state.snapAlign,
         antiAlias         : state => state.antiAlias,
         pixelGrid         : state => state.pixelGrid,

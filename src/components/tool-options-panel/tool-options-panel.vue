@@ -82,6 +82,8 @@ export default {
                 case ToolTypes.SELECTION:
                 case ToolTypes.LASSO:
                     return () => import( "./tool-options-selection/tool-options-selection" );
+                case ToolTypes.FILL:
+                    return () => import( "./tool-options-fill/tool-options-fill" );
                 case ToolTypes.ZOOM:
                     return () => import( "./tool-options-zoom/tool-options-zoom" );
                 case ToolTypes.ERASER:

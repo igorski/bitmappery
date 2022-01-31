@@ -299,11 +299,16 @@ export default {
         }
     }
 
-    @media screen and (min-height: 815px) {
+    @media screen and (min-height: 875px) {
         width: 60px !important;
 
-        .color-panel__label {
-            display: none;
+        .color-panel {
+            &__label {
+                display: none;
+            }
+            .color-picker {
+                text-indent: $spacing-xsmall;
+            }
         }
     }
 }

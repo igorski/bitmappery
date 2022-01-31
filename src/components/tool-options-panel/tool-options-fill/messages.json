@@ -1,0 +1,7 @@
+{
+    "en-US": {
+        "fill": "Fill",
+        "smartFill": "Use smart fill",
+        "smartFillExpl": "When using smart fill, the area surrounding the fill origin will be filled until a boundary has been recognized."
+    }
+}

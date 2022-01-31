@@ -179,13 +179,9 @@ export default {
         },
         async cropActiveDocumentContent( state, { left, top }) {
             const document = state.documents[ state.activeIndex ];
-            for ( let i = 0, l = document?.layers?.length; i < l; ++i ) {
-                const layer = document.layers[ i ];
-                // by toggling visiblity we force the Sprite to recache its contents when visible again
-                const wasVisible = layer.visible;
-                layer.visible = false;
+            for ( const layer of document?.layers ) {
                 await cropLayerContent( layer, left, top );
-                layer.visible = wasVisible;
+                getSpriteForLayer( layer )?.syncPosition();
             }
         },
         saveSelection( state, { name, selection }) {
