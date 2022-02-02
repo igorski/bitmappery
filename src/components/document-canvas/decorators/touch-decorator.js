@@ -51,24 +51,30 @@ export default {
 
             // attach touch listeners
 
-            const listener = new Contact.PointerListener( element, {
-                supportedGestures: [ Contact.Pinch, Contact.TwoFingerPan, Contact.Tap ]
+            const twoFingerPan = new Contact.TwoFingerPan( element);
+            const pinch        = new Contact.Pinch( element );
+
+            twoFingerPan.block( pinch );
+            //pinch.block( twoFingerPan );
+
+            this.listener = new Contact.PointerListener( element, {
+                supportedGestures: [ twoFingerPan, pinch, Contact.Tap ]
             });
-console.warn(listener);
+
             // 1. zoom on pinch
 
             element.addEventListener( "pinch", event => {
                 if ( !this.pinchActive ) {
                     this.pinchActive = true;
                     this.zoomLevel = this.zoomOptions.level;
-                //    handleGestureStart();
+                    handleGestureStart();
                 }
                 const value = Math.max( MIN_ZOOM, Math.min( MAX_ZOOM, this.zoomLevel * event.detail.global.scale ));
                 this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value });
             });
             element.addEventListener( "pinchend", () => {
                 this.pinchActive = false;
-            //    handleGestureEnd();
+                handleGestureEnd();
             });
             element.style[ "touch-action" ] = "none"; // disable default behaviour
 
@@ -76,14 +82,14 @@ console.warn(listener);
 
             element.addEventListener( "twofingerpan", () => {
                 if ( !this.panOrigin ) {
-                //    handleGestureStart();
+                    handleGestureStart();
                     this.panOrigin = { ...zCanvas.getViewport() };
                 }
                 const { deltaX, deltaY } = event.detail.global;
                 getCanvasInstance().panViewport( this.panOrigin.left - deltaX, this.panOrigin.top - deltaY );
             });
             element.addEventListener( "twofingerpanend", () => {
-                //handleGestureEnd();
+                handleGestureEnd();
                 this.panOrigin = null;
             });
 
@@ -92,39 +98,17 @@ console.warn(listener);
             let lastTap = 0;
             element.addEventListener( "tap", () => {
                 const now = window.performance.now();
+                handleGestureStart();
                 if ( now - lastTap < 300 ) {
                     this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value: 1 });
+                    handleGestureEnd();
                 }
                 lastTap = now;
             });
         },
         removeTouchListeners() {
-            this.hammerTime?.destroy();
-            this.hammerTime = null;
-        },
-        handlePanGesture({ deltaX, deltaY }) {
-            getCanvasInstance().panViewport( this.panOrigin.left - deltaX, this.panOrigin.top - deltaY );
-        },
-        handleZoomGesture( event ) {
-            if ( this.panOrigin ) {
-                return;
-            }
-            let increment = 0;
-            switch ( event.additionalEvent ) {
-                default:
-                    return;
-                case "pinchout": // moving fingers apart > zoom in
-                    increment = event.scale / 2;
-                    break;
-                case "pinchin": // moving fingers together > zoom out
-                    increment = -( event.scale * 2 );
-                    break;
-            }
-            if ( increment === 0 ) {
-                return;
-            }
-            const value = Math.max( MIN_ZOOM, Math.min( MAX_ZOOM, this.zoomOptions.level + increment ));
-            this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value });
+            this.listener?.destroy();
+            this.listener = null;
         },
         /*
         handleRotateGesture( event ) {
