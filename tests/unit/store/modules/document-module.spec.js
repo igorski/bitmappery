@@ -485,7 +485,9 @@ describe( "Vuex document module", () => {
             const top  = 15;
             await mutations.cropActiveDocumentContent( state, { left, top });
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "cropLayerContent", layer1, left, top );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "cropLayerContent", layer2, left, top );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "getSpriteForLayer", layer1 );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "cropLayerContent", layer2, left, top );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 4, "getSpriteForLayer", layer2 );
         });
     });
 });
