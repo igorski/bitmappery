@@ -357,7 +357,7 @@
                             </button>
                         </li>
                     </template>
-                    <li v-else><span v-t="'noDocumentsOpen'"></span></li>
+                    <li v-else><span v-t="'noDocumentsOpen'" class="menu-text"></span></li>
                 </ul>
             </li>
             <!-- help menu -->
@@ -701,6 +701,7 @@ export default {
 $toggle-width: 50px;
 
 .heading {
+    @include customFont();
     letter-spacing: $spacing-xxsmall;
 
     .emphasis {
@@ -800,6 +801,10 @@ $toggle-width: 50px;
             }
         }
     }
+
+    &-text {
+        font-size: 95%;
+    }
 }
 
 .toggle {
@@ -851,7 +856,6 @@ h1 {
             color: #b6b6b6;
             text-decoration: none;
             padding-bottom: $spacing-large;
-            @include customFont();
         }
 
         &:hover,

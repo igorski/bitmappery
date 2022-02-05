@@ -96,6 +96,7 @@ export default {
 
 <style lang="scss" scoped>
 @import "@/styles/_mixins";
+@import "@/styles/typography";
 @import "@/styles/ui";
 
 .dialog-window {
@@ -114,6 +115,7 @@ export default {
     box-shadow: 0 0 25px rgba(0,0,0,.5);
 
     &__title {
+        @include customFont();
         margin: $spacing-medium 0;
         color: $color-4;
         font-weight: bold;

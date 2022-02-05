@@ -22,13 +22,13 @@
  */
 <template>
     <div class="file-import">
-        <h2 v-t="'letsGetStarted'"></h2>
+        <h2 v-t="'letsGetStarted'" class="file-import__title"></h2>
         <div class="form import-form">
             <p v-t="'chooseContentCreationMethod'"></p>
             <button
                 v-t="'createNewDocument'"
                 type="button"
-                class="button button--block new-document-button"
+                class="button button--primary button--block new-document-button"
                 @click="requestNewDocument()"
             ></button>
             <div class="file-fieldset">
@@ -120,11 +120,16 @@ export default {
     height: 100%;
     overflow-y: auto;
     text-align: center;
+    background-color: #292929;
+
+    &__title {
+        border-bottom: 1px solid $color-1;
+    }
 }
 
 .file-fieldset {
     @include large() {
-        border: $spacing-xsmall dashed $color-lines;
+        border: 3px solid #444;
         border-radius: $spacing-large;
         box-sizing: border-box;
         padding: $spacing-small $spacing-xlarge $spacing-medium;

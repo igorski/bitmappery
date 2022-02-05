@@ -114,7 +114,7 @@
     font-weight: bold;
     font-size: 100%;
     background-color: $buttonColor;
-    color: #FFF;
+    color: $color-text;
 
     &:hover {
         background-color: $color-4;
@@ -145,6 +145,16 @@
     &--ghost {
         background: transparent;
         border: none;
+    }
+
+    &--primary {
+        border: 2px solid $color-1;
+        background: transparent;
+    }
+
+    &--secondary {
+        border: 2px solid $color-4;
+        background: transparent;
     }
 }
 

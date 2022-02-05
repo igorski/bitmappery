@@ -65,6 +65,7 @@ export default {
 </script>
 <style lang="scss" scoped>
 @import "@/styles/component";
+@import "@/styles/typography";
 @import "@/styles/ui";
 
 .modal {
@@ -75,9 +76,11 @@ export default {
     $headerHeight: 48px;
 
     h2 {
+        @include customFont();
         color: #FFF;
         height: $headerHeight;
         padding: #{$spacing-xsmall + $spacing-small} $spacing-medium 0 #{$spacing-medium + $spacing-small};
+        border: none;
     }
 
     .close-button {

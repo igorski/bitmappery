@@ -1,9 +1,10 @@
 @import "_mixins";
+@import "typography";
 
 @mixin component {
     position: relative;
     box-shadow: 0 0 5px rgba(0,0,0,.5);
-    background-color: $color-bg;
+    background-image: $color-window-bg;
 
     h2 {
         display: block;
@@ -11,9 +12,11 @@
         padding: $spacing-small $spacing-medium;
         @include boxSize();
         @include truncate();
-        color: #FFF;
+        @include customFont();
+        color: $color-text;
         background-image: $color-window-bg;
         height: $heading-height;
+        border-bottom: 1px solid $color-1;
     }
 
     .content {
