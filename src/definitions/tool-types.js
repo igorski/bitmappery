@@ -87,7 +87,7 @@ export const calculateMaxScaling = ( baseWidth, baseHeight, docWidth, docHeight,
 
     // dimensions of document at max displayable megapixel size
     const maxScale = portrait ? MAX_IMAGE_SIZE / baseHeight : MAX_IMAGE_SIZE / baseWidth;
-    let { width, height } = constrain(
+    const { width, height } = constrain(
         baseWidth  * maxScale,
         baseHeight * maxScale,
         MAX_MEGAPIXEL
