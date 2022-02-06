@@ -26,6 +26,7 @@
             v-if="!collapsed"
             v-t="'tools'"
             v-tooltip="'(Tab)'"
+            class="toolbox-title"
         ></h2>
         <button
             type="button"
@@ -302,6 +303,19 @@ export default {
     @media screen and (min-height: 875px) {
         width: 60px !important;
 
+        .content {
+            padding-top: $spacing-xxlarge;
+        }
+
+        .toolbox-title {
+            display: none;
+        }
+
+        .close-button {
+            top: $spacing-small;
+            right: #{$spacing-medium - $spacing-xsmall};
+        }
+
         .color-panel {
             &__label {
                 display: none;
@@ -319,6 +333,7 @@ export default {
     border: none;
     padding: $spacing-xxsmall $spacing-xsmall;
     font-weight: bold;
+    background-color: $color-bg;
     @include customFont();
 
     img {
@@ -340,8 +355,9 @@ export default {
     }
 
     &:disabled {
-        background-color: #444;
+        background-color: #333;
         color: $color-bg;
+        cursor: default;
     }
 
     @include large() {

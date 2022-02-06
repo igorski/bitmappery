@@ -27,7 +27,7 @@
         :style="{ 'height': wrapperHeight }"
     >
         <template v-if="activeDocument">
-            <h2>{{ documentTitle }}</h2>
+            <h2 class="document-title">{{ documentTitle }}</h2>
             <button
                 type="button"
                 class="close-button"
@@ -491,5 +491,9 @@ export default {
             }
         }
     }
+}
+
+.document-title {
+    border-bottom: 1px solid $color-1;
 }
 </style>

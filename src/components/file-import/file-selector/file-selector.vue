@@ -25,7 +25,7 @@
         <label
             v-t="'importLocalFile'"
             for="file"
-            class="file-label button button--block"
+            class="file-label button button--secondary button--block"
         ></label>
         <input
             type="file"

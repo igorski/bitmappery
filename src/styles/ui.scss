@@ -114,7 +114,7 @@
     font-weight: bold;
     font-size: 100%;
     background-color: $buttonColor;
-    color: #FFF;
+    color: $color-text;
 
     &:hover {
         background-color: $color-4;
@@ -123,9 +123,10 @@
     }
 
     &:disabled {
-        background-color: $color-bg;
-        color: #b6b6b6;
-        border-color: #b6b6b6;
+        cursor: default;
+        background-color: $color-bg-dark !important;
+        color: $color-bg !important;
+        border-color: $color-bg !important;
     }
 
     &--block {
@@ -137,14 +138,22 @@
         font-size: 75%;
         padding: $spacing-xsmall $spacing-small;
         border-radius: $spacing-medium;
-        border-width: 1px;
-        border-style: solid;
-        border-color: $buttonColor;
+        border: 2px solid $color-bg;
     }
 
     &--ghost {
         background: transparent;
         border: none;
+    }
+
+    &--primary {
+        border: 2px solid $color-1;
+        background: transparent;
+    }
+
+    &--secondary {
+        border: 2px solid $color-4;
+        background: transparent;
     }
 }
 

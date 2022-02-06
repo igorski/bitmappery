@@ -114,6 +114,7 @@
                 <p
                     v-else
                     v-t="'noLayers'"
+                    class="no-layers-text"
                 ></p>
             </div>
             <div v-if="!showFilters" class="actions">
@@ -345,6 +346,10 @@ export default {
     display: flex;
     flex-direction: column;
 
+    .content.form {
+        padding: 0;
+    }
+
     @include mobile() {
         &.collapsed {
             position: fixed;
@@ -359,6 +364,10 @@ export default {
     @include boxSize();
     @include truncate();
     border-top: 1px solid $color-lines;
+}
+
+.no-layers-text {
+    padding: 0 $spacing-medium;
 }
 
 .layer {
@@ -385,6 +394,7 @@ export default {
         @include truncate();
         font-size: 90%;
         padding: $spacing-small $spacing-small 0;
+        margin-left: $spacing-small;
     }
     .highlight {
         color: #FFF;
