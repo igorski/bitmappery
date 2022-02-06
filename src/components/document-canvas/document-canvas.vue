@@ -322,7 +322,7 @@ export default {
             if ( calculateBestFit ) {
                 const { width, height } = this.activeDocument;
                 const scaledSize = scaleToRatio( width, height, containerSize.width, containerSize.height );
-                const maxScaling = calculateMaxScaling( scaledSize.width, scaledSize.height, width, containerSize.width );
+                const maxScaling = calculateMaxScaling( scaledSize.width, scaledSize.height, width, height, containerSize.width, containerSize.height );
 
                 ({ maxInScale, maxOutScale }  = maxScaling );
 
