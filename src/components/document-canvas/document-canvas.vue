@@ -328,11 +328,9 @@ export default {
 
                 this.setCanvasDimensions({
                     ...scaledSize,
+                    ...maxScaling,
                     visibleWidth  : containerSize.width,
                     visibleHeight : containerSize.height,
-                    widthDominant : maxScaling.widthDominant,
-                    maxInScale,
-                    maxOutScale
                 });
 
                 xScale = scaledSize.width  / this.activeDocument.width;

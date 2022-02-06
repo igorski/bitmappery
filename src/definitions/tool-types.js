@@ -92,21 +92,12 @@ export const calculateMaxScaling = ( baseWidth, baseHeight, docWidth, docHeight,
         baseHeight * maxScale,
         MAX_MEGAPIXEL
     );
-    const widthDominant = baseWidth === containerWidth;
-    const maxInScale = ( width / baseWidth ) / pixelRatio;
-    console.warn("tool types width dom:"+widthDominant + " for portrait:"+portrait +",base sizes:"+baseWidth + " x " + baseHeight + ",scaled sizes:"+width + " x " + height+",doc sizes:"+docWidth + " x" + docHeight + ",container sizes:" + containerWidth + " x " + containerHeight);
+    // whether the horizontal side is the dominant side (e.g. matches the container horizontal size)
+    const horizontalDominant = baseWidth === containerWidth;
 
-    // dimensions of document at min displayable megapixel size
-    const minScale = portrait ? MIN_IMAGE_SIZE / baseHeight : MIN_IMAGE_SIZE / baseWidth;
-    ({ width, height } = constrain(
-        baseWidth  / minScale,
-        baseHeight / minScale,
-        MAX_MEGAPIXEL
-    ));
-    const maxOutScale = ( width / baseWidth ) / pixelRatio;
     return {
-        maxInScale,
-        maxOutScale,
-        widthDominant,
+        horizontalDominant,
+        maxInScale  : ( width / baseWidth ) / pixelRatio,
+        maxOutScale : ( portrait ? baseHeight / MIN_IMAGE_SIZE : baseWidth / MIN_IMAGE_SIZE ) / pixelRatio
     };
 };

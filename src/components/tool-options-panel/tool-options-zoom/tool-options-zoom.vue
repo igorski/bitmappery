@@ -98,12 +98,12 @@ export default {
         },
         setFitWindow() {
             const { width, height } = this.activeDocument;
-            const { visibleWidth, visibleHeight, widthDominant, maxOutScale } = this.canvasDimensions;
+            const { visibleWidth, visibleHeight, horizontalDominant, maxOutScale } = this.canvasDimensions;
 
             let minZoomWidth, minZoomHeight, widthAtZeroZoom, heightAtZeroZoom, pixelsPerZoomUnit;
 
-            if ( widthDominant ) {
-                // width is dominant, meaning zoom level 0 has image width occupying full visibleWidth
+            if ( horizontalDominant ) {
+                // horizontal side is dominant, meaning zoom level 0 has image width occupying full visibleWidth
                 widthAtZeroZoom   = visibleWidth;
                 heightAtZeroZoom  = ( height / width ) * widthAtZeroZoom;
                 minZoomHeight     = MIN_IMAGE_SIZE;
@@ -113,7 +113,7 @@ export default {
                 this.setZoomLevel(( heightAtZeroZoom - visibleHeight ) / pixelsPerZoomUnit );
             }
             else {
-                // height is dominant, meaning zoom level 0 has image height occupying full visibleHeight
+                // vertical side is dominant, meaning zoom level 0 has image height occupying full visibleHeight
                 heightAtZeroZoom  = visibleHeight;
                 widthAtZeroZoom   = ( width / height ) * heightAtZeroZoom;
                 minZoomWidth      = MIN_IMAGE_SIZE;
