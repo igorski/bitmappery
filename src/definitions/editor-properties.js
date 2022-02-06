@@ -21,6 +21,16 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+// the height of the header displayed above the document canvas
+export const HEADER_HEIGHT = 40;
+
+// the maximum size we support for an image, this is for the dominant side of the image
+// the max is 8192 for IE with 32767 for Safari, FF and Chrome.
+export const MAX_IMAGE_SIZE = 8192;
+export const MIN_IMAGE_SIZE = 80;
+// the maximum amount of megapixels an image can be represented at in the application
+export const MAX_MEGAPIXEL  = MAX_IMAGE_SIZE * MAX_IMAGE_SIZE;
+
 // maximum width in pixels for an document whose multi-layered content can
 // be merged into a spritesheet
 export const MAX_SPRITESHEET_WIDTH = 512;

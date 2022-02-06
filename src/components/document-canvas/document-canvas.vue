@@ -57,10 +57,11 @@ import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import GuideRenderer from "@/rendering/canvas-elements/guide-renderer";
 import FileImport from "@/components/file-import/file-import";
+import { HEADER_HEIGHT } from "@/definitions/editor-properties";
+import ToolTypes, { MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@/definitions/tool-types";
 import { MODE_PAN, MODE_LAYER_SELECT, MODE_SELECTION } from "@/rendering/canvas-elements/interaction-pane";
 import Scrollbars from "./scrollbars/scrollbars";
 import TouchDecorator from "./decorators/touch-decorator";
-import ToolTypes, { MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@/definitions/tool-types";
 import { scaleToRatio, scaleValue } from "@/math/image-math";
 import { getAlignableObjects } from "@/utils/document-util";
 import { isMobile } from "@/utils/environment-util";
@@ -300,6 +301,8 @@ export default {
         },
         cacheContainerSize() {
             containerSize = this.$el.parentNode?.getBoundingClientRect();
+            containerSize.height -= HEADER_HEIGHT;
+
             if ( mobileView ) {
                 containerSize.height -= 40; // collapsed options panel height
             }
@@ -321,13 +324,13 @@ export default {
                 const scaledSize = scaleToRatio( width, height, containerSize.width, containerSize.height );
                 const maxScaling = calculateMaxScaling( scaledSize.width, scaledSize.height, width, containerSize.width );
 
-                maxInScale  = maxScaling.in;
-                maxOutScale = maxScaling.out;
+                ({ maxInScale, maxOutScale }  = maxScaling );
 
                 this.setCanvasDimensions({
                     ...scaledSize,
                     visibleWidth  : containerSize.width,
                     visibleHeight : containerSize.height,
+                    widthDominant : maxScaling.widthDominant,
                     maxInScale,
                     maxOutScale
                 });

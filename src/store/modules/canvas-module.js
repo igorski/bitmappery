@@ -38,14 +38,21 @@ export default {
             // open document at the current available screen dimensions
             maxInScale    : 1,
             maxOutScale   : 1,
+            // whether the unzoomed images width is the dominant side (e.g. fills
+            // the full width of the visible canvas area)
+            widthDominant : false,
         },
     },
     getters: {
         canvasDimensions: state => state.canvasDimensions,
     },
     mutations: {
-        setCanvasDimensions( state, { width, height, visibleWidth, visibleHeight, maxInScale, maxOutScale }) {
-            Vue.set( state, "canvasDimensions", { width, height, visibleWidth, visibleHeight, maxInScale, maxOutScale });
+        setCanvasDimensions( state, { width, height, widthDominant, visibleWidth, visibleHeight, maxInScale, maxOutScale }) {
+            Vue.set(
+                state,
+                "canvasDimensions",
+                { width, height, widthDominant, visibleWidth, visibleHeight, maxInScale, maxOutScale }
+            );
         },
     },
 };

@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { constrain, isPortrait } from "@/math/image-math";
-import { MAX_IMAGE_SIZE, MIN_IMAGE_SIZE, MAX_MEGAPIXEL } from "@/definitions/image-types";
+import { MAX_IMAGE_SIZE, MIN_IMAGE_SIZE, MAX_MEGAPIXEL } from "@/definitions/editor-properties";
 import { LAYER_GRAPHIC } from "@/definitions/layer-types";
 
 const ToolTypes = {
@@ -74,10 +74,8 @@ export const MIN_ZOOM       = -50; // zooming out from base (which is 0)
 export const MAX_ZOOM       = 50;  // zooming in from base (which is 0)
 export const SNAP_MARGIN    = 20;  // amount of pixels within which we allow snapping to guides
 
-const MAX_SCALE = 4;
-
 /**
- * Ideally we'd like to zoom the document in and out by the MAX_SCALE defined above, however
+ * Ideally we'd like to zoom the document in and out by a fixed scale, however
  * if the max zoom exceeds the maximum image size, the magnification is scaled
  * down to a value that relates to this maximum image size. The returned in-magnification value
  * should lead to the maximum scale relative to the document size, making the max displayed
@@ -94,7 +92,8 @@ export const calculateMaxScaling = ( baseWidth, baseHeight, docWidth, containerW
         baseHeight * maxScale,
         MAX_MEGAPIXEL
     );
-    const inScale = ( width / baseWidth ) / pixelRatio;
+    const widthDominant = width === MAX_IMAGE_SIZE;
+    const maxInScale = ( width / baseWidth ) / pixelRatio;
 
     // dimensions of document at min displayable megapixel size
     const minScale = portrait ? MIN_IMAGE_SIZE / baseHeight : MIN_IMAGE_SIZE / baseWidth;
@@ -103,7 +102,10 @@ export const calculateMaxScaling = ( baseWidth, baseHeight, docWidth, containerW
         baseHeight / minScale,
         MAX_MEGAPIXEL
     ));
-    const out = ( width / baseWidth ) / pixelRatio;
-
-    return { in: inScale, out };
+    const maxOutScale = ( width / baseWidth ) / pixelRatio;
+    return {
+        maxInScale,
+        maxOutScale,
+        widthDominant,
+    };
 };

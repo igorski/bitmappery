@@ -56,6 +56,7 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
+import { MIN_IMAGE_SIZE } from "@/definitions/editor-properties";
 import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import Slider from "@/components/ui/slider/slider";
 import messages from "./messages.json";
@@ -97,29 +98,28 @@ export default {
         },
         setFitWindow() {
             const { width, height } = this.activeDocument;
-            const { visibleWidth, visibleHeight, maxOutScale } = this.canvasDimensions;
-
-            const isWidthDominantSide = this.canvasDimensions.height === visibleHeight;
-
+            const { visibleWidth, visibleHeight, widthDominant, maxOutScale } = this.canvasDimensions;
+console.warn(widthDominant,visibleWidth,visibleHeight);
             let minZoomWidth, minZoomHeight, widthAtZeroZoom, heightAtZeroZoom, pixelsPerZoomUnit;
 
-            if ( isWidthDominantSide ) {
+            if ( widthDominant ) {
                 // width is dominant, meaning zoom level 0 has image occupying full visibleHeight
-                minZoomHeight     = visibleHeight / maxOutScale;
-                minZoomWidth      = minZoomHeight * ( width / height );
                 heightAtZeroZoom  = visibleHeight;
                 widthAtZeroZoom   = ( width / height ) * heightAtZeroZoom;
+                minZoomWidth      = MIN_IMAGE_SIZE;
+                minZoomHeight     = minZoomWidth * ( height / width );
                 pixelsPerZoomUnit = ( widthAtZeroZoom - minZoomWidth ) / MIN_ZOOM;
-
+console.warn("width",widthAtZeroZoom,heightAtZeroZoom,minZoomWidth,minZoomHeight,maxOutScale,pixelsPerZoomUnit);
                 this.setZoomLevel(( widthAtZeroZoom - visibleWidth ) / pixelsPerZoomUnit );
             }
             else {
                 // height is dominant, meaning zoom level 0 has image occupying full visibleWidth
-                minZoomWidth      = visibleWidth / maxOutScale;
-                minZoomHeight     = minZoomWidth * ( height / width );
                 widthAtZeroZoom   = visibleWidth;
                 heightAtZeroZoom  = ( height / width ) * widthAtZeroZoom;
-                pixelsPerZoomUnit = ( widthAtZeroZoom - minZoomWidth ) / MIN_ZOOM;
+                minZoomHeight     = MIN_IMAGE_SIZE;
+                minZoomWidth      = minZoomHeight * ( width / height );
+                pixelsPerZoomUnit = ( heightAtZeroZoom - minZoomHeight ) / MIN_ZOOM;
+                console.warn("height",widthAtZeroZoom,heightAtZeroZoom,minZoomWidth,minZoomHeight,pixelsPerZoomUnit);
 
                 this.setZoomLevel(( heightAtZeroZoom - visibleHeight ) / pixelsPerZoomUnit );
             }

@@ -71,10 +71,3 @@ export const typeToExt = mimeType => {
     }
     return format.ext;
 };
-
-// the maximum size we support for an image, this is for the dominant side of the image
-// the max is 8192 for IE with 32767 for Safari, FF and Chrome.
-export const MAX_IMAGE_SIZE = 8192;
-export const MIN_IMAGE_SIZE = 80;
-// the maximum amount of megapixels an image can be represented at in the application
-export const MAX_MEGAPIXEL  = MAX_IMAGE_SIZE * MAX_IMAGE_SIZE;
