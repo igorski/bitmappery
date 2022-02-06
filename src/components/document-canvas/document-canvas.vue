@@ -62,7 +62,8 @@ import ToolTypes, { MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@
 import { MODE_PAN, MODE_LAYER_SELECT, MODE_SELECTION } from "@/rendering/canvas-elements/interaction-pane";
 import Scrollbars from "./scrollbars/scrollbars";
 import TouchDecorator from "./decorators/touch-decorator";
-import { scaleToRatio, scaleValue } from "@/math/image-math";
+import { scaleToRatio } from "@/math/image-math";
+import { scale } from "@/math/unit-math";
 import { getAlignableObjects } from "@/utils/document-util";
 import { isMobile } from "@/utils/environment-util";
 import {
@@ -231,9 +232,9 @@ export default {
             handler({ level }) {
                 // are we zooming in or out (relative from the base, not necessarily the previous value)
                 if ( level > 0 ) {
-                    zoom = scaleValue( level, MAX_ZOOM, maxInScale - 1 ) + 1;
+                    zoom = scale( level, MAX_ZOOM, maxInScale - 1 ) + 1;
                 } else {
-                    zoom = 1 - scaleValue( Math.abs( level ), MAX_ZOOM, 1 - ( 1 / maxOutScale ));
+                    zoom = 1 - scale( Math.abs( level ), MAX_ZOOM, 1 - ( 1 / maxOutScale ));
                 }
                 // rescale canvas, note we omit the best fit calculation as we zoom from the calculated base
                 this.scaleCanvas( false );
@@ -332,7 +333,6 @@ export default {
                     visibleWidth  : containerSize.width,
                     visibleHeight : containerSize.height,
                 });
-
                 xScale = scaledSize.width  / this.activeDocument.width;
                 yScale = scaledSize.height / this.activeDocument.height;
 
