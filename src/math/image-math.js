@@ -20,6 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { MIN_IMAGE_SIZE } from "@/definitions/editor-properties";
+import { MIN_ZOOM } from "@/definitions/tool-types";
 import { fastRound } from "@/math/unit-math";
 
 /**
@@ -55,10 +57,44 @@ export const scaleToRatio = ( imageWidth, imageHeight, destWidth, destHeight ) =
 };
 
 /**
- * convenience method to scale given value and its expected maxValue against
- * an arbitrary range (defined by maxCompareValue in relation to maxValue)
+ * Calculates the size of given document when represented on given canvasDimensions.
+ * This returns the document size when the canvas zoom level is 0 (neutral) as well
+ * as the size when zoomed out to the maximum. Additionally, the amount of pixels enlarged/shrunk
+ * by each zoom step is returned which allows to calculate the appropriate zoom levels to display
+ * the document at arbitrary sizes in pixels. Also @see calculateMaxScaling()
  */
-export const scaleValue = ( value, maxValue, maxCompareValue ) => Math.min( maxValue, value ) * ( maxCompareValue / maxValue );
+export const getZoomRange = ( activeDocument, canvasDimensions ) => {
+    const { width, height } = activeDocument;
+    const { visibleWidth, visibleHeight, horizontalDominant, maxOutScale } = canvasDimensions;
+
+    let minZoomWidth, minZoomHeight, widthAtZeroZoom, heightAtZeroZoom, pixelsPerZoomUnit;
+
+    if ( horizontalDominant ) {
+        // horizontal side is dominant, meaning zoom level 0 has image width occupying full visibleWidth
+        widthAtZeroZoom   = visibleWidth;
+        heightAtZeroZoom  = ( height / width ) * widthAtZeroZoom;
+        minZoomHeight     = MIN_IMAGE_SIZE;
+        minZoomWidth      = minZoomHeight * ( width / height );
+        pixelsPerZoomUnit = ( heightAtZeroZoom - minZoomHeight ) / MIN_ZOOM;
+    }
+    else {
+        // vertical side is dominant, meaning zoom level 0 has image height occupying full visibleHeight
+        heightAtZeroZoom  = visibleHeight;
+        widthAtZeroZoom   = ( width / height ) * heightAtZeroZoom;
+        minZoomWidth      = MIN_IMAGE_SIZE;
+        minZoomHeight     = minZoomWidth * ( height / width );
+        pixelsPerZoomUnit = ( widthAtZeroZoom - minZoomWidth ) / MIN_ZOOM;
+    }
+    /*
+    console.log(
+        `cvs dims: ${JSON.stringify(canvasDimensions)}, doc size: ${width}x${height}, min zoom: ${minZoomWidth}x${minZoomHeight}, when zero: ${widthAtZeroZoom}x${heightAtZeroZoom} with px per zoom unit: ${pixelsPerZoomUnit}`
+    );
+    */
+    return {
+        widthAtZeroZoom, heightAtZeroZoom,
+        minZoomWidth, minZoomWidth, pixelsPerZoomUnit
+    };
+};
 
 /**
  * In case given width x height exceeds the maximum amount of given megapixels, a new
