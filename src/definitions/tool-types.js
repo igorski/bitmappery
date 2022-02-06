@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { constrain, isPortrait } from "@/math/image-math";
-import { MAX_IMAGE_SIZE, MAX_MEGAPIXEL } from "@/definitions/image-types";
+import { MAX_IMAGE_SIZE, MIN_IMAGE_SIZE, MAX_MEGAPIXEL } from "@/definitions/image-types";
 import { LAYER_GRAPHIC } from "@/definitions/layer-types";
 
 const ToolTypes = {
@@ -74,6 +74,8 @@ export const MIN_ZOOM       = -50; // zooming out from base (which is 0)
 export const MAX_ZOOM       = 50;  // zooming in from base (which is 0)
 export const SNAP_MARGIN    = 20;  // amount of pixels within which we allow snapping to guides
 
+const MAX_SCALE = 4;
+
 /**
  * Ideally we'd like to zoom the document in and out by the MAX_SCALE defined above, however
  * if the max zoom exceeds the maximum image size, the magnification is scaled
@@ -83,17 +85,25 @@ export const SNAP_MARGIN    = 20;  // amount of pixels within which we allow sna
  */
 export const calculateMaxScaling = ( baseWidth, baseHeight, docWidth, containerWidth ) => {
     const pixelRatio = window.devicePixelRatio; // zCanvas magnifies for pixel ratio
-    const maxScale = isPortrait( baseWidth, baseHeight ) ? MAX_IMAGE_SIZE / baseHeight : MAX_IMAGE_SIZE / baseWidth;
+    const portrait   = isPortrait( baseWidth, baseHeight );
+
     // dimensions of document at max displayable megapixel size
-    const { width, height } = constrain(
+    const maxScale = portrait ? MAX_IMAGE_SIZE / baseHeight : MAX_IMAGE_SIZE / baseWidth;
+    let { width, height } = constrain(
         baseWidth  * maxScale,
         baseHeight * maxScale,
         MAX_MEGAPIXEL
     );
-    return {
-        in : ( width / baseWidth ) / pixelRatio,
-        out: baseWidth / ( containerWidth / MAX_OUT_SCALE )
-    };
+    const inScale = ( width / baseWidth ) / pixelRatio;
+
+    // dimensions of document at min displayable megapixel size
+    const minScale = portrait ? MIN_IMAGE_SIZE / baseHeight : MIN_IMAGE_SIZE / baseWidth;
+    ({ width, height } = constrain(
+        baseWidth  / minScale,
+        baseHeight / minScale,
+        MAX_MEGAPIXEL
+    ));
+    const out = ( width / baseWidth ) / pixelRatio;
+
+    return { in: inScale, out };
 };
-const MAX_IN_SCALE  = 4;
-const MAX_OUT_SCALE = 2;
