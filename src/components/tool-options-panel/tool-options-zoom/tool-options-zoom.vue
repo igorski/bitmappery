@@ -36,18 +36,21 @@
                 v-t="'bestFit'"
                 type="button"
                 class="button button--small"
+                :disabled="!activeDocument"
                 @click="setBestFit()"
             ></button>
             <button
                 v-t="'fitWindow'"
                 type="button"
                 class="button button--small"
+                :disabled="!activeDocument"
                 @click="setFitWindow()"
             ></button>
             <button
                 v-t="'original'"
                 type="button"
                 class="button button--small"
+                :disabled="!activeDocument"
                 @click="setOriginalSize()"
             ></button>
         </div>
@@ -99,18 +102,41 @@ export default {
         setFitWindow() {
             const { visibleWidth, visibleHeight, horizontalDominant } = this.canvasDimensions;
             const {
-                minZoomWidth, minZoomHeight,
-                widthAtZeroZoom, heightAtZeroZoom, pixelsPerZoomUnit
+                zeroZoomWidth, zeroZoomHeight,
+                minZoomWidth, minZoomHeight, pixelsPerZoomOutUnit,
             } = getZoomRange( this.activeDocument, this.canvasDimensions );
 
             if ( horizontalDominant ) {
-                this.setZoomLevel(( heightAtZeroZoom - visibleHeight ) / pixelsPerZoomUnit );
+                this.setZoomLevel(( zeroZoomHeight - visibleHeight ) / pixelsPerZoomOutUnit );
             } else {
-                this.setZoomLevel(( widthAtZeroZoom - visibleWidth ) / pixelsPerZoomUnit );
+                this.setZoomLevel(( zeroZoomWidth - visibleWidth ) / pixelsPerZoomOutUnit );
             }
         },
         setOriginalSize() {
-            this.zoomLevel  = ( this.activeDocument.width / this.canvasDimensions.width ) * window.devicePixelRatio;
+            const { width, height } = this.activeDocument;
+            const { horizontalDominant } = this.canvasDimensions;
+            const {
+                zeroZoomWidth, zeroZoomHeight, pixelsPerZoomOutUnit, pixelsPerZoomInUnit
+            } = getZoomRange( this.activeDocument, this.canvasDimensions );
+
+            if ( width === zeroZoomWidth ) {
+                this.setBestFit();
+                return;
+            }
+
+            if ( width < zeroZoomWidth ) {
+                if ( horizontalDominant ) {
+                    this.setZoomLevel(( zeroZoomHeight - height ) / pixelsPerZoomOutUnit );
+                } else {
+                    this.setZoomLevel(( zeroZoomWidth - width ) / pixelsPerZoomOutUnit );
+                }
+            } else {
+                if ( horizontalDominant ) {
+                    this.setZoomLevel(( width - zeroZoomWidth ) / pixelsPerZoomInUnit );
+                } else {
+                    this.setZoomLevel(( height - zeroZoomHeight ) / pixelsPerZoomInUnit );
+                }
+            }
         },
         setZoomLevel( level ) {
             this.zoomLevel = Math.max( MIN_ZOOM, Math.min( MAX_ZOOM, level ));

@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { constrain, isPortrait } from "@/math/image-math";
-import { MAX_IMAGE_SIZE, MIN_IMAGE_SIZE, MAX_MEGAPIXEL } from "@/definitions/editor-properties";
+import { MAX_IMAGE_SIZE, MAX_MEGAPIXEL, getMinImageSize } from "@/definitions/editor-properties";
 import { LAYER_GRAPHIC } from "@/definitions/layer-types";
 
 const ToolTypes = {
@@ -94,6 +94,7 @@ export const calculateMaxScaling = ( baseWidth, baseHeight, docWidth, docHeight,
     );
     // whether the horizontal side is the dominant side (e.g. matches the container horizontal size)
     const horizontalDominant = baseWidth === containerWidth;
+    const MIN_IMAGE_SIZE = getMinImageSize( docWidth, docHeight );
 
     return {
         horizontalDominant,

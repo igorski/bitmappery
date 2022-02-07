@@ -402,6 +402,8 @@ export default {
 }
 
 .layer-actions {
+    margin-right: $spacing-xxsmall;
+
     .button {
         width: 30px;
         height: 32px;

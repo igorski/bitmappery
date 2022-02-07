@@ -20,8 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { MIN_IMAGE_SIZE } from "@/definitions/editor-properties";
-import { MIN_ZOOM } from "@/definitions/tool-types";
+import { getMinImageSize } from "@/definitions/editor-properties";
+import { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import { fastRound } from "@/math/unit-math";
 
 /**
@@ -57,42 +57,57 @@ export const scaleToRatio = ( imageWidth, imageHeight, destWidth, destHeight ) =
 };
 
 /**
- * Calculates the size of given document when represented on given canvasDimensions.
- * This returns the document size when the canvas zoom level is 0 (neutral) as well
- * as the size when zoomed out to the maximum. Additionally, the amount of pixels enlarged/shrunk
- * by each zoom step is returned which allows to calculate the appropriate zoom levels to display
- * the document at arbitrary sizes in pixels. Also @see calculateMaxScaling()
+ * Calculates the size of given document when represented on given canvasDimensions at multiple zoom levels:
+ *
+ * The 0 (neutral) level
+ * The MAX_ZOOM (maximum zoom in) level
+ * The MIN_ZOOM (maximum zoom out) level
+ *
+ * Additionally, the amount of pixels travelled when enlarging/shrinking by each zoom in/out step
+ * is returned, which allows to calculate the appropriate zoom levels to display the document at arbitrary
+ * sizes in pixels. Note that these steps can differ when zooming in or out! Also @see calculateMaxScaling()
  */
 export const getZoomRange = ( activeDocument, canvasDimensions ) => {
     const { width, height } = activeDocument;
-    const { visibleWidth, visibleHeight, horizontalDominant, maxOutScale } = canvasDimensions;
+    const { visibleWidth, visibleHeight, horizontalDominant, maxInScale, maxOutScale } = canvasDimensions;
 
-    let minZoomWidth, minZoomHeight, widthAtZeroZoom, heightAtZeroZoom, pixelsPerZoomUnit;
+    const MIN_IMAGE_SIZE = getMinImageSize( width, height );
+
+    let zeroZoomWidth, zeroZoomHeight;
+    let minZoomWidth, minZoomHeight, pixelsPerZoomOutUnit;
+    let maxZoomWidth, maxZoomHeight, pixelsPerZoomInUnit;
 
     if ( horizontalDominant ) {
         // horizontal side is dominant, meaning zoom level 0 has image width occupying full visibleWidth
-        widthAtZeroZoom   = visibleWidth;
-        heightAtZeroZoom  = ( height / width ) * widthAtZeroZoom;
-        minZoomHeight     = MIN_IMAGE_SIZE;
-        minZoomWidth      = minZoomHeight * ( width / height );
-        pixelsPerZoomUnit = ( heightAtZeroZoom - minZoomHeight ) / MIN_ZOOM;
+        zeroZoomWidth        = visibleWidth;
+        zeroZoomHeight       = ( height / width ) * zeroZoomWidth;
+        minZoomHeight        = MIN_IMAGE_SIZE;
+        minZoomWidth         = minZoomHeight * ( width / height );
+        pixelsPerZoomOutUnit = ( zeroZoomHeight - minZoomHeight ) / MIN_ZOOM;
     }
     else {
         // vertical side is dominant, meaning zoom level 0 has image height occupying full visibleHeight
-        heightAtZeroZoom  = visibleHeight;
-        widthAtZeroZoom   = ( width / height ) * heightAtZeroZoom;
-        minZoomWidth      = MIN_IMAGE_SIZE;
-        minZoomHeight     = minZoomWidth * ( height / width );
-        pixelsPerZoomUnit = ( widthAtZeroZoom - minZoomWidth ) / MIN_ZOOM;
+        zeroZoomHeight       = visibleHeight;
+        zeroZoomWidth        = ( width / height ) * zeroZoomHeight;
+        minZoomWidth         = MIN_IMAGE_SIZE;
+        minZoomHeight        = minZoomWidth * ( height / width );
+        pixelsPerZoomOutUnit = ( zeroZoomWidth - minZoomWidth ) / MIN_ZOOM;
     }
+    maxZoomWidth        = zeroZoomWidth  * maxInScale;
+    maxZoomHeight       = zeroZoomHeight * maxInScale;
+    pixelsPerZoomInUnit = ( maxZoomWidth - zeroZoomWidth ) / MAX_ZOOM;
     /*
     console.log(
-        `cvs dims: ${JSON.stringify(canvasDimensions)}, doc size: ${width}x${height}, min zoom: ${minZoomWidth}x${minZoomHeight}, when zero: ${widthAtZeroZoom}x${heightAtZeroZoom} with px per zoom unit: ${pixelsPerZoomUnit}`
+        `cvs dims: ${visibleWidth} x ${visibleHeight}, doc size: ${width} x ${height},
+         visible size at zero zoom: ${zeroZoomWidth} x ${zeroZoomHeight},
+         visible size at min zoom: ${minZoomWidth} x ${minZoomHeight} with px per zoom out unit: ${pixelsPerZoomOutUnit},
+         visible size at max zoom: ${maxZoomWidth} x ${maxZoomHeight} with px per zoom in unit: ${pixelsPerZoomInUnit}`
     );
     */
     return {
-        widthAtZeroZoom, heightAtZeroZoom,
-        minZoomWidth, minZoomWidth, pixelsPerZoomUnit
+        zeroZoomWidth, zeroZoomHeight,
+        minZoomWidth, minZoomWidth,  pixelsPerZoomOutUnit,
+        maxZoomWidth, maxZoomHeight, pixelsPerZoomInUnit,
     };
 };
 
