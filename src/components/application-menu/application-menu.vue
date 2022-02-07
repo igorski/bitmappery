@@ -497,7 +497,10 @@ export default {
         if ( this.$refs.fullscreenBtn ) {
             setToggleButton( this.$refs.fullscreenBtn, isFullscreen => {
                 this.isFullscreen = isFullscreen;
-                getCanvasInstance()?.rescaleFn();
+                // slight timeout as resize doesn't fire until full screen toggle is complete
+                window.setTimeout(() => {
+                    getCanvasInstance()?.rescaleFn();
+                }, 100 );
             });
         }
     },
