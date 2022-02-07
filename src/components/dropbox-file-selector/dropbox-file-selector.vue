@@ -32,15 +32,17 @@
             <div v-if="leaf" class="content__wrapper">
                 <div class="breadcrumbs">
                     <!-- parent folders -->
-                    <button v-for="parent in breadcrumbs"
-                            :key="parent.path"
-                            type="button"
-                            @click="handleNodeClick( parent )"
-                    >{{ parent.name || "./" }}</button>
+                    <button
+                        v-for="parent in breadcrumbs"
+                        :key="parent.path"
+                        type="button"
+                        class="breadcrumbs__button"
+                        @click="handleNodeClick( parent )"
+                    >{{ parent.name || "." }}</button>
                     <!-- current folder -->
                     <button
                         type="button"
-                        class="active"
+                        class="breadcrumbs__button breadcrumbs__button--active"
                     >{{ leaf.name }}</button>
                 </div>
                 <div v-if="!loading" class="content__folders">
@@ -369,6 +371,7 @@ $actionsHeight: 74px;
     .content__folders {
         overflow: auto;
         height: calc(100% - #{$heading-height + $actionsHeight});
+        padding-top: $spacing-small;
     }
 
     @include mobile() {
@@ -397,23 +400,29 @@ $actionsHeight: 74px;
 }
 
 .breadcrumbs {
-    padding: $spacing-medium 0;
-    margin-bottom: $spacing-small;
-    background-color: #b6b6b6;
+    padding: $spacing-small 0 $spacing-small $spacing-small;
+    background-color: $color-bg;
 
-    button {
+    &__button {
         display: inline;
         position: relative;
         cursor: pointer;
-        margin-right: $spacing-small;
         border: none;
         background: none;
-        padding: 0 $spacing-small;
-        border-left: 1px solid $color-lines;
+        padding-left: $spacing-xsmall;
+        padding-right: 0;
         font-size: 100%;
         @include customFont();
 
-        &:hover, &.active {
+        &:after {
+            content: " /";
+        }
+
+        &:hover {
+            color: $color-4;
+        }
+
+        &--active {
             color: #FFF;
         }
     }

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -70,7 +70,14 @@ export default {
     },
     async created() {
         this.loading = true;
+
+        // note we wrap the authentication check inside a global loading state as Dropbox
+        // API has been observed to have high latencies
+        const LOADING_KEY = "dbxc";
+        this.setLoading( LOADING_KEY );
         this.authenticated = await isAuthenticated();
+        this.unsetLoading( LOADING_KEY );
+
         if ( this.authenticated ) {
             if ( !this.dropboxConnected ) {
                 this.showConnectionMessage();
@@ -94,6 +101,8 @@ export default {
         ...mapMutations([
             "openDialog",
             "openModal",
+            "setLoading",
+            "unsetLoading",
             "showNotification",
         ]),
         login() {
