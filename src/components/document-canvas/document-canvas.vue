@@ -66,6 +66,7 @@ import { scaleToRatio } from "@/math/image-math";
 import { scale } from "@/math/unit-math";
 import { getAlignableObjects } from "@/utils/document-util";
 import { isMobile } from "@/utils/environment-util";
+import { fitInWindow } from "@/utils/zoom-util";
 import {
     getCanvasInstance, setCanvasInstance,
     createSpriteForLayer, getSpriteForLayer, flushLayerSprites, flushCache as flushSpriteCache,
@@ -148,7 +149,7 @@ export default {
                     const zCanvas = this.createCanvas();
                     this.$nextTick(() => {
                         zCanvas.insertInPage( this.$refs.canvasContainer );
-                        this.calcIdealDimensions();
+                        this.calcIdealDimensions( true );
                     });
                 }
                 const { id } = document;
@@ -159,8 +160,7 @@ export default {
                     flushBitmapCache();
                     renderState.reset();
                     layerPool.clear();
-                    this.calcIdealDimensions();
-                    this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value: 1 }); // reset zoom
+                    this.calcIdealDimensions( true );
                     this.$nextTick( async () => {
                         // previously active tool needs to update to new document ref
                         const tool = this.activeTool;
@@ -352,9 +352,13 @@ export default {
                 this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
             }
         },
-        calcIdealDimensions() {
+        calcIdealDimensions( scaleDocumentToFit = false ) {
             this.cacheContainerSize();
             this.scaleCanvas();
+            if ( scaleDocumentToFit && this.activeDocument ) {
+                // set zoom to optimum scale
+                this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value: fitInWindow( this.activeDocument, this.canvasDimensions ) });
+            }
         },
         panViewport({ left, top }) {
             getCanvasInstance().panViewport(

@@ -61,7 +61,7 @@
 import { mapGetters, mapMutations } from "vuex";
 import Slider from "@/components/ui/slider/slider";
 import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
-import { getZoomRange } from "@/math/image-math";
+import { fitInWindow, displayOriginalSize } from "@/utils/zoom-util";
 import messages from "./messages.json";
 
 export default {
@@ -100,46 +100,10 @@ export default {
             this.zoomLevel = 0;
         },
         setFitWindow() {
-            const { visibleWidth, visibleHeight, horizontalDominant } = this.canvasDimensions;
-            const {
-                zeroZoomWidth, zeroZoomHeight,
-                minZoomWidth, minZoomHeight, pixelsPerZoomOutUnit,
-            } = getZoomRange( this.activeDocument, this.canvasDimensions );
-
-            if ( horizontalDominant ) {
-                this.setZoomLevel(( zeroZoomHeight - visibleHeight ) / pixelsPerZoomOutUnit );
-            } else {
-                this.setZoomLevel(( zeroZoomWidth - visibleWidth ) / pixelsPerZoomOutUnit );
-            }
+            this.zoomLevel = fitInWindow( this.activeDocument, this.canvasDimensions );
         },
         setOriginalSize() {
-            const { width, height } = this.activeDocument;
-            const { horizontalDominant } = this.canvasDimensions;
-            const {
-                zeroZoomWidth, zeroZoomHeight, pixelsPerZoomOutUnit, pixelsPerZoomInUnit
-            } = getZoomRange( this.activeDocument, this.canvasDimensions );
-
-            if ( width === zeroZoomWidth ) {
-                this.setBestFit();
-                return;
-            }
-
-            if ( width < zeroZoomWidth ) {
-                if ( horizontalDominant ) {
-                    this.setZoomLevel(( zeroZoomHeight - height ) / pixelsPerZoomOutUnit );
-                } else {
-                    this.setZoomLevel(( zeroZoomWidth - width ) / pixelsPerZoomOutUnit );
-                }
-            } else {
-                if ( horizontalDominant ) {
-                    this.setZoomLevel(( width - zeroZoomWidth ) / pixelsPerZoomInUnit );
-                } else {
-                    this.setZoomLevel(( height - zeroZoomHeight ) / pixelsPerZoomInUnit );
-                }
-            }
-        },
-        setZoomLevel( level ) {
-            this.zoomLevel = Math.max( MIN_ZOOM, Math.min( MAX_ZOOM, level ));
+            this.zoomLevel = displayOriginalSize( this.activeDocument, this.canvasDimensions );
         },
     },
 };
