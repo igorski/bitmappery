@@ -295,7 +295,7 @@ export default {
                     height : this.viewportHeight
                 },
                 handler: this.handleCanvasEvent.bind( this ),
-            }, this.$store, this.calcIdealDimensions );
+            }, this.$store, this.calcIdealDimensions.bind( this, true ));
             setCanvasInstance( zCanvas );
             guideRenderer = new GuideRenderer( this.hasGuideRenderer ? zCanvas : null );
             this.updateGuideModes();
