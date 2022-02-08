@@ -297,18 +297,16 @@ export default {
             padding: $spacing-xsmall $spacing-medium $spacing-xxsmall;
         }
 
-        .component__title,
+        .component__header,
         .component__close-button {
             display: none;
         }
     }
 
-    @media screen and (min-height: 875px) {
-        width: 60px !important;
+    // tall screens
 
-        .component__content {
-            padding-top: $spacing-xxlarge;
-        }
+    @media screen and (min-height: 880px) {
+        width: 60px !important;
 
         .component__title {
             display: none;
