@@ -201,7 +201,7 @@ const hasEffects = layer => {
         return true;
     }
     const { effects } = layer;
-    return effects.rotation !== 0 || effects.mirrorX || effects.mirrorY;
+    return effects.mirrorX || effects.mirrorY;
 };
 
 const renderText = async layer => {
@@ -233,7 +233,7 @@ const renderTransformedSource = async ( layer, ctx, sourceBitmap, width, height,
     ctx.clearRect( 0, 0, width, height );
     ctx.save();
     ctx.scale( xScale, yScale );
-
+/*
     if ( rotate ) {
         const { x, y } = getRotationCenter({
             left   : 0,
@@ -247,6 +247,7 @@ const renderTransformedSource = async ( layer, ctx, sourceBitmap, width, height,
         targetX = x - layer.width  * .5;
         targetY = y - layer.height * .5;
     }
+*/
     ctx.drawImage( sourceBitmap, targetX, targetY );
     await renderMask( layer, ctx, targetX, targetY );
 

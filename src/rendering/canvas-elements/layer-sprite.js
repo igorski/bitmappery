@@ -28,7 +28,7 @@ import { blobToResource } from "@/utils/resource-manager";
 import { LAYER_GRAPHIC, LAYER_TEXT } from "@/definitions/layer-types";
 import { getSizeForBrush } from "@/definitions/brush-types";
 import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
-import { scaleRectangle } from "@/math/rectangle-math";
+import { scaleRectangle, rotateRectangle, getRotationCenter } from "@/math/rectangle-math";
 import { translatePointerRotation } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { clipContextToSelection } from "@/rendering/clipping";
@@ -603,6 +603,24 @@ class LayerSprite extends ZoomableSprite {
         if ( altOpacity ) {
             documentContext.globalAlpha = opacity;
         }
+
+        if ( this.layer.effects.rotation ) {
+            const { mirrorX, mirrorY, rotation } = this.layer.effects;
+            const { width, height } = this.layer;
+            let { x, y } = getRotationCenter({
+                left   : this._bounds.left - viewport.left,
+                top    : this._bounds.top - viewport.top,
+                width  : this._bounds.width,
+                height : this._bounds.height
+            }, true );
+            x -= viewport.left;
+            y -= viewport.top;
+            documentContext.save();
+            documentContext.translate( x, y );
+            documentContext.rotate( rotation );
+            documentContext.translate( -x, -y );
+        }
+
         // invoke base class behaviour to render bitmap
         super.draw( documentContext, viewport );
 
@@ -667,16 +685,12 @@ class LayerSprite extends ZoomableSprite {
                 const { x, y, width, height } = this.layer;
                 const destX = x - viewport.left;
                 const destY = y - viewport.top;
-                if ( this.isRotated()) {
-                    const tX = destX + ( width  * HALF );
-                    const tY = destY + ( height * HALF );
-                    documentContext.translate( tX, tY );
-                    documentContext.rotate( this.layer.effects.rotation );
-                    documentContext.translate( -tX, -tY );
-                }
                 documentContext.strokeRect( destX, destY, width, height );
                 documentContext.restore();
             }
+        }
+        if ( this.layer.effects.rotation ) {
+            documentContext.restore();
         }
     }
 

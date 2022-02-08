@@ -112,9 +112,11 @@ export default {
             this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value });
         },
         handleRotateGesture( event ) {
+            // TODO: this should go into history
             this.updateLayerEffects({
                 index: this.activeLayerIndex,
-                effects: { rotation: degreesToRadians( event.angle ) }
+                effects: { rotation: degreesToRadians( event.angle ) },
+                render: false
             });
         },
     }
