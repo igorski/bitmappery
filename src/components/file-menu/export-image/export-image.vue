@@ -23,7 +23,7 @@
 <template>
     <modal class="export-modal">
         <template #header>
-            <h2 v-t="'exportImage'"></h2>
+            <h2 v-t="'exportImage'" class="component__title"></h2>
         </template>
         <template #content>
             <div class="export-ui">

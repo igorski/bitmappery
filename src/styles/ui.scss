@@ -41,7 +41,7 @@
 
 /**
  * Base behaviour for a modal window. A modal should be displayed inside the modal.vue component
- * which also applies overlay() and component() stylings.
+ * which also applies overlay() and component()-mixin stylings.
  *
  * By invoking this mixin when providing your modal with a custom class, you can specify custom
  * dimensions. The modal will be fixed at those dimensions when there is sufficient screen space.
@@ -52,17 +52,13 @@
     @include minWidth( $width ) {
         width: $width;
 
-        h2 {
-            padding-left: $spacing-large;
-        }
-
-        .content {
+        .component__content {
             padding: $spacing-medium $spacing-large;
         }
     }
 
     @include minWidthFallback( $width ) {
-        .content {
+        .component__content {
             padding: $spacing-small $spacing-medium;
         }
     }
@@ -75,7 +71,7 @@
     }
 
     @include minHeightFallback( $heightPlusActions ) {
-        .actions {
+        .component__actions {
             position: fixed;
         }
     }

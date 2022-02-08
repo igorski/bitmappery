@@ -27,15 +27,17 @@
         :style="{ 'height': wrapperHeight }"
     >
         <template v-if="activeDocument">
-            <h2 class="document-title">{{ documentTitle }}</h2>
+            <div class="component__header">
+                <h2 class="component__title">{{ documentTitle }}</h2>
+            </div>
             <button
                 type="button"
-                class="close-button"
+                class="component__close-button"
                 @click="requestDocumentClose()"
             >&#215;</button>
             <div
                 ref="canvasContainer"
-                class="content"
+                class="component__content"
                 :class="{ 'center': centerCanvas }"
             ></div>
             <scrollbars
@@ -455,11 +457,11 @@ export default {
         background-color: $color-bg-light;
     }
 
-    .close-button {
+    .component__close-button {
         @include closeButton();
     }
 
-    .content {
+    .component__content {
         position: relative;
         padding: 0;
         overflow: hidden;
@@ -495,9 +497,5 @@ export default {
             }
         }
     }
-}
-
-.document-title {
-    border-bottom: 1px solid $color-1;
 }
 </style>

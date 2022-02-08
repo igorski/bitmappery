@@ -9,14 +9,14 @@ $collapsed-panel-height: 40px; // mobile view
     height: 100%;
     overflow: hidden;
 
-    .content {
+    .component__content {
         padding: $spacing-small $spacing-medium $spacing-medium;
         overflow-x: hidden;
         overflow-y: auto;
     }
 
     @include mobile() {
-        .content {
+        .component__content {
             max-height: calc(100% - #{$heading-height});
             overflow-x: hidden;
             overflow-y: auto;
@@ -24,7 +24,8 @@ $collapsed-panel-height: 40px; // mobile view
         }
     }
 
-    .close-button {
+    // overrides component mixin
+    .component__close-button {
         top: $spacing-small - $spacing-xxsmall;
         right: $spacing-xxsmall;
         width: 36px;
@@ -36,7 +37,7 @@ $collapsed-panel-height: 40px; // mobile view
         }
     }
 
-    .actions {
+    .component__actions {
         margin: $spacing-small 0;
         padding: 0 $spacing-medium;
         box-sizing: border-box;
@@ -52,7 +53,7 @@ $collapsed-panel-height: 40px; // mobile view
         @include large() {
             width: $collapsed-panel-width;
 
-            .title {
+            .component__title {
                 display: none;
             }
         }

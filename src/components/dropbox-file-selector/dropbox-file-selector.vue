@@ -22,13 +22,15 @@
  */
 <template>
     <div class="dropbox-file-modal">
-        <h2 v-t="'files'"></h2>
-        <button
-            type="button"
-            class="close-button"
-            @click="closeModal()"
-        >&#215;</button>
-        <div class="content">
+        <div class="component__header">
+            <h2 v-t="'files'" class="component__title"></h2>
+            <button
+                type="button"
+                class="component__close-button"
+                @click="closeModal()"
+            >&#215;</button>
+        </div>
+        <div class="component__content">
             <div v-if="leaf" class="content__wrapper">
                 <div class="breadcrumbs">
                     <!-- parent folders -->
@@ -85,9 +87,9 @@
                 </div>
             </div>
         </div>
-        <div class="actions">
-            <div class="actions__content">
-                <div class="form actions__form">
+        <div class="component__actions">
+            <div class="component__actions-content">
+                <div class="form component__actions-form">
                     <div class="wrapper input">
                         <input
                             v-model="newFolderName"
@@ -351,7 +353,7 @@ $actionsHeight: 74px;
     @include overlay();
     @include component();
 
-    h2 {
+    .component__title {
         color: #FFF;
     }
 
@@ -375,17 +377,17 @@ $actionsHeight: 74px;
     }
 
     @include mobile() {
-        .content {
+        .component__content {
             height: calc(100% - #{$actionsHeight});
         }
     }
 
-    .actions {
+    .component__actions {
         @include actionsFooter();
         background-image: $color-window-bg;
         padding: $spacing-xxsmall $spacing-medium;
 
-        &__content {
+        &-content {
             display: flex;
             width: 100%;
             max-width: 400px;
@@ -393,7 +395,7 @@ $actionsHeight: 74px;
             align-items: baseline;
         }
 
-        &__form {
+        &-form {
             flex: 2;
         }
     }

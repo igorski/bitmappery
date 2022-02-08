@@ -22,23 +22,25 @@
  */
 <template>
     <div class="toolbox-wrapper">
-        <h2
-            v-if="!collapsed"
-            v-t="'tools'"
-            v-tooltip="'(Tab)'"
-            class="toolbox-title"
-        ></h2>
-        <button
-            type="button"
-            class="close-button button--ghost"
-            @click="collapsed = !collapsed"
-        >
-            <img :src="`./assets/icons/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
-        </button>
+        <div class="component__header">
+            <h2
+                v-if="!collapsed"
+                v-t="'tools'"
+                v-tooltip="'(Tab)'"
+                class="component__title"
+            ></h2>
+            <button
+                type="button"
+                class="component__close-button button--ghost"
+                @click="collapsed = !collapsed"
+            >
+                <img :src="`./assets/icons/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
+            </button>
+        </div>
         <!-- click.stop.prevent is to prevent document scroll on double tap on iOS -->
         <div
             v-if="!collapsed"
-            class="content"
+            class="component__content"
             @click.stop.prevent=""
         >
             <!-- history states -->
@@ -63,17 +65,18 @@
                 <img src="@/assets/icons/icon-history.svg" class="mirrored" />
             </button>
             <!-- tools -->
-            <button v-for="(tool, index) in tools"
-                    :key="tool.type"
-                    type="button"
-                    v-tooltip="`${$t( tool.i18n )} (${tool.key})`"
-                    :title="$t( tool.i18n )"
-                    class="tool-button"
-                    :class="{
-                        'active': activeTool === tool.type
-                    }"
-                    :disabled="tool.disabled"
-                    @click="handleToolClick( tool )"
+            <button
+                v-for="(tool, index) in tools"
+                :key="tool.type"
+                type="button"
+                v-tooltip="`${$t( tool.i18n )} (${tool.key})`"
+                :title="$t( tool.i18n )"
+                class="tool-button"
+                :class="{
+                    'active': activeTool === tool.type
+                }"
+                :disabled="tool.disabled"
+                @click="handleToolClick( tool )"
             >
                 <img :src="`./assets/icons/tool-${tool.icon}.svg`" />
             </button>
@@ -266,12 +269,12 @@ export default {
     @include component();
 
     @include large() {
-        .content {
+        .component__content {
             margin-right: -$spacing-small;
             padding: $spacing-small + $spacing-xsmall;
         }
 
-        .close-button {
+        .component__close-button {
             top: $spacing-small - $spacing-xxsmall;
             right: $spacing-xxsmall;
             width: 36px;
@@ -289,13 +292,13 @@ export default {
         overflow-y: hidden;
         overflow-x: auto;
 
-        .content {
+        .component__content {
             width: max-content;
             padding: $spacing-xsmall $spacing-medium $spacing-xxsmall;
         }
 
-        h2,
-        .close-button {
+        .component__title,
+        .component__close-button {
             display: none;
         }
     }
@@ -303,15 +306,15 @@ export default {
     @media screen and (min-height: 875px) {
         width: 60px !important;
 
-        .content {
+        .component__content {
             padding-top: $spacing-xxlarge;
         }
 
-        .toolbox-title {
+        .component__title {
             display: none;
         }
 
-        .close-button {
+        .component__close-button {
             top: $spacing-small;
             right: #{$spacing-medium - $spacing-xsmall};
         }

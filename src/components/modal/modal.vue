@@ -22,17 +22,19 @@
 */
 <template>
     <div class="modal">
-        <slot name="header" />
-        <button
-            type="button"
-            class="close-button"
-            @click="closeModal()"
-        >&#215;</button>
-        <div ref="content" class="content">
-            <div class="content-wrapper">
+        <div class="component__header">
+            <slot name="header" />
+            <button
+                type="button"
+                class="component__close-button"
+                @click="closeModal()"
+            >&#215;</button>
+        </div>
+        <div ref="content" class="component__content">
+            <div class="component__content-wrapper">
                 <slot name="content" />
             </div>
-            <div class="actions">
+            <div class="component__actions">
                 <slot name="actions" />
             </div>
         </div>
@@ -75,32 +77,36 @@ export default {
     background-image: $color-window-bg;
     $headerHeight: 48px;
 
-    h2 {
-        @include customFont();
-        color: #FFF;
+    .component__header {
         height: $headerHeight;
         padding: #{$spacing-xsmall + $spacing-small} $spacing-medium 0 #{$spacing-medium + $spacing-small};
         border: none;
     }
 
-    .close-button {
+    .component__title {
+        @include customFont();
+        color: #FFF;
+    }
+
+    .component__close-button {
+        @include closeButton();
         top: #{$spacing-xsmall + $spacing-small};
         right: #{$spacing-medium + $spacing-small};
     }
 
-    .content {
+    .component__content {
         position: relative;
         height: calc(100% - #{$headerHeight});
         padding: $spacing-medium #{$spacing-medium + $spacing-small};
     }
 
-    .content-wrapper {
+    .component__content-wrapper {
         overflow-x: hidden;
         overflow-y: auto;
         height: inherit;
     }
 
-    .actions {
+    .component__actions {
         @include actionsFooter();
     }
 }

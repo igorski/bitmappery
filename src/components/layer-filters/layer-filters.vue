@@ -22,7 +22,7 @@
  */
 <template>
     <div class="layer-filters">
-        <div class="content form">
+        <div class="component__content form">
             <div class="wrapper input">
                 <label v-t="'enabled'"></label>
                 <toggle-button
@@ -85,7 +85,7 @@
                 />
             </div>
         </div>
-        <div class="actions">
+        <div class="component__actions">
             <button
                 v-t="'reset'"
                 type="button"
@@ -261,7 +261,7 @@ export default {
     flex-direction: column;
 }
 
-.content {
+.component__content {
     padding: $spacing-small 0;
     @include boxSize();
     @include truncate();
@@ -269,7 +269,7 @@ export default {
     border-bottom: 1px solid $color-lines;
 }
 
-.actions {
+.component__actions {
     margin-top: $spacing-medium;
 }
 </style>

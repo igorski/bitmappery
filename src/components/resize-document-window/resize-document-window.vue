@@ -23,7 +23,7 @@
 <template>
     <modal class="resize-document">
         <template #header>
-            <h2 v-t="'resizeDocument'"></h2>
+            <h2 v-t="'resizeDocument'" class="component__title"></h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="save()">

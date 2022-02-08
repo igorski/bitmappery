@@ -23,7 +23,7 @@
 <template>
     <modal class="resize-canvas">
         <template #header>
-            <h2 v-t="'resizeCanvas'"></h2>
+            <h2 v-t="'resizeCanvas'" class="component__title"></h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="resize()">

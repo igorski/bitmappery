@@ -25,21 +25,23 @@
         class="options-panel-wrapper"
         :class="{ collapsed }"
     >
-        <h2
-            v-t="'toolOptions'"
-            v-tooltip="'(Tab)'"
-            class="title"
-        ></h2>
-        <button
-            type="button"
-            class="close-button button--ghost"
-            @click="collapsed = !collapsed"
-        >
-            <img :src="`./assets/icons/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
-        </button>
+        <div class="component__header">
+            <h2
+                v-t="'toolOptions'"
+                v-tooltip="'(Tab)'"
+                class="component__title"
+            ></h2>
+            <button
+                type="button"
+                class="component__close-button button--ghost"
+                @click="collapsed = !collapsed"
+            >
+                <img :src="`./assets/icons/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
+            </button>
+        </div>
         <div
             v-if="!collapsed"
-            class="content form"
+            class="component__content form"
         >
             <!-- active tool section -->
             <p v-if="!activeToolOptions" v-t="'noToolOptions'"></p>

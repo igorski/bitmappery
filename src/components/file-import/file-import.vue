@@ -22,7 +22,9 @@
  */
 <template>
     <div class="file-import">
-        <h2 v-t="'letsGetStarted'" class="file-import__title"></h2>
+        <div class="component__header">
+            <h2 v-t="'letsGetStarted'" class="component__title component__title--no-action"></h2>
+        </div>
         <div class="form import-form">
             <p v-t="'chooseContentCreationMethod'"></p>
             <button
@@ -121,10 +123,6 @@ export default {
     overflow-y: auto;
     text-align: center;
     background-color: #292929;
-
-    &__title {
-        border-bottom: 1px solid $color-1;
-    }
 }
 
 .file-fieldset {

@@ -23,7 +23,7 @@
 <template>
     <modal class="grid-to-layers">
         <template #header>
-            <h2 v-t="'sliceGridToLayers'"></h2>
+            <h2 v-t="'sliceGridToLayers'" class="component__title"></h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="requestSlice()">

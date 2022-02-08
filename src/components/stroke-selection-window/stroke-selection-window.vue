@@ -23,7 +23,7 @@
 <template>
     <modal class="stroke-selection">
         <template #header>
-            <h2 v-t="'strokeSelection'"></h2>
+            <h2 v-t="'strokeSelection'" class="component__title"></h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="stroke()">

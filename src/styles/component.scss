@@ -6,8 +6,7 @@
     box-shadow: 0 0 5px rgba(0,0,0,.5);
     background-image: $color-window-bg;
 
-    h2 {
-        display: block;
+    .component__header {
         margin: 0;
         padding: $spacing-small $spacing-medium;
         @include boxSize();
@@ -19,7 +18,21 @@
         border-bottom: 1px solid $color-1;
     }
 
-    .content {
+    .component__title {
+        display: block;
+        margin: 0;
+        padding: 0;
+        width: calc(100% - 24px); // minus close button width
+        text-overflow: ellipsis;
+        overflow: hidden;
+        color: $color-text;
+
+        &--no-action {
+            width: 100%;
+        }
+    }
+
+    .component__content {
         @include boxSize();
 
         @include large() {
@@ -31,7 +44,7 @@
         }
     }
 
-    .close-button {
+    .component__close-button {
         cursor: pointer;
         position: absolute;
         top: $spacing-small;
