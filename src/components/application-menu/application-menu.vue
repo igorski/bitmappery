@@ -718,6 +718,7 @@ $toggle-width: 50px;
     margin: 0 auto;
     padding: $spacing-small $spacing-medium;
     width: 100%;
+    height: $menu-height;
     background-image: $color-window-bg;
     @include boxSize();
 
@@ -729,7 +730,6 @@ $toggle-width: 50px;
     }
 
     @include mobile() {
-        height: $menu-height;
         position: fixed;
         z-index: 5;
         overflow: hidden;
@@ -823,8 +823,7 @@ $toggle-width: 50px;
         position: absolute;
         top: 50%;
         left: 50%;
-        margin-top: -$spacing-medium;
-        margin-left: -$spacing-medium;
+        transform: translate(-50%, -50%);
     }
 }
 
@@ -835,6 +834,7 @@ h1 {
     padding-right: $spacing-medium;
     font-size: 110%;
     font-weight: bold;
+    vertical-align: middle;
 
     .emphasis {
         color: #FFF;
@@ -846,6 +846,7 @@ h1 {
     list-style-type: none;
     padding: 0;
     margin: 0;
+    vertical-align: middle;
     @include boxSize();
 
     li {
@@ -966,7 +967,7 @@ h1 {
 
 .fullscreen-button {
     position: absolute;
-    top: $spacing-small;
+    top: #{( $menu-height / 2 ) - 10px};
     right: $spacing-medium;
     cursor: pointer;
     background: transparent;
