@@ -714,7 +714,8 @@ $toggle-width: 50px;
 
 .menu {
     color: #b6b6b6;
-    display: block;
+    display: flex;
+    align-items: center;
     margin: 0 auto;
     padding: $spacing-small $spacing-medium;
     width: 100%;
@@ -834,7 +835,6 @@ h1 {
     padding-right: $spacing-medium;
     font-size: 110%;
     font-weight: bold;
-    vertical-align: middle;
 
     .emphasis {
         color: #FFF;
@@ -846,7 +846,6 @@ h1 {
     list-style-type: none;
     padding: 0;
     margin: 0;
-    vertical-align: middle;
     @include boxSize();
 
     li {
