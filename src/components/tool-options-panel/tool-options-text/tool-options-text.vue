@@ -31,6 +31,7 @@
                 ref="textInput"
                 v-model="text"
                 :placeholder="$t('typeYourTextHere')"
+                :disabled="disabled"
                 class="input-textarea full"
             />
         </div>
@@ -40,6 +41,7 @@
                 v-model="font"
                 :options="fonts"
                 :searchable="canSearchFonts"
+                :disabled="disabled"
                 append-to-body
             >
                 <template #option="{ value }">
@@ -53,11 +55,13 @@
                 v-model="size"
                 class="input-field half"
                 type="number"
+                :disabled="disabled"
             />
             <select-box
                 v-model="unit"
                 :options="unitOptions"
                 class="half"
+                :disabled="disabled"
             />
         </div>
         <div class="wrapper slider">
@@ -66,6 +70,7 @@
                 v-model="lineHeight"
                 :min="0"
                 :max="172"
+                :disabled="disabled"
                 :tooltip="'none'"
             />
         </div>
@@ -75,6 +80,7 @@
                 v-model="spacing"
                 :min="0"
                 :max="172"
+                :disabled="disabled"
                 :tooltip="'none'"
             />
         </div>
@@ -84,6 +90,7 @@
                 :is="colorPicker"
                 v-model="color"
                 v-tooltip="$t('color')"
+                :disabled="disabled"
                 class="color-picker"
             />
         </div>
@@ -95,7 +102,7 @@ import { mapGetters, mapMutations } from "vuex";
 import VueSelect from "vue-select";
 import SelectBox from "@/components/ui/select-box/select-box";
 import Slider from "@/components/ui/slider/slider";
-import { DEFAULT_LAYER_NAME } from "@/definitions/layer-types";
+import { DEFAULT_LAYER_NAME, LAYER_TEXT } from "@/definitions/layer-types";
 import FontPreview from "./font-preview/font-preview";
 import { mapSelectOptions } from "@/utils/search-select-util";
 import { enqueueState } from "@/factories/history-state-factory";
@@ -125,6 +132,9 @@ export default {
             "activeLayerIndex",
             "activeLayer",
         ]),
+        disabled() {
+            return this.activeLayer?.type !== LAYER_TEXT;
+        },
         canSearchFonts() {
             return !isMobile(); // only show preview list on mobile
         },

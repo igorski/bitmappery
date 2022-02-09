@@ -34,6 +34,7 @@
                     v-model="maintainRatio"
                     name="ratio"
                     sync
+                    :disabled="!activeLayer"
                 />
             </div>
             <div class="wrapper input">
@@ -42,13 +43,13 @@
                     type="number"
                     v-model.number="xRatio"
                     class="input-field half"
-                    :disabled="!maintainRatio"
+                    :disabled="!activeLayer || !maintainRatio"
                 />
                 <input
                     type="number"
                     v-model.number="yRatio"
                     class="input-field half"
-                    :disabled="!maintainRatio"
+                    :disabled="!activeLayer || !maintainRatio"
                 />
             </div>
         </template>
@@ -120,6 +121,7 @@ export default {
     computed: {
         ...mapGetters([
             "activeDocument",
+            "activeLayer",
             "activeTool",
             "hasSelection",
             "selectionOptions",
