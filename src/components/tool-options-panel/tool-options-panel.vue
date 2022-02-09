@@ -44,7 +44,11 @@
             class="component__content form"
         >
             <!-- active tool section -->
-            <p v-if="!activeToolOptions" v-t="'noToolOptions'"></p>
+            <p
+                v-if="!activeToolOptions"
+                v-t="'noToolOptions'"
+                class="no-tools-text"
+            ></p>
             <component v-else :is="activeToolOptions" />
         </div>
     </div>
@@ -128,5 +132,9 @@ export default {
             height: $collapsed-panel-height;
         }
     }
+}
+
+.no-tools-text {
+    margin-top: $spacing-small;
 }
 </style>

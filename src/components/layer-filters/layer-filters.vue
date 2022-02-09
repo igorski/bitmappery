@@ -265,7 +265,6 @@ export default {
     padding: $spacing-small 0;
     @include boxSize();
     @include truncate();
-    border-top: 1px solid $color-lines;
     border-bottom: 1px solid $color-lines;
 }
 

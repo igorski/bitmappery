@@ -715,6 +715,7 @@ $toggle-width: 50px;
 .menu {
     color: #b6b6b6;
     display: flex;
+    justify-content: space-between;
     align-items: center;
     margin: 0 auto;
     padding: $spacing-small $spacing-medium;
@@ -842,7 +843,7 @@ h1 {
 }
 
 .menu-list {
-    display: inline;
+    flex: 1;
     list-style-type: none;
     padding: 0;
     margin: 0;
@@ -965,15 +966,19 @@ h1 {
 }
 
 .fullscreen-button {
-    position: absolute;
-    top: #{( $menu-height / 2 ) - 10px};
-    right: $spacing-medium;
+    height: #{( $menu-height / 2 )};
     cursor: pointer;
     background: transparent;
     border: none;
 
     &:hover {
         filter: brightness(0) invert(1);
+    }
+
+    @include mobile() {
+        position: absolute;
+        top: #{( $menu-height / 2 ) - 10px};
+        right: $spacing-medium;
     }
 }
 </style>
