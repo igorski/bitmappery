@@ -23,22 +23,24 @@
 <template>
     <modal>
         <template #header>
-            <h2 v-t="'addNewLayer'"></h2>
+            <h2 v-t="'addNewLayer'" class="component__title"></h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="requestLayerAdd()">
                 <div class="wrapper input">
                     <label v-t="'layerName'"></label>
-                    <input ref="nameInput"
-                           type="text"
-                           v-model="name"
-                           class="input-field"
+                    <input
+                        ref="nameInput"
+                        type="text"
+                        v-model="name"
+                        class="input-field"
                     />
                 </div>
                 <div class="wrapper input">
                     <label v-t="'layerType'"></label>
-                    <select-box :options="layerTypes"
-                                 v-model="type"
+                    <select-box
+                        :options="layerTypes"
+                        v-model="type"
                     />
                 </div>
             </div>

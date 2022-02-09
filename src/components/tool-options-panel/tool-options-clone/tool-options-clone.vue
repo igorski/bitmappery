@@ -28,6 +28,7 @@
             <select-box
                 v-model="sourceLayer"
                 :options="selectableLayers"
+                :disabled="disabled"
             />
         </div>
         <div class="wrapper slider">
@@ -36,6 +37,7 @@
                 v-model="brushSize"
                 :min="1"
                 :max="MAX_BRUSH_SIZE"
+                :disabled="disabled"
             />
         </div>
         <!-- <div class="wrapper slider">
@@ -44,6 +46,7 @@
                 v-model="thickness"
                 :min="0"
                 :max="100"
+                :disabled="disabled"
             />
         </div> -->
         <div class="wrapper slider">
@@ -52,6 +55,7 @@
                 v-model="opacity"
                 :min="0"
                 :max="100"
+                :disabled="disabled"
             />
         </div>
         <div class="wrapper input">
@@ -60,6 +64,7 @@
                 v-tooltip="'(Alt + Click)'"
                 type="button"
                 class="button button--small full"
+                :disabled="disabled"
                 @click="resetSourceCoordinate()"
             ></button>
         </div>
@@ -68,7 +73,7 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import ToolTypes, { MAX_BRUSH_SIZE, TOOL_SRC_MERGED } from "@/definitions/tool-types";
+import ToolTypes, { MAX_BRUSH_SIZE, TOOL_SRC_MERGED, canDraw } from "@/definitions/tool-types";
 import SelectBox from '@/components/ui/select-box/select-box';
 import Slider from "@/components/ui/slider/slider";
 import messages from "./messages.json";
@@ -87,10 +92,14 @@ export default {
     }),
     computed: {
         ...mapGetters([
+            "activeDocument",
             "activeLayer",
             "layers",
             "cloneOptions",
         ]),
+        disabled() {
+            return !canDraw( this.activeDocument, this.activeLayer );
+        },
         selectableLayers() {
             return [
                 ...( this.layers || [] ).filter(({ visible }) => visible ),

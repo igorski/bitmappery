@@ -23,7 +23,7 @@
 <template>
     <modal class="save-dropbox-modal">
         <template #header>
-            <h2 v-t="'saveDocumentInDropbox'"></h2>
+            <h2 v-t="'saveDocumentInDropbox'" class="component__title"></h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="requestSave()">

@@ -357,7 +357,7 @@
                             </button>
                         </li>
                     </template>
-                    <li v-else><span v-t="'noDocumentsOpen'"></span></li>
+                    <li v-else><span v-t="'noDocumentsOpen'" class="menu-text"></span></li>
                 </ul>
             </li>
             <!-- help menu -->
@@ -497,7 +497,10 @@ export default {
         if ( this.$refs.fullscreenBtn ) {
             setToggleButton( this.$refs.fullscreenBtn, isFullscreen => {
                 this.isFullscreen = isFullscreen;
-                getCanvasInstance()?.rescaleFn();
+                // slight timeout as resize doesn't fire until full screen toggle is complete
+                window.setTimeout(() => {
+                    getCanvasInstance()?.rescaleFn();
+                }, 100 );
             });
         }
     },
@@ -701,6 +704,7 @@ export default {
 $toggle-width: 50px;
 
 .heading {
+    @include customFont();
     letter-spacing: $spacing-xxsmall;
 
     .emphasis {
@@ -710,10 +714,13 @@ $toggle-width: 50px;
 
 .menu {
     color: #b6b6b6;
-    display: block;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin: 0 auto;
     padding: $spacing-small $spacing-medium;
     width: 100%;
+    height: $menu-height;
     background-image: $color-window-bg;
     @include boxSize();
 
@@ -725,7 +732,6 @@ $toggle-width: 50px;
     }
 
     @include mobile() {
-        height: $menu-height;
         position: fixed;
         z-index: 5;
         overflow: hidden;
@@ -800,6 +806,10 @@ $toggle-width: 50px;
             }
         }
     }
+
+    &-text {
+        font-size: 95%;
+    }
 }
 
 .toggle {
@@ -815,8 +825,7 @@ $toggle-width: 50px;
         position: absolute;
         top: 50%;
         left: 50%;
-        margin-top: -$spacing-medium;
-        margin-left: -$spacing-medium;
+        transform: translate(-50%, -50%);
     }
 }
 
@@ -834,7 +843,7 @@ h1 {
 }
 
 .menu-list {
-    display: inline;
+    flex: 1;
     list-style-type: none;
     padding: 0;
     margin: 0;
@@ -851,7 +860,6 @@ h1 {
             color: #b6b6b6;
             text-decoration: none;
             padding-bottom: $spacing-large;
-            @include customFont();
         }
 
         &:hover,
@@ -958,15 +966,19 @@ h1 {
 }
 
 .fullscreen-button {
-    position: absolute;
-    top: $spacing-small;
-    right: $spacing-medium;
+    height: #{( $menu-height / 2 )};
     cursor: pointer;
     background: transparent;
     border: none;
 
     &:hover {
         filter: brightness(0) invert(1);
+    }
+
+    @include mobile() {
+        position: absolute;
+        top: #{( $menu-height / 2 ) - 10px};
+        right: $spacing-medium;
     }
 }
 </style>

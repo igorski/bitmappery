@@ -28,6 +28,7 @@
                 v-model="zoomLevel"
                 :min="min"
                 :max="max"
+                :disabled="!activeDocument"
                 :tooltip="'none'"
             />
         </div>
@@ -36,18 +37,21 @@
                 v-t="'bestFit'"
                 type="button"
                 class="button button--small"
+                :disabled="!activeDocument"
                 @click="setBestFit()"
             ></button>
             <button
                 v-t="'fitWindow'"
                 type="button"
                 class="button button--small"
+                :disabled="!activeDocument"
                 @click="setFitWindow()"
             ></button>
             <button
                 v-t="'original'"
                 type="button"
                 class="button button--small"
+                :disabled="!activeDocument"
                 @click="setOriginalSize()"
             ></button>
         </div>
@@ -56,8 +60,9 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import Slider from "@/components/ui/slider/slider";
+import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
+import { fitInWindow, displayOriginalSize } from "@/utils/zoom-util";
 import messages from "./messages.json";
 
 export default {
@@ -96,40 +101,10 @@ export default {
             this.zoomLevel = 0;
         },
         setFitWindow() {
-            const { width, height } = this.activeDocument;
-            const { visibleWidth, visibleHeight, maxOutScale } = this.canvasDimensions;
-
-            const isWidthDominantSide = this.canvasDimensions.height === visibleHeight;
-
-            let minZoomWidth, minZoomHeight, widthAtZeroZoom, heightAtZeroZoom, pixelsPerZoomUnit;
-
-            if ( isWidthDominantSide ) {
-                // width is dominant, meaning zoom level 0 has image occupying full visibleHeight
-                minZoomHeight     = visibleHeight / maxOutScale;
-                minZoomWidth      = minZoomHeight * ( width / height );
-                heightAtZeroZoom  = visibleHeight;
-                widthAtZeroZoom   = ( width / height ) * heightAtZeroZoom;
-                pixelsPerZoomUnit = ( widthAtZeroZoom - minZoomWidth ) / MIN_ZOOM;
-
-                this.setZoomLevel(( widthAtZeroZoom - visibleWidth ) / pixelsPerZoomUnit );
-            }
-            else {
-                // height is dominant, meaning zoom level 0 has image occupying full visibleWidth
-                minZoomWidth      = visibleWidth / maxOutScale;
-                minZoomHeight     = minZoomWidth * ( height / width );
-                widthAtZeroZoom   = visibleWidth;
-                heightAtZeroZoom  = ( height / width ) * widthAtZeroZoom;
-                pixelsPerZoomUnit = ( widthAtZeroZoom - minZoomWidth ) / MIN_ZOOM;
-
-                this.setZoomLevel(( heightAtZeroZoom - visibleHeight ) / pixelsPerZoomUnit );
-            }
-            //console.log( `cvs dims: ${JSON.stringify(this.canvasDimensions)}, doc size: ${width}x${height}, min zoom: ${minZoomWidth}x${minZoomHeight}, when zero: ${widthAtZeroZoom}x${heightAtZeroZoom}`);
+            this.zoomLevel = fitInWindow( this.activeDocument, this.canvasDimensions );
         },
         setOriginalSize() {
-            this.zoomLevel  = ( this.activeDocument.width / this.canvasDimensions.width ) * window.devicePixelRatio;
-        },
-        setZoomLevel( level ) {
-            this.zoomLevel = Math.max( MIN_ZOOM, Math.min( MAX_ZOOM, level ));
+            this.zoomLevel = displayOriginalSize( this.activeDocument, this.canvasDimensions );
         },
     },
 };

@@ -23,7 +23,7 @@
 <template>
     <modal class="create-document">
         <template #header>
-            <h2 v-t="'newDocument'"></h2>
+            <h2 v-t="'newDocument'" class="component__title"></h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="save()">

@@ -25,16 +25,18 @@
         class="layer-panel-wrapper"
         :class="{ collapsed }"
     >
-        <h2
-            class="title"
-        >{{ showFilters ? $t( 'filtersForLayer', { name: activeLayer.name }) : $t( 'layers' ) }}</h2>
-        <button
-            type="button"
-            class="close-button button--ghost"
-            @click="collapsed = !collapsed"
-        >
-            <img :src="`./assets/icons/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
-        </button>
+        <div class="component__header">
+            <h2
+                class="component__title"
+            >{{ showFilters ? $t( 'filtersForLayer', { name: activeLayer.name }) : $t( 'layers' ) }}</h2>
+            <button
+                type="button"
+                class="component__close-button button--ghost"
+                @click="collapsed = !collapsed"
+            >
+                <img :src="`./assets/icons/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
+            </button>
+        </div>
         <template v-if="!collapsed">
             <layer-filters
                 v-if="showFilters"
@@ -42,7 +44,7 @@
             />
             <div
                 v-else
-                class="content form"
+                class="component__content form"
             >
                 <div
                     v-if="reverseLayers.length"
@@ -114,9 +116,10 @@
                 <p
                     v-else
                     v-t="'noLayers'"
+                    class="no-layers-text"
                 ></p>
             </div>
-            <div v-if="!showFilters" class="actions">
+            <div v-if="!showFilters" class="component__actions">
                 <button
                     v-t="'addLayer'"
                     type="button"
@@ -345,6 +348,10 @@ export default {
     display: flex;
     flex-direction: column;
 
+    .component__content.form {
+        padding: 0;
+    }
+
     @include mobile() {
         &.collapsed {
             position: fixed;
@@ -358,7 +365,10 @@ export default {
     padding: 0;
     @include boxSize();
     @include truncate();
-    border-top: 1px solid $color-lines;
+}
+
+.no-layers-text {
+    padding: 0 $spacing-medium;
 }
 
 .layer {
@@ -368,14 +378,15 @@ export default {
     @include boxSize();
     @include customFont();
     display: flex;
+    color: #FFF;
 
     &:hover {
         background-color: $color-4;
         color: #000;
     }
+
     &.active {
         background-color: $color-1;
-        color: #FFF;
         border: none;
     }
 
@@ -385,13 +396,16 @@ export default {
         @include truncate();
         font-size: 90%;
         padding: $spacing-small $spacing-small 0;
+        margin-left: $spacing-small;
     }
     .highlight {
-        color: #FFF;
+        color: #000;
     }
 }
 
 .layer-actions {
+    margin-right: $spacing-small;
+
     .button {
         width: 30px;
         height: 32px;

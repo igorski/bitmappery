@@ -1,22 +1,38 @@
 @import "_mixins";
+@import "typography";
 
 @mixin component {
     position: relative;
     box-shadow: 0 0 5px rgba(0,0,0,.5);
-    background-color: $color-bg;
+    background-image: $color-window-bg;
 
-    h2 {
-        display: block;
+    .component__header {
         margin: 0;
         padding: $spacing-small $spacing-medium;
         @include boxSize();
         @include truncate();
-        color: #FFF;
+        @include customFont();
+        color: $color-text;
         background-image: $color-window-bg;
         height: $heading-height;
+        border-bottom: 1px solid $color-1;
     }
 
-    .content {
+    .component__title {
+        display: block;
+        margin: 0;
+        padding: 0;
+        width: calc(100% - 24px); // minus close button width
+        text-overflow: ellipsis;
+        overflow: hidden;
+        color: $color-text;
+
+        &--no-action {
+            width: 100%;
+        }
+    }
+
+    .component__content {
         @include boxSize();
 
         @include large() {
@@ -28,10 +44,10 @@
         }
     }
 
-    .close-button {
+    .component__close-button {
         cursor: pointer;
         position: absolute;
         top: $spacing-small;
-        right: $spacing-small;
+        right: $spacing-medium;
     }
 }

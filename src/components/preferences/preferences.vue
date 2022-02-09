@@ -23,7 +23,7 @@
 <template>
     <modal class="preferences">
         <template #header>
-            <h2 v-t="'preferences'"></h2>
+            <h2 v-t="'preferences'" class="component__title"></h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="save()">

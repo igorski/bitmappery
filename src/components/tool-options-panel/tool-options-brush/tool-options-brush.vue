@@ -25,8 +25,10 @@
         <h3 v-t="'brush'"></h3>
         <div class="wrapper input">
             <label v-t="'brushType'"></label>
-            <select-box :options="brushTypes"
-                         v-model="brushType"
+            <select-box
+                v-model="brushType"
+                :options="brushTypes"
+                :disabled="disabled"
             />
         </div>
         <div class="wrapper slider">
@@ -35,6 +37,7 @@
                 v-model="brushSize"
                 :min="1"
                 :max="MAX_BRUSH_SIZE"
+                :disabled="disabled"
             />
         </div>
         <div
@@ -46,6 +49,7 @@
                 v-model="thickness"
                 :min="0"
                 :max="100"
+                :disabled="disabled"
             />
         </div>
         <template v-if="canStroke">
@@ -55,6 +59,7 @@
                     v-model="strokes"
                     :min="1"
                     :max="5"
+                    :disabled="disabled"
                 />
             </div>
             <div class="wrapper input">
@@ -62,6 +67,7 @@
                 <toggle-button
                     v-model="smooth"
                     sync
+                    :disabled="disabled"
                 />
             </div>
         </template>
@@ -71,6 +77,7 @@
                 v-model="opacity"
                 :min="0"
                 :max="100"
+                :disabled="disabled"
             />
         </div>
     </div>
@@ -78,7 +85,7 @@
 
 <script>
 import { mapGetters, mapMutations }  from "vuex";
-import ToolTypes, { MAX_BRUSH_SIZE } from "@/definitions/tool-types";
+import ToolTypes, { MAX_BRUSH_SIZE, canDraw } from "@/definitions/tool-types";
 import BrushTypes from "@/definitions/brush-types";
 import SelectBox from '@/components/ui/select-box/select-box';
 import Slider from "@/components/ui/slider/slider";
@@ -97,8 +104,13 @@ export default {
     }),
     computed: {
         ...mapGetters([
+            "activeDocument",
+            "activeLayer",
             "brushOptions",
         ]),
+        disabled() {
+            return !canDraw( this.activeDocument, this.activeLayer );
+        },
         hasThickness() {
             return this.brushType === BrushTypes.PAINT_BRUSH;
         },

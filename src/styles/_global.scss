@@ -23,7 +23,7 @@ html, body {
     margin-right: $spacing-small;
 
     .v-switch-core {
-        background-color: $color-2 !important;
+        background-color: $color-bg !important;
     }
     .v-switch-button {
         background-color: #FFF !important;
@@ -35,5 +35,29 @@ html, body {
         .v-switch-button {
             background-color: #FFF !important;
         }
+    }
+}
+
+// scrollbars
+
+@include large() {
+    ::-webkit-scrollbar {
+        width: 12px;
+    }
+
+    ::-webkit-scrollbar-corner {
+        background-color: $color-bg;
+    }
+
+    ::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+        border-radius: $spacing-medium;
+        background-color: $color-bg;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border-radius: $spacing-medium;
+        -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+        background-color: $color-1;
     }
 }

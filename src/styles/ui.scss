@@ -41,7 +41,7 @@
 
 /**
  * Base behaviour for a modal window. A modal should be displayed inside the modal.vue component
- * which also applies overlay() and component() stylings.
+ * which also applies overlay() and component()-mixin stylings.
  *
  * By invoking this mixin when providing your modal with a custom class, you can specify custom
  * dimensions. The modal will be fixed at those dimensions when there is sufficient screen space.
@@ -52,17 +52,13 @@
     @include minWidth( $width ) {
         width: $width;
 
-        h2 {
-            padding-left: $spacing-large;
-        }
-
-        .content {
+        .component__content {
             padding: $spacing-medium $spacing-large;
         }
     }
 
     @include minWidthFallback( $width ) {
-        .content {
+        .component__content {
             padding: $spacing-small $spacing-medium;
         }
     }
@@ -75,7 +71,7 @@
     }
 
     @include minHeightFallback( $heightPlusActions ) {
-        .actions {
+        .component__actions {
             position: fixed;
         }
     }
@@ -114,7 +110,7 @@
     font-weight: bold;
     font-size: 100%;
     background-color: $buttonColor;
-    color: #FFF;
+    color: $color-text;
 
     &:hover {
         background-color: $color-4;
@@ -123,9 +119,10 @@
     }
 
     &:disabled {
-        background-color: $color-bg;
-        color: #b6b6b6;
-        border-color: #b6b6b6;
+        cursor: default;
+        background-color: $color-bg-dark !important;
+        color: $color-bg !important;
+        border-color: $color-bg !important;
     }
 
     &--block {
@@ -137,14 +134,22 @@
         font-size: 75%;
         padding: $spacing-xsmall $spacing-small;
         border-radius: $spacing-medium;
-        border-width: 1px;
-        border-style: solid;
-        border-color: $buttonColor;
+        border: 2px solid $color-bg;
     }
 
     &--ghost {
         background: transparent;
         border: none;
+    }
+
+    &--primary {
+        border: 2px solid $color-1;
+        background: transparent;
+    }
+
+    &--secondary {
+        border: 2px solid $color-4;
+        background: transparent;
     }
 }
 

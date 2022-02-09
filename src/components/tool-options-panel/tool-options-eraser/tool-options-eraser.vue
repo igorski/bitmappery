@@ -29,6 +29,7 @@
                 v-model="eraserSize"
                 :min="1"
                 :max="MAX_BRUSH_SIZE"
+                :disabled="disabled"
             />
         </div>
         <div class="wrapper slider">
@@ -37,6 +38,7 @@
                 v-model="thickness"
                 :min="0"
                 :max="100"
+                :disabled="disabled"
             />
         </div>
         <div class="wrapper slider">
@@ -45,6 +47,7 @@
                 v-model="opacity"
                 :min="0"
                 :max="100"
+                :disabled="disabled"
             />
         </div>
     </div>
@@ -52,7 +55,7 @@
 
 <script>
 import { mapGetters, mapMutations }  from "vuex";
-import ToolTypes, { MAX_BRUSH_SIZE } from "@/definitions/tool-types";
+import ToolTypes, { MAX_BRUSH_SIZE, canDraw } from "@/definitions/tool-types";
 import Slider   from "@/components/ui/slider/slider";
 import messages from "./messages.json";
 
@@ -66,8 +69,13 @@ export default {
     }),
     computed: {
         ...mapGetters([
+            "activeDocument",
+            "activeLayer",
             "eraserOptions",
         ]),
+        disabled() {
+            return !canDraw( this.activeDocument, this.activeLayer );
+        },
         thickness: {
             get() {
                 return this.eraserOptions.thickness * 100;

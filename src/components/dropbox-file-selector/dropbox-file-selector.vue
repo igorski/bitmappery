@@ -22,25 +22,29 @@
  */
 <template>
     <div class="dropbox-file-modal">
-        <h2 v-t="'files'"></h2>
-        <button
-            type="button"
-            class="close-button"
-            @click="closeModal()"
-        >&#215;</button>
-        <div class="content">
+        <div class="component__header">
+            <h2 v-t="'files'" class="component__title"></h2>
+            <button
+                type="button"
+                class="component__close-button"
+                @click="closeModal()"
+            >&#215;</button>
+        </div>
+        <div class="component__content">
             <div v-if="leaf" class="content__wrapper">
                 <div class="breadcrumbs">
                     <!-- parent folders -->
-                    <button v-for="parent in breadcrumbs"
-                            :key="parent.path"
-                            type="button"
-                            @click="handleNodeClick( parent )"
-                    >{{ parent.name || "./" }}</button>
+                    <button
+                        v-for="parent in breadcrumbs"
+                        :key="parent.path"
+                        type="button"
+                        class="breadcrumbs__button"
+                        @click="handleNodeClick( parent )"
+                    >{{ parent.name || "." }}</button>
                     <!-- current folder -->
                     <button
                         type="button"
-                        class="active"
+                        class="breadcrumbs__button breadcrumbs__button--active"
                     >{{ leaf.name }}</button>
                 </div>
                 <div v-if="!loading" class="content__folders">
@@ -83,9 +87,9 @@
                 </div>
             </div>
         </div>
-        <div class="actions">
-            <div class="actions__content">
-                <div class="form actions__form">
+        <div class="component__actions">
+            <div class="component__actions-content">
+                <div class="form component__actions-form">
                     <div class="wrapper input">
                         <input
                             v-model="newFolderName"
@@ -349,7 +353,7 @@ $actionsHeight: 74px;
     @include overlay();
     @include component();
 
-    h2 {
+    .component__title {
         color: #FFF;
     }
 
@@ -369,20 +373,21 @@ $actionsHeight: 74px;
     .content__folders {
         overflow: auto;
         height: calc(100% - #{$heading-height + $actionsHeight});
+        padding-top: $spacing-small;
     }
 
     @include mobile() {
-        .content {
+        .component__content {
             height: calc(100% - #{$actionsHeight});
         }
     }
 
-    .actions {
+    .component__actions {
         @include actionsFooter();
         background-image: $color-window-bg;
         padding: $spacing-xxsmall $spacing-medium;
 
-        &__content {
+        &-content {
             display: flex;
             width: 100%;
             max-width: 400px;
@@ -390,30 +395,36 @@ $actionsHeight: 74px;
             align-items: baseline;
         }
 
-        &__form {
+        &-form {
             flex: 2;
         }
     }
 }
 
 .breadcrumbs {
-    padding: $spacing-medium 0;
-    margin-bottom: $spacing-small;
-    background-color: #b6b6b6;
+    padding: $spacing-small 0 $spacing-small $spacing-small;
+    background-color: $color-bg;
 
-    button {
+    &__button {
         display: inline;
         position: relative;
         cursor: pointer;
-        margin-right: $spacing-small;
         border: none;
         background: none;
-        padding: 0 $spacing-small;
-        border-left: 1px solid $color-lines;
+        padding-left: $spacing-xsmall;
+        padding-right: 0;
         font-size: 100%;
         @include customFont();
 
-        &:hover, &.active {
+        &:after {
+            content: " /";
+        }
+
+        &:hover {
+            color: $color-4;
+        }
+
+        &--active {
             color: #FFF;
         }
     }
