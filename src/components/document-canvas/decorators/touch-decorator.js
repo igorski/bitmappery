@@ -68,7 +68,6 @@ export default {
             element.addEventListener( "pinch", event => {
                 if ( !this.pinchActive ) {
                     this.pinchActive = true;
-                    this.zoomLevelOnPinch = this.zoomOptions.level;
                     handleGestureStart();
                 }
                 // note that we effectively don't allow zooming out beyond the "fit in window" scale
