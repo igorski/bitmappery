@@ -27,7 +27,7 @@ $collapsed-panel-height: 40px; // mobile view
     // overrides component mixin
     .component__close-button {
         top: $spacing-small - $spacing-xxsmall;
-        right: $spacing-xxsmall;
+        right: $spacing-small;
         width: 36px;
         height: 29px;
 
@@ -56,6 +56,9 @@ $collapsed-panel-height: 40px; // mobile view
             .component__title {
                 display: none;
             }
+        }
+        .component__close-button {
+            right: $spacing-xxsmall;
         }
     }
 }

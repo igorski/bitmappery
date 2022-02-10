@@ -28,6 +28,7 @@
                 v-model="zoomLevel"
                 :min="min"
                 :max="max"
+                :disabled="!activeDocument"
                 :tooltip="'none'"
             />
         </div>

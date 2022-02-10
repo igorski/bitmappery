@@ -28,6 +28,7 @@
             <toggle-button
                 v-model="smartFill"
                 name="smartFill"
+                :disabled="disabled"
             />
         </div>
         <p v-t="'smartFillExpl'" class="expl"></p>
@@ -37,7 +38,7 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import { ToggleButton } from "vue-js-toggle-button";
-import ToolTypes from "@/definitions/tool-types";
+import ToolTypes, { canDraw } from "@/definitions/tool-types";
 import messages from "./messages.json";
 
 export default {
@@ -47,8 +48,13 @@ export default {
     },
     computed: {
         ...mapGetters([
+            "activeDocument",
+            "activeLayer",
             "fillOptions",
         ]),
+        disabled() {
+            return !canDraw( this.activeDocument, this.activeLayer );
+        },
         smartFill: {
             get() {
                 return this.fillOptions.smartFill;

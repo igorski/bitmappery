@@ -365,7 +365,6 @@ export default {
     padding: 0;
     @include boxSize();
     @include truncate();
-    border-top: 1px solid $color-lines;
 }
 
 .no-layers-text {
@@ -405,7 +404,7 @@ export default {
 }
 
 .layer-actions {
-    margin-right: $spacing-xxsmall;
+    margin-right: $spacing-small;
 
     .button {
         width: 30px;

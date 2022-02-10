@@ -29,6 +29,7 @@
                 v-model="scale"
                 :min="min"
                 :max="max"
+                :disabled="!activeLayer"
                 :tooltip="'none'"
             />
         </div>

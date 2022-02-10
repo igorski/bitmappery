@@ -30,6 +30,7 @@
             :min="min"
             :max="max"
             :step="step"
+            :disabled="disabled"
             @dblclick="toggleTextInput( true )"
         />
         <input
@@ -68,6 +69,10 @@ export default {
         step: {
             type: Number,
             default: 0.1,
+        },
+        disabled: {
+            type: Boolean,
+            default: false,
         },
     },
     data: () => ({

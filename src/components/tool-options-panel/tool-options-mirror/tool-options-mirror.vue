@@ -28,12 +28,14 @@
                 v-t="'flipHorizontal'"
                 type="button"
                 class="button button--small"
+                :disabled="!activeLayer"
                 @click="flipHorizontal"
             ></button>
             <button
                 v-t="'flipVertical'"
                 type="button"
                 class="button button--small"
+                :disabled="!activeLayer"
                 @click="flipVertical"
             ></button>
         </div>
@@ -49,6 +51,7 @@ export default {
     i18n: { messages },
     computed: {
         ...mapGetters([
+            "activeLayer",
             "activeLayerIndex",
             "activeLayerEffects",
         ]),
