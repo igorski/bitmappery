@@ -1,15 +1,17 @@
 import { mapGetters, mapMutations } from "vuex";
 import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import { getCanvasInstance } from "@/factories/sprite-factory";
-import { degreesToRadians } from "@/math/unit-math";
+import { degreesToRadians, scale } from "@/math/unit-math";
 import { cancelableCallback } from "@/utils/debounce-util";
+import { fitInWindow } from "@/utils/zoom-util";
 
-let Hammer;
+let Contact;
 
 export default {
     computed: {
         ...mapGetters([
             "activeLayerIndex",
+            "zoomOptions",
         ]),
     },
     methods: {
@@ -28,19 +30,10 @@ export default {
             if ( !this.usesTouch || !element ) {
                 return;
             }
-            if ( !Hammer ) {
-                Hammer = await import( "hammerjs" );
+            if ( !Contact ) {
+                Contact = await import( "contactjs" );
             }
             const zCanvas = getCanvasInstance();
-
-            const pan   = new Hammer.Pan({ pointers: 2, direction: Hammer.DIRECTION_ALL });
-            const tap   = new Hammer.Tap({ taps: 2 });
-            const pinch = new Hammer.Pinch({ pointers: 2 });
-
-            this.hammerTime = new Hammer.Manager( element );
-            this.hammerTime.add([ pan, tap, pinch ]);
-
-            pinch.recognizeWith( pan );
 
             // when a gesture is started, we should block interactions on the
             // ZoomableCanvas until the gesture ends (for instance to prevent
@@ -48,7 +41,8 @@ export default {
 
             const interactionRestore = cancelableCallback(() => {
                 zCanvas.setInteractive( true );
-            });
+            }, 150 );
+
             const handleGestureStart = () => {
                 interactionRestore.cancel();
                 zCanvas.setInteractive( false );
@@ -57,60 +51,72 @@ export default {
                 interactionRestore.reset();
             };
 
-            // pan gesture
+            // attach touch listeners
 
-            this.hammerTime.on( "pan", this.handlePanGesture.bind( this ));
-            this.hammerTime.on( "panstart", event => {
-                this.panOrigin = { ...zCanvas.getViewport() };
-                handleGestureStart();
+            const twoFingerPan = new Contact.TwoFingerPan( element);
+            const pinch        = new Contact.Pinch( element );
+
+            twoFingerPan.block( pinch );
+            //pinch.block( twoFingerPan );
+
+            this.listener = new Contact.PointerListener( element, {
+                supportedGestures: [ twoFingerPan, pinch, Contact.Tap ]
             });
-            this.hammerTime.on( "panend", event => {
-                this.panOrigin = null;
+
+            // 1. zoom on pinch
+
+            element.addEventListener( "pinch", event => {
+                if ( !this.pinchActive ) {
+                    this.pinchActive = true;
+                    handleGestureStart();
+                }
+                // note that we effectively don't allow zooming out beyond the "fit in window" scale
+                const value = scale( event.detail.global.scale, 10, MAX_ZOOM );
+                this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value });
+            });
+            element.addEventListener( "pinchend", () => {
+                this.pinchActive = false;
                 handleGestureEnd();
             });
+            element.style[ "touch-action" ] = "none"; // disable default behaviour
 
-            // pinch gesture (zoom)
+            // 2. pan on twofingerpan
 
-            this.hammerTime.on( "pinch",      this.handleZoomGesture.bind( this ));
-            this.hammerTime.on( "pinchstart", handleGestureStart );
-            this.hammerTime.on( "pinchend",   handleGestureEnd );
-
-            this.hammerTime.on( "tap", () => {
-                this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value: 1 });
+            element.addEventListener( "twofingerpan", () => {
+                if ( !this.panOrigin ) {
+                    handleGestureStart();
+                    this.panOrigin = { ...zCanvas.getViewport() };
+                }
+                const { deltaX, deltaY } = event.detail.global;
+                getCanvasInstance().panViewport( this.panOrigin.left - deltaX, this.panOrigin.top - deltaY );
+            });
+            element.addEventListener( "twofingerpanend", () => {
+                handleGestureEnd();
+                this.panOrigin = null;
             });
 
-            // rotation gesture
+            // 3. restore zoom level on double tap
 
-            this.hammerTime.on( "rotate", this.handleRotateGesture.bind( this ));
+            let lastTap = 0;
+            element.addEventListener( "tap", () => {
+                const now = window.performance.now();
+                handleGestureStart();
+                if ( now - lastTap < 300 ) {
+                    this.setToolOptionValue({
+                        tool   : ToolTypes.ZOOM,
+                        option : "level",
+                        value  : fitInWindow( this.activeDocument, this.canvasDimensions )
+                    });
+                    handleGestureEnd();
+                }
+                lastTap = now;
+            });
         },
         removeTouchListeners() {
-            this.hammerTime?.destroy();
-            this.hammerTime = null;
+            this.listener?.destroy();
+            this.listener = null;
         },
-        handlePanGesture({ deltaX, deltaY }) {
-            getCanvasInstance().panViewport( this.panOrigin.left - deltaX, this.panOrigin.top - deltaY );
-        },
-        handleZoomGesture( event ) {
-            if ( this.panOrigin ) {
-                return;
-            }
-            let increment = 0;
-            switch ( event.additionalEvent ) {
-                default:
-                    return;
-                case "pinchout": // moving fingers apart > zoom in
-                    increment = event.scale;
-                    break;
-                case "pinchin": // moving fingers together > zoom out
-                    increment = -( event.scale * 2 );
-                    break;
-            }
-            if ( increment === 0 ) {
-                return;
-            }
-            const value = Math.max( MIN_ZOOM, Math.min( MAX_ZOOM, this.zoomOptions.level + increment ));
-            this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value });
-        },
+        /*
         handleRotateGesture( event ) {
             // TODO: this should go into history
             this.updateLayerEffects({
@@ -118,6 +124,6 @@ export default {
                 effects: { rotation: degreesToRadians( event.angle ) },
                 render: false
             });
-        },
+        },*/
     }
 };
