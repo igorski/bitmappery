@@ -26,7 +26,7 @@
             <h2 v-t="'files'" class="component__title"></h2>
             <button
                 type="button"
-                class="component__close-button"
+                class="component__header-button"
                 @click="closeModal()"
             >&#215;</button>
         </div>
@@ -112,7 +112,7 @@
 </template>
 
 <script>
-import { mapMutations, mapActions } from "vuex";
+import { mapState, mapMutations, mapActions } from "vuex";
 import { loader } from "zcanvas";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { listFolder, createFolder, downloadFileAsBlob, deleteEntry } from "@/services/dropbox-service";
@@ -124,6 +124,7 @@ import { isThirdPartyDocument } from "@/definitions/file-types";
 
 import messages from "./messages.json";
 
+const RETRIEVAL_LOAD_KEY  = "dbx_r";
 const LAST_DROPBOX_FOLDER = "bpy_dropboxDb";
 
 function mapEntry( entry, children = [], parent = null ) {
@@ -181,7 +182,6 @@ export default {
     },
     mixins: [ ImageToDocumentManager ],
     data: () => ({
-        loading: false,
         tree: {
             type: "folder",
             name: "",
@@ -192,6 +192,12 @@ export default {
         newFolderName: "",
     }),
     computed: {
+        ...mapState([
+            "loadingStates",
+        ]),
+        loading() {
+            return this.loadingStates.includes( RETRIEVAL_LOAD_KEY );
+        },
         breadcrumbs() {
             let parent = this.leaf.parent;
             const out = [];
@@ -235,7 +241,7 @@ export default {
             "loadDocument",
         ]),
         async retrieveFiles( path ) {
-            this.loading = true;
+            this.setLoading( RETRIEVAL_LOAD_KEY );
             try {
                 const entries = await listFolder( path );
                 this.setDropboxConnected( true ); // opened browser implies we have a valid connection
@@ -257,7 +263,7 @@ export default {
                 this.openDialog({ type: "error", message: this.$t( "couldNotRetrieveFilesForPath", { path } ) });
                 sessionStorage.removeItem( LAST_DROPBOX_FOLDER );
             }
-            this.loading = false;
+            this.unsetLoading( RETRIEVAL_LOAD_KEY );
         },
         async handleNodeClick( node ) {
             this.setLoading( "dbox" );
@@ -380,6 +386,10 @@ $actionsHeight: 74px;
         .component__content {
             height: calc(100% - #{$actionsHeight});
         }
+    }
+
+    .component__header-button {
+        @include closeButton();
     }
 
     .component__actions {

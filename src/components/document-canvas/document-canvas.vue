@@ -32,7 +32,7 @@
             </div>
             <button
                 type="button"
-                class="component__close-button"
+                class="component__header-button"
                 @click="requestDocumentClose()"
             >&#215;</button>
             <div
@@ -457,7 +457,7 @@ export default {
         background-color: $color-bg-light;
     }
 
-    .component__close-button {
+    .component__header-button {
         @include closeButton();
     }
 

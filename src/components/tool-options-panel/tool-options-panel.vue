@@ -33,7 +33,7 @@
             ></h2>
             <button
                 type="button"
-                class="component__close-button button--ghost"
+                class="component__header-button button--ghost"
                 @click="collapsed = !collapsed"
             >
                 <img :src="`./assets/icons/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />

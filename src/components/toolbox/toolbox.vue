@@ -31,7 +31,7 @@
             ></h2>
             <button
                 type="button"
-                class="component__close-button button--ghost"
+                class="component__header-button button--ghost"
                 @click="collapsed = !collapsed"
             >
                 <img :src="`./assets/icons/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
@@ -274,7 +274,7 @@ export default {
             padding: $spacing-small + $spacing-xsmall;
         }
 
-        .component__close-button {
+        .component__header-button {
             top: $spacing-small - $spacing-xxsmall;
             right: $spacing-xxsmall;
             width: 36px;
@@ -298,7 +298,7 @@ export default {
         }
 
         .component__header,
-        .component__close-button {
+        .component__header-button {
             display: none;
         }
     }
@@ -312,7 +312,7 @@ export default {
             display: none;
         }
 
-        .component__close-button {
+        .component__header-button {
             top: $spacing-small;
             right: #{$spacing-medium - $spacing-xsmall};
         }
