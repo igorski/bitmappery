@@ -151,6 +151,7 @@ export default {
                     const zCanvas = this.createCanvas();
                     this.$nextTick(() => {
                         zCanvas.insertInPage( this.$refs.canvasContainer );
+                        this.addTouchListeners( this.$refs.canvasContainer );
                         this.calcIdealDimensions( true );
                     });
                 }
@@ -299,7 +300,6 @@ export default {
             setCanvasInstance( zCanvas );
             guideRenderer = new GuideRenderer( this.hasGuideRenderer ? zCanvas : null );
             this.updateGuideModes();
-            this.addTouchListeners( getCanvasInstance().getElement() );
             return zCanvas;
         },
         cacheContainerSize() {
