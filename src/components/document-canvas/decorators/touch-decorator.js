@@ -3,6 +3,7 @@ import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import { getCanvasInstance } from "@/factories/sprite-factory";
 import { degreesToRadians } from "@/math/unit-math";
 import { cancelableCallback } from "@/utils/debounce-util";
+import { fitInWindow } from "@/utils/zoom-util";
 
 let Contact;
 
@@ -40,12 +41,14 @@ export default {
 
             const interactionRestore = cancelableCallback(() => {
                 zCanvas.setInteractive( true );
-            });
+            }, 150 );
             const handleGestureStart = () => {
+                console.warn("gesture start");
                 interactionRestore.cancel();
                 zCanvas.setInteractive( false );
             };
             const handleGestureEnd = () => {
+                console.warn("gesture end");
                 interactionRestore.reset();
             };
 
@@ -100,7 +103,7 @@ export default {
                 const now = window.performance.now();
                 handleGestureStart();
                 if ( now - lastTap < 300 ) {
-                    this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value: 1 });
+                    this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value: fitInWindow( this.activeDocument, this.canvasDimensions ) });
                     handleGestureEnd();
                 }
                 lastTap = now;
