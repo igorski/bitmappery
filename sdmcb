@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+set -x
+
+[[ $(ps x | grep '[S]afari.app') == ""  ]] || killall Safari; sleep 2
+cd "$HOME/Library/Containers/com.apple.Safari/Data/Library/Preferences/" || exit
+cp -v 'com.apple.Safari.plist' '/tmp/' || exit
+cp -avn 'com.apple.Safari.plist' 'com.apple.Safari.plist.bak' || exit
+defaults write '/tmp/com.apple.Safari.plist' "IncludeDevelopMenu" -bool 'yes'
+defaults write '/tmp/com.apple.Safari.plist' "WebKitDeveloperExtrasEnabledPreferenceKey" -bool 'yes'
+defaults write '/tmp/com.apple.Safari.plist' "WebKitPreferences.developerExtrasEnabled" -bool 'yes'
+mv -v '/tmp/com.apple.Safari.plist' .
+cd "$HOME/Library/Preferences/" || exit
+cp -avn 'com.apple.Safari.SandboxBroker.plist' 'com.apple.Safari.SandboxBroker.plist.bak' || exit
+defaults write "$HOME/Library/Preferences/com.apple.Safari.SandboxBroker.plist" "ShowDevelopMenu" -bool 'yes'
+killall cfprefsd
+sleep 3
+open -a "/Applications/Safari.app" 

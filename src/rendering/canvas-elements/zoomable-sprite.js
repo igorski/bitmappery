@@ -46,7 +46,8 @@ class ZoomableSprite extends sprite {
 
     /* zCanvas overrides */
 
-    // ZoomableSprites dont function as masks, don't support tile sheets and have no children
+    // unlike regular zCanvas Sprites, ZoomableSprites don't function as masks, don't support tile
+    // sheets and have no children
 
     draw( canvasContext, viewport = null ) {
         const bounds = this._bounds;
