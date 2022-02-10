@@ -609,7 +609,7 @@ class LayerSprite extends ZoomableSprite {
             const { width, height } = this.layer;
             let { x, y } = getRotationCenter({
                 left   : this._bounds.left - viewport.left,
-                top    : this._bounds.top - viewport.top,
+                top    : this._bounds.top  - viewport.top,
                 width  : this._bounds.width,
                 height : this._bounds.height
             }, true );
@@ -622,7 +622,7 @@ class LayerSprite extends ZoomableSprite {
         }
 
         // invoke base class behaviour to render bitmap
-        super.draw( documentContext, viewport );
+        super.draw( documentContext, viewport, this.layer.effects.rotation );
 
         if ( orgBounds ) {
             this._bounds = orgBounds;

@@ -50,18 +50,17 @@ class ZoomableSprite extends sprite {
     // sheets and have no children
 
     draw( canvasContext, viewport = null ) {
-        const bounds = this._bounds;
         let render = this._bitmapReady;
         if ( render && viewport ) {
-            render = isInsideViewport( bounds, viewport );
+            render = isInsideViewport( this._bounds, viewport );
         }
         if ( !render ) {
             return;
         }
         if ( viewport ) {
-            this.drawCropped( canvasContext, calculateDrawRectangle( bounds, viewport ));
+            this.drawCropped( canvasContext, calculateDrawRectangle( this._bounds, viewport ));
         } else {
-            const { left, top, width, height } = bounds;
+            const { left, top, width, height } = this._bounds;
             canvasContext.drawImage(
                 this._bitmap,
                 ( HALF + left )   << 0,
