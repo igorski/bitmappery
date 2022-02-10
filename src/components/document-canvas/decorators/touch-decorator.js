@@ -71,27 +71,8 @@ export default {
                     this.zoomLevelOnPinch = this.zoomOptions.level;
                     handleGestureStart();
                 }
-                if (!window.d) {
-                    const d = document.createElement("div");
-                    document.body.appendChild(d);
-                    d.style.position = "absolute";
-                    d.style.color = "red";
-                    d.style.backgroundColor = "rgba(0,0,0,.75)";
-                    d.style.top = "60px";
-                    d.style.left = "0px";
-                    d.style.width="100%";
-                    d.style.height="150px";
-                    window.d = d;
-                }
-/*
-                const value = Math.max(
-                    MIN_ZOOM,
-                    Math.min( MAX_ZOOM, this.zoomLevelOnPinch * event.detail.global.scale )
-                );
-                */
-                const value = event.detail.global.scale > 1 ? scale( event.detail.global.scale, 10, MAX_ZOOM ) : scale( event.detail.global.scale, -10, MIN_ZOOM );
-                window.d.innerHTML = "scale:"+event.detail.global.scale + ", value:" + value;
-
+                // note that we effectively don't allow zooming out beyond the "fit in window" scale
+                const value = scale( event.detail.global.scale, 10, MAX_ZOOM );
                 this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value });
             });
             element.addEventListener( "pinchend", () => {
