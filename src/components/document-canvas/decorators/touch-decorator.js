@@ -65,7 +65,7 @@ export default {
 
             // 1. zoom on pinch
 
-            element.addEventListener( "pinch", event => {
+            this.listener.on( "pinch", event => {
                 if ( !this.pinchActive ) {
                     this.pinchActive = true;
                     handleGestureStart();
@@ -74,7 +74,7 @@ export default {
                 const value = scale( event.detail.global.scale, 10, MAX_ZOOM );
                 this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value });
             });
-            element.addEventListener( "pinchend", () => {
+            this.listener.on( "pinchend", () => {
                 this.pinchActive = false;
                 handleGestureEnd();
             });
@@ -82,7 +82,7 @@ export default {
 
             // 2. pan on twofingerpan
 
-            element.addEventListener( "twofingerpan", () => {
+            this.listener.on( "twofingerpan", () => {
                 if ( !this.panOrigin ) {
                     handleGestureStart();
                     this.panOrigin = { ...zCanvas.getViewport() };
@@ -90,7 +90,7 @@ export default {
                 const { deltaX, deltaY } = event.detail.global;
                 getCanvasInstance().panViewport( this.panOrigin.left - deltaX, this.panOrigin.top - deltaY );
             });
-            element.addEventListener( "twofingerpanend", () => {
+            this.listener.on( "twofingerpanend", () => {
                 handleGestureEnd();
                 this.panOrigin = null;
             });
@@ -98,7 +98,7 @@ export default {
             // 3. restore zoom level on double tap
 
             let lastTap = 0;
-            element.addEventListener( "tap", () => {
+            this.listener.on( "tap", () => {
                 const now = window.performance.now();
                 handleGestureStart();
                 if ( now - lastTap < 300 ) {

@@ -31,7 +31,7 @@
             ></h2>
             <button
                 type="button"
-                class="component__close-button button--ghost"
+                class="component__header-button button--ghost"
                 @click="collapsed = !collapsed"
             >
                 <img :src="`./assets/icons/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
@@ -43,11 +43,13 @@
             class="component__content"
             @click.stop.prevent=""
         >
+            <!-- background for --docked buttons (see mobile styles) -->
+            <div class="toolbox-wrapper--docked"></div>
             <!-- history states -->
             <button
                 type="button"
                 v-tooltip="$t('undo')"
-                class="tool-button"
+                class="tool-button tool-button--docked"
                 :title="$t('undo')"
                 :disabled="!canUndo"
                 @click="undo()"
@@ -57,7 +59,7 @@
             <button
                 type="button"
                 v-tooltip="$t('redo')"
-                class="tool-button"
+                class="tool-button tool-button--docked tool-button--docked-second"
                 :title="$t('redo')"
                 :disabled="!canRedo"
                 @click="redo()"
@@ -86,7 +88,7 @@
                     :is="colorPicker"
                     v-model="color"
                     v-tooltip="`${$t('color')} (C)`"
-                    class="color-picker"
+                    class="color-picker tool-button--docked tool-button--docked-color"
                 />
             </div>
         </div>
@@ -265,6 +267,8 @@ export default {
 @import "@/styles/component";
 @import "@/styles/typography";
 
+$toolButtonWidth: $spacing-large;
+
 .toolbox-wrapper {
     @include component();
 
@@ -274,7 +278,7 @@ export default {
             padding: $spacing-small + $spacing-xsmall;
         }
 
-        .component__close-button {
+        .component__header-button {
             top: $spacing-small - $spacing-xxsmall;
             right: $spacing-xxsmall;
             width: 36px;
@@ -285,20 +289,45 @@ export default {
                 height: $spacing-medium + $spacing-small;
             }
         }
+
+        &--docked {
+            display: none;
+        }
     }
 
     @include mobile() {
         // always expanded in mobile view (is small horizontal strip)
         overflow-y: hidden;
         overflow-x: auto;
+        // the mobile view supports --docked buttons. these have a fixed position whereas
+        // the remainder of the tools can scroll out of view. most-used buttons can be
+        // docked to remain accessible at all times
+        $dockedOffset: #{(($spacing-medium + $toolButtonWidth) * 3) + $spacing-small};
+        margin-left: $dockedOffset;
+        padding: 0 $dockedOffset 0 0;
+        box-sizing: border-box;
+        width: calc(100% - #{$dockedOffset});
+
+        // faux-background for the --docked buttons (as these are fixed we are adding
+        // a margin to the actual button container, upon scroll these buttons should
+        // disappear below this background so they are occluded by the --docked buttons)
+        &--docked {
+            position: fixed;
+            left: 0;
+            width: $dockedOffset;
+            height: $menu-height;
+            padding-right: $spacing-xsmall;
+            background-image: $color-window-bg;
+        }
 
         .component__content {
             width: max-content;
-            padding: $spacing-xsmall $spacing-medium $spacing-xxsmall;
+            padding: $spacing-xsmall 0 $spacing-xxsmall $spacing-xsmall;
         }
 
         .component__header,
-        .component__close-button {
+        .component__header-button,
+        .color-panel__label {
             display: none;
         }
     }
@@ -312,7 +341,7 @@ export default {
             display: none;
         }
 
-        .component__close-button {
+        .component__header-button {
             top: $spacing-small;
             right: #{$spacing-medium - $spacing-xsmall};
         }
@@ -338,8 +367,8 @@ export default {
     @include customFont();
 
     img {
-        width: $spacing-large;
-        height: $spacing-large;
+        width: $toolButtonWidth;
+        height: $toolButtonWidth;
         vertical-align: middle;
         padding: $spacing-xxsmall 0;
 
@@ -369,6 +398,23 @@ export default {
     @include mobile() {
         margin: 0 $spacing-small 0 0;
         display: inline;
+
+        &--docked {
+            position: fixed;
+            left: $spacing-small;
+
+            &-second {
+                left: #{($spacing-small + $toolButtonWidth) + $spacing-medium};
+            }
+
+            &-color {
+                left: #{(($spacing-small + $toolButtonWidth) * 2 ) + $spacing-large};
+
+                :first-child {
+                    margin-top: -#{$spacing-small + $spacing-xsmall};
+                }
+            }
+        }
     }
 }
 

@@ -26,7 +26,7 @@
             <slot name="header" />
             <button
                 type="button"
-                class="component__close-button"
+                class="component__header-button"
                 @click="closeModal()"
             >&#215;</button>
         </div>
@@ -88,7 +88,7 @@ export default {
         color: #FFF;
     }
 
-    .component__close-button {
+    .component__header-button {
         @include closeButton();
         top: #{$spacing-xsmall + $spacing-small};
         right: #{$spacing-medium + $spacing-small};
