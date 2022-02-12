@@ -76,14 +76,12 @@ export const prepareTransformation = ( ctx, viewport, sprite, bounds, layer ) =>
     let x = 0;
     let y = 0;
     if ( isRotated ) {
-        const rotatedBounds = getRotationCenter({
+        const { x, y } = getRotationCenter({
             left : transformedBounds.left,
             top  : transformedBounds.top,
             width,
             height
         }, true );
-
-        ({ x, y } = rotatedBounds );
 
         ctx.translate( x, y );
         ctx.rotate( mirrorX ? -rotation : rotation );

@@ -114,7 +114,7 @@ export default {
         },
         async save() {
             const { activeLayer } = this;
-            const { x, y, width, height } = activeLayer;
+            const { left, top, width, height } = activeLayer;
             const { scale } = activeLayer.effects;
             const index = this.activeLayerIndex;
             const store = this.$store;
@@ -125,8 +125,8 @@ export default {
             const targetHeight = orgImage.height;
             const sourceWidth = targetWidth / scale;
             const sourceHeight = targetHeight / scale;
-            const offsetX = (( targetWidth - sourceWidth ) / 2 ) - ( x / scale );
-            const offsetY = (( targetHeight - sourceHeight ) / 2 ) - ( y / scale );
+            const offsetX = (( targetWidth - sourceWidth ) / 2 ) - ( left / scale );
+            const offsetY = (( targetHeight - sourceHeight ) / 2 ) - ( top / scale );
 
             const scaledImage = await resizeImage(
                 orgImage, targetWidth, targetHeight,
@@ -135,7 +135,7 @@ export default {
             );
 
             const commit = () => {
-                store.commit( "updateLayer", { index, opts: { source: scaledImage, x: 0, y: 0, width: targetWidth, height: targetHeight } });
+                store.commit( "updateLayer", { index, opts: { source: scaledImage, left: 0, top: 0, width: targetWidth, height: targetHeight } });
                 // unset layer scale (the resized image should display at a reset scale)
                 store.commit( "updateLayerEffects", { index, effects: { scale: 1 } });
                 getSpriteForLayer( activeLayer )?.syncPosition();
@@ -143,7 +143,7 @@ export default {
             commit();
             enqueueState( `saveScale_${scale}`, {
                 undo() {
-                    store.commit( "updateLayer", { index, opts: { source: orgImage, x, y, width, height } });
+                    store.commit( "updateLayer", { index, opts: { source: orgImage, left, top, width, height } });
                     store.commit( "updateLayerEffects", { index, effects: { scale } });
                     getSpriteForLayer( activeLayer )?.syncPosition();
                 },

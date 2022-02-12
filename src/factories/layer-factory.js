@@ -35,7 +35,7 @@ const LayerFactory = {
     create({
         name = DEFAULT_LAYER_NAME,
         type = LAYER_GRAPHIC, transparent = true, source = null, mask = null,
-        x = 0, y = 0, maskX = 0, maskY = 0, width = 1, height = 1, visible = true,
+        left = 0, top = 0, maskX = 0, maskY = 0, width = 1, height = 1, visible = true,
         effects = {}, filters = {}, text = {}
     } = {}) {
         return {
@@ -45,8 +45,8 @@ const LayerFactory = {
             source,
             transparent,
             mask,
-            x,
-            y,
+            left,
+            top,
             maskX,
             maskY,
             width,
@@ -69,8 +69,8 @@ const LayerFactory = {
             tr: layer.transparent,
             s: imageToBase64( layer.source, layer.width, layer.height, layer.transparent ),
             m: imageToBase64( layer.mask,   layer.width, layer.height, true ),
-            x: layer.x,
-            y: layer.y,
+            x: layer.left,
+            y: layer.top,
             x2: layer.maskX,
             y2: layer.maskY,
             w: layer.width,
@@ -96,8 +96,8 @@ const LayerFactory = {
             transparent: layer.tr,
             source,
             mask,
-            x: layer.x,
-            y: layer.y,
+            left: layer.x,
+            top: layer.y,
             maskX: layer.x2,
             maskY: layer.y2,
             width: layer.w,

@@ -223,8 +223,8 @@ export default {
                 type: LAYER_GRAPHIC,
                 source: imageToCanvas( image, size.width, size.height ),
                 ...size,
-                x: getters.activeDocument.width  / 2 - size.width  / 2,
-                y: getters.activeDocument.height / 2 - size.height / 2,
+                left: getters.activeDocument.width  / 2 - size.width  / 2,
+                top : getters.activeDocument.height / 2 - size.height / 2,
             });
             const index = getters.activeDocument.layers.length;
             const paste = () => {

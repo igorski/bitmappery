@@ -119,8 +119,8 @@ async function createLayer( layer, layers, name = "" ) {
 
     layers.push( LayerFactory.create({
         visible : layer.visible,
-        x       : layerX,
-        y       : layerY,
+        left    : layerX,
+        top     : layerY,
         width   : layerWidth,
         height  : layerHeight,
         name,

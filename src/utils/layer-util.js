@@ -41,8 +41,8 @@ export const replaceLayerSource = ( layer, newSource, isMask = false ) => {
         layer.maskY += yDelta;
     } else {
         layer.source = newSource;
-        layer.x     += xDelta;
-        layer.y     += yDelta;
+        layer.left  += xDelta;
+        layer.top   += yDelta;
         layer.width  = newSource.width;
         layer.height = newSource.height;
     }

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,6 +21,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 const { pow, sqrt, atan2, round, cos, sin, PI } = Math;
+
+export const rectToPoint = ({ top, left }) => ({ x: left, y: top });
+
+export const rectToCoordinateList = ( x, y, width, height ) => [
+    { x, y }, { x: x + width, y },                          // TL to TR
+    { x: x + width, y: y + height }, { x, y: y + height },  // BR to BL
+    { x, y }, // back to TL to close selection
+];
 
 export const distanceBetween = ( point1, point2 ) => {
     return sqrt( pow( point2.x - point1.x, 2 ) + pow( point2.y - point1.y, 2 ));
