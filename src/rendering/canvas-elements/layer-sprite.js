@@ -604,25 +604,30 @@ class LayerSprite extends ZoomableSprite {
             documentContext.globalAlpha = opacity;
         }
 
-        if ( this.layer.effects.rotation ) {
+        const rotateCanvas = this.isRotated();
+
+        if ( rotateCanvas ) {
             const { mirrorX, mirrorY, rotation } = this.layer.effects;
             const { width, height } = this.layer;
-            let { x, y } = getRotationCenter({
+            const { x, y } = getRotationCenter({
                 left   : this._bounds.left - viewport.left,
                 top    : this._bounds.top  - viewport.top,
-                width  : this._bounds.width,
-                height : this._bounds.height
+                width,
+                height
             }, true );
-            x -= viewport.left;
-            y -= viewport.top;
             documentContext.save();
             documentContext.translate( x, y );
             documentContext.rotate( rotation );
             documentContext.translate( -x, -y );
+
+            // TODO: why doesn't this work with translate ?
+            orgBounds = orgBounds || { ...this._bounds };
+            this._bounds.top -= viewport.top;
+            this._bounds.left -= viewport.left;
         }
 
         // invoke base class behaviour to render bitmap
-        super.draw( documentContext, viewport, this.layer.effects.rotation );
+        super.draw( documentContext, rotateCanvas ? null : viewport );
 
         if ( orgBounds ) {
             this._bounds = orgBounds;
@@ -689,7 +694,7 @@ class LayerSprite extends ZoomableSprite {
                 documentContext.restore();
             }
         }
-        if ( this.layer.effects.rotation ) {
+        if ( rotateCanvas ) {
             documentContext.restore();
         }
     }
