@@ -28,7 +28,7 @@ import { blobToResource } from "@/utils/resource-manager";
 import { LAYER_GRAPHIC, LAYER_TEXT } from "@/definitions/layer-types";
 import { getSizeForBrush } from "@/definitions/brush-types";
 import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
-import { scaleRectangle, rotateRectangle, getRotationCenter } from "@/math/rectangle-math";
+import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { clipContextToSelection } from "@/rendering/clipping";
@@ -36,6 +36,7 @@ import { renderClonedStroke } from "@/rendering/cloning";
 import { renderBrushStroke } from "@/rendering/drawing";
 import { floodFill } from "@/rendering/fill";
 import { snapSpriteToGuide } from "@/rendering/snapping";
+import { prepareTransformation } from "@/rendering/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
 import {
     getTempCanvas, renderTempCanvas, disposeTempCanvas, slicePointers, createOverrideConfig
@@ -47,6 +48,8 @@ import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
 
 const HALF   = 0.5;
 const TWO_PI = 2 * Math.PI;
+
+let orgBounds, drawBounds; // see draw()
 
 /**
  * A LayerSprite is the renderer for a Documents Layer.
@@ -259,7 +262,7 @@ class LayerSprite extends ZoomableSprite {
         if ( selectionPoints ) {
             let { x, y } = this.layer;
             if ( this.isRotated() && !isLowResPreview ) {
-                selectionPoints = rotatePointerLists( selectionPoints, this.layer, width, height );
+                selectionPoints = rotatePointerLists( selectionPoints, this.layer, width, height, this.canvas.getViewport() );
                 x = y = 0; // pointers have been rotated within clipping context
             }
             ctx.save(); // save() clipping
@@ -278,7 +281,7 @@ class LayerSprite extends ZoomableSprite {
         } else if ( isFillMode ) {
             const color = this.getStore().getters.activeColor;
             if ( this._toolOptions.smartFill ) {
-                const point = rotatePointer( this._pointerX, this._pointerY, this.layer, width, height );
+                const point = rotatePointer( this._pointerX, this._pointerY, this.layer, width, height, this.canvas.getViewport()  );
                 floodFill( ctx, point.x, point.y, color );
             } else {
                 ctx.fillStyle = this.getStore().getters.activeColor;
@@ -298,7 +301,7 @@ class LayerSprite extends ZoomableSprite {
             if ( isCloneStamp ) {
                 if ( isLowResPreview ) {
                     renderClonedStroke( ctx, this._brush, this, this._toolOptions.sourceLayerId,
-                        rotatePointerLists( pointers, this.layer, width, height )
+                        rotatePointerLists( pointers, this.layer, width, height, this.canvas.getViewport()  )
                     );
                     // clone operation is direct-to-Layer-source
                     this.setBitmap( ctx.canvas );
@@ -323,7 +326,7 @@ class LayerSprite extends ZoomableSprite {
                 } else {
                     // render full brush stroke path directly onto the Layer source
                     ctx = createCanvas( orgContext.canvas.width, orgContext.canvas.height ).ctx;
-                    this._brush.pointers = rotatePointerLists( this._brush.pointers, this.layer, width, height );
+                    this._brush.pointers = rotatePointerLists( this._brush.pointers, this.layer, width, height, this.canvas.getViewport()  );
                 }
                 renderBrushStroke( ctx, this._brush, this, overrides );
 
@@ -585,7 +588,7 @@ class LayerSprite extends ZoomableSprite {
     }
 
     draw( documentContext, viewport, omitOutlines = false ) {
-        let orgBounds;
+        drawBounds = this._bounds;
 
         // in case Layer has scale effect, apply it here (we don't resample the
         // actual Layer source to make this behaviour non-destructive, it's
@@ -595,8 +598,8 @@ class LayerSprite extends ZoomableSprite {
             const { scale } = this.layer.effects;
             // we could scale the canvas context instead, but scaling the bounds means
             // that viewport pan logic will work "out of the box"
-            orgBounds = this._bounds;
-            this._bounds = scaleRectangle( orgBounds, scale );
+            orgBounds  = drawBounds;
+            drawBounds = scaleRectangle( orgBounds, scale );
         }
         const { enabled, opacity } = this.layer.filters;
         const altOpacity = enabled && opacity !== 1;
@@ -604,48 +607,34 @@ class LayerSprite extends ZoomableSprite {
             documentContext.globalAlpha = opacity;
         }
 
-        const rotateCanvas = this.isRotated();
+        documentContext.save(); // transformation save()
 
-        if ( rotateCanvas ) {
-            const { mirrorX, mirrorY, rotation } = this.layer.effects;
-            const { x, y } = getRotationCenter({
-                left   : this._bounds.left - viewport.left,
-                top    : this._bounds.top  - viewport.top,
-                width  : this._bounds.width,
-                height : this._bounds.height
-            }, true );
-            documentContext.save();
-            documentContext.translate( x, y );
-            documentContext.rotate( rotation );
-            documentContext.translate( -x, -y );
+        const transformedBounds = prepareTransformation( documentContext, viewport, this, drawBounds, this.layer );
+        const transformCanvas   = transformedBounds !== drawBounds;
 
-            // TODO: why doesn't this work with the translate above ?
-            orgBounds = orgBounds || { ...this._bounds };
-            this._bounds.top  -= viewport.top;
-            this._bounds.left -= viewport.left;
+        if ( transformCanvas ) {
+            if ( !orgBounds ) {
+                orgBounds = drawBounds;
+            }
+            drawBounds = transformedBounds;
         }
+
+        this._bounds = drawBounds;
 
         // invoke base class behaviour to render bitmap
-        super.draw( documentContext, rotateCanvas ? null : viewport );
-
-        if ( rotateCanvas ) {
-            documentContext.restore();
-        }
-
-        if ( orgBounds ) {
-            this._bounds = orgBounds;
-        }
+        super.draw( documentContext, this.isRotated() ? null : viewport );
 
         // sprite is currently brushing, render low resolution temp contents onto screen
         if ( this.tempCanvas ) {
-            documentContext.save();
+            documentContext.save(); // low res render save()
             documentContext.globalAlpha = this._brush.options.opacity;
             if ( this._toolType === ToolTypes.ERASER || this.isMaskable() ) {
                 documentContext.globalCompositeOperation = "destination-out";
             }
             renderTempCanvas( this.canvas, documentContext );
-            documentContext.restore();
+            documentContext.restore(); // low res render restore()
         }
+
         if ( altOpacity ) {
             documentContext.globalAlpha = 1; // restore document opacity
         }
@@ -671,7 +660,7 @@ class LayerSprite extends ZoomableSprite {
                         renderCross( documentContext, cx, cy, this._brush.radius / zoomFactor );
                     }
                 }
-                documentContext.save();
+                documentContext.save(); // brush outline save()
                 documentContext.beginPath();
 
                 if ( drawBrushOutline ) {
@@ -680,29 +669,26 @@ class LayerSprite extends ZoomableSprite {
                     documentContext.strokeStyle = "#999";
                 }
                 documentContext.stroke();
-                documentContext.restore();
+                documentContext.restore(); // brush outline restore()
             }
 
             // interactive state implies the sprite's Layer is currently active
             // show a border around the Layer contents to indicate the active area
 
             if ( this._interactive ) {
-                documentContext.save();
+                documentContext.save(); // border save()
                 documentContext.lineWidth   = 1 / zoomFactor;
                 documentContext.strokeStyle = "#0db0bc";
-                const { left, top, width, height } = scaleRectangle( this._bounds, this.layer.effects.scale );
-                const destX = left - viewport.left;
-                const destY = top - viewport.top;
-                if ( rotateCanvas ) {
-                    const tX = Math.round( destX + ( width  * HALF ));
-                    const tY = Math.round( destY + ( height * HALF ));
-                    documentContext.translate( tX, tY );
-                    documentContext.rotate( this.layer.effects.rotation );
-                    documentContext.translate( -tX, -tY );
-                }
-                documentContext.strokeRect( destX, destY, width, height );
-                documentContext.restore();
+                documentContext.strokeRect( drawBounds.left, drawBounds.top, drawBounds.width, drawBounds.height );
+                documentContext.restore(); // border restore()
             }
+        }
+
+        documentContext.restore(); // transformation restore()
+
+        if ( orgBounds ) {
+            this._bounds = orgBounds;
+            orgBounds = null;
         }
     }
 
@@ -719,9 +705,12 @@ export default LayerSprite;
 
 /* internal non-instance methods */
 
-function rotatePointerLists( pointers, layer, sourceWidth, sourceHeight ) {
+function rotatePointerLists( pointers, layer, sourceWidth, sourceHeight, viewport ) {
     // we take layer.x instead of bounds.left as it provides the unrotated Layer offset
-    const { x, y } = layer;
+    let { x, y } = layer;
+    // correct for viewport pan
+    x -= viewport.left;
+    y -= viewport.top;
     // translate pointer to translated space, when layer is rotated or mirrored
     const { mirrorX, mirrorY, rotation } = layer.effects;
     return pointers.map( point => {
@@ -738,8 +727,8 @@ function rotatePointerLists( pointers, layer, sourceWidth, sourceHeight ) {
     });
 }
 
-function rotatePointer( x, y, layer, sourceWidth, sourceHeight ) {
-    return rotatePointerLists([{ x, y }], layer, sourceWidth, sourceHeight )?.[ 0 ] || { x, y };
+function rotatePointer( x, y, layer, sourceWidth, sourceHeight, viewport ) {
+    return rotatePointerLists([{ x, y }], layer, sourceWidth, sourceHeight, viewport )?.[ 0 ] || { x, y };
 }
 
 // NOTE we use getSpriteForLayer() instead of passing the Sprite by reference

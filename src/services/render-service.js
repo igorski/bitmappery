@@ -28,7 +28,7 @@ import { hasFilters, isEqual as isFiltersEqual } from "@/factories/filters-facto
 import { isEqual as isTextEqual } from "@/factories/text-factory";
 import { createCanvas, cloneCanvas, matchDimensions } from "@/utils/canvas-util";
 import { replaceLayerSource } from "@/utils/layer-util";
-import { rotateRectangle, getRotationCenter } from "@/math/rectangle-math";
+import { rotateRectangle } from "@/math/rectangle-math";
 import { hasLayerCache, getLayerCache, setLayerCache } from "@/rendering/cache/bitmap-cache";
 import { renderMultiLineText } from "@/rendering/text";
 import { loadGoogleFont } from "@/services/font-service";
@@ -62,14 +62,13 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
 
     ++renderState.pending;
 
-    // if source is rotated, calculate the width and height for the current rotation
-    let { width, height } = rotateRectangle( layer, effects.rotation, true );
+    let { width, height } = layer;
     const { cvs, ctx } = createCanvas( width, height );
 
     const cached     = useCaching ? getLayerCache( layer ) : null;
     const cacheToSet = {};
 
-    const applyEffects  = hasEffects( layer );
+    const applyMask     = !!layer.mask;
     const applyFilter   = hasFilters( layer.filters );
     let hasCachedFilter = applyFilter && cached?.filterData && isFiltersEqual( layer.filters, cached.filters );
 
@@ -122,12 +121,12 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
         ctx.putImageData( imageData, 0, 0 );
     }
 
-    // step 3. apply effects
-    // TODO: hook these into cache as well ? then again this is the last action in an otherwise cached queue...
+    // step 3. apply mask
+    // TODO: hook this into cache as well ? then again this is the last action in an otherwise cached queue...
 
-    if ( applyEffects ) {
-        //console.info( "apply effects", JSON.stringify( layer.effects ));
-        await renderTransformedSource( layer, ctx, applyFilter ? cloneCanvas( cvs ) : layer.source, width, height, effects );
+    if ( applyMask ) {
+        //console.info( "apply mask" );
+        await renderMask( layer, ctx, applyFilter ? cloneCanvas( cvs ) : layer.source, width, height );
     }
 
     // step 4. update cache and on-screen canvas contents
@@ -139,7 +138,8 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
     renderState.pending = Math.max( 0, renderState.pending - 1 );
 
     // note that updating the bitmap will also adjust the sprite bounds
-    // as appropriate (e.g. on rotation), the Layer model remains unaffected by this
+    // as appropriate (f.i. if rotation were handled by this service), the
+    // Layer model remains unaffected by this
     sprite.setBitmap( cvs, width, height );
     sprite.invalidate();
 };
@@ -196,14 +196,6 @@ function handleWorkerMessage({ data }) {
     }
 };
 
-const hasEffects = layer => {
-    if ( !!layer.mask ) {
-        return true;
-    }
-    const { effects } = layer;
-    return effects.mirrorX || effects.mirrorY;
-};
-
 const renderText = async layer => {
     const { text } = layer;
     let font = text.font;
@@ -222,44 +214,15 @@ const renderText = async layer => {
     return cvs;
 };
 
-const renderTransformedSource = async ( layer, ctx, sourceBitmap, width, height, { mirrorX, mirrorY, rotation }) => {
-    const rotate = ( rotation % 360 ) !== 0;
-    let targetX = mirrorX ? -width  : 0;
-    let targetY = mirrorY ? -height : 0;
-
-    const xScale = mirrorX ? -1 : 1;
-    const yScale = mirrorY ? -1 : 1;
-
-    ctx.clearRect( 0, 0, width, height );
-    ctx.save();
-    ctx.scale( xScale, yScale );
-/*
-    if ( rotate ) {
-        const { x, y } = getRotationCenter({
-            left   : 0,
-            top    : 0,
-            width  : mirrorX ? -width : width,
-            height : mirrorY ? -height : height
-        }, true );
-        ctx.translate( x, y );
-        ctx.rotate( rotation );
-        ctx.translate( -x, -y );
-        targetX = x - layer.width  * .5;
-        targetY = y - layer.height * .5;
-    }
-*/
-    ctx.drawImage( sourceBitmap, targetX, targetY );
-    await renderMask( layer, ctx, targetX, targetY );
-
-    ctx.restore();
-};
-
-const renderMask = async( layer, ctx, tX = 0, tY = 0 ) => {
+const renderMask = async ( layer, ctx, sourceBitmap, width, height ) => {
     if ( !layer.mask ) {
         return;
     }
+    ctx.clearRect( 0, 0, width, height );
+    ctx.drawImage( sourceBitmap, 0, 0 );
+
     ctx.save();
-    ctx.translate( tX, tY );
+
     // commenting out the next line allows you to debug by seeing the mask
     ctx.globalCompositeOperation = "destination-out";
     ctx.drawImage( layer.mask, layer.maskX, layer.maskY );
