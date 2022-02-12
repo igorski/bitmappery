@@ -634,27 +634,13 @@ class LayerSprite extends ZoomableSprite {
             documentContext.globalAlpha = 1; // restore document opacity
         }
 
-        const { zoomFactor } = this.canvas;
-
-        if ( !omitOutlines ) {
-
-            // interactive state implies the sprite's Layer is currently active
-            // show a border around the Layer contents to indicate the active area
-
-            if ( this._interactive ) {
-                documentContext.save(); // 3. border save()
-                documentContext.lineWidth   = 1 / zoomFactor;
-                documentContext.strokeStyle = "#0db0bc";
-                documentContext.strokeRect( drawBounds.left, drawBounds.top, drawBounds.width, drawBounds.height );
-                documentContext.restore(); // 3. border restore()
-            }
-        }
-
         // render brush outline at pointer position
 
         if ( !omitOutlines && this._isPaintMode ) {
+            const { zoomFactor } = this.canvas;
             const tx = this._pointerX - viewport.left;
             const ty = this._pointerY - viewport.top;
+            
             documentContext.lineWidth = 2 / zoomFactor;
             const drawBrushOutline = this._toolType !== ToolTypes.CLONE || !!this._toolOptions.coords;
             if ( this._toolType === ToolTypes.CLONE ) {
@@ -716,7 +702,7 @@ function rotatePointerLists( pointers, layer, sourceWidth, sourceHeight, viewpor
 }
 
 function rotatePointer( x, y, layer, sourceWidth, sourceHeight, viewport ) {
-    return rotatePointerLists([{ x, y }], layer, sourceWidth, sourceHeight, viewport )?.[ 0 ] || { x, y };
+    return rotatePointerLists([{ x, y }], layer, sourceWidth, sourceHeight, viewport )[ 0 ];
 }
 
 // NOTE we use getSpriteForLayer() instead of passing the Sprite by reference

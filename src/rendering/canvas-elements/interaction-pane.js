@@ -125,6 +125,10 @@ class InteractionPane extends sprite {
         return getCanvasInstance().store.getters.activeDocument;
     }
 
+    getActiveLayer() {
+        return getCanvasInstance().store.getters.activeLayer;
+    }
+
     resetSelection() {
         const document = this.getActiveDocument();
         const currentSelection = document.selection || [];
@@ -348,6 +352,27 @@ class InteractionPane extends sprite {
                 ctx.stroke();
             }
             ctx.restore();
+        } else {
+            // show bounding box around active layer
+            const activeLayer = this.getActiveLayer();
+            if ( activeLayer ) {
+                ctx.save();
+                ctx.lineWidth   = 1 / this.canvas.zoomFactor;
+                ctx.strokeStyle = "#0db0bc";
+                const { x, y, width, height } = activeLayer;
+                const { rotation } = activeLayer.effects;
+                const destX = x - viewport.left;
+                const destY = y - viewport.top;
+                if ( rotation % 360 !== 0 ) {
+                    const tX = destX + ( width  * 0.5 );
+                    const tY = destY + ( height * 0.5 );
+                    ctx.translate( tX, tY );
+                    ctx.rotate( rotation );
+                    ctx.translate( -tX, -tY );
+                }
+                ctx.strokeRect( destX, destY, width, height );
+                ctx.restore();
+            }
         }
 
         // DEBUG only

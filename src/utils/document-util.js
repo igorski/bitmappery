@@ -61,7 +61,7 @@ export const createLayerSnapshot = async ( layer ) => {
     const { zcvs, cvs, ctx } = createFullSizeZCanvas( layer );
 
     // if the layer is currently invisible, it has no sprite, create it lazily here.
-    const sprite = !layer.visible ? createSpriteForLayer( zcvs, layer ) : getSpriteForLayer( layer );
+    const sprite = !layer.visible ? createSpriteForLayer( zcvs, layer, false ) : getSpriteForLayer( layer );
 
     // ensure all layer effects are rendered, note we omit caching
     await renderEffectsForLayer( layer, false );
