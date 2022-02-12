@@ -622,7 +622,7 @@ class LayerSprite extends ZoomableSprite {
         this._bounds = drawBounds;
 
         // invoke base class behaviour to render bitmap
-        super.draw( documentContext, transformCanvas ? null : viewport );
+        super.draw( documentContext, this.isRotated() ? null : viewport );
 
         // sprite is currently brushing, render low resolution temp contents onto screen
         if ( this.tempCanvas ) {
