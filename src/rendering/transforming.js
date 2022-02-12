@@ -27,6 +27,9 @@ import { getRotationCenter } from "@/math/rectangle-math";
  * rotated content. Prior to invoking this function the context should be saved
  * and subsequently restored after drawing.
  *
+ * This method returns a transforming bounding box for the sprite which can be
+ * set during its draw() operation to allow easy re-use of the basic zCanvas rendering.
+ *
  * @param {CanvasRenderingContext2D} ctx
  * @param {Object} viewport the ZoomableCanvas viewport
  * @param {LayerSprite} sprite
@@ -48,9 +51,11 @@ export const prepareTransformation = ( ctx, viewport, sprite, bounds, layer ) =>
     const transformedBounds = { ...bounds };
 
     // 1. offset the canvas to make up for the viewport pan position
+
     ctx.translate( -viewport.left, -viewport.top );
 
     // 2. apply mirror transformation
+
     if ( isMirrored ) {
         ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
         ctx.translate( mirrorX ? -width : 0, mirrorY ? -height : 0 );
@@ -67,6 +72,7 @@ export const prepareTransformation = ( ctx, viewport, sprite, bounds, layer ) =>
     }
 
     // 3. apply rotation
+
     let x = 0;
     let y = 0;
     if ( isRotated ) {
