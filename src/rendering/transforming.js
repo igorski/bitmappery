@@ -52,17 +52,18 @@ export const prepareTransformation = ( ctx, viewport, sprite, bounds, layer ) =>
 
     // 2. apply mirror transformation
     if ( isMirrored ) {
-        const scale = 1 / sprite.canvas.documentScale;
-        ctx.setTransform(
-            ( mirrorX ? -1 : 1 ) * scale,
-            0,
-            0,
-            ( mirrorY ? -1 : 1 ) * scale,
-            mirrorX ? ctx.canvas.width  : 0,
-            mirrorY ? ctx.canvas.height : 0
-        );
-        // offset the canvas to make up for the layer position
-        ctx.translate( bounds.left, bounds.top );
+        ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
+        ctx.translate( mirrorX ? -width : 0, mirrorY ? -height : 0 );
+
+        // the below corrects for the inverted axes of the mirror, making sure
+        // makes sure interactions (draw, draw) with the canvas feel natural
+
+        if ( mirrorX ) {
+            transformedBounds.left = -transformedBounds.left;
+        }
+        if ( mirrorY ) {
+            transformedBounds.top = -transformedBounds.top;
+        }
     }
 
     // 3. apply rotation
@@ -81,18 +82,6 @@ export const prepareTransformation = ( ctx, viewport, sprite, bounds, layer ) =>
         ctx.translate( x, y );
         ctx.rotate( mirrorX ? -rotation : rotation );
         ctx.translate( -x, -y );
-    }
-
-    // problem : activating these offsets the rotation center on a panned layer
-    // activating it however makes sure the drag direction feels natural...
-    // (in other words that bounds.left|top are performed correctly)
-
-    if ( mirrorX ) {
-    //    transformedBounds.left = -transformedBounds.left;
-    }
-
-    if ( mirrorY ) {
-    //    transformedBounds.top = -transformedBounds.top;
     }
     return transformedBounds;
 };
