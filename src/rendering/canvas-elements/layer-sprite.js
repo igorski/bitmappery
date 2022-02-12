@@ -322,7 +322,7 @@ class LayerSprite extends ZoomableSprite {
                     }
                 } else {
                     // render full brush stroke path directly onto the Layer source
-                    ctx = createCanvas( ctx.canvas.width, ctx.canvas.height ).ctx;
+                    ctx = createCanvas( orgContext.canvas.width, orgContext.canvas.height ).ctx;
                     this._brush.pointers = rotatePointerLists( this._brush.pointers, this.layer, width, height );
                 }
                 renderBrushStroke( ctx, this._brush, this, overrides );
@@ -608,26 +608,29 @@ class LayerSprite extends ZoomableSprite {
 
         if ( rotateCanvas ) {
             const { mirrorX, mirrorY, rotation } = this.layer.effects;
-            const { width, height } = this.layer;
             const { x, y } = getRotationCenter({
                 left   : this._bounds.left - viewport.left,
                 top    : this._bounds.top  - viewport.top,
-                width,
-                height
+                width  : this._bounds.width,
+                height : this._bounds.height
             }, true );
             documentContext.save();
             documentContext.translate( x, y );
             documentContext.rotate( rotation );
             documentContext.translate( -x, -y );
 
-            // TODO: why doesn't this work with translate ?
+            // TODO: why doesn't this work with the translate above ?
             orgBounds = orgBounds || { ...this._bounds };
-            this._bounds.top -= viewport.top;
+            this._bounds.top  -= viewport.top;
             this._bounds.left -= viewport.left;
         }
 
         // invoke base class behaviour to render bitmap
         super.draw( documentContext, rotateCanvas ? null : viewport );
+
+        if ( rotateCanvas ) {
+            documentContext.restore();
+        }
 
         if ( orgBounds ) {
             this._bounds = orgBounds;
@@ -687,15 +690,19 @@ class LayerSprite extends ZoomableSprite {
                 documentContext.save();
                 documentContext.lineWidth   = 1 / zoomFactor;
                 documentContext.strokeStyle = "#0db0bc";
-                const { x, y, width, height } = this.layer;
-                const destX = x - viewport.left;
-                const destY = y - viewport.top;
+                const { left, top, width, height } = scaleRectangle( this._bounds, this.layer.effects.scale );
+                const destX = left - viewport.left;
+                const destY = top - viewport.top;
+                if ( rotateCanvas ) {
+                    const tX = Math.round( destX + ( width  * HALF ));
+                    const tY = Math.round( destY + ( height * HALF ));
+                    documentContext.translate( tX, tY );
+                    documentContext.rotate( this.layer.effects.rotation );
+                    documentContext.translate( -tX, -tY );
+                }
                 documentContext.strokeRect( destX, destY, width, height );
                 documentContext.restore();
             }
-        }
-        if ( rotateCanvas ) {
-            documentContext.restore();
         }
     }
 
@@ -713,12 +720,11 @@ export default LayerSprite;
 /* internal non-instance methods */
 
 function rotatePointerLists( pointers, layer, sourceWidth, sourceHeight ) {
-    const out = [];
     // we take layer.x instead of bounds.left as it provides the unrotated Layer offset
     const { x, y } = layer;
     // translate pointer to translated space, when layer is rotated or mirrored
     const { mirrorX, mirrorY, rotation } = layer.effects;
-    pointers.forEach( point => {
+    return pointers.map( point => {
         // translate recorded pointer towards rotated point
         // and against layer position
         const p = translatePointerRotation( point.x - x, point.y - y, sourceWidth * HALF, sourceHeight * HALF, rotation );
@@ -728,9 +734,8 @@ function rotatePointerLists( pointers, layer, sourceWidth, sourceHeight ) {
         if ( mirrorY ) {
             p.y -= sourceHeight;
         }
-        out.push( p );
+        return p;
     });
-    return out;
 }
 
 function rotatePointer( x, y, layer, sourceWidth, sourceHeight ) {

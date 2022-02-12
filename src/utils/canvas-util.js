@@ -29,6 +29,7 @@ import { blobToResource, disposeResource } from "@/utils/resource-manager";
 /**
  * Creates a new HTMLCanvasElement, returning both
  * the element and its CanvasRenderingContext2D
+ * @returns {{ cvs: HTMLCanvasElement, ctx: CanvasRenderingContext2D }}
  */
 export const createCanvas = ( optWidth = 0, optHeight = 0 ) => {
     const cvs = document.createElement( "canvas" );
@@ -41,16 +42,31 @@ export const createCanvas = ( optWidth = 0, optHeight = 0 ) => {
     return { cvs, ctx };
 };
 
+/**
+ * @param {{ cvs: HTMLCanvasElement, ctx: CanvasRenderingContext2D }} canvas
+ * @param {Number} width
+ * @param {Number} height
+ */
 export const setCanvasDimensions = ( canvas, width, height ) => {
     canvas.cvs.width  = width;
     canvas.cvs.height = height;
 };
 
+/**
+ * @param {HTMLCanvasElement} sourceCanvas
+ * @param {HTMLCanvasElement} canvasToMatch
+ */
 export const matchDimensions = ( sourceCanvas, canvasToMatch ) => {
     canvasToMatch.width  = sourceCanvas.width;
     canvasToMatch.height = sourceCanvas.height;
 };
 
+/**
+ * @param {CanvasImageSource} bitmap
+ * @param {Number} width
+ * @param {Number} height
+ * @param {Boolean} transparent
+ */
 export const imageToBase64 = ( bitmap, width, height, transparent ) => {
     let cvs;
     if ( bitmap instanceof Image ) {
