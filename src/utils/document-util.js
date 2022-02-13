@@ -61,7 +61,7 @@ export const createLayerSnapshot = async ( layer ) => {
     const { zcvs, cvs, ctx } = createFullSizeZCanvas( layer );
 
     // if the layer is currently invisible, it has no sprite, create it lazily here.
-    const sprite = !layer.visible ? createSpriteForLayer( zcvs, layer ) : getSpriteForLayer( layer );
+    const sprite = !layer.visible ? createSpriteForLayer( zcvs, layer, false ) : getSpriteForLayer( layer );
 
     // ensure all layer effects are rendered, note we omit caching
     await renderEffectsForLayer( layer, false );
@@ -179,8 +179,13 @@ export const copySelection = async ( activeDocument, activeLayer, copyMerged = f
         ctx.drawImage( merged, 0, 0 );
     } else {
         // draw active layer onto temporary canvas at full document scale
+        /*
+        // the below could work but would imply that all effects are currently cached properly
         const sprite = getSpriteForLayer( activeLayer );
         sprite.draw( ctx, zcvs._viewport, true );
+        */
+        // ensure pixel perfect render, consumes more CPU and memory though
+        ctx.drawImage( await createLayerSnapshot( activeLayer ), 0, 0 );
     }
     ctx.restore();
 
@@ -206,7 +211,7 @@ export const copySelection = async ( activeDocument, activeLayer, copyMerged = f
  * @return {HTMLCanvasElement} document bitmap with erased selection contents
  */
 export const deleteSelectionContent = ( activeDocument, activeLayer ) => {
-    const { x, y, width, height } = activeLayer;
+    const { left, top, width, height } = activeLayer;
     const { cvs, ctx } = createCanvas( width, height );
     const hasMask = !!activeLayer.mask;
 
@@ -225,10 +230,10 @@ export const deleteSelectionContent = ( activeDocument, activeLayer ) => {
     }
     ctx.beginPath();
     activeDocument.selection.forEach(( point, index ) => {
-        ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x - x, point.y - y );
+        ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x - left, point.y - top );
     });
     if ( activeDocument.invertSelection ) {
-        createInverseClipping( ctx, activeDocument.selection, x, y, width, height );
+        createInverseClipping( ctx, activeDocument.selection, left, top, width, height );
     }
     ctx.fill();
     ctx.restore();
@@ -247,7 +252,7 @@ export const deleteSelectionContent = ( activeDocument, activeLayer ) => {
 export const getAlignableObjects = ( document, excludeLayer ) => {
     // create a rectangle describing the document boundaries
     const documentBounds = {
-        x: 0, y: 0, width: document.width, height: document.height, visible: true
+        left: 0, top: 0, width: document.width, height: document.height, visible: true
     };
     // create bounding boxes for all eligible objects
     return [ documentBounds, ...document.layers ].reduce(( acc, object ) => {
@@ -260,24 +265,24 @@ export const getAlignableObjects = ( document, excludeLayer ) => {
              ( excludeLayer && object.id === excludeLayer.id )) {
             return acc;
         }
-        const { x, y, width, height } = rotateRectangle( object, object.effects?.rotation );
+        const { left, top, width, height } = rotateRectangle( object, object.effects?.rotation );
         // 1. vertical top, center and bottom
         let guideWidth = document.width, guideHeight = 0;
-        if ( y > 0 ) {
-            acc.push({ x: 0, y, width: guideWidth, height: guideHeight });
+        if ( top > 0 ) {
+            acc.push({ left: 0, top, width: guideWidth, height: guideHeight });
         }
-        acc.push({ x: 0, y: y + height / 2, width: guideWidth, height: guideHeight });
-        if (( y + height ) < documentBounds.height ) {
-            acc.push({ x: 0, y: y + height, width: guideWidth, height: guideHeight });
+        acc.push({ left: 0, top: top + height / 2, width: guideWidth, height: guideHeight });
+        if (( top + height ) < documentBounds.height ) {
+            acc.push({ left: 0, top: top + height, width: guideWidth, height: guideHeight });
         }
         // 2. horizontal left, center and right
         guideWidth = 0, guideHeight = document.height;
-        if ( x > 0 ) {
-            acc.push({ x, y: 0, width: guideWidth, height: guideHeight });
+        if ( left > 0 ) {
+            acc.push({ left, top: 0, width: guideWidth, height: guideHeight });
         }
-        acc.push({ x: x + width / 2, y: 0, width: guideWidth, height: guideHeight });
-        if (( x + width ) < documentBounds.width ) {
-            acc.push({ x: x + width, y: 0, width: guideWidth, height: guideHeight });
+        acc.push({ left: left + width / 2, top: 0, width: guideWidth, height: guideHeight });
+        if (( left + width ) < documentBounds.width ) {
+            acc.push({ left: left + width, top: 0, width: guideWidth, height: guideHeight });
         }
         return acc;
     }, []);

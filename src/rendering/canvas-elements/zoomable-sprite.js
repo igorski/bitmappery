@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -46,10 +46,13 @@ class ZoomableSprite extends sprite {
 
     /* zCanvas overrides */
 
-    // ZoomableSprites dont function as masks, don't support tile sheets and have no children
+    // unlike regular zCanvas Sprites, ZoomableSprites don't function as masks, don't support tile
+    // sheets and have no children
+    // NOTE : we take some creative liberty here by changing the function arity, we can pass
+    // a custom bounds object here to override the internal reference. This is done when
+    // multiple transformations take place on the source (see layer-sprite.draw())
 
-    draw( canvasContext, viewport = null ) {
-        const bounds = this._bounds;
+    draw( canvasContext, viewport = null, bounds = this._bounds ) {
         let render = this._bitmapReady;
         if ( render && viewport ) {
             render = isInsideViewport( bounds, viewport );

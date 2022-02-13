@@ -27,7 +27,6 @@ import { fastRound } from "@/math/unit-math";
  *
  * @param {CanvasRenderingContext2D} ctx
  * @param {Object} text Layer text Object
- * @return {{ width: Number, height: Number }} bounding box of the rendered text
  */
 export const renderMultiLineText = ( ctx, text ) => {
     // calculate bounding box and offsets for all lines in the text
@@ -39,15 +38,15 @@ export const renderMultiLineText = ( ctx, text ) => {
 
     applyTextStyleToContext( text, ctx );
 
-    lines.forEach(({ line, y }, lineIndex ) => {
+    lines.forEach(({ line, top }, lineIndex ) => {
         if ( !text.spacing ) {
             // write entire line (0 spacing defaults to font spacing)
-            ctx.fillText( line, 0, y );
+            ctx.fillText( line, 0, top );
         } else {
             // write letter by letter (yeah... this is why we cache things)
             const letters = line.split( "" );
             letters.forEach(( letter, letterIndex ) => {
-                ctx.fillText( letter, fastRound( letterIndex * text.spacing ), y );
+                ctx.fillText( letter, fastRound( letterIndex * text.spacing ), top );
             });
         }
     });
@@ -55,6 +54,14 @@ export const renderMultiLineText = ( ctx, text ) => {
 
 /* internal methods */
 
+/**
+ * Measure the bounding box occupied by given lines of text for given text properties
+ *
+ * @param {Array<String>} lines of text to render
+ * @param {Object} text Layer text Object
+ * @param {CanvasRenderingContext2D} ctx
+ * @return {{ lines: Object, width: Number, height: Number }} bounding box of the rendered text
+ */
 function measureLines( lines, text, ctx ) {
     applyTextStyleToContext( text, ctx );
 
@@ -68,11 +75,11 @@ function measureLines( lines, text, ctx ) {
     if ( !lineHeight ) {
         lineHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
     }
-    const yStartOffset = textMetrics.actualBoundingBoxAscent;
-    let y = 0;
+    const topOffset = textMetrics.actualBoundingBoxAscent;
+    let top = 0;
 
     lines.forEach(( line, lineIndex ) => {
-        y = fastRound( yStartOffset + ( lineIndex * lineHeight ));
+        top = fastRound( topOffset + ( lineIndex * lineHeight ));
         if ( !text.spacing ) {
             textMetrics = ctx.measureText( line );
             width = Math.max( width, textMetrics.actualBoundingBoxRight );
@@ -80,7 +87,7 @@ function measureLines( lines, text, ctx ) {
             const letters = line.split( "" );
             width = Math.max( width, letters.length * text.spacing );
         }
-        linesOut.push({ line, y });
+        linesOut.push({ line, top });
         height += lineHeight;
     });
     return {

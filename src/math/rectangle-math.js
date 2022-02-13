@@ -37,7 +37,7 @@ export const rotateRectangle = ( rectangle, angleInRadians = 0, rounded = false 
     if ( angleInRadians === 0 ) {
         return rectangle;
     }
-    const { x, y, width, height } = rectangle;
+    const { left, top, width, height } = rectangle;
     const x1 = -width  * HALF,
           x2 = width   * HALF,
           x3 = width   * HALF,
@@ -68,23 +68,17 @@ export const rotateRectangle = ( rectangle, angleInRadians = 0, rounded = false 
         width  : xMax - xMin,
         height : yMax - yMin
     };
-    out.x = x - ( out.width  / 2 - width  / 2 );
-    out.y = y - ( out.height / 2 - height / 2 );
+    out.left = left - ( out.width  / 2 - width  / 2 );
+    out.top  = top  - ( out.height / 2 - height / 2 );
 
     if ( rounded ) {
-        out.x      = fastRound( out.x );
-        out.y      = fastRound( out.y );
+        out.left   = fastRound( out.left );
+        out.top    = fastRound( out.top );
         out.width  = fastRound( out.width );
         out.height = fastRound( out.height );
     }
     return out;
 };
-
-export const rectangleToCoordinates = ( x, y, width, height ) => [
-    { x, y }, { x: x + width, y },                          // TL to TR
-    { x: x + width, y: y + height }, { x, y: y + height },  // BR to BL
-    { x, y }, // back to TL to close selection
-];
 
 export const scaleRectangle = ({ left, top, width, height }, scale = 1 ) => {
     const scaledWidth  = width  * scale;
@@ -98,12 +92,14 @@ export const scaleRectangle = ({ left, top, width, height }, scale = 1 ) => {
 };
 
 export const areEqual = ( rect1, rect2 ) => {
+    if ( process.env.NODE_ENV !== "production" ) {
+        if ( typeof rect1.x === "number" || typeof rect2.x === "number" ) {
+            throw new Error( "x, y rectangles are deprecated." );
+        }
+    }
     return (
         rect1.left   === rect2.left  &&
         rect1.top    === rect2.top   &&
-        // fallback for rectangles using x, y instead of left, top TODO: align these !!
-        rect1.x      === rect2.x     &&
-        rect1.y      === rect2.y     &&
         rect1.width  === rect2.width &&
         rect1.height === rect2.height
     );

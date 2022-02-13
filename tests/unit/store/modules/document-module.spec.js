@@ -439,7 +439,7 @@ describe( "Vuex document module", () => {
             it( "should be able to update the effects of a specific layer within the active Document", () => {
                 const index   = 0;
                 const effects = { rotation: 1.6 };
-                const mockSprite = { src: "bitmap", cacheEffects: jest.fn() };
+                const mockSprite = { src: "bitmap", invalidate: jest.fn() };
                 mockUpdateFn = jest.fn( fn => {
                     if ( fn === "getSpriteForLayer" ) return mockSprite;
                     return true;
@@ -450,7 +450,7 @@ describe( "Vuex document module", () => {
                     effects,
                 });
                 expect( mockUpdateFn ).toHaveBeenCalledWith( "getSpriteForLayer", state.documents[ 0 ].layers[ index ] );
-                expect( mockSprite.cacheEffects ).toHaveBeenCalled();
+                expect( mockSprite.invalidate ).toHaveBeenCalled();
             });
         });
 

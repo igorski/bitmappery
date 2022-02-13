@@ -118,6 +118,7 @@ export default {
         },
         /*
         handleRotateGesture( event ) {
+            // TODO: this should go into history
             this.updateLayerEffects({
                 index: this.activeLayerIndex,
                 effects: { rotation: degreesToRadians( event.angle ) }

@@ -22,7 +22,7 @@
  */
 import { SNAP_MARGIN } from "@/definitions/tool-types";
 import {
-    distanceBetween, isCoordinateInHorizontalRange, isCoordinateInVerticalRange
+    rectToPoint, distanceBetween, isCoordinateInHorizontalRange, isCoordinateInVerticalRange
 } from "@/math/point-math";
 
 // pool the Arrays that describe the currently dragging Sprites snappable areas
@@ -64,9 +64,9 @@ export const getClosestSnappingPoints = ( sprite, guides ) => {
     for ( const guide of guides ) {
         for ( const cX of horizontal ) {
             for ( const cY of vertical ) {
-                if ( isCoordinateInHorizontalRange( guide.x, cX, SNAP_MARGIN )) {
+                if ( isCoordinateInHorizontalRange( guide.left, cX, SNAP_MARGIN )) {
                     horizontals.push( guide );
-                } else if ( isCoordinateInVerticalRange( guide.y, cY, SNAP_MARGIN )) {
+                } else if ( isCoordinateInVerticalRange( guide.top, cY, SNAP_MARGIN )) {
                     verticals.push( guide );
                 }
             }
@@ -76,11 +76,11 @@ export const getClosestSnappingPoints = ( sprite, guides ) => {
     // one for the horizontal and one for the vertical axis
 
     const comparePoint = {
-        x: sprite.getX(),
-        y: sprite.getY()
+        x : sprite.getX(),
+        y : sprite.getY()
     };
 
-    const reducer = ( a, b ) => distanceBetween( comparePoint, a ) < distanceBetween( comparePoint, b ) ? a : b;
+    const reducer = ( a, b ) => distanceBetween( comparePoint, rectToPoint( a )) < distanceBetween( comparePoint, rectToPoint( b )) ? a : b;
     return [
         horizontals.length > 1 ? horizontals.reduce( reducer ) : horizontals[ 0 ],
         verticals.length > 1 ? verticals.reduce( reducer ) : verticals[ 0 ]
@@ -101,30 +101,30 @@ export const snapSpriteToGuide = ( sprite, guides ) => {
     for ( const guide of filteredGuides ) {
         for ( const cX of horizontal ) {
             for ( const cY of vertical ) {
-                if ( !horSnap && isCoordinateInHorizontalRange( guide.x, cX, SNAP_MARGIN )) {
-                    let destX          = guide.x - ( width / 2 ); // by default snap sprite from center
+                if ( !horSnap && isCoordinateInHorizontalRange( guide.left, cX, SNAP_MARGIN )) {
+                    let destX          = guide.left - ( width / 2 ); // by default snap sprite from center
                     const quarterWidth = width / 4;
                     const leftHalf     = left + quarterWidth;
                     const rightHalf    = left + width - quarterWidth;
 
                     if ( cX < leftHalf ) {
-                        destX = guide.x;            // snap sprite left to given x
+                        destX = guide.left;          // snap sprite left to given left
                     } else if ( cX > rightHalf ) {
-                        destX = guide.x - width;    // snap sprite right to given x
+                        destX = guide.left - width;  // snap sprite right to given left
                     }
                     sprite.setBounds( destX, sprite.getY() );
                 }
 
-                if ( !verSnap && isCoordinateInVerticalRange( guide.y, cY, SNAP_MARGIN )) {
-                    let destY           = guide.y - ( height / 2 ); // by default snap sprite from center
+                if ( !verSnap && isCoordinateInVerticalRange( guide.top, cY, SNAP_MARGIN )) {
+                    let destY           = guide.top - ( height / 2 ); // by default snap sprite from center
                     const quarterHeight = height / 4;
                     const topHalf       = top + quarterHeight;
                     const bottomHalf    = top + height - quarterHeight;
 
                     if ( cY < topHalf ) {
-                        destY = guide.y;            // snap sprite top to given y
+                        destY = guide.top;          // snap sprite top to given top
                     } else if ( cY > bottomHalf ) {
-                        destY = guide.y - height;   // snap sprite bottom to given y
+                        destY = guide.top - height; // snap sprite bottom to given top
                     }
                     sprite.setBounds( sprite.getX(), destY );
                 }

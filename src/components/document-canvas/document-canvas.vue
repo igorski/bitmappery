@@ -420,7 +420,7 @@ export default {
         updateInteractionPane( pointerStyle = "cursor-pointer" ) {
             const zCanvas = getCanvasInstance();
             if ( zCanvas ) {
-                const enabled = this.panMode || this.layerSelectMode || this.selectMode;
+                const enabled = true; // always enabled (shows active layer outline)//this.panMode || this.layerSelectMode || this.selectMode;
                 let mode;
                 if ( this.panMode ) {
                     mode = MODE_PAN;

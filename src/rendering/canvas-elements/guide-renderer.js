@@ -76,17 +76,17 @@ class GuideRenderer extends sprite  {
             return;
         }
 
-        const left = viewport?.left   || 0;
-        const top  = viewport?.top    || 0;
+        const vpLeft = viewport?.left || 0;
+        const vpTop  = viewport?.top  || 0;
 
         // we can snap the currently draggingSprite against its edge and center
         const guides = getClosestSnappingPoints( this.canvas.draggingSprite, this.canvas.guides );
         ctx.strokeStyle = "red";
 
-        for ( const { x, y, width, height } of guides ) {
+        for ( const { left, top, width, height } of guides ) {
             // make up for canvas viewport offset
-            const localX = x - left;
-            const localY = y - top;
+            const localX = left - vpLeft;
+            const localY = top - vpTop;
 
             ctx.beginPath();
             ctx.moveTo( fastRound( localX ), fastRound( localY ));

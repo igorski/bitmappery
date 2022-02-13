@@ -43,8 +43,8 @@ export const resizeLayerContent = async ( layer, ratioX, ratioY ) => {
         layer.maskX *= ratioX;
         layer.maskY *= ratioY;
     }
-    layer.x      *= ratioX;
-    layer.y      *= ratioY;
+    layer.left   *= ratioX;
+    layer.top    *= ratioY;
     layer.width  *= ratioX;
     layer.height *= ratioY;
 

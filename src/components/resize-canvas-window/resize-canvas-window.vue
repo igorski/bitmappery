@@ -158,15 +158,15 @@ export default {
             // store original and calculate new offsets for each Layer
             const orgLayerOffsets = [];
             const newLayerOffsets = [];
-            activeDocument.layers.forEach(({ id, x, y }) => {
-                orgLayerOffsets.push({ id, x, y });
-                newLayerOffsets.push({ id, x: x + deltaX, y: deltaY });
+            activeDocument.layers.forEach(({ id, left, top }) => {
+                orgLayerOffsets.push({ id, left, top });
+                newLayerOffsets.push({ id, left: left + deltaX, top: deltaY });
             });
             const updateOffsets = ( layers, offsetList ) => {
                 layers.forEach( layer => {
-                    const { x, y } = offsetList.find(({ id }) => layer.id );
-                    layer.x = x;
-                    layer.y = y;
+                    const { left, top } = offsetList.find(({ id }) => layer.id );
+                    layer.left = left;
+                    layer.top  = top;
                 });
             };
             const commit = () => {

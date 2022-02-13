@@ -280,12 +280,12 @@ export default {
                 newName = truncate( this.internalText || DEFAULT_LAYER_NAME, 64 );
             }
             // hold a reference to the original layer rectangle as text updates alter its bounding box
-            const { x, y, width, height } = this.activeLayer;
+            const { left, top, width, height } = this.activeLayer;
             const commit = () => store.commit( "updateLayer", { index, opts: { name: newName, text: newOpts } });
             commit();
             enqueueState( `text_${index}`, {
                 undo() {
-                    store.commit( "updateLayer", { index, opts: { x, y, width, height, name: orgName, text: orgOpts } });
+                    store.commit( "updateLayer", { index, opts: { left, top, width, height, name: orgName, text: orgOpts } });
                 },
                 redo() {
                     commit();

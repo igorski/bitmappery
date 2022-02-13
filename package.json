@@ -48,6 +48,6 @@
     "vue-template-compiler": "^2.6.11",
     "vuedraggable": "^2.24.3",
     "worker-loader": "^2.0.0",
-    "zcanvas": "^4.2.1"
+    "zcanvas": "^4.3.1"
   }
 }

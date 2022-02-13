@@ -28,7 +28,7 @@ import { blobToResource } from "@/utils/resource-manager";
 import { LAYER_GRAPHIC, LAYER_TEXT } from "@/definitions/layer-types";
 import { getSizeForBrush } from "@/definitions/brush-types";
 import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
-import { scaleRectangle } from "@/math/rectangle-math";
+import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { clipContextToSelection } from "@/rendering/clipping";
@@ -36,6 +36,7 @@ import { renderClonedStroke } from "@/rendering/cloning";
 import { renderBrushStroke } from "@/rendering/drawing";
 import { floodFill } from "@/rendering/fill";
 import { snapSpriteToGuide } from "@/rendering/snapping";
+import { prepareTransformation } from "@/rendering/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
 import {
     getTempCanvas, renderTempCanvas, disposeTempCanvas, slicePointers, createOverrideConfig
@@ -48,6 +49,8 @@ import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
 const HALF   = 0.5;
 const TWO_PI = 2 * Math.PI;
 
+let drawBounds; // see draw()
+
 /**
  * A LayerSprite is the renderer for a Documents Layer.
  * It handles all tool interactions with the layer and also provides interaction with the Layers Mask.
@@ -55,8 +58,8 @@ const TWO_PI = 2 * Math.PI;
  */
 class LayerSprite extends ZoomableSprite {
     constructor( layer ) {
-        const { bitmap, x, y, width, height } = layer;
-        super({ bitmap, x, y, width, height }); // zCanvas inheritance
+        const { bitmap, left, top, width, height } = layer;
+        super({ bitmap, x: left, y: top, width, height }); // zCanvas inheritance
 
         this.layer = layer; // the Layer this Sprite will be rendering
 
@@ -113,7 +116,7 @@ class LayerSprite extends ZoomableSprite {
     // otherwise use setBounds() for relative positioning with state history
 
     syncPosition() {
-        let { x, y, width, height, effects } = this.layer;
+        let { left: x, top: y, width, height, effects } = this.layer;
         if ( this.isRotated() ) {
             ({ x, y } = translatePointerRotation( x, y, width / 2, height / 2, effects.rotation ));
         }
@@ -248,7 +251,7 @@ class LayerSprite extends ZoomableSprite {
         let ctx = ( drawOnMask ? this.layer.mask : this.layer.source ).getContext( "2d" );
         const { width, height } = ctx.canvas;
 
-        ctx.save(); // save() preparation
+        ctx.save(); // 1. preparation save()
 
         // as long as the brush is held down, render paint in low res preview mode
         // unless we are erasing contents on a layer mask
@@ -257,17 +260,14 @@ class LayerSprite extends ZoomableSprite {
         // if there is an active selection, painting will be constrained within
         let selectionPoints = optAction?.selection || this._selection;
         if ( selectionPoints ) {
-            let { x, y } = this.layer;
+            let { left, top } = this.layer;
             if ( this.isRotated() && !isLowResPreview ) {
                 selectionPoints = rotatePointerLists( selectionPoints, this.layer, width, height );
-                x = y = 0; // pointers have been rotated within clipping context
+                left = top = 0; // pointers have been rotated within clipping context
             }
-            ctx.save(); // save() clipping
-            clipContextToSelection( ctx, selectionPoints, x, y, this._invertSelection );
+            ctx.save(); // 2. clipping save()
+            clipContextToSelection( ctx, selectionPoints, left, top, this._invertSelection );
         }
-
-        // transform destination context in case the current layer is rotated or mirrored
-        ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
 
         if ( optAction ) {
             if ( optAction.type === "stroke" ) {
@@ -317,12 +317,14 @@ class LayerSprite extends ZoomableSprite {
                     ctx = this.tempCanvas.ctx;
 
                     if ( selectionPoints && this.tempCanvas ) {
-                        ctx.save(); // save() tempCanvas clipping
+                        ctx.save(); // 3. tempCanvas clipping save()
                         clipContextToSelection( ctx, selectionPoints, 0, 0, this._invertSelection, overrides );
                     }
                 } else {
                     // render full brush stroke path directly onto the Layer source
-                    ctx = createCanvas( ctx.canvas.width, ctx.canvas.height ).ctx;
+                    ctx = createCanvas( orgContext.canvas.width, orgContext.canvas.height ).ctx;
+                    // transform destination context in case the current layer is rotated or mirrored
+                    ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
                     this._brush.pointers = rotatePointerLists( this._brush.pointers, this.layer, width, height );
                 }
                 renderBrushStroke( ctx, this._brush, this, overrides );
@@ -337,14 +339,14 @@ class LayerSprite extends ZoomableSprite {
                     orgContext.drawImage( ctx.canvas, 0, 0 );
                     ctx = orgContext;
                 } else if ( selectionPoints && this.tempCanvas ) {
-                    orgContext.restore(); // restore() tempCanvas clipping
+                    orgContext.restore(); // 3. tempCanvas clipping restore()
                 }
             }
         }
         if ( selectionPoints ) {
-            ctx.restore(); // restore() clipping
+            ctx.restore(); // 2. clipping restore()
         }
-        ctx.restore(); // restore() preparation
+        ctx.restore(); // 1. preparation restore()
 
         // during low res preview brushing, defer recache of filters to handleRelease()
         if ( !isLowResPreview ) {
@@ -408,8 +410,8 @@ class LayerSprite extends ZoomableSprite {
 
         // store current values (for undo)
         const { left, top } = bounds;
-        const oldLayerX = layer.x;
-        const oldLayerY = layer.y;
+        const oldLayerX = layer.left;
+        const oldLayerY = layer.top;
 
         if ( width === 0 || height === 0 ) {
             ({ width, height } = bounds );
@@ -425,25 +427,36 @@ class LayerSprite extends ZoomableSprite {
         // update the Layer model by the relative offset
         // (because the Sprite maintains an alternate position when the Layer is rotated)
 
-        const newLayerX = layer.x + ( newX - left );
-        const newLayerY = layer.y + ( newY - top );
+        const newLayerX = layer.left + ( newX - left );
+        const newLayerY = layer.top  + ( newY - top );
 
-        layer.x = newLayerX;
-        layer.y = newLayerY;
+        layer.left = newLayerX;
+        layer.top  = newLayerY;
 
         enqueueState( `spritePos_${layer.id}`, {
             undo() {
                 positionSpriteFromHistory( layer, left, top );
-                layer.x = oldLayerX;
-                layer.y = oldLayerY;
+                layer.left = oldLayerX;
+                layer.top  = oldLayerY;
             },
             redo() {
                 positionSpriteFromHistory( layer, newX, newY );
-                layer.x = newLayerX;
-                layer.y = newLayerY;
+                layer.left = newLayerX;
+                layer.top  = newLayerY;
             }
         });
         this.invalidate();
+    }
+
+    /**
+     * override that takes rotation into account
+     * TODO : port to zCanvas
+     */
+    insideBounds( x, y ) {
+        // TODO can we cache this value ?
+        const { left, top, width, height } = rotateRectangle( this._bounds, this.layer.effects.rotation, true );
+        return x >= left && x <= ( left + width ) &&
+               y >= top  && y <= ( top  + height );
     }
 
     handlePress( x, y, { type }) {
@@ -585,7 +598,7 @@ class LayerSprite extends ZoomableSprite {
     }
 
     draw( documentContext, viewport, omitOutlines = false ) {
-        let orgBounds;
+        drawBounds = this._bounds;
 
         // in case Layer has scale effect, apply it here (we don't resample the
         // actual Layer source to make this behaviour non-destructive, it's
@@ -595,88 +608,72 @@ class LayerSprite extends ZoomableSprite {
             const { scale } = this.layer.effects;
             // we could scale the canvas context instead, but scaling the bounds means
             // that viewport pan logic will work "out of the box"
-            orgBounds = this._bounds;
-            this._bounds = scaleRectangle( orgBounds, scale );
+            drawBounds = scaleRectangle( drawBounds, scale );
         }
         const { enabled, opacity } = this.layer.filters;
         const altOpacity = enabled && opacity !== 1;
         if ( altOpacity ) {
             documentContext.globalAlpha = opacity;
         }
-        // invoke base class behaviour to render bitmap
-        super.draw( documentContext, viewport );
 
-        if ( orgBounds ) {
-            this._bounds = orgBounds;
+        documentContext.save(); // 1. transformation save()
+
+        const transformedBounds = prepareTransformation( documentContext, viewport, this, drawBounds, this.layer );
+        const transformCanvas   = transformedBounds !== drawBounds;
+
+        if ( transformCanvas ) {
+            drawBounds = transformedBounds;
         }
+
+        // invoke base class behaviour to render bitmap
+        super.draw( documentContext, transformCanvas ? null : viewport, drawBounds );
+
+        documentContext.restore(); // 1. transformation restore()
 
         // sprite is currently brushing, render low resolution temp contents onto screen
         if ( this.tempCanvas ) {
-            documentContext.save();
+            documentContext.save(); // 2. low res render save()
             documentContext.globalAlpha = this._brush.options.opacity;
             if ( this._toolType === ToolTypes.ERASER || this.isMaskable() ) {
                 documentContext.globalCompositeOperation = "destination-out";
             }
             renderTempCanvas( this.canvas, documentContext );
-            documentContext.restore();
+            documentContext.restore(); // 2. low res render restore()
         }
+
         if ( altOpacity ) {
             documentContext.globalAlpha = 1; // restore document opacity
         }
 
-        if ( !omitOutlines ) {
+        // render brush outline at pointer position
 
+        if ( !omitOutlines && this._isPaintMode ) {
             const { zoomFactor } = this.canvas;
+            const tx = this._pointerX - viewport.left;
+            const ty = this._pointerY - viewport.top;
 
-            // render brush outline at pointer position
-
-            if ( this._isPaintMode ) {
-                const tx = this._pointerX - viewport.left;
-                const ty = this._pointerY - viewport.top;
-                documentContext.lineWidth = 2 / zoomFactor;
-                const drawBrushOutline = this._toolType !== ToolTypes.CLONE || !!this._toolOptions.coords;
-                if ( this._toolType === ToolTypes.CLONE ) {
-                    const { coords } = this._toolOptions;
-                    const relSource = this._cloneStartCoords ?? this._dragStartEventCoordinates;
-                    const cx = coords ? ( coords.x - viewport.left ) + ( this._pointerX - relSource.x ) : tx;
-                    const cy = coords ? ( coords.y - viewport.top  ) + ( this._pointerY - relSource.y ) : ty;
-                    // when no source coordinate is set, or when applying the clone stamp, we show a cross to mark the origin
-                    if ( !coords || this._brush.down ) {
-                        renderCross( documentContext, cx, cy, this._brush.radius / zoomFactor );
-                    }
+            documentContext.lineWidth = 2 / zoomFactor;
+            const drawBrushOutline = this._toolType !== ToolTypes.CLONE || !!this._toolOptions.coords;
+            if ( this._toolType === ToolTypes.CLONE ) {
+                const { coords } = this._toolOptions;
+                const relSource = this._cloneStartCoords ?? this._dragStartEventCoordinates;
+                const cx = coords ? ( coords.x - viewport.left ) + ( this._pointerX - relSource.x ) : tx;
+                const cy = coords ? ( coords.y - viewport.top  ) + ( this._pointerY - relSource.y ) : ty;
+                // when no source coordinate is set, or when applying the clone stamp, we show a cross to mark the origin
+                if ( !coords || this._brush.down ) {
+                    renderCross( documentContext, cx, cy, this._brush.radius / zoomFactor );
                 }
-                documentContext.save();
-                documentContext.beginPath();
-
-                if ( drawBrushOutline ) {
-                    // any other brush mode state shows brush outline
-                    documentContext.arc( tx, ty, getSizeForBrush( this._brush ), 0, TWO_PI );
-                    documentContext.strokeStyle = "#999";
-                }
-                documentContext.stroke();
-                documentContext.restore();
             }
+            documentContext.save(); // 4. brush outline save()
+            documentContext.beginPath();
 
-            // interactive state implies the sprite's Layer is currently active
-            // show a border around the Layer contents to indicate the active area
-
-            if ( this._interactive ) {
-                documentContext.save();
-                documentContext.lineWidth   = 1 / zoomFactor;
-                documentContext.strokeStyle = "#0db0bc";
-                const { x, y, width, height } = this.layer;
-                const destX = x - viewport.left;
-                const destY = y - viewport.top;
-                if ( this.isRotated()) {
-                    const tX = destX + ( width  * HALF );
-                    const tY = destY + ( height * HALF );
-                    documentContext.translate( tX, tY );
-                    documentContext.rotate( this.layer.effects.rotation );
-                    documentContext.translate( -tX, -tY );
-                }
-                documentContext.strokeRect( destX, destY, width, height );
-                documentContext.restore();
+            if ( drawBrushOutline ) {
+                // any other brush mode state shows brush outline
+                documentContext.arc( tx, ty, getSizeForBrush( this._brush ), 0, TWO_PI );
+                documentContext.strokeStyle = "#999";
             }
+            documentContext.stroke();
+            documentContext.restore(); // 4. brush outline restore()
         }
     }
 
@@ -694,28 +691,26 @@ export default LayerSprite;
 /* internal non-instance methods */
 
 function rotatePointerLists( pointers, layer, sourceWidth, sourceHeight ) {
-    const out = [];
-    // we take layer.x instead of bounds.left as it provides the unrotated Layer offset
-    const { x, y } = layer;
+    // we take layer.left instead of bounds.left as it provides the unrotated Layer offset
+    const { left, top } = layer;
     // translate pointer to translated space, when layer is rotated or mirrored
     const { mirrorX, mirrorY, rotation } = layer.effects;
-    pointers.forEach( point => {
+    return pointers.map( point => {
         // translate recorded pointer towards rotated point
         // and against layer position
-        const p = translatePointerRotation( point.x - x, point.y - y, sourceWidth * HALF, sourceHeight * HALF, rotation );
+        const p = translatePointerRotation( point.x - left, point.y - top, sourceWidth * HALF, sourceHeight * HALF, rotation );
         if ( mirrorX ) {
             p.x -= sourceWidth;
         }
         if ( mirrorY ) {
             p.y -= sourceHeight;
         }
-        out.push( p );
+        return p;
     });
-    return out;
 }
 
 function rotatePointer( x, y, layer, sourceWidth, sourceHeight ) {
-    return rotatePointerLists([{ x, y }], layer, sourceWidth, sourceHeight )?.[ 0 ] || { x, y };
+    return rotatePointerLists([{ x, y }], layer, sourceWidth, sourceHeight )[ 0 ];
 }
 
 // NOTE we use getSpriteForLayer() instead of passing the Sprite by reference

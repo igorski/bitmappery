@@ -25,8 +25,7 @@ import { sprite } from "zcanvas";
 import { isInsideTransparentArea } from "@/utils/canvas-util";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
-import { isPointInRange, translatePoints, snapToAngle } from "@/math/point-math";
-import { rectangleToCoordinates } from "@/math/rectangle-math";
+import { isPointInRange, translatePoints, snapToAngle, rectToCoordinateList } from "@/math/point-math";
 import { isSelectionClosed, createSelectionForRectangle } from "@/math/selection-math";
 import ToolTypes from "@/definitions/tool-types";
 import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
@@ -125,6 +124,10 @@ class InteractionPane extends sprite {
         return getCanvasInstance().store.getters.activeDocument;
     }
 
+    getActiveLayer() {
+        return getCanvasInstance().store.getters.activeLayer;
+    }
+
     resetSelection() {
         const document = this.getActiveDocument();
         const currentSelection = document.selection || [];
@@ -176,7 +179,7 @@ class InteractionPane extends sprite {
     selectAll( targetLayer = null ) {
         const bounds = targetLayer ? getSpriteForLayer( targetLayer ).getBounds() : this._bounds;
         this.setSelection(
-            rectangleToCoordinates( bounds.left, bounds.top, bounds.width, bounds.height )
+            rectToCoordinateList( bounds.left, bounds.top, bounds.width, bounds.height )
         );
     }
 
@@ -293,7 +296,7 @@ class InteractionPane extends sprite {
                     // the bounding box of the down press coordinate and this release coordinate
                     const firstPoint = document.selection[ 0 ];
                     const { width, height } = calculateSelectionSize( firstPoint, x, y, this.toolOptions );
-                    document.selection = rectangleToCoordinates( firstPoint.x, firstPoint.y, width, height );
+                    document.selection = rectToCoordinateList( firstPoint.x, firstPoint.y, width, height );
                     this._selectionClosed = true;
                     storeSelectionHistory( document );
                 }
@@ -320,7 +323,7 @@ class InteractionPane extends sprite {
             // (defined in handlePress()) to the current pointer coordinate
             if ( this._isRectangleSelect && hasUnclosedSelection ) {
                 const { width, height } = calculateSelectionSize( firstPoint, this._pointerX, this._pointerY, this.toolOptions );
-                selection = rectangleToCoordinates( firstPoint.x, firstPoint.y, width, height );
+                selection = rectToCoordinateList( firstPoint.x, firstPoint.y, width, height );
             }
             // for unclosed lasso selections, draw line to current cursor position
             let currentPosition = null;
@@ -348,6 +351,27 @@ class InteractionPane extends sprite {
                 ctx.stroke();
             }
             ctx.restore();
+        } else {
+            // show bounding box around active layer
+            const activeLayer = this.getActiveLayer();
+            if ( activeLayer ) {
+                ctx.save();
+                ctx.lineWidth   = 1 / this.canvas.zoomFactor;
+                ctx.strokeStyle = "#0db0bc";
+                const { left, top, width, height } = activeLayer;
+                const { mirrorY, rotation } = activeLayer.effects;
+                const destX = left - viewport.left;
+                const destY = top  - viewport.top;
+                if ( rotation % 360 !== 0 ) {
+                    const tX = destX + ( width  * 0.5 );
+                    const tY = destY + ( height * 0.5 );
+                    ctx.translate( tX, tY );
+                    ctx.rotate( mirrorY ? -rotation : rotation );
+                    ctx.translate( -tX, -tY );
+                }
+                ctx.strokeRect( destX, destY, width, height );
+                ctx.restore();
+            }
         }
 
         // DEBUG only
