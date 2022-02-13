@@ -22,7 +22,7 @@
  */
 import { LAYER_TEXT } from "@/definitions/layer-types";
 import { ALL_PANELS } from "@/definitions/panel-types";
-import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM, canDraw, canClone } from "@/definitions/tool-types";
+import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM, canDraw } from "@/definitions/tool-types";
 import {
     CREATE_DOCUMENT, ADD_LAYER, EXPORT_DOCUMENT, DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT
 } from "@/definitions/modal-windows";
@@ -377,7 +377,7 @@ function handleKeyDown( event ) {
                     openModal( SAVE_DROPBOX_DOCUMENT );
                 }
                 preventDefault( event ); // page save
-            } else if ( canClone( getters.activeDocument, getters.activeLayer )) {
+            } else if ( canDraw( getters.activeDocument, getters.activeLayer )) {
                 setActiveTool( ToolTypes.CLONE );
             }
             break;

@@ -55,11 +55,6 @@ export const canDraw = ( activeDocument, activeLayer ) => {
     (( activeLayer.effects.rotation % 360 ) === 0 || ( !activeLayer.effects.mirrorX && !activeLayer.effects.mirrorY ));
 };
 
-// should eventually be replaced with canDraw() (see https://github.com/igorski/bitmappery/issues/1)
-export const canClone = ( activeDocument, activeLayer ) => {
-    return canDraw( activeDocument, activeLayer ) && ( activeLayer.effects.rotation % 360 ) === 0;
-};
-
 // we cannot draw in selection if a layer is mirrored (see https://github.com/igorski/bitmappery/issues/5)
 export const canDrawOnSelection = activeLayer => {
     const { effects } = activeLayer;

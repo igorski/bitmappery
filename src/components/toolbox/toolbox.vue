@@ -102,7 +102,7 @@ import { PANEL_TOOL_OPTIONS } from "@/definitions/panel-types";
 import { runSpriteFn } from "@/factories/sprite-factory";
 import { isMobile } from "@/utils/environment-util";
 import { addTextLayer } from "@/utils/layer-util";
-import ToolTypes, { canDraw, canClone } from "@/definitions/tool-types";
+import ToolTypes, { canDraw } from "@/definitions/tool-types";
 import messages  from "./messages.json";
 
 export default {
@@ -135,7 +135,7 @@ export default {
         },
         tools() {
             const drawable = canDraw( this.activeDocument, this.activeLayer );
-            const clonable = canClone( this.activeDocument, this.activeLayer );
+            const clonable = canDraw( this.activeDocument, this.activeLayer );
             return [
                 {
                     type: ToolTypes.MOVE,

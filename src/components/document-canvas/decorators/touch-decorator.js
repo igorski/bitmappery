@@ -121,8 +121,7 @@ export default {
             // TODO: this should go into history
             this.updateLayerEffects({
                 index: this.activeLayerIndex,
-                effects: { rotation: degreesToRadians( event.angle ) },
-                render: false
+                effects: { rotation: degreesToRadians( event.angle ) }
             });
         },*/
     }

@@ -106,11 +106,11 @@ export default {
             const oldRotation = this.activeLayerEffects.rotation;
             const index  = this.activeLayerIndex;
             const store  = this.$store;
-            const commit = () => store.commit( "updateLayerEffects", { index, effects: { rotation }, render: false });
+            const commit = () => store.commit( "updateLayerEffects", { index, effects: { rotation } });
             commit();
             enqueueState( `rotation_${index}`, {
                 undo() {
-                    store.commit( "updateLayerEffects", { index, effects: { rotation: oldRotation }, render: false });
+                    store.commit( "updateLayerEffects", { index, effects: { rotation: oldRotation } });
                 },
                 redo() {
                     commit();

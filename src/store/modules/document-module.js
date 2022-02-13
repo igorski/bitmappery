@@ -150,7 +150,7 @@ export default {
                 opts.source ? sprite.resetFilterAndRecache() : sprite.cacheEffects();
             }
         },
-        updateLayerEffects( state, { index, effects = {}, render = true }) {
+        updateLayerEffects( state, { index, effects = {} }) {
             const layer = state.documents[ state.activeIndex ]?.layers[ index ];
             if ( !layer ) {
                 return;
@@ -159,11 +159,11 @@ export default {
                 ...layer.effects,
                 ...effects
             });
-            // update layer in sprite
+            // update layer renderer
             const sprite = getSpriteForLayer( layer );
             if ( sprite ) {
                 sprite.layer = layer;
-                render ? sprite.cacheEffects() : sprite.invalidate();
+                sprite.invalidate();
             }
         },
         async resizeActiveDocumentContent( state, { scaleX, scaleY }) {
