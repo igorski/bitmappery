@@ -56,7 +56,7 @@
                             :key="layer.id"
                             class="layer"
                             :class="{
-                                'active': layer.index === activeLayerIndex
+                                'layer--active': layer.index === activeLayerIndex
                             }"
                             @dblclick="handleLayerDoubleClick( layer )"
                         >
@@ -64,7 +64,7 @@
                             <input
                                 v-if="editable && layer.index === activeLayerIndex"
                                 ref="nameInput"
-                                class="input-field name-input"
+                                class="input-field layer__name-input"
                                 :value="layer.name"
                                 @blur="editable = false"
                                 @keyup.enter="editable = false"
@@ -73,40 +73,40 @@
                             <span
                                 v-else
                                 v-tooltip="$t( layer.mask && layer.mask === activeLayerMask ? 'clickToEditLayer' : 'dblClickToRename')"
-                                class="name"
+                                class="layer__name"
                                 :class="{
-                                    'highlight': layer.index === activeLayerIndex && !activeLayerMask
+                                    'layer--highlight': layer.index === activeLayerIndex && !activeLayerMask
                                 }"
                                 @click="handleLayerClick( layer )"
                             >{{ layer.name }}</span>
-                            <div class="layer-actions">
+                            <div class="layer__actions">
                                 <!-- optional layer mask -->
                                 <button
                                     v-if="layer.mask"
                                     v-tooltip="$t('clickToEditMask')"
-                                    class="button button--ghost"
+                                    class="layer__actions-button button--ghost"
                                     :class="{
-                                        'highlight': layer.mask === activeLayerMask
+                                        'layer--highlight': layer.mask === activeLayerMask
                                     }"
                                     @click="handleLayerMaskClick( layer )"
                                 ><img src="@/assets/icons/icon-mask.svg" /></button>
                                 <button
                                     v-tooltip="$t('toggleVisibility')"
                                     type="button"
-                                    class="button button--ghost"
+                                    class="layer__actions-button button--ghost"
                                     @click="toggleLayerVisibility( layer.index )"
-                                    :class="{ 'disabled': !layer.visible }"
+                                    :class="{ 'layer__actions-button--disabled': !layer.visible }"
                                 ><img src="@/assets/icons/icon-eye.svg" /></button>
                                 <button
                                     v-tooltip="$t('filters')"
                                     type="button"
-                                    class="button button--ghost"
+                                    class="layer__actions-button button--ghost"
                                     @click="handleFiltersClick( layer.index )"
                                 ><img src="@/assets/icons/icon-settings.svg" /></button>
                                 <button
                                     v-tooltip="$t( layer.mask ? 'deleteMask' : 'deleteLayer' )"
                                     type="button"
-                                    class="button button--ghost"
+                                    class="layer__actions-button button--ghost"
                                     @click="handleRemoveClick( layer.index )"
                                 ><img src="@/assets/icons/icon-trashcan.svg" /></button>
                             </div>
@@ -385,39 +385,50 @@ export default {
         color: #000;
     }
 
-    &.active {
-        background-color: $color-1;
-        border: none;
-    }
-
-    .name,
-    .name-input {
+    &__name,
+    &__name-input {
         flex: 3;
         @include truncate();
         font-size: 90%;
         padding: $spacing-small $spacing-small 0;
         margin-left: $spacing-small;
     }
-    .highlight {
-        color: #000;
+
+    &__actions {
+        margin-right: $spacing-small;
+
+        &-button {
+            cursor: pointer;
+            width: 30px;
+            height: 32px;
+            padding: 0;
+            filter: brightness(0) invert(0.5);
+
+            &--disabled {
+                opacity: .5;
+            }
+
+            img {
+                width: 24px;
+                vertical-align: middle;
+            }
+        }
     }
-}
 
-.layer-actions {
-    margin-right: $spacing-small;
+    &--active {
+        background-color: $color-1;
+        border: none;
+    }
 
-    .button {
-        width: 30px;
-        height: 32px;
-        padding: 0;
-
-        &.disabled {
-            opacity: .5;
+    &--active,
+    &:hover {
+        .layer__actions-button {
+            filter: none;
         }
-        img {
-            width: 24px;
-            vertical-align: middle;
-        }
+    }
+
+    &--highlight {
+        color: #000;
     }
 }
 </style>

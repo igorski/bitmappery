@@ -146,7 +146,7 @@ export default {
     &__message {
         @include truncate();
         white-space: break-spaces;
-        margin: $spacing-xsmall 0;
+        margin: 0 0 $spacing-xsmall 0;
     }
 
     @include large() {
