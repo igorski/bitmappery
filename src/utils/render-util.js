@@ -65,6 +65,6 @@ export const cropLayerContent = async ( layer, left, top ) => {
         layer.maskY -= top;
     }
     */
-    layer.x -= left;
-    layer.y -= top;
+    layer.left -= left;
+    layer.top  -= top;
 };
