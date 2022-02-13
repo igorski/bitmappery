@@ -85,6 +85,8 @@ export default {
             switch ( this.activeTool ) {
                 default:
                     return null;
+                case ToolTypes.DRAG:
+                    return () => import( "./tool-options-drag/tool-options-drag" );
                 case ToolTypes.SELECTION:
                 case ToolTypes.LASSO:
                     return () => import( "./tool-options-selection/tool-options-selection" );
