@@ -179,8 +179,13 @@ export const copySelection = async ( activeDocument, activeLayer, copyMerged = f
         ctx.drawImage( merged, 0, 0 );
     } else {
         // draw active layer onto temporary canvas at full document scale
+        /*
+        // the below could work but would imply that all effects are currently cached properly
         const sprite = getSpriteForLayer( activeLayer );
         sprite.draw( ctx, zcvs._viewport, true );
+        */
+        // ensure pixel perfect render, consumes more CPU and memory though
+        ctx.drawImage( await createLayerSnapshot( activeLayer ), 0, 0 );
     }
     ctx.restore();
 
