@@ -22,14 +22,17 @@
 */
 <template>
     <div class="notifications">
-        <div v-for="(notification, index) in queue"
+        <div v-for="( notification, index ) in queue"
              :key="`notification_${index}`"
-             class="notification-window"
-             :class="{ active: notification.visible, destroyed: notification.destroyed }"
-             @click="closeNotification(notification)"
+             class="notification"
+             :class="{
+                 'notification--active'    : notification.visible,
+                 'notification--destroyed' : notification.destroyed
+             }"
+             @click="closeNotification( notification )"
         >
-            <h3>{{ notification.title }}</h3>
-            <p>{{ notification.message }}</p>
+            <h3 class="notification__title">{{ notification.title }}</h3>
+            <p class="notification__message">{{ notification.message }}</p>
         </div>
     </div>
 </template>
@@ -69,12 +72,13 @@ export default {
         ...mapMutations([
             "clearNotifications",
         ]),
-        closeNotification(notificationVO) {
-            if (!notificationVO.visible) return;
-
+        closeNotification( notificationVO ) {
+            if ( !notificationVO.visible ) {
+                return;
+            }
             // trigger 1 sec close animation (see css)
             notificationVO.visible = false;
-            window.setTimeout(this.removeNotification.bind(this, notificationVO), 1000 );
+            window.setTimeout( this.removeNotification.bind( this, notificationVO ), 1000 );
         },
         removeNotification( notificationVO ) {
             notificationVO.destroyed = true;
@@ -90,7 +94,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/_mixins.scss";
+@import "@/styles/_mixins";
+@import "@/styles/typography";
 
 .notifications {
     position: fixed;
@@ -100,65 +105,64 @@ export default {
     width: 33%;
     max-width: 300px;
 
-    .notification-window {
-        @include boxSize();
-        @include truncate();
-        display: block;
-        position: relative;
-        padding: $spacing-small $spacing-medium;
-        margin-bottom: $spacing-small;
-        right: -500px;
-        background-color: #393b40;
-        border: 3px solid #28292d;
-        color: #FFF;
-        transition: 1.0s ease-in-out;
-        cursor: pointer;
-        box-shadow: 0 0 0 rgba(0,255,255,0);
-
-        &.destroyed {
-            display: none;
-        }
-
-        &.active {
-            right: $spacing-medium;
-            box-shadow: 0 0 $spacing-small rgba(0,255,255,.35);
-        }
-
-        h3 {
-            color: $color-1;
-            margin: 0;
-        }
-
-        p {
-            margin: $spacing-xsmall 0;
-        }
-    }
-}
-
-@include large() {
-    .notification-window {
-        border-radius: $spacing-small;
-    }
-}
-
-@include mobile() {
-    .notifications {
+    @include mobile() {
         width: 100%;
         max-width: 100%;
         left: 0;
         right: auto;
+    }
+}
 
-        .notification-window {
-            width: 100%;
-            left: 0;
-            right: auto;
-            top: -500px;
-            padding: $spacing-medium;
-            margin: 0;
+.notification {
+    @include boxSize();
+    @include truncate();
+    display: block;
+    position: relative;
+    padding: $spacing-small $spacing-medium;
+    margin-bottom: $spacing-small;
+    right: -500px;
+    background-color: #393b40;
+    border: 3px solid #28292d;
+    color: #FFF;
+    transition: 1.0s ease-in-out;
+    cursor: pointer;
+    box-shadow: 0 0 0 rgba(0,255,255,0);
 
-            &.active {
-                top: 0;
-            }
+    &--destroyed {
+        display: none;
+    }
+
+    &--active {
+        right: $spacing-medium;
+        box-shadow: 0 0 $spacing-small rgba(0,255,255,.35);
+    }
+
+    &__title {
+        @include customFont();
+        color: $color-1;
+        margin: 0;
+    }
+
+    &__message {
+        @include truncate();
+        white-space: break-spaces;
+        margin: $spacing-xsmall 0;
+    }
+
+    @include large() {
+        border-radius: $spacing-small;
+    }
+
+    @include mobile() {
+        width: 100%;
+        left: 0;
+        right: auto;
+        top: -500px;
+        padding: $spacing-medium;
+        margin: 0;
+
+        &--active {
+            top: 0;
         }
     }
 }
