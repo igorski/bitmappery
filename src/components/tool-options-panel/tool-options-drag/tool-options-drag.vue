@@ -69,7 +69,7 @@ export default {
         ]),
         left: {
             get() {
-                return Math.round( this.activeLayer.left );
+                return Math.round( this.activeLayer?.left || 0 );
             },
             set( value ) {
                 if ( isNaN( value )) {
@@ -80,7 +80,7 @@ export default {
         },
         top: {
             get() {
-                return Math.round( this.activeLayer.top );
+                return Math.round( this.activeLayer?.top || 0 );
             },
             set( value ) {
                 if ( isNaN( value )) {

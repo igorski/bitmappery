@@ -111,6 +111,21 @@ class LayerSprite extends ZoomableSprite {
         return this.layer.effects.scale !== 1;
     }
 
+    /**
+     * Get the actual bounds of the sprite (as transformations like
+     * scale and rotation affect the original bounds)
+     */
+    getActualBounds() {
+        if ( !this.isRotated() && !this.isScaled() ) {
+            return this._bounds;
+        }
+        // TODO can we cache this value ?
+        return rotateRectangle(
+            scaleRectangle( this._bounds, this.layer.effects.scale ),
+            this.layer.effects.rotation
+        );
+    }
+
     // forces sychronizing this Sprites positions to the layer position
     // to be called when outside factors have adjusted the Sprite source
     // otherwise use setBounds() for relative positioning with state history
@@ -453,11 +468,7 @@ class LayerSprite extends ZoomableSprite {
      * TODO : port to zCanvas
      */
     insideBounds( x, y ) {
-        // TODO can we cache this value ?
-        const { left, top, width, height } = rotateRectangle(
-            scaleRectangle( this._bounds, this.layer.effects.scale ),
-            this.layer.effects.rotation, true
-        );
+        const { left, top, width, height } = this.getActualBounds();
         return x >= left && x <= ( left + width ) &&
                y >= top  && y <= ( top  + height );
     }

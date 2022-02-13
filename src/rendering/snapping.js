@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -33,7 +33,7 @@ const vertical       = new Array( 3 );
 const snappableAreas = { horizontal, vertical };
 
 function cacheSnappableAreas( sprite ) {
-    const bounds = sprite.getBounds();
+    const bounds = sprite.getActualBounds();
 
     horizontal[ 0 ] = bounds.left;
     horizontal[ 1 ] = bounds.left + bounds.width / 2;
@@ -52,7 +52,7 @@ function cacheSnappableAreas( sprite ) {
  *
  * This caches the snappable areas for given Sprite
  *
- * @param {Sprite} sprite to determine snapping points for
+ * @param {LayerSprite} sprite to determine snapping points for
  * @param {Array<Object>} guides all available snapping points
  */
 export const getClosestSnappingPoints = ( sprite, guides ) => {
@@ -75,10 +75,7 @@ export const getClosestSnappingPoints = ( sprite, guides ) => {
     // for each snappable area we must find the closest guide
     // one for the horizontal and one for the vertical axis
 
-    const comparePoint = {
-        x : sprite.getX(),
-        y : sprite.getY()
-    };
+    const comparePoint = rectToPoint( sprite.getActualBounds() );
 
     const reducer = ( a, b ) => distanceBetween( comparePoint, rectToPoint( a )) < distanceBetween( comparePoint, rectToPoint( b )) ? a : b;
     return [
@@ -90,10 +87,19 @@ export const getClosestSnappingPoints = ( sprite, guides ) => {
 /**
  * Aligns the position of given sprite to the most appropriate of given guides.
  * This should be called on drag release.
+ *
+ * @param {LayerSprite} sprite
+ * @param {Array<Object} guides
  */
 export const snapSpriteToGuide = ( sprite, guides ) => {
     const filteredGuides = getClosestSnappingPoints( sprite, guides );
-    const { left, top, width, height } = sprite.getBounds();
+    const { left, top, width, height } = sprite.getActualBounds();
+
+    // if a sprite is rotated / scaled we need to know the delta between
+    // the original, untransformed bounding box and the transformed bouding box
+
+    const deltaX = Math.abs( left - sprite.getX() );
+    const deltaY = Math.abs( top  - sprite.getY() );
 
     let horSnap = false;
     let verSnap = false;
@@ -108,11 +114,12 @@ export const snapSpriteToGuide = ( sprite, guides ) => {
                     const rightHalf    = left + width - quarterWidth;
 
                     if ( cX < leftHalf ) {
-                        destX = guide.left;          // snap sprite left to given left
+                        destX = guide.left;         // snap sprite left to given left
                     } else if ( cX > rightHalf ) {
-                        destX = guide.left - width;  // snap sprite right to given left
+                        destX = guide.left - width; // snap sprite right to given left
                     }
-                    sprite.setBounds( destX, sprite.getY() );
+                    sprite.setBounds( destX + deltaX, sprite.getY() );
+                    horSnap = true;
                 }
 
                 if ( !verSnap && isCoordinateInVerticalRange( guide.top, cY, SNAP_MARGIN )) {
@@ -126,7 +133,8 @@ export const snapSpriteToGuide = ( sprite, guides ) => {
                     } else if ( cY > bottomHalf ) {
                         destY = guide.top - height; // snap sprite bottom to given top
                     }
-                    sprite.setBounds( sprite.getX(), destY );
+                    sprite.setBounds( sprite.getX(), destY + deltaY );
+                    verSnap = true;
                 }
                 if ( horSnap && verSnap ) {
                     return;
