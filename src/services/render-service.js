@@ -28,7 +28,6 @@ import { hasFilters, isEqual as isFiltersEqual } from "@/factories/filters-facto
 import { isEqual as isTextEqual } from "@/factories/text-factory";
 import { createCanvas, cloneCanvas, matchDimensions } from "@/utils/canvas-util";
 import { replaceLayerSource } from "@/utils/layer-util";
-import { rotateRectangle } from "@/math/rectangle-math";
 import { hasLayerCache, getLayerCache, setLayerCache } from "@/rendering/cache/bitmap-cache";
 import { renderMultiLineText } from "@/rendering/text";
 import { loadGoogleFont } from "@/services/font-service";
@@ -87,10 +86,6 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
             cacheToSet.textData = textData;
             hasCachedFilter = false; // new contents need to be refiltered
         }
-        // update dimensions as text shrinks/expands to fit
-        ({ width, height } = rotateRectangle({
-            width: textData.width, height: textData.height, left: 0, top: 0
-        }, effects.rotation, true ));
         matchDimensions({ width, height }, cvs );
         // render text onto destination source
         ctx.drawImage( textData, 0, 0 );
@@ -198,6 +193,10 @@ function handleWorkerMessage({ data }) {
     }
 };
 
+/**
+ * @param {Object} layer
+ * @returns {HTMLCanvasElement}
+ */
 const renderText = async layer => {
     const { text } = layer;
     let font = text.font;
