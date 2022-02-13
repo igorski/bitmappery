@@ -165,7 +165,8 @@ describe( "Vuex document module", () => {
                 const size = { width: 75, height: 40 };
                 const mockCanvas = {
                     setDimensions: jest.fn(),
-                    rescaleFn: jest.fn()
+                    rescaleFn: jest.fn(),
+                    refreshFn: jest.fn(),
                 };
                 mockUpdateFn = jest.fn( fn => {
                     return fn === "getCanvasInstance" ? mockCanvas : null
@@ -175,6 +176,8 @@ describe( "Vuex document module", () => {
                 expect( mockCanvas.setDimensions ).toHaveBeenCalledWith( size.width, size.height, true, true );
                 expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "getCanvasInstance" );
                 expect( mockCanvas.rescaleFn ).toHaveBeenCalled();
+                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "getCanvasInstance" );
+                expect( mockCanvas.refreshFn ).toHaveBeenCalled();
             });
         });
 

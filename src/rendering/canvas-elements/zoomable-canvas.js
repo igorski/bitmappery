@@ -27,13 +27,15 @@ import { fastRound } from "@/math/unit-math";
 import { renderState } from "@/services/render-service";
 
 class ZoomableCanvas extends canvas {
-    constructor( opts, store, rescaleFn ) {
+    constructor( opts, store, rescaleFn, refreshFn ) {
         super( opts );
 
         // Vuex root store reference
         this.store = store;
         // rescale handler used to match parent component with zCanvas rescales
         this.rescaleFn = rescaleFn;
+        // refresh handler used to force rebuild of all Layer renderers
+        this.refreshFn = refreshFn;
 
         this.documentScale = 1;
         this.setZoomFactor( 1 );

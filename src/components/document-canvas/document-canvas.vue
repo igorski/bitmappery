@@ -66,6 +66,7 @@ import Scrollbars from "./scrollbars/scrollbars";
 import TouchDecorator from "./decorators/touch-decorator";
 import { scaleToRatio } from "@/math/image-math";
 import { scale } from "@/math/unit-math";
+import { debounce } from "@/utils/debounce-util";
 import { getAlignableObjects } from "@/utils/document-util";
 import { isMobile } from "@/utils/environment-util";
 import { fitInWindow } from "@/utils/zoom-util";
@@ -180,32 +181,8 @@ export default {
             }
         },
         layers: {
-            handler( layers ) {
-                const seen    = [];
-                const zCanvas = getCanvasInstance();
-                layers?.forEach( layer => {
-                    if ( !layer.visible ) {
-                        flushLayerSprites( layer );
-                        return;
-                    }
-                    if ( !layerPool.has( layer.id )) {
-                        const sprite = createSpriteForLayer( zCanvas, layer, layer === this.activeLayer );
-                        layerPool.set( layer.id, sprite );
-                    }
-                    seen.push( layer.id );
-                });
-                [ ...layerPool.keys() ].filter( id => !seen.includes( id )).forEach( id => {
-                    flushLayerSprites( layerPool.get( id ));
-                    layerPool.delete( id );
-                });
-                // ensure the visible layers are at right position in display list
-                layers?.filter(({ visible }) => visible ).forEach( layer => {
-                    const sprite = getSpriteForLayer( layer );
-                    zCanvas.removeChild( sprite );
-                    zCanvas.addChild( sprite );
-                });
-                zCanvas?.interactionPane.stayOnTop();
-                this.hasGuideRenderer && guideRenderer.stayOnTop();
+            handler() {
+                this.createLayerRenderers();
             },
         },
         activeLayer( layer ) {
@@ -285,18 +262,23 @@ export default {
         ]),
         createCanvas() {
             // note dimensions will be adjusted by scaleCanvas()
-            const zCanvas = new ZoomableCanvas({
-                width: this.cvsWidth,
-                height: this.cvsHeight,
-                animate: false,
-                smoothing: this.antiAlias,
-                stretchToFit: false,
-                viewport: {
-                    width  : this.viewportWidth,
-                    height : this.viewportHeight
+            const zCanvas = new ZoomableCanvas(
+                {
+                    width: this.cvsWidth,
+                    height: this.cvsHeight,
+                    animate: false,
+                    smoothing: this.antiAlias,
+                    stretchToFit: false,
+                    viewport: {
+                        width  : this.viewportWidth,
+                        height : this.viewportHeight
+                    },
+                    handler: this.handleCanvasEvent.bind( this ),
                 },
-                handler: this.handleCanvasEvent.bind( this ),
-            }, this.$store, this.calcIdealDimensions.bind( this, true ));
+                this.$store,
+                this.calcIdealDimensions.bind( this, true ),
+                this.refreshRenderers.bind( this ),
+            );
             setCanvasInstance( zCanvas );
             guideRenderer = new GuideRenderer( this.hasGuideRenderer ? zCanvas : null );
             this.updateGuideModes();
@@ -438,6 +420,51 @@ export default {
                     this.handleCursor(); // restore cursor to value appropriate to current tool
                 }
             }
+        },
+        /**
+         * Lazily create all renderers (layer sprites) for each layer. Renderers are pooled
+         * so subsequent calls (for instance on addition / removal of individual layers)
+         * only affect the appropriate layers.
+         */
+        createLayerRenderers() {
+            const seen    = [];
+            const zCanvas = getCanvasInstance();
+            this.layers?.forEach( layer => {
+                if ( !layer.visible ) {
+                    flushLayerSprites( layer );
+                    return;
+                }
+                if ( !layerPool.has( layer.id )) {
+                    const sprite = createSpriteForLayer( zCanvas, layer, layer === this.activeLayer );
+                    layerPool.set( layer.id, sprite );
+                }
+                seen.push( layer.id );
+            });
+            [ ...layerPool.keys() ].filter( id => !seen.includes( id )).forEach( id => {
+                flushLayerSprites( layerPool.get( id ));
+                layerPool.delete( id );
+            });
+            // ensure the visible layers are at right position in display list
+            this.layers?.filter(({ visible }) => visible ).forEach( layer => {
+                const sprite = getSpriteForLayer( layer );
+                zCanvas.removeChild( sprite );
+                zCanvas.addChild( sprite );
+            });
+            zCanvas?.interactionPane.stayOnTop();
+            this.hasGuideRenderer && guideRenderer.stayOnTop();
+        },
+        /**
+         * A hard "reset" of all layer sprites. This is only necessary when layer
+         * source content has changed (e.g. document resize), forcing all sprites
+         * to re-render their cached contents.
+         */
+        async refreshRenderers() {
+            flushSpriteCache();
+            flushBitmapCache();
+            renderState.reset();
+            layerPool.clear();
+            await debounce();
+            this.createLayerRenderers();
         }
     },
 };

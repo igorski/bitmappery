@@ -62,6 +62,7 @@ export default {
             document.height = height;
             getCanvasInstance()?.setDimensions( width, height, true, true );
             getCanvasInstance()?.rescaleFn();
+            getCanvasInstance()?.refreshFn();
         },
         addNewDocument( state, nameOrDocument ) {
             const document = typeof nameOrDocument === "object" ? nameOrDocument : DocumentFactory.create({ name: nameOrDocument });
@@ -168,13 +169,8 @@ export default {
         },
         async resizeActiveDocumentContent( state, { scaleX, scaleY }) {
             const document = state.documents[ state.activeIndex ];
-            for ( let i = 0, l = document?.layers?.length; i < l; ++i ) {
-                const layer = document.layers[ i ];
-                // by toggling the visibility, we force the Sprite to recache its contents when visible again
-                const wasVisible = layer.visible;
-                layer.visible = false;
+            for ( const layer of document?.layers ?? [] ) {
                 await resizeLayerContent( layer, scaleX, scaleY );
-                layer.visible = wasVisible;
             }
         },
         async cropActiveDocumentContent( state, { left, top }) {
