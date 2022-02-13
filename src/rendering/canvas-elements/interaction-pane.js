@@ -26,7 +26,9 @@ import { isInsideTransparentArea } from "@/utils/canvas-util";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { isPointInRange, translatePoints, snapToAngle, rectToCoordinateList } from "@/math/point-math";
+import { scaleRectangle } from "@/math/rectangle-math";
 import { isSelectionClosed, createSelectionForRectangle } from "@/math/selection-math";
+import { fastRound } from "@/math/unit-math";
 import ToolTypes from "@/definitions/tool-types";
 import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
 import KeyboardService from "@/services/keyboard-service";
@@ -358,8 +360,8 @@ class InteractionPane extends sprite {
                 ctx.save();
                 ctx.lineWidth   = 1 / this.canvas.zoomFactor;
                 ctx.strokeStyle = "#0db0bc";
-                const { left, top, width, height } = activeLayer;
-                const { mirrorY, rotation } = activeLayer.effects;
+                const { mirrorY, scale, rotation } = activeLayer.effects;
+                const { left, top, width, height } = ( scale !== 1 ) ? scaleRectangle( activeLayer, scale ) : activeLayer;
                 const destX = left - viewport.left;
                 const destY = top  - viewport.top;
                 if ( rotation % 360 !== 0 ) {
@@ -369,7 +371,7 @@ class InteractionPane extends sprite {
                     ctx.rotate( mirrorY ? -rotation : rotation );
                     ctx.translate( -tX, -tY );
                 }
-                ctx.strokeRect( destX, destY, width, height );
+                ctx.strokeRect( fastRound( destX ), fastRound( destY ), fastRound( width ), fastRound( height ));
                 ctx.restore();
             }
         }

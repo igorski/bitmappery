@@ -80,15 +80,22 @@ export const rotateRectangle = ( rectangle, angleInRadians = 0, rounded = false 
     return out;
 };
 
-export const scaleRectangle = ({ left, top, width, height }, scale = 1 ) => {
+export const scaleRectangle = ({ left, top, width, height }, scale = 1, rounded = false ) => {
     const scaledWidth  = width  * scale;
     const scaledHeight = height * scale;
-    return {
+    const out = {
         left   : left - ( scaledWidth  * HALF - width  * HALF ),
         top    : top  - ( scaledHeight * HALF - height * HALF ),
         width  : scaledWidth,
         height : scaledHeight
     };
+    if ( rounded ) {
+        out.left   = fastRound( out.left );
+        out.top    = fastRound( out.top );
+        out.width  = fastRound( out.width );
+        out.height = fastRound( out.height );
+    }
+    return out;
 };
 
 export const areEqual = ( rect1, rect2 ) => {

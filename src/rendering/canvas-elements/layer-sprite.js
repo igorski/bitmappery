@@ -454,7 +454,10 @@ class LayerSprite extends ZoomableSprite {
      */
     insideBounds( x, y ) {
         // TODO can we cache this value ?
-        const { left, top, width, height } = rotateRectangle( this._bounds, this.layer.effects.rotation, true );
+        const { left, top, width, height } = rotateRectangle(
+            scaleRectangle( this._bounds, this.layer.effects.scale ),
+            this.layer.effects.rotation, true
+        );
         return x >= left && x <= ( left + width ) &&
                y >= top  && y <= ( top  + height );
     }
