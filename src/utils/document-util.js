@@ -26,6 +26,7 @@ import { renderEffectsForLayer } from "@/services/render-service";
 import { createSpriteForLayer, getSpriteForLayer } from "@/factories/sprite-factory";
 import { createCanvas } from "@/utils/canvas-util";
 import { createInverseClipping } from "@/rendering/clipping";
+import { reverseTransformation } from "@/rendering/transforming";
 import { rotateRectangle, areEqual } from "@/math/rectangle-math";
 import { getRectangleForSelection, isSelectionRectangular } from "@/math/selection-math";
 
@@ -180,7 +181,7 @@ export const copySelection = async ( activeDocument, activeLayer, copyMerged = f
     } else {
         // draw active layer onto temporary canvas at full document scale
         /*
-        // the below could work but would imply that all effects are currently cached properly
+        // the below could work but would require that all effects are currently cached
         const sprite = getSpriteForLayer( activeLayer );
         sprite.draw( ctx, zcvs._viewport, true );
         */
@@ -211,7 +212,7 @@ export const copySelection = async ( activeDocument, activeLayer, copyMerged = f
  * @return {HTMLCanvasElement} document bitmap with erased selection contents
  */
 export const deleteSelectionContent = ( activeDocument, activeLayer ) => {
-    const { left, top, width, height } = activeLayer;
+    let { left, top, width, height } = activeLayer;
     const { cvs, ctx } = createCanvas( width, height );
     const hasMask = !!activeLayer.mask;
 
@@ -221,13 +222,12 @@ export const deleteSelectionContent = ( activeDocument, activeLayer ) => {
     // erase content in selection area by filling with transparent pixels
     ctx.save();
     ctx.globalCompositeOperation = "destination-out";
-    if ( activeLayer.effects.rotation ) {
-        const tX = width  * .5;
-        const tY = height * .5;
-        ctx.translate( tX, tY );
-        ctx.rotate( -activeLayer.effects.rotation );
-        ctx.translate( -tX, -tY );
+
+    const transformedBounds = reverseTransformation( ctx, activeLayer );
+    if ( transformedBounds ) {
+       ({ left, top, width, height } = transformedBounds );
     }
+
     ctx.beginPath();
     activeDocument.selection.forEach(( point, index ) => {
         ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x - left, point.y - top );

@@ -36,7 +36,7 @@ import { renderClonedStroke } from "@/rendering/cloning";
 import { renderBrushStroke } from "@/rendering/drawing";
 import { floodFill } from "@/rendering/fill";
 import { snapSpriteToGuide } from "@/rendering/snapping";
-import { prepareTransformation } from "@/rendering/transforming";
+import { applyTransformation } from "@/rendering/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
 import {
     getTempCanvas, renderTempCanvas, disposeTempCanvas, slicePointers, createOverrideConfig
@@ -622,7 +622,7 @@ class LayerSprite extends ZoomableSprite {
 
         documentContext.save(); // 1. transformation save()
 
-        const transformedBounds = prepareTransformation( documentContext, this.layer, viewport );
+        const transformedBounds = applyTransformation( documentContext, this.layer, viewport );
         const transformCanvas   = transformedBounds !== null;
 
         if ( transformCanvas ) {

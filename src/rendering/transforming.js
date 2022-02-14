@@ -21,26 +21,29 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { layerToRect } from "@/factories/layer-factory";
-import { scaleRectangle, getRotationCenter } from "@/math/rectangle-math";
+import { scaleRectangle, rotateRectangle, getRotationCenter } from "@/math/rectangle-math";
 
 let bounds;
 
 /**
- * Prepare given ctx to perform drawing operations for mirrored or
+ * Prepare given ctx to perform drawing operations for mirrored, scaled or
  * rotated content. Prior to invoking this function the context should be saved
  * and subsequently restored after drawing.
  *
- * This method returns a transforming bounding box which can optionally be used by
- * the renderer during its draw operation (when the renderer is a zCanvas sprite, this
- * would allow for easy re-use of the existing API)
+ * The use case here is to transform a Layers source content in the renderer
+ * to represent the Layer taking its optional transformations into account.
+ *
+ * This method returns a transformed bounding box that describes the actual
+ * bounding box of the Layer after transformation. (when using these bounds with
+ * a ZoomableSprites draw-routine, this would allow for easy re-use of the existing zCanvas API)
  *
  * @param {CanvasRenderingContext2D} ctx
  * @param {Layer} layer to be rendering the contents of
  * @param {Object=} viewport optional ZoomableCanvas viewport (when using within a sprite)
  * @return {Object|null} null when no transformation took place, updated bounds Object when
- *                       preparation took place.
+ *                       transformation did take place.
  */
-export const prepareTransformation = ( ctx, layer, viewport = { left: 0, top: 0 }) => {
+export const applyTransformation = ( ctx, layer, viewport = { left: 0, top: 0 }) => {
     const { mirrorX, mirrorY, scale, rotation } = layer.effects;
 
     const isMirrored = mirrorX || mirrorY;
@@ -53,6 +56,8 @@ export const prepareTransformation = ( ctx, layer, viewport = { left: 0, top: 0 
 
     bounds = layerToRect( layer );
 
+    // 1. apply the appropriate layer scaling
+
     if ( isScaled ) {
         // we could scale the canvas context instead, but scaling the bounds means
         // that viewport pan logic will work "out of the box"
@@ -61,11 +66,11 @@ export const prepareTransformation = ( ctx, layer, viewport = { left: 0, top: 0 
 
     const { width, height } = bounds;
 
-    // 1. offset the canvas to make up for the viewport pan position
+    // 2. offset the canvas to make up for the viewport pan position
 
     ctx.translate( -viewport.left, -viewport.top );
 
-    // 2. apply mirror transformation
+    // 3. apply mirror transformation
 
     if ( isMirrored ) {
         ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
@@ -82,10 +87,8 @@ export const prepareTransformation = ( ctx, layer, viewport = { left: 0, top: 0 
         }
     }
 
-    // 3. apply rotation
+    // 4. apply rotation
 
-    let x = 0;
-    let y = 0;
     if ( isRotated ) {
         const { x, y } = getRotationCenter({
             left : bounds.left,
@@ -97,6 +100,73 @@ export const prepareTransformation = ( ctx, layer, viewport = { left: 0, top: 0 
         ctx.translate( x, y );
         ctx.rotate( mirrorX ? -rotation : rotation );
         ctx.translate( -x, -y );
+    }
+    return bounds;
+};
+
+/**
+ * Prepare given ctx to perform drawing operations ON THE SOURCE of mirrored, scaled or
+ * rotated content. Prior to invoking this function the context should be saved
+ * and subsequently restored after drawing.
+ *
+ * The use case here is to make changes to the source when performing them within
+ * the editor UI (e.g. relative to the renderer output of a LayerSprites content
+ * that has been transformed using applyTransformation()).
+ * In this case, the coordinates of the on-screen manipulations need to be translated
+ * in reverse in order to be applied to the appropriate origin.
+ *
+ * This method returns a transformed bounding box that describes the bounding box
+ * relative to the Layers source if no transformations were present on the Layer
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Layer} layer to be rendering the contents of
+ * @return {Object|null} null when no transformation took place, updated bounds Object when
+ *                       transformation did take place.
+ */
+export const reverseTransformation = ( ctx, layer ) => {
+    const { mirrorX, mirrorY, scale, rotation } = layer.effects;
+
+    const isMirrored = mirrorX || mirrorY;
+    const isScaled   = scale !== 1;
+    const isRotated  = rotation % 360 !== 0;
+
+    if ( !isMirrored && !isRotated && !isScaled ) {
+        return null; // nothing to transform
+    }
+
+    bounds = layerToRect( layer );
+
+    const { width, height } = bounds;
+
+    // 1. apply mirror transformation
+
+    if ( isMirrored ) {
+        ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
+        ctx.translate( mirrorX ? -width : 0, mirrorY ? -height : 0 );
+    }
+
+    // 2. apply rotation
+
+    if ( isRotated ) {
+        const tX = width  * 0.5;
+        const tY = height * 0.5;
+
+        ctx.translate( tX, tY );
+        ctx.rotate( mirrorY ? rotation : -rotation );
+        ctx.translate( -tX, -tY );
+    }
+
+    // 3. apply scale
+
+    if ( isScaled ) {
+        ctx.scale( 1 / scale, 1 / scale );
+
+        const scaled = scaleRectangle( bounds, scale );
+
+        // offset the returned bounds by the delta between the scaled and unscaled bounds
+
+        bounds.left -= ( scaled.width  - bounds.width )  * 0.5;
+        bounds.top  -= ( scaled.height - bounds.height ) * 0.5;
     }
     return bounds;
 };
