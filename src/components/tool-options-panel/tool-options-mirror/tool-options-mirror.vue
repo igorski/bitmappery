@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,16 +23,24 @@
 <template>
     <div class="tool-option">
         <h3 v-t="'mirror'"></h3>
+        <p v-t="'mirrorLayers'"></p>
         <div class="actions">
             <button
-                v-t="'flipHorizontal'"
+                v-t="'reset'"
+                type="button"
+                class="button button--small"
+                :disabled="!activeLayer || !canReset"
+                @click="resetFlip"
+            ></button>
+            <button
+                v-t="'horizontal'"
                 type="button"
                 class="button button--small"
                 :disabled="!activeLayer"
                 @click="flipHorizontal"
             ></button>
             <button
-                v-t="'flipVertical'"
+                v-t="'vertical'"
                 type="button"
                 class="button button--small"
                 :disabled="!activeLayer"
@@ -55,6 +63,10 @@ export default {
             "activeLayerIndex",
             "activeLayerEffects",
         ]),
+        canReset() {
+            const { mirrorX, mirrorY } = this.activeLayer.effects;
+            return mirrorX || mirrorY;
+        },
     },
     methods: {
         flipHorizontal() {
@@ -62,6 +74,9 @@ export default {
         },
         flipVertical() {
             this.update({ mirrorY: !this.activeLayerEffects.mirrorY }, "mirrorY" );
+        },
+        resetFlip() {
+            this.update({ mirrorX: false, mirrorY: false }, "mirrorXY" );
         },
         update( effect, propName = "mirror" ) {
             const { mirrorX, mirrorY } = this.activeLayerEffects;
