@@ -37,7 +37,7 @@
                 v-t="'reset'"
                 type="button"
                 class="button button--small"
-                :disabled="!activeLayer"
+                :disabled="!activeLayer || rotation === 0"
                 @click="reset()"
             ></button>
             <button
