@@ -1,4 +1,4 @@
-import LayerFactory from "@/factories/layer-factory";
+import LayerFactory, { layerToRect } from "@/factories/layer-factory";
 import { LAYER_GRAPHIC, LAYER_IMAGE, LAYER_MASK } from "@/definitions/layer-types";
 
 let mockUpdateFn;
@@ -143,6 +143,22 @@ describe( "Layer factory", () => {
                 ...layer,
                 id: expect.any( String ),
             });
+        });
+    });
+
+    it( "should be able to return a rectangle for a Layer", () => {
+        const layer = LayerFactory.create({
+            name   : "foo",
+            left   : 100,
+            top    : 50,
+            width  : 16,
+            height : 9
+        });
+        expect( layerToRect( layer )).toEqual({
+            left   : 100,
+            top    : 50,
+            width  : 16,
+            height : 9
         });
     });
 });

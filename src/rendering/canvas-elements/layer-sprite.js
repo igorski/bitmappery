@@ -614,16 +614,6 @@ class LayerSprite extends ZoomableSprite {
     draw( documentContext, viewport, omitOutlines = false ) {
         drawBounds = this._bounds;
 
-        // in case Layer has scale effect, apply it here (we don't resample the
-        // actual Layer source to make this behaviour non-destructive, it's
-        // merely a visualization and thus renderer affair)
-
-        if ( this.isScaled() ) {
-            const { scale } = this.layer.effects;
-            // we could scale the canvas context instead, but scaling the bounds means
-            // that viewport pan logic will work "out of the box"
-            drawBounds = scaleRectangle( drawBounds, scale );
-        }
         const { enabled, opacity } = this.layer.filters;
         const altOpacity = enabled && opacity !== 1;
         if ( altOpacity ) {
@@ -632,8 +622,8 @@ class LayerSprite extends ZoomableSprite {
 
         documentContext.save(); // 1. transformation save()
 
-        const transformedBounds = prepareTransformation( documentContext, viewport, this, drawBounds, this.layer );
-        const transformCanvas   = transformedBounds !== drawBounds;
+        const transformedBounds = prepareTransformation( documentContext, this.layer, viewport );
+        const transformCanvas   = transformedBounds !== null;
 
         if ( transformCanvas ) {
             drawBounds = transformedBounds;

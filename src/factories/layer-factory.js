@@ -110,3 +110,10 @@ const LayerFactory = {
     }
 };
 export default LayerFactory;
+
+export const layerToRect = layer => ({
+    left   : layer.left,
+    top    : layer.top,
+    width  : layer.width,
+    height : layer.height
+});
