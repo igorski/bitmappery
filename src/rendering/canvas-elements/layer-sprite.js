@@ -702,7 +702,13 @@ function rotatePointerLists( pointers, layer, sourceWidth, sourceHeight ) {
     return pointers.map( point => {
         // translate recorded pointer towards rotated point
         // and against layer position
-        const p = translatePointerRotation( point.x - left, point.y - top, sourceWidth * HALF, sourceHeight * HALF, rotation );
+        const p = translatePointerRotation(
+            point.x - left,
+            point.y - top,
+            sourceWidth  * HALF,
+            sourceHeight * HALF,
+            mirrorY ? -rotation : rotation
+        );
         if ( mirrorX ) {
             p.x -= sourceWidth;
         }

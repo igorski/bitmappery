@@ -50,9 +50,7 @@ export const canDraw = ( activeDocument, activeLayer ) => {
     return activeDocument &&
     ( activeLayer?.mask || activeLayer?.type === LAYER_GRAPHIC ) &&
     // scaled layers should commit their scale before allowing draw operations
-    ( activeLayer.effects.scale === 1 ) &&
-    // this last line should eventually be removed (see https://github.com/igorski/bitmappery/issues/2)
-    (( activeLayer.effects.rotation % 360 ) === 0 || ( !activeLayer.effects.mirrorX && !activeLayer.effects.mirrorY ));
+    ( activeLayer.effects.scale === 1 );
 };
 
 // we cannot draw in selection if a layer is mirrored (see https://github.com/igorski/bitmappery/issues/5)
