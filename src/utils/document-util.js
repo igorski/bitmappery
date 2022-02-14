@@ -25,7 +25,6 @@ import { PNG } from "@/definitions/image-types";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { createSpriteForLayer, getSpriteForLayer } from "@/factories/sprite-factory";
 import { createCanvas } from "@/utils/canvas-util";
-import { createInverseClipping } from "@/rendering/clipping";
 import { reverseTransformation } from "@/rendering/transforming";
 import { rotateRectangle, areEqual } from "@/math/rectangle-math";
 import { getRectangleForSelection, isSelectionRectangular } from "@/math/selection-math";
@@ -171,7 +170,7 @@ export const copySelection = async ( activeDocument, activeLayer, copyMerged = f
     });
     ctx.closePath();
     if ( activeDocument.invertSelection ) {
-        createInverseClipping( ctx, activeDocument.selection, 0, 0, activeDocument.width, activeDocument.height );
+        ctx.globalCompositeOperation = "destination-in";
     }
     ctx.save();
     ctx.clip();
@@ -233,7 +232,7 @@ export const deleteSelectionContent = ( activeDocument, activeLayer ) => {
         ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x - left, point.y - top );
     });
     if ( activeDocument.invertSelection ) {
-        createInverseClipping( ctx, activeDocument.selection, left, top, width, height );
+        ctx.globalCompositeOperation = "destination-in";
     }
     ctx.fill();
     ctx.restore();
