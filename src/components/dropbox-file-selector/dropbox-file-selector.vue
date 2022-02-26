@@ -326,8 +326,8 @@ export default {
             });
         },
         async handleCreateFolderClick() {
+            const folder = this.newFolderName;
             try {
-                const folder = this.newFolderName;
                 const result = await createFolder( this.leaf.path, folder );
                 if ( !result ) {
                     throw new Error();
