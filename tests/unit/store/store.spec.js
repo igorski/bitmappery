@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import store from "@/store";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { LAYER_IMAGE, LAYER_TEXT } from "@/definitions/layer-types";

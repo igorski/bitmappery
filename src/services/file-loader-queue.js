@@ -20,8 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { loader }      from "zcanvas";
-import ImageFileWorker from "@/workers/image-file-to-resource.worker";
+import { loader } from "zcanvas";
 import { blobToResource } from "@/utils/resource-manager";
 
 /**
@@ -33,7 +32,7 @@ import { blobToResource } from "@/utils/resource-manager";
  */
 let worker;
 if ( typeof window.createImageBitmap === "function" ) {
-    worker = new ImageFileWorker();
+    worker = new Worker( new URL( "@/workers/image-file-to-resource.worker", import.meta.url ));
     worker.onmessage = handleWorkerMessage;
 }
 const imageLoadQueue = [];

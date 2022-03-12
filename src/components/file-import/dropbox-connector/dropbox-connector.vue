@@ -28,7 +28,7 @@
                 v-t="'loginToDropbox'"
                 type="button"
                 class="button dropbox"
-                @click="loginDropbox()"
+                @click="login()"
             ></button>
         </template>
         <template v-if="authenticated || awaitingConnection">
@@ -37,32 +37,96 @@
                 type="button"
                 class="button dropbox"
                 :disabled="awaitingConnection"
-                @click="openFileBrowserDropbox()"
+                @click="openFileBrowser()"
             ></button>
         </template>
     </div>
 </template>
 
 <script>
-import CloudServiceConnector from "@/mixins/cloud-service-connector";
-import sharedMessages from "@/messages.json"; // for CloudServiceConnector
+import { mapState, mapMutations } from "vuex";
+import { DROPBOX_FILE_SELECTOR } from "@/definitions/modal-windows";
+import {
+    isAuthenticated, requestLogin, registerAccessToken
+} from "@/services/dropbox-service";
 import messages from "./messages.json";
 
+let loginWindow, boundHandler;
+
 export default {
-    i18n: { messages, sharedMessages },
-    mixins: [ CloudServiceConnector ],
+    i18n: { messages },
     data: () => ({
-        loading: true,
+        authenticated: false,
+        loading: false,
+        authUrl: "",
     }),
     computed: {
+        ...mapState([
+            "dropboxConnected",
+        ]),
         awaitingConnection() {
             return !this.authenticated && !this.authUrl;
         },
     },
     async created() {
         this.loading = true;
-        await this.initDropbox();
+
+        // note we wrap the authentication check inside a global loading state as Dropbox
+        // API has been observed to have high latencies
+        const LOADING_KEY = "dbxc";
+        this.setLoading( LOADING_KEY );
+        this.authenticated = await isAuthenticated();
+        this.unsetLoading( LOADING_KEY );
+
+        if ( this.authenticated ) {
+            if ( !this.dropboxConnected ) {
+                this.showConnectionMessage();
+            }
+            this.openFileBrowser();
+        } else {
+            this.authUrl = await requestLogin(
+                window.dropboxClientId || localStorage?.getItem( "dropboxClientId" ),
+                window.dropboxRedirect || `${window.location.href}login.html`
+            );
+            this.openDialog({
+                type: "confirm",
+                title: this.$t( "establishConnection" ),
+                message: this.$t( "connectionExpl" ),
+                confirm: () => this.login(),
+            });
+        }
         this.loading = false;
+    },
+    methods: {
+        ...mapMutations([
+            "openDialog",
+            "openModal",
+            "setLoading",
+            "unsetLoading",
+            "showNotification",
+        ]),
+        login() {
+            loginWindow  = window.open( this.authUrl );
+            boundHandler = this.messageHandler.bind( this );
+            window.addEventListener( "message", boundHandler );
+        },
+        messageHandler({ data }) {
+            if ( data?.accessToken ) {
+                registerAccessToken( data.accessToken );
+                window.removeEventListener( "message", boundHandler );
+                loginWindow.close();
+                loginWindow = null;
+                this.showConnectionMessage();
+                this.authenticated = true;
+                this.openFileBrowser();
+            }
+        },
+        openFileBrowser() {
+            this.openModal( DROPBOX_FILE_SELECTOR );
+        },
+        showConnectionMessage() {
+            this.showNotification({ message: this.$t( "connectedToDropbox" ) });
+        },
     },
 };
 </script>

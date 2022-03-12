@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { sprite } from "zcanvas";
 import {
     getCanvasInstance, setCanvasInstance,

@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import storeModule from "@/store/modules/tool-module";
 import ToolTypes from "@/definitions/tool-types";
 
