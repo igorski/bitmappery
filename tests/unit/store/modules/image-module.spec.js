@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import storeModule from "@/store/modules/image-module";
 
 const { getters, mutations, actions } = storeModule;

@@ -1,7 +1,9 @@
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const path = require( "path" );
 
 const dirSrc    = `./src`;
 const dirAssets = `${dirSrc}/assets`;
+const dest      = `${__dirname}/dist`;
 
 module.exports = {
     lintOnSave: false,
@@ -15,22 +17,22 @@ module.exports = {
     },
     configureWebpack: {
         plugins: [
-            new CopyWebpackPlugin([
-                { from: `${dirAssets}`, to: "assets", flatten: false }
-            ]),
-        ]
+            new CopyWebpackPlugin({
+                patterns: [
+                    { from: `${dirAssets}`, to: path.resolve( dest, "assets" ) }
+                ]
+            }),
+        ],
+        resolve: {
+            fallback: {
+                "buffer" : require.resolve( "buffer" ),
+                "crypto" : require.resolve( "crypto-browserify" ),
+                "util"   : require.resolve( "util/" ),
+                "stream" : require.resolve( "stream-browserify" ),
+            }
+        }
     },
     chainWebpack: config => {
-        // inline Workers as Blobs
-        config.module
-            .rule( "worker" )
-            .test( /\.worker\.js$/ )
-            .use( "worker-loader" )
-            .loader( "worker-loader" )
-            .end();
-
-        config.module.rule( "js" ).exclude.add( /\.worker\.js$/ );
-
         // this solves an issue with hot module reload on Safari...
         config.plugins.delete( "preload" );
     },

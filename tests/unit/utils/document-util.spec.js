@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { getAlignableObjects } from "@/utils/document-util";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";

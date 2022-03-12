@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import UndoManager from "undo-manager";
 import store, { STATES_TO_SAVE } from "@/store/modules/history-module";
 const { getters, mutations, actions }  = store;

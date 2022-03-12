@@ -33,7 +33,7 @@ let currentFolder = "";
  * Authentication step 1: for interacting with Dropbox : request access token
  * by opening an authentication page
  */
-export const requestLogin = ( clientId, loginUrl ) => {
+export const requestLogin = async ( clientId, loginUrl ) => {
     dbx = new Dropbox({ clientId });
     return dbx.auth.getAuthenticationUrl( loginUrl );
 };

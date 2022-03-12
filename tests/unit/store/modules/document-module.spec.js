@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import DocumentModule  from "@/store/modules/document-module";
 import { LAYER_IMAGE } from "@/definitions/layer-types";
 
