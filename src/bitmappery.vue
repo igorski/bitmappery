@@ -93,7 +93,8 @@ import store from "./store";
 import messages from "./messages.json";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, SAVE_DROPBOX_DOCUMENT, EXPORT_IMAGE,
-    DROPBOX_FILE_SELECTOR, ADD_LAYER, LOAD_SELECTION, SAVE_SELECTION, PREFERENCES, RESIZE_CANVAS,
+    DROPBOX_FILE_SELECTOR, GOOGLE_DRIVE_FILE_SELECTOR,
+    ADD_LAYER, LOAD_SELECTION, SAVE_SELECTION, PREFERENCES, RESIZE_CANVAS,
     GRID_TO_LAYERS, STROKE_SELECTION
 } from "@/definitions/modal-windows";
 
@@ -152,7 +153,9 @@ export default {
                 case EXPORT_IMAGE:
                     return () => import( "@/components/file-menu/export-image/export-image" );
                 case DROPBOX_FILE_SELECTOR:
-                    return () => import( "@/components/dropbox-file-selector/dropbox-file-selector" );
+                    return () => import( "@/components/cloud-file-selector/dropbox/dropbox-file-selector" );
+                case GOOGLE_DRIVE_FILE_SELECTOR:
+                    return () => import( "@/components/cloud-file-selector/google-drive/google-drive-file-selector" );
                 case SAVE_DROPBOX_DOCUMENT:
                     return () => import( "@/components/file-menu/save-dropbox-document/save-dropbox-document" );
                 case ADD_LAYER:

@@ -211,6 +211,12 @@ describe( "Vuex store", () => {
             mutations.setDropboxConnected( state, true );
             expect( state.dropboxConnected ).toEqual( true );
         });
+
+        it( "should be able to set the Google Drive connection status", () => {
+            const state = { driveConnected: false };
+            mutations.setDriveConnected( state, true );
+            expect( state.driveConnected ).toEqual( true );
+        });
     });
 
     describe( "actions", () => {

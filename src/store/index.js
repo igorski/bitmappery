@@ -70,6 +70,7 @@ export default {
         loadingStates: [],      // wether one or more long running operations are running
         notifications: [],      // notification message queue
         dropboxConnected: false,
+        driveConnected: false,
         windowSize: {
             width: window.innerWidth,
             height: window.innerHeight
@@ -163,6 +164,9 @@ export default {
         },
         setDropboxConnected( state, value ) {
             state.dropboxConnected = value;
+        },
+        setDriveConnected( state, value ) {
+            state.driveConnected = value;
         },
     },
     actions: {
