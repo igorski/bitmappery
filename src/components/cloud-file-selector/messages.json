@@ -6,7 +6,7 @@
         "importedFileSuccessfully": "Imported \"{file}\" successfully.",
         "errorImportingFile": "An error occurred while trying to import \"{file}\"",
         "delete": "Delete",
-        "deleteEntryWarning": "Are you sure you wish to delete \"{entry}\" ? You can recover files and folders deleted from your cloud storage, but only through the cloud providers app or site.",
+        "deleteEntryWarning": "Are you sure you wish to delete \"{entry}\" ? You can recover files and folders deleted from your cloud storage through the cloud providers app or site.",
         "entryDeletedSuccessfully": "\"{entry}\" deleted successfully",
         "couldNotDeleteEntry": "An error occurred while attempting to delete \"{entry}\"",
         "newFolderName": "New folder name",

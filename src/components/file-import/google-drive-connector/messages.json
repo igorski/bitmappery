@@ -3,7 +3,7 @@
         "connectingToDrive": "Connecting to Google Drive",
         "connectedToDrive": "Connected to Google Drive",
         "establishConnection": "Establish connection",
-        "connectionExpl": "In order to import files from Google Drive you must first connect BitMappery to Google Drive. Google Drive connects directly to your machine without middleware, keeping your data private.",
+        "connectionExpl": "In order to import files from or save projects to Google Drive you must first connect BitMappery to Google Drive and grant read and write permissions. Google Drive connects directly to your machine without middleware, keeping your data private.",
         "loginToDrive": "Log into Google Drive",
         "login": "Login",
         "importFromDrive": "Import from Google Drive",

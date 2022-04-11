@@ -75,9 +75,8 @@
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import Modal from "@/components/modal/modal";
 import SelectBox from "@/components/ui/select-box/select-box";
+import { STORAGE_TYPES } from "@/definitions/storage-types";
 import { focus } from "@/utils/environment-util";
-
-const STORAGE_TYPES = [ "local", "dropbox", "drive" ];
 
 import messages from "./messages.json";
 export default {
@@ -87,13 +86,14 @@ export default {
         SelectBox,
     },
     data: () => ({
-        name        : "",
-        storageLocation : STORAGE_TYPES[ 0 ] // TODO: set to whatever original document source is ?
+        name : "",
+        storageLocation : STORAGE_TYPES.LOCAL
     }),
     computed: {
         ...mapState([
             "dropboxConnected",
             "driveConnected",
+            "storageType",
         ]),
         ...mapGetters([
             "activeDocument",
@@ -103,27 +103,30 @@ export default {
             return this.name.length > 0;
         },
         storageLocations() {
-            const out = [{ label: this.$t( "local" ), value: STORAGE_TYPES[ 0 ] }];
+            const out = [{ label: this.$t( "local" ), value: STORAGE_TYPES.LOCAL }];
             if ( this.dropboxConnected ) {
-                out.push({ label: this.$t( "dropbox" ), value: STORAGE_TYPES[ 1 ] });
+                out.push({ label: this.$t( "dropbox" ), value: STORAGE_TYPES.DROPBOX });
             }
             if ( this.driveConnected ) {
-                out.push({ label: this.$t( "drive" ), value: STORAGE_TYPES[ 2 ] });
+                out.push({ label: this.$t( "drive" ), value: STORAGE_TYPES.DRIVE });
             }
             return out;
         },
         dropboxSaveComponent() {
-            if ( this.storageLocation === "dropbox" ) {
+            if ( this.storageLocation === STORAGE_TYPES.DROPBOX ) {
                 return () => import( "./dropbox/save-dropbox-document" );
             }
             return null;
         },
         driveSaveComponent() {
-            if ( this.storageLocation === "drive" ) {
+            if ( this.storageLocation === STORAGE_TYPES.DRIVE ) {
                 return () => import( "./google-drive/save-google-drive-document" );
             }
             return null;
         },
+    },
+    created() {
+        this.storageLocation = this.storageType;
     },
     mounted() {
         this.name = this.activeDocument.name.split( "." )[ 0 ];
@@ -155,11 +158,11 @@ export default {
                 // by using refs we have tightly coupled these components
                 // this however ensures we can separate the necessary SDK code
                 // from the core bundle and minimize file size
-                case "dropbox":
+                case STORAGE_TYPES.DROPBOX:
                     this.$refs.dropboxComponent.requestSave();
                     break;
 
-                case "drive":
+                case STORAGE_TYPES.DRIVE:
                     this.$refs.driveComponent.requestSave();
                     break;
             }

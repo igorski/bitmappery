@@ -22,9 +22,10 @@
  */
  <script>
  import CloudFileSelector from "../cloud-file-selector";
- import GoogleDriveImagePreview from "./google-drive-image-preview";
- import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
  import { mapMutations } from "vuex";
+ import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
+ import { STORAGE_TYPES } from "@/definitions/storage-types";
+ import GoogleDriveImagePreview from "./google-drive-image-preview";
  import {
      ROOT_FOLDER, listFolder, createFolder, downloadFileAsBlob, deleteEntry
  } from "@/services/google-drive-service";
@@ -33,7 +34,7 @@
      extends: CloudFileSelector,
      data: () => ({
          LAST_FOLDER_STORAGE_KEY: "bpy_driveDb",
-         STORAGE_PROVIDER: "drive",
+         STORAGE_PROVIDER: STORAGE_TYPES.DRIVE,
      }),
      computed: {
          imagePreviewComponent() {

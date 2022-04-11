@@ -211,6 +211,7 @@ export default {
         ...mapMutations([
             "openDialog",
             "closeModal",
+            "setStorageType",
             "showNotification",
             "setLoading",
             "unsetLoading",
@@ -275,6 +276,7 @@ export default {
                     const blob = await this._downloadFile( node );
                     blob.name = node.name;
                     this.loadDocument( blob );
+                    this.setStorageType( this.STORAGE_PROVIDER );
                     this.closeModal();
                     break;
                 case "file":
@@ -286,6 +288,7 @@ export default {
                             await this.loadThirdPartyDocuments([ blob ]);
                         } else {
                             const { image, size } = await loader.loadImage( url );
+                            this.setStorageType( this.STORAGE_PROVIDER );
                             await this.addLoadedFile({ type: this.STORAGE_PROVIDER, name: node.name }, { image, size });
                         }
                         disposeResource( url ); // Blob has been converted to internal resource
@@ -490,7 +493,8 @@ $actionsHeight: 74px;
     }
 
     &:hover {
-        .entry__icon {
+        .entry__icon--folder,
+        .entry__icon--document {
             background-color: $color-1;
             color: #FFF;
         }

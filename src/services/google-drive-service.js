@@ -98,11 +98,7 @@ export const requestLogout = () => {
     gapi.auth2.getAuthInstance().signOut();
 };
 
-export const validateScopes = grantedScopes => {
-    const hasRequiredScopes = ACCESS_SCOPES.split( "," ).every( scope => grantedScopes.includes( scope ));
-    console.warn("heb ik die scopes ?"+hasRequiredScopes, grantedScopes);
-    return hasRequiredScopes;
-};
+export const validateScopes = grantedScopes => ACCESS_SCOPES.split( "," ).every( scope => grantedScopes.includes( scope ));
 
 export const disconnect = () => gapi.auth2.getAuthInstance().disconnect();
 

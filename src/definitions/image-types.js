@@ -20,6 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { STORAGE_TYPES } from "@/definitions/storage-types";
 import { isSafari } from "@/utils/environment-util";
 
 // 1. all image formats supported by BitMappery
@@ -57,7 +58,7 @@ if ( !isSafari() ) {
 export const isCompressableFileType = type => COMPRESSABLE_TYPES.some(({ mime }) => mime === type );
 
 export const isTransparent = ({ name, type }) => {
-    if ( type === "dropbox" ) {
+    if ( type === STORAGE_TYPES.DROPBOX ) {
         // files imported from Dropbox don't list their mime type, derive from filename instead
         return TRANSPARENT_TYPES.some(({ ext }) => name.includes( ext ));
     }

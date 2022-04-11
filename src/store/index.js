@@ -28,6 +28,7 @@ import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { LAYER_GRAPHIC } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS, PANEL_LAYERS } from "@/definitions/panel-types";
+import { STORAGE_TYPES } from "@/definitions/storage-types";
 import { runSpriteFn }   from "@/factories/sprite-factory";
 import canvasModule      from "./modules/canvas-module";
 import documentModule    from "./modules/document-module";
@@ -69,6 +70,7 @@ export default {
         modal: null,            // currently opened modal
         loadingStates: [],      // wether one or more long running operations are running
         notifications: [],      // notification message queue
+        storageType: STORAGE_TYPES.LOCAL,
         dropboxConnected: false,
         driveConnected: false,
         windowSize: {
@@ -162,6 +164,9 @@ export default {
          */
         setWindowSize( state, { width, height }) {
             state.windowSize = { width, height };
+        },
+        setStorageType( state, value ) {
+            state.storageType = value;
         },
         setDropboxConnected( state, value ) {
             state.dropboxConnected = value;

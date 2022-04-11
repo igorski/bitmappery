@@ -22,8 +22,9 @@
  */
 <script>
 import CloudFileSelector from "../cloud-file-selector";
-import DropboxImagePreview from "./dropbox-image-preview";
 import { mapMutations } from "vuex";
+import { STORAGE_TYPES } from "@/definitions/storage-types";
+import DropboxImagePreview from "./dropbox-image-preview";
 import { listFolder, createFolder, downloadFileAsBlob, deleteEntry } from "@/services/dropbox-service";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 
@@ -34,7 +35,7 @@ export default {
     },
     data: () => ({
         LAST_FOLDER_STORAGE_KEY: "bpy_dropboxDb",
-        STORAGE_PROVIDER : "dropbox",
+        STORAGE_PROVIDER : STORAGE_TYPES.DROPBOX,
     }),
     computed: {
         imagePreviewComponent() {

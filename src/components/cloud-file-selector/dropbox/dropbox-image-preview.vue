@@ -90,10 +90,6 @@ export default {
     cursor: pointer;
     vertical-align: middle;
 
-    &:hover {
-        transform: scale(1.05);
-    }
-
     &__loader {
         width: $spacing-xxlarge;
         height: $spacing-xxlarge;
@@ -104,6 +100,11 @@ export default {
         object-fit: cover;
         width: calc(100% - #{$spacing-small});
         height: calc(100% - #{$spacing-small});
+
+        &:hover {
+            transform: scale(1.05);
+            transform-origin: center;
+        }
     }
 }
 </style>

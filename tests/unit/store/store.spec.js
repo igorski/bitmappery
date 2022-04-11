@@ -217,6 +217,12 @@ describe( "Vuex store", () => {
             expect( state.windowSize ).toEqual({ width, height });
         });
 
+        it( "should be able to set the storage type", () => {
+            const state = { storageType: "foo" };
+            mutations.setStorageType( state, "bar" );
+            expect( state.storageType ).toEqual( "bar" );
+        });
+
         it( "should be able to set the Dropbox connection status", () => {
             const state = { dropboxConnected: false };
             mutations.setDropboxConnected( state, true );
