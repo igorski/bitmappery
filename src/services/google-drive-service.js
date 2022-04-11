@@ -192,10 +192,15 @@ export const getFolderHierarchy = async fileId => {
     const folders = [];
     let result;
 
-    ({ result } = await gapi.client.drive.files.get({
-        fileId,
-        fields : "id, name, mimeType, parents"
-    }));
+    try {
+        ({ result } = await gapi.client.drive.files.get({
+            fileId,
+            fields : "id, name, mimeType, parents"
+        }));
+    } catch {
+        // likely access restriction (e.g. reached root folder under drive.file scope)
+        return [{ id: ROOT_FOLDER, name: "My Drive" }];
+    }
 
     if ( !result?.mimeType === MIME_FOLDER ) {
         return folders;
