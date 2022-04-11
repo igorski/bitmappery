@@ -119,6 +119,7 @@ describe( "Vuex store", () => {
                     type: "foo",
                     title: "title",
                     message: "message",
+                    link: { href: "foo", title: "bar" },
                     confirm: jest.fn(),
                     cancel: jest.fn()
                 };
@@ -133,6 +134,7 @@ describe( "Vuex store", () => {
                     type: "info",
                     title: "",
                     message: "",
+                    link: null,
                     confirm: null,
                     cancel: null
                 });
