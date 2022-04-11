@@ -46,7 +46,9 @@
 <script>
 import { mapState, mapMutations } from "vuex";
 import { GOOGLE_DRIVE_FILE_SELECTOR } from "@/definitions/modal-windows";
-import { init, requestLogin, isAuthenticated, registerAccessToken } from "@/services/google-drive-service";
+import {
+    init, requestLogin, validateScopes, disconnect, isAuthenticated, registerAccessToken
+} from "@/services/google-drive-service";
 import messages from "./messages.json";
 
 let boundHandler;
@@ -123,18 +125,29 @@ export default {
             // if ux_mode was specified as popup, the data is posted from Google API as Stringified JSON
             if ( typeof data === "string" ) {
                 try {
-                    const json = JSON.parse( data );
+                    const { authResult } = JSON.parse( data ).params;
                     result = {
-                        accessToken: json.params.authResult.id_token
+                        accessToken : authResult.id_token,
+                        scope       : authResult.scope
                     };
                 } catch {}
+            }
+
+            // note we use a slight timeout after logging in as the Google API's are loading
+            const TIMEOUT = 2000;
+
+            if ( result?.scope && !validateScopes( result.scope )) {
+                window.removeEventListener( "message", boundHandler );
+                this.openDialog({ type: "error", message: this.$t( "notAllPermissionsGranted" )});
+                window.setTimeout( disconnect, TIMEOUT );
+                return;
             }
             if ( result?.accessToken ) {
                 registerAccessToken( result.accessToken );
                 window.removeEventListener( "message", boundHandler );
                 this.showConnectionMessage();
                 this.authenticated = true;
-                this.openFileBrowser();
+                window.setTimeout( this.openFileBrowser.bind( this ), TIMEOUT );
             }
         },
         openFileBrowser() {

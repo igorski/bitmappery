@@ -153,8 +153,8 @@ export default {
                     break;
 
                 // by using refs we have tightly coupled these components
-                // this however ensure we can separate the necessary SDK code
-                // from the core bundle
+                // this however ensures we can separate the necessary SDK code
+                // from the core bundle and minimize file size
                 case "dropbox":
                     this.$refs.dropboxComponent.requestSave();
                     break;

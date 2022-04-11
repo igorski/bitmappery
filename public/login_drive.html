@@ -13,22 +13,22 @@
     (function() {
         var params = window.location.hash.split( "&" );
         var accessToken = null;
-        var loginHint = null;
+        var scope = null;
         for ( var i = 0; i < params.length; i++ ) {
             var param = params[ i ];
             if ( param.indexOf( "id_token" ) > -1 ) {
                 accessToken = param.split( "id_token=" )[ 1 ];
                 break;
             }
-            if ( param.indexOf( "login_hint" ) > -1 ) {
-                loginHint = param.split( "login_hint=" )[ 1 ];
+            if ( param.indexOf( "scope" ) > -1 ) {
+                scope = param.split( "scope=" )[ 1 ];
                 break;
             }
         }
         if ( accessToken ) {
             window.opener.postMessage({
                 "accessToken" : accessToken,
-                "loginHint"   : loginHint
+                "scope" : scope
             }, window.opener );
         }
     })();

@@ -98,6 +98,14 @@ export const requestLogout = () => {
     gapi.auth2.getAuthInstance().signOut();
 };
 
+export const validateScopes = grantedScopes => {
+    const hasRequiredScopes = ACCESS_SCOPES.split( "," ).every( scope => grantedScopes.includes( scope ));
+    console.warn("heb ik die scopes ?"+hasRequiredScopes, grantedScopes);
+    return hasRequiredScopes;
+};
+
+export const disconnect = () => gapi.auth2.getAuthInstance().disconnect();
+
 /**
  * @param {string} path to search for. This is "root" to search from the
  * Google Drive root folder, or is a string identifier
