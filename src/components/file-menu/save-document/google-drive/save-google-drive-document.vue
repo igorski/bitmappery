@@ -27,6 +27,7 @@
             <input
                 type="text"
                 v-model="folder"
+                :disabled="loading"
                 class="input-field"
             />
         </div>
@@ -37,14 +38,18 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import DocumentFactory from "@/factories/document-factory";
-import { getCurrentFolder, setCurrentFolder, uploadBlob } from "@/services/google-drive-service";
+import {
+    getCurrentFolder, setCurrentFolder, getFolderHierarchy, createFolder, uploadBlob
+} from "@/services/google-drive-service";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 
 import messages from "./messages.json";
 export default {
     i18n: { messages },
     data: () => ({
-        folder: "",
+        loading   : true,
+        folder    : "",
+        hierarchy : [],
     }),
     computed: {
         ...mapGetters([
@@ -54,8 +59,11 @@ export default {
             return this.name.length > 0;
         },
     },
-    mounted() {
-        this.folder = getCurrentFolder();
+    async created() {
+        this.hierarchy = await getFolderHierarchy( getCurrentFolder() );
+        this.folder = `/${this.hierarchy.map(({ name }) => name ).join( "/" )}`;
+
+        this.loading = false;
     },
     methods: {
         ...mapMutations([
@@ -66,13 +74,32 @@ export default {
         ]),
         async requestSave() {
             this.setLoading( "save" );
+
+            // Google Drive doesn't allow creation of multiple nested folders at once.
+            // Instead we will need to generate these one by one
+
+            const destHierarchy = this.folder.split( "/" ).filter( Boolean ).map( name => ({
+                name,
+                id : this.hierarchy.find( folder => folder.name === name )?.id
+            }));
+
+            let folderId = "root";
+            for ( let i = 0, l = destHierarchy.length; i < l; ++i ) {
+                const folder = destHierarchy[ i ];
+                // if folder had no id, user entered new value. Create folder into previous parent.
+                if ( !folder.id ) {
+                    folder.id = await createFolder( folderId, folder.name );
+                }
+                folderId = folder.id;
+            }
+
             try {
                 const blob = await DocumentFactory.toBlob( this.activeDocument );
-                const result = await uploadBlob( blob, this.folder, `${this.activeDocument.name}.${PROJECT_FILE_EXTENSION}` );
+                const result = await uploadBlob( blob, folderId, `${this.activeDocument.name}.${PROJECT_FILE_EXTENSION}` );
                 if ( !result ) {
                     throw new Error();
                 }
-                setCurrentFolder( this.folder );
+                setCurrentFolder( folderId );
                 this.showNotification({ message: this.$t( "fileSavedInDrive", { file: this.activeDocument.name }) });
             } catch ( e ) {
                 this.openDialog({ type: "error", message: this.$t( "errorOccurred" ) });

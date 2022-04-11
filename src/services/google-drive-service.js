@@ -142,7 +142,7 @@ export const listFolder = async ( path = ROOT_FOLDER ) => {
 
 export const createFolder = async ( parent = ROOT_FOLDER, folder = "folder" ) => {
     try {
-        const data = await gapi.client.drive.files.create({
+        const { result } = await gapi.client.drive.files.create({
             resource: {
                 name       : folder,
                 parents    : [ parent ],
@@ -150,7 +150,7 @@ export const createFolder = async ( parent = ROOT_FOLDER, folder = "folder" ) =>
             },
             fields: "id"
         });
-        return true;
+        return result.id;
     } catch {
         return false;
     }
@@ -183,6 +183,39 @@ export const downloadFileAsBlob = async ( file, returnAsURL = false ) => {
     } catch {
         return null;
     }
+};
+
+export const getFolderHierarchy = async fileId => {
+    const folders = [];
+    let result;
+
+    ({ result } = await gapi.client.drive.files.get({
+        fileId,
+        fields : "id, name, mimeType, parents"
+    }));
+
+    if ( !result?.mimeType === MIME_FOLDER ) {
+        return folders;
+    }
+    folders.push( result );
+
+    do {
+        const id = result.parents?.[ 0 ];
+        if ( !id ) {
+            break;
+        }
+        ({ result } = await gapi.client.drive.files.get({
+            fileId : id,
+            fields : "id, name, mimeType, parents"
+        }));
+        if ( !result?.id ) {
+            break;
+        }
+        folders.push( result );
+
+    } while ( result && result.name !== ROOT_FOLDER );
+
+    return folders.reverse();
 };
 
 export const uploadBlob = async ( fileOrBlob, folder, fileName ) => {
