@@ -122,6 +122,10 @@ export default {
         font-size: 115%;
     }
 
+    &__message {
+        white-space: pre-line;
+    }
+
     button {
         display: inline-block;
         width: 45%;
