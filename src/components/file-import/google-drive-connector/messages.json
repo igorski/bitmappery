@@ -1,0 +1,13 @@
+{
+    "en-US": {
+        "connectingToDrive": "Connecting to Google Drive",
+        "connectedToDrive": "Connected to Google Drive",
+        "establishConnection": "Establish connection",
+        "connectionExpl": "In order to import files from Google Drive you must first connect BitMappery to Google Drive. Google Drive connects directly to your machine without middleware, keeping your data private.",
+        "loginToDrive": "Log into Google Drive",
+        "login": "Login",
+        "importFromDrive": "Import from Google Drive",
+        "errorLoadingAPI": "An unknown error has occurred while loading the Google Drive API",
+        "notAllPermissionsGranted": "Not all required read and write permissions were granted. Without these BitMappery cannot use Google Drive. If this was by mistake, reconnect and tick the appropriate permission box."
+    }
+}

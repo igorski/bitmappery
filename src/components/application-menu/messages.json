@@ -6,7 +6,7 @@
         "close": "Close",
         "save": "Save",
         "openDropboxDocument": "Open from Dropbox",
-        "saveDropboxDocument": "Save in Dropbox",
+        "openDriveDocument": "Open from Google Drive",
         "exportImage": "Export image",
         "edit": "Edit",
         "undo": "Undo",

@@ -1,6 +1,6 @@
 {
   "name": "bitmappery",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -17,6 +17,7 @@
     "gifshot": "^0.4.5",
     "psd.js": "^3.4.1-bata.3",
     "register-service-worker": "^1.7.1",
+    "tiny-script-loader": "^2.2.1",
     "v-tooltip": "^2.0.3",
     "vue": "^2.6.11",
     "vuex": "^3.4.0"

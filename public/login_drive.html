@@ -1,0 +1,36 @@
+<html>
+<body>
+    <h1>oAuth result for BitMappery</h1>
+    <p>
+        You should return to BitMappery shortly. If not, an authentication
+        error has occurred with the external API.
+    </p>
+    <p>
+        <button onclick="window.close()">Close</button>
+    </p>
+</body>
+<script type="text/javascript">
+    (function() {
+        var params = window.location.hash.split( "&" );
+        var accessToken = null;
+        var scope = null;
+        for ( var i = 0; i < params.length; i++ ) {
+            var param = params[ i ];
+            if ( param.indexOf( "id_token" ) > -1 ) {
+                accessToken = param.split( "id_token=" )[ 1 ];
+                break;
+            }
+            if ( param.indexOf( "scope" ) > -1 ) {
+                scope = param.split( "scope=" )[ 1 ];
+                break;
+            }
+        }
+        if ( accessToken ) {
+            window.opener.postMessage({
+                "accessToken" : accessToken,
+                "scope" : scope
+            }, window.opener );
+        }
+    })();
+</script>
+</html>

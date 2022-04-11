@@ -5,6 +5,7 @@
         "orImportFile": "Or import a saved document or image file (you can also drag a file into this window)",
         "createNewDocument": "Create new document",
         "importFromDropbox": "Import from Dropbox",
+        "importFromGoogleDrive": "Import from Google Drive",
         "openImageAsNew": "Open images as new",
         "fileAndHelpExpl": "You can always open files from the \"File\"-menu. Consult the \"Help\"-menu for further assistance."
     }

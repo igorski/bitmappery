@@ -24,7 +24,7 @@ import { LAYER_TEXT } from "@/definitions/layer-types";
 import { ALL_PANELS } from "@/definitions/panel-types";
 import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM, canDraw } from "@/definitions/tool-types";
 import {
-    CREATE_DOCUMENT, ADD_LAYER, EXPORT_DOCUMENT, DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT
+    CREATE_DOCUMENT, ADD_LAYER, SAVE_DOCUMENT, DROPBOX_FILE_SELECTOR,
 } from "@/definitions/modal-windows";
 import { toggleLayerVisibility } from "@/factories/action-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
@@ -279,7 +279,7 @@ function handleKeyDown( event ) {
 
         case 69: // E
             if ( hasOption ) {
-                openModal( EXPORT_DOCUMENT );
+                openModal( SAVE_DOCUMENT );
             } else if ( canDraw( getters.activeDocument, getters.activeLayer )) {
                 setActiveTool( ToolTypes.ERASER );
             }
@@ -373,8 +373,8 @@ function handleKeyDown( event ) {
 
         case 83: // S
             if ( hasOption ) {
-                if ( getters.activeDocument && state.dropboxConnected ) {
-                    openModal( SAVE_DROPBOX_DOCUMENT );
+                if ( getters.activeDocument ) {
+                    openModal( SAVE_DOCUMENT );
                 }
                 preventDefault( event ); // page save
             } else if ( canDraw( getters.activeDocument, getters.activeLayer )) {

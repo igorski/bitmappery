@@ -43,7 +43,15 @@
                     class="button button--block dropbox"
                     @click="dropbox = true"
                 ></button>
-                <component :is="cloudImportType" />
+                <component :is="dropboxImportType" />
+                <button
+                    v-if="!drive"
+                    v-t="'importFromGoogleDrive'"
+                    type="button"
+                    class="button button--block drive"
+                    @click="drive = true"
+                ></button>
+                <component :is="driveImportType" />
                 <div class="wrapper input">
                     <label v-t="'openImageAsNew'" class="file-target-label"></label>
                     <select-box
@@ -74,6 +82,7 @@ export default {
     },
     data: () => ({
         dropbox: false,
+        drive: false,
     }),
     computed: {
         ...mapGetters([
@@ -91,16 +100,20 @@ export default {
             }
         },
         /**
-         * Cloud import are loaded at runtime to omit packaging
+         * Cloud import code is loaded at runtime to omit packaging
          * third party SDK within the core bundle.
          */
-        cloudImportType() {
-            switch ( this.dropbox ) {
-                default:
-                    return null;
-                case true:
-                    return () => import( "./dropbox-connector/dropbox-connector" );
+        dropboxImportType() {
+            if ( this.dropbox ) {
+                return () => import( "./dropbox-connector/dropbox-connector" );
             }
+            return null;
+        },
+        driveImportType() {
+            if ( this.drive ) {
+                return () => import( "./google-drive-connector/google-drive-connector" );
+            }
+            return null;
         },
     },
     methods: {
@@ -150,5 +163,9 @@ export default {
 .file-target-label,
 .file-target-select {
     width: 50% !important;
+}
+
+.drive {
+    margin-bottom: $spacing-medium;
 }
 </style>

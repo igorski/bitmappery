@@ -70,6 +70,7 @@ export default {
         loadingStates: [],      // wether one or more long running operations are running
         notifications: [],      // notification message queue
         dropboxConnected: false,
+        driveConnected: false,
         windowSize: {
             width: window.innerWidth,
             height: window.innerHeight
@@ -79,6 +80,7 @@ export default {
         // eslint-disable-next-line no-unused-vars
         t: state => ( key, optArgs ) => translate( key, optArgs ),
         isLoading: state => state.loadingStates.length > 0,
+        hasCloudConnection: state => state.dropboxConnected || state.driveConnected,
     },
     mutations: {
         setMenuOpened( state, value ) {
@@ -163,6 +165,9 @@ export default {
         },
         setDropboxConnected( state, value ) {
             state.dropboxConnected = value;
+        },
+        setDriveConnected( state, value ) {
+            state.driveConnected = value;
         },
     },
     actions: {
