@@ -100,6 +100,10 @@ export default {
                 type: "confirm",
                 title: this.$t( "establishConnection" ),
                 message: this.$t( "connectionExpl" ),
+                link: {
+                    href  : "https://www.igorski.nl/bitmappery/privacy",
+                    title : this.$t( "privacyPolicy" )
+                },
                 confirm: () => this.login(),
             });
         }

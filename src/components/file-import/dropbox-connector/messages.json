@@ -3,7 +3,8 @@
         "connectingToDropbox": "Connecting to Dropbox",
         "connectedToDropbox": "Connected to Dropbox",
         "establishConnection": "Establish connection",
-        "connectionExpl": "In order to import files from or save projects to Dropbox you must first connect BitMappery to Dropbox and grant read and write permissions. Dropbox connects directly to your machine without middleware, keeping your data private.",
+        "connectionExpl": "In order to import files from or save projects to Dropbox you must first connect to Dropbox and grant BitMappery read and write permission. Dropbox connects directly to your machine without middleware, keeping your data private at all times.\n\nFor more information, consult the privacy policy.",
+        "privacyPolicy": "BitMappery privacy policy",
         "loginToDropbox": "Log into Dropbox",
         "login": "Login",
         "importFromDropbox": "Import from Dropbox"

@@ -45,7 +45,7 @@
                 ></button>
                 <component :is="dropboxImportType" />
                 <button
-                    v-if="supportsGoogleDrive && !drive"
+                    v-if="!drive"
                     v-t="'importFromGoogleDrive'"
                     type="button"
                     class="button button--block drive"
@@ -115,10 +115,6 @@ export default {
             }
             return null;
         },
-    },
-    created() {
-        // TODO: Google Drive integration is currently under development (needs validation by Google)
-        this.supportsGoogleDrive = new URLSearchParams( window.location.search ).has( "drive" );
     },
     methods: {
         ...mapMutations([

@@ -54,6 +54,7 @@
             :type="dialog.type"
             :title="dialog.title"
             :message="dialog.message"
+            :link="dialog.link"
             :confirm-handler="dialog.confirm"
             :cancel-handler="dialog.cancel"
         />

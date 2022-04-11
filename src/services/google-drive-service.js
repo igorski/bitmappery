@@ -25,7 +25,7 @@ import { base64toBlob } from "@/utils/file-util";
 import { blobToResource } from "@/utils/resource-manager";
 
 const GOOGLE_API     = "https://apis.google.com/js/api.js";
-const ACCESS_SCOPES  = "https://www.googleapis.com/auth/drive"; // drive.file
+const ACCESS_SCOPES  = "https://www.googleapis.com/auth/drive.file"; // auth/drive is restricted for production ($$$!)
 const DISCOVERY_DOCS = [ "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest" ];
 
 const MIME_FOLDER = "application/vnd.google-apps.folder";
@@ -207,10 +207,16 @@ export const getFolderHierarchy = async fileId => {
         if ( !id ) {
             break;
         }
-        ({ result } = await gapi.client.drive.files.get({
-            fileId : id,
-            fields : "id, name, mimeType, parents"
-        }));
+        try {
+            ({ result } = await gapi.client.drive.files.get({
+                fileId : id,
+                fields : "id, name, mimeType, parents"
+            }));
+        } catch {
+            // likely access restriction (e.g. reached root folder under drive.file scope)
+            result.parents = [];
+            break;
+        }
         if ( !result?.id ) {
             break;
         }
