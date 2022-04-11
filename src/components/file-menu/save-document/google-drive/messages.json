@@ -1,0 +1,10 @@
+{
+    "en-US": {
+        "folder": "Folder",
+        "folderExpl": "You can create a folder structure directly in your Drive by typing a new folder name. Nested folders are separated with a slash (/).",
+        "fileSavedInDrive": "\"{file}\" saved in Google Drive",
+        "errorOccurred": "An error occurred while saving document. Verify your Google Drive connection or export the document locally.",
+        "save": "Save",
+        "cancel": "Cancel"
+    }
+}

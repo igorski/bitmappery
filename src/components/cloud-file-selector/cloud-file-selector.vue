@@ -156,6 +156,7 @@ export default {
     mixins: [ ImageToDocumentManager ],
     data: () => ({
         LAST_FOLDER_STORAGE_KEY : "x", // define in inheriting component
+        STORAGE_PROVIDER        : "", // name of storage provider (e.g. Dropbox, Drive) define in inheriting component
         tree: {
             type: "folder",
             name: "",
@@ -271,7 +272,7 @@ export default {
                     sessionStorage.setItem( this.LAST_FOLDER_STORAGE_KEY, JSON.stringify({ path: node.path, tree: this.tree }));
                     break;
                 case "bpy":
-                    const blob = await downloadFileAsBlob( node.path );
+                    const blob = await this._downloadFile( node );
                     blob.name = node.name;
                     this.loadDocument( blob );
                     this.closeModal();
@@ -285,7 +286,7 @@ export default {
                             await this.loadThirdPartyDocuments([ blob ]);
                         } else {
                             const { image, size } = await loader.loadImage( url );
-                            await this.addLoadedFile({ type: "dropbox", name: node.name }, { image, size });
+                            await this.addLoadedFile({ type: this.STORAGE_PROVIDER, name: node.name }, { image, size });
                         }
                         disposeResource( url ); // Blob has been converted to internal resource
                         this.showNotification({

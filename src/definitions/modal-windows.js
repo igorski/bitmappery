@@ -22,15 +22,14 @@
  */
 export const CREATE_DOCUMENT            = 1;
 export const RESIZE_DOCUMENT            = 2;
-export const EXPORT_DOCUMENT            = 3;
+export const SAVE_DOCUMENT              = 3;
 export const EXPORT_IMAGE               = 4;
 export const DROPBOX_FILE_SELECTOR      = 5;
 export const GOOGLE_DRIVE_FILE_SELECTOR = 6;
-export const SAVE_DROPBOX_DOCUMENT      = 7;
-export const ADD_LAYER                  = 8;
-export const SAVE_SELECTION             = 9;
-export const LOAD_SELECTION             = 10;
-export const PREFERENCES                = 11;
-export const RESIZE_CANVAS              = 12;
-export const GRID_TO_LAYERS             = 13;
-export const STROKE_SELECTION           = 14;
+export const ADD_LAYER                  = 7;
+export const SAVE_SELECTION             = 8;
+export const LOAD_SELECTION             = 9;
+export const PREFERENCES                = 10;
+export const RESIZE_CANVAS              = 11;
+export const GRID_TO_LAYERS             = 12;
+export const STROKE_SELECTION           = 13;

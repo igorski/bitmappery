@@ -34,6 +34,7 @@ export default {
     },
     data: () => ({
         LAST_FOLDER_STORAGE_KEY: "bpy_dropboxDb",
+        STORAGE_PROVIDER : "dropbox",
     }),
     computed: {
         imagePreviewComponent() {

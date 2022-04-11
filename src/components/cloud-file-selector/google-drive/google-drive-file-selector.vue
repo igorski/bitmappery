@@ -33,6 +33,7 @@
      extends: CloudFileSelector,
      data: () => ({
          LAST_FOLDER_STORAGE_KEY: "bpy_driveDb",
+         STORAGE_PROVIDER: "drive",
      }),
      computed: {
          imagePreviewComponent() {
@@ -73,7 +74,7 @@
          },
          _mapEntry( entry, children = [], parent = null ) {
              if ( entry.name.endsWith( PROJECT_FILE_EXTENSION )) {
-                 type = "bpy";
+                 entry.type = "bpy";
              }
              return {
                  ...entry,

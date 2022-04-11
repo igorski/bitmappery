@@ -30,6 +30,11 @@ const DISCOVERY_DOCS = [ "https://www.googleapis.com/discovery/v1/apis/drive/v3/
 
 const MIME_FOLDER = "application/vnd.google-apps.folder";
 
+// see https://developers.google.com/drive/api/v2/reference/files/update
+const BOUNDARY        = "-------314159265358979323846";
+const DELIMITER       = `\r\n--${BOUNDARY}\r\n`;
+const DELIMITER_CLOSE = `\r\n--${BOUNDARY}--`;
+
 export const ROOT_FOLDER = "root";
 
 let isSignedIn = false;
@@ -175,6 +180,54 @@ export const downloadFileAsBlob = async ( file, returnAsURL = false ) => {
     } catch {
         return null;
     }
+};
+
+export const uploadBlob = ( fileOrBlob, folder, fileName ) => {
+    const reader = new FileReader();
+
+    // TODO verify if file exists, if so, call update endpoint ?
+
+    return new Promise(( resolve, reject ) => {
+        reader.onload = () => {
+            const contentType = fileOrBlob.type || "application/octet-stream";
+            const metadata = {
+                name     : fileName,
+                mimeType : fileOrBlob.type.split( ";" )[ 0 ],
+                parents  : [ folder ],
+            };
+
+            const base64Data = btoa( reader.result );
+            const multipartRequestBody =
+                DELIMITER +
+                "Content-Type: application/json\r\n\r\n" +
+                JSON.stringify( metadata ) +
+                DELIMITER +
+                "Content-Type: " + contentType + "\r\n" +
+                "Content-Transfer-Encoding: base64\r\n" +
+                "\r\n" +
+                base64Data +
+                DELIMITER_CLOSE;
+
+            const request = gapi.client.request({
+                path    : "/upload/drive/v3/files",
+                method  : "POST",
+                params  : { uploadType: "multipart" },
+                headers : {
+                    "Content-Type" : `multipart/mixed; boundary="${BOUNDARY}"`
+                },
+                body : multipartRequestBody
+            });
+
+            request.execute( file => {
+                if ( file?.id ) {
+                    resolve( true );
+                } else {
+                    reject();
+                }
+            });
+        };
+        reader.readAsBinaryString( fileOrBlob );
+    });
 };
 
 /* internal methods */

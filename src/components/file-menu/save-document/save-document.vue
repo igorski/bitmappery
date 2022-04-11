@@ -26,15 +26,31 @@
             <h2 v-t="'saveDocument'" class="component__title"></h2>
         </template>
         <template #content>
-            <div class="form" @keyup.enter="requestSave()">
+            <div
+                class="form"
+                @keyup.enter="requestSave()"
+            >
                 <div class="wrapper input">
                     <label v-t="'documentTitle'"></label>
-                    <input ref="nameInput"
-                           type="text"
-                           v-model="name"
-                           class="input-field"
+                    <input
+                        ref="nameInput"
+                        type="text"
+                         v-model="name"
+                        class="input-field"
                     />
                 </div>
+                <div
+                    v-if="hasCloudConnection"
+                    class="wrapper input"
+                >
+                    <label v-t="'storageLocation'"></label>
+                    <select-box
+                        :options="storageLocations"
+                        v-model="storageLocation"
+                    />
+                </div>
+                <component :is="dropboxSaveComponent" ref="dropboxComponent" />
+                <component :is="driveSaveComponent"   ref="driveComponent" />
             </div>
         </template>
         <template #actions>
@@ -56,25 +72,57 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations, mapActions } from "vuex";
+import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import Modal from "@/components/modal/modal";
+import SelectBox from "@/components/ui/select-box/select-box";
 import { focus } from "@/utils/environment-util";
+
+const STORAGE_TYPES = [ "local", "dropbox", "drive" ];
 
 import messages from "./messages.json";
 export default {
     i18n: { messages },
     components: {
         Modal,
+        SelectBox,
     },
     data: () => ({
-        name: "",
+        name        : "",
+        storageLocation : STORAGE_TYPES[ 0 ] // TODO: set to whatever original document source is ?
     }),
     computed: {
+        ...mapState([
+            "dropboxConnected",
+            "driveConnected",
+        ]),
         ...mapGetters([
             "activeDocument",
+            "hasCloudConnection",
         ]),
         isValid() {
             return this.name.length > 0;
+        },
+        storageLocations() {
+            const out = [{ label: this.$t( "local" ), value: STORAGE_TYPES[ 0 ] }];
+            if ( this.dropboxConnected ) {
+                out.push({ label: this.$t( "dropbox" ), value: STORAGE_TYPES[ 1 ] });
+            }
+            if ( this.driveConnected ) {
+                out.push({ label: this.$t( "drive" ), value: STORAGE_TYPES[ 2 ] });
+            }
+            return out;
+        },
+        dropboxSaveComponent() {
+            if ( this.storageLocation === "dropbox" ) {
+                return () => import( "./dropbox/save-dropbox-document" );
+            }
+            return null;
+        },
+        driveSaveComponent() {
+            if ( this.storageLocation === "drive" ) {
+                return () => import( "./google-drive/save-google-drive-document" );
+            }
+            return null;
         },
     },
     mounted() {
@@ -96,10 +144,26 @@ export default {
                 return;
             }
             this.setActiveDocumentName( this.name );
+
+            switch ( this.storageLocation ) {
+                default:
+                    this.setLoading( "sdoc" );
+                    this.saveDocument( this.name );
+                    this.unsetLoading( "sdoc" );
+                    break;
+
+                // by using refs we have tightly coupled these components
+                // this however ensure we can separate the necessary SDK code
+                // from the core bundle
+                case "dropbox":
+                    this.$refs.dropboxComponent.requestSave();
+                    break;
+
+                case "drive":
+                    this.$refs.driveComponent.requestSave();
+                    break;
+            }
             this.closeModal();
-            this.setLoading( "exd" );
-            this.saveDocument( this.name );
-            this.unsetLoading( "exd" );
         },
     },
 };
