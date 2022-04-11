@@ -55,12 +55,21 @@ export const init = async ( apiKey, clientId, redirectURI ) => {
                 throw new Error( "could not load Google API" );
             }
             gapi = window.gapi;
+
+            let ux_mode = "popup"; // alternative is "redirect"
+
+            // TODO: Google Drive integration is currently under development (needs validation by Google)
+
+            if ( new URLSearchParams( window.location.search ).has( "drive" )) {
+                ux_mode = new URLSearchParams( window.location.search ).get( "drive" );
+            }
+
             gapi.load( "client:auth2", async () => {
                 const data = await gapi.client.init({
                     apiKey,
                     clientId,
-                    ux_mode       : "popup", // alternative is "redirect"
-                    //redirect_uri  : redirectURI,
+                    ux_mode,
+                    redirect_uri  : redirectURI,
                     scope         : ACCESS_SCOPES,
                     discoveryDocs : DISCOVERY_DOCS
                 });

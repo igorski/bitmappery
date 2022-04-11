@@ -78,7 +78,7 @@ export default {
         this.initialized = await init(
             window.driveApiKey   || localStorage?.getItem( "driveApiKey" ),
             window.driveClientId || localStorage?.getItem( "driveClientId" ),
-            window.driveRedirect || `${window.location.href}login_drive.html`
+            window.driveRedirect || `${window.location.href.split( "?" )[ 0 ]}login_drive.html`
         );
         this.unsetLoading( LOADING_KEY );
 
