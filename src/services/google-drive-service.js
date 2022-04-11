@@ -59,8 +59,8 @@ export const init = async ( apiKey, clientId, redirectURI ) => {
                 const data = await gapi.client.init({
                     apiKey,
                     clientId,
-                    redirect_uri  : redirectURI,
                     ux_mode       : "popup", // alternative is "redirect"
+                    //redirect_uri  : redirectURI,
                     scope         : ACCESS_SCOPES,
                     discoveryDocs : DISCOVERY_DOCS
                 });
