@@ -33,6 +33,17 @@ describe( "Vuex store", () => {
             state.loadingStates.push( "foo" );
             expect( getters.isLoading( state )).toBe( true );
         });
+
+        it( "should whether there is an active cloud storage connection", () => {
+            let state = { dropboxConnected: false, driveConnected: false };
+            expect( getters.hasCloudConnection( state )).toBe( false );
+
+            state = { dropboxConnected: true, driveConnected: false };
+            expect( getters.hasCloudConnection( state )).toBe( true );
+
+            state = { dropboxConnected: false, driveConnected: true };
+            expect( getters.hasCloudConnection( state )).toBe( true );
+        });
     });
 
     describe( "mutations", () => {

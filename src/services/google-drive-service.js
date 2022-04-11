@@ -118,8 +118,8 @@ export const listFolder = async ( path = ROOT_FOLDER ) => {
                 id      : file.id,
                 name    : file.name,
                 type    : file.mimeType === MIME_FOLDER ? "folder" : "file",
-                // using thumbnailLink leads to 403...
-                preview : `https://lh3.google.com/u/0/d/${file.id}=w128-h128`,
+                // using file.thumbnailLink leads to 403...
+                preview : `https://lh3.google.com/u/0/d/${file.id}=w128-h128`, // file.thumbnailLink
                 url     : file.webContentLink,
                 mime    : file.mimeType,
                 path
@@ -154,7 +154,8 @@ export const setCurrentFolder = folder => currentFolder = folder;
 
 export const deleteEntry = async fileId => {
     try {
-        // note we don't use the delete endpoint as it omits the trash in case the user regrets this
+        // note we don't use the delete endpoint as it omits the trash
+        // and permanently deletes the file, instantly.
         const { result } = await gapi.client.drive.files.update({ fileId, trashed: true });
         return !!result;
     } catch {
@@ -165,7 +166,7 @@ export const deleteEntry = async fileId => {
 export const downloadFileAsBlob = async ( file, returnAsURL = false ) => {
     try {
         const result = await gapi.client.drive.files.get({ fileId: file.id, alt: "media" });
-        const blob = await base64toBlob( `data:${file.mime};base64,${btoa( result.body )}` );
+        const blob   = await base64toBlob( `data:${file.mime};base64,${btoa( result.body )}` );
 
         if ( returnAsURL ) {
             return blobToResource( blob );

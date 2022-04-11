@@ -80,6 +80,7 @@ export default {
         // eslint-disable-next-line no-unused-vars
         t: state => ( key, optArgs ) => translate( key, optArgs ),
         isLoading: state => state.loadingStates.length > 0,
+        hasCloudConnection: state => state.dropboxConnected || state.driveConnected,
     },
     mutations: {
         setMenuOpened( state, value ) {

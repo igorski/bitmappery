@@ -118,7 +118,7 @@ export default {
             window.addEventListener( "message", boundHandler );
         },
         messageHandler({ data }) {
-            // if ux_mode was specified as redirect, the data is posted from redirect URI as JSON.
+            // if ux_mode was specified as redirect, the data is posted from our redirect URI as JSON
             let result = data;
             // if ux_mode was specified as popup, the data is posted from Google API as Stringified JSON
             if ( typeof data === "string" ) {

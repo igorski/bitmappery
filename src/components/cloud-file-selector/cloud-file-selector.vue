@@ -30,7 +30,7 @@
                 @click="closeModal()"
             >&#215;</button>
         </div>
-        <div class="component__content">
+        <div ref="content" class="component__content">
             <div v-if="leaf" class="content__wrapper">
                 <div class="breadcrumbs">
                     <!-- parent folders -->
@@ -144,20 +144,11 @@ function recurseChildren( node, path ) {
     return null;
 }
 
-function findLeafByPath( tree, path ) {
-    let node = tree;
-    let tries = 2048; // debug code, this should not recurse forever
-    while ( node ) {
-        if ( node.path === path ) {
-            return node;
-        }
-        const found = recurseChildren( node, path );
-        if ( found ) {
-            return found;
-        }
-        if ( --tries == 0 ) break;
+function findLeafByPath( node, path ) {
+    if ( node.path === path ) {
+        return node;
     }
-    return null;
+    return recurseChildren( node, path );
 }
 
 export default {
@@ -202,6 +193,18 @@ export default {
         imagePreviewComponent() {
             return null; // extend in inheriting components
         },
+    },
+    mounted() {
+        focus( this.$refs.content );
+        this.escListener = ({ keyCode }) => {
+            if ( keyCode === 27 ) {
+                this.closeModal();
+            }
+        };
+        window.addEventListener( "keyup", this.escListener );
+    },
+    destroyed() {
+        window.removeEventListener( "keyup", this.escListener );
     },
     methods: {
         ...mapMutations([

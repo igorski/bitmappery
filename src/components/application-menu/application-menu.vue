@@ -50,6 +50,22 @@
                         ></button>
                     </li>
                     <li>
+                        <button
+                            v-t="'openDropboxDocument'"
+                            type="button"
+                            :disabled="!dropboxConnected"
+                            @click="requestDropboxLoad()"
+                        ></button>
+                    </li>
+                    <li>
+                        <button
+                            v-t="'openDriveDocument'"
+                            type="button"
+                            :disabled="!driveConnected"
+                            @click="requestDriveLoad()"
+                        ></button>
+                    </li>
+                    <li>
                         <button v-t="'close'"
                                 :disabled="noDocumentsAvailable"
                                 @click="requestDocumentClose()"
@@ -62,21 +78,13 @@
                                 @click="requestDocumentExport()"
                         ></button>
                     </li>
-                    <template v-if="dropboxConnected">
-                        <li>
-                            <button v-t="'openDropboxDocument'"
-                                    type="button"
-                                    @click="requestDropboxLoad()"
-                            ></button>
-                        </li>
-                        <li>
-                            <button v-t="'saveDropboxDocument'"
-                                    type="button"
-                                    :disabled="noDocumentsAvailable"
-                                    @click="requestDropboxSave()"
-                            ></button>
-                        </li>
-                    </template>
+                    <li v-if="dropboxConnected">
+                        <button v-t="'saveDropboxDocument'"
+                                type="button"
+                                :disabled="noDocumentsAvailable"
+                                @click="requestDropboxSave()"
+                        ></button>
+                    </li>
                     <li>
                         <button v-t="'exportImage'"
                                 type="button"
@@ -393,7 +401,7 @@ import cloneDeep from "lodash.clonedeep";
 import { MAX_SPRITESHEET_WIDTH } from "@/definitions/editor-properties";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION,
-    DROPBOX_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT, PREFERENCES, RESIZE_CANVAS, GRID_TO_LAYERS, STROKE_SELECTION
+    DROPBOX_FILE_SELECTOR, GOOGLE_DRIVE_FILE_SELECTOR, SAVE_DROPBOX_DOCUMENT, PREFERENCES, RESIZE_CANVAS, GRID_TO_LAYERS, STROKE_SELECTION
 } from "@/definitions/modal-windows";
 import { getRectangleForSelection } from "@/math/selection-math";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
@@ -419,6 +427,7 @@ export default {
             "blindActive",
             "selectionContent",
             "dropboxConnected",
+            "driveConnected",
         ]),
         ...mapGetters([
             "documents",
@@ -595,6 +604,9 @@ export default {
         },
         requestDropboxLoad() {
             this.openModal( DROPBOX_FILE_SELECTOR );
+        },
+        requestDriveLoad() {
+            this.openModal( GOOGLE_DRIVE_FILE_SELECTOR );
         },
         requestDropboxSave() {
             this.openModal( SAVE_DROPBOX_DOCUMENT );
