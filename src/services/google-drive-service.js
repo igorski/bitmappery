@@ -31,11 +31,13 @@ const DISCOVERY_DOCS = [ "https://www.googleapis.com/discovery/v1/apis/drive/v3/
 const MIME_FOLDER = "application/vnd.google-apps.folder";
 
 // see https://developers.google.com/drive/api/v2/reference/files/update
+const UPLOAD_API      = "/upload/drive/v3/files"; // note we use v3 endpoint
 const BOUNDARY        = "-------314159265358979323846";
 const DELIMITER       = `\r\n--${BOUNDARY}\r\n`;
 const DELIMITER_CLOSE = `\r\n--${BOUNDARY}--`;
 
-export const ROOT_FOLDER = "root";
+export const ROOT_FOLDER   = "root";
+export const DEFAULT_SPACE = "drive";
 
 let isSignedIn = false;
 let accessToken = null;
@@ -106,12 +108,13 @@ export const listFolder = async ( path = ROOT_FOLDER ) => {
     let nextPageToken = null;
 
     do {
+        // https://developers.google.com/drive/api/v3/search-files
         ({ result } = await gapi.client.drive.files.list({
-            q: `"${path}" in parents and trashed = false`,
-            pageSize: 500,
-            fields: "nextPageToken, files(id, name, mimeType, thumbnailLink, iconLink, webContentLink)",
-            spaces: "drive",
-            pageToken: nextPageToken,
+            q         : `"${path}" in parents and trashed = false`,
+            pageSize  : 500,
+            fields    : "nextPageToken, files(id, name, mimeType, thumbnailLink, iconLink, webContentLink)",
+            spaces    : DEFAULT_SPACE,
+            pageToken : nextPageToken,
         }));
         ({ nextPageToken } = result );
 
@@ -182,10 +185,18 @@ export const downloadFileAsBlob = async ( file, returnAsURL = false ) => {
     }
 };
 
-export const uploadBlob = ( fileOrBlob, folder, fileName ) => {
+export const uploadBlob = async ( fileOrBlob, folder, fileName ) => {
     const reader = new FileReader();
 
-    // TODO verify if file exists, if so, call update endpoint ?
+    // first verify if file exists, so we can make an update request instead
+
+    const { result } = await gapi.client.drive.files.list({
+        q         : `name = "${fileName}" and "${folder}" in parents and trashed = false`,
+        fields    : "files(id, name, mimeType)",
+        spaces    : DEFAULT_SPACE,
+        pageToken : null,
+    });
+    const existingId = result.files[ 0 ]?.id || null;
 
     return new Promise(( resolve, reject ) => {
         reader.onload = () => {
@@ -193,8 +204,11 @@ export const uploadBlob = ( fileOrBlob, folder, fileName ) => {
             const metadata = {
                 name     : fileName,
                 mimeType : fileOrBlob.type.split( ";" )[ 0 ],
-                parents  : [ folder ],
             };
+
+            if ( !existingId ) {
+                metadata.parents = [ folder ];
+            }
 
             const base64Data = btoa( reader.result );
             const multipartRequestBody =
@@ -209,8 +223,8 @@ export const uploadBlob = ( fileOrBlob, folder, fileName ) => {
                 DELIMITER_CLOSE;
 
             const request = gapi.client.request({
-                path    : "/upload/drive/v3/files",
-                method  : "POST",
+                path    : existingId ? `${UPLOAD_API}/${existingId}` : UPLOAD_API,
+                method  : existingId ? "PATCH" : "POST",
                 params  : { uploadType: "multipart" },
                 headers : {
                     "Content-Type" : `multipart/mixed; boundary="${BOUNDARY}"`
@@ -218,12 +232,11 @@ export const uploadBlob = ( fileOrBlob, folder, fileName ) => {
                 body : multipartRequestBody
             });
 
-            request.execute( file => {
-                if ( file?.id ) {
-                    resolve( true );
-                } else {
-                    reject();
+            request.execute( async file => {
+                if ( !file?.id ) {
+                    return reject();
                 }
+                resolve( true );
             });
         };
         reader.readAsBinaryString( fileOrBlob );
