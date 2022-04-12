@@ -22,24 +22,21 @@
  */
 <template>
     <div class="form">
-        <template v-if="!initialized && !awaitingConnection">
-            <button
-                v-if="initialized"
-                v-t="'loginToDrive'"
-                type="button"
-                class="button drive"
-                @click="login()"
-            ></button>
-        </template>
-        <template v-if="authenticated || awaitingConnection">
-            <button
-                v-t="authenticated ? 'importFromDrive' : 'connectingToDrive'"
-                type="button"
-                class="button drive"
-                :disabled="awaitingConnection"
-                @click="openFileBrowser()"
-            ></button>
-        </template>
+        <button
+            v-if="!initialized && !authenticated"
+            v-t="'loginToDrive'"
+            type="button"
+            class="button drive"
+            @click="login()"
+        ></button>
+        <button
+            v-if="authenticated || awaitingConnection"
+            v-t="authenticated ? 'importFromDrive' : 'connectingToDrive'"
+            type="button"
+            class="button drive"
+            :disabled="awaitingConnection"
+            @click="openFileBrowser()"
+        ></button>
     </div>
 </template>
 
@@ -105,6 +102,7 @@ export default {
                     title : this.$t( "privacyPolicy" )
                 },
                 confirm: () => this.login(),
+                cancel: () => this.cancelLogin()
             });
         }
         this.loading = false;
@@ -121,6 +119,10 @@ export default {
             requestLogin();
             boundHandler = this.messageHandler.bind( this );
             window.addEventListener( "message", boundHandler );
+        },
+        cancelLogin() {
+            this.initialized   = false;
+            this.authenticated = false;
         },
         messageHandler({ data }) {
             // if ux_mode was specified as redirect, the data is posted from our redirect URI as JSON
@@ -140,6 +142,7 @@ export default {
             const TIMEOUT = 2000;
 
             if ( result?.scope && !validateScopes( result.scope )) {
+                this.cancelLogin();
                 window.removeEventListener( "message", boundHandler );
                 this.openDialog({ type: "error", message: this.$t( "notAllPermissionsGranted" )});
                 window.setTimeout( disconnect, TIMEOUT );
