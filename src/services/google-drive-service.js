@@ -24,8 +24,18 @@ import loadScript from "tiny-script-loader/loadScriptPromised";
 import { base64toBlob } from "@/utils/file-util";
 import { blobToResource } from "@/utils/resource-manager";
 
+/**
+ * Full write access is nice, but is considered to be a sensitive to restricted
+ * scope for production, which requires an audit when restricted.
+ * For localhost testing or in sandbox mode, this works fine.
+ * The scoped write access provides the same functions, as long as the files
+ * were created by BitMappery (other contents remain hidden)
+ */
+const FULL_WRITE_ACCESS   = "https://www.googleapis.com/auth/drive";
+const SCOPED_WRITE_ACCESS = "https://www.googleapis.com/auth/drive.file";
+
 const GOOGLE_API     = "https://apis.google.com/js/api.js";
-const ACCESS_SCOPES  = "https://www.googleapis.com/auth/drive.file"; // auth/drive is restricted for production ($$$!)
+const ACCESS_SCOPES  = SCOPED_WRITE_ACCESS;
 const DISCOVERY_DOCS = [ "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest" ];
 
 const MIME_FOLDER = "application/vnd.google-apps.folder";
@@ -188,19 +198,23 @@ export const downloadFileAsBlob = async ( file, returnAsURL = false ) => {
     }
 };
 
+/**
+ * Traverses the folder specified by given fileId back up the
+ * tree until the root is reached.
+ */
 export const getFolderHierarchy = async fileId => {
+    const rootFolderDef = { id: ROOT_FOLDER, name: "My Drive" };
+
+    if ( fileId === ROOT_FOLDER && ACCESS_SCOPES === SCOPED_WRITE_ACCESS ) {
+        return [ rootFolderDef ];
+    }
     const folders = [];
     let result;
 
-    try {
-        ({ result } = await gapi.client.drive.files.get({
-            fileId,
-            fields : "id, name, mimeType, parents"
-        }));
-    } catch {
-        // likely access restriction (e.g. reached root folder under drive.file scope)
-        return [{ id: ROOT_FOLDER, name: "My Drive" }];
-    }
+    ({ result } = await gapi.client.drive.files.get({
+        fileId,
+        fields : "id, name, mimeType, parents"
+    }));
 
     if ( !result?.mimeType === MIME_FOLDER ) {
         return folders;
@@ -220,6 +234,9 @@ export const getFolderHierarchy = async fileId => {
         } catch {
             // likely access restriction (e.g. reached root folder under drive.file scope)
             result.parents = [];
+            if ( ACCESS_SCOPES === SCOPED_WRITE_ACCESS ) {
+                folders.push( rootFolderDef );
+            }
             break;
         }
         if ( !result?.id ) {
