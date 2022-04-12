@@ -1,14 +1,7 @@
 {
     "en-US": {
-        "connectingToDrive": "Connecting to Google Drive",
-        "connectedToDrive": "Connected to Google Drive",
-        "establishConnection": "Establish connection",
-        "connectionExpl": "In order to import files from or save projects to Google Drive you must first connect to Google Drive and grant BitMappery read and write permission.\n\nDrive operates under stricter restrictions than Dropbox, it is not possible to access just any file or folder in your Google Drive, only those created by the BitMappery app.\n\nGoogle Drive connects directly to your machine without any middleware, keeping your data and file access private at all times. For more information, consult the privacy policy.",
-        "privacyPolicy": "BitMappery privacy policy",
         "loginToDrive": "Log into Google Drive",
-        "login": "Login",
         "importFromDrive": "Import from Google Drive",
-        "errorLoadingAPI": "An unknown error has occurred while loading the Google Drive API",
-        "notAllPermissionsGranted": "Not all required read and write permissions were granted. Without these BitMappery cannot use Google Drive. If this was by mistake, reconnect and tick the appropriate permission box."
+        "connectingToDrive": "Connecting to Google Drive"
     }
 }

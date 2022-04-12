@@ -37,8 +37,10 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import DocumentFactory from "@/factories/document-factory";
-import { getCurrentFolder, setCurrentFolder, uploadBlob } from "@/services/dropbox-service";
+import { getDropboxService } from "@/utils/cloud-service-loader";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
+
+let getCurrentFolder, setCurrentFolder, uploadBlob;
 
 import messages from "./messages.json";
 export default {
@@ -54,7 +56,8 @@ export default {
             return this.name.length > 0;
         },
     },
-    mounted() {
+    async created() {
+        ({ getCurrentFolder, setCurrentFolder, uploadBlob  } = await getDropboxService());
         this.folder = getCurrentFolder();
     },
     methods: {

@@ -53,16 +53,14 @@
                         <button
                             v-t="'openDropboxDocument'"
                             type="button"
-                            :disabled="!dropboxConnected"
-                            @click="requestDropboxLoad()"
+                            @click="initDropbox()"
                         ></button>
                     </li>
                     <li>
                         <button
                             v-t="'openDriveDocument'"
                             type="button"
-                            :disabled="!driveConnected"
-                            @click="requestDriveLoad()"
+                            @click="initDrive()"
                         ></button>
                     </li>
                     <li>
@@ -394,9 +392,10 @@ import cloneDeep from "lodash.clonedeep";
 import { MAX_SPRITESHEET_WIDTH } from "@/definitions/editor-properties";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION,
-    DROPBOX_FILE_SELECTOR, GOOGLE_DRIVE_FILE_SELECTOR, PREFERENCES, RESIZE_CANVAS, GRID_TO_LAYERS, STROKE_SELECTION
+    PREFERENCES, RESIZE_CANVAS, GRID_TO_LAYERS, STROKE_SELECTION
 } from "@/definitions/modal-windows";
 import { getRectangleForSelection } from "@/math/selection-math";
+import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { getCanvasInstance } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
@@ -404,11 +403,12 @@ import LayerFactory from "@/factories/layer-factory";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { cloneCanvas } from "@/utils/canvas-util";
 import { renderFullSize } from "@/utils/document-util";
+import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages },
-    mixins: [ ImageToDocumentManager ],
+    i18n: { messages, sharedMessages },
+    mixins: [ CloudServiceConnector, ImageToDocumentManager ],
     data: () => ({
         activeSubMenu: null, // used for mobile views collapsed / expanded view
         clonedFilters: null,
@@ -594,12 +594,6 @@ export default {
                 },
                 redo: commit
             });
-        },
-        requestDropboxLoad() {
-            this.openModal( DROPBOX_FILE_SELECTOR );
-        },
-        requestDriveLoad() {
-            this.openModal( GOOGLE_DRIVE_FILE_SELECTOR );
         },
         navigateHistory( action = "undo" ) {
             this.$store.dispatch( action );

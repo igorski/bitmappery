@@ -38,12 +38,13 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import DocumentFactory from "@/factories/document-factory";
-import {
-    getCurrentFolder, setCurrentFolder, getFolderHierarchy, createFolder, uploadBlob
-} from "@/services/google-drive-service";
+import { getGoogleDriveService } from "@/utils/cloud-service-loader";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 
 import messages from "./messages.json";
+
+let getCurrentFolder, setCurrentFolder, getFolderHierarchy, createFolder, uploadBlob;
+
 export default {
     i18n: { messages },
     data: () => ({
@@ -60,6 +61,8 @@ export default {
         },
     },
     async created() {
+        ({ getCurrentFolder, setCurrentFolder, getFolderHierarchy, createFolder, uploadBlob } = getGoogleDriveService() );
+        
         this.hierarchy = await getFolderHierarchy( getCurrentFolder() );
         this.folder = `/${this.hierarchy.map(({ name }) => name ).join( "/" )}`;
 

@@ -20,15 +20,15 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
- <script>
- import CloudFileSelector from "../cloud-file-selector";
- import { mapMutations } from "vuex";
- import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
- import { STORAGE_TYPES } from "@/definitions/storage-types";
- import GoogleDriveImagePreview from "./google-drive-image-preview";
- import {
-     ROOT_FOLDER, listFolder, createFolder, downloadFileAsBlob, deleteEntry
- } from "@/services/google-drive-service";
+<script>
+import CloudFileSelector from "../cloud-file-selector";
+import { mapMutations } from "vuex";
+import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
+import { STORAGE_TYPES } from "@/definitions/storage-types";
+import GoogleDriveImagePreview from "./google-drive-image-preview";
+import { getGoogleDriveService } from "@/utils/cloud-service-loader";
+
+let ROOT_FOLDER, listFolder, createFolder, downloadFileAsBlob, deleteEntry;
 
  export default {
      extends: CloudFileSelector,
@@ -41,7 +41,8 @@
              return GoogleDriveImagePreview;
          },
      },
-     created() {
+     async created() {
+         ({ ROOT_FOLDER, listFolder, createFolder, downloadFileAsBlob, deleteEntry } = await getGoogleDriveService() );
          this.tree.path = ROOT_FOLDER;
 
          let pathToRetrieve = this.tree.path;

@@ -41,8 +41,10 @@
 </template>
 
 <script>
-import { getThumbnail } from "@/services/dropbox-service";
+import { getDropboxService } from "@/utils/cloud-service-loader";
 import { disposeResource } from "@/utils/resource-manager";
+
+let getThumbnail;
 
 export default {
     props: {
@@ -59,10 +61,8 @@ export default {
             return !this.src;
         },
     },
-    destroyed() {
-        this._destroyed = true;
-    },
-    mounted() {
+    async created() {
+        ({ getThumbnail } = await getDropboxService() );
         getThumbnail( this.node.path, true ).then( blobUrl => {
                 if ( this._destroyed ) {
                     disposeResource( blobUrl );
@@ -70,6 +70,9 @@ export default {
                     this.src = blobUrl;
                 }
             });
+    },
+    destroyed() {
+        this._destroyed = true;
     },
     methods: {
         handleImageLoad() {

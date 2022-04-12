@@ -25,8 +25,10 @@ import CloudFileSelector from "../cloud-file-selector";
 import { mapMutations } from "vuex";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
 import DropboxImagePreview from "./dropbox-image-preview";
-import { listFolder, createFolder, downloadFileAsBlob, deleteEntry } from "@/services/dropbox-service";
+import { getDropboxService } from "@/utils/cloud-service-loader";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
+
+let listFolder, createFolder, downloadFileAsBlob, deleteEntry;
 
 export default {
     extends: CloudFileSelector,
@@ -42,7 +44,8 @@ export default {
             return DropboxImagePreview;
         },
     },
-    created() {
+    async created() {
+        ({ listFolder, createFolder, downloadFileAsBlob, deleteEntry } = await getDropboxService());
         let pathToRetrieve = this.tree.path;
         try {
             const { tree, path } = JSON.parse( sessionStorage.getItem( this.LAST_FOLDER_STORAGE_KEY ));
