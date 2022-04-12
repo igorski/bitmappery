@@ -61,8 +61,8 @@ export default {
         },
     },
     async created() {
-        ({ getCurrentFolder, setCurrentFolder, getFolderHierarchy, createFolder, uploadBlob } = getGoogleDriveService() );
-        
+        ({ getCurrentFolder, setCurrentFolder, getFolderHierarchy, createFolder, uploadBlob } = await getGoogleDriveService() );
+
         this.hierarchy = await getFolderHierarchy( getCurrentFolder() );
         this.folder = `/${this.hierarchy.map(({ name }) => name ).join( "/" )}`;
 
