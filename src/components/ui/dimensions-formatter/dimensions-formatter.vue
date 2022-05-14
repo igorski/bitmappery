@@ -147,13 +147,10 @@ export default {
                     return Math.round( value );
                 case "in":
                     return inchesToPixels( value, this.dpi );
-                    break;
                 case "cm":
                     return cmToPixels( value, this.dpi );
-                    break;
                 case "mm":
                     return mmToPixels( value, this.dpi );
-                    break;
             }
         }
     }

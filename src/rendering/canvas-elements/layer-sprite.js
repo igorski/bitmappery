@@ -20,14 +20,13 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import Vue from "vue";
 import ZoomableSprite from "./zoomable-sprite";
 import { createCanvas, canvasToBlob, globalToLocal } from "@/utils/canvas-util";
 import { renderCross } from "@/utils/render-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { LAYER_GRAPHIC, LAYER_TEXT } from "@/definitions/layer-types";
 import { getSizeForBrush } from "@/definitions/brush-types";
-import { getRectangleForSelection, isSelectionClosed } from "@/math/selection-math";
+import { isSelectionClosed } from "@/math/selection-math";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
@@ -254,8 +253,7 @@ class LayerSprite extends ZoomableSprite {
         if ( !this._pendingPaintState ) {
             this.preparePendingPaintState();
         }
-        const { left, top } = this._bounds;
-        const { mirrorX, mirrorY, rotation } = this.layer.effects;
+        const { mirrorX, mirrorY } = this.layer.effects;
 
         const drawOnMask   = this.isMaskable();
         const isEraser     = this._toolType === ToolTypes.ERASER;
@@ -520,8 +518,6 @@ class LayerSprite extends ZoomableSprite {
             this._pointerY = y;
         }
 
-        let recacheEffects = false;
-
         if ( !this._isPaintMode ) {
             // not drawable, perform default behaviour (drag)
             if ( this.actionTarget === "mask" ) {
@@ -557,6 +553,7 @@ class LayerSprite extends ZoomableSprite {
         }
     }
 
+    // eslint-disable-next-line no-unused-vars
     handleRelease( x, y ) {
         const { getters } = this.getStore();
         if ( this._brush.down ) {

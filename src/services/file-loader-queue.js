@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { loader } from "zcanvas";
-import { blobToResource } from "@/utils/resource-manager";
+import { blobToResource, disposeResource } from "@/utils/resource-manager";
 
 /**
  * We can use a Worker to load the files to bitmaps so we can retrieve
@@ -58,7 +58,7 @@ export const loadImageFiles = ( fileList, callback, ctx ) => {
 
 /* internal methods */
 
-function loadFile( file, callback, ctx ) {
+function loadFile( file, callback ) {
     if ( worker ) {
         return new Promise(( resolve, reject ) => {
             imageLoadQueue.push({
@@ -73,8 +73,9 @@ function loadFile( file, callback, ctx ) {
         })
     } else {
         return new Promise( async ( resolve, reject ) => {
+            let imageSource;
             try {
-                const imageSource = blobToResource( file );
+                imageSource = blobToResource( file );
                 const result = await loader.loadImage( imageSource );
                 await callback( file, result );
                 resolve( result );
@@ -89,13 +90,13 @@ function loadFile( file, callback, ctx ) {
 function handleWorkerMessage({ data }) {
     const fileQueueObj = getFileFromQueue( data?.file );
     if ( data?.cmd === "loadComplete" ) {
-        const { file, blobUrl, width, height } = data;
+        const { blobUrl, width, height } = data;
         const image = new Image();
         image.src = blobUrl;
         fileQueueObj?.success({ image, size: { width, height } });
     }
     if ( data?.cmd === "loadError" ) {
-        fileQueueObj?.error( file, data?.error );
+        fileQueueObj?.error( data.file, data?.error );
     }
 }
 

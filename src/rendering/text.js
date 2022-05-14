@@ -38,7 +38,7 @@ export const renderMultiLineText = ( ctx, text ) => {
 
     applyTextStyleToContext( text, ctx );
 
-    lines.forEach(({ line, top }, lineIndex ) => {
+    lines.forEach(({ line, top }) => {
         if ( !text.spacing ) {
             // write entire line (0 spacing defaults to font spacing)
             ctx.fillText( line, 0, top );

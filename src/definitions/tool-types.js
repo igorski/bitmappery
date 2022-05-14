@@ -77,13 +77,13 @@ export const SNAP_MARGIN    = 20;  // amount of pixels within which we allow sna
  * should lead to the maximum scale relative to the document size, making the max displayed
  * value equal across window sizes.
  */
-export const calculateMaxScaling = ( baseWidth, baseHeight, docWidth, docHeight, containerWidth, containerHeight ) => {
+export const calculateMaxScaling = ( baseWidth, baseHeight, docWidth, docHeight, containerWidth ) => {
     const pixelRatio = window.devicePixelRatio; // zCanvas magnifies for pixel ratio
     const portrait   = isPortrait( baseWidth, baseHeight );
 
     // dimensions of document at max displayable megapixel size
     const maxScale = portrait ? MAX_IMAGE_SIZE / baseHeight : MAX_IMAGE_SIZE / baseWidth;
-    const { width, height } = constrain(
+    const { width } = constrain(
         baseWidth  * maxScale,
         baseHeight * maxScale,
         MAX_MEGAPIXEL

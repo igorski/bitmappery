@@ -64,7 +64,7 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations, mapActions } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 import Modal     from "@/components/modal/modal";
 import SelectBox from '@/components/ui/select-box/select-box';
 import LayerFactory from "@/factories/layer-factory";

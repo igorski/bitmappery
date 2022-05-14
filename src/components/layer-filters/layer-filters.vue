@@ -178,7 +178,7 @@ export default {
     watch: {
         internalValue: {
             deep: true,
-            handler( value ) {
+            handler() {
                 // debounce the model update (and subsequent filter render)
                 // to not update directly after each change event
                 if ( this.renderPending ) {

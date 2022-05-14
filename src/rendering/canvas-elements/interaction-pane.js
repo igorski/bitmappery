@@ -47,7 +47,7 @@ export const MODE_SELECTION    = 2;
  * 3. create selection outlines that can be used across layers
  */
 class InteractionPane extends sprite {
-    constructor( zCanvas ) {
+    constructor() {
         // dimensions will be synced when canvas on setState()
         super({ width : 10, height: 10 });
 

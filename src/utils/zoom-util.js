@@ -30,8 +30,7 @@ import { getZoomRange } from "@/math/image-math";
 export const fitInWindow = ( activeDocument, canvasDimensions ) => {
     const { visibleWidth, visibleHeight, horizontalDominant } = canvasDimensions;
     const {
-        zeroZoomWidth, zeroZoomHeight,
-        minZoomWidth, minZoomHeight, pixelsPerZoomOutUnit,
+        zeroZoomWidth, zeroZoomHeight, pixelsPerZoomOutUnit,
     } = getZoomRange( activeDocument, canvasDimensions );
 
     if ( horizontalDominant ) {

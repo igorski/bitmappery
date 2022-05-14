@@ -68,7 +68,7 @@
             </button>
             <!-- tools -->
             <button
-                v-for="(tool, index) in tools"
+                v-for="tool in tools"
                 :key="tool.type"
                 type="button"
                 v-tooltip="`${$t( tool.i18n )} (${tool.key})`"
@@ -97,9 +97,8 @@
 
 <script>
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
-import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
+import { LAYER_TEXT } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS } from "@/definitions/panel-types";
-import { runSpriteFn } from "@/factories/sprite-factory";
 import { isMobile } from "@/utils/environment-util";
 import { addTextLayer } from "@/utils/layer-util";
 import ToolTypes, { canDraw } from "@/definitions/tool-types";

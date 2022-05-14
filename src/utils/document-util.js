@@ -27,7 +27,7 @@ import { createSpriteForLayer, getSpriteForLayer } from "@/factories/sprite-fact
 import { createCanvas } from "@/utils/canvas-util";
 import { reverseTransformation } from "@/rendering/transforming";
 import { rotateRectangle, areEqual } from "@/math/rectangle-math";
-import { getRectangleForSelection, isSelectionRectangular } from "@/math/selection-math";
+import { getRectangleForSelection } from "@/math/selection-math";
 
 /**
  * Creates a snapshot of the current document at its full size.

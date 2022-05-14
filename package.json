@@ -1,7 +1,10 @@
 {
   "name": "bitmappery",
   "version": "1.0.0",
+<<<<<<< HEAD
   "private": true,
+=======
+>>>>>>> Addressed all linter warnings
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
