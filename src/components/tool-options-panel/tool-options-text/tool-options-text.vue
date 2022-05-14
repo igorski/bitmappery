@@ -107,7 +107,6 @@ import FontPreview from "./font-preview/font-preview";
 import { mapSelectOptions } from "@/utils/search-select-util";
 import { enqueueState } from "@/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
-import { loadGoogleFont } from "@/services/font-service";
 import { googleFonts } from "@/definitions/font-types";
 import { isMobile } from "@/utils/environment-util";
 import { focus } from "@/utils/environment-util";
@@ -283,7 +282,7 @@ export default {
             const { left, top, width, height } = this.activeLayer;
             const commit = () => store.commit( "updateLayer", { index, opts: { name: newName, text: newOpts } });
             commit();
-            enqueueState( `text_${index}`, {
+            enqueueState( `${propName}_${index}`, {
                 undo() {
                     store.commit( "updateLayer", { index, opts: { left, top, width, height, name: orgName, text: orgOpts } });
                 },

@@ -73,7 +73,7 @@ class ZoomableSprite extends sprite {
             );
         }
     }
-};
+}
 export default ZoomableSprite;
 
 /* internal methods */

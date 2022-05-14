@@ -164,7 +164,7 @@ export default {
             });
             const updateOffsets = ( layers, offsetList ) => {
                 layers.forEach( layer => {
-                    const { left, top } = offsetList.find(({ id }) => layer.id );
+                    const { left, top } = offsetList.find(({ id }) => id === layer.id );
                     layer.left = left;
                     layer.top  = top;
                 });

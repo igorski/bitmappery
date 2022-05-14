@@ -81,12 +81,13 @@ import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 /* internal non-reactive properties */
 
 const mobileView = isMobile();
-let lastDocument, containerSize, interactionPane, guideRenderer;
+let lastDocument, containerSize, guideRenderer;
 // maintain a pool of sprites representing the layers within the active document
 // the sprites themselves are cached within the sprite-factory, this is merely
 // used for change detection in the current editing session (see watchers)
 const layerPool = new Map();
 // scale of the on-screen canvas relative to the document
+// eslint-disable-next-line no-unused-vars
 let xScale = 1, yScale = 1, zoom = 1, maxInScale = 1, maxOutScale = 1;
 
 export default {
@@ -138,7 +139,7 @@ export default {
             this.calcIdealDimensions();
         },
         activeDocument: {
-            handler( document, oldValue = null ) {
+            handler( document ) {
                 // no active document or no document content
                 if ( !document?.layers ) {
                     if ( getCanvasInstance() ) {
@@ -189,8 +190,7 @@ export default {
             if ( !layer ) {
                 return;
             }
-            const { id } = layer;
-            [ ...layerPool.entries() ].forEach(([ key, sprite ]) => {
+            [ ...layerPool.entries() ].forEach(([ , sprite ]) => {
                 sprite.handleActiveLayer( layer );
                 sprite.handleActiveTool( this.activeTool, this.activeToolOptions, this.activeDocument );
             });
@@ -220,23 +220,23 @@ export default {
                 this.scaleCanvas( false );
             }
         },
-        panMode( value ) {
+        panMode() {
             this.updateInteractionPane( "cursor-drag" );
         },
-        layerSelectMode( value ) {
+        layerSelectMode() {
             this.updateInteractionPane();
         },
-        selectMode( value ) {
+        selectMode() {
             this.updateInteractionPane();
         },
         hasGuideRenderer( value ) {
             getCanvasInstance()?.[ value ? "addChild" : "removeChild" ]( guideRenderer );
         },
-        snapAlign( value ) {
+        snapAlign() {
             this.updateGuideModes();
             this.handleGuides();
         },
-        pixelGrid( value ) {
+        pixelGrid() {
             this.updateGuideModes();
         },
         antiAlias( value ) {

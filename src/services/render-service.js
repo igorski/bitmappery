@@ -23,12 +23,11 @@
 import Vue from "vue";
 import { LAYER_TEXT } from "@/definitions/layer-types";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
-import { isEqual as isEffectsEqual } from "@/factories/effects-factory";
 import { hasFilters, isEqual as isFiltersEqual } from "@/factories/filters-factory";
 import { isEqual as isTextEqual } from "@/factories/text-factory";
 import { createCanvas, cloneCanvas, matchDimensions } from "@/utils/canvas-util";
 import { replaceLayerSource } from "@/utils/layer-util";
-import { hasLayerCache, getLayerCache, setLayerCache } from "@/rendering/cache/bitmap-cache";
+import { getLayerCache, setLayerCache } from "@/rendering/cache/bitmap-cache";
 import { renderMultiLineText } from "@/rendering/text";
 import { loadGoogleFont } from "@/services/font-service";
 
@@ -51,7 +50,6 @@ export const setWasmFilters = enabled => {
 };
 
 export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
-    const { effects } = layer;
     const sprite = getSpriteForLayer( layer );
 
     if ( !sprite || !layer.source ) {
@@ -161,7 +159,7 @@ const runFilterJob = ( source, jobSettings ) => {
             worker = wasmWorker;
         } else {
             // when not in WASM mode, Worker is lazily created per process so we can parallelize
-            worker = new FilterWorker();
+            worker = new Worker( new URL( "@/workers/filter.worker", import.meta.url ));
             worker.onmessage = handleWorkerMessage;
             onComplete = () => worker.terminate();
         }
@@ -190,7 +188,7 @@ function handleWorkerMessage({ data }) {
     if ( data?.cmd === "error" ) {
         jobQueueObj?.error( data?.error );
     }
-};
+}
 
 /**
  * @param {Object} layer

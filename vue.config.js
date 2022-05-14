@@ -6,9 +6,9 @@ const dirAssets = `${dirSrc}/assets`;
 const dest      = `${__dirname}/dist`;
 
 module.exports = {
-    lintOnSave: false,
-    productionSourceMap: false,
     publicPath: "./",
+    filenameHashing: true,
+    productionSourceMap: false,
     pages: {
         index: {
             entry: `${dirSrc}/main.js`,

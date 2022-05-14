@@ -31,12 +31,12 @@ export const ACCEPTED_FILE_EXTENSIONS = [ ...ACCEPTED_IMAGE_EXTENSIONS, PROJECT_
 export const isImageFile = item => ACCEPTED_IMAGE_TYPES.includes( item.type );
 
 export const isProjectFile = file => {
-    const [ name, ext ] = file.name.split( "." );
+    const [ , ext ] = file.name.split( "." );
     return ext === PROJECT_FILE_EXTENSION;
 };
 
 export const isThirdPartyDocument = file => {
-    const [ name, ext ] = file.name.split( "." );
+    const [ , ext ] = file.name.split( "." );
     // currently only Photoshop documents are supported
     return ext === PSD.ext;
 };

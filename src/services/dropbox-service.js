@@ -78,7 +78,7 @@ export const listFolder = async ( path = "" ) => {
 
 export const createFolder = async ( path = "/", folder = "folder" ) => {
     try {
-        const { result } = await dbx.filesCreateFolderV2({
+        await dbx.filesCreateFolderV2({
             path: `${sanitizePath( path )}/${folder}`
         });
         return true;

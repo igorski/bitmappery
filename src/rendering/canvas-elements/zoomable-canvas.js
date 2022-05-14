@@ -20,7 +20,6 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import Vue from "vue";
 import { canvas } from "zcanvas";
 import InteractionPane from "@/rendering/canvas-elements/interaction-pane";
 import { fastRound } from "@/math/unit-math";
@@ -137,7 +136,7 @@ class ZoomableCanvas extends canvas {
         // immediately draw new contents onto the screen
 
         if ( this._enqueuedSize ) {
-            updateCanvasSize( this );
+            //updateCanvasSize( this );
         }
 
         const ctx = this._canvasContext;
@@ -197,7 +196,7 @@ class ZoomableCanvas extends canvas {
         }
         const numChildren = this._children.length;
         const viewport    = this._viewport;
-        let theChild, touches, found;
+        let theChild, found;
 
         if ( numChildren > 0 ) {
 

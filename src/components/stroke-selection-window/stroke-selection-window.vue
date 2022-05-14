@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations, mapActions } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 import ColorPicker from "@/components/ui/color-picker/color-picker";
 import Modal from "@/components/modal/modal";
 import { getSpriteForLayer } from "@/factories/sprite-factory";

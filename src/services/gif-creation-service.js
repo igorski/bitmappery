@@ -21,7 +21,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import gifshot from "gifshot";
-import { createCanvas } from "@/utils/canvas-util";
 
 /**
  * Whether the current environment supports creation of GIF images

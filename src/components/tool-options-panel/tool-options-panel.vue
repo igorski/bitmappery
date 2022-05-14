@@ -73,7 +73,7 @@ export default {
             get() {
                 return !this.openedPanels.includes( PANEL_TOOL_OPTIONS );
             },
-            set( value ) {
+            set() {
                 this.setOpenedPanel( PANEL_TOOL_OPTIONS );
             }
         },

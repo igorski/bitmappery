@@ -21,7 +21,7 @@
 * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 import {
-    PROJECT_FILE_EXTENSION, isImageFile, isProjectFile, isThirdPartyDocument,
+    isImageFile, isProjectFile, isThirdPartyDocument,
 } from "@/definitions/file-types";
 import { blobToResource, disposeResource } from "@/utils/resource-manager";
 

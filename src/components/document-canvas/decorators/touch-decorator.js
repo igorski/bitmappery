@@ -1,7 +1,7 @@
 import { mapGetters, mapMutations } from "vuex";
-import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
+import ToolTypes, { MAX_ZOOM } from "@/definitions/tool-types";
 import { getCanvasInstance } from "@/factories/sprite-factory";
-import { degreesToRadians, scale } from "@/math/unit-math";
+import { scale } from "@/math/unit-math";
 import { cancelableCallback } from "@/utils/debounce-util";
 import { fitInWindow } from "@/utils/zoom-util";
 

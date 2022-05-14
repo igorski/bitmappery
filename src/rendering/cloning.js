@@ -55,8 +55,7 @@ export const renderClonedStroke = ( destContext, brush, sprite, sourceLayerId, o
         return;
     }
     const { coords, opacity } = sprite._toolOptions;
-    const { radius, doubleRadius, options } = brush;
-    const { type } = options;
+    const { radius, doubleRadius } = brush;
     const pointers = optPointers || brush.pointers;
 
     const sourceX = ( coords.x - left ) - radius;

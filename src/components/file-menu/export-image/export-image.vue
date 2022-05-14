@@ -219,7 +219,7 @@ export default {
     },
     watch: {
         // see additional watchers added in created hook
-        sheetCols( amount ) {
+        sheetCols() {
             if ( this.layersToSpriteSheet ) {
                 this.renderPreview();
             }

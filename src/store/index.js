@@ -28,7 +28,6 @@ import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { LAYER_GRAPHIC } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS, PANEL_LAYERS } from "@/definitions/panel-types";
-import { runSpriteFn }   from "@/factories/sprite-factory";
 import canvasModule      from "./modules/canvas-module";
 import documentModule    from "./modules/document-module";
 import historyModule     from "./modules/history-module";
@@ -199,7 +198,7 @@ export default {
                 message: translate( "savedFileSuccessfully" , { file: truncate( name, 35 ) })
             });
         },
-        async requestSelectionCopy({ commit, dispatch, getters }, copyMerged = false ) {
+        async requestSelectionCopy({ commit, getters }, copyMerged = false ) {
             const selectionImage = await copySelection( getters.activeDocument, getters.activeLayer, copyMerged );
             commit( "setSelectionContent", selectionImage );
             commit( "setActiveTool", { tool: null, activeLayer: getters.activeLayer });
@@ -209,7 +208,7 @@ export default {
             dispatch( "requestSelectionCopy" );
             dispatch( "deleteInSelection" );
         },
-        clearSelection({ commit }) {
+        clearSelection() {
             getCanvasInstance()?.interactionPane.resetSelection();
         },
         invertSelection({ commit }) {
@@ -240,7 +239,7 @@ export default {
                 redo: paste
             });
         },
-        async deleteInSelection({ getters, state }) {
+        async deleteInSelection({ getters }) {
             const activeLayer = getters.activeLayer;
             if ( !activeLayer || !getters.activeDocument?.selection.length ) {
                 return;

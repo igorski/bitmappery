@@ -85,7 +85,7 @@ const renderFilters = ( imageData, filters ) => {
     const { desaturate } = filters; // boolean
 
     const pixels = imageData.data;
-    let r, g, b, a;
+    let r, g, b;//, a;
     let grayScale, max, avg, amt;
     const gammaSquared = gamma * gamma;
 

@@ -21,9 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { sprite } from "zcanvas";
-import { SNAP_MARGIN } from "@/definitions/tool-types";
 import { fastRound } from "@/math/unit-math";
-import { isCoordinateInHorizontalRange, isCoordinateInVerticalRange } from "@/math/point-math";
 import { getClosestSnappingPoints } from "@/rendering/snapping";
 
 const AMOUNT_OF_PIXELS = 1; // currently only 1 pixel grid supported
@@ -94,5 +92,5 @@ class GuideRenderer extends sprite  {
             ctx.stroke();
         }
     }
-};
+}
 export default GuideRenderer;

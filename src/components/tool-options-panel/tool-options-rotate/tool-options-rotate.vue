@@ -67,10 +67,9 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
-import Slider    from "@/components/ui/slider/slider";
+import Slider from "@/components/ui/slider/slider";
 import { enqueueState } from "@/factories/history-state-factory";
-import messages  from "./messages.json";
+import messages from "./messages.json";
 import { degreesToRadians, radiansToDegrees } from "@/math/unit-math";
 
 export default {

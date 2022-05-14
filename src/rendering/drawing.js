@@ -39,7 +39,7 @@ const TWO_PI = Math.PI * 2;
  * @param {Object=} overrideConfig optional override to use (defines alternate pointers and coordinate scaling)
  */
 export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
-    let { pointers, radius, halfRadius, doubleRadius, options } = brush;
+    let { pointers, radius, doubleRadius, options } = brush;
     let scale = 1;
     const { type } = options;
 
@@ -47,7 +47,6 @@ export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
         pointers      = overrideConfig.pointers;
         scale         = overrideConfig.zoom;
         radius       *= scale;
-        halfRadius   *= scale;
         doubleRadius *= scale;
 
         applyOverrideConfig( overrideConfig, pointers );
@@ -77,7 +76,7 @@ export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
             const sin  = Math.sin( angle );
             const cos  = Math.cos( angle );
 
-            let x, y, size, doubleSize;
+            let x, y;
             for ( let j = 0; j < dist; j += incr ) {
                 x = prevPoint.x + ( sin * j );
                 y = prevPoint.y + ( cos * j );

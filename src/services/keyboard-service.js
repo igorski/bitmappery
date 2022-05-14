@@ -39,7 +39,6 @@ let store, state, getters, commit, dispatch, listener,
 const DEFAULT_BLOCKED    = [ 8, 32, 37, 38, 39, 40 ];
 const MOVABLE_TOOL_TYPES = [ ToolTypes.DRAG, ToolTypes.SELECTION, ToolTypes.LASSO ];
 const BRUSH_TOOL_TYPES   = [ ToolTypes.BRUSH, ToolTypes.ERASER, ToolTypes.CLONE ];
-const noop = () => {};
 const defaultBlock = e => e.preventDefault();
 
 /**
@@ -97,7 +96,7 @@ const KeyboardService =
      * the KeyboardService can be suspended so it
      * will not fire its callback to the listeners
      */
-     getSuspended( value ){
+     getSuspended() {
          return suspended;
      },
      /**
@@ -395,7 +394,7 @@ function handleKeyDown( event ) {
         case 86: // V
             // paste current selection
             if ( hasOption ) {
-                if ( !!state.selectionContent ) {
+                if ( state.selectionContent ) {
                     dispatch( "pasteSelection" );
                     preventDefault( event ); // override browser paste
                 }
@@ -500,7 +499,7 @@ function handleKeyUp( event ) {
 
     if ( !suspended ) {
         if ( typeof listener === "function" ) {
-            listener( "up", event.keyCode, aEvent );
+            listener( "up", event.keyCode, event );
         }
     }
 }

@@ -142,9 +142,7 @@
 <script>
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { ADD_LAYER } from "@/definitions/modal-windows";
-import { LAYER_TEXT } from "@/definitions/layer-types";
 import { PANEL_LAYERS } from "@/definitions/panel-types";
-import ToolTypes from "@/definitions/tool-types";
 import { createCanvas } from "@/utils/canvas-util";
 import { toggleLayerVisibility } from "@/factories/action-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
@@ -178,7 +176,7 @@ export default {
             get() {
                 return !this.openedPanels.includes( PANEL_LAYERS );
             },
-            set( value ) {
+            set() {
                 this.setOpenedPanel( PANEL_LAYERS );
             }
         },
@@ -233,7 +231,7 @@ export default {
         requestLayerAdd() {
             this.openModal( ADD_LAYER );
         },
-        handleLayerDoubleClick( index ) {
+        handleLayerDoubleClick() {
             this.editable = true;
         },
         updateActiveLayerName({ target }) {
