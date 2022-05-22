@@ -55,6 +55,9 @@ export const blobToResource = blob => {
     // console.info( `Registed URI "${blobUrl}"` );
     return blobUrl;
 };
-export const disposeResource = blobURL => URL.revokeObjectURL( blobURL );
+export const disposeResource = blobURL => {
+    // console.info( `Disposing Blob for URI "${blobUrl}"` );
+    URL.revokeObjectURL( blobURL );
+};
 
 export const isResource = imageElement => imageElement.src.startsWith( "blob:" );
