@@ -1,10 +1,7 @@
 {
   "name": "bitmappery",
   "version": "1.0.0",
-<<<<<<< HEAD
   "private": true,
-=======
->>>>>>> Addressed all linter warnings
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
@@ -58,14 +55,9 @@
     "vue-select": "^3.6.0",
     "vue-template-compiler": "^2.6.11",
     "vuedraggable": "^2.24.3",
-    "worker-loader": "^2.0.0",
-<<<<<<< HEAD
-    "zcanvas": "^5.1.1"
-=======
     "zcanvas": "^4.3.1"
   },
   "optionalDependencies": {
     "canvas": "^2.6.1"
->>>>>>> Initial work
   }
 }
