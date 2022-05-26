@@ -67,15 +67,16 @@ async function psdToBitMapperyDocument( psd, psdFileReference ) {
         }
     }
 
-    if ( !layers.length ) {
-        // we likely ran into some incompatibility issue, just take the merged output
-        layers.push( LayerFactory.create({
-            name: "Merged",
-            width,
-            height,
-            source: psd.image.toPng()
-        }));
-    }
+    // also add the merged layer preview
+    // (in case the above layer collection loop ran into an incompatibility issue
+    // this provides a nice fallback that will always display content)
+
+    layers.push( LayerFactory.create({
+        name: "Flattened preview",
+        width,
+        height,
+        source: psd.image.toPng()
+    }));
 
     return DocumentFactory.create({
         name: psdTree.name || psdFileReference.name,
