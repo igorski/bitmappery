@@ -65,7 +65,6 @@ class InteractionPane extends sprite {
         const zCanvas = getCanvasInstance();
 
         if ( enabled && !this._parent ) {
-            this.vp = zCanvas.getViewport();
             zCanvas.addChild( this );
         } else if ( !enabled ) {
             if ( this._parent ) {
@@ -200,8 +199,9 @@ class InteractionPane extends sprite {
             default:
                 if ( this.isDragging ) {
                     // implies press has start drag mode
-                    this._vpStartX = this.vp.left;
-                    this._vpStartY = this.vp.top;
+                    const viewport = this.canvas.getViewport();
+                    this._vpStartX = viewport.left;
+                    this._vpStartY = viewport.top;
                 }
                 break;
 
@@ -268,8 +268,10 @@ class InteractionPane extends sprite {
                 }
                 break;
             case MODE_PAN:
-                const distX = this.vp.left - this._vpStartX;
-                const distY = this.vp.top  - this._vpStartY;
+                const viewport = this.canvas.getViewport();
+                
+                const distX = viewport.left - this._vpStartX;
+                const distY = viewport.top  - this._vpStartY;
 
                 const deltaX = (( x - this._dragStartEventCoordinates.x ) * this.canvas.zoomFactor ) - distX;
                 const deltaY = (( y - this._dragStartEventCoordinates.y ) * this.canvas.zoomFactor ) - distY;

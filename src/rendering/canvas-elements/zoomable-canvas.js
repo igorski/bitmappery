@@ -305,3 +305,64 @@ class ZoomableCanvas extends canvas {
     }
 }
 export default ZoomableCanvas;
+
+/* internal methods */
+
+/**
+ * literal clone of zCanvas code, only duplicated here because
+ * of custom render() method. When zoomFactor code is ported to base zCanvas
+ * library this can go (and custom render() can just call super class behaviour
+ * after the deferred logic calculation)
+ *
+ * @param {Canvas} canvasInstance
+ */
+function updateCanvasSize( canvasInstance ) {
+    const scaleFactor = canvasInstance._HDPIscaleRatio;
+    const viewport    = canvasInstance._viewport;
+    let width, height;
+
+    if ( canvasInstance._enqueuedSize ) {
+        ({ width, height } = canvasInstance._enqueuedSize );
+        canvasInstance._enqueuedSize = null;
+        /** @protected @type {number} */ canvasInstance._width  = width;
+        /** @protected @type {number} */ canvasInstance._height = height;
+    }
+
+    if ( viewport ) {
+        const cvsWidth  = canvasInstance._width;
+        const cvsHeight = canvasInstance._height;
+
+        width  = min( viewport.width,  cvsWidth );
+        height = min( viewport.height, cvsHeight );
+
+        // in case viewport was panned beyond the new canvas dimensions
+        // reset pan to center.
+/*
+        if ( viewport.left > cvsWidth ) {
+            viewport.left  = cvsWidth * .5;
+            viewport.right = viewport.width + viewport.left;
+        }
+        if ( viewport.top > cvsHeight ) {
+            viewport.top    = cvsHeight * .5;
+            viewport.bottom = viewport.height + viewport.top;
+        }
+*/
+    }
+
+    if ( width && height ) {
+        const element = canvasInstance._element;
+
+        element.width  = width  * scaleFactor;
+        element.height = height * scaleFactor;
+
+        element.style.width  = `${width}px`;
+        element.style.height = `${height}px`;
+    }
+    canvasInstance._canvasContext.scale( scaleFactor, scaleFactor );
+
+    // non-smoothing must be re-applied when the canvas dimensions change...
+
+    if ( canvasInstance._smoothing === false ) {
+        canvasInstance.setSmoothing( false );
+    }
+}
