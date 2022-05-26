@@ -97,7 +97,7 @@ export default {
                 }
                 this.openFileBrowserDropbox();
             } else {
-                this.authUrl = requestLogin(
+                this.authUrl = await requestLogin(
                     window.dropboxClientId || localStorage?.getItem( "dropboxClientId" ),
                     window.dropboxRedirect || `${window.location.href}login.html`
                 );

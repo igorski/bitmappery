@@ -33,7 +33,7 @@ let currentFolder = "";
  * Authentication step 1: for interacting with Dropbox : request access token
  * by opening an authentication page
  */
-export const requestLogin = ( clientId, loginUrl ) => {
+export const requestLogin = async ( clientId, loginUrl ) => {
     dbx = new Dropbox({ clientId });
     return dbx.auth.getAuthenticationUrl( loginUrl );
 };
@@ -78,7 +78,7 @@ export const listFolder = async ( path = "" ) => {
 
 export const createFolder = async ( path = "/", folder = "folder" ) => {
     try {
-        const { result } = await dbx.filesCreateFolderV2({
+        await dbx.filesCreateFolderV2({
             path: `${sanitizePath( path )}/${folder}`
         });
         return true;

@@ -283,7 +283,7 @@ export default {
             const { left, top, width, height } = this.activeLayer;
             const commit = () => store.commit( "updateLayer", { index, opts: { name: newName, text: newOpts } });
             commit();
-            enqueueState( `text_${index}`, {
+            enqueueState( `${propName}_${index}`, {
                 undo() {
                     store.commit( "updateLayer", { index, opts: { left, top, width, height, name: orgName, text: orgOpts } });
                 },

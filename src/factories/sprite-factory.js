@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,7 +21,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
-import { LAYER_IMAGE, LAYER_GRAPHIC, LAYER_MASK } from "@/definitions/layer-types";
 
 let zCanvasInstance = null; // a non-Vue observable zCanvas instance
 

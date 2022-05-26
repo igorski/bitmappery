@@ -115,9 +115,9 @@ export default {
 
             // load the image files
 
-            const start = Date.now();
+            //const start = Date.now();
             await loadImageFiles( imageFiles, this.addLoadedFile.bind( this ));
-            const elapsed = Date.now() - start;
+            //const elapsed = Date.now() - start;
 
             // load the BitMappery documents
 

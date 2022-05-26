@@ -78,7 +78,6 @@ import SelectBox from '@/components/ui/select-box/select-box';
 import Slider from "@/components/ui/slider/slider";
 import messages from "./messages.json";
 
-let isSourceSelect = false;
 let orgCoords = null;
 
 export default {
@@ -179,7 +178,6 @@ export default {
                         // when alt key is held down, we store a reference to the current
                         // source coordinates (when existing) and reset the coordinates
                         // this will lead the layer-sprite to set new source coordinates on click
-                        isSourceSelect = true;
                         orgCoords = this.cloneOptions.coords;
                         this.resetSourceCoordinate();
                         break;

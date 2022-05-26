@@ -37,12 +37,14 @@
                     <button
                         v-for="parent in breadcrumbs"
                         :key="parent.path"
+                        :disabled="disabled"
                         type="button"
                         class="breadcrumbs__button"
                         @click="handleNodeClick( parent )"
                     >{{ parent.name || "." }}</button>
                     <!-- current folder -->
                     <button
+                        :disabled="disabled"
                         type="button"
                         class="breadcrumbs__button breadcrumbs__button--active"
                     >{{ leaf.name }}</button>
@@ -55,6 +57,7 @@
                             v-for="node in filesAndFolders"
                             :key="`entry_${node.path}`"
                             class="entry"
+                            :class="{ 'entry__disabled': disabled }"
                         >
                             <div
                                 v-if="node.type === 'folder'"
@@ -95,6 +98,7 @@
                         <input
                             v-model="newFolderName"
                             :placeholder="$t('newFolderName')"
+                            :disabled="disabled"
                             type="text"
                             class="input-field full"
                         />
@@ -104,7 +108,7 @@
                     v-t="'createFolder'"
                     type="button"
                     class="button"
-                    :disabled="!newFolderName"
+                    :disabled="!newFolderName || disabled"
                     @click="handleCreateFolderClick()"
                 ></button>
             </div>
@@ -172,6 +176,9 @@ export default {
         ]),
         loading() {
             return this.loadingStates.includes( RETRIEVAL_LOAD_KEY );
+        },
+        disabled() {
+            return this.loadingStates.includes( ACTION_LOAD_KEY );
         },
         breadcrumbs() {
             let parent = this.leaf.parent;
@@ -265,6 +272,9 @@ export default {
             this.unsetLoading( ACTION_LOAD_KEY );
         },
         async handleNodeClick( node ) {
+            if ( this.disabled ) {
+                return;
+            }
             this.setLoading( ACTION_LOAD_KEY );
             switch ( node.type ) {
                 case "folder":
@@ -439,6 +449,10 @@ $actionsHeight: 74px;
         &--active {
             color: #FFF;
         }
+
+        &:disabled {
+            color: inherit;
+        }
     }
 }
 
@@ -501,6 +515,16 @@ $actionsHeight: 74px;
 
         .entry__delete-button {
             display: block;
+        }
+    }
+
+    &__disabled {
+        opacity: 0.5;
+
+        &:hover {
+            .entry__delete-button {
+                display: none;
+            }
         }
     }
 }

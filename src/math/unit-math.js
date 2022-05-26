@@ -33,8 +33,8 @@ export const pixelsToInch   = ( pixels, dpi = 72 ) => pixels / dpi;
 export const pixelsToCm     = ( pixels, dpi = 72 ) => pixelsToInch( pixels, dpi ) * CM_PER_INCH
 export const pixelsToMm     = ( pixels, dpi = 72 ) => pixelsToInch( pixels, dpi ) * MM_PER_INCH;
 export const inchesToPixels = ( inches, dpi = 72 ) => inches * dpi;
-export const cmToPixels     = ( cms, dpi = 72 ) => inchesToPixels( cms / CM_PER_INCH );
-export const mmToPixels     = ( mms, dpi = 72 ) => inchesToPixels( mms / MM_PER_INCH );
+export const cmToPixels     = ( cms, dpi = 72 ) => inchesToPixels( cms / CM_PER_INCH, dpi );
+export const mmToPixels     = ( mms, dpi = 72 ) => inchesToPixels( mms / MM_PER_INCH, dpi );
 
 // convenience method to scale given value and its expected maxValue against
 // an arbitrary range (defined by maxCompareValue in relation to maxValue)
