@@ -45,9 +45,6 @@ import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
 
-let init, requestLogin, validateScopes, disconnect, isAuthenticated, registerAccessToken;
-let boundHandler;
-
 export default {
     i18n: { messages, sharedMessages },
     mixins: [ CloudServiceConnector ],

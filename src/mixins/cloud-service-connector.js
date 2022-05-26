@@ -180,7 +180,9 @@ export default {
                         accessToken : authResult.id_token,
                         scope       : authResult.scope
                     };
-                } catch {}
+                } catch {
+                    // nowt...
+                }
             }
 
             // note we use a slight timeout after logging in as the Google API's are loading

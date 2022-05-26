@@ -28,6 +28,7 @@ import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { LAYER_GRAPHIC } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS, PANEL_LAYERS } from "@/definitions/panel-types";
+import { STORAGE_TYPES } from "@/definitions/storage-types";
 import canvasModule      from "./modules/canvas-module";
 import documentModule    from "./modules/document-module";
 import historyModule     from "./modules/history-module";

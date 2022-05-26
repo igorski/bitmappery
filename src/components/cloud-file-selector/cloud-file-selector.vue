@@ -340,18 +340,23 @@ export default {
             });
         },
         /* the below should be implemented in inheriting components */
+        // eslint-disable-next-line no-unused-vars
         async _listFolder( path ) {
 
         },
+        // eslint-disable-next-line no-unused-vars
         async _createFolder( parent, name ) {
 
         },
+        // eslint-disable-next-line no-unused-vars
         async _downloadFile( node, returnAsURL = false  ) {
 
         },
+        // eslint-disable-next-line no-unused-vars
         async _deleteEntry( node ) {
 
         },
+        // eslint-disable-next-line no-unused-vars
         _mapEntry( entry, children = [], parent = null ) {
             return {};
         }
