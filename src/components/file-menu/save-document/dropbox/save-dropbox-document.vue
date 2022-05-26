@@ -21,66 +21,31 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <modal class="save-dropbox-modal">
-        <template #header>
-            <h2 v-t="'saveDocumentInDropbox'" class="component__title"></h2>
-        </template>
-        <template #content>
-            <div class="form" @keyup.enter="requestSave()">
-                <div class="wrapper input">
-                    <label v-t="'documentTitle'"></label>
-                    <input
-                        ref="nameInput"
-                        type="text"
-                        v-model="name"
-                        class="input-field"
-                    />
-                </div>
-                <div class="wrapper input">
-                    <label v-t="'folder'"></label>
-                    <input
-                        type="text"
-                        v-model="folder"
-                        class="input-field"
-                    />
-                </div>
-                <p v-t="'folderExpl'" class="expl"></p>
-            </div>
-        </template>
-        <template #actions>
-            <button
-                v-t="'save'"
-                type="button"
-                class="button"
-                :disabled="!isValid"
-                @click="requestSave()"
-            ></button>
-            <button
-                v-t="'cancel'"
-                type="button"
-                class="button"
-                @click="closeModal()"
-            ></button>
-        </template>
-    </modal>
+    <div class="save-dropbox-document">
+        <div class="wrapper input">
+            <label v-t="'folder'"></label>
+            <input
+                type="text"
+                v-model="folder"
+                class="input-field"
+            />
+        </div>
+        <p v-t="'folderExpl'" class="expl"></p>
+    </div>
 </template>
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import Modal from "@/components/modal/modal";
-import { getCurrentFolder, setCurrentFolder, uploadBlob } from "@/services/dropbox-service";
 import DocumentFactory from "@/factories/document-factory";
-import { focus } from "@/utils/environment-util";
+import { getDropboxService } from "@/utils/cloud-service-loader";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
+
+let getCurrentFolder, setCurrentFolder, uploadBlob;
 
 import messages from "./messages.json";
 export default {
     i18n: { messages },
-    components: {
-        Modal,
-    },
     data: () => ({
-        name: "",
         folder: "",
     }),
     computed: {
@@ -91,35 +56,27 @@ export default {
             return this.name.length > 0;
         },
     },
-    mounted() {
-        this.name   = this.activeDocument.name.split( "." )[ 0 ];
+    async created() {
+        ({ getCurrentFolder, setCurrentFolder, uploadBlob  } = await getDropboxService());
         this.folder = getCurrentFolder();
-        focus( this.$refs.nameInput );
     },
     methods: {
         ...mapMutations([
-            "closeModal",
             "openDialog",
-            "setActiveDocumentName",
             "showNotification",
             "setLoading",
             "unsetLoading",
         ]),
         async requestSave() {
-            if ( !this.isValid ) {
-                return;
-            }
-            this.setActiveDocumentName( this.name );
-            this.closeModal();
             this.setLoading( "save" );
             try {
                 const blob = await DocumentFactory.toBlob( this.activeDocument );
-                const result = await uploadBlob( blob, this.folder, `${this.name}.${PROJECT_FILE_EXTENSION}` );
+                const result = await uploadBlob( blob, this.folder, `${this.activeDocument.name}.${PROJECT_FILE_EXTENSION}` );
                 if ( !result ) {
                     throw new Error();
                 }
                 setCurrentFolder( this.folder );
-                this.showNotification({ message: this.$t( "fileSavedInDropbox", { file: this.name }) });
+                this.showNotification({ message: this.$t( "fileSavedInDropbox", { file: this.activeDocument.name }) });
             } catch ( e ) {
                 this.openDialog({ type: "error", message: this.$t( "errorOccurred" ) });
             }
@@ -131,11 +88,6 @@ export default {
 
 <style lang="scss" scoped>
 @import "@/styles/typography";
-@import "@/styles/ui";
-
-.save-dropbox-modal {
-    @include modalBase( 480px, 250px );
-}
 
 .expl {
     @include smallText();

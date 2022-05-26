@@ -1,15 +1,23 @@
 @import "_mixins";
 
-.dropbox {
+@mixin thirdPartyButton( $color, $optHoverColor: #FFF ) {
     width: 100%;
-    border: 2px solid #3D9AE8;
+    border: 2px solid $color;
     color: #FFF;
-    margin: $spacing-small 0 $spacing-medium;
+    margin: $spacing-small 0 0;
     background: transparent;
 
     &:hover {
         border-color: #FFF;
-        background-color: #FFF;
-        color: #3D9AE8;
+        background-color: $color;
+        color: $optHoverColor;
     }
+}
+
+.dropbox {
+    @include thirdPartyButton( #3D9AE8 );
+}
+
+.drive {
+    @include thirdPartyButton( #FFD04B, #000 ); // #1FA463
 }

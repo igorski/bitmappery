@@ -22,24 +22,21 @@
  */
 <template>
     <div class="form">
-        <template v-if="!authenticated">
-            <button
-                v-if="authUrl"
-                v-t="'loginToDropbox'"
-                type="button"
-                class="button dropbox"
-                @click="loginDropbox()"
-            ></button>
-        </template>
-        <template v-if="authenticated || awaitingConnection">
-            <button
-                v-t="authenticated ? 'importFromDropbox' : 'connectingToDropbox'"
-                type="button"
-                class="button dropbox"
-                :disabled="awaitingConnection"
-                @click="openFileBrowserDropbox()"
-            ></button>
-        </template>
+        <button
+            v-if="!initialized && !authenticated"
+            v-t="'loginToDrive'"
+            type="button"
+            class="button drive"
+            @click="loginDrive()"
+        ></button>
+        <button
+            v-if="authenticated || awaitingConnection"
+            v-t="authenticated ? 'importFromDrive' : 'connectingToDrive'"
+            type="button"
+            class="button drive"
+            :disabled="awaitingConnection"
+            @click="openFileBrowserDrive()"
+        ></button>
     </div>
 </template>
 
@@ -47,6 +44,9 @@
 import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
+
+let init, requestLogin, validateScopes, disconnect, isAuthenticated, registerAccessToken;
+let boundHandler;
 
 export default {
     i18n: { messages, sharedMessages },
@@ -56,12 +56,12 @@ export default {
     }),
     computed: {
         awaitingConnection() {
-            return !this.authenticated && !this.authUrl;
+            return this.initialized && !this.authenticated;
         },
     },
     async created() {
         this.loading = true;
-        await this.initDropbox();
+        await this.initDrive();
         this.loading = false;
     },
 };

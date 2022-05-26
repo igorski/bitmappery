@@ -28,6 +28,7 @@
     >
         <h4 class="dialog-window__title">{{ title }}</h4>
         <p class="dialog-window__message">{{ message }}</p>
+        <a v-if="link" class="dialog-window__link" target="_blank" rel="noopener noreferrer" :href="link.href">{{ link.title }}</a>
         <div class="dialog-window__actions">
             <button
                 v-t="'ok'"
@@ -65,6 +66,10 @@ export default {
             type: String,
             required: true,
             validator: value => /info|confirm|error/.test(value)
+        },
+        link: {
+            type: Object,
+            default: null,
         },
         confirmHandler: {
             type: Function,
@@ -120,6 +125,15 @@ export default {
         color: $color-4;
         font-weight: bold;
         font-size: 115%;
+    }
+
+    &__message {
+        white-space: pre-line;
+    }
+
+    &__link {
+        display: block;
+        margin-bottom: $spacing-medium;
     }
 
     button {

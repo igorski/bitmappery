@@ -1,4 +1,5 @@
 import { JPEG, PNG, GIF, WEBP, isCompressableFileType, isTransparent } from "@/definitions/image-types";
+import { STORAGE_TYPES } from "@/definitions/storage-types";
 
 describe( "image types", () => {
     it( "should recognize the compressable file types", () => {
@@ -16,7 +17,7 @@ describe( "image types", () => {
     });
 
     it( "should recognize the file types supporting transparency by their extension, for Dropbox import", () => {
-        const type = "dropbox"; // Dropbox imports have no MIME type associated with the file
+        const type = STORAGE_TYPES.DROPBOX; // Dropbox imports have no MIME type associated with the file
 
         expect( isTransparent({ name: `file_${PNG.ext}`, type })).toBe( true );
         expect( isTransparent({ name: `file_${GIF.ext}`, type })).toBe( true );

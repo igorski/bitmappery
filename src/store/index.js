@@ -68,7 +68,9 @@ export default {
         modal: null,            // currently opened modal
         loadingStates: [],      // wether one or more long running operations are running
         notifications: [],      // notification message queue
+        storageType: STORAGE_TYPES.LOCAL,
         dropboxConnected: false,
+        driveConnected: false,
         windowSize: {
             width: window.innerWidth,
             height: window.innerHeight
@@ -78,6 +80,7 @@ export default {
         // eslint-disable-next-line no-unused-vars
         t: state => ( key, optArgs ) => translate( key, optArgs ),
         isLoading: state => state.loadingStates.length > 0,
+        hasCloudConnection: state => state.dropboxConnected || state.driveConnected,
     },
     mutations: {
         setMenuOpened( state, value ) {
@@ -127,8 +130,8 @@ export default {
          * types can be info, error or confirm. When type is confirm, optional
          * confirmation and cancellation handler can be passed.
          */
-        openDialog( state, { type = "info", title = "", message = "", confirm = null, cancel = null }) {
-            state.dialog = { type, title , message, confirm, cancel };
+        openDialog( state, { type = "info", title = "", message = "", link = null, confirm = null, cancel = null }) {
+            state.dialog = { type, title , message, link, confirm, cancel };
         },
         closeDialog( state ) {
             state.dialog = null;
@@ -160,8 +163,14 @@ export default {
         setWindowSize( state, { width, height }) {
             state.windowSize = { width, height };
         },
+        setStorageType( state, value ) {
+            state.storageType = value;
+        },
         setDropboxConnected( state, value ) {
             state.dropboxConnected = value;
+        },
+        setDriveConnected( state, value ) {
+            state.driveConnected = value;
         },
     },
     actions: {

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,60 +21,21 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div
-        class="image-preview"
-        :class="{ 'loading': isLoading }"
-    >
+    <div class="image-preview">
         <img
-            v-if="isLoading"
-            src="@/assets/animations/loader.svg"
-            class="image-preview__loader"
-        />
-        <img
-            v-else
-            :src="src"
+            :src="node.preview"
             v-on="$listeners"
             class="image-preview__image"
-            @load="handleImageLoad"
         />
     </div>
 </template>
 
 <script>
-import { getThumbnail } from "@/services/dropbox-service";
-import { disposeResource } from "@/utils/resource-manager";
-
 export default {
     props: {
-        path: {
-            type: String,
+        node: {
+            type: Object,
             required: true,
-        },
-    },
-    data: () => ({
-        src: null,
-    }),
-    computed: {
-        isLoading() {
-            return !this.src;
-        },
-    },
-    destroyed() {
-        this._destroyed = true;
-    },
-    mounted() {
-        getThumbnail( this.path, true ).then( blobUrl => {
-                if ( this._destroyed ) {
-                    disposeResource( blobUrl );
-                } else {
-                    this.src = blobUrl;
-                }
-            });
-    },
-    methods: {
-        handleImageLoad() {
-            // free memory allocated by dropbox-service#getThumbnail()
-            disposeResource( this.src );
         },
     },
 };
@@ -92,12 +53,6 @@ export default {
 
     &:hover {
         transform: scale(1.05);
-    }
-
-    &__loader {
-        width: $spacing-xxlarge;
-        height: $spacing-xxlarge;
-        margin: #{(128px - $spacing-xxlarge) / 2};
     }
 
     &__image {

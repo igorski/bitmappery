@@ -54,6 +54,7 @@
             :type="dialog.type"
             :title="dialog.title"
             :message="dialog.message"
+            :link="dialog.link"
             :confirm-handler="dialog.confirm"
             :cancel-handler="dialog.cancel"
         />
@@ -92,8 +93,9 @@ import ToolTypes from "@/definitions/tool-types";
 import store from "./store";
 import messages from "./messages.json";
 import {
-    CREATE_DOCUMENT, RESIZE_DOCUMENT, EXPORT_DOCUMENT, SAVE_DROPBOX_DOCUMENT, EXPORT_IMAGE,
-    DROPBOX_FILE_SELECTOR, ADD_LAYER, LOAD_SELECTION, SAVE_SELECTION, PREFERENCES, RESIZE_CANVAS,
+    CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_IMAGE,
+    DROPBOX_FILE_SELECTOR, GOOGLE_DRIVE_FILE_SELECTOR,
+    ADD_LAYER, LOAD_SELECTION, SAVE_SELECTION, PREFERENCES, RESIZE_CANVAS,
     GRID_TO_LAYERS, STROKE_SELECTION
 } from "@/definitions/modal-windows";
 
@@ -147,14 +149,14 @@ export default {
                     return () => import( "@/components/file-menu/create-document/create-document" );
                 case RESIZE_DOCUMENT:
                     return () => import( "@/components/resize-document-window/resize-document-window" );
-                case EXPORT_DOCUMENT:
-                    return () => import( "@/components/file-menu/export-document/export-document" );
+                case SAVE_DOCUMENT:
+                    return () => import( "@/components/file-menu/save-document/save-document" );
                 case EXPORT_IMAGE:
                     return () => import( "@/components/file-menu/export-image/export-image" );
                 case DROPBOX_FILE_SELECTOR:
-                    return () => import( "@/components/dropbox-file-selector/dropbox-file-selector" );
-                case SAVE_DROPBOX_DOCUMENT:
-                    return () => import( "@/components/file-menu/save-dropbox-document/save-dropbox-document" );
+                    return () => import( "@/components/cloud-file-selector/dropbox/dropbox-file-selector" );
+                case GOOGLE_DRIVE_FILE_SELECTOR:
+                    return () => import( "@/components/cloud-file-selector/google-drive/google-drive-file-selector" );
                 case ADD_LAYER:
                     return () => import( "@/components/new-layer-window/new-layer-window" );
                 case LOAD_SELECTION:

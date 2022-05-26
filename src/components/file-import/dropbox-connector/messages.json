@@ -1,11 +1,7 @@
 {
     "en-US": {
-        "connectingToDropbox": "Connecting to Dropbox",
-        "connectedToDropbox": "Connected to Dropbox",
-        "establishConnection": "Establish connection",
-        "connectionExpl": "In order to import files from Dropbox you must first connect BitMappery to Dropbox. Dropbox connects directly to your machine without middleware, keeping your data private.",
         "loginToDropbox": "Log into Dropbox",
-        "login": "Login",
-        "importFromDropbox": "Import from Dropbox"
+        "importFromDropbox": "Import from Dropbox",
+        "connectingToDropbox": "Connecting to Dropbox"
     }
 }

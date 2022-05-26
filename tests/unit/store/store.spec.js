@@ -36,6 +36,17 @@ describe( "Vuex store", () => {
             state.loadingStates.push( "foo" );
             expect( getters.isLoading( state )).toBe( true );
         });
+
+        it( "should whether there is an active cloud storage connection", () => {
+            let state = { dropboxConnected: false, driveConnected: false };
+            expect( getters.hasCloudConnection( state )).toBe( false );
+
+            state = { dropboxConnected: true, driveConnected: false };
+            expect( getters.hasCloudConnection( state )).toBe( true );
+
+            state = { dropboxConnected: false, driveConnected: true };
+            expect( getters.hasCloudConnection( state )).toBe( true );
+        });
     });
 
     describe( "mutations", () => {
@@ -111,6 +122,7 @@ describe( "Vuex store", () => {
                     type: "foo",
                     title: "title",
                     message: "message",
+                    link: { href: "foo", title: "bar" },
                     confirm: jest.fn(),
                     cancel: jest.fn()
                 };
@@ -125,6 +137,7 @@ describe( "Vuex store", () => {
                     type: "info",
                     title: "",
                     message: "",
+                    link: null,
                     confirm: null,
                     cancel: null
                 });
@@ -209,10 +222,22 @@ describe( "Vuex store", () => {
             expect( state.windowSize ).toEqual({ width, height });
         });
 
+        it( "should be able to set the storage type", () => {
+            const state = { storageType: "foo" };
+            mutations.setStorageType( state, "bar" );
+            expect( state.storageType ).toEqual( "bar" );
+        });
+
         it( "should be able to set the Dropbox connection status", () => {
             const state = { dropboxConnected: false };
             mutations.setDropboxConnected( state, true );
             expect( state.dropboxConnected ).toEqual( true );
+        });
+
+        it( "should be able to set the Google Drive connection status", () => {
+            const state = { driveConnected: false };
+            mutations.setDriveConnected( state, true );
+            expect( state.driveConnected ).toEqual( true );
         });
     });
 

@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div class="dropbox-file-modal">
+    <div class="cloud-file-modal">
         <div class="component__header">
             <h2 v-t="'files'" class="component__title"></h2>
             <button
@@ -30,19 +30,21 @@
                 @click="closeModal()"
             >&#215;</button>
         </div>
-        <div class="component__content">
+        <div ref="content" class="component__content">
             <div v-if="leaf" class="content__wrapper">
                 <div class="breadcrumbs">
                     <!-- parent folders -->
                     <button
                         v-for="parent in breadcrumbs"
                         :key="parent.path"
+                        :disabled="disabled"
                         type="button"
                         class="breadcrumbs__button"
                         @click="handleNodeClick( parent )"
                     >{{ parent.name || "." }}</button>
                     <!-- current folder -->
                     <button
+                        :disabled="disabled"
                         type="button"
                         class="breadcrumbs__button breadcrumbs__button--active"
                     >{{ leaf.name }}</button>
@@ -55,6 +57,7 @@
                             v-for="node in filesAndFolders"
                             :key="`entry_${node.path}`"
                             class="entry"
+                            :class="{ 'entry__disabled': disabled }"
                         >
                             <div
                                 v-if="node.type === 'folder'"
@@ -70,9 +73,10 @@
                             >
                                 <span class="title">{{ node.name }}</span>
                             </div>
-                            <dropbox-image-preview
+                            <component
                                 v-else
-                                :path="node.path"
+                                :is="imagePreviewComponent"
+                                :node="node"
                                 class="entry__icon entry__icon--image-preview"
                                 @click="handleNodeClick( node )"
                             />
@@ -94,6 +98,7 @@
                         <input
                             v-model="newFolderName"
                             :placeholder="$t('newFolderName')"
+                            :disabled="disabled"
                             type="text"
                             class="input-field full"
                         />
@@ -103,7 +108,7 @@
                     v-t="'createFolder'"
                     type="button"
                     class="button"
-                    :disabled="!newFolderName"
+                    :disabled="!newFolderName || disabled"
                     @click="handleCreateFolderClick()"
                 ></button>
             </div>
@@ -114,47 +119,15 @@
 <script>
 import { mapState, mapMutations, mapActions } from "vuex";
 import { loader } from "zcanvas";
+import { ACCEPTED_FILE_EXTENSIONS, isThirdPartyDocument } from "@/definitions/file-types";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
-import { listFolder, createFolder, downloadFileAsBlob, deleteEntry } from "@/services/dropbox-service";
-import DropboxImagePreview from "./dropbox-image-preview";
 import { truncate } from "@/utils/string-util";
 import { disposeResource } from "@/utils/resource-manager";
-import { ACCEPTED_FILE_EXTENSIONS, PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
-import { isThirdPartyDocument } from "@/definitions/file-types";
 
 import messages from "./messages.json";
 
-const RETRIEVAL_LOAD_KEY  = "dbx_r";
-const LAST_DROPBOX_FOLDER = "bpy_dropboxDb";
-
-function mapEntry( entry, children = [], parent = null ) {
-    let type = entry[ ".tag" ]; // folder/file
-    if ( entry.name.endsWith( PROJECT_FILE_EXTENSION )) {
-        type = "bpy";
-    }
-    return {
-        type,
-        name: entry.name,
-        id: entry.id,
-        path: entry.path_lower,
-        children,
-        parent,
-    }
-}
-
-function findLeafByPath( tree, path ) {
-    let node = tree;
-    while ( node ) {
-        if ( node.path === path ) {
-            return node;
-        }
-        const found = recurseChildren( node, path );
-        if ( found ) {
-            return found;
-        }
-    }
-    return null;
-}
+const RETRIEVAL_LOAD_KEY = "cld_r";
+const ACTION_LOAD_KEY    = "cld_a";
 
 function recurseChildren( node, path ) {
     const { children } = node;
@@ -175,13 +148,19 @@ function recurseChildren( node, path ) {
     return null;
 }
 
+function findLeafByPath( node, path ) {
+    if ( node.path === path ) {
+        return node;
+    }
+    return recurseChildren( node, path );
+}
+
 export default {
     i18n: { messages },
-    components: {
-        DropboxImagePreview,
-    },
     mixins: [ ImageToDocumentManager ],
     data: () => ({
+        LAST_FOLDER_STORAGE_KEY : "x", // define in inheriting component
+        STORAGE_PROVIDER        : "", // name of storage provider (e.g. Dropbox, Drive) define in inheriting component
         tree: {
             type: "folder",
             name: "",
@@ -197,6 +176,9 @@ export default {
         ]),
         loading() {
             return this.loadingStates.includes( RETRIEVAL_LOAD_KEY );
+        },
+        disabled() {
+            return this.loadingStates.includes( ACTION_LOAD_KEY );
         },
         breadcrumbs() {
             let parent = this.leaf.parent;
@@ -216,24 +198,28 @@ export default {
                 return true;
             });
         },
+        imagePreviewComponent() {
+            return null; // extend in inheriting components
+        },
     },
-    created() {
-        let pathToRetrieve = this.tree.path;
-        try {
-            const { tree, path } = JSON.parse( sessionStorage.getItem( LAST_DROPBOX_FOLDER ));
-            this.tree = { ...this.tree, ...tree };
-            pathToRetrieve = path;
-        } catch {
-            // no tree stored in SessionStorage, continue.
-        }
-        this.retrieveFiles( pathToRetrieve );
+    mounted() {
+        focus( this.$refs.content );
+        this.escListener = ({ keyCode }) => {
+            if ( keyCode === 27 ) {
+                this.closeModal();
+            }
+        };
+        window.addEventListener( "keyup", this.escListener );
+    },
+    destroyed() {
+        window.removeEventListener( "keyup", this.escListener );
     },
     methods: {
         ...mapMutations([
             "openDialog",
             "closeModal",
+            "setStorageType",
             "showNotification",
-            "setDropboxConnected",
             "setLoading",
             "unsetLoading",
         ]),
@@ -243,13 +229,13 @@ export default {
         async retrieveFiles( path ) {
             this.setLoading( RETRIEVAL_LOAD_KEY );
             try {
-                const entries = await listFolder( path );
-                this.setDropboxConnected( true ); // opened browser implies we have a valid connection
+                const entries = await this._listFolder( path );
 
                 const leaf   = findLeafByPath( this.tree, path );
                 const parent = { type: "folder", name: leaf.name, parent: leaf.parent, path };
+
                 // populate leaf with fetched children
-                leaf.children = ( entries?.map( entry => mapEntry( entry, [], parent )) ?? [] )
+                leaf.children = ( entries?.map( entry => this._mapEntry( entry, [], parent )) ?? [] )
                     .sort(( a, b ) => {
                         if ( a.type < b.type ) {
                             return 1;
@@ -261,34 +247,59 @@ export default {
                 this.leaf = leaf;
             } catch {
                 this.openDialog({ type: "error", message: this.$t( "couldNotRetrieveFilesForPath", { path } ) });
-                sessionStorage.removeItem( LAST_DROPBOX_FOLDER );
+                sessionStorage.removeItem( this.LAST_FOLDER_STORAGE_KEY );
             }
             this.unsetLoading( RETRIEVAL_LOAD_KEY );
         },
+        async handleCreateFolderClick() {
+            const folder = this.newFolderName;
+            this.setLoading( ACTION_LOAD_KEY );
+            try {
+                const result = await this._createFolder( this.leaf.path, folder );
+                if ( !result ) {
+                    throw new Error();
+                }
+                this.retrieveFiles( this.leaf.path );
+                this.newFolderName = "";
+                this.showNotification({
+                    message: this.$t( "folderCreatedSuccessfully", { folder })
+                });
+            } catch {
+                this.showNotification({
+                    message: this.$t( "couldNotCreateFolder", { folder })
+                });
+            }
+            this.unsetLoading( ACTION_LOAD_KEY );
+        },
         async handleNodeClick( node ) {
-            this.setLoading( "dbox" );
+            if ( this.disabled ) {
+                return;
+            }
+            this.setLoading( ACTION_LOAD_KEY );
             switch ( node.type ) {
                 case "folder":
                     await this.retrieveFiles( node.path );
                     // cache the currently visited tree
-                    sessionStorage.setItem( LAST_DROPBOX_FOLDER, JSON.stringify({ path: node.path, tree: this.tree }));
+                    sessionStorage.setItem( this.LAST_FOLDER_STORAGE_KEY, JSON.stringify({ path: node.path, tree: this.tree }));
                     break;
                 case "bpy":
-                    const blob = await downloadFileAsBlob( node.path );
+                    const blob = await this._downloadFile( node );
                     blob.name = node.name;
                     this.loadDocument( blob );
+                    this.setStorageType( this.STORAGE_PROVIDER );
                     this.closeModal();
                     break;
                 case "file":
                     // TODO: error handling and background load (for bulk selection)
                     try {
-                        const url = await downloadFileAsBlob( node.path, true );
+                        const url = await this._downloadFile( node, true );
                         if ( isThirdPartyDocument( node )) {
                             const blob = await fetch( url ).then( r => r.blob() );
                             await this.loadThirdPartyDocuments([ blob ]);
                         } else {
                             const { image, size } = await loader.loadImage( url );
-                            await this.addLoadedFile({ type: "dropbox", name: node.name }, { image, size });
+                            this.setStorageType( this.STORAGE_PROVIDER );
+                            await this.addLoadedFile({ type: this.STORAGE_PROVIDER, name: node.name }, { image, size });
                         }
                         disposeResource( url ); // Blob has been converted to internal resource
                         this.showNotification({
@@ -303,47 +314,48 @@ export default {
                     }
                     break;
             }
-            this.unsetLoading( "dbox" );
+            this.unsetLoading( ACTION_LOAD_KEY );
         },
-        handleDeleteClick({ path }) {
+        handleDeleteClick( node ) {
+            const { name } = node;
             this.openDialog({
                 type: "confirm",
-                message: this.$t( "deleteEntryWarning", { entry: path }),
+                message: this.$t( "deleteEntryWarning", { entry: name }),
                 confirm: async () => {
-                    const success = await deleteEntry( path );
+                    this.setLoading( ACTION_LOAD_KEY );
+                    const success = await this._deleteEntry( node );
                     if ( success ) {
                         this.showNotification({
-                            message: this.$t( "entryDeletedSuccessfully", { entry: path })
+                            message: this.$t( "entryDeletedSuccessfully", { entry: name })
                         });
                         this.retrieveFiles( this.leaf.path );
                     } else {
                         this.openDialog({
                             type: "error",
-                            message: this.$t( "couldNotDeleteEntry", { entry: path })
+                            message: this.$t( "couldNotDeleteEntry", { entry: name })
                         });
                     }
+                    this.unsetLoading( ACTION_LOAD_KEY );
                 },
             });
         },
-        async handleCreateFolderClick() {
-            const folder = this.newFolderName;
-            try {
-                const result = await createFolder( this.leaf.path, folder );
-                if ( !result ) {
-                    throw new Error();
-                }
-                this.retrieveFiles( this.leaf.path );
-                this.newFolderName = "";
-                this.showNotification({
-                    message: this.$t( "folderCreatedSuccessfully", { folder })
-                });
-            } catch {
-                this.showNotification({
-                    message: this.$t( "couldNotCreateFolder", { folder })
-                });
-            }
+        /* the below should be implemented in inheriting components */
+        async _listFolder( path ) {
+
         },
-    },
+        async _createFolder( parent, name ) {
+
+        },
+        async _downloadFile( node, returnAsURL = false  ) {
+
+        },
+        async _deleteEntry( node ) {
+
+        },
+        _mapEntry( entry, children = [], parent = null ) {
+            return {};
+        }
+    }
 };
 </script>
 
@@ -355,7 +367,7 @@ export default {
 
 $actionsHeight: 74px;
 
-.dropbox-file-modal {
+.cloud-file-modal {
     @include overlay();
     @include component();
 
@@ -437,6 +449,10 @@ $actionsHeight: 74px;
         &--active {
             color: #FFF;
         }
+
+        &:disabled {
+            color: inherit;
+        }
     }
 }
 
@@ -491,13 +507,24 @@ $actionsHeight: 74px;
     }
 
     &:hover {
-        .entry__icon {
+        .entry__icon--folder,
+        .entry__icon--document {
             background-color: $color-1;
             color: #FFF;
         }
 
         .entry__delete-button {
             display: block;
+        }
+    }
+
+    &__disabled {
+        opacity: 0.5;
+
+        &:hover {
+            .entry__delete-button {
+                display: none;
+            }
         }
     }
 }
