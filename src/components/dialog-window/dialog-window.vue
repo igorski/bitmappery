@@ -23,7 +23,9 @@
 <template>
     <div
         class="dialog-window"
-        @keyup.enter="handleConfirm()"
+        ref="windowOutline"
+        tabindex="0"
+        @keyup.enter="handleConfirm( $event )"
         @keyup.esc="handleCancel()"
     >
         <h4 class="dialog-window__title">{{ title }}</h4>
@@ -84,8 +86,10 @@ export default {
         ...mapMutations([
             'closeDialog',
         ]),
-        handleConfirm() {
+        handleConfirm( event ) {
             this.confirmHandler?.();
+            event?.preventDefault();
+            event?.stopPropagation();
             this.close();
         },
         handleCancel() {
@@ -95,7 +99,14 @@ export default {
         close() {
             this.closeDialog();
         }
-    }
+    },
+    mounted() {
+        this.focusedElement = document.activeElement;
+        this.$refs.windowOutline?.focus();
+    },
+    beforeDestroy() {
+        this.focusedElement?.focus();
+    },
 };
 </script>
 
@@ -118,6 +129,10 @@ export default {
     padding: $spacing-small $spacing-large $spacing-large;
     border-radius: $spacing-small;
     box-shadow: 0 0 25px rgba(0,0,0,.5);
+
+    &:focus {
+        outline: none;
+    }
 
     &__title {
         @include customFont();

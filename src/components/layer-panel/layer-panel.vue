@@ -22,13 +22,16 @@
  */
 <template>
     <div
+        tabindex="1"
         class="layer-panel-wrapper"
         :class="{ collapsed }"
+        @focus="handleFocus()"
+        @blur="handleBlur()"
     >
         <div class="component__header">
             <h2
                 class="component__title"
-            >{{ showFilters ? $t( 'filtersForLayer', { name: activeLayer.name }) : $t( 'layers' ) }}</h2>
+            >{{ showFilters && activeLayer ? $t( 'filtersForLayer', { name: activeLayer.name }) : $t( 'layers' ) }}</h2>
             <button
                 type="button"
                 class="component__header-button button--ghost"
@@ -334,6 +337,42 @@ export default {
             this.setActiveLayerMask( layer.index );
             getSpriteForLayer( layer )?.setActionTarget( "mask" );
         },
+        handleFocus() {
+            KeyboardService.setListener( this.handleKeyboard.bind( this ));
+        },
+        handleBlur() {
+            KeyboardService.setListener( null );
+        },
+        handleKeyboard( type, keyCode, event ) {
+            if ( type !== "up" ) {
+                return;
+            }
+            switch ( keyCode ) {
+                default:
+                    return;
+                case 8:  // backspace
+                case 46: // delete
+                    this.requestLayerRemove( this.activeLayerIndex );
+                    break;
+                case 13: // enter
+                    this.handleFiltersClick( this.activeLayerIndex );
+                    break;
+                case 27: // escape
+                    this.editable = false;
+                    this.showFilters = false;
+                    break;
+                case 32: // spacebar
+                    this.toggleLayerVisibility( this.activeLayerIndex );
+                    break;
+                case 38: // up
+                    this.setActiveLayerIndex( Math.min( this.layers.length - 1, this.activeLayerIndex + 1 ));
+                    break;
+                case 40: // down
+                    this.setActiveLayerIndex( Math.max( 0, this.activeLayerIndex - 1 ));
+                    break;
+            }
+            event.preventDefault();
+        },
     },
 };
 </script>
@@ -347,6 +386,10 @@ export default {
     @include panel();
     display: flex;
     flex-direction: column;
+
+    &:focus {
+        outline: none;
+    }
 
     .component__content.form {
         padding: 0;

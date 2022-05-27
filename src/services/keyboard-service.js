@@ -137,7 +137,10 @@ function handleKeyDown( event ) {
     }
     if ( typeof listener === "function" ) {
         listener( "down", keyCode, event );
-        return;
+
+        if ( keyCode !== 90 ) {
+            return; // unless "Z" is pressed (for undo/redo actions, skip remaining handling functions)
+        }
     }
     const hasOption = KeyboardService.hasOption( event );
     const now       = Date.now();
