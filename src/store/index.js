@@ -26,10 +26,11 @@ import LayerFactory    from "@/factories/layer-factory";
 import { initHistory, enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
-import { LAYER_GRAPHIC } from "@/definitions/layer-types";
+import { LAYER_GRAPHIC, LAYER_TEXT } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS, PANEL_LAYERS } from "@/definitions/panel-types";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
 import { runSpriteFn }   from "@/factories/sprite-factory";
+import { fontsConsented, consentFonts, rejectFonts } from "@/services/font-service";
 import canvasModule      from "./modules/canvas-module";
 import documentModule    from "./modules/document-module";
 import historyModule     from "./modules/history-module";
@@ -187,10 +188,30 @@ export default {
             commit( "setLoading", "doc" );
             try {
                 const document = await DocumentFactory.fromBlob( file );
-                commit( "addNewDocument", document );
-                commit( "showNotification", {
-                    message: translate( "loadedFileSuccessfully", { file: truncate( file.name, 35 ) })
-                });
+                const openDocument = () => {
+                    commit( "addNewDocument", document );
+                    commit( "showNotification", {
+                        message: translate( "loadedFileSuccessfully", { file: truncate( file.name, 35 ) })
+                    });
+                };
+                // if document contains text, show GDPR consention message before using Google Fonts
+                if ( !fontsConsented() && document.layers?.some(({ type }) => type === LAYER_TEXT )) {
+                    commit( "openDialog", {
+                        type: "confirm",
+                        title: translate( "fonts.consentRequired" ),
+                        message: translate( "fonts.consentExpl" ),
+                        confirm: () => {
+                            consentFonts();
+                            openDocument();
+                        },
+                        cancel: () => {
+                            rejectFonts();
+                            openDocument();
+                        }
+                    });
+                } else {
+                    openDocument();
+                }
             } catch ( e ) {
                 commit( "showNotification", {
                     title: translate( "title.error" ),

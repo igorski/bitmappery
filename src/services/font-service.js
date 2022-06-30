@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -25,6 +25,17 @@ import { createCanvas } from "@/utils/canvas-util";
 const loadedFonts      = new Set();
 const GOOGLE_FONTS_URL = "https://fonts.googleapis.com/css?family=";
 
+// Google Fonts deemed non-GDPR compliant. Request consent first
+export const fontsConsented = () => window.localStorage?.getItem( "gfontConsent" ) === "true";
+
+export const consentFonts = () => {
+    window.localStorage?.setItem?.( "gfontConsent", "true" );
+};
+
+export const rejectFonts = () => {
+    window.localStorage?.setItem?.( "gfontRejected", "true" );
+};
+
 /**
  * Lazily loads a Google font (defined in the list above)
  * Returns boolean true indicating whether font was cache
@@ -32,6 +43,10 @@ const GOOGLE_FONTS_URL = "https://fonts.googleapis.com/css?family=";
  */
 export const loadGoogleFont = fontName => {
     return new Promise(( resolve, reject ) => {
+        if ( !fontsConsented() ) {
+            reject();
+            return;
+        }
         if ( loadedFonts.has( fontName )) {
             resolve( true );
             return;

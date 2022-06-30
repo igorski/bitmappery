@@ -107,15 +107,16 @@ import FontPreview from "./font-preview/font-preview";
 import { mapSelectOptions } from "@/utils/search-select-util";
 import { enqueueState } from "@/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
-import { loadGoogleFont } from "@/services/font-service";
+import { loadGoogleFont, fontsConsented, consentFonts, rejectFonts } from "@/services/font-service";
 import { googleFonts } from "@/definitions/font-types";
 import { isMobile } from "@/utils/environment-util";
 import { focus } from "@/utils/environment-util";
 import { truncate } from "@/utils/string-util";
-import messages  from "./messages.json";
+import messages from "./messages.json";
+import sharedMessages from "@/messages.json";
 
 export default {
-    i18n: { messages },
+    i18n: { messages, sharedMessages },
     components: {
         FontPreview,
         Slider,
@@ -238,13 +239,30 @@ export default {
         },
     },
     mounted() {
-        focus( this.$refs.textInput );
+        if ( !fontsConsented() ) {
+            this.openDialog({
+                type: "confirm",
+                title: this.$t( "fonts.consentRequired" ),
+                message: this.$t( "fonts.consentExpl" ),
+                confirm: () => {
+                    consentFonts();
+                },
+                cancel: () => {
+                    rejectFonts();
+                    this.setActiveTool({ tool: null });
+                }
+            });
+        } else {
+            focus( this.$refs.textInput );
+        }
     },
     destroyed() {
         this.handleBlur();
     },
     methods: {
         ...mapMutations([
+            "openDialog",
+            "setActiveTool",
             "updateLayer",
         ]),
         handleFocus() {

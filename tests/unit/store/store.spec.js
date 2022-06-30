@@ -1,9 +1,17 @@
 import store from "@/store";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
-import { LAYER_IMAGE } from "@/definitions/layer-types";
+import { LAYER_IMAGE, LAYER_TEXT } from "@/definitions/layer-types";
+import LayerFactory from "@/factories/layer-factory";
 
 const { getters, mutations, actions } = store;
 
+let mockFontsConsented = true;
+let mockFontConsentFn;
+jest.mock( "@/services/font-service", () => ({
+    fontsConsented: () => mockFontsConsented,
+    consentFonts: () => mockFontConsentFn(),
+    rejectFonts: jest.fn(),
+}));
 let mockUpdateFn;
 jest.mock( "@/services/keyboard-service", () => ({
     setSuspended: (...args) => mockUpdateFn?.( "setSuspended", ...args ),
@@ -286,6 +294,65 @@ describe( "Vuex store", () => {
                 expect( commit ).toHaveBeenNthCalledWith( 2, "addNewDocument", mockDocument );
                 expect( commit ).toHaveBeenNthCalledWith( 3, "showNotification", expect.any( Object ));
                 expect( commit ).toHaveBeenNthCalledWith( 4, "unsetLoading", "doc" );
+            });
+
+            describe( "and the document has text layers", () => {
+                it( "should request user consent for using Google Fonts, if none had been given yet", async () => {
+                    const commit = jest.fn();
+                    const blob = { name: "file" };
+                    const mockDocument = { name: "foo", layers: [ LayerFactory.create({ type: LAYER_TEXT }) ] };
+
+                    mockFontsConsented = false;
+                    mockFontConsentFn = jest.fn();
+
+                    mockUpdateFn = jest.fn( fn => {
+                        switch ( fn ) {
+                            default:
+                                return true;
+                            case "fromBlob":
+                                return mockDocument;
+                        }
+                    });
+                    await actions.loadDocument({ commit }, blob );
+                    // assert confirmation dialog was spawned
+                    expect( commit ).toHaveBeenNthCalledWith( 2, "openDialog", {
+                        type: "confirm",
+                        title: "fonts.consentRequired",
+                        message: "fonts.consentExpl",
+                        confirm: expect.any( Function ),
+                        cancel: expect.any( Function )
+                    });
+                    // assert document opening was deferred
+                    expect( commit ).not.toHaveBeenCalledWith( "addNewDocument" );
+                    expect( mockFontConsentFn ).not.toHaveBeenCalled();
+
+                    // assert document opens upon confirmation
+                    const dialogArgs = commit.mock.calls[ 1 ][ 1 ];
+                    dialogArgs.confirm();
+
+                    expect( mockFontConsentFn ).toHaveBeenCalled();
+                    expect( commit ).toHaveBeenCalledWith( "addNewDocument", mockDocument );
+                });
+
+                it( "should not request user consent for using Google Fonts, if it had previously been given", async () => {
+                    const commit = jest.fn();
+                    const blob = { name: "file" };
+                    const mockDocument = { name: "foo", layers: [ LayerFactory.create({ type: LAYER_TEXT }) ] };
+                    mockFontsConsented = true;
+                    mockUpdateFn = jest.fn( fn => {
+                        switch ( fn ) {
+                            default:
+                                return true;
+                            case "fromBlob":
+                                return mockDocument;
+                        }
+                    });
+                    await actions.loadDocument({ commit }, blob );
+                    // assert dialog was not shown
+                    expect( commit ).not.toHaveBeenCalledWith( "openDialog" );
+                    // and document was loaded immediately
+                    expect( commit ).toHaveBeenCalledWith( "addNewDocument", mockDocument );
+                });
             });
         });
 

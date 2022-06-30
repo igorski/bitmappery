@@ -9,6 +9,10 @@
         "selectionCopied": "Selection copied",
         "warningUnload": "You are about to close BitMappery. Confirmation means you have either saved your pending changes or are aware these will otherwise be lost.",
         "selectionInverted": "Selection inverted",
+        "fonts": {
+            "consentRequired": "Consent required",
+            "consentExpl": "You are about to use text within a BitMappery document. BitMappery text is rendered using Google Fonts, which is a free to use online service providing a large range of type faces. \n\nBecause we can't have nice things, the EU requires sites to request explicit approval before serving Google Fonts to end users under GDPR.\n\nIf you are not in the EU or are a sane human being that understands usage of Google Fonts does in no way surrender your personal information to Google or evil ad networks, you can provide consent by clicking OK. You can also choose to reject using Google Fonts and continue using BitMappery with fallback fonts (or no text at all)."
+        },
         "title": {
             "success": "Success",
             "error": "Error"
