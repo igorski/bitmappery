@@ -26,12 +26,12 @@ import FiltersFactory from "@/factories/filters-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { inverseMask } from "@/rendering/compositing";
 import { createCanvas, base64toCanvas } from "@/utils/canvas-util";
-import { debounce } from "@/utils/debounce-util";
+import { unblockedWait } from "@/utils/debounce-util";
 
 export const importPSD = async psdFileReference => {
     try {
         const psd = await PSD.fromDroppedFile( psdFileReference );
-        await debounce();
+        await unblockedWait();
         const doc = await psdToBitMapperyDocument( psd, psdFileReference );
         return doc;
     } catch ( error ) {
@@ -133,5 +133,5 @@ async function createLayer( layer, layers, name = "" ) {
     }));
 
     // layer bitmap parsing can be heavy, unblock CPU on each iteration
-    await debounce();
+    await unblockedWait();
 }

@@ -66,7 +66,7 @@ import Scrollbars from "./scrollbars/scrollbars";
 import TouchDecorator from "./decorators/touch-decorator";
 import { scaleToRatio } from "@/math/image-math";
 import { scale } from "@/math/unit-math";
-import { debounce } from "@/utils/debounce-util";
+import { unblockedWait } from "@/utils/debounce-util";
 import { getAlignableObjects } from "@/utils/document-util";
 import { isMobile } from "@/utils/environment-util";
 import { fitInWindow } from "@/utils/zoom-util";
@@ -463,7 +463,7 @@ export default {
             flushBitmapCache();
             renderState.reset();
             layerPool.clear();
-            await debounce();
+            await unblockedWait();
             this.createLayerRenderers();
         }
     },

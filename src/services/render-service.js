@@ -74,21 +74,22 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
     // step 1. render layer source contents
 
     if ( layer.type === LAYER_TEXT && layer.text.value ) {
-        let textData;
-        if ( cached?.textData && isTextEqual( layer.text, cached.text )) {
+        let textBitmap;
+        if ( cached?.textBitmap && isTextEqual( layer.text, cached.text )) {
             //console.info( "reading rendered text from cache" );
-            textData = cached.textData;
+            textBitmap = cached.textBitmap;
         } else {
-            textData = await renderText( layer );
-            replaceLayerSource( layer, textData );
+            textBitmap = await renderText( layer );
+            replaceLayerSource( layer, textBitmap );
             //console.info( "writing rendered text to cache" );
-            cacheToSet.text     = { ...layer.text };
-            cacheToSet.textData = textData;
+            cacheToSet.text = { ...layer.text };
+            cacheToSet.textBitmap = textBitmap;
             hasCachedFilter = false; // new contents need to be refiltered
+            ({ width, height } = textBitmap );
         }
-        matchDimensions({ width, height }, cvs );
+        matchDimensions( textBitmap, cvs );
         // render text onto destination source
-        ctx.drawImage( textData, 0, 0 );
+        ctx.drawImage( textBitmap, 0, 0 );
     } else if ( !hasCachedFilter ) {
         //console.info( "draw unfiltered source, will apply filter next: " + applyFilter );
         ctx.drawImage( layer.source, 0, 0 );

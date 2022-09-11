@@ -32,7 +32,7 @@
  *
  * @param {Number=} timeToWait in milliseconds
  */
-export const debounce = ( timeToWait = 4 ) => {
+export const unblockedWait = ( timeToWait = 4 ) => {
     return new Promise( resolve => {
         window.setTimeout( resolve, timeToWait );
     });

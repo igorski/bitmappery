@@ -152,7 +152,7 @@ import { mapSelectOptions }  from "@/utils/search-select-util";
 import { isLandscape, isSquare } from "@/math/image-math";
 import { createDocumentSnapshot, createLayerSnapshot, tilesToSingle } from "@/utils/document-util";
 import { resizeToBase64 } from "@/utils/canvas-util";
-import { debounce } from "@/utils/debounce-util";
+import { unblockedWait } from "@/utils/debounce-util";
 import { saveBlobAsFile, base64toBlob } from "@/utils/file-util";
 import { displayAsKb } from "@/utils/string-util";
 import messages from "./messages.json";
@@ -319,7 +319,7 @@ export default {
 
             if ( this.reRenderOnCompletion ) {
                 this.reRenderOnCompletion = false;
-                await debounce(); // unblock CPU prior to continuing next iteration
+                await unblockedWait(); // unblock CPU prior to continuing next iteration
                 this.renderPreview();
             }
         },
