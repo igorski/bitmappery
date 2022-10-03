@@ -34,7 +34,8 @@ import { blobToResource } from "@/utils/resource-manager";
 const FULL_WRITE_ACCESS   = "https://www.googleapis.com/auth/drive";
 const SCOPED_WRITE_ACCESS = "https://www.googleapis.com/auth/drive.file";
 
-const GOOGLE_API     = "https://apis.google.com/js/api.js";
+const DRIVE_API      = "https://apis.google.com/js/api.js";
+const IDENTITY_API   = "https://accounts.google.com/gsi/client";
 const ACCESS_SCOPES  = SCOPED_WRITE_ACCESS;
 const DISCOVERY_DOCS = [ "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest" ];
 
@@ -49,9 +50,9 @@ const DELIMITER_CLOSE = `\r\n--${BOUNDARY}--`;
 export const ROOT_FOLDER   = "root";
 export const DEFAULT_SPACE = "drive";
 
-let isSignedIn = false;
 let accessToken = null;
 let gapi = null;
+let client = null;
 let currentFolder = ROOT_FOLDER;
 
 export const init = async ( apiKey, clientId ) => {
@@ -60,22 +61,28 @@ export const init = async ( apiKey, clientId ) => {
     }
     return new Promise( async ( resolve ) => {
         try {
-            await loadScript( GOOGLE_API );
+            await loadScript( IDENTITY_API );
+            if ( !window.google ) {
+                throw new Error( "could not load Google Identity Services API" );
+            }
+            // 1. init Google Identity Services
+            client = window.google.accounts.oauth2.initTokenClient({
+                client_id :  clientId,
+                scope     : ACCESS_SCOPES,
+                callback  : ({ access_token }) => registerAccessToken( access_token ),
+            });
+            // 2. init Google Drive API
+            await loadScript( DRIVE_API );
             if ( !window.gapi ) {
-                throw new Error( "could not load Google API" );
+                throw new Error( "could not load Google Drive API" );
             }
             gapi = window.gapi;
-            gapi.load( "client:auth2", async () => {
-                const data = await gapi.client.init({
-                    apiKey,
-                    clientId,
-                    ux_mode       : "popup",
-                    scope         : ACCESS_SCOPES,
-                    discoveryDocs : DISCOVERY_DOCS
-                });
-                gapi.auth2.getAuthInstance().isSignedIn.listen( handleSignInStatus );
-                handleSignInStatus( gapi.auth2.getAuthInstance().isSignedIn.get() );
 
+            gapi.load( "client", async () => {
+                await gapi.client.init({
+                    apiKey,
+                    discoveryDocs : DISCOVERY_DOCS,
+                });
                 resolve( true );
             });
         } catch {
@@ -84,14 +91,14 @@ export const init = async ( apiKey, clientId ) => {
     });
 };
 
-export const isAuthenticated = () => isSignedIn;
+export const isAuthenticated = () => !!accessToken;
 
 /**
  * Authentication step 1: for interacting with Drive : request access token
  * by opening an authentication page
  */
 export const requestLogin = () => {
-    gapi.auth2.getAuthInstance().signIn();
+    client.requestAccessToken();
 };
 
 /**
@@ -104,12 +111,16 @@ export const registerAccessToken = token => {
 export const getAccessToken = () => accessToken;
 
 export const requestLogout = () => {
-    gapi.auth2.getAuthInstance().signOut();
+    if ( accessToken === null ) {
+        return;
+    }
+    window.google.accounts.oauth2.revoke( accessToken );
+    accessToken = null;
 };
 
 export const validateScopes = grantedScopes => ACCESS_SCOPES.split( "," ).every( scope => grantedScopes.includes( scope ));
 
-export const disconnect = () => gapi.auth2.getAuthInstance().disconnect();
+export const disconnect = () => requestLogout;
 
 /**
  * @param {string} path to search for. This is "root" to search from the
@@ -306,13 +317,3 @@ export const uploadBlob = async ( fileOrBlob, folder, fileName ) => {
         reader.readAsBinaryString( fileOrBlob );
     });
 };
-
-/* internal methods */
-
-function handleSignInStatus( signedIn = false ) {
-    isSignedIn = signedIn;
-
-    if ( signedIn ) {
-        registerAccessToken( gapi.client.getToken()?.access_token || accessToken );
-    }
-}

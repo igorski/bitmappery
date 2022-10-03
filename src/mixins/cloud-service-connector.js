@@ -177,7 +177,7 @@ export default {
                 try {
                     const { authResult } = JSON.parse( data ).params;
                     result = {
-                        accessToken : authResult.id_token,
+                        accessToken : authResult.access_token,
                         scope       : authResult.scope
                     };
                 } catch {}
@@ -192,12 +192,15 @@ export default {
                 window.setTimeout( disconnect, TIMEOUT );
                 return;
             }
+
             if ( result?.accessToken ) {
                 registerAccessToken( result.accessToken );
                 window.removeEventListener( "message", boundHandler );
                 this.showConnectionMessage( STORAGE_TYPES.DRIVE );
                 this.authenticated = true;
                 window.setTimeout( this.openFileBrowserDrive.bind( this ), TIMEOUT );
+            } else {
+                this.cancelLoginDrive(); // user likely cancelled auth flow
             }
         },
         openFileBrowserDrive() {
