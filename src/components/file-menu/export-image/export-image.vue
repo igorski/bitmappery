@@ -285,7 +285,7 @@ export default {
             if ( multiLayerExport ) {
                 // if we are going to work with individual layers, lazily create a list of layer snapshots
                 if ( !this.snapshots ) {
-                    this.snapshots = await Promise.all( this.activeDocument.layers.map( createLayerSnapshot ));
+                    this.snapshots = await Promise.all( [ ...this.activeDocument.layers ].reverse().map( createLayerSnapshot ));
                 }
                 if ( this.layersToAnimatedGIF ) {
                     this.base64preview = await createAnimatedGIF( this.snapshots, this.frameDurationMs / 100 );
