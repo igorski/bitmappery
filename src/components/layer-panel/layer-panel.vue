@@ -236,8 +236,10 @@ export default {
         requestLayerAdd() {
             this.openModal( ADD_LAYER );
         },
-        handleLayerDoubleClick( index ) {
+        async handleLayerDoubleClick( layer ) {
             this.editable = true;
+            await this.$nextTick();
+            this.$refs.nameInput[ 0 ]?.select(); // focused layer will always be at 0 index nameInput
         },
         updateActiveLayerName({ target }) {
             const newName     = target.value;
