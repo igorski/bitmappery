@@ -52,13 +52,18 @@ export const createDocumentSnapshot = async ( activeDocument ) => {
 };
 
 /**
- * Creates a snapshot of the given layer at its full size.
+ * Creates a snapshot of the given layer at its full size. When an activeDocument
+ * is provided, it's boundary box will crop the layer.
  *
  * @param {Object} layer
+ * @param {Object=} optActiveDocument
  * @return {HTMLCanvasElement}
  */
-export const createLayerSnapshot = async ( layer ) => {
-    const { zcvs, cvs, ctx } = createFullSizeZCanvas( layer );
+export const createLayerSnapshot = async ( layer, optActiveDocument ) => {
+    const width  = optActiveDocument ? optActiveDocument.width  : layer.width;
+    const height = optActiveDocument ? optActiveDocument.height : layer.height;
+
+    const { zcvs, cvs, ctx } = createFullSizeZCanvas({ width, height });
 
     // if the layer is currently invisible, it has no sprite, create it lazily here.
     const sprite = !layer.visible ? createSpriteForLayer( zcvs, layer, false ) : getSpriteForLayer( layer );
