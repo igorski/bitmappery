@@ -28,18 +28,39 @@ has its own factory (see _/src/factories/_). The Document is managed by the Vuex
 
 The Document is rendered one layer at a time onto a Canvas element, using [zCanvas](https://github.com/igorski/zCanvas). Both the rendering and interaction handling is performed by dedicated "Sprite" classes.
 
-All layer rendering and interactions are handled by _/src/rendering/canvas-elements/layer_sprite.js_.
+All layer rendering and layer interactions are handled by _/src/rendering/canvas-elements/layer_sprite.js_.
 Note that the purpose of the renderer is solely to delegate interactions events to the Layer entity. The
 renderer should represent the properties of the Layer, the Layer should never reverse-engineer from the onscreen
 content (especially as different window size and scaling factor will greatly complicate these matters when
 performed two-way).
 
-Rendering transformations, text and effects is an asynchronous operation handled by _/src/services/render-service.js_. The purpose of this service is to perform and cache repeated operations and eventually maintain
-the source bitmap represented by the LayerSprite. The LayerSprite invokes the rendering service.
-
 All interactions that work across layers (viewport panning, layer selection by clicking on non-transparent
-pixels and selection drawing) is done by a single top level sprite that covers the entire zCanvas area.
-This is handled by _/src/rendering/canvas-elements/interaction-pane.js_.
+pixels and drawing of selections) is handled by a single top level sprite that covers the entire zCanvas area.
+This sprite is _/src/rendering/canvas-elements/interaction-pane.js_.
+
+Interactions that start/end from _outside the canvas_ (for instance the opening/closing of a selection or the
+drawing of a brush stroke outside of the canvas area) are handled by _document-canvas.vue_ where the global DOM coordinates are translated to coordinates relative to the canvas document before being forwarded to the zCanvas
+event handler. See "Rendering concepts" below for more details on screen-to-document coordinates.
+
+Rendering of transformations, text and effects is an asynchronous operation handled by _/src/services/render-service.js_. The purpose of this service is to perform and cache repeated operations and eventually maintain
+the source bitmap represented by the LayerSprite. The LayerSprite invokes the rendering service whenever
+Layer content changes and manages its own cache.
+
+### Rendering concepts
+
+BitMappery follows the concepts of the display list as listed in the zCanvas wiki, where BitMappery's
+document layers are visualized as separate Sprites which can be manipulated as separate interactive on-screen
+elements. BitMappery additionally adds additional logic related to the viewing of large scale content in smaller fragments.
+
+The zCanvas' DOM element (an _HTMLCanvasElement_ instance) is basically as large as the available area inside the
+DOM window allows. The BitMappery document displayed inside may however be larger or smaller than the canvas itself
+(depending on the _zoom level_ which is - not yet - standardized in the zCanvas package and custom written for BitMappery using the `ZoomableCanvas` and `ZoomableSprite` classes).
+
+What determines the visible area of the zoomed document is the _viewport_. As such, interactions with the zCanvas
+element must be _translated_ from global DOM coordinates to a point relative to the BitMappery document, taking
+into account the current scaling factor and viewport offset. This is handled automatically by all event handlers
+delegated through zCanvas and the sprites, but needs care when performing rendering operations (such as drawing)
+and translating these to (non-zoomed and non-panned) source bitmaps.
 
 ## State history
 
