@@ -40,7 +40,7 @@ class ZoomableCanvas extends canvas {
         this.documentScale = 1;
         this.setZoomFactor( 1 );
         this.interactionPane = new InteractionPane();
-        this.boundingBox = null; // calculated by document-canvas
+        this._bounds = null; // TODO : can be removed after update to zCanvas 5.1.5 (requires Webpack 5 migration)
 
         // reference to Sprite that is being dragged (see LayerSprite)
         this.draggingSprite = null;
@@ -115,6 +115,14 @@ class ZoomableCanvas extends canvas {
     }
 
     /* zCanvas.canvas overrides */
+
+    // TODO : can be removed after update to zCanvas 5.1.5 (requires Webpack 5 migration)
+    getCoordinate() {
+        if ( this._bounds === null ) {
+            this._bounds = this._element.getBoundingClientRect();
+        }
+        return this._bounds;
+    }
 
     // see QQQ comments to see what the difference is. Ideally these changes
     // should eventually be propagated to the zCanvas library.
@@ -215,11 +223,11 @@ class ZoomableCanvas extends canvas {
                     let i = 0, l = touches.length;
 
                     if ( l > 0 ) {
-                        const offset = this.getCoordinate();
+                        let { x, y } = this.getCoordinate();
                         if ( viewport ) {
                             // TODO when canvas isn't full screen the pointer is nowhere to be seen
-                            offset.x -= viewport.left;
-                            offset.y -= viewport.top;
+                            x -= viewport.left;
+                            y -= viewport.top;
                         }
 
                         // zCanvas supports multitouch, process all pointers
@@ -228,8 +236,8 @@ class ZoomableCanvas extends canvas {
                             const touch          = touches[ i ];
                             const { identifier } = touch;
 
-                            eventOffsetX = ( touch.pageX - offset.x ) / this.zoomFactor; // QQQ
-                            eventOffsetY = ( touch.pageY - offset.y ) / this.zoomFactor; // QQQ
+                            eventOffsetX = ( touch.pageX - x ) / this.zoomFactor; // QQQ
+                            eventOffsetY = ( touch.pageY - y ) / this.zoomFactor; // QQQ
 
                             switch ( event.type ) {
                                 // on touchstart events, when we a Sprite handles the event, we
@@ -269,9 +277,9 @@ class ZoomableCanvas extends canvas {
                     // QQQ in case move and up event are fired outside of the canvas element
                     // we must translate the event coordinates to be relative to the canvas
                     if ( event.target !== this._element ) {
-                        const offset = this.boundingBox;
-                        offsetX = aEvent.pageX - offset.left;
-                        offsetY = aEvent.pageY - offset.top;
+                        const { x, y } = this.getCoordinate();
+                        offsetX = aEvent.pageX - x;
+                        offsetY = aEvent.pageY - y;
                     }
                     if ( viewport ) {
                         offsetX += viewport.left;
@@ -375,4 +383,5 @@ function updateCanvasSize( canvasInstance ) {
     if ( canvasInstance._smoothing === false ) {
         canvasInstance.setSmoothing( false );
     }
+    canvasInstance._bounds = null; // TODO : can be removed after update to zCanvas 5.1.5 (requires Webpack 5 migration)
 }

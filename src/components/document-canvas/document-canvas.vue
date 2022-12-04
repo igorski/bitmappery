@@ -101,8 +101,8 @@ let xScale = 1, yScale = 1, zoom = 1, maxInScale = 1, maxOutScale = 1;
 function calculateCanvasBoundingBox() {
     const zCanvas = getCanvasInstance();
     if ( zCanvas ) {
-        canvasBoundingBox = zCanvas.getElement().getBoundingClientRect();
-        zCanvas.boundingBox = canvasBoundingBox;
+        zCanvas._bounds = null; // TODO : can be removed after update to zCanvas 5.1.5 (requires Webpack 5 migration)
+        canvasBoundingBox = getCanvasInstance()?.getCoordinate();
     }
 }
 
