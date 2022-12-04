@@ -123,8 +123,8 @@ export const pointerToCanvasCoordinates = ( pointerX, pointerY, zoomableCanvas, 
     // ( pointer coordinate - bounding box coordinate ) is coordinate relative to canvas
     // by dividing this by the zoomFactor the value is scaled to the canvas' relative scale
 
-    const offsetX = ( event.pageX - canvasBoundingBox.left ) / zoomFactor;
-    const offsetY = ( event.pageY - canvasBoundingBox.top ) / zoomFactor;
+    const offsetX = ( pointerX - canvasBoundingBox.left ) / zoomFactor;
+    const offsetY = ( pointerY - canvasBoundingBox.top ) / zoomFactor;
 
     // subtract the canvas viewport position to get the coordinate relative to currently
     // visible area within the BitMappery document
