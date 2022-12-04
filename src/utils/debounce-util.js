@@ -20,6 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+const rafCallbacks = [];
 
 /**
  * Returns a Promise that resolves when given timeToWait has expired.
@@ -66,4 +67,20 @@ export const cancelableCallback = ( callback, timeToWait = 250 ) => {
             startTimeout();
         }
     };
+};
+
+/**
+ * Execute given callback after an animation frame has fired.
+ * This will debounce multiple invocations of the same callback if it
+ * hasn't yet fired.
+ */
+export const rafCallback = callback => {
+    if ( rafCallbacks.includes( callback )) {
+        return;
+    }
+    rafCallbacks.push( callback );
+    window.requestAnimationFrame(() => {
+        callback();
+        rafCallbacks.splice( rafCallbacks.indexOf( callback ), 1 );
+    });
 };

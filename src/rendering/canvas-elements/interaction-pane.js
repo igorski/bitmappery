@@ -186,9 +186,21 @@ class InteractionPane extends sprite {
 
     // cheap way to hook into zCanvas.handleMove()-handler so we can keep following the cursor in tool modes
     forceMoveListener() {
-        this.isDragging       = true;
+        this.isDragging = true;
         this._dragStartOffset = { x: this.getX(), y: this.getY() };
         this._dragStartEventCoordinates = { x: this._pointerX, y: this._pointerY };
+    }
+
+    startOutsideSelection( x, y ) {
+        if ( this.mode !== MODE_SELECTION ) {
+            return;
+        }
+        this._dragStartEventCoordinates = { x, y };
+        this.handlePress( x, y );
+    }
+
+    stopOutsideSelection() {
+        this.mode === MODE_SELECTION && this.handleRelease( this._pointerX, this._pointerY );
     }
 
     /* zCanvas.sprite overrides */
@@ -269,7 +281,7 @@ class InteractionPane extends sprite {
                 break;
             case MODE_PAN:
                 const viewport = this.canvas.getViewport();
-                
+
                 const distX = viewport.left - this._vpStartX;
                 const distY = viewport.top  - this._vpStartY;
 
@@ -299,7 +311,7 @@ class InteractionPane extends sprite {
                     // when releasing in rectangular select mode, set the selection to
                     // the bounding box of the down press coordinate and this release coordinate
                     const firstPoint = document.selection[ 0 ];
-                    const { width, height } = calculateSelectionSize( firstPoint, x, y, this.toolOptions );
+                    const { width, height } = calculateSelectionSize( firstPoint, Math.max( 0, Math.min( document.width, x )), Math.max( 0, Math.min( document.height, y )), this.toolOptions );
                     document.selection = rectToCoordinateList( firstPoint.x, firstPoint.y, width, height );
                     this._selectionClosed = true;
                     storeSelectionHistory( document );

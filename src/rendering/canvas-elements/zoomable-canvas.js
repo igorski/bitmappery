@@ -40,6 +40,7 @@ class ZoomableCanvas extends canvas {
         this.documentScale = 1;
         this.setZoomFactor( 1 );
         this.interactionPane = new InteractionPane();
+        this.boundingBox = null; // calculated by document-canvas
 
         // reference to Sprite that is being dragged (see LayerSprite)
         this.draggingSprite = null;
@@ -210,12 +211,13 @@ class ZoomableCanvas extends canvas {
                 default:
                     let eventOffsetX = 0, eventOffsetY = 0;
 
-                    const touches /** @type {TouchList} */ = event.changedTouches;
+                    const touches /** @type {TouchList} */ = event.changedTouches || [];
                     let i = 0, l = touches.length;
 
                     if ( l > 0 ) {
                         const offset = this.getCoordinate();
                         if ( viewport ) {
+                            // TODO when canvas isn't full screen the pointer is nowhere to be seen
                             offset.x -= viewport.left;
                             offset.y -= viewport.top;
                         }
@@ -226,8 +228,8 @@ class ZoomableCanvas extends canvas {
                             const touch          = touches[ i ];
                             const { identifier } = touch;
 
-                            eventOffsetX = ( touches[ 0 ].pageX - offset.x ) / this.zoomFactor; // QQQ
-                            eventOffsetY = ( touches[ 0 ].pageY - offset.y ) / this.zoomFactor; // QQQ
+                            eventOffsetX = ( touch.pageX - offset.x ) / this.zoomFactor; // QQQ
+                            eventOffsetY = ( touch.pageY - offset.y ) / this.zoomFactor; // QQQ
 
                             switch ( event.type ) {
                                 // on touchstart events, when we a Sprite handles the event, we
@@ -264,12 +266,20 @@ class ZoomableCanvas extends canvas {
                 case "mousemove":
                 case "mouseup":
                     let { offsetX, offsetY } = aEvent;
+                    // QQQ in case move and up event are fired outside of the canvas element
+                    // we must translate the event coordinates to be relative to the canvas
+                    if ( event.target !== this._element ) {
+                        const offset = this.boundingBox;
+                        offsetX = aEvent.pageX - offset.left;
+                        offsetY = aEvent.pageY - offset.top;
+                    }
                     if ( viewport ) {
                         offsetX += viewport.left;
                         offsetY += viewport.top;
                     }
                     offsetX /= this.zoomFactor; // QQQ
                     offsetY /= this.zoomFactor; // QQQ
+
                     while ( theChild ) {
                         found = theChild.handleInteraction( offsetX, offsetY, aEvent );
                         if ( found ) {

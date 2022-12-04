@@ -106,3 +106,31 @@ export const snapToAngle = ( x, y, sourcePoint, { left = 0, top = 0 } = {}, step
         y: sourcePoint.y - top  + dist * sin( shiftedAngle )
     };
 };
+
+/**
+ * Converts a pointer position (e.g. from Mouse|TouchEvent) from anywhere in the DOM to
+ * a coordinate relative to the canvas displaying the BitMappery document at the current
+ * scale and viewport offset
+ *
+ * @param {Number} pointerX the x-coordinate of the pointer
+ * @param {Number} pointerY the y-coordinate of the pointer
+ * @param {ZoomableCanvas} zoomableCanvas
+ * @param {DOMRect} canvasBoundingBox bounding box of the zoomableCanvas DOM Element
+ */
+export const pointerToCanvasCoordinates = ( pointerX, pointerY, zoomableCanvas, canvasBoundingBox ) => {
+    const { zoomFactor } = zoomableCanvas;
+
+    // ( pointer coordinate - bounding box coordinate ) is coordinate relative to canvas
+    // by dividing this by the zoomFactor the value is scaled to the canvas' relative scale
+
+    const offsetX = ( event.pageX - canvasBoundingBox.left ) / zoomFactor;
+    const offsetY = ( event.pageY - canvasBoundingBox.top ) / zoomFactor;
+
+    // subtract the canvas viewport position to get the coordinate relative to currently
+    // visible area within the BitMappery document
+
+    return {
+        x : offsetX + zoomableCanvas.getViewport().left,
+        y : offsetY + zoomableCanvas.getViewport().top
+    };
+};

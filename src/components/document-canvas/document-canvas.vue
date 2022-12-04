@@ -25,6 +25,14 @@
         class="canvas-wrapper"
         :class="{ 'has-content': activeDocument }"
         :style="{ 'height': wrapperHeight }"
+        @mousedown="handleOutsideDown( $event )"
+        @mousemove="handleOutsideMove( $event )"
+        @mouseup="handleOutsideUp( $event )"
+        @pointerleave="handleOutsideUp( $event )"
+        @touchstart="handleOutsideDown( $event )"
+        @touchmove="handleOutsideMove( $event )"
+        @touchend="handleOutsideUp( $event )"
+        @touchcancel="handleOutsideUp( $event )"
     >
         <template v-if="activeDocument">
             <div class="component__header">
@@ -65,8 +73,9 @@ import { MODE_PAN, MODE_LAYER_SELECT, MODE_SELECTION } from "@/rendering/canvas-
 import Scrollbars from "./scrollbars/scrollbars";
 import TouchDecorator from "./decorators/touch-decorator";
 import { scaleToRatio } from "@/math/image-math";
+import { pointerToCanvasCoordinates } from "@/math/point-math";
 import { scale } from "@/math/unit-math";
-import { unblockedWait } from "@/utils/debounce-util";
+import { unblockedWait, rafCallback } from "@/utils/debounce-util";
 import { getAlignableObjects } from "@/utils/document-util";
 import { isMobile } from "@/utils/environment-util";
 import { fitInWindow } from "@/utils/zoom-util";
@@ -81,13 +90,21 @@ import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 /* internal non-reactive properties */
 
 const mobileView = isMobile();
-let lastDocument, containerSize, interactionPane, guideRenderer;
+let lastDocument, containerSize, canvasBoundingBox, guideRenderer;
 // maintain a pool of sprites representing the layers within the active document
 // the sprites themselves are cached within the sprite-factory, this is merely
 // used for change detection in the current editing session (see watchers)
 const layerPool = new Map();
 // scale of the on-screen canvas relative to the document
 let xScale = 1, yScale = 1, zoom = 1, maxInScale = 1, maxOutScale = 1;
+
+function calculateCanvasBoundingBox() {
+    const zCanvas = getCanvasInstance();
+    if ( zCanvas ) {
+        canvasBoundingBox = zCanvas.getElement().getBoundingClientRect();
+        zCanvas.boundingBox = canvasBoundingBox;
+    }
+}
 
 export default {
     components: {
@@ -102,6 +119,8 @@ export default {
         cvsHeight: 100,
         viewportWidth: 100,
         viewportHeight: 100,
+        // whether a pointer down event was started outside of the canvas area
+        hasOutsideAction: false,
     }),
     computed: {
         ...mapState([
@@ -218,6 +237,7 @@ export default {
                 }
                 // rescale canvas, note we omit the best fit calculation as we zoom from the calculated base
                 this.scaleCanvas( false );
+                rafCallback( calculateCanvasBoundingBox );
             }
         },
         panMode( value ) {
@@ -323,6 +343,7 @@ export default {
                 this.viewportWidth  = containerSize.width;
                 this.viewportHeight = containerSize.height;
                 zCanvas.setViewport( this.viewportWidth, this.viewportHeight );
+                calculateCanvasBoundingBox();
             }
             this.scaleWrapper();
             // replace below with updated zCanvas lib to not multiply by zoom
@@ -465,7 +486,44 @@ export default {
             layerPool.clear();
             await unblockedWait();
             this.createLayerRenderers();
-        }
+        },
+        handleOutsideDown( event ) {
+            if ( event.target.tagName === "CANVAS" || !getCanvasInstance() ) {
+                return; // don't handle clicks originating from the canvas
+            }
+            const zCanvas = getCanvasInstance();
+            const { x, y } = pointerToCanvasCoordinates( event.pageX, event.pageY, zCanvas, canvasBoundingBox );
+
+            if ( [ ToolTypes.BRUSH, ToolTypes.ERASER ].includes( this.activeTool )) {
+                getSpriteForLayer( this.activeLayer )?.handlePress( x, y, event );
+            } else if ( this.selectMode ) {
+                zCanvas.interactionPane.startOutsideSelection( x, y );
+            } else {
+                return; // unhandled action
+            }
+            this.hasOutsideAction = true;
+        },
+        handleOutsideMove( event ) {
+            if ( event.target.tagName === "CANVAS" || !getCanvasInstance() ) {
+                return;
+            }
+            // TODO only when supported outside tools/modes are active ?
+            getCanvasInstance().handleInteraction( event );
+        },
+        handleOutsideUp( event ) {
+            if ( !this.hasOutsideAction ) {
+                return;
+            }
+            this.hasOutsideAction = false;
+            const zCanvas = getCanvasInstance();
+            const { x, y } = pointerToCanvasCoordinates( event.pageX, event.pageY, zCanvas, canvasBoundingBox );
+
+            if ( [ ToolTypes.BRUSH, ToolTypes.ERASER ].includes( this.activeTool )) {
+                getSpriteForLayer( this.activeLayer )?.handleRelease( x, y, event );
+            } else if ( this.selectMode ) {
+                getCanvasInstance()?.interactionPane.stopOutsideSelection();
+            }
+        },
     },
 };
 </script>
