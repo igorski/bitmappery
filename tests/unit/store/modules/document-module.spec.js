@@ -181,6 +181,19 @@ describe( "Vuex document module", () => {
             });
         });
 
+        it( "should be able to set the runtime selection for the currently active document", () => {
+            const selection = [{ x: 0, y: 0 }, { x: 10, y: 10 }];
+
+            const state = {
+                documents: [ { name: "foo", selection: [] }, { name: "bar", selection: [] } ],
+                activeIndex: 1
+            };
+            mutations.setRuntimeSelection( state, selection );
+
+            expect( state.documents[ 0 ].selection ).toHaveLength( 0 );
+            expect( state.documents[ 1 ].selection ).toEqual( selection );
+        });
+
         it( "should be able to add a new Document to the list", () => {
             const state = {
                 documents: [ { name: "foo" } ],

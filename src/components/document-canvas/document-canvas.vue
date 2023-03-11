@@ -68,7 +68,7 @@ import ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import GuideRenderer from "@/rendering/canvas-elements/guide-renderer";
 import FileImport from "@/components/file-import/file-import";
 import { HEADER_HEIGHT } from "@/definitions/editor-properties";
-import ToolTypes, { MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@/definitions/tool-types";
+import ToolTypes, { SELECTION_TOOLS, MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@/definitions/tool-types";
 import { MODE_PAN, MODE_LAYER_SELECT, MODE_SELECTION } from "@/rendering/canvas-elements/interaction-pane";
 import Scrollbars from "./scrollbars/scrollbars";
 import TouchDecorator from "./decorators/touch-decorator";
@@ -218,7 +218,7 @@ export default {
         activeTool( tool ) {
             if ( usesInteractionPane( tool )) {
                 this.setPanMode( tool === ToolTypes.MOVE );
-                this.setSelectMode([ ToolTypes.SELECTION, ToolTypes.LASSO ].includes( tool ));
+                this.setSelectMode( SELECTION_TOOLS.includes( tool ));
                 this.updateInteractionPane();
             } else {
                 this.handleCursor();

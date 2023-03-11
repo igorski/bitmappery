@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -29,6 +29,7 @@ const ToolTypes = {
     DRAG       : "drag",  // drags layer within document
     LASSO      : "lasso",
     SELECTION  : "selection",
+    WAND       : "wand",
     SCALE      : "scale",
     EYEDROPPER : "eyedropper",
     ROTATE     : "rotate",
@@ -43,8 +44,10 @@ export default ToolTypes;
 
 // certain tools are handled by the top layer interaction pane, not individual layer sprites
 
-const PANE_TYPES = [ ToolTypes.MOVE, ToolTypes.LASSO, ToolTypes.SELECTION ];
+const PANE_TYPES = [ ToolTypes.MOVE, ToolTypes.LASSO, ToolTypes.SELECTION, ToolTypes.WAND ];
 export const usesInteractionPane = tool => PANE_TYPES.includes( tool );
+
+export const SELECTION_TOOLS = [ ToolTypes.SELECTION, ToolTypes.LASSO, ToolTypes.WAND ];
 
 export const canDraw = ( activeDocument, activeLayer ) => {
     return activeDocument &&
