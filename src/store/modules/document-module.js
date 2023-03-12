@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -63,6 +63,9 @@ export default {
             getCanvasInstance()?.setDimensions( width, height, true, true );
             getCanvasInstance()?.rescaleFn();
             getCanvasInstance()?.refreshFn();
+        },
+        setRuntimeSelection( state, selection ) {
+            Vue.set( state.documents[ state.activeIndex ], "selection", selection );
         },
         addNewDocument( state, nameOrDocument ) {
             const document = typeof nameOrDocument === "object" ? nameOrDocument : DocumentFactory.create({ name: nameOrDocument });

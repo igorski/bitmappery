@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -42,6 +42,8 @@ export default {
             [ ToolTypes.SELECTION ] : { lockRatio: false, xRatio: 1, yRatio: 1 },
             // see tool-options-fill.vue
             [ ToolTypes.FILL ] : { smartFill: true },
+            // see tool-options-wand.vue
+            [ ToolTypes.WAND ] : { threshold: 15, sampleMerged: false },
         },
         snapAlign : true,
         antiAlias : true,
@@ -57,6 +59,7 @@ export default {
         eraserOptions     : state => state.options[ ToolTypes.ERASER ],
         cloneOptions      : state => state.options[ ToolTypes.CLONE ],
         fillOptions       : state => state.options[ ToolTypes.FILL ],
+        wandOptions       : state => state.options[ ToolTypes.WAND ],
         snapAlign         : state => state.snapAlign,
         antiAlias         : state => state.antiAlias,
         pixelGrid         : state => state.pixelGrid,

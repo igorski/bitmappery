@@ -15,6 +15,7 @@ describe( "Vuex tool module", () => {
                 [ ToolTypes.CLONE ]     : { size: 10, opacity: 1, source: null, coords: null },
                 [ ToolTypes.SELECTION ] : { lockRatio: false, xRatio: 1, yRatio: 1 },
                 [ ToolTypes.FILL ]      : { smartFill: true },
+                [ ToolTypes.WAND ]      : { threshold: 15, sampleMerged: true }
             },
             snapAlign: true,
             antiAlias: true,
@@ -53,7 +54,11 @@ describe( "Vuex tool module", () => {
 
         it( "should be able to retrieve the fill options", () => {
             expect( getters.fillOptions( state )).toEqual({ smartFill: true });
-        })
+        });
+
+        it( "should be able to retrieve the magic wand options", () => {
+            expect( getters.wandOptions( state )).toEqual({ threshold: 15, sampleMerged: true });
+        });
 
         it( "should be able to retrieve the current snap and alignment state", () => {
             expect( getters.snapAlign ( state )).toBe( true );

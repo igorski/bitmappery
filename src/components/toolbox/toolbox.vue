@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -155,6 +155,11 @@ export default {
                 {
                     type: ToolTypes.LASSO,
                     i18n: "polygonalLasso", icon: "lasso", key: "L",
+                    disabled: !this.activeDocument, hasOptions: false
+                },
+                {
+                    type: ToolTypes.WAND,
+                    i18n: "magicWand", icon: "wand", key: "W",
                     disabled: !this.activeDocument, hasOptions: false
                 },
                 {

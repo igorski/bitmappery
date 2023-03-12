@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,11 +23,12 @@
 import Vue from "vue";
 import { sprite } from "zcanvas";
 import { isInsideTransparentArea } from "@/utils/canvas-util";
+import { createDocumentSnapshot, createLayerSnapshot } from "@/utils/document-util";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { isPointInRange, translatePoints, snapToAngle, rectToCoordinateList } from "@/math/point-math";
 import { scaleRectangle } from "@/math/rectangle-math";
-import { isSelectionClosed, createSelectionForRectangle } from "@/math/selection-math";
+import { isSelectionClosed, createSelectionForRectangle, selectByColor, mergeSelections } from "@/math/selection-math";
 import { fastRound } from "@/math/unit-math";
 import ToolTypes from "@/definitions/tool-types";
 import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
@@ -87,7 +88,7 @@ class InteractionPane extends sprite {
             // rectangle selection tool modes)
             if ( !document.selection ) {
                 this.setSelection( [] );
-            } else if ( this._lastTool !== activeTool ) {
+            } else if ( this._activeTool !== activeTool ) {
                 this.resetSelection();
             }
             this._hasSelection    = document.selection.length > 0;
@@ -101,7 +102,7 @@ class InteractionPane extends sprite {
             this.isDragging = false;
         }
         this.toolOptions = activeToolOptions;
-        this._lastTool   = activeTool;
+        this._activeTool = activeTool;
     }
 
     handleActiveTool( tool, remainInteractive ) {
@@ -205,7 +206,7 @@ class InteractionPane extends sprite {
 
     /* zCanvas.sprite overrides */
 
-    handlePress( x, y ) {
+    async handlePress( x, y ) {
         this.pointerDown = true;
         switch ( this.mode ) {
             default:
@@ -232,28 +233,36 @@ class InteractionPane extends sprite {
                 break;
 
             case MODE_SELECTION:
-                if ( !this._selectionClosed ) {
-                    const document      = this.getActiveDocument();
-                    const { selection } = document;
+                let completeSelection = false;
+                if ( this._activeTool === ToolTypes.WAND ) {
+                    const cvs = await ( this.toolOptions.sampleMerged ? createDocumentSnapshot( this.getActiveDocument() ) : createLayerSnapshot( this.getActiveLayer() ));
+                    let selection = selectByColor( cvs, x, y, this.toolOptions.threshold );
+                    if ( KeyboardService.hasShift() ) {
+                        selection = mergeSelections( selection, this.getActiveDocument().selection ?? [] );
+                    }
+                    this.canvas.store.commit( "setRuntimeSelection", selection );
+                    completeSelection = true;
+                }
+                else if ( !this._selectionClosed ) {
+                    const { selection } = this.getActiveDocument();
                     // selection mode, set the click coordinate as the first point in the selection
                     const firstPoint = selection[ 0 ];
-                    let storeHistory = false;
                     if ( firstPoint ) {
                         if ( KeyboardService.hasShift() ) {
                             ({ x, y } = snapToAngle( x, y, selection[ selection.length - 1 ] ));
                         }
                         else if ( isPointInRange( x, y, firstPoint.x, firstPoint.y, 5 / this.canvas.zoomFactor )) {
                             // point was in range of start coordinate, snap and close selection
-                            this._selectionClosed = true;
                             x = firstPoint.x;
                             y = firstPoint.y;
-                            storeHistory = true;
+                            completeSelection = true;
                         }
                     }
                     selection.push({ x, y });
-                    if ( storeHistory ) {
-                        storeSelectionHistory( document );
-                    }
+                }
+                if ( completeSelection ) {
+                    storeSelectionHistory( this.getActiveDocument() );
+                    this._selectionClosed = true;
                 }
                 break;
         }
@@ -274,7 +283,7 @@ class InteractionPane extends sprite {
                 if ( this._selectionClosed && this.pointerDown ) {
                     const document = this.getActiveDocument();
                     const currentSelection = document.selection;
-                    document.selection = translatePoints( currentSelection, x - this._dragStartEventCoordinates.x, y - this._dragStartEventCoordinates.y);
+                    document.selection = translatePoints( currentSelection, x - this._dragStartEventCoordinates.x, y - this._dragStartEventCoordinates.y );
                     this._dragStartEventCoordinates = { x, y }; // update to current position so we can easily move the selection using relative deltas
                     storeSelectionHistory( document, currentSelection, "drag" );
                 }

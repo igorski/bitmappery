@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2016-2022 - https://www.igorski.nl
+ * Igor Zinken 2016-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -37,7 +37,7 @@ let store, state, getters, commit, dispatch, listener,
     lastKeyDown = 0, lastKeyCode = "";
 
 const DEFAULT_BLOCKED    = [ 8, 32, 37, 38, 39, 40 ];
-const MOVABLE_TOOL_TYPES = [ ToolTypes.DRAG, ToolTypes.SELECTION, ToolTypes.LASSO ];
+const MOVABLE_TOOL_TYPES = [ ToolTypes.DRAG, ToolTypes.SELECTION, ToolTypes.LASSO, ToolTypes.WAND ];
 const BRUSH_TOOL_TYPES   = [ ToolTypes.BRUSH, ToolTypes.ERASER, ToolTypes.CLONE ];
 const defaultBlock = e => e.preventDefault();
 
@@ -411,6 +411,8 @@ function handleKeyDown( event ) {
             if ( hasOption ) {
                 dispatch( "requestDocumentClose" );
                 preventDefault( event );
+            } else {
+                setActiveTool( ToolTypes.WAND );
             }
             break;
 
@@ -548,6 +550,7 @@ function moveObject( axis = 0, dir = 0, activeTool ) {
             break;
         case ToolTypes.SELECTION:
         case ToolTypes.LASSO:
+        case ToolTypes.WAND:
             getCanvasInstance()?.interactionPane.setSelection(
                 translatePoints(
                     getters.activeDocument.selection,
