@@ -22,7 +22,8 @@
  */
 import Vue from "vue";
 import { sprite } from "zcanvas";
-import { isInsideTransparentArea, imageToCanvas } from "@/utils/canvas-util";
+import { isInsideTransparentArea } from "@/utils/canvas-util";
+import { createDocumentSnapshot, createLayerSnapshot } from "@/utils/document-util";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { isPointInRange, translatePoints, snapToAngle, rectToCoordinateList } from "@/math/point-math";
@@ -205,7 +206,7 @@ class InteractionPane extends sprite {
 
     /* zCanvas.sprite overrides */
 
-    handlePress( x, y ) {
+    async handlePress( x, y ) {
         this.pointerDown = true;
         switch ( this.mode ) {
             default:
@@ -234,20 +235,16 @@ class InteractionPane extends sprite {
             case MODE_SELECTION:
                 let completeSelection = false;
                 if ( this._activeTool === ToolTypes.WAND ) {
-                    // TODO: offset, zoom and rotation
-                    const document = this.getActiveDocument();
-                    const activeLayer = this.getActiveLayer();
-                    const source = this.toolOptions.sampleMerged ? this.canvas.getElement() : activeLayer.source;
-                    const cvs = source instanceof HTMLCanvasElement ? source : imageToCanvas( source, activeLayer.width, activeLayer.height );
+                    const cvs = await ( this.toolOptions.sampleMerged ? createDocumentSnapshot( this.getActiveDocument() ) : createLayerSnapshot( this.getActiveLayer() ));
                     let selection = selectByColor( cvs, x, y, this.toolOptions.threshold );
                     if ( KeyboardService.hasShift() ) {
-                        selection = mergeSelections( selection, document.selection ?? [] );
+                        selection = mergeSelections( selection, this.getActiveDocument().selection ?? [] );
                     }
                     this.canvas.store.commit( "setRuntimeSelection", selection );
                     completeSelection = true;
-                } else if ( !this._selectionClosed ) {
-                    const document      = this.getActiveDocument();
-                    const { selection } = document;
+                }
+                else if ( !this._selectionClosed ) {
+                    const { selection } = this.getActiveDocument();
                     // selection mode, set the click coordinate as the first point in the selection
                     const firstPoint = selection[ 0 ];
                     if ( firstPoint ) {
@@ -264,7 +261,7 @@ class InteractionPane extends sprite {
                     selection.push({ x, y });
                 }
                 if ( completeSelection ) {
-                    storeSelectionHistory( document );
+                    storeSelectionHistory( this.getActiveDocument() );
                     this._selectionClosed = true;
                 }
                 break;

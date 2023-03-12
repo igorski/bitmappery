@@ -23,7 +23,8 @@
 <template>
     <div class="tool-option">
         <h3 v-t="'magicWand'"></h3>
-        <div class="wrapper input">
+        <p v-t="'wandDescr'"></p>
+        <div class="wrapper full slider">
             <label v-t="'sampleMerged'"></label>
             <toggle-button
                 v-model="sampleMerged"
@@ -32,12 +33,12 @@
                 :disabled="!activeLayer"
             />
         </div>
-        <div class="wrapper input">
+        <div class="wrapper full input">
             <label v-t="'threshold'"></label>
             <input
                 type="number"
                 v-model.number="threshold"
-                class="input-field"
+                class="input-field threshold"
                 :min="1"
                 :max="100"
                 :disabled="!activeLayer"
@@ -97,4 +98,8 @@ export default {
 
 <style lang="scss" scoped>
 @import "@/styles/tool-option";
+
+.threshold {
+    width: 75px !important;
+}
 </style>
