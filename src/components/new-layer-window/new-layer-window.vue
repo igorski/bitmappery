@@ -65,8 +65,8 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import Modal     from "@/components/modal/modal";
-import SelectBox from '@/components/ui/select-box/select-box';
+import Modal     from "@/components/modal/modal.vue";
+import SelectBox from "@/components/ui/select-box/select-box.vue";
 import LayerFactory from "@/factories/layer-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import { LAYER_GRAPHIC, LAYER_TEXT } from "@/definitions/layer-types";

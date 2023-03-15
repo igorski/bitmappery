@@ -32,7 +32,7 @@ import { blobToResource, disposeResource } from "@/utils/resource-manager";
  */
 let worker;
 if ( typeof window.createImageBitmap === "function" ) {
-    worker = new Worker( new URL( "@/workers/image-file-to-resource.worker", import.meta.url ));
+    worker = new Worker( new URL( "@/workers/image-file-to-resource.worker", import.meta.url ), { type: "module" });
     worker.onmessage = handleWorkerMessage;
 }
 const imageLoadQueue = [];
@@ -69,6 +69,7 @@ function loadFile( file, callback ) {
                 },
                 error: reject,
             });
+            console.log(worker);
             worker.postMessage({ cmd: "loadImageFile", file });
         })
     } else {

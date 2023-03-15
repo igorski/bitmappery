@@ -67,8 +67,8 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import ColorPicker from "@/components/ui/color-picker/color-picker";
-import Modal from "@/components/modal/modal";
+import ColorPicker from "@/components/ui/color-picker/color-picker.vue";
+import Modal from "@/components/modal/modal.vue";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { focus } from "@/utils/environment-util";
 

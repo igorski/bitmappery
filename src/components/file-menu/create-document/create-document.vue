@@ -60,9 +60,9 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import Modal from "@/components/modal/modal";
+import Modal from "@/components/modal/modal.vue";
 import DocumentFactory from "@/factories/document-factory";
-import DimensionsFormatter from "@/components/ui/dimensions-formatter/dimensions-formatter";
+import DimensionsFormatter from "@/components/ui/dimensions-formatter/dimensions-formatter.vue";
 import { focus } from "@/utils/environment-util";
 import messages from "./messages.json";
 

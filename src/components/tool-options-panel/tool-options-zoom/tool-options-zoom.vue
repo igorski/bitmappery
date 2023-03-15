@@ -60,7 +60,7 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import Slider from "@/components/ui/slider/slider";
+import Slider from "@/components/ui/slider/slider.vue";
 import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import { fitInWindow, displayOriginalSize } from "@/utils/zoom-util";
 import messages from "./messages.json";

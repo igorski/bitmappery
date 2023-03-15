@@ -69,8 +69,8 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import { CREATE_DOCUMENT } from "@/definitions/modal-windows";
-import FileSelector from "./file-selector/file-selector";
-import SelectBox    from "@/components/ui/select-box/select-box";
+import FileSelector from "./file-selector/file-selector.vue";
+import SelectBox    from "@/components/ui/select-box/select-box.vue";
 import { mapSelectOptions } from "@/utils/search-select-util"
 import messages from "./messages.json";
 
@@ -105,13 +105,13 @@ export default {
          */
         dropboxImportType() {
             if ( this.dropbox ) {
-                return () => import( "./dropbox-connector/dropbox-connector" );
+                return () => import( "./dropbox-connector/dropbox-connector.vue" );
             }
             return null;
         },
         driveImportType() {
             if ( this.drive ) {
-                return () => import( "./google-drive-connector/google-drive-connector" );
+                return () => import( "./google-drive-connector/google-drive-connector.vue" );
             }
             return null;
         },

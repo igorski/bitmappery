@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import SelectBox from "@/components/ui/select-box/select-box";
+import SelectBox from "@/components/ui/select-box/select-box.vue";
 import { pixelsToInch, pixelsToCm, pixelsToMm, inchesToPixels, cmToPixels, mmToPixels,  } from "@/math/unit-math";
 import messages from "./messages.json";
 

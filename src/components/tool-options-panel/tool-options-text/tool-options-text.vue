@@ -100,8 +100,8 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import VueSelect from "vue-select";
-import SelectBox from "@/components/ui/select-box/select-box";
-import Slider from "@/components/ui/slider/slider";
+import SelectBox from "@/components/ui/select-box/select-box.vue";
+import Slider from "@/components/ui/slider/slider.vue";
 import { DEFAULT_LAYER_NAME, LAYER_TEXT } from "@/definitions/layer-types";
 import FontPreview from "./font-preview/font-preview";
 import { mapSelectOptions } from "@/utils/search-select-util";
@@ -141,7 +141,7 @@ export default {
         },
         colorPicker() {
             // load async as this adds to the bundle size
-            return () => import( "@/components/ui/color-picker/color-picker" );
+            return () => import( "@/components/ui/color-picker/color-picker.vue" );
         },
         fonts() {
             return mapSelectOptions( [ ...googleFonts ].sort() );

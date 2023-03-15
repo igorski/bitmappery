@@ -79,7 +79,7 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import { ToggleButton } from "vue-js-toggle-button";
-import Modal from "@/components/modal/modal";
+import Modal from "@/components/modal/modal.vue";
 import { enqueueState } from "@/factories/history-state-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { renderFullSize, sliceTiles } from "@/utils/document-util";

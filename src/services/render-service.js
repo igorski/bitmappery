@@ -30,6 +30,7 @@ import { replaceLayerSource } from "@/utils/layer-util";
 import { getLayerCache, setLayerCache } from "@/rendering/cache/bitmap-cache";
 import { renderMultiLineText } from "@/rendering/text";
 import { loadGoogleFont } from "@/services/font-service";
+import FilterWorker from "@/workers/filter.worker.js?worker&inline";
 
 const jobQueue = [];
 let UID = 0;
@@ -43,7 +44,7 @@ export const renderState = Vue.observable({ pending: 0, reset: () => renderState
 export const setWasmFilters = enabled => {
     useWasm = enabled;
     if ( enabled && !wasmWorker ) {
-        wasmWorker = new Worker( new URL( "@/workers/filter.worker", import.meta.url ));
+        wasmWorker = new FilterWorker();
         wasmWorker.onmessage = handleWorkerMessage;
         wasmWorker.postMessage({ cmd: "initWasm" });
     }
@@ -160,7 +161,7 @@ const runFilterJob = ( source, jobSettings ) => {
             worker = wasmWorker;
         } else {
             // when not in WASM mode, Worker is lazily created per process so we can parallelize
-            worker = new Worker( new URL( "@/workers/filter.worker", import.meta.url ));
+            worker = new FilterWorker();
             worker.onmessage = handleWorkerMessage;
             onComplete = () => worker.terminate();
         }

@@ -158,7 +158,7 @@ export default {
     i18n: { messages },
     components: {
         Draggable    : () => import( "vuedraggable" ),
-        LayerFilters : () => import( "@/components/layer-filters/layer-filters" )
+        LayerFilters : () => import( "@/components/layer-filters/layer-filters.vue" )
     },
     data: () => ({
         editable: false,

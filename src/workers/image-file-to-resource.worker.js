@@ -27,9 +27,11 @@ self.addEventListener( "message", event => {
 
     switch ( cmd ) {
         default:
+        console.info('oi',cmd);
             return;
 
         case "loadImageFile":
+        console.info('jajajaj',file);
             const blobUrl = blobToResource( file );
             self.createImageBitmap( file )
                 .then( result => {

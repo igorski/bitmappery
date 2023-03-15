@@ -57,7 +57,7 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import Modal from "@/components/modal/modal";
+import Modal from "@/components/modal/modal.vue";
 import { focus } from "@/utils/environment-util";
 import messages from "./messages.json";
 

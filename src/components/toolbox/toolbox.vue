@@ -122,7 +122,7 @@ export default {
         ]),
         colorPicker() {
             // load async as this adds to the bundle size
-            return () => import( "@/components/ui/color-picker/color-picker" );
+            return () => import( "@/components/ui/color-picker/color-picker.vue" );
         },
         collapsed: {
             get() {

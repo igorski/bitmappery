@@ -56,7 +56,7 @@
 <script>
 import { mapGetters, mapMutations }  from "vuex";
 import ToolTypes, { MAX_BRUSH_SIZE, canDraw } from "@/definitions/tool-types";
-import Slider   from "@/components/ui/slider/slider";
+import Slider from "@/components/ui/slider/slider.vue";
 import messages from "./messages.json";
 
 export default {

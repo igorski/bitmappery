@@ -87,8 +87,8 @@
 import { mapGetters, mapMutations }  from "vuex";
 import ToolTypes, { MAX_BRUSH_SIZE, canDraw } from "@/definitions/tool-types";
 import BrushTypes from "@/definitions/brush-types";
-import SelectBox from '@/components/ui/select-box/select-box';
-import Slider from "@/components/ui/slider/slider";
+import SelectBox from "@/components/ui/select-box/select-box.vue";
+import Slider from "@/components/ui/slider/slider.vue";
 import { ToggleButton } from "vue-js-toggle-button";
 import messages from "./messages.json";
 
