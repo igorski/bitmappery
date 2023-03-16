@@ -1,3 +1,4 @@
+import { it, describe, expect } from "vitest";
 import { JPEG, PNG, GIF, WEBP, isCompressableFileType, isTransparent } from "@/definitions/image-types";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
 

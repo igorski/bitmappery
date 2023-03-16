@@ -1,12 +1,10 @@
-/**
- * @jest-environment jsdom
- */
+import { it, describe, expect, vi } from "vitest";
 import storeModule from "@/store/modules/image-module";
 
 const { getters, mutations, actions } = storeModule;
 
 let mockUpdateFn;
-jest.mock("@/utils/resource-manager", () => ({
+vi.mock("@/utils/resource-manager", () => ({
     imageToResource: (...args) => mockUpdateFn?.( "imageToResource", ...args ),
     disposeResource: (...args) => mockUpdateFn?.( "disposeResource", ...args ),
     isResource: (...args) => mockUpdateFn?.( "isResource", ...args ),
@@ -52,7 +50,7 @@ describe( "Vuex image module", () => {
             const state = {
                 images: [ image1, image2 ]
             };
-            mockUpdateFn = jest.fn();
+            mockUpdateFn = vi.fn();
             mutations.removeImage( state, image1 );
             // assert image has been removed from list
             expect( state.images ).toEqual([ image2 ]);
@@ -68,7 +66,7 @@ describe( "Vuex image module", () => {
                         { source: "image2src", usages: [ "foo" ] }
                     ]
                 };
-                mockUpdateFn = jest.fn();
+                mockUpdateFn = vi.fn();
                 mutations.removeImagesForDocument( state, { id: "foo" });
 
                 // assert image2 has been removed from the list as no usages remained
@@ -101,7 +99,7 @@ describe( "Vuex image module", () => {
                     image: { src: "blob:http://foo" },
                     size: { width: 100, height: 100 },
                 };
-                mockUpdateFn = jest.fn(fn => fn === "isResource" ? true : false );
+                mockUpdateFn = vi.fn(fn => fn === "isResource" ? true : false );
                 const image = await actions.addImage({ state }, input );
                 // assert image has been added to list
                 expect( state.images ).toEqual([ {
@@ -144,7 +142,7 @@ describe( "Vuex image module", () => {
                     image: { src: "base64" },
                     size: { width: 100, height: 100 },
                 };
-                mockUpdateFn = jest.fn( fn => fn === "isResource" ? false : "" );
+                mockUpdateFn = vi.fn( fn => fn === "isResource" ? false : "" );
                 const image = await actions.addImage({ state }, input );
                 // assert image has been added to list
                 expect( state.images ).toEqual([{

@@ -1,6 +1,4 @@
-/**
- * @jest-environment jsdom
- */
+import { it, describe, expect } from "vitest";
 import { sprite } from "zcanvas";
 import {
     getCanvasInstance, setCanvasInstance,

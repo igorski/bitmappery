@@ -1,3 +1,4 @@
+import { it, describe, expect } from "vitest";
 import storeModule from "@/store/modules/canvas-module";
 
 const { getters, mutations } = storeModule;

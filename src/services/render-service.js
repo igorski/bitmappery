@@ -30,7 +30,7 @@ import { replaceLayerSource } from "@/utils/layer-util";
 import { getLayerCache, setLayerCache } from "@/rendering/cache/bitmap-cache";
 import { renderMultiLineText } from "@/rendering/text";
 import { loadGoogleFont } from "@/services/font-service";
-import FilterWorker from "@/workers/filter.worker.js?worker&inline";
+import FilterWorker from "@/workers/filter.worker.js?worker";
 
 const jobQueue = [];
 let UID = 0;

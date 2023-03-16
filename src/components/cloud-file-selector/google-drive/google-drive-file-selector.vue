@@ -21,11 +21,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <script>
-import CloudFileSelector from "../cloud-file-selector";
 import { mapMutations } from "vuex";
+import CloudFileSelector from "../cloud-file-selector.vue";
+import GoogleDriveImagePreview from "./google-drive-image-preview.vue";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
-import GoogleDriveImagePreview from "./google-drive-image-preview";
 import { getGoogleDriveService } from "@/utils/cloud-service-loader";
 
 let ROOT_FOLDER, listFolder, createFolder, downloadFileAsBlob, deleteEntry;

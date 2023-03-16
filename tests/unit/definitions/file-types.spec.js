@@ -1,10 +1,11 @@
+import { it, describe, expect, vi } from "vitest";
 import {
     PROJECT_FILE_EXTENSION, PSD,
     isImageFile, isProjectFile, isThirdPartyDocument
 } from "@/definitions/file-types";
 import { ALL_IMAGE_TYPES } from "@/definitions/image-types";
 
-jest.mock( "@/utils/environment-util", () => ({
+vi.mock( "@/utils/environment-util", () => ({
     isSafari: () => false, // forces webp support
 }));
 

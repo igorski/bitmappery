@@ -37,7 +37,7 @@
                 class="component__header-button button--ghost"
                 @click="collapsed = !collapsed"
             >
-                <img :src="`./assets/icons/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
+                <img :src="`../../images/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
             </button>
         </div>
         <template v-if="!collapsed">
@@ -92,26 +92,26 @@
                                         'layer--highlight': layer.mask === activeLayerMask
                                     }"
                                     @click="handleLayerMaskClick( layer )"
-                                ><img src="@/assets/icons/icon-mask.svg" /></button>
+                                ><img src="@/images/icon-mask.svg" /></button>
                                 <button
                                     v-tooltip="$t('toggleVisibility')"
                                     type="button"
                                     class="layer__actions-button button--ghost"
                                     @click="toggleLayerVisibility( layer.index )"
                                     :class="{ 'layer__actions-button--disabled': !layer.visible }"
-                                ><img src="@/assets/icons/icon-eye.svg" /></button>
+                                ><img src="@/images/icon-eye.svg" /></button>
                                 <button
                                     v-tooltip="$t('filters')"
                                     type="button"
                                     class="layer__actions-button button--ghost"
                                     @click="handleFiltersClick( layer.index )"
-                                ><img src="@/assets/icons/icon-settings.svg" /></button>
+                                ><img src="@/images/icon-settings.svg" /></button>
                                 <button
                                     v-tooltip="$t( layer.mask ? 'deleteMask' : 'deleteLayer' )"
                                     type="button"
                                     class="layer__actions-button button--ghost"
                                     @click="handleRemoveClick( layer.index )"
-                                ><img src="@/assets/icons/icon-trashcan.svg" /></button>
+                                ><img src="@/images/icon-trashcan.svg" /></button>
                             </div>
                         </div>
                     </draggable>

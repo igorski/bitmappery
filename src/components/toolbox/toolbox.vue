@@ -34,7 +34,7 @@
                 class="component__header-button button--ghost"
                 @click="collapsed = !collapsed"
             >
-                <img :src="`./assets/icons/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
+                <img :src="`./images/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
             </button>
         </div>
         <!-- click.stop.prevent is to prevent document scroll on double tap on iOS -->
@@ -54,7 +54,7 @@
                 :disabled="!canUndo"
                 @click="undo()"
             >
-                <img src="@/assets/icons/icon-history.svg" />
+                <img src="@/images/icon-history.svg" />
             </button>
             <button
                 type="button"
@@ -64,7 +64,7 @@
                 :disabled="!canRedo"
                 @click="redo()"
             >
-                <img src="@/assets/icons/icon-history.svg" class="mirrored" />
+                <img src="@/images/icon-history.svg" class="mirrored" />
             </button>
             <!-- tools -->
             <button

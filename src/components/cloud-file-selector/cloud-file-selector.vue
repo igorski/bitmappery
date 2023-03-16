@@ -486,12 +486,12 @@ $actionsHeight: 74px;
         height: inherit;
 
         &--folder {
-            background: url("../../assets/images/folder.png") no-repeat 50% $spacing-xlarge;
+            background: url("@@/images/folder.png") no-repeat 50% $spacing-xlarge;
             background-size: 50%;
         }
 
         &--document {
-            background: url("../../assets/icons/icon-bpy.svg") no-repeat 50% $spacing-xlarge;
+            background: url("@@/icons/icon-bpy.svg") no-repeat 50% $spacing-xlarge;
             background-size: 50%;
         }
     }

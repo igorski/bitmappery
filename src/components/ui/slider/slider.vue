@@ -109,6 +109,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@use "sass:math";
+
 @import "@/styles/_mixins";
 
 $track-color: #333;
@@ -164,7 +166,7 @@ $contrast: 5%;
 
 input[type=range] {
     -webkit-appearance: none;
-    margin: $thumb-height/2 0;
+    margin: math.div( $thumb-height, 2 ) 0;
     width: $track-width;
     background-color: transparent;
 
@@ -183,7 +185,7 @@ input[type=range] {
     &::-webkit-slider-thumb {
         @include thumb;;
         -webkit-appearance: none;
-        margin-top: ((-$track-border-width * 2 + $track-height) / 2) - ($thumb-height / 2);
+        margin-top: math.div( -$track-border-width * 2 + $track-height, 2 ) - math.div( $thumb-height, 2 );
     }
 
     &:focus::-webkit-slider-runnable-track {
@@ -254,7 +256,7 @@ input[type=range] {
         &::-webkit-slider-thumb {
             width: $mobile-thumb-width;
             height: $mobile-thumb-height;
-            margin-top: ((-$track-border-width * 2 + $track-height) / 2) - ($mobile-thumb-height / 2);
+            margin-top: math.div( -$track-border-width * 2 + $track-height, 2 ) - math.div( $mobile-thumb-height, 2 );
             transform: scale(.5);
         }
     }

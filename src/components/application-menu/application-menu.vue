@@ -374,12 +374,12 @@
         >
             <img
                 v-if="isFullscreen"
-                src="@/assets/icons/icon-minimize.svg"
+                src="@/images/icon-minimize.svg"
                 :alt="$t( 'minimize' )"
             />
             <img
                 v-else
-                src="@/assets/icons/icon-maximize.svg"
+                src="@/images/icon-maximize.svg"
                 :alt="$t( 'maximize' )"
             />
         </button>
@@ -694,6 +694,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@use "sass:math";
+
 @import "@/styles/_mixins";
 @import "@/styles/typography";
 
@@ -704,7 +706,7 @@ $toggle-width: 50px;
     letter-spacing: $spacing-xxsmall;
 
     .emphasis {
-        letter-spacing: $spacing-xxsmall / 4;
+        letter-spacing: math.div( $spacing-xxsmall, 4 );
     }
 }
 
@@ -962,7 +964,7 @@ h1 {
 }
 
 .fullscreen-button {
-    height: #{( $menu-height / 2 )};
+    height: math.div( $menu-height, 2 );
     cursor: pointer;
     background: transparent;
     border: none;
@@ -973,7 +975,7 @@ h1 {
 
     @include mobile() {
         position: absolute;
-        top: #{( $menu-height / 2 ) - 10px};
+        top: #{math.div( $menu-height, 2 ) - 10px};
         right: $spacing-medium;
     }
 }

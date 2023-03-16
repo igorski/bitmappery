@@ -1,3 +1,4 @@
+import { it, describe, expect } from "vitest";
 import {
     translatePoints, isPointInRange, isCoordinateInHorizontalRange, isCoordinateInVerticalRange
 } from "@/math/point-math";

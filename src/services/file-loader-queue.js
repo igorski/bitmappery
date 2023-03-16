@@ -22,6 +22,7 @@
  */
 import { loader } from "zcanvas";
 import { blobToResource, disposeResource } from "@/utils/resource-manager";
+import FileToResourceWorker from "@/workers/image-file-to-resource.worker?worker";
 
 /**
  * We can use a Worker to load the files to bitmaps so we can retrieve
@@ -30,11 +31,14 @@ import { blobToResource, disposeResource } from "@/utils/resource-manager";
  * Ironically, Safari yields a 3500 % speedup without the Worker. Eitherway,
  * loading large queues should maintain responsiveness of the application.
  */
-let worker;
-if ( typeof window.createImageBitmap === "function" ) {
-    worker = new Worker( new URL( "@/workers/image-file-to-resource.worker", import.meta.url ), { type: "module" });
-    worker.onmessage = handleWorkerMessage;
-}
+let _worker = undefined;
+const getWorker = () => {
+    if ( _worker === undefined && typeof window.createImageBitmap === "function" ) {
+        _worker = new FileToResourceWorker();
+        _worker.onmessage = handleWorkerMessage;
+    }
+    return _worker;
+};
 const imageLoadQueue = [];
 
 /**
@@ -59,6 +63,7 @@ export const loadImageFiles = ( fileList, callback, ctx ) => {
 /* internal methods */
 
 function loadFile( file, callback ) {
+    const worker = getWorker();
     if ( worker ) {
         return new Promise(( resolve, reject ) => {
             imageLoadQueue.push({
@@ -69,9 +74,8 @@ function loadFile( file, callback ) {
                 },
                 error: reject,
             });
-            console.log(worker);
             worker.postMessage({ cmd: "loadImageFile", file });
-        })
+        });
     } else {
         return new Promise( async ( resolve, reject ) => {
             let imageSource;

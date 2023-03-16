@@ -1,3 +1,4 @@
+import { it, describe, expect } from "vitest";
 import { getRectangleForSelection, createSelectionForRectangle, isSelectionRectangular, isSelectionClosed } from "@/math/selection-math";
 
 describe( "selection math", () => {

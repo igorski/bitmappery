@@ -297,6 +297,8 @@ export default {
  * here we set the global typography and layout styles
  * we expect to use throughout
  */
+@use "sass:math";
+
 @import "@/styles/_global";
 @import "@/styles/_mixins";
 @import "@/styles/panel";
@@ -355,20 +357,20 @@ export default {
             height: 100%;
 
             .tool-options-panel {
-                height: calc(#{$optionsHeight - ($spacing-medium / 2 )});
+                height: calc(#{$optionsHeight - math.div( $spacing-medium, 2 )});
             }
             .layer-panel {
-                height: calc(100% - #{$optionsHeight + ($spacing-medium / 2 )});
+                height: calc(100% - #{$optionsHeight + math.div( $spacing-medium, 2 )});
                 margin-top: $spacing-medium;
             }
 
             @include minHeight( 900px ) {
                 $optionsHeight: 390px;
                 .tool-options-panel {
-                    height: calc(#{$optionsHeight - ($spacing-medium / 2 )});
+                    height: calc(#{$optionsHeight - math.div( $spacing-medium, 2 )});
                 }
                 .layer-panel {
-                    height: calc(100% - #{$optionsHeight + ($spacing-medium / 2 )});
+                    height: calc(100% - #{$optionsHeight + math.div( $spacing-medium, 2 )});
                     margin-top: $spacing-medium;
                 }
             }

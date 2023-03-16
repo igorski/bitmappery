@@ -1,26 +1,31 @@
+import { it, describe, expect, vi } from "vitest";
 import LayerFactory, { layerToRect } from "@/factories/layer-factory";
 import { LAYER_GRAPHIC, LAYER_IMAGE, LAYER_MASK } from "@/definitions/layer-types";
 
 let mockUpdateFn;
-jest.mock( "@/utils/canvas-util", () => ({
+vi.mock( "@/utils/canvas-util", () => ({
     imageToBase64: (...args) => mockUpdateFn?.( "imageToBase64", ...args ),
     base64toCanvas: (...args) => mockUpdateFn?.( "base64toCanvas", ...args ),
 }));
-jest.mock( "@/factories/effects-factory", () => ({
+vi.mock( "@/factories/effects-factory", () => ({
     create: (...args) => mockUpdateFn?.( "createEffects", ...args ),
     serialize: (...args) => mockUpdateFn?.( "serializeEffects", ...args ),
     deserialize: (...args) => mockUpdateFn?.( "deserializeEffects", ...args ),
 }));
-jest.mock( "@/factories/filters-factory", () => ({
+vi.mock( "@/factories/filters-factory", () => ({
     create: (...args) => mockUpdateFn?.( "createFilters", ...args ),
     serialize: (...args) => mockUpdateFn?.( "serializeFilters", ...args ),
     deserialize: (...args) => mockUpdateFn?.( "deserializeFilters", ...args ),
 }));
-jest.mock( "@/factories/text-factory", () => ({
-    create: (...args) => mockUpdateFn?.( "createText", ...args ),
-    serialize: (...args) => mockUpdateFn?.( "serializeText", ...args ),
-    deserialize: (...args) => mockUpdateFn?.( "deserializeText", ...args ),
-}));
+vi.mock( "@/factories/text-factory", async () => {
+     const actual = await vi.importActual( "@/factories/text-factory" ),
+     return {
+         ...actual,
+        create: (...args) => mockUpdateFn?.( "createText", ...args ),
+        serialize: (...args) => mockUpdateFn?.( "serializeText", ...args ),
+        deserialize: (...args) => mockUpdateFn?.( "deserializeText", ...args ),
+    }
+});
 
 describe( "Layer factory", () => {
     describe( "when creating a new layer", () => {
@@ -118,7 +123,7 @@ describe( "Layer factory", () => {
                 effects: { rotation: 270 },
                 filters: { contrast: .7 }
             });
-            mockUpdateFn = jest.fn(( fn, data ) => data );
+            mockUpdateFn = vi.fn(( fn, data ) => data );
 
             const serialized = LayerFactory.serialize( layer );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "imageToBase64", layer.source, layer.width, layer.height, layer.transparent );
@@ -127,7 +132,7 @@ describe( "Layer factory", () => {
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 4, "serializeEffects", layer.effects );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 5, "serializeFilters", layer.filters );
 
-            mockUpdateFn = jest.fn(( fn, data ) => data );
+            mockUpdateFn = vi.fn(( fn, data ) => data );
             const deserialized = await LayerFactory.deserialize( serialized );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "base64toCanvas", expect.any( Object ), layer.width, layer.height );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "base64toCanvas", expect.any( Object ), layer.width, layer.height );

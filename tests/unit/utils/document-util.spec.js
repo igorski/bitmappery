@@ -1,6 +1,4 @@
-/**
- * @jest-environment jsdom
- */
+import { it, describe, expect, beforeEach } from "vitest";
 import { getAlignableObjects } from "@/utils/document-util";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";

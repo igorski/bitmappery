@@ -21,12 +21,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <script>
-import CloudFileSelector from "../cloud-file-selector";
 import { mapMutations } from "vuex";
+import CloudFileSelector from "../cloud-file-selector.vue";
+import DropboxImagePreview from "./dropbox-image-preview.vue";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
-import DropboxImagePreview from "./dropbox-image-preview";
-import { getDropboxService } from "@/utils/cloud-service-loader";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
+import { getDropboxService } from "@/utils/cloud-service-loader";
 
 let listFolder, createFolder, downloadFileAsBlob, deleteEntry;
 

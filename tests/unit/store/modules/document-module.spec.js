@@ -1,22 +1,20 @@
-/**
- * @jest-environment jsdom
- */
+import { it, describe, expect, vi } from "vitest";
 import DocumentModule  from "@/store/modules/document-module";
 import { LAYER_IMAGE } from "@/definitions/layer-types";
 
 const { getters, mutations } = DocumentModule;
 
 let mockUpdateFn;
-jest.mock( "@/factories/sprite-factory", () => ({
+vi.mock( "@/factories/sprite-factory", () => ({
     flushLayerSprites: (...args) => mockUpdateFn?.( "flushLayerSprites", ...args ),
     runSpriteFn: (...args) => mockUpdateFn?.( "runSpriteFn", ...args ),
     getSpriteForLayer: (...args) => mockUpdateFn?.( "getSpriteForLayer", ...args ),
     getCanvasInstance: (...args) => mockUpdateFn?.( "getCanvasInstance", ...args ),
 }));
-jest.mock( "@/factories/layer-factory", () => ({
+vi.mock( "@/factories/layer-factory", () => ({
     create: (...args) => mockUpdateFn?.( "create", ...args ),
 }));
-jest.mock( "@/utils/render-util", () => ({
+vi.mock( "@/utils/render-util", () => ({
     resizeLayerContent: (...args) => mockUpdateFn?.( "resizeLayerContent", ...args ),
     cropLayerContent: (...args) => mockUpdateFn?.( "cropLayerContent", ...args ),
 }));
@@ -123,7 +121,7 @@ describe( "Vuex document module", () => {
                     documents: [{ name: "foo" }, { name: "bar" }],
                     activeIndex: 0
                 };
-                mockUpdateFn = jest.fn();
+                mockUpdateFn = vi.fn();
                 mutations.setActiveDocument( state, 1 );
                 expect( mockUpdateFn ).toHaveBeenCalledWith( "runSpriteFn", expect.any( Function ), state.documents[ 1 ]);
             });
@@ -167,11 +165,11 @@ describe( "Vuex document module", () => {
                 };
                 const size = { width: 75, height: 40 };
                 const mockCanvas = {
-                    setDimensions: jest.fn(),
-                    rescaleFn: jest.fn(),
-                    refreshFn: jest.fn(),
+                    setDimensions: vi.fn(),
+                    rescaleFn: vi.fn(),
+                    refreshFn: vi.fn(),
                 };
-                mockUpdateFn = jest.fn( fn => {
+                mockUpdateFn = vi.fn( fn => {
                     return fn === "getCanvasInstance" ? mockCanvas : null
                 });
                 mutations.setActiveDocumentSize( state, size );
@@ -221,7 +219,7 @@ describe( "Vuex document module", () => {
                 ],
                 activeIndex: 1
             };
-            mockUpdateFn = jest.fn();
+            mockUpdateFn = vi.fn();
             mutations.closeActiveDocument( state );
             expect( state.documents ).toEqual([ { name: "foo", layers: [ layer1 ] }]);
             expect( state.activeIndex ).toEqual( 0 );
@@ -235,7 +233,7 @@ describe( "Vuex document module", () => {
                     documents: [ { name: "foo", width: 1000, height: 1000, layers: [] } ],
                     activeIndex: 0
                 };
-                mockUpdateFn = jest.fn((fn, data) => data );
+                mockUpdateFn = vi.fn((fn, data) => data );
                 const opts = { name: "layer1", width: 50, height: 100 };
                 mutations.addLayer( state, opts );
                 // assert LayerFactory is invoked with provided opts when calling addLayer()
@@ -252,7 +250,7 @@ describe( "Vuex document module", () => {
                     documents: [ { name: "foo", width: 1000, height: 1000, layers: [] } ],
                     activeIndex: 0
                 };
-                mockUpdateFn = jest.fn((fn, data) => data );
+                mockUpdateFn = vi.fn((fn, data) => data );
                 const opts = { name: "layer1" };
                 mutations.addLayer( state, opts );
                 expect( state.documents[ 0 ].layers ).toEqual([{
@@ -308,7 +306,7 @@ describe( "Vuex document module", () => {
                     activeIndex: 0,
                     activeLayerIndex: 1,
                 };
-                mockUpdateFn = jest.fn();
+                mockUpdateFn = vi.fn();
                 const layer = state.documents[ 0 ].layers[ 1 ];
                 mutations.removeLayer( state, 1 );
                 expect( state.documents[ 0 ].layers ).toEqual([
@@ -425,8 +423,8 @@ describe( "Vuex document module", () => {
                     height: 150,
                     type: LAYER_IMAGE
                 };
-                const mockSprite = { src: "bitmap", cacheEffects: jest.fn() };
-                mockUpdateFn = jest.fn( fn => {
+                const mockSprite = { src: "bitmap", cacheEffects: vi.fn() };
+                mockUpdateFn = vi.fn( fn => {
                     if ( fn === "getSpriteForLayer" ) return mockSprite;
                     return true;
                 });
@@ -446,8 +444,8 @@ describe( "Vuex document module", () => {
                     source: new Image(),
                     type: LAYER_IMAGE
                 };
-                const mockSprite = { src: "bitmap", resetFilterAndRecache: jest.fn() };
-                mockUpdateFn = jest.fn( fn => {
+                const mockSprite = { src: "bitmap", resetFilterAndRecache: vi.fn() };
+                mockUpdateFn = vi.fn( fn => {
                     if ( fn === "getSpriteForLayer" ) return mockSprite;
                     return true;
                 });
@@ -458,8 +456,8 @@ describe( "Vuex document module", () => {
             it( "should be able to update the effects of a specific layer within the active Document", () => {
                 const index   = 0;
                 const effects = { rotation: 1.6 };
-                const mockSprite = { src: "bitmap", invalidate: jest.fn() };
-                mockUpdateFn = jest.fn( fn => {
+                const mockSprite = { src: "bitmap", invalidate: vi.fn() };
+                mockUpdateFn = vi.fn( fn => {
                     if ( fn === "getSpriteForLayer" ) return mockSprite;
                     return true;
                 });
@@ -482,7 +480,7 @@ describe( "Vuex document module", () => {
                 ],
                 activeIndex: 0,
             };
-            mockUpdateFn = jest.fn();
+            mockUpdateFn = vi.fn();
             const scaleX = 1.1;
             const scaleY = 1.2;
             await mutations.resizeActiveDocumentContent( state, { scaleX, scaleY });
@@ -499,7 +497,7 @@ describe( "Vuex document module", () => {
                 ],
                 activeIndex: 0,
             };
-            mockUpdateFn = jest.fn();
+            mockUpdateFn = vi.fn();
             const left = 10;
             const top  = 15;
             await mutations.cropActiveDocumentContent( state, { left, top });

@@ -1,10 +1,11 @@
+import { it, describe, expect, vi } from "vitest";
 import {
     getLayerCache, setLayerCache, hasLayerCache, clearCacheProperty,
     flushLayerCache, flushCache
 } from "@/rendering/cache/bitmap-cache";
 import LayerFactory from "@/factories/layer-factory";
 
-jest.mock( "@/utils/canvas-util", () => ({}));
+vi.mock( "@/utils/canvas-util", () => ({}));
 
 describe( "Bitmap cache", () => {
     const layer = LayerFactory.create();

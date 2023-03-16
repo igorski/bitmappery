@@ -1,3 +1,4 @@
+import { it, describe, expect } from "vitest";
 import { areEqual, scaleRectangle } from "@/math/rectangle-math";
 
 describe( "Rectangle math utilities", () => {

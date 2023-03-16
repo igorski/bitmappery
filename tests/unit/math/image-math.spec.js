@@ -1,3 +1,4 @@
+import { it, describe, expect } from "vitest";
 import { scaleToRatio, constrain, isPortrait, isLandscape, isSquare } from "@/math/image-math";
 
 describe( "Image math utilities", () => {

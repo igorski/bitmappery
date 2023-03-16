@@ -1,22 +1,20 @@
-/**
- * @jest-environment jsdom
- */
+import { it, describe, expect, beforeEach, afterAll, vi } from "vitest";
 import UndoManager from "undo-manager";
 import store, { STATES_TO_SAVE } from "@/store/modules/history-module";
 const { getters, mutations, actions }  = store;
 
 let mockUpdateFn;
-jest.mock( "@/factories/history-state-factory", () => ({
+vi.mock( "@/factories/history-state-factory", () => ({
     forceProcess: (...args) => mockUpdateFn?.( "forceProcess", ...args ),
     flushQueue: (...args) => mockUpdateFn?.( "flushQueue", ...args )
 }));
-jest.mock( "@/utils/resource-manager", () => ({
+vi.mock( "@/utils/resource-manager", () => ({
     "disposeResource": (...args) => mockUpdateFn?.( "disposeResource", ...args ),
 }));
 
 describe( "History State module", () => {
     const noop = () => {};
-    let commit = jest.fn();
+    let commit = vi.fn();
     let state;
 
     beforeEach( () => {
@@ -30,7 +28,7 @@ describe( "History State module", () => {
     });
 
     afterAll(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     describe("getters", () => {
@@ -112,7 +110,7 @@ describe( "History State module", () => {
             });
 
             it( "should free memory associated with optional Blob resources of popped states", () => {
-                mockUpdateFn = jest.fn();
+                mockUpdateFn = vi.fn();
 
                 // add enough states to exceed the limit to pop old states
                 for ( let i = 0; i < STATES_TO_SAVE + 2; ++i ) {
@@ -144,7 +142,7 @@ describe( "History State module", () => {
         });
 
         it("should be able to clear its history and allocated state resources", () => {
-            mockUpdateFn = jest.fn();
+            mockUpdateFn = vi.fn();
 
             function shouldntRun() {
                 throw new Error( "undo/redo callback should not have fired after clearing the undo history" );
@@ -171,8 +169,8 @@ describe( "History State module", () => {
 
     describe("actions", () => {
         it("should be able to redo an action", async () => {
-            commit = jest.fn();
-            const redo = jest.fn();
+            commit = vi.fn();
+            const redo = vi.fn();
             mutations.saveState(state, { undo: noop, redo: redo });
 
             await actions.undo({ state, commit, getters: { canUndo: state.undoManager.hasUndo() }});
@@ -184,9 +182,9 @@ describe( "History State module", () => {
         });
 
         it("should be able to undo an action when an action was stored in its state history", async () => {
-            mockUpdateFn = jest.fn();
+            mockUpdateFn = vi.fn();
 
-            const undo = jest.fn();
+            const undo = vi.fn();
             mutations.saveState(state, { undo: undo, redo: noop });
 
             await actions.undo({ state, commit, getters: { canUndo: state.undoManager.hasUndo() }});

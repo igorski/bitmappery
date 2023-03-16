@@ -1,8 +1,9 @@
+import { it, describe, expect, vi } from "vitest";
 import TextFactory, { isEqual } from "@/factories/text-factory";
 import { googleFonts } from "@/definitions/font-types";
 
 let mockUpdateFn;
-jest.mock( "@/services/font-service", () => ({
+vi.mock( "@/services/font-service", () => ({
     loadGoogleFont: (...args) => mockUpdateFn?.( "loadGoogleFont", ...args ),
 }));
 
@@ -45,7 +46,7 @@ describe( "Text factory", () => {
 
     describe( "when serializing and deserializing a Text structure", () => {
         it( "should do so without data loss", async () => {
-            mockUpdateFn = jest.fn();
+            mockUpdateFn = vi.fn();
             const text = TextFactory.create({
                 size: 10,
                 unit: "pt",

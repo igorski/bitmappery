@@ -1,6 +1,4 @@
-/**
- * @jest-environment jsdom
- */
+import { it, describe, expect } from "vitest";
 import storeModule from "@/store/modules/preferences-module";
 
 const { getters, mutations, actions } = storeModule;

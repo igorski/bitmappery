@@ -27,7 +27,7 @@
     >
         <img
             v-if="isLoading"
-            src="@/assets/animations/loader.svg"
+            src="@@/animations/loader.svg"
             class="image-preview__loader"
         />
         <img
@@ -84,6 +84,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@use "sass:math";
+
 @import "@/styles/_mixins";
 
 .image-preview {
@@ -96,7 +98,7 @@ export default {
     &__loader {
         width: $spacing-xxlarge;
         height: $spacing-xxlarge;
-        margin: #{(128px - $spacing-xxlarge) / 2};
+        margin: math.div(128px - $spacing-xxlarge, 2);
     }
 
     &__image {

@@ -55,6 +55,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@use "sass:math";
+
 @import "@/styles/_mixins";
 
 $loaderSize: 200px;
@@ -66,8 +68,8 @@ $loaderSize: 200px;
     left: 50%;
     width: $loaderSize;
     height: $loaderSize;
-    margin-left: -( $loaderSize / 2 );
-    margin-top: -( $loaderSize / 2 );
+    margin-left: -( math.div( $loaderSize, 2 ));
+    margin-top: -( math.div( $loaderSize, 2 ));
     border-radius: 24px;
     border-bottom: #{$spacing-medium - $spacing-xsmall} solid #000;
     transform: scale( 0.33 );

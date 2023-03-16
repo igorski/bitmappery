@@ -1,3 +1,4 @@
+import { it, describe, expect } from "vitest";
 import EffectsFactory, { isEqual } from "@/factories/effects-factory";
 
 describe( "Effects factory", () => {

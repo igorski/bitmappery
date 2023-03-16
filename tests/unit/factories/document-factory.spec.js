@@ -1,19 +1,20 @@
+import { it, describe, expect, vi } from "vitest";
 import DocumentFactory from "@/factories/document-factory";
 
 let mockUpdateFn;
-jest.mock( "@/factories/layer-factory", () => ({
+vi.mock( "@/factories/layer-factory", () => ({
     create: (...args) => mockUpdateFn?.( "create", ...args ),
     serialize: (...args) => mockUpdateFn?.( "serialize", ...args ),
     deserialize: (...args) => mockUpdateFn?.( "deserialize", ...args ),
 }));
-jest.mock( "@/workers/compression.worker", () => ({
+vi.mock( "@/workers/compression.worker", () => ({
     // nowt... just to resolve import issue
 }));
 
 describe( "Document factory", () => {
     describe( "when creating a new Document", () => {
         it( "should create a default Document structure with one default layer when no arguments are passed", () => {
-            mockUpdateFn = jest.fn(( fn ) => fn === "create" ? { layer: "1" } : true );
+            mockUpdateFn = vi.fn(( fn ) => fn === "create" ? { layer: "1" } : true );
             const document = DocumentFactory.create();
             expect( document ).toEqual({
                 id: expect.any( String ),
@@ -63,13 +64,13 @@ describe( "Document factory", () => {
                 layers,
                 selections
             });
-            mockUpdateFn = jest.fn(( fn, data ) => JSON.stringify( data ));
+            mockUpdateFn = vi.fn(( fn, data ) => JSON.stringify( data ));
             const serialized = DocumentFactory.serialize( document );
 
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "serialize", layers[ 0 ], 0, layers );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "serialize", layers[ 1 ], 1, layers );
 
-            mockUpdateFn = jest.fn(( fn, data ) => JSON.parse( data ));
+            mockUpdateFn = vi.fn(( fn, data ) => JSON.parse( data ));
             const deserialized = await DocumentFactory.deserialize( serialized );
 
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "deserialize", expect.any( String ));
