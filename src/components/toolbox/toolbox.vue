@@ -34,7 +34,7 @@
                 class="component__header-button button--ghost"
                 @click="collapsed = !collapsed"
             >
-                <img :src="`./images/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
+                <img :src="`assets/images/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
             </button>
         </div>
         <!-- click.stop.prevent is to prevent document scroll on double tap on iOS -->

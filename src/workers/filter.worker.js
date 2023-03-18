@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import wasmJs from "@/../public/lib/filters.js";
+import wasmJs from "@/../lib/filters.js";
 import FiltersFactory from "@/factories/filters-factory";
 import { imageDataAsFloat } from "@/utils/wasm-util";
 
