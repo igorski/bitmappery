@@ -553,7 +553,7 @@ export default {
         display: block;
 
         canvas {
-            background: url( "@@/images/document_transparent_bg.png" ) repeat;
+            background: url( "../../images/document_transparent_bg.png" ) repeat;
 
             &.no-cursor {
                 cursor: none;

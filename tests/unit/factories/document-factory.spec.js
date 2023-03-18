@@ -1,15 +1,20 @@
 import { it, describe, expect, vi } from "vitest";
-import DocumentFactory from "@/factories/document-factory";
 
 let mockUpdateFn;
-vi.mock( "@/factories/layer-factory", () => ({
-    create: (...args) => mockUpdateFn?.( "create", ...args ),
-    serialize: (...args) => mockUpdateFn?.( "serialize", ...args ),
-    deserialize: (...args) => mockUpdateFn?.( "deserialize", ...args ),
-}));
+vi.mock( "@/factories/layer-factory", async () => {
+    const actual = await vi.importActual( "@/factories/layer-factory" );
+    return {
+        ...actual,
+        create: (...args) => mockUpdateFn?.( "create", ...args ),
+        serialize: (...args) => mockUpdateFn?.( "serialize", ...args ),
+        deserialize: (...args) => mockUpdateFn?.( "deserialize", ...args ),
+    }
+});
 vi.mock( "@/workers/compression.worker", () => ({
     // nowt... just to resolve import issue
 }));
+
+import DocumentFactory from "@/factories/document-factory";
 
 describe( "Document factory", () => {
     describe( "when creating a new Document", () => {

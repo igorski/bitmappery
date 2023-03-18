@@ -1,5 +1,8 @@
-import { it, describe, expect } from "vitest";
-import { sprite } from "zcanvas";
+import { it, describe, expect, beforeEach, vi } from "vitest";
+import { sprite, mockZCanvas } from "../__mocks";
+
+mockZCanvas();
+
 import {
     getCanvasInstance, setCanvasInstance,
     createSpriteForLayer, hasSpriteForLayer, getSpriteForLayer, flushLayerSprites,
@@ -31,7 +34,7 @@ describe( "Sprite factory", () => {
         const layer2 = { id: "layer2", x: 0, y: 0, width: 10, height: 10 };
 
         beforeEach(() => {
-            zCanvas = { name: "zcanvas", addChild: jest.fn() };
+            zCanvas = { name: "zcanvas", addChild: vi.fn() };
         });
 
         it( "should create a new Sprite on first request", () => {
@@ -57,7 +60,7 @@ describe( "Sprite factory", () => {
         });
 
         it( "should be able to dispose all Sprites for a layer", () => {
-            jest.spyOn( layer1sprite, "dispose" );
+            vi.spyOn( layer1sprite, "dispose" );
             flushLayerSprites( layer1 );
             expect( getSpriteForLayer( layer1 )).toBeNull();
             expect( layer1sprite.dispose ).toHaveBeenCalled();
@@ -65,15 +68,15 @@ describe( "Sprite factory", () => {
     });
 
     it( "should be able to flush its cache in its entierity", () => {
-        const zCanvas = { name: "zcanvas", addChild: jest.fn() };
+        const zCanvas = { name: "zcanvas", addChild: vi.fn() };
         const layer1  = { id: "layer1", x: 0, y: 0, width: 10, height: 10 };
         const layer2  = { id: "layer2", x: 0, y: 0, width: 10, height: 10 };
 
         const layer1sprite = createSpriteForLayer( zCanvas, layer1 );
         const layer2sprite = createSpriteForLayer( zCanvas, layer2 );
 
-        jest.spyOn( layer1sprite, "dispose" );
-        jest.spyOn( layer2sprite, "dispose" );
+        vi.spyOn( layer1sprite, "dispose" );
+        vi.spyOn( layer2sprite, "dispose" );
 
         flushCache();
 

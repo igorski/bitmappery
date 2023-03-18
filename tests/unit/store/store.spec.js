@@ -1,4 +1,5 @@
 import { it, describe, expect, vi } from "vitest";
+import { mockZCanvas } from "../__mocks";
 import store from "@/store";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { LAYER_IMAGE, LAYER_TEXT } from "@/definitions/layer-types";
@@ -14,15 +15,23 @@ jest.mock( "@/services/font-service", () => ({
     rejectFonts: jest.fn(),
 }));
 let mockUpdateFn;
-vi.mock( "@/services/keyboard-service", () => ({
-    setSuspended: (...args) => mockUpdateFn?.( "setSuspended", ...args ),
-}));
-vi.mock( "@/factories/document-factory", () => ({
-    serialize: (...args) => mockUpdateFn?.( "serialize", ...args ),
-    deserialize: (...args) => mockUpdateFn?.( "deserialize", ...args ),
-    toBlob: (...args) => mockUpdateFn?.( "toBlob", ...args ),
-    fromBlob: (...args) => mockUpdateFn?.( "fromBlob", ...args ),
-}));
+vi.mock( "@/services/keyboard-service", async () => {
+    const actual = await vi.importActual( "@/services/keyboard-service" );
+    return {
+        ...actual,
+        setSuspended: (...args) => mockUpdateFn?.( "setSuspended", ...args ),
+    }
+});
+vi.mock( "@/factories/document-factory", async() => {
+    const actual = await vi.importActual( "@/factories/document-factory" );
+    return {
+        ...actual,
+        serialize: (...args) => mockUpdateFn?.( "serialize", ...args ),
+        deserialize: (...args) => mockUpdateFn?.( "deserialize", ...args ),
+        toBlob: (...args) => mockUpdateFn?.( "toBlob", ...args ),
+        fromBlob: (...args) => mockUpdateFn?.( "fromBlob", ...args ),
+    }
+});
 vi.mock( "@/utils/file-util", () => ({
     selectFile: (...args) => mockUpdateFn?.( "selectFile", ...args ),
     saveBlobAsFile: (...args) => mockUpdateFn?.( "saveBlobAsFile", ...args ),
@@ -33,6 +42,7 @@ vi.mock("@/utils/canvas-util", () => ({
     imageToCanvas: vi.fn(),
     base64ToLayerImage: vi.fn()
 }));
+mockZCanvas();
 
 describe( "Vuex store", () => {
     describe( "getters", () => {

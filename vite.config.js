@@ -5,6 +5,7 @@ import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfil
 import path from "path";
 
 const dirSrc    = `./src`;
+const dirPublic = `${dirSrc}/public`;
 const dirAssets = `${dirSrc}/assets`;
 const dest      = `${__dirname}/dist`;
 
@@ -14,6 +15,9 @@ export default defineConfig({
         vue(),
         viteStaticCopy({
             targets: [{
+                src: dirPublic,
+                dest: path.resolve( dest ),
+            }, {
                 src: dirAssets,
                 dest: path.resolve( dest ),
             }]
@@ -29,7 +33,7 @@ export default defineConfig({
         esbuildOptions: {
             // Node.js global to browser globalThis
             define: {
-                global: 'globalThis'
+                global: "globalThis"
             },
             plugins: [
                NodeGlobalsPolyfillPlugin({

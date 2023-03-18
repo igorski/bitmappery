@@ -1,10 +1,13 @@
-import { it, describe, expect } from "vitest";
+import { it, describe, expect, vi } from "vitest";
+import { mockZCanvas } from "../../__mocks";
 import storeModule from "@/store/modules/preferences-module";
 
 const { getters, mutations, actions } = storeModule;
 
 let mockStorageData;
-Storage.prototype.getItem = jest.fn(() => JSON.stringify( mockStorageData ));
+Storage.prototype.getItem = vi.fn(() => JSON.stringify( mockStorageData ));
+
+mockZCanvas();
 
 describe( "Vuex preferences module", () => {
     describe( "getters", () => {
@@ -53,7 +56,7 @@ describe( "Vuex preferences module", () => {
                 snapAlign   : true,
                 antiAlias   : false
             };
-            const commit = jest.fn();
+            const commit = vi.fn();
             await actions.restorePreferences({ commit });
             expect( commit ).toHaveBeenNthCalledWith( 1, "setPreferences", mockStorageData );
             expect( commit ).toHaveBeenNthCalledWith( 2, "setSnapAlign", mockStorageData.snapAlign );

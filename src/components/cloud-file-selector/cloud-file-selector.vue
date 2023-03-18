@@ -486,7 +486,7 @@ $actionsHeight: 74px;
         height: inherit;
 
         &--folder {
-            background: url("@@/images/folder.png") no-repeat 50% $spacing-xlarge;
+            background: url("../../images/folder.png") no-repeat 50% $spacing-xlarge;
             background-size: 50%;
         }
 

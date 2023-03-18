@@ -1,8 +1,10 @@
-import { it, describe, expect, vi } from "vitest";
-import DocumentModule  from "@/store/modules/document-module";
+import { it, describe, expect, vi, beforeEach } from "vitest";
+import { mockZCanvas } from "../../__mocks";
 import { LAYER_IMAGE } from "@/definitions/layer-types";
-
+import DocumentModule from "@/store/modules/document-module";
 const { getters, mutations } = DocumentModule;
+
+mockZCanvas();
 
 let mockUpdateFn;
 vi.mock( "@/factories/sprite-factory", () => ({
@@ -11,9 +13,13 @@ vi.mock( "@/factories/sprite-factory", () => ({
     getSpriteForLayer: (...args) => mockUpdateFn?.( "getSpriteForLayer", ...args ),
     getCanvasInstance: (...args) => mockUpdateFn?.( "getCanvasInstance", ...args ),
 }));
-vi.mock( "@/factories/layer-factory", () => ({
-    create: (...args) => mockUpdateFn?.( "create", ...args ),
-}));
+vi.mock( "@/factories/layer-factory", async () => {
+    const actual = await vi.importActual( "@/factories/layer-factory" );
+    return {
+        ...actual,
+        create: (...args) => mockUpdateFn?.( "create", ...args ),
+    }
+});
 vi.mock( "@/utils/render-util", () => ({
     resizeLayerContent: (...args) => mockUpdateFn?.( "resizeLayerContent", ...args ),
     cropLayerContent: (...args) => mockUpdateFn?.( "cropLayerContent", ...args ),

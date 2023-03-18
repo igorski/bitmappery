@@ -1,4 +1,5 @@
 import { it, describe, expect, beforeEach, afterAll, vi } from "vitest";
+import { sprite, mockZCanvas } from "../../__mocks";
 import UndoManager from "undo-manager";
 import store, { STATES_TO_SAVE } from "@/store/modules/history-module";
 const { getters, mutations, actions }  = store;
@@ -11,6 +12,7 @@ vi.mock( "@/factories/history-state-factory", () => ({
 vi.mock( "@/utils/resource-manager", () => ({
     "disposeResource": (...args) => mockUpdateFn?.( "disposeResource", ...args ),
 }));
+mockZCanvas();
 
 describe( "History State module", () => {
     const noop = () => {};

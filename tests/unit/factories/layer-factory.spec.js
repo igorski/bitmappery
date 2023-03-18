@@ -7,18 +7,26 @@ vi.mock( "@/utils/canvas-util", () => ({
     imageToBase64: (...args) => mockUpdateFn?.( "imageToBase64", ...args ),
     base64toCanvas: (...args) => mockUpdateFn?.( "base64toCanvas", ...args ),
 }));
-vi.mock( "@/factories/effects-factory", () => ({
-    create: (...args) => mockUpdateFn?.( "createEffects", ...args ),
-    serialize: (...args) => mockUpdateFn?.( "serializeEffects", ...args ),
-    deserialize: (...args) => mockUpdateFn?.( "deserializeEffects", ...args ),
-}));
-vi.mock( "@/factories/filters-factory", () => ({
-    create: (...args) => mockUpdateFn?.( "createFilters", ...args ),
-    serialize: (...args) => mockUpdateFn?.( "serializeFilters", ...args ),
-    deserialize: (...args) => mockUpdateFn?.( "deserializeFilters", ...args ),
-}));
+vi.mock( "@/factories/effects-factory", async () => {
+    const actual = await vi.importActual( "@/factories/effects-factory" );
+    return {
+        ...actual,
+        create: (...args) => mockUpdateFn?.( "createEffects", ...args ),
+        serialize: (...args) => mockUpdateFn?.( "serializeEffects", ...args ),
+        deserialize: (...args) => mockUpdateFn?.( "deserializeEffects", ...args ),
+    }
+});
+vi.mock( "@/factories/filters-factory", async () => {
+    const actual = await vi.importActual( "@/factories/filters-factory" );
+    return {
+        ...actual,
+        create: (...args) => mockUpdateFn?.( "createFilters", ...args ),
+        serialize: (...args) => mockUpdateFn?.( "serializeFilters", ...args ),
+        deserialize: (...args) => mockUpdateFn?.( "deserializeFilters", ...args ),
+    }
+});
 vi.mock( "@/factories/text-factory", async () => {
-     const actual = await vi.importActual( "@/factories/text-factory" ),
+     const actual = await vi.importActual( "@/factories/text-factory" );
      return {
          ...actual,
         create: (...args) => mockUpdateFn?.( "createText", ...args ),
