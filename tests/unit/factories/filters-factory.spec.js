@@ -1,3 +1,4 @@
+import { it, describe, expect } from "vitest";
 import FiltersFactory, { hasFilters, isEqual } from "@/factories/filters-factory";
 
 describe( "Filters factory", () => {

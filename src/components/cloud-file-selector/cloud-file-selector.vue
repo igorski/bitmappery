@@ -340,18 +340,23 @@ export default {
             });
         },
         /* the below should be implemented in inheriting components */
+        // eslint-disable-next-line no-unused-vars
         async _listFolder( path ) {
 
         },
+        // eslint-disable-next-line no-unused-vars
         async _createFolder( parent, name ) {
 
         },
+        // eslint-disable-next-line no-unused-vars
         async _downloadFile( node, returnAsURL = false  ) {
 
         },
+        // eslint-disable-next-line no-unused-vars
         async _deleteEntry( node ) {
 
         },
+        // eslint-disable-next-line no-unused-vars
         _mapEntry( entry, children = [], parent = null ) {
             return {};
         }
@@ -481,12 +486,12 @@ $actionsHeight: 74px;
         height: inherit;
 
         &--folder {
-            background: url("../../assets/images/folder.png") no-repeat 50% $spacing-xlarge;
+            background: url("../../assets-inline/images/folder.png") no-repeat 50% $spacing-xlarge;
             background-size: 50%;
         }
 
         &--document {
-            background: url("../../assets/icons/icon-bpy.svg") no-repeat 50% $spacing-xlarge;
+            background: url("../../assets-inline/images/icon-bpy.svg") no-repeat 50% $spacing-xlarge;
             background-size: 50%;
         }
     }

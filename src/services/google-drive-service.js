@@ -31,6 +31,7 @@ import { blobToResource } from "@/utils/resource-manager";
  * The scoped write access provides the same functions, as long as the files
  * were created by BitMappery (other contents remain hidden)
  */
+// eslint-disable-next-line no-unused-vars
 const FULL_WRITE_ACCESS   = "https://www.googleapis.com/auth/drive";
 const SCOPED_WRITE_ACCESS = "https://www.googleapis.com/auth/drive.file";
 

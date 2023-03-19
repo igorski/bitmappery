@@ -142,9 +142,9 @@
 <script>
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { ToggleButton } from "vue-js-toggle-button";
-import Modal from "@/components/modal/modal";
-import SelectBox from '@/components/ui/select-box/select-box';
-import Slider from "@/components/ui/slider/slider";
+import Modal from "@/components/modal/modal.vue";
+import SelectBox from "@/components/ui/select-box/select-box.vue";
+import Slider from "@/components/ui/slider/slider.vue";
 import { MAX_SPRITESHEET_WIDTH } from "@/definitions/editor-properties";
 import { EXPORTABLE_IMAGE_TYPES, GIF, typeToExt, isCompressableFileType } from "@/definitions/image-types";
 import { supportsGIF, createGIF, createAnimatedGIF } from "@/services/gif-creation-service";
@@ -219,7 +219,7 @@ export default {
     },
     watch: {
         // see additional watchers added in created hook
-        sheetCols( amount ) {
+        sheetCols() {
             if ( this.layersToSpriteSheet ) {
                 this.renderPreview();
             }

@@ -55,9 +55,9 @@
 
 <script>
 import { mapGetters } from "vuex";
-import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
+import { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import { LAYER_GRAPHIC, LAYER_IMAGE } from "@/definitions/layer-types";
-import Slider    from "@/components/ui/slider/slider";
+import Slider from "@/components/ui/slider/slider.vue";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { scale } from "@/math/unit-math";

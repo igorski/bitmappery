@@ -34,7 +34,7 @@
                 class="component__header-button button--ghost"
                 @click="collapsed = !collapsed"
             >
-                <img :src="`./assets/icons/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
+                <img :src="`assets/images/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
             </button>
         </div>
         <!-- click.stop.prevent is to prevent document scroll on double tap on iOS -->
@@ -54,7 +54,7 @@
                 :disabled="!canUndo"
                 @click="undo()"
             >
-                <img src="@/assets/icons/icon-history.svg" />
+                <img src="@/assets-inline/images/icon-history.svg" />
             </button>
             <button
                 type="button"
@@ -64,11 +64,11 @@
                 :disabled="!canRedo"
                 @click="redo()"
             >
-                <img src="@/assets/icons/icon-history.svg" class="mirrored" />
+                <img src="@/assets-inline/images/icon-history.svg" class="mirrored" />
             </button>
             <!-- tools -->
             <button
-                v-for="(tool, index) in tools"
+                v-for="tool in tools"
                 :key="tool.type"
                 type="button"
                 v-tooltip="`${$t( tool.i18n )} (${tool.key})`"
@@ -97,9 +97,8 @@
 
 <script>
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
-import { LAYER_GRAPHIC, LAYER_MASK, LAYER_TEXT } from "@/definitions/layer-types";
+import { LAYER_TEXT } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS } from "@/definitions/panel-types";
-import { runSpriteFn } from "@/factories/sprite-factory";
 import { isMobile } from "@/utils/environment-util";
 import { addTextLayer } from "@/utils/layer-util";
 import ToolTypes, { canDraw } from "@/definitions/tool-types";
@@ -123,7 +122,7 @@ export default {
         ]),
         colorPicker() {
             // load async as this adds to the bundle size
-            return () => import( "@/components/ui/color-picker/color-picker" );
+            return () => import( "@/components/ui/color-picker/color-picker.vue" );
         },
         collapsed: {
             get() {

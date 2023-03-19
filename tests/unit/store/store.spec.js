@@ -1,39 +1,39 @@
-import store from "@/store";
+import { it, describe, expect, afterAll, vi } from "vitest";
+import { mockZCanvas } from "../__mocks";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { LAYER_IMAGE, LAYER_TEXT } from "@/definitions/layer-types";
+import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
+import KeyboardService from "@/services/keyboard-service";
+import store from "@/store";
 
 const { getters, mutations, actions } = store;
 
 let mockFontsConsented = true;
 let mockFontConsentFn;
-jest.mock( "@/services/font-service", () => ({
+vi.mock( "@/services/font-service", () => ({
     fontsConsented: () => mockFontsConsented,
     consentFonts: () => mockFontConsentFn(),
-    rejectFonts: jest.fn(),
+    rejectFonts: vi.fn(),
 }));
 let mockUpdateFn;
-jest.mock( "@/services/keyboard-service", () => ({
-    setSuspended: (...args) => mockUpdateFn?.( "setSuspended", ...args ),
-}));
-jest.mock( "@/factories/document-factory", () => ({
-    serialize: (...args) => mockUpdateFn?.( "serialize", ...args ),
-    deserialize: (...args) => mockUpdateFn?.( "deserialize", ...args ),
-    toBlob: (...args) => mockUpdateFn?.( "toBlob", ...args ),
-    fromBlob: (...args) => mockUpdateFn?.( "fromBlob", ...args ),
-}));
-jest.mock( "@/utils/file-util", () => ({
+vi.mock( "@/utils/file-util", () => ({
     selectFile: (...args) => mockUpdateFn?.( "selectFile", ...args ),
     saveBlobAsFile: (...args) => mockUpdateFn?.( "saveBlobAsFile", ...args ),
 }));
-jest.mock("@/utils/canvas-util", () => ({
-    createCanvas: jest.fn(),
-    imageToBase64: jest.fn(),
-    imageToCanvas: jest.fn(),
-    base64ToLayerImage: jest.fn()
+vi.mock("@/utils/canvas-util", () => ({
+    createCanvas: vi.fn(),
+    imageToBase64: vi.fn(),
+    imageToCanvas: vi.fn(),
+    base64ToLayerImage: vi.fn()
 }));
+mockZCanvas();
 
 describe( "Vuex store", () => {
+    afterAll(() => {
+        vi.resetAllMocks();
+    });
+
     describe( "getters", () => {
         it( "should know when there is currently a loading state active", () => {
             const state = { loadingStates: [] };
@@ -128,8 +128,8 @@ describe( "Vuex store", () => {
                     title: "title",
                     message: "message",
                     link: { href: "foo", title: "bar" },
-                    confirm: jest.fn(),
-                    cancel: jest.fn()
+                    confirm: vi.fn(),
+                    cancel: vi.fn()
                 };
                 mutations.openDialog( state, params );
                 expect( state.dialog ).toEqual( params );
@@ -176,16 +176,18 @@ describe( "Vuex store", () => {
 
             it( "should suspend the keyboard service on open to not conflict with form inputs", () => {
                 const state = { blindActive: false, modal: null };
-                mockUpdateFn = jest.fn();
+                const keyboardSpy = vi.spyOn( KeyboardService, "setSuspended" );
+
                 mutations.openModal( state, "foo" );
-                expect( mockUpdateFn ).toHaveBeenCalledWith( "setSuspended", true );
+                expect( keyboardSpy ).toHaveBeenCalledWith( true );
             });
 
             it( "should unsuspend the keyboard service on close", () => {
                 const state = { blindActive: true, modal: "foo" };
-                mockUpdateFn = jest.fn();
+                const keyboardSpy = vi.spyOn( KeyboardService, "setSuspended" );
+
                 mutations.closeModal( state );
-                expect( mockUpdateFn ).toHaveBeenCalledWith( "setSuspended", false );
+                expect( keyboardSpy ).toHaveBeenCalledWith( false );
             });
         });
 
@@ -249,24 +251,26 @@ describe( "Vuex store", () => {
     describe( "actions", () => {
         describe( "when loading a saved document", () => {
             it( "should be able to load a saved document by using the file selector", async () => {
-                const commit = jest.fn();
+                const commit = vi.fn();
                 const mockFile = { name: "file" };
                 const mockDocument = { name: "foo" };
-                mockUpdateFn = jest.fn( fn => {
+
+                mockUpdateFn = vi.fn( fn => {
                     switch ( fn ) {
                         default:
                             return true;
                         case "selectFile":
-                            return [mockFile];
-                        case "fromBlob":
-                            return mockDocument;
+                            return [ mockFile ];
                     }
                 });
+                const fromBlobSpy = vi.spyOn( DocumentFactory, "fromBlob" ).mockImplementation(() => mockDocument );
+
                 await actions.loadDocument({ commit });
+
                 // assert file selector has been prompted
-                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "selectFile", expect.any( String ), expect.any( Boolean ));
+                expect( mockUpdateFn ).toHaveBeenCalledWith( "selectFile", expect.any( String ), expect.any( Boolean ));
                 // assert selected file is converted from Blob to document
-                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "fromBlob", mockFile );
+                expect( fromBlobSpy ).toHaveBeenCalledWith( mockFile );
                 // assert resulting Document has been added as the active document
                 expect( commit ).toHaveBeenNthCalledWith( 1, "setLoading", "doc" );
                 expect( commit ).toHaveBeenNthCalledWith( 2, "addNewDocument", mockDocument );
@@ -275,20 +279,16 @@ describe( "Vuex store", () => {
             });
 
             it( "should be able to load a saved document from a given File/Blob", async () => {
-                const commit = jest.fn();
+                const commit = vi.fn();
                 const blob = { name: "file" };
                 const mockDocument = { name: "foo" };
-                mockUpdateFn = jest.fn( fn => {
-                    switch ( fn ) {
-                        default:
-                            return true;
-                        case "fromBlob":
-                            return mockDocument;
-                    }
-                });
+
+                const fromBlobSpy = vi.spyOn( DocumentFactory, "fromBlob" ).mockImplementation(() => mockDocument );
+
                 await actions.loadDocument({ commit }, blob );
+
                 // assert give file is converted from Blob to document
-                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "fromBlob", blob );
+                expect( fromBlobSpy ).toHaveBeenCalledWith( blob );
                 // assert resulting Document has been added as the active document
                 expect( commit ).toHaveBeenNthCalledWith( 1, "setLoading", "doc" );
                 expect( commit ).toHaveBeenNthCalledWith( 2, "addNewDocument", mockDocument );
@@ -298,21 +298,15 @@ describe( "Vuex store", () => {
 
             describe( "and the document has text layers", () => {
                 it( "should request user consent for using Google Fonts, if none had been given yet", async () => {
-                    const commit = jest.fn();
+                    const commit = vi.fn();
                     const blob = { name: "file" };
                     const mockDocument = { name: "foo", layers: [ LayerFactory.create({ type: LAYER_TEXT }) ] };
 
-                    mockFontsConsented = false;
-                    mockFontConsentFn = jest.fn();
+                    const fromBlobSpy = vi.spyOn( DocumentFactory, "fromBlob" ).mockImplementation(() => mockDocument );
 
-                    mockUpdateFn = jest.fn( fn => {
-                        switch ( fn ) {
-                            default:
-                                return true;
-                            case "fromBlob":
-                                return mockDocument;
-                        }
-                    });
+                    mockFontsConsented = false;
+                    mockFontConsentFn = vi.fn();
+
                     await actions.loadDocument({ commit }, blob );
                     // assert confirmation dialog was spawned
                     expect( commit ).toHaveBeenNthCalledWith( 2, "openDialog", {
@@ -335,18 +329,13 @@ describe( "Vuex store", () => {
                 });
 
                 it( "should not request user consent for using Google Fonts, if it had previously been given", async () => {
-                    const commit = jest.fn();
+                    const commit = vi.fn();
                     const blob = { name: "file" };
                     const mockDocument = { name: "foo", layers: [ LayerFactory.create({ type: LAYER_TEXT }) ] };
                     mockFontsConsented = true;
-                    mockUpdateFn = jest.fn( fn => {
-                        switch ( fn ) {
-                            default:
-                                return true;
-                            case "fromBlob":
-                                return mockDocument;
-                        }
-                    });
+
+                    const fromBlobSpy = vi.spyOn( DocumentFactory, "fromBlob" ).mockImplementation(() => mockDocument );
+
                     await actions.loadDocument({ commit }, blob );
                     // assert dialog was not shown
                     expect( commit ).not.toHaveBeenCalledWith( "openDialog" );
@@ -357,25 +346,23 @@ describe( "Vuex store", () => {
         });
 
         it( "should be able to save the currently opened document", async () => {
-            const commit = jest.fn();
+            const commit = vi.fn();
             const mockedGetters = {
                 activeDocument: { name: "foo" },
             };
             const mockSavedDocument = { n: "foo" };
-            mockUpdateFn = jest.fn( fn => {
-                switch ( fn ) {
-                    default:
-                        return true;
-                    case "toBlob":
-                        return mockSavedDocument;
-                }
+            mockUpdateFn = vi.fn( fn => {
+                return true;
             });
+
+            const toBlobSpy = vi.spyOn( DocumentFactory, "toBlob" ).mockImplementation(() => mockSavedDocument );
+
             await actions.saveDocument({ commit, getters: mockedGetters }, "foo" );
 
             // assert the active document is serialized by DocumentFactory.toBlob
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "toBlob", mockedGetters.activeDocument );
+            expect( toBlobSpy ).toHaveBeenCalledWith( mockedGetters.activeDocument );
             // assert the resulting Blob will be saved to a File
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "saveBlobAsFile", expect.any( Object ), `foo.${PROJECT_FILE_EXTENSION}` );
+            expect( mockUpdateFn ).toHaveBeenCalledWith( "saveBlobAsFile", expect.any( Object ), `foo.${PROJECT_FILE_EXTENSION}` );
             expect( commit ).toHaveBeenCalledWith( "showNotification", expect.any( Object ));
         });
 
@@ -384,8 +371,8 @@ describe( "Vuex store", () => {
                 selectionContent: { image: { src: "foo" }, size: { width: 40, height: 30 } },
             };
             const mockedGetters = { activeDocument: { width: 200, height: 150, layers: [] } };
-            const commit   = jest.fn();
-            const dispatch = jest.fn();
+            const commit   = vi.fn();
+            const dispatch = vi.fn();
             await actions.pasteSelection({ state, getters: mockedGetters, commit, dispatch });
             expect( commit ).toHaveBeenCalledWith( "insertLayerAtIndex", { index: 0, layer: expect.any( Object ) });
             expect( dispatch ).toHaveBeenCalledWith( "clearSelection" );

@@ -38,7 +38,6 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import messages from "./messages.json";
 

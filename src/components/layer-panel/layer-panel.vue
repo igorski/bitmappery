@@ -37,7 +37,7 @@
                 class="component__header-button button--ghost"
                 @click="collapsed = !collapsed"
             >
-                <img :src="`./assets/icons/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
+                <img :src="`assets/images/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
             </button>
         </div>
         <template v-if="!collapsed">
@@ -92,26 +92,26 @@
                                         'layer--highlight': layer.mask === activeLayerMask
                                     }"
                                     @click="handleLayerMaskClick( layer )"
-                                ><img src="@/assets/icons/icon-mask.svg" /></button>
+                                ><img src="@/assets-inline/images/icon-mask.svg" /></button>
                                 <button
                                     v-tooltip="$t('toggleVisibility')"
                                     type="button"
                                     class="layer__actions-button button--ghost"
                                     @click="toggleLayerVisibility( layer.index )"
                                     :class="{ 'layer__actions-button--disabled': !layer.visible }"
-                                ><img src="@/assets/icons/icon-eye.svg" /></button>
+                                ><img src="@/assets-inline/images/icon-eye.svg" /></button>
                                 <button
                                     v-tooltip="$t('filters')"
                                     type="button"
                                     class="layer__actions-button button--ghost"
                                     @click="handleFiltersClick( layer.index )"
-                                ><img src="@/assets/icons/icon-settings.svg" /></button>
+                                ><img src="@/assets-inline/images/icon-settings.svg" /></button>
                                 <button
                                     v-tooltip="$t( layer.mask ? 'deleteMask' : 'deleteLayer' )"
                                     type="button"
                                     class="layer__actions-button button--ghost"
                                     @click="handleRemoveClick( layer.index )"
-                                ><img src="@/assets/icons/icon-trashcan.svg" /></button>
+                                ><img src="@/assets-inline/images/icon-trashcan.svg" /></button>
                             </div>
                         </div>
                     </draggable>
@@ -145,9 +145,7 @@
 <script>
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { ADD_LAYER } from "@/definitions/modal-windows";
-import { LAYER_TEXT } from "@/definitions/layer-types";
 import { PANEL_LAYERS } from "@/definitions/panel-types";
-import ToolTypes from "@/definitions/tool-types";
 import { createCanvas } from "@/utils/canvas-util";
 import { toggleLayerVisibility } from "@/factories/action-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
@@ -160,7 +158,7 @@ export default {
     i18n: { messages },
     components: {
         Draggable    : () => import( "vuedraggable" ),
-        LayerFilters : () => import( "@/components/layer-filters/layer-filters" )
+        LayerFilters : () => import( "@/components/layer-filters/layer-filters.vue" )
     },
     data: () => ({
         editable: false,
@@ -181,7 +179,7 @@ export default {
             get() {
                 return !this.openedPanels.includes( PANEL_LAYERS );
             },
-            set( value ) {
+            set() {
                 this.setOpenedPanel( PANEL_LAYERS );
             }
         },
@@ -236,7 +234,7 @@ export default {
         requestLayerAdd() {
             this.openModal( ADD_LAYER );
         },
-        async handleLayerDoubleClick( layer ) {
+        async handleLayerDoubleClick( /*layer*/ ) {
             this.editable = true;
             await this.$nextTick();
             this.$refs.nameInput[ 0 ]?.select(); // focused layer will always be at 0 index nameInput

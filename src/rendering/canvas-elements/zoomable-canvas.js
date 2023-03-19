@@ -20,7 +20,6 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import Vue from "vue";
 import { canvas } from "zcanvas";
 import InteractionPane from "@/rendering/canvas-elements/interaction-pane";
 import { fastRound } from "@/math/unit-math";
@@ -206,7 +205,7 @@ class ZoomableCanvas extends canvas {
         }
         const numChildren = this._children.length;
         const viewport    = this._viewport;
-        let theChild, touches, found;
+        let theChild, found;
 
         if ( numChildren > 0 ) {
 
@@ -350,8 +349,8 @@ function updateCanvasSize( canvasInstance ) {
         const cvsWidth  = canvasInstance._width;
         const cvsHeight = canvasInstance._height;
 
-        width  = min( viewport.width,  cvsWidth );
-        height = min( viewport.height, cvsHeight );
+        width  = Math.min( viewport.width,  cvsWidth );
+        height = Math.min( viewport.height, cvsHeight );
 
         // in case viewport was panned beyond the new canvas dimensions
         // reset pan to center.

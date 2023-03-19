@@ -20,9 +20,9 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { loader }      from "zcanvas";
-import ImageFileWorker from "@/workers/image-file-to-resource.worker";
-import { blobToResource } from "@/utils/resource-manager";
+import { loader } from "zcanvas";
+import { blobToResource, disposeResource } from "@/utils/resource-manager";
+import FileToResourceWorker from "@/workers/image-file-to-resource.worker?worker";
 
 /**
  * We can use a Worker to load the files to bitmaps so we can retrieve
@@ -31,11 +31,14 @@ import { blobToResource } from "@/utils/resource-manager";
  * Ironically, Safari yields a 3500 % speedup without the Worker. Eitherway,
  * loading large queues should maintain responsiveness of the application.
  */
-let worker;
-if ( typeof window.createImageBitmap === "function" ) {
-    worker = new ImageFileWorker();
-    worker.onmessage = handleWorkerMessage;
-}
+let _worker = undefined;
+const getWorker = () => {
+    if ( _worker === undefined && typeof window.createImageBitmap === "function" ) {
+        _worker = new FileToResourceWorker();
+        _worker.onmessage = handleWorkerMessage;
+    }
+    return _worker;
+};
 const imageLoadQueue = [];
 
 /**
@@ -59,7 +62,8 @@ export const loadImageFiles = ( fileList, callback, ctx ) => {
 
 /* internal methods */
 
-function loadFile( file, callback, ctx ) {
+function loadFile( file, callback ) {
+    const worker = getWorker();
     if ( worker ) {
         return new Promise(( resolve, reject ) => {
             imageLoadQueue.push({
@@ -71,11 +75,12 @@ function loadFile( file, callback, ctx ) {
                 error: reject,
             });
             worker.postMessage({ cmd: "loadImageFile", file });
-        })
+        });
     } else {
         return new Promise( async ( resolve, reject ) => {
+            let imageSource;
             try {
-                const imageSource = blobToResource( file );
+                imageSource = blobToResource( file );
                 const result = await loader.loadImage( imageSource );
                 await callback( file, result );
                 resolve( result );
@@ -90,13 +95,13 @@ function loadFile( file, callback, ctx ) {
 function handleWorkerMessage({ data }) {
     const fileQueueObj = getFileFromQueue( data?.file );
     if ( data?.cmd === "loadComplete" ) {
-        const { file, blobUrl, width, height } = data;
+        const { blobUrl, width, height } = data;
         const image = new Image();
         image.src = blobUrl;
         fileQueueObj?.success({ image, size: { width, height } });
     }
     if ( data?.cmd === "loadError" ) {
-        fileQueueObj?.error( file, data?.error );
+        fileQueueObj?.error( data.file, data?.error );
     }
 }
 

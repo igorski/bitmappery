@@ -99,7 +99,7 @@ export const scaleRectangle = ({ left, top, width, height }, scale = 1, rounded 
 };
 
 export const areEqual = ( rect1, rect2 ) => {
-    if ( process.env.NODE_ENV !== "production" ) {
+    if ( import.meta.env.DEV ) {
         if ( typeof rect1.x === "number" || typeof rect2.x === "number" ) {
             throw new Error( "x, y rectangles are deprecated." );
         }

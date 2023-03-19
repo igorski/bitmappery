@@ -76,8 +76,8 @@ import { mapGetters, mapMutations } from "vuex";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { focus } from "@/utils/environment-util";
-import Modal from "@/components/modal/modal";
-import SelectBox  from '@/components/ui/select-box/select-box';
+import Modal from "@/components/modal/modal.vue";
+import SelectBox from "@/components/ui/select-box/select-box.vue";
 import messages from "./messages.json";
 
 const TOP_LEFT      = "TL";
@@ -164,7 +164,7 @@ export default {
             });
             const updateOffsets = ( layers, offsetList ) => {
                 layers.forEach( layer => {
-                    const { left, top } = offsetList.find(({ id }) => layer.id );
+                    const { left, top } = offsetList.find(({ id }) => id === layer.id );
                     layer.left = left;
                     layer.top  = top;
                 });

@@ -122,7 +122,7 @@ npm install
 
 after which you can run:
 
-* ```npm run serve``` to start a local development server with hot module reload
+* ```npm run dev``` to start a local development server with hot module reload
 * ```npm run build``` to compile a production package
 * ```npm run test```  to run the unit tests
 * ```npm run lint``` to run the linter on the source files

@@ -100,14 +100,14 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import VueSelect from "vue-select";
-import SelectBox from "@/components/ui/select-box/select-box";
-import Slider from "@/components/ui/slider/slider";
+import SelectBox from "@/components/ui/select-box/select-box.vue";
+import Slider from "@/components/ui/slider/slider.vue";
 import { DEFAULT_LAYER_NAME, LAYER_TEXT } from "@/definitions/layer-types";
-import FontPreview from "./font-preview/font-preview";
+import FontPreview from "./font-preview/font-preview.vue";
 import { mapSelectOptions } from "@/utils/search-select-util";
 import { enqueueState } from "@/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
-import { loadGoogleFont, fontsConsented, consentFonts, rejectFonts } from "@/services/font-service";
+import { fontsConsented, consentFonts, rejectFonts } from "@/services/font-service";
 import { googleFonts } from "@/definitions/font-types";
 import { isMobile } from "@/utils/environment-util";
 import { focus } from "@/utils/environment-util";
@@ -141,7 +141,7 @@ export default {
         },
         colorPicker() {
             // load async as this adds to the bundle size
-            return () => import( "@/components/ui/color-picker/color-picker" );
+            return () => import( "@/components/ui/color-picker/color-picker.vue" );
         },
         fonts() {
             return mapSelectOptions( [ ...googleFonts ].sort() );

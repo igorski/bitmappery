@@ -76,13 +76,13 @@ import Vuex, { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import Vue from "vue";
 import VueI18n from "vue-i18n";
 import VTooltip from "v-tooltip";
-import ApplicationMenu from "@/components/application-menu/application-menu";
-import ToolOptionsPanel from "@/components/tool-options-panel/tool-options-panel";
-import LayerPanel from "@/components/layer-panel/layer-panel";
-import Toolbox from "@/components/toolbox/toolbox";
-import DialogWindow from "@/components/dialog-window/dialog-window";
-import Notifications from "@/components/notifications/notifications";
-import Loader from "@/components/loader/loader";
+import ApplicationMenu from "@/components/application-menu/application-menu.vue";
+import ToolOptionsPanel from "@/components/tool-options-panel/tool-options-panel.vue";
+import LayerPanel from "@/components/layer-panel/layer-panel.vue";
+import Toolbox from "@/components/toolbox/toolbox.vue";
+import DialogWindow from "@/components/dialog-window/dialog-window.vue";
+import Notifications from "@/components/notifications/notifications.vue";
+import Loader from "@/components/loader/loader.vue";
 import DocumentFactory from "@/factories/document-factory";
 import { isMobile } from "@/utils/environment-util";
 import { loadImageFiles } from "@/services/file-loader-queue";
@@ -139,38 +139,38 @@ export default {
             "isLoading",
         ]),
         documentCanvas() {
-            return () => import( "@/components/document-canvas/document-canvas" );
+            return () => import( "@/components/document-canvas/document-canvas.vue" );
         },
         activeModal() {
             switch ( this.modal ) {
                 default:
                     return null;
                 case CREATE_DOCUMENT:
-                    return () => import( "@/components/file-menu/create-document/create-document" );
+                    return () => import( "@/components/file-menu/create-document/create-document.vue" );
                 case RESIZE_DOCUMENT:
-                    return () => import( "@/components/resize-document-window/resize-document-window" );
+                    return () => import( "@/components/resize-document-window/resize-document-window.vue" );
                 case SAVE_DOCUMENT:
-                    return () => import( "@/components/file-menu/save-document/save-document" );
+                    return () => import( "@/components/file-menu/save-document/save-document.vue" );
                 case EXPORT_IMAGE:
-                    return () => import( "@/components/file-menu/export-image/export-image" );
+                    return () => import( "@/components/file-menu/export-image/export-image.vue" );
                 case DROPBOX_FILE_SELECTOR:
-                    return () => import( "@/components/cloud-file-selector/dropbox/dropbox-file-selector" );
+                    return () => import( "@/components/cloud-file-selector/dropbox/dropbox-file-selector.vue" );
                 case GOOGLE_DRIVE_FILE_SELECTOR:
-                    return () => import( "@/components/cloud-file-selector/google-drive/google-drive-file-selector" );
+                    return () => import( "@/components/cloud-file-selector/google-drive/google-drive-file-selector.vue" );
                 case ADD_LAYER:
-                    return () => import( "@/components/new-layer-window/new-layer-window" );
+                    return () => import( "@/components/new-layer-window/new-layer-window.vue" );
                 case LOAD_SELECTION:
-                    return () => import( "@/components/selection-menu/load-selection/load-selection" );
+                    return () => import( "@/components/selection-menu/load-selection/load-selection.vue" );
                 case SAVE_SELECTION:
-                    return () => import( "@/components/selection-menu/save-selection/save-selection" );
+                    return () => import( "@/components/selection-menu/save-selection/save-selection.vue" );
                 case PREFERENCES:
-                    return () => import( "@/components/preferences/preferences" );
+                    return () => import( "@/components/preferences/preferences.vue" );
                 case RESIZE_CANVAS:
-                    return () => import( "@/components/resize-canvas-window/resize-canvas-window" );
+                    return () => import( "@/components/resize-canvas-window/resize-canvas-window.vue" );
                 case GRID_TO_LAYERS:
-                    return () => import( "@/components/grid-to-layers-window/grid-to-layers-window" );
+                    return () => import( "@/components/grid-to-layers-window/grid-to-layers-window.vue" );
                 case STROKE_SELECTION:
-                    return () => import( "@/components/stroke-selection-window/stroke-selection-window" );
+                    return () => import( "@/components/stroke-selection-window/stroke-selection-window.vue" );
             }
         },
         showLoader() {
@@ -210,7 +210,7 @@ export default {
         }
     },
     mounted() {
-        if ( process.env.NODE_ENV !== "development" ) {
+        if ( import.meta.env.PROD ) {
             window.onbeforeunload = e => {
                 if ( this.activeDocument ) {
                     e.preventDefault();
@@ -297,6 +297,8 @@ export default {
  * here we set the global typography and layout styles
  * we expect to use throughout
  */
+@use "sass:math";
+
 @import "@/styles/_global";
 @import "@/styles/_mixins";
 @import "@/styles/panel";
@@ -355,20 +357,20 @@ export default {
             height: 100%;
 
             .tool-options-panel {
-                height: calc(#{$optionsHeight - ($spacing-medium / 2 )});
+                height: calc(#{$optionsHeight - math.div( $spacing-medium, 2 )});
             }
             .layer-panel {
-                height: calc(100% - #{$optionsHeight + ($spacing-medium / 2 )});
+                height: calc(100% - #{$optionsHeight + math.div( $spacing-medium, 2 )});
                 margin-top: $spacing-medium;
             }
 
             @include minHeight( 900px ) {
                 $optionsHeight: 390px;
                 .tool-options-panel {
-                    height: calc(#{$optionsHeight - ($spacing-medium / 2 )});
+                    height: calc(#{$optionsHeight - math.div( $spacing-medium, 2 )});
                 }
                 .layer-panel {
-                    height: calc(100% - #{$optionsHeight + ($spacing-medium / 2 )});
+                    height: calc(100% - #{$optionsHeight + math.div( $spacing-medium, 2 )});
                     margin-top: $spacing-medium;
                 }
             }

@@ -36,7 +36,7 @@
                 class="component__header-button button--ghost"
                 @click="collapsed = !collapsed"
             >
-                <img :src="`./assets/icons/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
+                <img :src="`assets/images/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
             </button>
         </div>
         <div
@@ -73,7 +73,7 @@ export default {
             get() {
                 return !this.openedPanels.includes( PANEL_TOOL_OPTIONS );
             },
-            set( value ) {
+            set() {
                 this.setOpenedPanel( PANEL_TOOL_OPTIONS );
             }
         },
@@ -86,30 +86,30 @@ export default {
                 default:
                     return null;
                 case ToolTypes.DRAG:
-                    return () => import( "./tool-options-drag/tool-options-drag" );
+                    return () => import( "./tool-options-drag/tool-options-drag.vue" );
                 case ToolTypes.SELECTION:
                 case ToolTypes.LASSO:
-                    return () => import( "./tool-options-selection/tool-options-selection" );
+                    return () => import( "./tool-options-selection/tool-options-selection.vue" );
                 case ToolTypes.FILL:
-                    return () => import( "./tool-options-fill/tool-options-fill" );
+                    return () => import( "./tool-options-fill/tool-options-fill.vue" );
                 case ToolTypes.ZOOM:
-                    return () => import( "./tool-options-zoom/tool-options-zoom" );
+                    return () => import( "./tool-options-zoom/tool-options-zoom.vue" );
                 case ToolTypes.ERASER:
-                    return () => import( "./tool-options-eraser/tool-options-eraser" );
+                    return () => import( "./tool-options-eraser/tool-options-eraser.vue" );
                 case ToolTypes.BRUSH:
-                    return () => import( "./tool-options-brush/tool-options-brush" );
+                    return () => import( "./tool-options-brush/tool-options-brush.vue" );
                 case ToolTypes.CLONE:
-                    return () => import( "./tool-options-clone/tool-options-clone" );
+                    return () => import( "./tool-options-clone/tool-options-clone.vue" );
                 case ToolTypes.ROTATE:
-                    return () => import( "./tool-options-rotate/tool-options-rotate" );
+                    return () => import( "./tool-options-rotate/tool-options-rotate.vue" );
                 case ToolTypes.SCALE:
-                    return () => import( "./tool-options-scale/tool-options-scale" );
+                    return () => import( "./tool-options-scale/tool-options-scale.vue" );
                 case ToolTypes.MIRROR:
-                    return () => import( "./tool-options-mirror/tool-options-mirror" );
+                    return () => import( "./tool-options-mirror/tool-options-mirror.vue" );
                 case ToolTypes.TEXT:
-                    return () => import( "./tool-options-text/tool-options-text" );
+                    return () => import( "./tool-options-text/tool-options-text.vue" );
                 case ToolTypes.WAND:
-                    return () => import( "./tool-options-wand/tool-options-wand" );
+                    return () => import( "./tool-options-wand/tool-options-wand.vue" );
             }
         },
     },

@@ -28,8 +28,7 @@ export const calcPathSpline = ( nodes, node, splinePts, resolution = 32 ) => {
     const maxRes = resolution - 1;
 
     for ( let n = 0; n < resolution; ++n ) {
-        const pt = {};
-        const p  = n / maxRes;
+        const p = n / maxRes;
 
         splinePts.push({
             x : nspline(

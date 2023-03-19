@@ -20,6 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { canvasToBlob } from "@/utils/canvas-util";
 
 /**
  * Creates a Blob URL for the resource represented by given imageElement.
@@ -54,6 +55,9 @@ export const blobToResource = blob => {
     // console.info( `Registed URI "${blobUrl}"` );
     return blobUrl;
 };
-export const disposeResource = blobURL => URL.revokeObjectURL( blobURL );
+export const disposeResource = blobURL => {
+    // console.info( `Disposing Blob for URI "${blobUrl}"` );
+    URL.revokeObjectURL( blobURL );
+};
 
 export const isResource = imageElement => imageElement.src.startsWith( "blob:" );

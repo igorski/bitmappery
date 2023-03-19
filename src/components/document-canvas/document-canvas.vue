@@ -66,11 +66,11 @@
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import GuideRenderer from "@/rendering/canvas-elements/guide-renderer";
-import FileImport from "@/components/file-import/file-import";
+import FileImport from "@/components/file-import/file-import.vue";
 import { HEADER_HEIGHT } from "@/definitions/editor-properties";
 import ToolTypes, { SELECTION_TOOLS, MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@/definitions/tool-types";
 import { MODE_PAN, MODE_LAYER_SELECT, MODE_SELECTION } from "@/rendering/canvas-elements/interaction-pane";
-import Scrollbars from "./scrollbars/scrollbars";
+import Scrollbars from "./scrollbars/scrollbars.vue";
 import TouchDecorator from "./decorators/touch-decorator";
 import { scaleToRatio } from "@/math/image-math";
 import { pointerToCanvasCoordinates } from "@/math/point-math";
@@ -96,6 +96,7 @@ let lastDocument, containerSize, canvasBoundingBox, guideRenderer;
 // used for change detection in the current editing session (see watchers)
 const layerPool = new Map();
 // scale of the on-screen canvas relative to the document
+// eslint-disable-next-line no-unused-vars
 let xScale = 1, yScale = 1, zoom = 1, maxInScale = 1, maxOutScale = 1;
 
 function calculateCanvasBoundingBox() {
@@ -157,7 +158,7 @@ export default {
             this.calcIdealDimensions();
         },
         activeDocument: {
-            handler( document, oldValue = null ) {
+            handler( document ) {
                 // no active document or no document content
                 if ( !document?.layers ) {
                     if ( getCanvasInstance() ) {
@@ -208,8 +209,7 @@ export default {
             if ( !layer ) {
                 return;
             }
-            const { id } = layer;
-            [ ...layerPool.entries() ].forEach(([ key, sprite ]) => {
+            [ ...layerPool.entries() ].forEach(([ , sprite ]) => {
                 sprite.handleActiveLayer( layer );
                 sprite.handleActiveTool( this.activeTool, this.activeToolOptions, this.activeDocument );
             });
@@ -240,23 +240,23 @@ export default {
                 rafCallback( calculateCanvasBoundingBox );
             }
         },
-        panMode( value ) {
+        panMode() {
             this.updateInteractionPane( "cursor-drag" );
         },
-        layerSelectMode( value ) {
+        layerSelectMode() {
             this.updateInteractionPane();
         },
-        selectMode( value ) {
+        selectMode() {
             this.updateInteractionPane();
         },
         hasGuideRenderer( value ) {
             getCanvasInstance()?.[ value ? "addChild" : "removeChild" ]( guideRenderer );
         },
-        snapAlign( value ) {
+        snapAlign() {
             this.updateGuideModes();
             this.handleGuides();
         },
-        pixelGrid( value ) {
+        pixelGrid() {
             this.updateGuideModes();
         },
         antiAlias( value ) {
@@ -553,7 +553,7 @@ export default {
         display: block;
 
         canvas {
-            background: url( "../../assets/images/document_transparent_bg.png" ) repeat;
+            background: url( "../../assets-inline/images/document_transparent_bg.png" ) repeat;
 
             &.no-cursor {
                 cursor: none;

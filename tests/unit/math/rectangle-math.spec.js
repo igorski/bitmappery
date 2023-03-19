@@ -1,7 +1,8 @@
+import { it, describe, expect } from "vitest";
 import { areEqual, scaleRectangle } from "@/math/rectangle-math";
 
 describe( "Rectangle math utilities", () => {
-    describe( "should recognize equality between two given rectangles", () => {
+    it( "should recognize equality between two given rectangles", () => {
         const rect1 = { left: 10, top: 5, width: 100, height: 100 };
         const rect2 = { left: 0, top: 0, width: 0, height: 0 };
 

@@ -74,8 +74,8 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import ToolTypes, { MAX_BRUSH_SIZE, TOOL_SRC_MERGED, canDraw } from "@/definitions/tool-types";
-import SelectBox from '@/components/ui/select-box/select-box';
-import Slider from "@/components/ui/slider/slider";
+import SelectBox from "@/components/ui/select-box/select-box.vue";
+import Slider from "@/components/ui/slider/slider.vue";
 import messages from "./messages.json";
 
 let orgCoords = null;

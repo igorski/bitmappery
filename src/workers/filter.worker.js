@@ -20,8 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import FiltersFactory from "@/factories/filters-factory";
 import wasmJs from "@/../public/lib/filters.js";
+import FiltersFactory from "@/factories/filters-factory";
 import { imageDataAsFloat } from "@/utils/wasm-util";
 
 const MAX_8BIT     = 255;
@@ -42,7 +42,7 @@ self.addEventListener( "message", async ({ data }) => {
         // as it will load the WASM binary
 
         case "initWasm":
-            const wasm   = await fetch( "./lib/filters.wasm" );
+            const wasm   = await fetch( "/lib/filters.wasm" );
             const bytes  = await wasm.arrayBuffer();
             wasmInstance = await wasmJs({
                 wasmBinary: bytes
@@ -85,7 +85,7 @@ const renderFilters = ( imageData, filters ) => {
     const { desaturate } = filters; // boolean
 
     const pixels = imageData.data;
-    let r, g, b, a;
+    let r, g, b;//, a;
     let grayScale, max, avg, amt;
     const gammaSquared = gamma * gamma;
 

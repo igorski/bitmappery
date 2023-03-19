@@ -1,3 +1,4 @@
+import { it, describe, expect } from "vitest";
 import { fastRound } from "@/math/unit-math";
 
 describe( "Unit math utilities", () => {

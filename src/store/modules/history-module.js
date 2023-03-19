@@ -63,7 +63,7 @@ const module = {
          * Store a state change inside the history.
          */
         saveState( state, { undo, redo, resources = null }) {
-            if ( process.env.NODE_ENV === "development" ) {
+            if ( import.meta.env.DEV ) {
                 if ( typeof undo !== "function" || typeof redo !== "function" ) {
                     throw new Error( "cannot store a state without specifying valid undo and redo actions" );
                 }

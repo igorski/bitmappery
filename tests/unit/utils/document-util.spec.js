@@ -1,6 +1,10 @@
+import { it, describe, expect, beforeEach, vi } from "vitest";
+import { mockZCanvas } from "../__mocks";
 import { getAlignableObjects } from "@/utils/document-util";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
+
+mockZCanvas();
 
 describe( "Document utilities", () => {
     describe( "When calculating the alignable objects within a document", () => {

@@ -178,7 +178,10 @@ export default {
         },
         async cropActiveDocumentContent( state, { left, top }) {
             const document = state.documents[ state.activeIndex ];
-            for ( const layer of document?.layers ) {
+            if ( !document ) {
+                return;
+            }
+            for ( const layer of document.layers ) {
                 await cropLayerContent( layer, left, top );
                 getSpriteForLayer( layer )?.syncPosition();
             }

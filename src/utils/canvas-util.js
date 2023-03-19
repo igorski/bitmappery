@@ -20,10 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { canvas, loader } from "zcanvas";
-import { JPEG, PNG }      from "@/definitions/image-types";
-import { LAYER_GRAPHIC, LAYER_IMAGE, LAYER_MASK } from "@/definitions/layer-types";
-import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { loader } from "zcanvas";
+import { JPEG, PNG } from "@/definitions/image-types";
 import { blobToResource, disposeResource } from "@/utils/resource-manager";
 
 /**
@@ -101,7 +99,7 @@ export const base64toCanvas = async ( base64, width, height ) => {
     if ( !base64 ) {
         return null;
     }
-    const { image, size } = await loader.loadImage( base64 );
+    const { image } = await loader.loadImage( base64 );
 
     const { cvs, ctx } = createCanvas( width, height );
     ctx.drawImage( image, 0, 0 );
@@ -171,15 +169,15 @@ export const globalToLocal = ( zCanvas, x, y ) => {
 };
 
 /**
-  * determines whether the pixel(s) at requested coordinate (or coordinate range) within the
-  * given image is fully transparent
-  *
-  * @param {HTMLCanvasElement} source
-  * @param {number} x x-coordinate within the image
-  * @param {number} y y-coordinate within the image
-  * @param {number=} size optional radius in pixels to verify
-  * @return {boolean} value indicating whether coordinate is transparent
-  */
+ * determines whether the pixel(s) at requested coordinate (or coordinate range)
+ * within the given image is fully transparent
+ *
+ * @param {HTMLCanvasElement} source
+ * @param {number} x x-coordinate within the image
+ * @param {number} y y-coordinate within the image
+ * @param {number=} size optional radius in pixels to verify
+ * @return {boolean} value indicating whether coordinate is transparent
+ */
 export const isInsideTransparentArea = ( source, x, y, size = 5 ) => {
     const left   = x - size;
     const right  = x + size;
@@ -205,11 +203,11 @@ export const isInsideTransparentArea = ( source, x, y, size = 5 ) => {
             const index = (( Math.round( x ) + ( Math.round( y ) * width )) * 4 ) + 3;
             const pixel = imageData[ index ];
 
-              if ( typeof pixel === "number" && pixel !== 0 ) {
-                  if ( ++opaquePixels >= opaqueThreshold ) {
+            if ( typeof pixel === "number" && pixel !== 0 ) {
+                if ( ++opaquePixels >= opaqueThreshold ) {
                       return false;
-                  }
-              }
+                }
+            }
         }
     }
     return true;

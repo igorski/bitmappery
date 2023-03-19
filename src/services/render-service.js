@@ -23,15 +23,14 @@
 import Vue from "vue";
 import { LAYER_TEXT } from "@/definitions/layer-types";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
-import { isEqual as isEffectsEqual } from "@/factories/effects-factory";
 import { hasFilters, isEqual as isFiltersEqual } from "@/factories/filters-factory";
 import { isEqual as isTextEqual } from "@/factories/text-factory";
 import { createCanvas, cloneCanvas, matchDimensions } from "@/utils/canvas-util";
 import { replaceLayerSource } from "@/utils/layer-util";
-import { hasLayerCache, getLayerCache, setLayerCache } from "@/rendering/cache/bitmap-cache";
+import { getLayerCache, setLayerCache } from "@/rendering/cache/bitmap-cache";
 import { renderMultiLineText } from "@/rendering/text";
 import { loadGoogleFont } from "@/services/font-service";
-import FilterWorker from "@/workers/filter.worker";
+import FilterWorker from "@/workers/filter.worker.js?worker";
 
 const jobQueue = [];
 let UID = 0;
@@ -52,7 +51,6 @@ export const setWasmFilters = enabled => {
 };
 
 export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
-    const { effects } = layer;
     const sprite = getSpriteForLayer( layer );
 
     if ( !sprite || !layer.source ) {
@@ -192,7 +190,7 @@ function handleWorkerMessage({ data }) {
     if ( data?.cmd === "error" ) {
         jobQueueObj?.error( data?.error );
     }
-};
+}
 
 /**
  * @param {Object} layer

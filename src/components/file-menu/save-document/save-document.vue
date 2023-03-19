@@ -73,8 +73,8 @@
 
 <script>
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
-import Modal from "@/components/modal/modal";
-import SelectBox from "@/components/ui/select-box/select-box";
+import Modal from "@/components/modal/modal.vue";
+import SelectBox from "@/components/ui/select-box/select-box.vue";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
 import { focus } from "@/utils/environment-util";
 
@@ -114,13 +114,13 @@ export default {
         },
         dropboxSaveComponent() {
             if ( this.storageLocation === STORAGE_TYPES.DROPBOX ) {
-                return () => import( "./dropbox/save-dropbox-document" );
+                return () => import( "./dropbox/save-dropbox-document.vue" );
             }
             return null;
         },
         driveSaveComponent() {
             if ( this.storageLocation === STORAGE_TYPES.DRIVE ) {
-                return () => import( "./google-drive/save-google-drive-document" );
+                return () => import( "./google-drive/save-google-drive-document.vue" );
             }
             return null;
         },

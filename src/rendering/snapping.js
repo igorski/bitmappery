@@ -44,7 +44,7 @@ function cacheSnappableAreas( sprite ) {
     vertical[ 2 ] = bounds.top + bounds.height;
 
     return snappableAreas;
-};
+}
 
 /**
  * When there are a lot of guides, we filter out those that are too distant

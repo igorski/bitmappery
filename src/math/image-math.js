@@ -69,7 +69,7 @@ export const scaleToRatio = ( imageWidth, imageHeight, destWidth, destHeight ) =
  */
 export const getZoomRange = ( activeDocument, canvasDimensions ) => {
     const { width, height } = activeDocument;
-    const { visibleWidth, visibleHeight, horizontalDominant, maxInScale, maxOutScale } = canvasDimensions;
+    const { visibleWidth, visibleHeight, horizontalDominant, maxInScale } = canvasDimensions;
 
     const MIN_IMAGE_SIZE = getMinImageSize( width, height );
 

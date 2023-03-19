@@ -112,7 +112,7 @@
 import { mapGetters, mapMutations } from "vuex";
 import isEqual from "lodash.isequal";
 import { ToggleButton } from "vue-js-toggle-button";
-import Slider from "@/components/ui/slider/slider";
+import Slider from "@/components/ui/slider/slider.vue";
 import FiltersFactory from "@/factories/filters-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import messages from "./messages.json";
@@ -178,7 +178,7 @@ export default {
     watch: {
         internalValue: {
             deep: true,
-            handler( value ) {
+            handler() {
                 // debounce the model update (and subsequent filter render)
                 // to not update directly after each change event
                 if ( this.renderPending ) {

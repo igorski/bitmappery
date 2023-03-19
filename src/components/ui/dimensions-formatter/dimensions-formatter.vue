@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import SelectBox from "@/components/ui/select-box/select-box";
+import SelectBox from "@/components/ui/select-box/select-box.vue";
 import { pixelsToInch, pixelsToCm, pixelsToMm, inchesToPixels, cmToPixels, mmToPixels,  } from "@/math/unit-math";
 import messages from "./messages.json";
 
@@ -147,13 +147,10 @@ export default {
                     return Math.round( value );
                 case "in":
                     return inchesToPixels( value, this.dpi );
-                    break;
                 case "cm":
                     return cmToPixels( value, this.dpi );
-                    break;
                 case "mm":
                     return mmToPixels( value, this.dpi );
-                    break;
             }
         }
     }

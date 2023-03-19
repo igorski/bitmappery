@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { layerToRect } from "@/factories/layer-factory";
-import { scaleRectangle, rotateRectangle, getRotationCenter } from "@/math/rectangle-math";
+import { scaleRectangle, getRotationCenter } from "@/math/rectangle-math";
 
 let bounds;
 

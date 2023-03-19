@@ -6,6 +6,10 @@ import BitMappery from "./bitmappery.vue";
 
 Vue.config.productionTip = false;
 
+// required for psd.js
+import { Buffer } from "buffer";
+globalThis.Buffer = Buffer;
+
 new Vue({
     render: h => h( BitMappery )
 }).$mount( "#app" );

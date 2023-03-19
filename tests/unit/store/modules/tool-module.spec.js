@@ -1,7 +1,11 @@
+import { it, describe, expect, vi } from "vitest";
+import { mockZCanvas } from "../../__mocks";
 import storeModule from "@/store/modules/tool-module";
 import ToolTypes from "@/definitions/tool-types";
 
 const { getters, mutations } = storeModule;
+
+mockZCanvas();
 
 describe( "Vuex tool module", () => {
     describe( "getters", () => {
