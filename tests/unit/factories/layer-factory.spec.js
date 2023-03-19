@@ -1,39 +1,15 @@
 import { it, describe, expect, vi } from "vitest";
-import LayerFactory, { layerToRect } from "@/factories/layer-factory";
 import { LAYER_GRAPHIC, LAYER_IMAGE, LAYER_MASK } from "@/definitions/layer-types";
+import EffectsFactory from "@/factories/effects-factory";
+import FiltersFactory from "@/factories/filters-factory";
+import LayerFactory, { layerToRect } from "@/factories/layer-factory";
+import TextFactory from "@/factories/text-factory";
 
 let mockUpdateFn;
 vi.mock( "@/utils/canvas-util", () => ({
     imageToBase64: (...args) => mockUpdateFn?.( "imageToBase64", ...args ),
     base64toCanvas: (...args) => mockUpdateFn?.( "base64toCanvas", ...args ),
 }));
-vi.mock( "@/factories/effects-factory", async () => {
-    const actual = await vi.importActual( "@/factories/effects-factory" );
-    return {
-        ...actual,
-        create: (...args) => mockUpdateFn?.( "createEffects", ...args ),
-        serialize: (...args) => mockUpdateFn?.( "serializeEffects", ...args ),
-        deserialize: (...args) => mockUpdateFn?.( "deserializeEffects", ...args ),
-    }
-});
-vi.mock( "@/factories/filters-factory", async () => {
-    const actual = await vi.importActual( "@/factories/filters-factory" );
-    return {
-        ...actual,
-        create: (...args) => mockUpdateFn?.( "createFilters", ...args ),
-        serialize: (...args) => mockUpdateFn?.( "serializeFilters", ...args ),
-        deserialize: (...args) => mockUpdateFn?.( "deserializeFilters", ...args ),
-    }
-});
-vi.mock( "@/factories/text-factory", async () => {
-     const actual = await vi.importActual( "@/factories/text-factory" );
-     return {
-         ...actual,
-        create: (...args) => mockUpdateFn?.( "createText", ...args ),
-        serialize: (...args) => mockUpdateFn?.( "serializeText", ...args ),
-        deserialize: (...args) => mockUpdateFn?.( "deserializeText", ...args ),
-    }
-});
 
 describe( "Layer factory", () => {
     describe( "when creating a new layer", () => {
@@ -41,6 +17,11 @@ describe( "Layer factory", () => {
             const mockEffects = { foo: "bar" };
             const mockFilters = { baz: "qux" };
             const mockText    = { value: "lorem ipsum dolor sit amet" };
+
+            const createTextMock = vi.spyOn( TextFactory, "create" ).mockImplementation( () => mockText );
+            const createEffectsMock = vi.spyOn( EffectsFactory, "create" ).mockImplementation( () => mockEffects );
+            const createFiltersMock = vi.spyOn( FiltersFactory, "create" ).mockImplementation( () => mockFilters );
+
             mockUpdateFn = fn => {
                 switch( fn ) {
                     default:
@@ -75,6 +56,10 @@ describe( "Layer factory", () => {
         });
 
         it( "should be able to create a layer from given arguments", () => {
+            const createTextMock = vi.spyOn( TextFactory, "create" ).mockImplementation( args => args );
+            const createEffectsMock = vi.spyOn( EffectsFactory, "create" ).mockImplementation( args => args );
+            const createFiltersMock = vi.spyOn( FiltersFactory, "create" ).mockImplementation( args => args );
+
             mockUpdateFn = ( fn, data ) => data;
             const layer = LayerFactory.create({
                 name: "foo",
@@ -131,22 +116,32 @@ describe( "Layer factory", () => {
                 effects: { rotation: 270 },
                 filters: { contrast: .7 }
             });
+            const serializeTextSpy = vi.spyOn( TextFactory, "serialize" ).mockImplementation( args => args );
+            const deserializeTextSpy = vi.spyOn( TextFactory, "deserialize" ).mockImplementation( args => args );
+
+            const serializeEffectsSpy = vi.spyOn( EffectsFactory, "serialize" ).mockImplementation( args => args );
+            const deserializeEffectsSpy = vi.spyOn( EffectsFactory, "deserialize" ).mockImplementation( args => args );
+
+            const serializeFiltersSpy = vi.spyOn( FiltersFactory, "serialize" ).mockImplementation( args => args );
+            const deserializeFiltersSpy = vi.spyOn( FiltersFactory, "deserialize" ).mockImplementation( args => args );
+
             mockUpdateFn = vi.fn(( fn, data ) => data );
 
             const serialized = LayerFactory.serialize( layer );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "imageToBase64", layer.source, layer.width, layer.height, layer.transparent );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "imageToBase64", layer.mask,   layer.width, layer.height, true );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "serializeText", layer.text );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 4, "serializeEffects", layer.effects );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 5, "serializeFilters", layer.filters );
+            expect( serializeTextSpy ).toHaveBeenCalledWith( layer.text );
+            expect( serializeEffectsSpy ).toHaveBeenCalledWith( layer.effects );
+            expect( serializeFiltersSpy ).toHaveBeenCalledWith( layer.filters );
 
             mockUpdateFn = vi.fn(( fn, data ) => data );
             const deserialized = await LayerFactory.deserialize( serialized );
+
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "base64toCanvas", expect.any( Object ), layer.width, layer.height );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "base64toCanvas", expect.any( Object ), layer.width, layer.height );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "deserializeText",    layer.text );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 4, "deserializeEffects", layer.effects );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 5, "deserializeFilters", layer.filters );
+            expect( deserializeTextSpy ).toHaveBeenCalledWith( layer.text );
+            expect( deserializeEffectsSpy ).toHaveBeenCalledWith( layer.effects );
+            expect( deserializeFiltersSpy ).toHaveBeenCalledWith( layer.filters );
 
             // note id's are unique per created session instance and therefor will differ
             expect({

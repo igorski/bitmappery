@@ -1,25 +1,21 @@
-import { it, describe, expect, vi } from "vitest";
+import { it, describe, expect, afterAll, vi } from "vitest";
+import { mockZCanvas } from "../__mocks";
+import DocumentFactory from "@/factories/document-factory";
+import LayerFactory from "@/factories/layer-factory";
 
-let mockUpdateFn;
-vi.mock( "@/factories/layer-factory", async () => {
-    const actual = await vi.importActual( "@/factories/layer-factory" );
-    return {
-        ...actual,
-        create: (...args) => mockUpdateFn?.( "create", ...args ),
-        serialize: (...args) => mockUpdateFn?.( "serialize", ...args ),
-        deserialize: (...args) => mockUpdateFn?.( "deserialize", ...args ),
-    }
-});
 vi.mock( "@/workers/compression.worker", () => ({
     // nowt... just to resolve import issue
 }));
-
-import DocumentFactory from "@/factories/document-factory";
+mockZCanvas();
 
 describe( "Document factory", () => {
+    afterAll(() => {
+        vi.resetAllMocks();
+    });
+
     describe( "when creating a new Document", () => {
         it( "should create a default Document structure with one default layer when no arguments are passed", () => {
-            mockUpdateFn = vi.fn(( fn ) => fn === "create" ? { layer: "1" } : true );
+            vi.spyOn( LayerFactory, "create" ).mockImplementation(() => ({ layer: "1" }));
             const document = DocumentFactory.create();
             expect( document ).toEqual({
                 id: expect.any( String ),
@@ -69,17 +65,18 @@ describe( "Document factory", () => {
                 layers,
                 selections
             });
-            mockUpdateFn = vi.fn(( fn, data ) => JSON.stringify( data ));
+            const serializeLayerSpy = vi.spyOn( LayerFactory, "serialize" ).mockImplementation( data => JSON.stringify( data ));
+            const deserializeLayerSpy = vi.spyOn( LayerFactory, "deserialize" ).mockImplementation( data => JSON.parse( data ));
+
             const serialized = DocumentFactory.serialize( document );
 
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "serialize", layers[ 0 ], 0, layers );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "serialize", layers[ 1 ], 1, layers );
+            expect( serializeLayerSpy ).toHaveBeenNthCalledWith( 1, layers[ 0 ], 0, layers );
+            expect( serializeLayerSpy ).toHaveBeenNthCalledWith( 2, layers[ 1 ], 1, layers );
 
-            mockUpdateFn = vi.fn(( fn, data ) => JSON.parse( data ));
             const deserialized = await DocumentFactory.deserialize( serialized );
 
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "deserialize", expect.any( String ));
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "deserialize", expect.any( String ));
+            expect( deserializeLayerSpy ).toHaveBeenNthCalledWith( 1, expect.any( String ));
+            expect( deserializeLayerSpy ).toHaveBeenNthCalledWith( 2, expect.any( String ));
 
             // note id's are unique per created session instance and therefor will differ
             expect({

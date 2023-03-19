@@ -1,6 +1,7 @@
-import { it, describe, expect, vi, beforeEach } from "vitest";
+import { it, describe, expect, vi, beforeEach, afterAll } from "vitest";
 import { mockZCanvas } from "../../__mocks";
 import { LAYER_IMAGE } from "@/definitions/layer-types";
+import LayerFactory from "@/factories/layer-factory";
 import DocumentModule from "@/store/modules/document-module";
 const { getters, mutations } = DocumentModule;
 
@@ -13,19 +14,17 @@ vi.mock( "@/factories/sprite-factory", () => ({
     getSpriteForLayer: (...args) => mockUpdateFn?.( "getSpriteForLayer", ...args ),
     getCanvasInstance: (...args) => mockUpdateFn?.( "getCanvasInstance", ...args ),
 }));
-vi.mock( "@/factories/layer-factory", async () => {
-    const actual = await vi.importActual( "@/factories/layer-factory" );
-    return {
-        ...actual,
-        create: (...args) => mockUpdateFn?.( "create", ...args ),
-    }
-});
 vi.mock( "@/utils/render-util", () => ({
     resizeLayerContent: (...args) => mockUpdateFn?.( "resizeLayerContent", ...args ),
     cropLayerContent: (...args) => mockUpdateFn?.( "cropLayerContent", ...args ),
 }));
+const layerCreateMock = vi.spyOn( LayerFactory, "create" ).mockImplementation( args => args );
 
 describe( "Vuex document module", () => {
+    afterAll(() => {
+        vi.resetAllMocks();
+    });
+
     describe( "getters", () => {
         it( "should be able to retrieve all open Documents", () => {
             const state = { documents: [ { name: "foo" }, { name: "bar" } ] };
@@ -234,16 +233,19 @@ describe( "Vuex document module", () => {
         });
 
         describe( "when adding layers", () => {
+            const layerCreateMock = vi.spyOn( LayerFactory, "create" ).mockImplementation( args => args );
+
             it( "should be able to add a Layer to the active Document", () => {
                 const state = {
                     documents: [ { name: "foo", width: 1000, height: 1000, layers: [] } ],
                     activeIndex: 0
                 };
-                mockUpdateFn = vi.fn((fn, data) => data );
+
                 const opts = { name: "layer1", width: 50, height: 100 };
                 mutations.addLayer( state, opts );
+
                 // assert LayerFactory is invoked with provided opts when calling addLayer()
-                expect( mockUpdateFn ).toHaveBeenCalledWith( "create", opts );
+                expect( layerCreateMock ).toHaveBeenCalledWith( opts );
                 expect( state.documents[ 0 ].layers ).toEqual([{
                     name: "layer1",
                     width: 50,

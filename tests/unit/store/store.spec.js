@@ -1,9 +1,10 @@
-import { it, describe, expect, vi } from "vitest";
+import { it, describe, expect, afterAll, vi } from "vitest";
 import { mockZCanvas } from "../__mocks";
-import store from "@/store";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
-import { LAYER_IMAGE, LAYER_TEXT } from "@/definitions/layer-types";
-import LayerFactory from "@/factories/layer-factory";
+import { LAYER_IMAGE } from "@/definitions/layer-types";
+import DocumentFactory from "@/factories/document-factory";
+import KeyboardService from "@/services/keyboard-service";
+import store from "@/store";
 
 const { getters, mutations, actions } = store;
 
@@ -15,23 +16,6 @@ jest.mock( "@/services/font-service", () => ({
     rejectFonts: jest.fn(),
 }));
 let mockUpdateFn;
-vi.mock( "@/services/keyboard-service", async () => {
-    const actual = await vi.importActual( "@/services/keyboard-service" );
-    return {
-        ...actual,
-        setSuspended: (...args) => mockUpdateFn?.( "setSuspended", ...args ),
-    }
-});
-vi.mock( "@/factories/document-factory", async() => {
-    const actual = await vi.importActual( "@/factories/document-factory" );
-    return {
-        ...actual,
-        serialize: (...args) => mockUpdateFn?.( "serialize", ...args ),
-        deserialize: (...args) => mockUpdateFn?.( "deserialize", ...args ),
-        toBlob: (...args) => mockUpdateFn?.( "toBlob", ...args ),
-        fromBlob: (...args) => mockUpdateFn?.( "fromBlob", ...args ),
-    }
-});
 vi.mock( "@/utils/file-util", () => ({
     selectFile: (...args) => mockUpdateFn?.( "selectFile", ...args ),
     saveBlobAsFile: (...args) => mockUpdateFn?.( "saveBlobAsFile", ...args ),
@@ -45,6 +29,10 @@ vi.mock("@/utils/canvas-util", () => ({
 mockZCanvas();
 
 describe( "Vuex store", () => {
+    afterAll(() => {
+        vi.resetAllMocks();
+    });
+
     describe( "getters", () => {
         it( "should know when there is currently a loading state active", () => {
             const state = { loadingStates: [] };
@@ -187,16 +175,18 @@ describe( "Vuex store", () => {
 
             it( "should suspend the keyboard service on open to not conflict with form inputs", () => {
                 const state = { blindActive: false, modal: null };
-                mockUpdateFn = vi.fn();
+                const keyboardSpy = vi.spyOn( KeyboardService, "setSuspended" );
+
                 mutations.openModal( state, "foo" );
-                expect( mockUpdateFn ).toHaveBeenCalledWith( "setSuspended", true );
+                expect( keyboardSpy ).toHaveBeenCalledWith( true );
             });
 
             it( "should unsuspend the keyboard service on close", () => {
                 const state = { blindActive: true, modal: "foo" };
-                mockUpdateFn = vi.fn();
+                const keyboardSpy = vi.spyOn( KeyboardService, "setSuspended" );
+
                 mutations.closeModal( state );
-                expect( mockUpdateFn ).toHaveBeenCalledWith( "setSuspended", false );
+                expect( keyboardSpy ).toHaveBeenCalledWith( false );
             });
         });
 
@@ -263,21 +253,23 @@ describe( "Vuex store", () => {
                 const commit = vi.fn();
                 const mockFile = { name: "file" };
                 const mockDocument = { name: "foo" };
+
                 mockUpdateFn = vi.fn( fn => {
                     switch ( fn ) {
                         default:
                             return true;
                         case "selectFile":
-                            return [mockFile];
-                        case "fromBlob":
-                            return mockDocument;
+                            return [ mockFile ];
                     }
                 });
+                const fromBlobSpy = vi.spyOn( DocumentFactory, "fromBlob" ).mockImplementation(() => mockDocument );
+
                 await actions.loadDocument({ commit });
+
                 // assert file selector has been prompted
-                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "selectFile", expect.any( String ), expect.any( Boolean ));
+                expect( mockUpdateFn ).toHaveBeenCalledWith( "selectFile", expect.any( String ), expect.any( Boolean ));
                 // assert selected file is converted from Blob to document
-                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "fromBlob", mockFile );
+                expect( fromBlobSpy ).toHaveBeenCalledWith( mockFile );
                 // assert resulting Document has been added as the active document
                 expect( commit ).toHaveBeenNthCalledWith( 1, "setLoading", "doc" );
                 expect( commit ).toHaveBeenNthCalledWith( 2, "addNewDocument", mockDocument );
@@ -289,17 +281,13 @@ describe( "Vuex store", () => {
                 const commit = vi.fn();
                 const blob = { name: "file" };
                 const mockDocument = { name: "foo" };
-                mockUpdateFn = vi.fn( fn => {
-                    switch ( fn ) {
-                        default:
-                            return true;
-                        case "fromBlob":
-                            return mockDocument;
-                    }
-                });
+
+                const fromBlobSpy = vi.spyOn( DocumentFactory, "fromBlob" ).mockImplementation(() => mockDocument );
+
                 await actions.loadDocument({ commit }, blob );
+
                 // assert give file is converted from Blob to document
-                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "fromBlob", blob );
+                expect( fromBlobSpy ).toHaveBeenCalledWith( blob );
                 // assert resulting Document has been added as the active document
                 expect( commit ).toHaveBeenNthCalledWith( 1, "setLoading", "doc" );
                 expect( commit ).toHaveBeenNthCalledWith( 2, "addNewDocument", mockDocument );
@@ -374,19 +362,17 @@ describe( "Vuex store", () => {
             };
             const mockSavedDocument = { n: "foo" };
             mockUpdateFn = vi.fn( fn => {
-                switch ( fn ) {
-                    default:
-                        return true;
-                    case "toBlob":
-                        return mockSavedDocument;
-                }
+                return true;
             });
+
+            const toBlobSpy = vi.spyOn( DocumentFactory, "toBlob" ).mockImplementation(() => mockSavedDocument );
+
             await actions.saveDocument({ commit, getters: mockedGetters }, "foo" );
 
             // assert the active document is serialized by DocumentFactory.toBlob
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "toBlob", mockedGetters.activeDocument );
+            expect( toBlobSpy ).toHaveBeenCalledWith( mockedGetters.activeDocument );
             // assert the resulting Blob will be saved to a File
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "saveBlobAsFile", expect.any( Object ), `foo.${PROJECT_FILE_EXTENSION}` );
+            expect( mockUpdateFn ).toHaveBeenCalledWith( "saveBlobAsFile", expect.any( Object ), `foo.${PROJECT_FILE_EXTENSION}` );
             expect( commit ).toHaveBeenCalledWith( "showNotification", expect.any( Object ));
         });
 

@@ -210,7 +210,7 @@ export default {
         }
     },
     mounted() {
-        if ( process.env.NODE_ENV !== "development" ) {
+        if ( import.meta.env.PROD ) {
             window.onbeforeunload = e => {
                 if ( this.activeDocument ) {
                     e.preventDefault();
