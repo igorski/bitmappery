@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import wasmJs from "@/../public/lib/filters.js";
+import wasmJs from "@/wasm/bin/filters.js";
 import FiltersFactory from "@/factories/filters-factory";
 import { imageDataAsFloat } from "@/utils/wasm-util";
 
@@ -42,7 +42,7 @@ self.addEventListener( "message", async ({ data }) => {
         // as it will load the WASM binary
 
         case "initWasm":
-            const wasm   = await fetch( "/lib/filters.wasm" );
+            const wasm   = await fetch( data.wasmUrl );
             const bytes  = await wasm.arrayBuffer();
             wasmInstance = await wasmJs({
                 wasmBinary: bytes

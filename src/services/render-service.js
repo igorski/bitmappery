@@ -31,6 +31,7 @@ import { getLayerCache, setLayerCache } from "@/rendering/cache/bitmap-cache";
 import { renderMultiLineText } from "@/rendering/text";
 import { loadGoogleFont } from "@/services/font-service";
 import FilterWorker from "@/workers/filter.worker.js?worker";
+import wasmUrl from "@/wasm/bin/filters.wasm?url";
 
 const jobQueue = [];
 let UID = 0;
@@ -46,7 +47,7 @@ export const setWasmFilters = enabled => {
     if ( enabled && !wasmWorker ) {
         wasmWorker = new FilterWorker();
         wasmWorker.onmessage = handleWorkerMessage;
-        wasmWorker.postMessage({ cmd: "initWasm" });
+        wasmWorker.postMessage({ cmd: "initWasm", wasmUrl });
     }
 };
 

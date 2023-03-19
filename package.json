@@ -8,7 +8,7 @@
     "server": "vite preview",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore --fix src",
     "test": "vitest --environment jsdom --no-watch",
-    "wasm": "emcc -O3 src/wasm/filters.cpp -s ENVIRONMENT=worker -s ALLOW_MEMORY_GROWTH=1 -s MODULARIZE=1 -s EXPORTED_FUNCTIONS=\"['_malloc', '_free', '_filter']\" -o public/lib/filters.js"
+    "wasm": "emcc -O3 src/wasm/filters.cpp -s ENVIRONMENT=worker -s ALLOW_MEMORY_GROWTH=1 -s MODULARIZE=1 -s EXPORTED_FUNCTIONS=\"['_malloc', '_free', '_filter']\" -o src/wasm/bin/filters.js"
   },
   "dependencies": {
     "@simonwep/pickr": "^1.8.0",
