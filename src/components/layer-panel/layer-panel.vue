@@ -92,26 +92,26 @@
                                         'layer--highlight': layer.mask === activeLayerMask
                                     }"
                                     @click="handleLayerMaskClick( layer )"
-                                ><img src="@/images/icon-mask.svg" /></button>
+                                ><img src="@/assets-inline/images/icon-mask.svg" /></button>
                                 <button
                                     v-tooltip="$t('toggleVisibility')"
                                     type="button"
                                     class="layer__actions-button button--ghost"
                                     @click="toggleLayerVisibility( layer.index )"
                                     :class="{ 'layer__actions-button--disabled': !layer.visible }"
-                                ><img src="@/images/icon-eye.svg" /></button>
+                                ><img src="@/assets-inline/images/icon-eye.svg" /></button>
                                 <button
                                     v-tooltip="$t('filters')"
                                     type="button"
                                     class="layer__actions-button button--ghost"
                                     @click="handleFiltersClick( layer.index )"
-                                ><img src="@/images/icon-settings.svg" /></button>
+                                ><img src="@/assets-inline/images/icon-settings.svg" /></button>
                                 <button
                                     v-tooltip="$t( layer.mask ? 'deleteMask' : 'deleteLayer' )"
                                     type="button"
                                     class="layer__actions-button button--ghost"
                                     @click="handleRemoveClick( layer.index )"
-                                ><img src="@/images/icon-trashcan.svg" /></button>
+                                ><img src="@/assets-inline/images/icon-trashcan.svg" /></button>
                             </div>
                         </div>
                     </draggable>
@@ -234,7 +234,7 @@ export default {
         requestLayerAdd() {
             this.openModal( ADD_LAYER );
         },
-        async handleLayerDoubleClick( layer ) {
+        async handleLayerDoubleClick( /*layer*/ ) {
             this.editable = true;
             await this.$nextTick();
             this.$refs.nameInput[ 0 ]?.select(); // focused layer will always be at 0 index nameInput

@@ -107,7 +107,7 @@ import FontPreview from "./font-preview/font-preview.vue";
 import { mapSelectOptions } from "@/utils/search-select-util";
 import { enqueueState } from "@/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
-import { loadGoogleFont, fontsConsented, consentFonts, rejectFonts } from "@/services/font-service";
+import { fontsConsented, consentFonts, rejectFonts } from "@/services/font-service";
 import { googleFonts } from "@/definitions/font-types";
 import { isMobile } from "@/utils/environment-util";
 import { focus } from "@/utils/environment-util";

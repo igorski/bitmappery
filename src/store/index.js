@@ -29,7 +29,6 @@ import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { LAYER_GRAPHIC, LAYER_TEXT } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS, PANEL_LAYERS } from "@/definitions/panel-types";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
-import { runSpriteFn }   from "@/factories/sprite-factory";
 import { fontsConsented, consentFonts, rejectFonts } from "@/services/font-service";
 import canvasModule      from "./modules/canvas-module";
 import documentModule    from "./modules/document-module";

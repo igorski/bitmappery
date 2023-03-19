@@ -145,7 +145,7 @@ class ZoomableCanvas extends canvas {
         // immediately draw new contents onto the screen
 
         if ( this._enqueuedSize ) {
-            //updateCanvasSize( this );
+            updateCanvasSize( this );
         }
 
         const ctx = this._canvasContext;
@@ -349,8 +349,8 @@ function updateCanvasSize( canvasInstance ) {
         const cvsWidth  = canvasInstance._width;
         const cvsHeight = canvasInstance._height;
 
-        width  = min( viewport.width,  cvsWidth );
-        height = min( viewport.height, cvsHeight );
+        width  = Math.min( viewport.width,  cvsWidth );
+        height = Math.min( viewport.height, cvsHeight );
 
         // in case viewport was panned beyond the new canvas dimensions
         // reset pan to center.

@@ -1,8 +1,9 @@
 import { it, describe, expect, afterAll, vi } from "vitest";
 import { mockZCanvas } from "../__mocks";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
-import { LAYER_IMAGE } from "@/definitions/layer-types";
+import { LAYER_IMAGE, LAYER_TEXT } from "@/definitions/layer-types";
 import DocumentFactory from "@/factories/document-factory";
+import LayerFactory from "@/factories/layer-factory";
 import KeyboardService from "@/services/keyboard-service";
 import store from "@/store";
 
@@ -10,10 +11,10 @@ const { getters, mutations, actions } = store;
 
 let mockFontsConsented = true;
 let mockFontConsentFn;
-jest.mock( "@/services/font-service", () => ({
+vi.mock( "@/services/font-service", () => ({
     fontsConsented: () => mockFontsConsented,
     consentFonts: () => mockFontConsentFn(),
-    rejectFonts: jest.fn(),
+    rejectFonts: vi.fn(),
 }));
 let mockUpdateFn;
 vi.mock( "@/utils/file-util", () => ({
@@ -297,21 +298,15 @@ describe( "Vuex store", () => {
 
             describe( "and the document has text layers", () => {
                 it( "should request user consent for using Google Fonts, if none had been given yet", async () => {
-                    const commit = jest.fn();
+                    const commit = vi.fn();
                     const blob = { name: "file" };
                     const mockDocument = { name: "foo", layers: [ LayerFactory.create({ type: LAYER_TEXT }) ] };
 
-                    mockFontsConsented = false;
-                    mockFontConsentFn = jest.fn();
+                    const fromBlobSpy = vi.spyOn( DocumentFactory, "fromBlob" ).mockImplementation(() => mockDocument );
 
-                    mockUpdateFn = jest.fn( fn => {
-                        switch ( fn ) {
-                            default:
-                                return true;
-                            case "fromBlob":
-                                return mockDocument;
-                        }
-                    });
+                    mockFontsConsented = false;
+                    mockFontConsentFn = vi.fn();
+
                     await actions.loadDocument({ commit }, blob );
                     // assert confirmation dialog was spawned
                     expect( commit ).toHaveBeenNthCalledWith( 2, "openDialog", {
@@ -334,18 +329,13 @@ describe( "Vuex store", () => {
                 });
 
                 it( "should not request user consent for using Google Fonts, if it had previously been given", async () => {
-                    const commit = jest.fn();
+                    const commit = vi.fn();
                     const blob = { name: "file" };
                     const mockDocument = { name: "foo", layers: [ LayerFactory.create({ type: LAYER_TEXT }) ] };
                     mockFontsConsented = true;
-                    mockUpdateFn = jest.fn( fn => {
-                        switch ( fn ) {
-                            default:
-                                return true;
-                            case "fromBlob":
-                                return mockDocument;
-                        }
-                    });
+
+                    const fromBlobSpy = vi.spyOn( DocumentFactory, "fromBlob" ).mockImplementation(() => mockDocument );
+
                     await actions.loadDocument({ commit }, blob );
                     // assert dialog was not shown
                     expect( commit ).not.toHaveBeenCalledWith( "openDialog" );

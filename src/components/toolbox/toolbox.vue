@@ -54,7 +54,7 @@
                 :disabled="!canUndo"
                 @click="undo()"
             >
-                <img src="@/images/icon-history.svg" />
+                <img src="@/assets-inline/images/icon-history.svg" />
             </button>
             <button
                 type="button"
@@ -64,7 +64,7 @@
                 :disabled="!canRedo"
                 @click="redo()"
             >
-                <img src="@/images/icon-history.svg" class="mirrored" />
+                <img src="@/assets-inline/images/icon-history.svg" class="mirrored" />
             </button>
             <!-- tools -->
             <button

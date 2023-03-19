@@ -374,12 +374,12 @@
         >
             <img
                 v-if="isFullscreen"
-                src="@/images/icon-minimize.svg"
+                src="@/assets-inline/images/icon-minimize.svg"
                 :alt="$t( 'minimize' )"
             />
             <img
                 v-else
-                src="@/images/icon-maximize.svg"
+                src="@/assets-inline/images/icon-maximize.svg"
                 :alt="$t( 'maximize' )"
             />
         </button>

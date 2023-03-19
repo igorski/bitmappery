@@ -27,7 +27,7 @@
     >
         <img
             v-if="isLoading"
-            src="../../../images/animations/loader.svg"
+            src="../../../assets-inline/animations/loader.svg"
             class="image-preview__loader"
         />
         <img

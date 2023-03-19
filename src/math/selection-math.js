@@ -83,7 +83,7 @@ export const isSelectionClosed = selection => {
  * @return {Array<x: number, y number>}
  */
 export const selectByColor = ( cvs, sourceX, sourceY, threshold = 0 ) => {
-    if ( process.env.NODE_ENV !== "production" ) {
+    if ( import.meta.env.DEV ) {
         if ( threshold < 0 || threshold > 100 ) {
             throw new Error( "threshold must be in 0 - 100 range" );
         }
