@@ -43,7 +43,7 @@ export default {
             // see tool-options-fill.vue
             [ ToolTypes.FILL ] : { smartFill: true },
             // see tool-options-wand.vue
-            [ ToolTypes.WAND ] : { threshold: 15, sampleMerged: false },
+            [ ToolTypes.WAND ] : { threshold: 5, sampleMerged: false },
         },
         snapAlign : true,
         antiAlias : true,

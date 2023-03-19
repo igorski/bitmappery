@@ -133,7 +133,7 @@ The above will suffice when working solely on the JavaScript side of things.
 
 BitMappery can also use WebAssembly to increase performance of image manipulation. The source
 code is C based and compiled to WASM using [Emscripten](https://github.com/emscripten-core/emscripten). Because this setup is a little more cumbersome, the repository contains precompiled binaries
-in the _./public/bin/_-folder meaning you can omit this setup if you don't intend to make changes
+in the _./src/wasm/bin/_-folder meaning you can omit this setup if you don't intend to make changes
 to these sources.
 
 If you do wish to make contributions on this end, to compile the source (_/src/wasm/_) C-code to WASM, you
