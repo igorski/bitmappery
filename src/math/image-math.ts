@@ -20,6 +20,9 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Size } from "zcanvas";
+import type { Document } from "@/definitions/document";
+import type { CanvasDimensions, CanvasZoomRange } from "@/definitions/editor";
 import { getMinImageSize } from "@/definitions/editor-properties";
 import { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import { fastRound } from "@/math/unit-math";
@@ -28,10 +31,10 @@ import { fastRound } from "@/math/unit-math";
  * Calculates the appropriate dimensions for fitting an image of dimensions
  * described by imageWidth x imageHeight in a destination area described by
  * destWidth x destHeight while maintaining the image aspect ratio.
- * This imply that the image can either be cropped or requires the destination
+ * This implies that the image can either be cropped or requires the destination
  * area to be scrollable in order to be displayed in full.
  */
-export const scaleToRatio = ( imageWidth, imageHeight, destWidth, destHeight ) => {
+export const scaleToRatio = ( imageWidth: number, imageHeight: number, destWidth: number, destHeight: number ): Size => {
     let ratio  = 1;
     let height = destHeight;
 
@@ -67,7 +70,7 @@ export const scaleToRatio = ( imageWidth, imageHeight, destWidth, destHeight ) =
  * is returned, which allows to calculate the appropriate zoom levels to display the document at arbitrary
  * sizes in pixels. Note that these steps can differ when zooming in or out! Also @see calculateMaxScaling()
  */
-export const getZoomRange = ( activeDocument, canvasDimensions ) => {
+export const getZoomRange = ( activeDocument: Document, canvasDimensions: CanvasDimensions ): CanvasZoomRange => {
     const { width, height } = activeDocument;
     const { visibleWidth, visibleHeight, horizontalDominant, maxInScale } = canvasDimensions;
 
@@ -115,7 +118,7 @@ export const getZoomRange = ( activeDocument, canvasDimensions ) => {
  * In case given width x height exceeds the maximum amount of given megapixels, a new
  * width and height are returned that is within the range
  */
-export const constrain = ( width, height, maxMegaPixel ) => {
+export const constrain = ( width: number, height: number, maxMegaPixel: number ): Size => {
     const megaPixel = width * height;
     if ( megaPixel > maxMegaPixel ) {
         const ratio = Math.sqrt( maxMegaPixel ) / Math.sqrt( megaPixel );
@@ -125,6 +128,6 @@ export const constrain = ( width, height, maxMegaPixel ) => {
     return { width, height };
 };
 
-export const isPortrait  = ( width, height ) => width < height;
-export const isLandscape = ( width, height ) => width > height;
-export const isSquare    = ( width, height ) => width === height;
+export const isPortrait  = ( width: number, height: number ): boolean => width < height;
+export const isLandscape = ( width: number, height: number ): boolean => width > height;
+export const isSquare    = ( width: number, height: number ): boolean => width === height;

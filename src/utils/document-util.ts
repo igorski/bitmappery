@@ -247,11 +247,11 @@ export const getAlignableObjects = ( document: Document, excludeLayer?: Layer ):
         // 2. it matches the size of the document (which is an alignable object in itself)
         // 3. it is the optionally provided excludeLayer
         if ( !object.visible ||
-             ( object !== documentBounds && areEqual( documentBounds, object )) ||
+             ( object !== documentBounds && areEqual( documentBounds as Rectangle, object as Rectangle )) ||
              ( excludeLayer && object.id === excludeLayer.id )) {
             return acc;
         }
-        const { left, top, width, height } = rotateRectangle( object, object.effects?.rotation );
+        const { left, top, width, height } = rotateRectangle( object as Rectangle, object.effects?.rotation );
         // 1. vertical top, center and bottom
         let guideWidth = document.width, guideHeight = 0;
         if ( top > 0 ) {

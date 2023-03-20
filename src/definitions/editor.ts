@@ -64,6 +64,17 @@ export type CanvasDimensions = {
     horizontalDominant : boolean;
 };
 
+export type CanvasZoomRange = {
+    zeroZoomWidth: number;
+    zeroZoomHeight: number;
+    minZoomWidth: number;
+    minZoomHeight: number;
+    pixelsPerZoomOutUnit: number;
+    maxZoomWidth: number;
+    maxZoomHeight: number;
+    pixelsPerZoomInUnit: number;
+};
+
 export type Brush = {
     radius: number;
     colors: string[];
@@ -85,5 +96,5 @@ export type BrushAction = {
     type: string;
     size: number;
     color: string;
-    selection: Point[];
+    selection: Selection;
 };

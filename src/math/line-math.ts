@@ -20,7 +20,9 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-export const calcPathSpline = ( nodes, node, splinePts, resolution = 32 ) => {
+import type { Point } from "zcanvas";
+
+export const calcPathSpline = ( nodes: Point[], node: number, splinePts: Point[], resolution = 32 ): void => {
     const prev     = node - 1;
     const next     = node + 1;
     const nextNext = node + 2;
@@ -68,7 +70,7 @@ const CR31 =  1.0;
 const CR32 =  0.0;
 const CR33 =  0.0;
 
-function nspline( x, f0, f1, f2, f3 ) {
+function nspline( x: number, f0: number, f1: number, f2: number, f3: number ): number {
 	const c3 = CR00 * f0 + CR01 * f1 + CR02 * f2 + CR03 * f3;
 	const c2 = CR10 * f0 + CR11 * f1 + CR12 * f2 + CR13 * f3;
 	const c1 = CR20 * f0 + CR21 * f1 + CR22 * f2 + CR23 * f3;

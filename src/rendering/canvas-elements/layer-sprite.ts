@@ -29,10 +29,10 @@ import { createCanvas, canvasToBlob, globalToLocal } from "@/utils/canvas-util";
 import { renderCross } from "@/utils/render-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { getSizeForBrush } from "@/definitions/brush-types";
+import type { Document, Layer, Selection } from "@/definitions/document";
 import type { CanvasContextPairing, CanvasDrawable, Brush, BrushToolOptions, BrushAction } from "@/definitions/editor";
 import { LayerTypes } from "@/definitions/layer-types";
 import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
-import type { Document, Layer } from "@/definitions/document";
 import { isSelectionClosed } from "@/math/selection-math";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation } from "@/math/point-math";
@@ -73,7 +73,7 @@ class LayerSprite extends ZoomableSprite {
     protected _isPaintMode: boolean;
     protected _isDragMode: boolean;
     protected _isColorPicker: boolean;
-    protected _selection: Point[];
+    protected _selection: Selection;
     protected _invertSelection: boolean;
     protected _toolType: ToolTypes;
     protected _toolOptions: any;
@@ -301,7 +301,7 @@ class LayerSprite extends ZoomableSprite {
         if ( selectionPoints ) {
             let { left, top } = this.layer;
             if ( this.isRotated() && !isLowResPreview ) {
-                selectionPoints = rotatePointerLists( selectionPoints, this.layer, width, height );
+                selectionPoints = rotatePointerLists( selectionPoints as Selection, this.layer, width, height );
                 left = top = 0; // pointers have been rotated within clipping context
             }
             ctx.save(); // 2. clipping save()

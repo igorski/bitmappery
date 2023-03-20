@@ -20,12 +20,15 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Rectangle } from "zcanvas";
+import type { Selection } from "@/definitions/document";
+
 const UP     = 0;
 const LEFT   = 1;
 const DOWN   = 2;
 const RIGHT  = 3;
 
-export const getRectangleForSelection = selection => {
+export const getRectangleForSelection = ( selection: Selection ): Rectangle => {
     let minX = Infinity;
     let minY = Infinity;
     let maxX = 0;
@@ -45,7 +48,7 @@ export const getRectangleForSelection = selection => {
     };
 };
 
-export const createSelectionForRectangle = ( width, height, x = 0, y = 0 ) => [
+export const createSelectionForRectangle = ( width: number, height: number, x = 0, y = 0 ): Selection => [
     { x, y },
     { x: x + width, y },
     { x: x + width, y: y + height },
@@ -53,7 +56,7 @@ export const createSelectionForRectangle = ( width, height, x = 0, y = 0 ) => [
     { x, y }
 ];
 
-export const isSelectionRectangular = selection => {
+export const isSelectionRectangular = ( selection: Selection ): boolean => {
     if ( selection.length !== 5 ) {
         return false;
     }
@@ -64,7 +67,7 @@ export const isSelectionRectangular = selection => {
     return isSelectionClosed( selection );
 };
 
-export const isSelectionClosed = selection => {
+export const isSelectionClosed = ( selection: Selection ): boolean => {
     // smallest selection is four point polygon
     if ( !selection || selection.length < 3 ) {
         return false;
@@ -80,14 +83,9 @@ export const isSelectionClosed = selection => {
  * @param {number} sourceX
  * @param {number} sourceY
  * @param {number=} threshold in 0 - 100 range
- * @return {Array<x: number, y number>}
+ * @return {Selection}
  */
-export const selectByColor = ( cvs, sourceX, sourceY, threshold = 0 ) => {
-    if ( import.meta.env.DEV ) {
-        if ( threshold < 0 || threshold > 100 ) {
-            throw new Error( "threshold must be in 0 - 100 range" );
-        }
-    }
+export const selectByColor = ( cvs: HTMLCanvasElement, sourceX: number, sourceY: number, threshold = 0 ): Selection => {
     const { width, height } = cvs;
 
     const ctx = cvs.getContext( "2d" );
@@ -96,12 +94,13 @@ export const selectByColor = ( cvs, sourceX, sourceY, threshold = 0 ) => {
     sourceY = Math.min( height - 1, Math.round( sourceY ));
 
     // the source color
+    // @ts-expect-error can only be iterated with es2015 or higher --target
     const [ r, g, b, a ] = ctx.getImageData( sourceX, sourceY, 1, 1 ).data;
 
     const imageData = ctx.getImageData( 0, 0, width, height ).data;
 
     // verification whether pixel starting at given index is of equal color as the source color, or within range
-    const pixelMatch = index => {
+    const pixelMatch = ( index: number ): boolean => {
         // exact color  match
         if ( threshold === 0 ) {
             return imageData[ index ]     === r &&
@@ -215,12 +214,7 @@ export const selectByColor = ( cvs, sourceX, sourceY, threshold = 0 ) => {
     return path;
 };
 
-/**
- * @param {Array<x: number, y: number>} selectionA
- * @param {Array<x: number, y: number>} selectionB
- * @return {Array<x: number, y: number>}
- */
-export const mergeSelections = ( selectionA, selectionB ) => {
+export const mergeSelections = ( selectionA: Selection, selectionB: Selection ): Selection => {
     // TODO this is quite brute force...
     const out = [ ...selectionA ];
     for ( const { x, y } of selectionB ) {

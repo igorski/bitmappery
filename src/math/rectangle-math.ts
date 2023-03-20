@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,11 +20,12 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Point, Rectangle } from "zcanvas";
 import { fastRound } from "@/math/unit-math";
 
 const HALF = 0.5;
 
-export const getRotationCenter = ({ left, top, width, height }, rounded = false ) => {
+export const getRotationCenter = ({ left, top, width, height }: Rectangle, rounded = false ): Point => {
     const x = left + width  * HALF;
     const y = top  + height * HALF;
     return {
@@ -33,7 +34,7 @@ export const getRotationCenter = ({ left, top, width, height }, rounded = false 
     };
 };
 
-export const rotateRectangle = ( rectangle, angleInRadians = 0, rounded = false ) => {
+export const rotateRectangle = ( rectangle: Rectangle, angleInRadians = 0, rounded = false ): Rectangle => {
     if ( angleInRadians === 0 ) {
         return rectangle;
     }
@@ -66,7 +67,9 @@ export const rotateRectangle = ( rectangle, angleInRadians = 0, rounded = false 
 
     const out = {
         width  : xMax - xMin,
-        height : yMax - yMin
+        height : yMax - yMin,
+        left   : 0,
+        top    : 0
     };
     out.left = left - ( out.width  / 2 - width  / 2 );
     out.top  = top  - ( out.height / 2 - height / 2 );
@@ -80,7 +83,7 @@ export const rotateRectangle = ( rectangle, angleInRadians = 0, rounded = false 
     return out;
 };
 
-export const scaleRectangle = ({ left, top, width, height }, scale = 1, rounded = false ) => {
+export const scaleRectangle = ({ left, top, width, height }: Rectangle, scale = 1, rounded = false ): Rectangle => {
     const scaledWidth  = width  * scale;
     const scaledHeight = height * scale;
     const out = {
@@ -98,12 +101,7 @@ export const scaleRectangle = ({ left, top, width, height }, scale = 1, rounded 
     return out;
 };
 
-export const areEqual = ( rect1, rect2 ) => {
-    if ( import.meta.env.DEV ) {
-        if ( typeof rect1.x === "number" || typeof rect2.x === "number" ) {
-            throw new Error( "x, y rectangles are deprecated." );
-        }
-    }
+export const areEqual = ( rect1: Rectangle, rect2: Rectangle ): boolean => {
     return (
         rect1.left   === rect2.left  &&
         rect1.top    === rect2.top   &&

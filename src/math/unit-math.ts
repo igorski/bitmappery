@@ -20,25 +20,29 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-export const degreesToRadians = deg => deg * Math.PI / 180;
-export const radiansToDegrees = rad => rad * 180 / Math.PI;
+export const degreesToRadians = ( deg: number ): number => deg * Math.PI / 180;
+export const radiansToDegrees = ( rad: number ): number => rad * 180 / Math.PI;
 
 // Safari greatly benefits from round numbers as subpixel content is sometimes ommitted from rendering...
-export const fastRound = num => num > 0 ? ( num + .5 ) << 0 : num | 0;
+export const fastRound = ( num: number ): number => num > 0 ? ( num + .5 ) << 0 : num | 0;
 
 const CM_PER_INCH = 2.54;
 const MM_PER_INCH = CM_PER_INCH * 10;
 
-export const pixelsToInch   = ( pixels, dpi = 72 ) => pixels / dpi;
-export const pixelsToCm     = ( pixels, dpi = 72 ) => pixelsToInch( pixels, dpi ) * CM_PER_INCH
-export const pixelsToMm     = ( pixels, dpi = 72 ) => pixelsToInch( pixels, dpi ) * MM_PER_INCH;
-export const inchesToPixels = ( inches, dpi = 72 ) => inches * dpi;
-export const cmToPixels     = ( cms, dpi = 72 ) => inchesToPixels( cms / CM_PER_INCH, dpi );
-export const mmToPixels     = ( mms, dpi = 72 ) => inchesToPixels( mms / MM_PER_INCH, dpi );
+export const pixelsToInch   = ( pixels: number, dpi = 72 ): number => pixels / dpi;
+export const pixelsToCm     = ( pixels: number, dpi = 72 ): number => pixelsToInch( pixels, dpi ) * CM_PER_INCH
+export const pixelsToMm     = ( pixels: number, dpi = 72 ): number => pixelsToInch( pixels, dpi ) * MM_PER_INCH;
+export const inchesToPixels = ( inches: number, dpi = 72 ): number => inches * dpi;
+export const cmToPixels     = ( cms: number, dpi = 72 ): number => inchesToPixels( cms / CM_PER_INCH, dpi );
+export const mmToPixels     = ( mms: number, dpi = 72 ): number => inchesToPixels( mms / MM_PER_INCH, dpi );
 
 // convenience method to scale given value and its expected maxValue against
 // an arbitrary range (defined by maxCompareValue in relation to maxValue)
 
-export const scale = ( value, maxValue, maxCompareValue ) => Math.min( maxValue, value ) * ( maxCompareValue / maxValue );
+export const scale = ( value: number, maxValue: number, maxCompareValue : number ): number => {
+    return Math.min( maxValue, value ) * ( maxCompareValue / maxValue );
+}
 
-export const randomInRange = ( min, max ) => Math.random() * ( max - min + 1 ) + min;
+export const randomInRange = ( min: number, max: number ) => {
+    return Math.random() * ( max - min + 1 ) + min;
+}
