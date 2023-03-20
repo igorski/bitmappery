@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Vue from "vue";
-import { LAYER_TEXT } from "@/definitions/layer-types";
+import { LayerTypes } from "@/definitions/layer-types";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { hasFilters, isEqual as isFiltersEqual } from "@/factories/filters-factory";
 import { isEqual as isTextEqual } from "@/factories/text-factory";
@@ -30,7 +30,7 @@ import { replaceLayerSource } from "@/utils/layer-util";
 import { getLayerCache, setLayerCache } from "@/rendering/cache/bitmap-cache";
 import { renderMultiLineText } from "@/rendering/text";
 import { loadGoogleFont } from "@/services/font-service";
-import FilterWorker from "@/workers/filter.worker.js?worker";
+import FilterWorker from "@/workers/filter.worker?worker";
 import wasmUrl from "@/wasm/bin/filters.wasm?url";
 
 const jobQueue = [];
@@ -72,7 +72,7 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
 
     // step 1. render layer source contents
 
-    if ( layer.type === LAYER_TEXT && layer.text.value ) {
+    if ( layer.type === LayerTypes.LAYER_TEXT && layer.text.value ) {
         let textBitmap;
         if ( cached?.textBitmap && isTextEqual( layer.text, cached.text )) {
             //console.info( "reading rendered text from cache" );

@@ -21,16 +21,17 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { sprite } from "zcanvas";
+import type { Rectangle, TransformedDrawBounds, Viewport } from "zcanvas";
 
 const { min } = Math;
 const HALF    = 0.5;
 
 class ZoomableSprite extends sprite {
-    constructor( opts ) {
+    constructor( opts: any ) {
         super( opts );
     }
 
-    drawCropped( canvasContext, { src, dest }) {
+    drawCropped( canvasContext: CanvasRenderingContext2D, { src, dest }: TransformedDrawBounds ): void {
         canvasContext.drawImage(
             this._bitmap,
             ( HALF + src.left )    << 0,
@@ -52,7 +53,7 @@ class ZoomableSprite extends sprite {
     // a custom bounds object here to override the internal reference. This is done when
     // multiple transformations take place on the source (see layer-sprite.draw())
 
-    draw( canvasContext, viewport = null, bounds = this._bounds ) {
+    draw( canvasContext: CanvasRenderingContext2D, viewport: Viewport = null, bounds: Rectangle = this._bounds ): void {
         let render = this._bitmapReady;
         if ( render && viewport ) {
             render = isInsideViewport( bounds, viewport );
@@ -78,7 +79,7 @@ export default ZoomableSprite;
 
 /* internal methods */
 
-export const isInsideViewport = ({ left, top, width, height }, viewport ) => {
+export const isInsideViewport = ({ left, top, width, height }: Rectangle, viewport: Viewport ): boolean => {
     return ( left + width )  >= viewport.left && left <= viewport.right &&
            ( top  + height ) >= viewport.top  && top  <= viewport.bottom;
 };
@@ -88,7 +89,7 @@ export const isInsideViewport = ({ left, top, width, height }, viewport ) => {
  * we can omit drawing a Sprites unseen pixels by calculating the visible area from both
  * the source drawable and destination canvas context.
  */
-export const calculateDrawRectangle = ({ left, top, width, height }, viewport ) => {
+export const calculateDrawRectangle = ({ left, top, width, height }: Rectangle, viewport: Viewport ): TransformedDrawBounds => {
     const {
         left   : viewportX,
         top    : viewportY,

@@ -20,10 +20,12 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Rectangle, Viewport } from "zcanvas";
+import type { Document, Layer } from "@/definitions/document";
 import { layerToRect } from "@/factories/layer-factory";
 import { scaleRectangle, getRotationCenter } from "@/math/rectangle-math";
 
-let bounds;
+let bounds: Rectangle;
 
 /**
  * Prepare given ctx to perform drawing operations for mirrored, scaled or
@@ -40,10 +42,10 @@ let bounds;
  * @param {CanvasRenderingContext2D} ctx
  * @param {Layer} layer to be rendering the contents of
  * @param {Object=} viewport optional ZoomableCanvas viewport (when using within a sprite)
- * @return {Object|null} null when no transformation took place, updated bounds Object when
+ * @return {Rectangle|null} null when no transformation took place, updated bounds Object when
  *                       transformation did take place.
  */
-export const applyTransformation = ( ctx, layer, viewport = { left: 0, top: 0 }) => {
+export const applyTransformation = ( ctx: CanvasRenderingContext2D, layer: Layer, viewport: Partial<Viewport> = { left: 0, top: 0 }): Rectangle => {
     const { mirrorX, mirrorY, scale, rotation } = layer.effects;
 
     const isMirrored = mirrorX || mirrorY;
@@ -120,10 +122,10 @@ export const applyTransformation = ( ctx, layer, viewport = { left: 0, top: 0 })
  *
  * @param {CanvasRenderingContext2D} ctx
  * @param {Layer} layer to be rendering the contents of
- * @return {Object|null} null when no transformation took place, updated bounds Object when
+ * @return {Rectangle|null} null when no transformation took place, updated bounds Object when
  *                       transformation did take place.
  */
-export const reverseTransformation = ( ctx, layer ) => {
+export const reverseTransformation = ( ctx: CanvasRenderingContext2D, layer: Layer ): Rectangle => {
     const { mirrorX, mirrorY, scale, rotation } = layer.effects;
 
     const isMirrored = mirrorX || mirrorY;

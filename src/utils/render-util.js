@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { LAYER_TEXT } from "@/definitions/layer-types";
+import { LayerTypes } from "@/definitions/layer-types";
 import { resizeImage } from "@/utils/canvas-util";
 
 export const renderCross = ( ctx, x, y, size ) => {
@@ -48,7 +48,7 @@ export const resizeLayerContent = async ( layer, ratioX, ratioY ) => {
     layer.width  *= ratioX;
     layer.height *= ratioY;
 
-    if ( layer.type === LAYER_TEXT ) {
+    if ( layer.type === LayerTypes.LAYER_TEXT ) {
         const { text } = layer;
 
         text.size       *= ratioX;

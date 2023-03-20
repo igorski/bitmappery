@@ -20,33 +20,56 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { ActionContext } from "vuex";
+import type { IVueI18n } from "vue-i18n";
+import type { Size, SizedImage } from "zcanvas";
+import type { Notification, Dialog } from "@/definitions/editor";
 import KeyboardService from "@/services/keyboard-service";
 import DocumentFactory from "@/factories/document-factory";
-import LayerFactory    from "@/factories/layer-factory";
+import LayerFactory from "@/factories/layer-factory";
 import { initHistory, enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
-import { LAYER_GRAPHIC, LAYER_TEXT } from "@/definitions/layer-types";
+import { LayerTypes } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS, PANEL_LAYERS } from "@/definitions/panel-types";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
 import { fontsConsented, consentFonts, rejectFonts } from "@/services/font-service";
-import canvasModule      from "./modules/canvas-module";
-import documentModule    from "./modules/document-module";
-import historyModule     from "./modules/history-module";
-import imageModule       from "./modules/image-module";
+import canvasModule from "./modules/canvas-module";
+import documentModule from "./modules/document-module";
+import historyModule from "./modules/history-module";
+import imageModule from "./modules/image-module";
 import preferencesModule from "./modules/preferences-module";
-import toolModule        from "./modules/tool-module";
+import toolModule from "./modules/tool-module";
 import { cloneCanvas, imageToCanvas } from "@/utils/canvas-util";
 import { copySelection, deleteSelectionContent } from "@/utils/document-util";
 import { saveBlobAsFile, selectFile } from "@/utils/file-util";
 import { replaceLayerSource } from "@/utils/layer-util";
 import { truncate } from "@/utils/string-util";
 
+export interface BitMapperyState {
+    menuOpened: boolean;
+    toolboxOpened: boolean;
+    openedPanels: string[];
+    selectionContent: SizedImage | null; // clipboard content of copied images ({ image, size })
+    blindActive: boolean;
+    panMode: boolean;         // whether drag interactions with the document will pan its viewport
+    selectMode: boolean;      // whether the currently active tool is a selection type (works across layers)
+    layerSelectMode: boolean; // whether clicking on the document should act as layer selection
+    dialog: Dialog | null;    // currently opened dialog
+    modal: string | null;     // currently opened modal (by name)
+    loadingStates: string[];  // wether one or more long running operations (identified by string key) are running
+    notifications: Notification[]; // notification message queue
+    storageType: STORAGE_TYPES;
+    dropboxConnected: boolean;
+    driveConnected: boolean;
+    windowSize: Size;
+};
+
 // cheat a little by exposing the vue-i18n translations directly to the
 // store so we can commit translated error/success messages from actions
 
-let i18n;
-const translate = ( key, optArgs ) => i18n?.t( key, optArgs ) ?? key;
+let i18n: IVueI18n;
+const translate = ( key: string, optArgs?: any ): string => i18n?.t( key, optArgs ) as string ?? key;
 
 export default {
     modules: {
@@ -57,19 +80,19 @@ export default {
         preferencesModule,
         toolModule,
     },
-    state: {
+    state: (): BitMapperyState => ({
         menuOpened: false,
         toolboxOpened: false,
         openedPanels: [ PANEL_TOOL_OPTIONS, PANEL_LAYERS ],
-        selectionContent: null, // clipboard content of copied images ({ image, size })
+        selectionContent: null,
         blindActive: false,
-        panMode: false,         // whether drag interactions with the document will pan its viewport
-        selectMode: false,      // whether the currently active tool is a selection type (works across layers)
-        layerSelectMode: false, // whether clicking on the document should act as layer selection
-        dialog: null,           // currently opened dialog
-        modal: null,            // currently opened modal
-        loadingStates: [],      // wether one or more long running operations are running
-        notifications: [],      // notification message queue
+        panMode: false,
+        selectMode: false,
+        layerSelectMode: false,
+        dialog: null,
+        modal: null,
+        loadingStates: [],
+        notifications: [],
         storageType: STORAGE_TYPES.LOCAL,
         dropboxConnected: false,
         driveConnected: false,
@@ -77,51 +100,50 @@ export default {
             width: window.innerWidth,
             height: window.innerHeight
         },
-    },
+    }),
     getters: {
-        // eslint-disable-next-line no-unused-vars
-        t: state => ( key, optArgs ) => translate( key, optArgs ),
-        isLoading: state => state.loadingStates.length > 0,
-        hasCloudConnection: state => state.dropboxConnected || state.driveConnected,
+        t: () => ( key: string, optArgs?: any ) => translate( key, optArgs ),
+        isLoading: ( state: BitMapperyState ) => state.loadingStates.length > 0,
+        hasCloudConnection: ( state: BitMapperyState ) => state.dropboxConnected || state.driveConnected,
     },
     mutations: {
-        setMenuOpened( state, value ) {
+        setMenuOpened( state: BitMapperyState, value: boolean ): void {
             state.menuOpened = !!value;
         },
-        setToolboxOpened( state, value ) {
+        setToolboxOpened( state: BitMapperyState, value: boolean ): void {
             state.toolboxOpened = !!value;
         },
-        setOpenedPanel( state, panel ) {
+        setOpenedPanel( state: BitMapperyState, panel: string ): void {
             if ( state.openedPanels.includes( panel )) {
                 state.openedPanels.splice( state.openedPanels.indexOf( panel ), 1 );
             } else {
                 state.openedPanels.push( panel );
             }
         },
-        closeOpenedPanels( state ) {
+        closeOpenedPanels( state: BitMapperyState ): void {
             state.openedPanels = [];
         },
-        setSelectionContent( state, image ) {
+        setSelectionContent( state: BitMapperyState, image: SizedImage ): void {
             state.selectionContent = image;
         },
-        setBlindActive( state, active ) {
+        setBlindActive( state: BitMapperyState, active: boolean ): void {
             state.blindActive = !!active;
         },
-        setPanMode( state, value ) {
+        setPanMode( state: BitMapperyState, value: boolean ): void {
             state.panMode = value;
         },
-        setSelectMode( state, value ) {
+        setSelectMode( state: BitMapperyState, value: boolean ): void {
             state.selectMode = value;
         },
-        setLayerSelectMode( state, value ) {
+        setLayerSelectMode( state: BitMapperyState, value: boolean ): void {
             state.layerSelectMode = value;
         },
-        setLoading( state, key ) {
+        setLoading( state: BitMapperyState, key: string ): void {
             if ( !state.loadingStates.includes( key )) {
                 state.loadingStates.push( key );
             }
         },
-        unsetLoading( state, key ) {
+        unsetLoading( state: BitMapperyState, key: string ): void {
             const idx = state.loadingStates.indexOf( key );
             if ( idx > -1 ) {
                 state.loadingStates.splice( idx, 1 );
@@ -132,18 +154,19 @@ export default {
          * types can be info, error or confirm. When type is confirm, optional
          * confirmation and cancellation handler can be passed.
          */
-        openDialog( state, { type = "info", title = "", message = "", link = null, confirm = null, cancel = null }) {
+        openDialog( state: BitMapperyState,
+            { type = "info", title = "", message = "", link = null, confirm = null, cancel = null }: Dialog ): void {
             state.dialog = { type, title , message, link, confirm, cancel };
         },
-        closeDialog( state ) {
+        closeDialog( state: BitMapperyState ): void {
             state.dialog = null;
         },
-        openModal( state, modalName ) {
+        openModal( state: BitMapperyState, modalName: string ): void {
             state.blindActive = !!modalName;
             state.modal = modalName;
             KeyboardService.setSuspended( !!state.modal );
         },
-        closeModal( state ) {
+        closeModal( state: BitMapperyState ): void {
             state.blindActive = false;
             state.modal = null;
             KeyboardService.setSuspended( false );
@@ -152,31 +175,31 @@ export default {
          * shows a notification containing given title and message.
          * multiple notifications can be stacked.
          */
-        showNotification( state, { message = "", title = null }) {
+        showNotification( state: BitMapperyState, { message = "", title = null }: Notification ): void {
             state.notifications.push({ title: title || translate( "title.success" ), message });
         },
-        clearNotifications( state ) {
+        clearNotifications( state: BitMapperyState ): void {
             state.notifications = [];
         },
         /**
          * cache the resize in the store so components can react to these values
          * instead of maintaining multiple listeners at the expense of DOM trashing/performance hits
          */
-        setWindowSize( state, { width, height }) {
+        setWindowSize( state: BitMapperyState, { width, height }: Size ): void {
             state.windowSize = { width, height };
         },
-        setStorageType( state, value ) {
+        setStorageType( state: BitMapperyState, value: STORAGE_TYPES ): void {
             state.storageType = value;
         },
-        setDropboxConnected( state, value ) {
+        setDropboxConnected( state: BitMapperyState, value: boolean ): void {
             state.dropboxConnected = value;
         },
-        setDriveConnected( state, value ) {
+        setDriveConnected( state: BitMapperyState, value: boolean ): void {
             state.driveConnected = value;
         },
     },
     actions: {
-        async loadDocument({ commit }, file = null ) {
+        async loadDocument({ commit }: ActionContext<BitMapperyState, any>, file: File = null ): Promise<void> {
             if ( !file ) {
                 const fileList = await selectFile( `.${PROJECT_FILE_EXTENSION}`, false );
                 if ( !fileList?.length ) {
@@ -194,7 +217,7 @@ export default {
                     });
                 };
                 // if document contains text, show GDPR consention message before using Google Fonts
-                if ( !fontsConsented() && document.layers?.some(({ type }) => type === LAYER_TEXT )) {
+                if ( !fontsConsented() && document.layers?.some(({ type }) => type === LayerTypes.LAYER_TEXT )) {
                     commit( "openDialog", {
                         type: "confirm",
                         title: translate( "fonts.consentRequired" ),
@@ -219,7 +242,7 @@ export default {
             }
             commit( "unsetLoading", "doc" );
         },
-        async saveDocument({ commit, getters }, name = null ) {
+        async saveDocument({ commit, getters }: ActionContext<BitMapperyState, any>, name: string = null ): Promise<void> {
             if ( !name ) {
                 name = getters.activeDocument.name;
             }
@@ -229,28 +252,28 @@ export default {
                 message: translate( "savedFileSuccessfully" , { file: truncate( name, 35 ) })
             });
         },
-        async requestSelectionCopy({ commit, getters }, copyMerged = false ) {
+        async requestSelectionCopy({ commit, getters }: ActionContext<BitMapperyState, any>, copyMerged = false ): Promise<void> {
             const selectionImage = await copySelection( getters.activeDocument, getters.activeLayer, copyMerged );
             commit( "setSelectionContent", selectionImage );
             commit( "setActiveTool", { tool: null, activeLayer: getters.activeLayer });
             commit( "showNotification", { message: translate( "selectionCopied" ) });
         },
-        async requestSelectionCut({ dispatch }) {
+        async requestSelectionCut({ dispatch }: ActionContext<BitMapperyState, any> ): Promise<void> {
             dispatch( "requestSelectionCopy" );
             dispatch( "deleteInSelection" );
         },
-        clearSelection() {
+        clearSelection(): void {
             getCanvasInstance()?.interactionPane.resetSelection();
         },
-        invertSelection({ commit }) {
+        invertSelection({ commit }: ActionContext<BitMapperyState, any> ): void {
             getCanvasInstance()?.interactionPane.invertSelection();
             commit( "showNotification", { message: translate( "selectionInverted") });
         },
-        pasteSelection({ commit, getters, dispatch, state }) {
-            const selection       = state.selectionContent;
+        pasteSelection({ commit, getters, dispatch, state }: ActionContext<BitMapperyState, any> ): void {
+            const selection = state.selectionContent;
             const { image, size } = selection;
             const layer = LayerFactory.create({
-                type: LAYER_GRAPHIC,
+                type: LayerTypes.LAYER_GRAPHIC,
                 source: imageToCanvas( image, size.width, size.height ),
                 ...size,
                 left: getters.activeDocument.width  / 2 - size.width  / 2,
@@ -262,7 +285,7 @@ export default {
                 dispatch( "clearSelection" );
             };
             paste();
-            enqueueState( `paste_${selection.length}`, {
+            enqueueState( `paste_${selection.size.width}_${selection.size.height}`, {
                 undo() {
                     commit( "setSelectionContent", selection );
                     commit( "removeLayer", index );
@@ -270,7 +293,7 @@ export default {
                 redo: paste
             });
         },
-        async deleteInSelection({ getters }) {
+        async deleteInSelection({ getters }: ActionContext<BitMapperyState, any> ): Promise<void> {
             const activeLayer = getters.activeLayer;
             if ( !activeLayer || !getters.activeDocument?.selection.length ) {
                 return;
@@ -278,7 +301,7 @@ export default {
             const hasMask       = !!activeLayer.mask;
             const orgContent    = cloneCanvas( hasMask ? activeLayer.mask : activeLayer.source );
             const updatedBitmap = deleteSelectionContent( getters.activeDocument, activeLayer );
-            const replaceSource = newSource => {
+            const replaceSource = ( newSource: HTMLCanvasElement ) => {
                 replaceLayerSource( activeLayer, newSource, hasMask );
                 getSpriteForLayer( activeLayer )?.resetFilterAndRecache();
             };
@@ -298,7 +321,7 @@ export default {
          * @param {Object} i18nReference vue-i18n Object instance so we can
          *                 access translations inside Vuex store modules
          */
-        setupServices({ dispatch }, i18nReference ) {
+        setupServices({ dispatch }: ActionContext<BitMapperyState, any>, i18nReference: IVueI18n ): Promise<void> {
             i18n = i18nReference;
             const storeReference = this;
             return new Promise( async resolve => {

@@ -20,8 +20,12 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-const EffectFactory = {
-    create({ scale = 1, rotation = 0, mirrorX = false, mirrorY = false } = {}) {
+import type { Effects } from "@/definitions/document";
+
+export type EffectsProps = Partial<Effects>;
+
+const EffectsFactory = {
+    create({ scale = 1, rotation = 0, mirrorX = false, mirrorY = false }: EffectsProps = {}): Effects {
         return {
             scale,
             rotation,
@@ -34,7 +38,7 @@ const EffectFactory = {
      * Saving effects properties into a simplified JSON structure
      * for project storage
      */
-    serialize( effects ) {
+    serialize( effects: Effects ): any {
         return {
             s: effects.scale,
             r: effects.rotation,
@@ -47,8 +51,8 @@ const EffectFactory = {
      * Creating a new effects lists from a stored effects structure
      * inside a stored projects layer
      */
-     deserialize( effects = {} ) {
-         return EffectFactory.create({
+     deserialize( effects: any = {} ): Effects {
+         return EffectsFactory.create({
              scale    : effects.s,
              rotation : effects.r,
              mirrorX  : effects.x,
@@ -56,9 +60,12 @@ const EffectFactory = {
          });
      }
 };
-export default EffectFactory;
+export default EffectsFactory;
 
-export const isEqual = ( effects, effectsToCompare = {} ) => {
+export const isEqual = ( effects: Effects, effectsToCompare?: Effects ): boolean => {
+    if ( !effectsToCompare ) {
+        return false;
+    }
     return effects.scale    === effectsToCompare.scale    &&
            effects.rotation === effectsToCompare.rotation &&
            effects.mirrorX  === effectsToCompare.mirrorX  &&

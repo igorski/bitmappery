@@ -23,6 +23,7 @@
 import wasmJs from "@/wasm/bin/filters.js";
 import FiltersFactory from "@/factories/filters-factory";
 import { imageDataAsFloat } from "@/utils/wasm-util";
+import type { WasmFilterInstance } from "@/utils/wasm-util";
 
 const MAX_8BIT     = 255;
 const HALF_MAX8BIT = 2 / MAX_8BIT;
@@ -30,11 +31,11 @@ const ONE_THIRD    = 1 / 3;
 const HALF         = 0.5;
 
 const defaultFilters = FiltersFactory.create();
-let wasmInstance;
+let wasmInstance: WasmFilterInstance;
 
-self.addEventListener( "message", async ({ data }) => {
-    const { id, cmd } = data;
-    let pixelData;
+self.addEventListener( "message", async ({ data }: MessageEvent ): Promise<void> => {
+    const { id, cmd }: { id: string, cmd: string } = data;
+    let pixelData: Uint8ClampedArray;
 
     switch ( cmd ) {
 
@@ -58,6 +59,7 @@ self.addEventListener( "message", async ({ data }) => {
         case "filterWasm":
             try {
                 pixelData = renderFiltersWasm( data.imageData, data.filters );
+                // @ts-expect-error no overload matches this call (on Transferable)
                 self.postMessage({ cmd: "complete", id, pixelData }, [ pixelData.buffer ]);
             } catch ( error ) {
                 self.postMessage({ cmd: "error", id, error });
@@ -77,7 +79,7 @@ self.addEventListener( "message", async ({ data }) => {
 
 /* internal methods */
 
-const renderFilters = ( imageData, filters ) => {
+function renderFilters( imageData: ImageData, filters: any ): Uint8ClampedArray {
     const brightness     = ( filters.brightness * 2 );//( filters.brightness * 2 ) - 1; // -1 to 1 range
     const contrast       = Math.pow((( filters.contrast * 100 ) + 100 ) / 100, 2 ); // -100 to 100 range
     const gamma          = ( filters.gamma * 2 ); // 0 to 2 range
@@ -158,11 +160,11 @@ const renderFilters = ( imageData, filters ) => {
         //pixels[ i + 3 ] = a; // currently no filter uses alpha channel
     }
     return imageData.data;
-};
+}
 
 /* internal methods */
 
-function renderFiltersWasm( imageData, filters ) {
+function renderFiltersWasm( imageData: ImageData, filters: any ): Uint8ClampedArray {
     const brightness     = ( filters.brightness * 2 );//( filters.brightness * 2 ) - 1; // -1 to 1 range
     const contrast       = Math.pow((( filters.contrast * 100 ) + 100 ) / 100, 2 ); // -100 to 100 range
     const gamma          = ( filters.gamma * 2 ); // 0 to 2 range

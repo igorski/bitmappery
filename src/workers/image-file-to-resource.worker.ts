@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,31 +20,34 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import LZString from "lz-string";
-import { readFile } from "@/utils/file-util";
+import { blobToResource, disposeResource } from "@/utils/resource-manager";
 
-self.addEventListener( "message", event => {
-    const { cmd, data, id } = event.data;
-    switch ( cmd )
-    {
+self.addEventListener( "message", ( event: MessageEvent ): void => {
+    const { cmd, file }: { cmd: string, file: File } = event.data;
+    switch ( cmd ) {
         default:
-            break;
+            return;
 
-        case "compress":
-            const blob = new Blob([
-                LZString.compressToBase64( JSON.stringify( data ))
-            ], { type: "text/plain;charset=utf-8" });
-            self.postMessage({ cmd: "complete", id, data: blob });
-            break;
-
-        case "decompress":
-            readFile( data )
-                .then( fileData => {
-                    const decompressed = LZString.decompressFromBase64( fileData );
-                    self.postMessage({ cmd: "complete", id, data: JSON.parse( decompressed ) });
+        case "loadImageFile":
+            const blobUrl = blobToResource( file );
+            self.createImageBitmap( file )
+                .then( result => {
+                    const { width, height } = result;
+                    self.postMessage({
+                        cmd: "loadComplete",
+                        file: file.name,
+                        blobUrl,
+                        width,
+                        height
+                    });
                 })
                 .catch( error => {
-                    self.postMessage({ cmd: "loadError", id, error });
+                    disposeResource( blobUrl ); // deallocate as file will be useless
+                    self.postMessage({
+                        cmd: "loadError",
+                        file: file.name,
+                        error
+                    });
                 });
             break;
     }

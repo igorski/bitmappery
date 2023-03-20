@@ -97,7 +97,7 @@
 
 <script>
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
-import { LAYER_TEXT } from "@/definitions/layer-types";
+import { LayerTypes } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS } from "@/definitions/panel-types";
 import { isMobile } from "@/utils/environment-util";
 import { addTextLayer } from "@/utils/layer-util";
@@ -231,7 +231,7 @@ export default {
                 default:
                     return;
                 case ToolTypes.TEXT:
-                    if ( layer.type !== LAYER_TEXT ) {
+                    if ( layer.type !== LayerTypes.LAYER_TEXT ) {
                         this.setTool( null );
                     }
                     break;
@@ -258,7 +258,7 @@ export default {
             }
         },
         setTool( tool ) {
-            if ( tool === ToolTypes.TEXT && this.activeLayer?.type !== LAYER_TEXT ) {
+            if ( tool === ToolTypes.TEXT && this.activeLayer?.type !== LayerTypes.LAYER_TEXT ) {
                 addTextLayer( this.$store );
             }
             this.setActiveTool({ tool, document: this.activeDocument });

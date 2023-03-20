@@ -20,20 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { enqueueState } from "@/factories/history-state-factory";
-
-/**
- * @param {Object} store reference
- * @param {Number} index index of layer to toggle visibility of
- */
-export const toggleLayerVisibility = ( store, index ) => {
-    const originalVisibility = store.getters.layers[ index ].visible;
-    const commit = () => store.commit( "updateLayer", { index, opts: { visible: !originalVisibility } });
-    commit();
-    enqueueState( `layerVisibility_${index}`, {
-        undo() {
-            store.commit( "updateLayer", { index, opts: { visible: originalVisibility } });
-        },
-        redo: commit,
-    });
+export enum STORAGE_TYPES {
+    LOCAL   = "local",
+    DROPBOX = "dropbox",
+    DRIVE   = "drive",
 };

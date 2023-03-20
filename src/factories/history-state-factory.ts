@@ -20,19 +20,34 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Store } from "vuex";
+import type { BitMapperyState } from "@/store";
+
+/**
+ * a history state should provide undo and redo functions and an optional
+ * list of resources (blob URLs) associated with the undo / redo actions.
+ * Blob URLs will be revoked when the state is popped from the history stack to free memory.
+ */
+type UndoRedoState = {
+     undo: () => void;
+     redo: () => void;
+     resources?: string[];
+};
+
 const stateQueue      = new Map();
 const ENQUEUE_TIMEOUT = 1000;
 
 let timeout = 0;
-let store;
+let store: Store<BitMapperyState>;
 
-export const initHistory = storeReference => store = storeReference;
+export const initHistory = ( storeReference: Store<BitMapperyState> ): void => {
+    store = storeReference;
+}
+export const hasQueue = (): boolean => queueLength() > 0;
 
-export const hasQueue = () => queueLength() > 0;
+export const queueLength = (): number => stateQueue.size;
 
-export const queueLength = () => stateQueue.size;
-
-export const flushQueue = () => {
+export const flushQueue = (): void => {
     clearTimeout( timeout );
     stateQueue.clear();
 };
@@ -46,12 +61,9 @@ export const forceProcess = processQueue;
  * calls for the same key with new state Objects are merged into a single state.
  *
  * @param {String} key unique identifier for this state
- * @param {{ undo: Function, redo: Function, resources: Array<String> }} Object with
- *        undo and redo functions and optional list of resources (blob URLs)
- *        associated with the undo / redo actions. Blob URLs will be revoked when
- *        state is popped from the history stack to free memory.
+ * @param {UndoRedoState} undoRedoState
  */
-export const enqueueState = ( key, undoRedoState ) => {
+export const enqueueState = ( key: string, undoRedoState: UndoRedoState ): void => {
     // new state is for the same property as the previously enqueued state
     // we can discard the previously enqueued states.redo in favour of this more actual one
     if ( stateQueue.has( key )) {
@@ -73,7 +85,7 @@ export const enqueueState = ( key, undoRedoState ) => {
 
 /* internal methods */
 
-function processQueue() {
+function processQueue(): void {
     clearTimeout( timeout );
     stateQueue.forEach( undoRedoState => store.commit( "saveState", undoRedoState ));
     stateQueue.clear();

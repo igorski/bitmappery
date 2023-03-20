@@ -20,44 +20,45 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Document, Layer } from "@/definitions/document";
 import { constrain, isPortrait } from "@/math/image-math";
 import { MAX_IMAGE_SIZE, MAX_MEGAPIXEL, getMinImageSize } from "@/definitions/editor-properties";
-import { LAYER_GRAPHIC } from "@/definitions/layer-types";
+import { LayerTypes } from "@/definitions/layer-types";
 
-const ToolTypes = {
-    MOVE       : "move",  // pans viewport
-    DRAG       : "drag",  // drags layer within document
-    LASSO      : "lasso",
-    SELECTION  : "selection",
-    WAND       : "wand",
-    SCALE      : "scale",
-    EYEDROPPER : "eyedropper",
-    ROTATE     : "rotate",
-    FILL       : "fill",
-    BRUSH      : "brush",
-    ERASER     : "eraser",
-    CLONE      : "clone",
-    TEXT       : "text",
-    ZOOM       : "zoom",
+enum ToolTypes {
+    MOVE       = "move",  // pans viewport
+    DRAG       = "drag",  // drags layer within document
+    LASSO      = "lasso",
+    SELECTION  = "selection",
+    WAND       = "wand",
+    SCALE      = "scale",
+    EYEDROPPER = "eyedropper",
+    ROTATE     = "rotate",
+    FILL       = "fill",
+    BRUSH      = "brush",
+    ERASER     = "eraser",
+    CLONE      = "clone",
+    TEXT       = "text",
+    ZOOM       = "zoom",
 };
 export default ToolTypes;
 
 // certain tools are handled by the top layer interaction pane, not individual layer sprites
 
 const PANE_TYPES = [ ToolTypes.MOVE, ToolTypes.LASSO, ToolTypes.SELECTION, ToolTypes.WAND ];
-export const usesInteractionPane = tool => PANE_TYPES.includes( tool );
+export const usesInteractionPane = ( tool: ToolTypes ): boolean => PANE_TYPES.includes( tool );
 
 export const SELECTION_TOOLS = [ ToolTypes.SELECTION, ToolTypes.LASSO, ToolTypes.WAND ];
 
-export const canDraw = ( activeDocument, activeLayer ) => {
+export const canDraw = ( activeDocument: Document, activeLayer: Layer ): boolean => {
     return activeDocument &&
-    ( activeLayer?.mask || activeLayer?.type === LAYER_GRAPHIC ) &&
+    ( activeLayer?.mask || activeLayer?.type === LayerTypes.LAYER_GRAPHIC ) &&
     // scaled layers should commit their scale before allowing draw operations
     ( activeLayer.effects.scale === 1 );
 };
 
 // we cannot draw in selection if a layer is mirrored (see https://github.com/igorski/bitmappery/issues/5)
-export const canDrawOnSelection = activeLayer => {
+export const canDrawOnSelection = ( activeLayer: Layer ): boolean => {
     const { effects } = activeLayer;
     return !effects.mirrorX && !effects.mirrorY;
 };
@@ -77,7 +78,9 @@ export const SNAP_MARGIN    = 20;  // amount of pixels within which we allow sna
  * should lead to the maximum scale relative to the document size, making the max displayed
  * value equal across window sizes.
  */
-export const calculateMaxScaling = ( baseWidth, baseHeight, docWidth, docHeight, containerWidth ) => {
+export const calculateMaxScaling = ( baseWidth: number, baseHeight: number,
+    docWidth: number, docHeight: number, containerWidth: number
+): ScalingDef => {
     const pixelRatio = window.devicePixelRatio; // zCanvas magnifies for pixel ratio
     const portrait   = isPortrait( baseWidth, baseHeight );
 
@@ -97,4 +100,10 @@ export const calculateMaxScaling = ( baseWidth, baseHeight, docWidth, docHeight,
         maxInScale  : ( width / baseWidth ) / pixelRatio,
         maxOutScale : ( portrait ? baseHeight / MIN_IMAGE_SIZE : baseWidth / MIN_IMAGE_SIZE ) / pixelRatio
     };
+};
+
+type ScalingDef = {
+    horizontalDominant: boolean;
+    maxInScale: number;
+    maxOutScale: number;
 };

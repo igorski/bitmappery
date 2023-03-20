@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { LAYER_TEXT } from "@/definitions/layer-types";
+import { LayerTypes } from "@/definitions/layer-types";
 import { ALL_PANELS } from "@/definitions/panel-types";
 import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM, canDraw } from "@/definitions/tool-types";
 import {
@@ -386,7 +386,7 @@ function handleKeyDown( event ) {
 
         case 84: // T
             if ( getters.activeDocument ) {
-                if ( getters.activeLayer?.type !== LAYER_TEXT ) {
+                if ( getters.activeLayer?.type !== LayerTypes.LAYER_TEXT ) {
                     addTextLayer( store );
                 }
                 setActiveTool( ToolTypes.TEXT );

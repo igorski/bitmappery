@@ -56,7 +56,7 @@
 <script>
 import { mapGetters } from "vuex";
 import { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
-import { LAYER_GRAPHIC, LAYER_IMAGE } from "@/definitions/layer-types";
+import { LayerTypes } from "@/definitions/layer-types";
 import Slider from "@/components/ui/slider/slider.vue";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
@@ -64,7 +64,7 @@ import { scale } from "@/math/unit-math";
 import { cloneCanvas, resizeImage } from "@/utils/canvas-util";
 import messages  from "./messages.json";
 
-const SAVEABLE_TYPES = [ LAYER_GRAPHIC, LAYER_IMAGE ];
+const SAVEABLE_TYPES = [ LayerTypes.LAYER_GRAPHIC, LayerTypes.LAYER_IMAGE ];
 
 export default {
     i18n: { messages },

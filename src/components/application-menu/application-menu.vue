@@ -514,7 +514,6 @@ export default {
             "setActiveDocument",
             "setActiveDocumentSize",
             "closeActiveDocument",
-            "setSelectionContent",
             "cropActiveDocumentContent",
             "setPreferences",
             "setSnapAlign",

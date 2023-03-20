@@ -1,7 +1,7 @@
 import { it, describe, expect, afterAll, vi } from "vitest";
 import { mockZCanvas } from "../__mocks";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
-import { LAYER_IMAGE, LAYER_TEXT } from "@/definitions/layer-types";
+import { LayerTypes } from "@/definitions/layer-types";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import KeyboardService from "@/services/keyboard-service";
@@ -300,7 +300,7 @@ describe( "Vuex store", () => {
                 it( "should request user consent for using Google Fonts, if none had been given yet", async () => {
                     const commit = vi.fn();
                     const blob = { name: "file" };
-                    const mockDocument = { name: "foo", layers: [ LayerFactory.create({ type: LAYER_TEXT }) ] };
+                    const mockDocument = { name: "foo", layers: [ LayerFactory.create({ type: LayerTypes.LAYER_TEXT }) ] };
 
                     const fromBlobSpy = vi.spyOn( DocumentFactory, "fromBlob" ).mockImplementation(() => mockDocument );
 
@@ -331,7 +331,7 @@ describe( "Vuex store", () => {
                 it( "should not request user consent for using Google Fonts, if it had previously been given", async () => {
                     const commit = vi.fn();
                     const blob = { name: "file" };
-                    const mockDocument = { name: "foo", layers: [ LayerFactory.create({ type: LAYER_TEXT }) ] };
+                    const mockDocument = { name: "foo", layers: [ LayerFactory.create({ type: LayerTypes.LAYER_TEXT }) ] };
                     mockFontsConsented = true;
 
                     const fromBlobSpy = vi.spyOn( DocumentFactory, "fromBlob" ).mockImplementation(() => mockDocument );

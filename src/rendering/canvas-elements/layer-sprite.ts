@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,12 +20,19 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Store } from "vuex";
+import type { Point, Rectangle } from "zcanvas";
+import type ZoomableCanvas from "./zoomable-canvas";
 import ZoomableSprite from "./zoomable-sprite";
+import type { Viewport, TransformedDrawBounds } from "zcanvas";
 import { createCanvas, canvasToBlob, globalToLocal } from "@/utils/canvas-util";
 import { renderCross } from "@/utils/render-util";
 import { blobToResource } from "@/utils/resource-manager";
-import { LAYER_GRAPHIC, LAYER_TEXT } from "@/definitions/layer-types";
 import { getSizeForBrush } from "@/definitions/brush-types";
+import type { CanvasContextPairing, CanvasDrawable, Brush, BrushToolOptions, BrushAction } from "@/definitions/editor";
+import { LayerTypes } from "@/definitions/layer-types";
+import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
+import type { Document, Layer } from "@/definitions/document";
 import { isSelectionClosed } from "@/math/selection-math";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation } from "@/math/point-math";
@@ -43,7 +50,7 @@ import {
 import BrushFactory from "@/factories/brush-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
-import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
+import type { BitMapperyState } from "@/store";
 
 const HALF   = 0.5;
 const TWO_PI = 2 * Math.PI;
@@ -56,13 +63,32 @@ let drawBounds; // see draw()
  * It inherits from the zCanvas Sprite to be an interactive Canvas drawable.
  */
 class LayerSprite extends ZoomableSprite {
-    constructor( layer ) {
-        const { bitmap, left, top, width, height } = layer;
-        super({ bitmap, x: left, y: top, width, height }); // zCanvas inheritance
+    public layer: Layer;
+    public actionTarget: "source" | "mask";
+    public canvas: ZoomableCanvas; // set through inherited addChild() method
+    public tempCanvas: CanvasContextPairing;
+    protected _pointerX: number;
+    protected _pointerY: number;
+    protected _brush: Brush;
+    protected _isPaintMode: boolean;
+    protected _isDragMode: boolean;
+    protected _isColorPicker: boolean;
+    protected _selection: Point[];
+    protected _invertSelection: boolean;
+    protected _toolType: ToolTypes;
+    protected _toolOptions: any;
+    protected _cloneStartCoords: Point = null;
+    protected _orgSourceToStore: string;
+    protected _pendingPaintState: number;
+    protected _rafFx: boolean;
+
+    constructor( layer: Layer ) {
+        const { left, top, width, height } = layer;
+        super({ x: left, y: top, width, height }); // zCanvas.sprite inheritance
 
         this.layer = layer; // the Layer this Sprite will be rendering
 
-        if ([ LAYER_GRAPHIC, LAYER_TEXT ].includes( layer.type ) && !layer.source ) {
+        if ([ LayerTypes.LAYER_GRAPHIC, LayerTypes.LAYER_TEXT ].includes( layer.type ) && !layer.source ) {
             // create a Canvas on which this layer will render its drawable content.
             const { cvs } = createCanvas( layer.width, layer.height );
             layer.source = cvs;
@@ -86,27 +112,27 @@ class LayerSprite extends ZoomableSprite {
         this.cacheEffects();
     }
 
-    setActionTarget( target = "source" ) {
+    setActionTarget( target: "source" | "mask" = "source" ): void {
         this.actionTarget = target;
     }
 
-    isDrawable() {
-        return this.layer.type === LAYER_GRAPHIC || this.isMaskable();
+    isDrawable(): boolean {
+        return this.layer.type === LayerTypes.LAYER_GRAPHIC || this.isMaskable();
     }
 
-    getStore() {
+    getStore(): Store<BitMapperyState> {
         return this.canvas?.store;
     }
 
-    isMaskable() {
+    isMaskable(): boolean {
         return !!this.layer.mask && this.getStore().getters.activeLayerMask === this.layer.mask;
     }
 
-    isRotated() {
+    isRotated(): boolean {
         return ( this.layer.effects.rotation % 360 ) !== 0;
     }
 
-    isScaled() {
+    isScaled(): boolean {
         return this.layer.effects.scale !== 1;
     }
 
@@ -114,7 +140,7 @@ class LayerSprite extends ZoomableSprite {
      * Get the actual bounds of the sprite (as transformations like
      * scale and rotation affect the original bounds)
      */
-    getActualBounds() {
+    getActualBounds(): Rectangle {
         if ( !this.isRotated() && !this.isScaled() ) {
             return this._bounds;
         }
@@ -129,7 +155,7 @@ class LayerSprite extends ZoomableSprite {
     // to be called when outside factors have adjusted the Sprite source
     // otherwise use setBounds() for relative positioning with state history
 
-    syncPosition() {
+    syncPosition(): void {
         let { left: x, top: y, width, height, effects } = this.layer;
         if ( this.isRotated() ) {
             ({ x, y } = translatePointerRotation( x, y, width / 2, height / 2, effects.rotation ));
@@ -138,7 +164,7 @@ class LayerSprite extends ZoomableSprite {
         this.setY( y );
     }
 
-    cacheBrush( color = "rgba(255,0,0,1)", toolOptions = { radius: 5, strokes: 1 } ) {
+    cacheBrush( color: string = "rgba(255,0,0,1)", toolOptions: BrushToolOptions = { radius: 5, strokes: 1 } ): void {
         this._brush = BrushFactory.create({
             color,
             radius   : toolOptions.size,
@@ -147,12 +173,12 @@ class LayerSprite extends ZoomableSprite {
         });
     }
 
-    storeBrushPointer( x, y ) {
+    storeBrushPointer( x: number, y: number ): void {
         this._brush.down = true;
         this._brush.pointers.push({ x, y });
     }
 
-    cacheEffects() {
+    cacheEffects(): void {
         if ( this._rafFx ) {
             return; // debounced to only occur once before next render cycle
         }
@@ -165,20 +191,20 @@ class LayerSprite extends ZoomableSprite {
         });
     }
 
-    resetFilterAndRecache() {
+    resetFilterAndRecache(): void {
         clearCacheProperty( this.layer, "filterData" ); // filter must be applied to new contents
         this.cacheEffects(); // sync mask and source changes with sprite Bitmap
     }
 
-    getBitmap() {
+    getBitmap(): CanvasDrawable {
         return this._bitmap;
     }
 
-    handleActiveLayer({ id }) {
+    handleActiveLayer({ id }: Layer ): void {
         this.setInteractive( this.layer.id === id );
     }
 
-    setSelection( document, onlyWhenClosed = false ) {
+    setSelection( document: Document, onlyWhenClosed = false ): void {
         const { selection } = document;
         if ( !onlyWhenClosed || ( isSelectionClosed( selection ) && canDrawOnSelection( this.layer ))) {
             this._selection = selection?.length ? selection : null;
@@ -188,7 +214,7 @@ class LayerSprite extends ZoomableSprite {
         this._invertSelection = this._selection && document.invertSelection;
     }
 
-    handleActiveTool( tool, toolOptions, activeDocument ) {
+    handleActiveTool( tool: ToolTypes, toolOptions: any, activeDocument: Document ): void {
         this.isDragging        = false;
         this._isPaintMode      = false;
         this._isDragMode       = false;
@@ -241,15 +267,15 @@ class LayerSprite extends ZoomableSprite {
     }
 
     // cheap way to hook into zCanvas.handleMove()-handler so we can keep following the cursor in tool modes
-    forceMoveListener() {
-        this.isDragging       = true;
+    forceMoveListener(): void {
+        this.isDragging = true;
         this._dragStartOffset = { x: this.getX(), y: this.getY() };
         this._dragStartEventCoordinates = { x: this._pointerX, y: this._pointerY };
     }
 
     // draw onto the source Bitmap (e.g. brushing / fill tool / eraser)
 
-    paint( optAction = null ) {
+    paint( optAction: BrushAction = null ): void {
         if ( !this._pendingPaintState ) {
             this.preparePendingPaintState();
         }
@@ -373,18 +399,18 @@ class LayerSprite extends ZoomableSprite {
      * Note that upon switching tools the state is enqueued immediately to
      * not delay to history state UI from updating more than necessary.
      */
-    preparePendingPaintState() {
+    preparePendingPaintState(): void {
         canvasToBlob( this.layer.source ).then( blob => {
             this._orgSourceToStore = blobToResource( blob );
         });
         this.debouncePaintStore();
     }
 
-    debouncePaintStore( timeout = 5000 ) {
-        this._pendingPaintState = setTimeout( this.storePaintState.bind( this ), timeout );
+    debouncePaintStore( timeout: number = 5000 ): void {
+        this._pendingPaintState = setTimeout( this.storePaintState.bind( this ), timeout ) as unknown as number;
     }
 
-    storePaintState() {
+    async storePaintState(): Promise<boolean> {
         if ( !this._pendingPaintState ) {
             return true;
         }
@@ -400,24 +426,23 @@ class LayerSprite extends ZoomableSprite {
 
         this._orgSourceToStore = null;
 
-        return canvasToBlob( layer.source ).then( blob => {
-            const newState = blobToResource( blob );
-            enqueueState( `spritePaint_${layer.id}`, {
-                undo() {
-                    restorePaintFromHistory( layer, orgState );
-                },
-                redo() {
-                    restorePaintFromHistory( layer, newState);
-                },
-                resources: [ orgState, newState ],
-            });
-            return true;
+        const blob = await canvasToBlob( layer.source );
+        const newState = blobToResource( blob );
+        enqueueState( `spritePaint_${layer.id}`, {
+            undo(): void {
+                restorePaintFromHistory( layer, orgState );
+            },
+            redo(): void {
+                restorePaintFromHistory( layer, newState);
+            },
+            resources: [ orgState, newState ],
         });
+        return true;
     }
 
     /* the following override zCanvas.sprite */
 
-    setBounds( x, y, width = 0, height = 0 ) {
+    setBounds( x: number, y: number, width = 0, height = 0 ): void {
         const bounds = this._bounds;
         const layer  = this.layer;
 
@@ -465,13 +490,13 @@ class LayerSprite extends ZoomableSprite {
      * override that takes rotation into account
      * TODO : port to zCanvas
      */
-    insideBounds( x, y ) {
+    insideBounds( x: number, y: number ): boolean {
         const { left, top, width, height } = this.getActualBounds();
         return x >= left && x <= ( left + width ) &&
                y >= top  && y <= ( top  + height );
     }
 
-    handlePress( x, y, { type }) {
+    handlePress( x: number, y: number, { type }: Event ): void {
         if ( type.startsWith( "touch" )) {
             this._pointerX = x;
             this._pointerY = y;
@@ -480,8 +505,8 @@ class LayerSprite extends ZoomableSprite {
             // color picker mode, get the color below the clicked point
             const local = globalToLocal( this.canvas, x, y );
             const p = this.canvas.getElement().getContext( "2d" ).getImageData(
-                local.x - this.canvas._viewport.left,
-                local.y - this.canvas._viewport.top,
+                local.x - this.canvas.getViewport().left,
+                local.y - this.canvas.getViewport().top,
                 1, 1
             ).data;
             this.getStore().commit( "setActiveColor", `rgba(${p[0]},${p[1]},${p[2]},${(p[3]/255)})` );
@@ -510,10 +535,10 @@ class LayerSprite extends ZoomableSprite {
         }
     }
 
-    handleMove( x, y, { type }) {
+    handleMove( x: number, y: number, event: Event ): void {
         // store reference to current pointer position (relative to canvas)
         // note that for touch events this is handled in handlePress() instead
-        if ( !type.startsWith( "touch" )) {
+        if ( !event.type.startsWith( "touch" )) {
             this._pointerX = x;
             this._pointerY = y;
         }
@@ -540,7 +565,7 @@ class LayerSprite extends ZoomableSprite {
                     redo: commit
                 });
             } else if ( this._isDragMode ) {
-                super.handleMove( x, y );
+                super.handleMove( x, y, event );
                 return;
             }
         }
@@ -553,8 +578,7 @@ class LayerSprite extends ZoomableSprite {
         }
     }
 
-    // eslint-disable-next-line no-unused-vars
-    handleRelease( x, y ) {
+    handleRelease( /*x: number, y: number*/ ): void {
         const { getters } = this.getStore();
         if ( this._brush.down ) {
             // brushing was active, deactivate brushing and render the
@@ -582,19 +606,19 @@ class LayerSprite extends ZoomableSprite {
         }
     }
 
-    update() {
+    update(): void {
         if ( this._brush.down ) {
             this.paint();
             this._brush.last = this._brush.pointers.length;
         }
     }
 
-    drawCropped( canvasContext, size ) {
+    drawCropped( canvasContext: CanvasRenderingContext2D, transformedBounds: TransformedDrawBounds ): void {
         if ( !this.isScaled() ) {
-            return super.drawCropped( canvasContext, size );
+            return super.drawCropped( canvasContext, transformedBounds );
         }
         const scale = 1 / this.layer.effects.scale;
-        const { src, dest } = size;
+        const { src, dest } = transformedBounds;
         canvasContext.drawImage(
             this._bitmap,
             ( HALF + src.left * scale )    << 0,
@@ -608,7 +632,8 @@ class LayerSprite extends ZoomableSprite {
         );
     }
 
-    draw( documentContext, viewport, omitOutlines = false ) {
+    // @ts-expect-error incompatible override
+    draw( documentContext: CanvasRenderingContext2D, viewport: Viewport, omitOutlines = false ): void {
         drawBounds = this._bounds;
 
         const { enabled, opacity } = this.layer.filters;
@@ -678,7 +703,7 @@ class LayerSprite extends ZoomableSprite {
         }
     }
 
-    dispose() {
+    dispose(): void {
         super.dispose();
 
         flushLayerCache( this.layer );
@@ -691,7 +716,7 @@ export default LayerSprite;
 
 /* internal non-instance methods */
 
-function rotatePointerLists( pointers, layer, sourceWidth, sourceHeight ) {
+function rotatePointerLists( pointers: Point[], layer: Layer, sourceWidth: number, sourceHeight: number ): Point[] {
     // we take layer.left instead of bounds.left as it provides the unrotated Layer offset
     const { left, top } = layer;
     // translate pointer to translated space, when layer is rotated or mirrored
@@ -716,7 +741,7 @@ function rotatePointerLists( pointers, layer, sourceWidth, sourceHeight ) {
     });
 }
 
-function rotatePointer( x, y, layer, sourceWidth, sourceHeight ) {
+function rotatePointer( x: number, y: number, layer: Layer, sourceWidth: number, sourceHeight: number ): Point {
     return rotatePointerLists([{ x, y }], layer, sourceWidth, sourceHeight )[ 0 ];
 }
 
@@ -724,16 +749,17 @@ function rotatePointer( x, y, layer, sourceWidth, sourceHeight ) {
 // as it is possible the Sprite originally rendering the Layer has been disposed
 // and a new one has been created while traversing the change history
 
-function positionSpriteFromHistory( layer, x, y ) {
+function positionSpriteFromHistory( layer: Layer, x: number, y: number ): void {
     const sprite = getSpriteForLayer( layer );
     if ( sprite ) {
-        sprite._bounds.left = x;
-        sprite._bounds.top  = y;
+        sprite.getBounds().left = x;
+        sprite.getBounds().top  = y;
+        // @ts-expect-error protected member access
         sprite.invalidate();
     }
 }
 
-function restorePaintFromHistory( layer, state ) {
+function restorePaintFromHistory( layer: Layer, state: string ): void {
     const ctx = layer.source.getContext( "2d" );
     ctx.clearRect( 0, 0, layer.source.width, layer.source.height );
     const image  = new Image();

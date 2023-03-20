@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,6 +20,22 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+export interface WasmFilterInstance {
+    HEAP8: Int8Array;
+    HEAP16: Int16Array;
+    HEAP32: Int32Array;
+    HEAPF32: Float32Array;
+    HEAPF64: Float64Array;
+    HEAPU8: Uint8Array;
+    HEAPU16: Uint16Array;
+    HEAPU32: Uint32Array;
+    wasmBinary: ArrayBuffer;
+    _filter: ( ...args: any ) => void;
+    _malloc: ( size: number ) => number;
+    _free: ( memory: number ) => void;
+};
+
+type ProcessFn = ( memory: number, length: number ) => void;
 
 /**
  * Runs given fn (WASM function pointer) on given imageData
@@ -27,11 +43,13 @@
  * Memory is allocated and freed accordingly.
  *
  * @param {ImageData} imageData
- * @param {WebAssembly.Instance} wasmInstance
- * @param {Function} fn function to execute with created WASM memory
+ * @param {WasmFilterInstance} wasmInstance
+ * @param {ProcessFn} fn function to execute with created WASM memory
  * @return {Uint8ClampedArray} processed imageData.data
  */
-export const imageDataAsFloat = ( imageData, wasmInstance, fn ) => {
+export const imageDataAsFloat = ( imageData: ImageData, wasmInstance: WasmFilterInstance,
+    fn: ProcessFn ): Uint8ClampedArray => {
+
     const { length } = imageData.data;
     const sizeofFloat = Float32Array.BYTES_PER_ELEMENT;
     const memorySize  = length * sizeofFloat;
@@ -59,11 +77,13 @@ export const imageDataAsFloat = ( imageData, wasmInstance, fn ) => {
  * Memory is allocated and freed accordingly.
  *
  * @param {ImageData} imageData
- * @param {WebAssembly.Instance} wasmInstance
- * @param {Function} fn function to execute with created WASM memory
+ * @param {WasmFilterInstance} wasmInstance
+ * @param {ProcessFn} fn function to execute with created WASM memory
  * @return {Uint8ClampedArray} processed imageData.data
  */
-export const imageDataAsUnsignedChar = ( imageData, wasmInstance, fn ) => {
+export const imageDataAsUnsignedChar = ( imageData: ImageData, wasmInstance: WasmFilterInstance,
+    fn: ProcessFn ): Uint8ClampedArray => {
+
     const { length } = imageData.data;
 
     // allocate and set ImageData into WASM memory
@@ -77,5 +97,5 @@ export const imageDataAsUnsignedChar = ( imageData, wasmInstance, fn ) => {
     const filteredPixels = wasmInstance.HEAPU8.subarray( memory, memory + length );
     wasmInstance._free( memory );
 
-    return filteredPixels;
+    return filteredPixels as never as Uint8ClampedArray;
 };

@@ -20,8 +20,12 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Text } from "@/definitions/document";
+
 import { loadGoogleFont } from "@/services/font-service";
 import { googleFonts } from "@/definitions/font-types";
+
+export type TextProps = Partial<Text>;
 
 const TextFactory = {
     create({
@@ -32,7 +36,7 @@ const TextFactory = {
         lineHeight = 0,
         spacing = 0,
         color = "red"
-    } = {}) {
+    }: TextProps = {}): Text {
         return {
             value,
             font,
@@ -48,7 +52,7 @@ const TextFactory = {
      * Saving text properties into a simplified JSON structure
      * for project storage
      */
-    serialize( text ) {
+    serialize( text: Text ): any {
         return {
             f: text.font,
             v: text.value,
@@ -64,7 +68,7 @@ const TextFactory = {
      * Creating a new text instance from a stored text structure
      * inside a stored projects layer
      */
-     async deserialize( text = {} ) {
+     async deserialize( text: any = {} ): Promise<Text> {
          const font = text.f;
          try {
              await loadGoogleFont( font ); // ensure font is loaded and ready
@@ -84,7 +88,10 @@ const TextFactory = {
 };
 export default TextFactory;
 
-export const isEqual = ( text, textToCompare = {} ) => {
+export const isEqual = ( text: Text, textToCompare?: Text ): boolean => {
+    if ( !textToCompare ) {
+        return false;
+    }
     return text.font       === textToCompare.font &&
            text.value      === textToCompare.value &&
            text.size       === textToCompare.size &&

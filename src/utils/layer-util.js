@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { LAYER_TEXT } from "@/definitions/layer-types";
+import { LayerTypes } from "@/definitions/layer-types";
 import { enqueueState } from "@/factories/history-state-factory";
 
 /**
@@ -53,7 +53,7 @@ export const replaceLayerSource = ( layer, newSource, isMask = false ) => {
  * or keyboard shortcut. Here we define a resuable history enqueue
  */
 export const addTextLayer = ({ getters, commit }) => {
-    const fn = () => commit( "addLayer", { type: LAYER_TEXT });
+    const fn = () => commit( "addLayer", { type: LayerTypes.LAYER_TEXT });
     fn();
     const addedLayerIndex = getters.activeLayerIndex;
     enqueueState( `layerAdd_${addedLayerIndex}`, {

@@ -23,7 +23,7 @@
 import { mapGetters, mapMutations, mapActions } from "vuex";
 import { isTransparent } from "@/definitions/image-types";
 import { ACCEPTED_FILE_EXTENSIONS, isImageFile, isProjectFile, isThirdPartyDocument } from "@/definitions/file-types";
-import { LAYER_IMAGE } from "@/definitions/layer-types";
+import { LayerTypes } from "@/definitions/layer-types";
 import { loadImageFiles } from "@/services/file-loader-queue";
 
 export default {
@@ -59,7 +59,7 @@ export default {
             const currentDocumentIsEmpty = this.layers?.length <= 1 && this.layers?.[0]?.source === null;
             const layerOpts = {
                 source: image,
-                type: LAYER_IMAGE,
+                type: LayerTypes.LAYER_IMAGE,
                 name: file.name,
                 transparent: isTransparent( file ),
                 ...size,

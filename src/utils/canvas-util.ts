@@ -21,15 +21,17 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { loader } from "zcanvas";
+import type { Point } from "zcanvas";
+import type { CanvasContextPairing, CanvasDrawable } from "@/definitions/editor";
 import { JPEG, PNG } from "@/definitions/image-types";
+import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import { blobToResource, disposeResource } from "@/utils/resource-manager";
 
 /**
  * Creates a new HTMLCanvasElement, returning both
  * the element and its CanvasRenderingContext2D
- * @returns {{ cvs: HTMLCanvasElement, ctx: CanvasRenderingContext2D }}
  */
-export const createCanvas = ( optWidth = 0, optHeight = 0 ) => {
+export const createCanvas = ( optWidth = 0, optHeight = 0 ): CanvasContextPairing => {
     const cvs = document.createElement( "canvas" );
     const ctx = cvs.getContext( "2d" );
 
@@ -40,32 +42,17 @@ export const createCanvas = ( optWidth = 0, optHeight = 0 ) => {
     return { cvs, ctx };
 };
 
-/**
- * @param {{ cvs: HTMLCanvasElement, ctx: CanvasRenderingContext2D }} canvas
- * @param {Number} width
- * @param {Number} height
- */
-export const setCanvasDimensions = ( canvas, width, height ) => {
+export const setCanvasDimensions = ( canvas: CanvasContextPairing, width: number, height: number ): void => {
     canvas.cvs.width  = width;
     canvas.cvs.height = height;
 };
 
-/**
- * @param {HTMLCanvasElement} sourceCanvas
- * @param {HTMLCanvasElement} canvasToMatch
- */
-export const matchDimensions = ( sourceCanvas, canvasToMatch ) => {
+export const matchDimensions = ( sourceCanvas: HTMLCanvasElement, canvasToMatch: HTMLCanvasElement ): void => {
     canvasToMatch.width  = sourceCanvas.width;
     canvasToMatch.height = sourceCanvas.height;
 };
 
-/**
- * @param {CanvasImageSource} bitmap
- * @param {Number} width
- * @param {Number} height
- * @param {Boolean} transparent
- */
-export const imageToBase64 = ( bitmap, width, height, transparent ) => {
+export const imageToBase64 = ( bitmap: CanvasDrawable, width: number, height: number, transparent: boolean ): string => {
     let cvs;
     if ( bitmap instanceof Image ) {
         cvs = imageToCanvas( bitmap, width, height );
@@ -77,25 +64,13 @@ export const imageToBase64 = ( bitmap, width, height, transparent ) => {
     return "";
 };
 
-/**
- * @param {CanvasImageSource} bitmap
- * @param {Number} width
- * @param {Number} height
- * @return {HTMLCanvasElement}
- */
-export const imageToCanvas = ( bitmap, width, height ) => {
+export const imageToCanvas = ( bitmap: CanvasDrawable, width: number, height: number ): HTMLCanvasElement => {
     const { cvs, ctx } = createCanvas( width, height );
     ctx.drawImage( bitmap, 0, 0 );
     return cvs;
 };
 
-/**
- * @param {String} base64 encoded image
- * @param {Number} width
- * @param {Number} height
- * @returns {Promise<HTMLCanvasElement>}
- */
-export const base64toCanvas = async ( base64, width, height ) => {
+export const base64toCanvas = async ( base64: string, width: number, height: number ): Promise<HTMLCanvasElement> => {
     if ( !base64 ) {
         return null;
     }
@@ -112,38 +87,46 @@ export const base64toCanvas = async ( base64, width, height ) => {
  * Note that this does not preserve ratios, so images will stretch when source and
  * destination dimensions are of different ratios.
  *
- * @param {CanvasImageSource|string} image
+ * @param {CanvasDrawable|string} image
  * @param {Number} targetWidth desired width of the resized output
  * @param {Number} targetHeight desired height of the resized output
  * @param {Number=} optSourceX optional x coordinate within the source image rectangle
  * @param {Number=} optSourceY optional y coordinate within the source image rectangle
  * @param {Number=} optSrcWidth optional width to use within the source image rectangle
  * @param {Number=} optSrcHeight optional height to use within the source image rectangle
- * @return {HTMLCanvasElement}
+ * @return {Promise<HTMLCanvasElement>}
  */
-export const resizeImage = async ( image, targetWidth, targetHeight,
-    optSourceX = 0, optSourceY = 0, optSrcWidth = image.width, optSrcHeight = image.height ) => {
+export const resizeImage = async ( image: CanvasDrawable | string, targetWidth: number, targetHeight: number,
+    optSourceX = 0, optSourceY = 0, optSrcWidth = 0, optSrcHeight = 0 ): Promise<HTMLCanvasElement> => {
     if ( typeof image === "string" ) {
         let size;
         ({ image, size } = await loader.loadImage( image ));
-        if ( typeof optSrcWidth !== "number" || typeof optSrcHeight !== "number" ) {
+        if ( optSrcWidth === 0 || optSrcHeight === 0 ) {
             optSrcWidth  = size.width;
             optSrcHeight = size.height;
         }
     }
-    if ( optSrcWidth === targetWidth && optSrcHeight === targetHeight && optSourceX === 0 && optSourceY === 0 ) {
+    if ( optSrcWidth === 0 ) {
+        optSrcWidth = ( image as CanvasDrawable ).width;
+    }
+    if ( optSrcHeight === 0 ) {
+        optSrcHeight = ( image as CanvasDrawable ).height;
+    }
+    if ( image instanceof HTMLCanvasElement &&
+         optSrcWidth === targetWidth && optSrcHeight === targetHeight && optSourceX === 0 && optSourceY === 0 ) {
         return image; // input would equal output, nothing to do.
     }
     const { cvs, ctx } = createCanvas( targetWidth, targetHeight );
     ctx.drawImage(
-        image,
+        image as CanvasDrawable,
         Math.round( optSourceX ), Math.round( optSourceY ), Math.round( optSrcWidth ), Math.round( optSrcHeight ),
         0, 0, Math.round( targetWidth ), Math.round( targetHeight )
     );
     return cvs;
 };
 
-export const resizeToBase64 = async ( image, targetWidth, targetHeight, mime, encoderOptions, srcWidth, srcHeight ) => {
+export const resizeToBase64 = async ( image: CanvasDrawable | string, targetWidth: number, targetHeight: number,
+    mime: string, encoderOptions: number, srcWidth: number, srcHeight: number ): Promise<string> => {
     if ( typeof image === "string" ) {
         if ( srcWidth === targetWidth && srcHeight === targetHeight ) {
             return image;
@@ -160,7 +143,8 @@ export const resizeToBase64 = async ( image, targetWidth, targetHeight, mime, en
  * display (for instance for color picking purposes) can be
  * transformed from global canvas coordinate space to local screen space.
  */
-export const globalToLocal = ( zCanvas, x, y ) => {
+export const globalToLocal = ( zCanvas: ZoomableCanvas, x: number, y: number ): Point => {
+    // @ts-expect-error _HDPIscaleRatio has protected access
     const factor = zCanvas.zoomFactor * zCanvas._HDPIscaleRatio;
     return {
         x: x * factor,
@@ -178,7 +162,7 @@ export const globalToLocal = ( zCanvas, x, y ) => {
  * @param {number=} size optional radius in pixels to verify
  * @return {boolean} value indicating whether coordinate is transparent
  */
-export const isInsideTransparentArea = ( source, x, y, size = 5 ) => {
+export const isInsideTransparentArea = ( source: HTMLCanvasElement, x: number, y: number, size = 5 ): boolean => {
     const left   = x - size;
     const right  = x + size;
     const top    = y - size;
@@ -213,13 +197,13 @@ export const isInsideTransparentArea = ( source, x, y, size = 5 ) => {
     return true;
 };
 
-export const cloneCanvas = canvasToClone => {
+export const cloneCanvas = ( canvasToClone: HTMLCanvasElement ): HTMLCanvasElement => {
     const { cvs, ctx } = createCanvas( canvasToClone.width, canvasToClone.height );
     ctx.drawImage( canvasToClone, 0, 0 );
     return cvs;
 };
 
-export const canvasToBlob = ( cvs, type = PNG.mime, quality = .9 ) => {
+export const canvasToBlob = ( cvs: HTMLCanvasElement, type = PNG.mime, quality = .9 ): Promise<Blob> => {
     return new Promise(( resolve, reject ) => {
         try {
             cvs.toBlob(( blob ) => {
@@ -231,9 +215,9 @@ export const canvasToBlob = ( cvs, type = PNG.mime, quality = .9 ) => {
     });
 };
 
-export const blobToCanvas = blob => {
+export const blobToCanvas = ( blob: Blob ): Promise<HTMLCanvasElement> => {
     const blobURL = blobToResource( blob );
-    const revoke  = disposeResource( blobURL );
+    const revoke  = () => disposeResource( blobURL );
     return new Promise(( resolve, reject ) => {
         const image = new Image();
         image.onload = () => {

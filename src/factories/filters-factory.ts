@@ -20,7 +20,11 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-let defaultFilters = null;
+import type { Filters } from "@/definitions/document";
+
+export type FiltersProps = Partial<Filters>;
+
+let defaultFilters: Filters | null = null;
 
 const FiltersFactory = {
     create({
@@ -31,7 +35,7 @@ const FiltersFactory = {
         contrast   = 0,
         vibrance   = .5,
         desaturate = false
-    } = {}) {
+    }: FiltersProps = {}): Filters {
         return {
             enabled,
             opacity,
@@ -47,7 +51,7 @@ const FiltersFactory = {
      * Saving filter properties into a simplified JSON structure
      * for project storage
      */
-    serialize( filters ) {
+    serialize( filters: Filters ): any {
         return {
             e: filters.enabled,
             o: filters.opacity,
@@ -63,7 +67,7 @@ const FiltersFactory = {
      * Creating a new filter list from a stored filters structure
      * inside a stored projects layer
      */
-     deserialize( filters = {} ) {
+     deserialize( filters: any = {} ): Filters {
          return FiltersFactory.create({
              enabled: filters.e,
              opacity: filters.o,
@@ -77,7 +81,7 @@ const FiltersFactory = {
 };
 export default FiltersFactory;
 
-export const hasFilters = filters => {
+export const hasFilters = ( filters: Filters ): boolean => {
     if ( !filters.enabled ) {
         return false;
     }
@@ -87,7 +91,10 @@ export const hasFilters = filters => {
     return !isEqual( filters, defaultFilters );
 };
 
-export const isEqual = ( filters, filtersToCompareTo = {} ) => {
+export const isEqual = ( filters: Filters, filtersToCompareTo?: Filters ): boolean => {
+    if ( !filtersToCompareTo ) {
+        return false;
+    }
     return filters.enabled    === filtersToCompareTo.enabled    &&
            filters.opacity    === filtersToCompareTo.opacity    &&
            filters.gamma      === filtersToCompareTo.gamma      &&

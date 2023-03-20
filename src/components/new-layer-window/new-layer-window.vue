@@ -69,7 +69,7 @@ import Modal     from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import LayerFactory from "@/factories/layer-factory";
 import { enqueueState } from "@/factories/history-state-factory";
-import { LAYER_GRAPHIC, LAYER_TEXT } from "@/definitions/layer-types";
+import { LayerTypes } from "@/definitions/layer-types";
 import { focus } from "@/utils/environment-util";
 
 import messages from "./messages.json";
@@ -81,7 +81,7 @@ export default {
     },
     data: () => ({
         name: "",
-        type: LAYER_GRAPHIC,
+        type: LayerTypes.LAYER_GRAPHIC,
     }),
     computed: {
         ...mapGetters([
@@ -91,8 +91,8 @@ export default {
         ]),
         layerTypes() {
             return [
-                { label: this.$t( "graphic" ), value: LAYER_GRAPHIC },
-                { label: this.$t( "text" ), value: LAYER_TEXT },
+                { label: this.$t( "graphic" ), value: LayerTypes.LAYER_GRAPHIC },
+                { label: this.$t( "text" ), value: LayerTypes.LAYER_TEXT },
             ];
         },
         isValid() {

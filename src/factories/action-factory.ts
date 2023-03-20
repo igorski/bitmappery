@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,9 +20,22 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-export const LAYER_GRAPHIC = "graphic";
-export const LAYER_IMAGE   = "image";
-export const LAYER_MASK    = "mask";
-export const LAYER_TEXT    = "text";
+import type { Store } from "vuex";
+import { enqueueState } from "@/factories/history-state-factory";
+import type { BitMapperyState } from "@/store";
 
-export const DEFAULT_LAYER_NAME = "New Layer"; // TODO i18n
+/**
+ * @param {Object} store reference
+ * @param {Number} index index of layer to toggle visibility of
+ */
+export const toggleLayerVisibility = ( store: Store<BitMapperyState>, index: number ): void => {
+    const originalVisibility = store.getters.layers[ index ].visible;
+    const commit = () => store.commit( "updateLayer", { index, opts: { visible: !originalVisibility } });
+    commit();
+    enqueueState( `layerVisibility_${index}`, {
+        undo() {
+            store.commit( "updateLayer", { index, opts: { visible: originalVisibility } });
+        },
+        redo: commit,
+    });
+};

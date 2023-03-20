@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,8 +20,10 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-export const STORAGE_TYPES = {
-    LOCAL   : "local",
-    DROPBOX : "dropbox",
-    DRIVE   : "drive"
+export enum LayerTypes {
+    LAYER_GRAPHIC = "graphic",
+    LAYER_IMAGE   = "image",
+    LAYER_MASK    = "mask",
+    LAYER_TEXT    = "text",
 };
+export const DEFAULT_LAYER_NAME = "New Layer"; // TODO i18n

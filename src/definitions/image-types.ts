@@ -25,10 +25,15 @@ import { isSafari } from "@/utils/environment-util";
 
 // 1. all image formats supported by BitMappery
 
-export const JPEG = { mime: "image/jpeg", ext: "jpg" };
-export const PNG  = { mime: "image/png",  ext: "png" };
-export const GIF  = { mime: "image/gif",  ext: "gif" };
-export const WEBP = { mime: "image/webp", ext: "webp" };
+type ImageType = {
+    mime: string;
+    ext: string;
+};
+
+export const JPEG: ImageType = { mime: "image/jpeg", ext: "jpg" };
+export const PNG : ImageType = { mime: "image/png",  ext: "png" };
+export const GIF : ImageType = { mime: "image/gif",  ext: "gif" };
+export const WEBP: ImageType = { mime: "image/webp", ext: "webp" };
 
 export const ALL_IMAGE_TYPES = [ JPEG, PNG, GIF, WEBP ];
 
@@ -55,9 +60,9 @@ if ( !isSafari() ) {
 
 // 4. utility methods
 
-export const isCompressableFileType = type => COMPRESSABLE_TYPES.some(({ mime }) => mime === type );
+export const isCompressableFileType = ( type: string ): boolean => COMPRESSABLE_TYPES.some(({ mime }) => mime === type );
 
-export const isTransparent = ({ name, type }) => {
+export const isTransparent = ({ name, type }: File ): boolean => {
     if ( type === STORAGE_TYPES.DROPBOX ) {
         // files imported from Dropbox don't list their mime type, derive from filename instead
         return TRANSPARENT_TYPES.some(({ ext }) => name.includes( ext ));
@@ -65,7 +70,7 @@ export const isTransparent = ({ name, type }) => {
     return TRANSPARENT_TYPES.some(({ mime }) => mime === type );
 }
 
-export const typeToExt = mimeType => {
+export const typeToExt = ( mimeType: string ): string => {
     const format = ALL_IMAGE_TYPES.find(({ mime }) => mime === mimeType );
     if ( !format ) {
         throw new Error( `Unsupported type ${mimeType} provided` );

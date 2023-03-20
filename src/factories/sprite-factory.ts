@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,12 +20,16 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Document, Layer } from "@/definitions/document";
 import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
+import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 
-let zCanvasInstance = null; // a non-Vue observable zCanvas instance
+let zCanvasInstance: ZoomableCanvas = null; // a non-Vue observable zCanvas instance
 
-export const getCanvasInstance = () => zCanvasInstance;
-export const setCanvasInstance = zCanvas => zCanvasInstance = zCanvas;
+export const getCanvasInstance = (): ZoomableCanvas | null => zCanvasInstance;
+export const setCanvasInstance = ( zCanvas: ZoomableCanvas ): void => {
+    zCanvasInstance = zCanvas;
+};
 
 /**
  * Sprites are used to represent layer content. These are mapped
@@ -38,7 +42,7 @@ const spriteCache = new Map();
  * You can also pass in the active document to only run operations on
  * sprites rendering the layer of the current document
  */
-export const runSpriteFn = ( fn, optDocument ) => {
+export const runSpriteFn = ( fn: ( sprite: LayerSprite ) => void, optDocument: Document ): void => {
     spriteCache.forEach(( sprite ) => {
         if ( !optDocument || optDocument.layers.includes( sprite.layer )) {
             fn( sprite );
@@ -50,22 +54,22 @@ export const runSpriteFn = ( fn, optDocument ) => {
  * If a layer were to be removed / set to invisible, we
  * flush all its cached Sprites.
  */
-export const flushLayerSprites = ({ id }) => {
-    //console.info( `flushing sprite for "${id}"` );
-    if ( hasSpriteForLayer({ id })) {
-        disposeSprite( spriteCache.get( id ));
-        spriteCache.delete( id );
+export const flushLayerSprites = ( layer: Layer ): void => {
+    //console.info( `flushing sprite for "${layer.id}"` );
+    if ( hasSpriteForLayer( layer )) {
+        disposeSprite( spriteCache.get( layer.id ));
+        spriteCache.delete( layer.id );
     }
 };
 
-export const hasSpriteForLayer = ({ id } = {}) => spriteCache.has( id );
+export const hasSpriteForLayer = ( layer?: Layer ): boolean => spriteCache.has( layer?.id );
 
-export const getSpriteForLayer = ({ id } = {}) => spriteCache.get( id ) || null;
+export const getSpriteForLayer = ( layer?: Layer ): LayerSprite | null => spriteCache.get( layer?.id ) || null;
 
 /**
  * Clears the entire cache and disposes all Sprites.
  */
-export const flushCache = () => {
+export const flushCache = (): void => {
     //console.info( "flushing sprite cache" );
     spriteCache.forEach( disposeSprite );
     spriteCache.clear();
@@ -75,7 +79,7 @@ export const flushCache = () => {
  * Lazily retrieve / create a cached sprite to represent given
  * layer content on given zCanvas instance
  */
-export const createSpriteForLayer = ( zCanvasInstance, layer, isInteractive = false ) => {
+export const createSpriteForLayer = ( zCanvasInstance: ZoomableCanvas, layer: Layer, isInteractive = false ): LayerSprite => {
     const { id } = layer;
     let output;
     if ( hasSpriteForLayer( layer )) {
@@ -94,6 +98,6 @@ export const createSpriteForLayer = ( zCanvasInstance, layer, isInteractive = fa
 
 /* internal methods */
 
-function disposeSprite( sprite ) {
+function disposeSprite( sprite: LayerSprite ): void {
     sprite?.dispose();
 }

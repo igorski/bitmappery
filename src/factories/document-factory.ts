@@ -20,10 +20,13 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Document } from "@/definitions/document";
 import LayerFactory from "@/factories/layer-factory";
 import { compress, decompress } from "@/services/compression-service";
 
 let UID_COUNTER = 0;
+
+type DocumentProps = Partial<Document>;
 
 const DocumentFactory = {
     /**
@@ -32,7 +35,7 @@ const DocumentFactory = {
      */
     create({
         name = "New document", width = 1000, height = 1000, layers = [], selections = {}
-    } = {}) {
+    }: DocumentProps = {}): Document {
         if ( !layers.length ) {
             layers = [ LayerFactory.create({ width, height }) ];
         }
@@ -53,7 +56,7 @@ const DocumentFactory = {
      * Saving a document instance properties into a simplifie
      * JSON structure for project storage
      */
-    serialize( document ) {
+    serialize( document: Document ): any {
         const layers = document.layers.map( LayerFactory.serialize );
         return {
             n: document.name,
@@ -67,7 +70,7 @@ const DocumentFactory = {
      /**
       * Creating a new document instance from a stored JSON structure
       */
-    async deserialize( document ) {
+    async deserialize( document: any ): Promise<Document> {
         const layers = [];
         for ( let i = 0, l = ( document.l ?? [] ).length; i < l; ++i ) {
             layers.push( await LayerFactory.deserialize( document.l[ i ]));
@@ -81,13 +84,13 @@ const DocumentFactory = {
         });
     },
 
-    async toBlob( document ) {
+    async toBlob( document: Document ): Promise<Blob> {
         const data = DocumentFactory.serialize( document );
         const blob = await compress( data );
         return blob;
     },
 
-    async fromBlob( blob ) {
+    async fromBlob( blob: Blob ): Promise<Document> {
         const data     = await decompress( blob );
         const document = await DocumentFactory.deserialize( data );
         return document;

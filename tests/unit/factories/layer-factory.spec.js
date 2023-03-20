@@ -1,5 +1,5 @@
 import { it, describe, expect, vi } from "vitest";
-import { LAYER_GRAPHIC, LAYER_IMAGE, LAYER_MASK } from "@/definitions/layer-types";
+import { LayerTypes } from "@/definitions/layer-types";
 import EffectsFactory from "@/factories/effects-factory";
 import FiltersFactory from "@/factories/filters-factory";
 import LayerFactory, { layerToRect } from "@/factories/layer-factory";
@@ -38,7 +38,7 @@ describe( "Layer factory", () => {
             expect( layer ).toEqual({
                 id: expect.any( String ),
                 name: expect.any( String ),
-                type: LAYER_GRAPHIC,
+                type: LayerTypes.LAYER_GRAPHIC,
                 transparent: true,
                 source: null,
                 mask: null,
@@ -63,7 +63,7 @@ describe( "Layer factory", () => {
             mockUpdateFn = ( fn, data ) => data;
             const layer = LayerFactory.create({
                 name: "foo",
-                type: LAYER_IMAGE,
+                type: LayerTypes.LAYER_IMAGE,
                 transparent: false,
                 source: { src: "bitmap" },
                 mask: { src: "mask" },
@@ -81,7 +81,7 @@ describe( "Layer factory", () => {
             expect( layer ).toEqual({
                 id: expect.any( String ),
                 name: "foo",
-                type: LAYER_IMAGE,
+                type: LayerTypes.LAYER_IMAGE,
                 transparent: false,
                 source: { src: "bitmap" },
                 mask: { src: "mask" },
@@ -103,7 +103,7 @@ describe( "Layer factory", () => {
         it( "should do so without data loss", async () => {
             const layer = LayerFactory.create({
                 name: "foo",
-                type: LAYER_IMAGE,
+                type: LayerTypes.LAYER_IMAGE,
                 transparent: false,
                 source: { src: "bitmap" },
                 mask: { src: "mask" },

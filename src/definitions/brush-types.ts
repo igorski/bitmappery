@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2021 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,35 +20,41 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { blobToResource, disposeResource } from "@/utils/resource-manager.js";
+import type { Brush } from "@/definitions/editor";
 
-self.addEventListener( "message", event => {
-    const { cmd, file } = event.data;
-    switch ( cmd ) {
+enum BrushTypes {
+    LINE,
+    PAINT_BRUSH,
+    PEN,
+    CALLIGRAPHIC,
+    CONNECTED,
+    NEAREST,
+    SPRAY,
+};
+export default BrushTypes;
+
+const NON_STEPPABLE_TYPES = [ BrushTypes.CONNECTED, BrushTypes.NEAREST ];
+
+/**
+ * For low-res live rendering purposes, brushes can be rendered
+ * in iterations. However some require their full path to be present
+ * in a single render iteration.
+ *
+ * @param {Object} brush @see brush-factory
+ */
+export const hasSteppedLiveRender = ({ options }: Brush ) => !NON_STEPPABLE_TYPES.includes( options.type );
+
+export const getSizeForBrush = ({ options, radius, halfRadius }: Brush): number => {
+    switch ( options.type ) {
         default:
-            return;
-
-        case "loadImageFile":
-            const blobUrl = blobToResource( file );
-            self.createImageBitmap( file )
-                .then( result => {
-                    const { width, height } = result;
-                    self.postMessage({
-                        cmd: "loadComplete",
-                        file: file.name,
-                        blobUrl,
-                        width,
-                        height
-                    });
-                })
-                .catch( error => {
-                    disposeResource( blobUrl ); // deallocate as file will be useless
-                    self.postMessage({
-                        cmd: "loadError",
-                        file: file.name,
-                        error
-                    });
-                });
-            break;
+            return radius;
+        case BrushTypes.PEN:
+            return radius * 0.2;
+        case BrushTypes.CALLIGRAPHIC:
+            return halfRadius;
+        case BrushTypes.CONNECTED:
+            return halfRadius * 0.25;
+        case BrushTypes.NEAREST:
+            return halfRadius;
     }
-});
+};

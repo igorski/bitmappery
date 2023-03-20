@@ -102,7 +102,7 @@ import { mapGetters, mapMutations } from "vuex";
 import VueSelect from "vue-select";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
-import { DEFAULT_LAYER_NAME, LAYER_TEXT } from "@/definitions/layer-types";
+import { DEFAULT_LAYER_NAME, LayerTypes } from "@/definitions/layer-types";
 import FontPreview from "./font-preview/font-preview.vue";
 import { mapSelectOptions } from "@/utils/search-select-util";
 import { enqueueState } from "@/factories/history-state-factory";
@@ -134,7 +134,7 @@ export default {
             "activeLayer",
         ]),
         disabled() {
-            return this.activeLayer?.type !== LAYER_TEXT;
+            return this.activeLayer?.type !== LayerTypes.LAYER_TEXT;
         },
         canSearchFonts() {
             return !isMobile(); // only show preview list on mobile

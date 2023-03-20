@@ -20,8 +20,15 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Brush, BrushToolOptions } from "@/definitions/editor";
+
+type BrushProps = Partial<Brush> & {
+    color?: string;
+    options?: BrushToolOptions;
+};
+
 const BrushFactory = {
-    create({ radius = 10, color = "rgba(255,0,0,1)", pointers = [], options = {} } = {} ) {
+    create({ radius = 10, color = "rgba(255,0,0,1)", pointers = [], options = {} }: BrushProps = {} ): Brush {
         const [r, g, b, a] = color.split( "," );
         const colors = [
             color,
@@ -41,7 +48,7 @@ const BrushFactory = {
 };
 export default BrushFactory;
 
-export const createDrawable = ( brush, ctx, x, y, scale = 1 ) => {
+export const createDrawable = ( brush: Brush, ctx: CanvasRenderingContext2D, x: number, y: number, scale = 1 ): CanvasGradient => {
     const gradient = ctx.createRadialGradient( x, y, brush.halfRadius * scale, x, y, brush.radius * scale );
     const { thickness } = brush.options;
 

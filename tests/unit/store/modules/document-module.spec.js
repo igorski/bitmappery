@@ -1,6 +1,6 @@
 import { it, describe, expect, vi, beforeEach, afterAll } from "vitest";
 import { mockZCanvas } from "../../__mocks";
-import { LAYER_IMAGE } from "@/definitions/layer-types";
+import { LayerTypes } from "@/definitions/layer-types";
 import LayerFactory from "@/factories/layer-factory";
 import DocumentModule from "@/store/modules/document-module";
 const { getters, mutations } = DocumentModule;
@@ -429,7 +429,7 @@ describe( "Vuex document module", () => {
                     y: 200,
                     width: 100,
                     height: 150,
-                    type: LAYER_IMAGE
+                    type: LayerTypes.LAYER_IMAGE
                 };
                 const mockSprite = { src: "bitmap", cacheEffects: vi.fn() };
                 mockUpdateFn = vi.fn( fn => {
@@ -450,7 +450,7 @@ describe( "Vuex document module", () => {
                 const opts  = {
                     name: "layer2 updated",
                     source: new Image(),
-                    type: LAYER_IMAGE
+                    type: LayerTypes.LAYER_IMAGE
                 };
                 const mockSprite = { src: "bitmap", resetFilterAndRecache: vi.fn() };
                 mockUpdateFn = vi.fn( fn => {

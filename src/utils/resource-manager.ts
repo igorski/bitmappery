@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -33,7 +33,7 @@ import { canvasToBlob } from "@/utils/canvas-util";
  * @param {Number=} optQuality optional JPEG compression to use (when mime is JPEG) between 0 - 1
  * @return {String} Blob URL
  */
-export const imageToResource = async ( imageElement, type = "image/jpeg", optQuality = .9 ) => {
+export const imageToResource = async ( imageElement: HTMLImageElement, type = "image/jpeg", optQuality = .9 ): Promise<string> => {
     const cvs = document.createElement( "canvas" );
 
     cvs.width  = imageElement.naturalWidth  || imageElement.width;
@@ -50,14 +50,15 @@ export const imageToResource = async ( imageElement, type = "image/jpeg", optQua
 // for debugging and spotting memory leaks, in Chrome you can access chrome://blob-internals/
 // to view all allocated object URLs
 
-export const blobToResource = blob => {
+export const blobToResource = ( blob: Blob ): string => {
     const blobUrl = URL.createObjectURL( blob );
     // console.info( `Registed URI "${blobUrl}"` );
     return blobUrl;
 };
-export const disposeResource = blobURL => {
+
+export const disposeResource = ( blobURL: string ): void => {
     // console.info( `Disposing Blob for URI "${blobUrl}"` );
     URL.revokeObjectURL( blobURL );
 };
 
-export const isResource = imageElement => imageElement.src.startsWith( "blob:" );
+export const isResource = ( imageElement: HTMLImageElement ): boolean => imageElement.src.startsWith( "blob:" );

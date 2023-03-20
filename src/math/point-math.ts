@@ -20,49 +20,52 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Point, Rectangle } from "zcanvas";
+import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
+
 const { pow, sqrt, atan2, round, cos, sin, PI } = Math;
 
-export const rectToPoint = ({ top, left }) => ({ x: left, y: top });
+export const rectToPoint = ({ top, left }: Rectangle ): Point => ({ x: left, y: top });
 
-export const rectToCoordinateList = ( x, y, width, height ) => [
+export const rectToCoordinateList = ( x: number, y: number, width: number, height: number ): Point[] => [
     { x, y }, { x: x + width, y },                          // TL to TR
     { x: x + width, y: y + height }, { x, y: y + height },  // BR to BL
     { x, y }, // back to TL to close selection
 ];
 
-export const distanceBetween = ( point1, point2 ) => {
+export const distanceBetween = ( point1: Point, point2: Point ): number => {
     return sqrt( pow( point2.x - point1.x, 2 ) + pow( point2.y - point1.y, 2 ));
 };
 
-export const angleBetween = ( point1, point2 ) => {
+export const angleBetween = ( point1: Point, point2: Point ): number => {
     return atan2( point2.x - point1.x, point2.y - point1.y );
 };
 
-export const pointBetween = ( point1, point2 ) => ({
+export const pointBetween = ( point1: Point, point2: Point ): Point => ({
     x: point1.x + ( point2.x - point1.x ) * .5,
     y: point1.y + ( point2.y - point1.y ) * .5,
 });
 
-export const isPointInRange = ( point1x, point1y, point2x, point2y, margin = 5 ) => {
+export const isPointInRange = ( point1x: number, point1y: number, point2x: number, point2y: number, margin = 5 ): boolean => {
     return isCoordinateInHorizontalRange( point1x, point2x, margin ) &&
            isCoordinateInVerticalRange( point1y, point2y, margin );
 };
 
-export const isCoordinateInHorizontalRange = ( point1x, point2x, margin = 5 ) => {
+export const isCoordinateInHorizontalRange = ( point1x: number, point2x: number, margin = 5 ): boolean => {
     const left   = point2x - margin;
     const right  = point2x + margin;
 
     return point1x >= left && point1x <= right;
 };
 
-export const isCoordinateInVerticalRange = ( point1y, point2y, margin = 5 ) => {
+export const isCoordinateInVerticalRange = ( point1y: number, point2y: number, margin = 5 ): boolean => {
     const top    = point2y - margin;
     const bottom = point2y + margin;
 
     return point1y >= top && point1y <= bottom;
 };
 
-export const translatePointerRotation = ( x, y, rotationCenterX, rotationCenterY, angleInRadians ) => {
+export const translatePointerRotation = ( x: number, y: number, rotationCenterX: number, rotationCenterY: number, angleInRadians: number ): Point => {
     const x2 = x - rotationCenterX;
     const y2 = y - rotationCenterY;
 
@@ -75,7 +78,7 @@ export const translatePointerRotation = ( x, y, rotationCenterX, rotationCenterY
     };
 };
 
-export const translatePoints = ( coordinateList, xTranslation = 0, yTranslation = 0 ) => {
+export const translatePoints = ( coordinateList: Point[], xTranslation = 0, yTranslation = 0 ): Point[] => {
     return coordinateList.map(({ x, y }) => ({
         x: x + xTranslation,
         y: y + yTranslation,
@@ -87,11 +90,11 @@ export const translatePoints = ( coordinateList, xTranslation = 0, yTranslation 
  *
  * @param {Number} x coordinate to snap to
  * @param {Number} y coordinate to snap to
- * @param {{ x: Number, y: Number }} sourcePoint coordinate to snap from
+ * @param {Point} sourcePoint coordinate to snap from
  * @param {{ left: Number, top: Number }} viewport in case coordinates are panned
  * @param {Number=} steps defaults to 4 (45 degree increments)
  */
-export const snapToAngle = ( x, y, sourcePoint, { left = 0, top = 0 } = {}, steps = 4 ) => {
+export const snapToAngle = ( x: number, y: number, sourcePoint: Point, { left = 0, top = 0 } = {}, steps = 4 ): Point => {
     const deltaX = ( x - sourcePoint.x ) + left;
     const deltaY = ( y - sourcePoint.y ) + top;
     let dist = sqrt( pow( deltaX, 2 ) + pow( deltaY, 2 ));
@@ -117,7 +120,7 @@ export const snapToAngle = ( x, y, sourcePoint, { left = 0, top = 0 } = {}, step
  * @param {ZoomableCanvas} zoomableCanvas
  * @param {DOMRect} canvasBoundingBox bounding box of the zoomableCanvas DOM Element
  */
-export const pointerToCanvasCoordinates = ( pointerX, pointerY, zoomableCanvas, canvasBoundingBox ) => {
+export const pointerToCanvasCoordinates = ( pointerX: number, pointerY: number, zoomableCanvas: ZoomableCanvas, canvasBoundingBox: DOMRect ): Point => {
     const { zoomFactor } = zoomableCanvas;
 
     // ( pointer coordinate - bounding box coordinate ) is coordinate relative to canvas

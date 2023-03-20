@@ -24,6 +24,8 @@ BitMappery works with entities known as _Documents_. A Document contains several
 which define their content, transformation, _Effects_, etc. Each of the nested entity properties
 has its own factory (see _/src/factories/_). The Document is managed by the Vuex _document-module.js_.
 
+The types for each of these are defined in `/src/definitions/document.ts`.
+
 ## Document rendering and interactions
 
 The Document is rendered one layer at a time onto a Canvas element, using [zCanvas](https://github.com/igorski/zCanvas). Both the rendering and interaction handling is performed by dedicated "Sprite" classes.
@@ -45,6 +47,9 @@ event handler. See "Rendering concepts" below for more details on screen-to-docu
 Rendering of transformations, text and effects is an asynchronous operation handled by _/src/services/render-service.js_. The purpose of this service is to perform and cache repeated operations and eventually maintain
 the source bitmap represented by the LayerSprite. The LayerSprite invokes the rendering service whenever
 Layer content changes and manages its own cache.
+
+All types related to the editor are either defined in `src/definitions/editor.ts` or the more specifically
+named files. 
 
 ### Rendering concepts
 

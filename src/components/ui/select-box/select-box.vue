@@ -41,7 +41,7 @@ import "vue-select/dist/vue-select.css";
 export default {
     props: {
         value: {
-            type: String,
+            type: [ String, Number ],
             default: null,
         },
         options: {

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,13 +20,24 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { LAYER_GRAPHIC, DEFAULT_LAYER_NAME } from "@/definitions/layer-types";
+import type { Rectangle } from "zcanvas";
+import { LayerTypes, DEFAULT_LAYER_NAME } from "@/definitions/layer-types";
+import type { Layer } from "@/definitions/document";
 import { imageToBase64, base64toCanvas } from "@/utils/canvas-util";
 import EffectsFactory from "@/factories/effects-factory";
 import FiltersFactory from "@/factories/filters-factory";
 import TextFactory    from "@/factories/text-factory";
+import type { EffectsProps } from "@/factories/effects-factory";
+import type { FiltersProps } from "@/factories/filters-factory";
+import type { TextProps } from "@/factories/text-factory";
 
 let UID_COUNTER = 0;
+
+type LayerProps = Partial<Omit<Layer, "effects" | "filters" | "text">> & {
+    effects?: EffectsProps;
+    filters?: FiltersProps;
+    text?: TextProps;
+};
 
 const LayerFactory = {
     /**
@@ -34,10 +45,10 @@ const LayerFactory = {
      */
     create({
         name = DEFAULT_LAYER_NAME,
-        type = LAYER_GRAPHIC, transparent = true, source = null, mask = null,
+        type = LayerTypes.LAYER_GRAPHIC, transparent = true, source = null, mask = null,
         left = 0, top = 0, maskX = 0, maskY = 0, width = 1, height = 1, visible = true,
         effects = {}, filters = {}, text = {}
-    } = {}) {
+    }: LayerProps = {}): Layer {
         return {
             id: `layer_${( ++UID_COUNTER )}`,
             name,
@@ -62,7 +73,7 @@ const LayerFactory = {
      * Saving layer properties into a simplified JSON structure
      * for project storage
      */
-    serialize( layer ) {
+    serialize( layer: Layer ): any {
         return {
             n: layer.name,
             t: layer.type,
@@ -86,7 +97,7 @@ const LayerFactory = {
      * Creating a new layer instance from a stored layer structure
      * inside a stored project
      */
-    async deserialize( layer ) {
+    async deserialize( layer: any ): Promise<Layer> {
         const source = await base64toCanvas( layer.s, layer.w, layer.h );
         const mask   = await base64toCanvas( layer.m, layer.w, layer.h );
         const text   = await TextFactory.deserialize( layer.tx );
@@ -111,7 +122,7 @@ const LayerFactory = {
 };
 export default LayerFactory;
 
-export const layerToRect = layer => ({
+export const layerToRect = ( layer: Layer ): Rectangle => ({
     left   : layer.left,
     top    : layer.top,
     width  : layer.width,

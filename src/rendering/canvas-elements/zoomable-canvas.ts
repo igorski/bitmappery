@@ -20,20 +20,38 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Store } from "vuex";
 import { canvas } from "zcanvas";
+import type { Rectangle, Viewport } from "zcanvas";
+import type { Document } from "@/definitions/document";
 import InteractionPane from "@/rendering/canvas-elements/interaction-pane";
+import type LayerSprite from "@/rendering/canvas-elements/layer-sprite";
 import { fastRound } from "@/math/unit-math";
 import { renderState } from "@/services/render-service";
+import type { BitMapperyState } from "@/store";
 
 class ZoomableCanvas extends canvas {
-    constructor( opts, store, rescaleFn, refreshFn ) {
+    public store: Store<BitMapperyState>; // Vuex root store reference
+    public rescaleFn: () => void; // rescale handler used to match parent component with zCanvas rescales
+    public refreshFn: () => void; // refresh handler used to force rebuild of all Layer renderers
+    public documentScale: number;
+    public zoomFactor: number;
+    public interactionPane: InteractionPane;
+    public guides: Rectangle[];
+    public locked: boolean;
+    public draggingSprite: LayerSprite | null; // reference to Sprite that is being dragged (see LayerSprite)
+
+    private _bounds: DOMRect;
+    private _interactionBlocked: boolean;
+
+    protected _width: number; // zCanvas 5.1.8+
+    protected _height: number; // zCanvas 5.1.8+
+
+    constructor( opts: any, store: Store<BitMapperyState>, rescaleFn: () => void, refreshFn: () => void ) {
         super( opts );
 
-        // Vuex root store reference
         this.store = store;
-        // rescale handler used to match parent component with zCanvas rescales
         this.rescaleFn = rescaleFn;
-        // refresh handler used to force rebuild of all Layer renderers
         this.refreshFn = refreshFn;
 
         this.documentScale = 1;
@@ -41,11 +59,10 @@ class ZoomableCanvas extends canvas {
         this.interactionPane = new InteractionPane();
         this._bounds = null; // TODO : can be removed after update to zCanvas 5.1.5 (requires Webpack 5 migration)
 
-        // reference to Sprite that is being dragged (see LayerSprite)
         this.draggingSprite = null;
     }
 
-    setDocumentScale( targetWidth, targetHeight, scale, zoom, activeDocument = null ) {
+    setDocumentScale( targetWidth: number, targetHeight: number, scale: number, zoom: number, activeDocument: Document = null ): void {
         const { left, top, width, height } = this._viewport;
 
         let scrollWidth  = this._width  - width;
@@ -57,7 +74,7 @@ class ZoomableCanvas extends canvas {
         const ratioY = ( top  / scrollHeight ) || .5;
 
         this.setDimensions( fastRound( targetWidth ), fastRound( targetHeight ), true, true );
-        this.setZoomFactor( scale * zoom, scale * zoom ); // eventually replace with zCanvas.setZoom()
+        this.setZoomFactor( scale * zoom ); // eventually replace with zCanvas.setZoom()
 
         // update scroll widths after scaling operation
 
@@ -75,19 +92,19 @@ class ZoomableCanvas extends canvas {
         }
     }
 
-    getActiveDocument() {
+    getActiveDocument(): Document {
         return this.store.getters.activeDocument;
     }
 
-    setInteractive( isInteractive ) {
+    setInteractive( isInteractive: boolean ): void {
         this._interactionBlocked = !isInteractive;
     }
 
-    getViewport() {
+    getViewport(): Viewport {
         return this._viewport;
     }
 
-    setZoomFactor( scale ) {
+    setZoomFactor( scale: number ): void {
         this.zoomFactor = scale;
 
         // This zoom factor logic should move into the zCanvas
@@ -97,26 +114,26 @@ class ZoomableCanvas extends canvas {
         this.invalidate();
     }
 
-    setLock( locked ) {
+    setLock( locked: boolean ): void {
         this.locked = locked; // freezes current Canvas contents for a single render cycle
     }
 
-    setGuides( guides ) {
+    setGuides( guides: Rectangle[] ): void {
         this.guides = guides;
     }
 
-    requestDeferredRender( force = this._animate ) {
+    requestDeferredRender( force = this._animate ): void {
         // keeps render loop going when Canvas is animatable
         if ( !this._disposed && force && !this._renderPending ) {
             this._renderPending = true;
-            this._renderId = window.requestAnimationFrame( this._renderHandler );
+            this._renderId = window.requestAnimationFrame( this._renderHandler as FrameRequestCallback );
         }
     }
 
     /* zCanvas.canvas overrides */
 
     // TODO : can be removed after update to zCanvas 5.1.5 (requires Webpack 5 migration)
-    getCoordinate() {
+    getCoordinate(): DOMRect {
         if ( this._bounds === null ) {
             this._bounds = this._element.getBoundingClientRect();
         }
@@ -126,7 +143,7 @@ class ZoomableCanvas extends canvas {
     // see QQQ comments to see what the difference is. Ideally these changes
     // should eventually be propagated to the zCanvas library.
 
-    render() {
+    render(): void {
         const now   = Date.now();  // current timestamp
         const delta = now - this._lastRender;
 
@@ -161,8 +178,8 @@ class ZoomableCanvas extends canvas {
             const height = fastRound( this._height / zoomFactor );
 
             const viewport = { ...this._viewport };
-            Object.entries( viewport ).forEach(([ key, value ]) => {
-                viewport[ key ] = value / zoomFactor;
+            Object.entries( viewport ).forEach(([ key, value ]): void => {
+                viewport[ key ] = ( value as number ) / zoomFactor;
             });
 
             // E.O. QQQ
@@ -199,7 +216,7 @@ class ZoomableCanvas extends canvas {
         this.requestDeferredRender();
     }
 
-    handleInteraction( aEvent ) {
+    handleInteraction( aEvent: Event ): void {
         if ( this._interactionBlocked ) {
             return;
         }
@@ -218,8 +235,9 @@ class ZoomableCanvas extends canvas {
                 default:
                     let eventOffsetX = 0, eventOffsetY = 0;
 
-                    const touches /** @type {TouchList} */ = event.changedTouches || [];
-                    let i = 0, l = touches.length;
+                    const touches: TouchList = ( event as TouchEvent ).changedTouches;
+                    let i = 0;
+                    let l = touches ? touches.length : 0;
 
                     if ( l > 0 ) {
                         let { x, y } = this.getCoordinate();
@@ -232,7 +250,7 @@ class ZoomableCanvas extends canvas {
                         // zCanvas supports multitouch, process all pointers
 
                         for ( i = 0; i < l; ++i ) {
-                            const touch          = touches[ i ];
+                            const touch = touches[ i ];
                             const { identifier } = touch;
 
                             eventOffsetX = ( touch.pageX - x ) / this.zoomFactor; // QQQ
@@ -272,13 +290,13 @@ class ZoomableCanvas extends canvas {
                 case "mousedown":
                 case "mousemove":
                 case "mouseup":
-                    let { offsetX, offsetY } = aEvent;
+                    let { offsetX, offsetY } = ( aEvent as MouseEvent );
                     // QQQ in case move and up event are fired outside of the canvas element
                     // we must translate the event coordinates to be relative to the canvas
                     if ( event.target !== this._element ) {
                         const { x, y } = this.getCoordinate();
-                        offsetX = aEvent.pageX - x;
-                        offsetY = aEvent.pageY - y;
+                        offsetX = ( aEvent as MouseEvent ).pageX - x;
+                        offsetY = ( aEvent as MouseEvent ).pageY - y;
                     }
                     if ( viewport ) {
                         offsetX += viewport.left;
@@ -298,7 +316,7 @@ class ZoomableCanvas extends canvas {
 
                 // scroll wheel
                 case "wheel":
-                    const { deltaX, deltaY } = aEvent;
+                    const { deltaX, deltaY } = aEvent as WheelEvent;
                     const WHEEL_SPEED = 20;
                     const xSpeed = deltaX === 0 ? 0 : deltaX > 0 ? WHEEL_SPEED : -WHEEL_SPEED;
                     const ySpeed = deltaY === 0 ? 0 : deltaY > 0 ? WHEEL_SPEED : -WHEEL_SPEED;
@@ -314,7 +332,7 @@ class ZoomableCanvas extends canvas {
         this.invalidate();
     }
 
-    dispose() {
+    dispose(): void {
         super.dispose();
 
         this.interactionPane?.dispose();
@@ -330,23 +348,29 @@ export default ZoomableCanvas;
  * of custom render() method. When zoomFactor code is ported to base zCanvas
  * library this can go (and custom render() can just call super class behaviour
  * after the deferred logic calculation)
- *
- * @param {Canvas} canvasInstance
  */
-function updateCanvasSize( canvasInstance ) {
+function updateCanvasSize( canvasInstance: ZoomableCanvas ): void {
+    // @ts-expect-error protected property access
     const scaleFactor = canvasInstance._HDPIscaleRatio;
-    const viewport    = canvasInstance._viewport;
+    const viewport = canvasInstance.getViewport();
     let width, height;
 
+    // @ts-expect-error protected property access
     if ( canvasInstance._enqueuedSize ) {
+        // @ts-expect-error protected property access
         ({ width, height } = canvasInstance._enqueuedSize );
+        // @ts-expect-error protected property access
         canvasInstance._enqueuedSize = null;
-        /** @protected @type {number} */ canvasInstance._width  = width;
-        /** @protected @type {number} */ canvasInstance._height = height;
+        // @ts-expect-error protected property access
+        canvasInstance._width  = width;
+        // @ts-expect-error protected property access
+        canvasInstance._height = height;
     }
 
     if ( viewport ) {
+        // @ts-expect-error protected property access
         const cvsWidth  = canvasInstance._width;
+        // @ts-expect-error protected property access
         const cvsHeight = canvasInstance._height;
 
         width  = Math.min( viewport.width,  cvsWidth );
@@ -367,7 +391,7 @@ function updateCanvasSize( canvasInstance ) {
     }
 
     if ( width && height ) {
-        const element = canvasInstance._element;
+        const element = canvasInstance.getElement();
 
         element.width  = width  * scaleFactor;
         element.height = height * scaleFactor;
@@ -375,12 +399,13 @@ function updateCanvasSize( canvasInstance ) {
         element.style.width  = `${width}px`;
         element.style.height = `${height}px`;
     }
-    canvasInstance._canvasContext.scale( scaleFactor, scaleFactor );
+    canvasInstance.getCanvasContext().scale( scaleFactor, scaleFactor );
 
     // non-smoothing must be re-applied when the canvas dimensions change...
 
-    if ( canvasInstance._smoothing === false ) {
+    if ( canvasInstance.getSmoothing() === false ) {
         canvasInstance.setSmoothing( false );
     }
+    // @ts-expect-error protected property access
     canvasInstance._bounds = null; // TODO : can be removed after update to zCanvas 5.1.5 (requires Webpack 5 migration)
 }

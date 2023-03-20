@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,39 +20,23 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-const BrushTypes = {
-    LINE           : "0",
-    PAINT_BRUSH    : "1",
-    PEN            : "2",
-    CALLIGRAPHIC   : "3",
-    CONNECTED      : "4",
-    NEAREST        : "5",
-    SPRAY          : "6",
+import { ACCEPTED_IMAGE_TYPES, ACCEPTED_IMAGE_EXTENSIONS } from "@/definitions/image-types";
+
+export const PROJECT_FILE_EXTENSION = "bpy"; // BitMappery document
+export const PSD = { mime: "image/vnd.adobe.photoshop", ext: "psd" };
+
+export const ACCEPTED_FILE_TYPES      = [ ...ACCEPTED_IMAGE_TYPES, PSD.mime ];
+export const ACCEPTED_FILE_EXTENSIONS = [ ...ACCEPTED_IMAGE_EXTENSIONS, PROJECT_FILE_EXTENSION, PSD.ext ];
+
+export const isImageFile = ( item: File ): boolean => ACCEPTED_IMAGE_TYPES.includes( item.type );
+
+export const isProjectFile = ( file: File ): boolean => {
+    const [ , ext ] = file.name.split( "." );
+    return ext === PROJECT_FILE_EXTENSION;
 };
-export default BrushTypes;
 
-const NON_STEPPABLE_TYPES = [ BrushTypes.CONNECTED, BrushTypes.NEAREST ];
-
-/**
- * For low-res live rendering purposes, brushes can be rendered
- * in iterations. However some require their full path to be present
- * in a single render iteration.
- *
- * @param {Object} brush @see brush-factory
- */
-export const hasSteppedLiveRender = ({ options }) => !NON_STEPPABLE_TYPES.includes( options.type );
-
-export const getSizeForBrush = ({ options, radius, halfRadius }) => {
-    switch ( options.type ) {
-        default:
-            return radius;
-        case BrushTypes.PEN:
-            return radius * 0.2;
-        case BrushTypes.CALLIGRAPHIC:
-            return halfRadius;
-        case BrushTypes.CONNECTED:
-            return halfRadius * 0.25;
-        case BrushTypes.NEAREST:
-            return halfRadius;
-    }
+export const isThirdPartyDocument = ( file: File ): boolean => {
+    const [ , ext ] = file.name.split( "." );
+    // currently only Photoshop documents are supported
+    return ext === PSD.ext;
 };

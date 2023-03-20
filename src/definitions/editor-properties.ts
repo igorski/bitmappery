@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,23 +20,26 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { ACCEPTED_IMAGE_TYPES, ACCEPTED_IMAGE_EXTENSIONS } from "@/definitions/image-types";
 
-export const PROJECT_FILE_EXTENSION = "bpy"; // BitMappery document
-export const PSD = { mime: "image/vnd.adobe.photoshop", ext: "psd" };
+// the height of the header displayed above the document canvas
+export const HEADER_HEIGHT = 40;
 
-export const ACCEPTED_FILE_TYPES      = [ ...ACCEPTED_IMAGE_TYPES, PSD.mime ];
-export const ACCEPTED_FILE_EXTENSIONS = [ ...ACCEPTED_IMAGE_EXTENSIONS, PROJECT_FILE_EXTENSION, PSD.ext ];
+// maximum width in pixels for an document whose multi-layered content can
+// be merged into a spritesheet
+export const MAX_SPRITESHEET_WIDTH = 512;
 
-export const isImageFile = item => ACCEPTED_IMAGE_TYPES.includes( item.type );
+// the maximum size we support for an image, this is for the dominant side of the image
+// the max is 8192 for IE with 32767 for Safari, FF and Chrome.
+export const MAX_IMAGE_SIZE = 8192;
+// the maximum amount of megapixels an image can be represented at in the application
+export const MAX_MEGAPIXEL  = MAX_IMAGE_SIZE * MAX_IMAGE_SIZE;
 
-export const isProjectFile = file => {
-    const [ , ext ] = file.name.split( "." );
-    return ext === PROJECT_FILE_EXTENSION;
-};
+const MIN_IMAGE_SIZE = 80;
 
-export const isThirdPartyDocument = file => {
-    const [ , ext ] = file.name.split( "." );
-    // currently only Photoshop documents are supported
-    return ext === PSD.ext;
+/**
+ * The minimum image size is set at 80 pixels but we should also support
+ * even less when opening tiny images (for instance the source document of a pixel art sprite sheet)
+ */
+export const getMinImageSize = ( sourceWidth: number, sourceHeight: number ): number => {
+    return Math.min( MIN_IMAGE_SIZE, Math.min( sourceWidth, sourceHeight ));
 };

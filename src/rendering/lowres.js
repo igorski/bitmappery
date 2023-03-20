@@ -31,7 +31,7 @@ let tempCanvas;
  * The canvas will match the unzoomed viewport size.
  */
 export const getTempCanvas = zoomableCanvas => {
-    const { width, height } = zoomableCanvas._viewport;
+    const { width, height } = zoomableCanvas.getViewport();
     if ( !tempCanvas ) {
         tempCanvas = createCanvas();
     }
@@ -92,8 +92,8 @@ export const slicePointers = brush => {
 export const createOverrideConfig = ( zoomableCanvas, pointers ) => ({
     scale : 1 / zoomableCanvas.documentScale,
     zoom  : zoomableCanvas.zoomFactor,
-    vpX   : zoomableCanvas._viewport.left,
-    vpY   : zoomableCanvas._viewport.top,
+    vpX   : zoomableCanvas.getViewport().left,
+    vpY   : zoomableCanvas.getViewport().top,
     pointers,
 });
 

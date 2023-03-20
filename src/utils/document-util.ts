@@ -21,21 +21,21 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { canvas, loader } from "zcanvas";
+import type { Rectangle, SizedImage } from "zcanvas";
 import { PNG } from "@/definitions/image-types";
+import type { Document, Layer } from "@/definitions/document";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { createSpriteForLayer, getSpriteForLayer } from "@/factories/sprite-factory";
 import { createCanvas } from "@/utils/canvas-util";
 import { reverseTransformation } from "@/rendering/transforming";
+import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import { rotateRectangle, areEqual } from "@/math/rectangle-math";
 import { getRectangleForSelection } from "@/math/selection-math";
 
 /**
  * Creates a snapshot of the current document at its full size.
- *
- * @param {Object} activeDocument
- * @return {HTMLCanvasElement}
  */
-export const createDocumentSnapshot = async ( activeDocument ) => {
+export const createDocumentSnapshot = async ( activeDocument: Document ): Promise<HTMLCanvasElement> => {
     const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
 
     // ensure all layer effects are rendered, note we omit caching
@@ -45,34 +45,31 @@ export const createDocumentSnapshot = async ( activeDocument ) => {
     }
     // draw existing layers onto temporary canvas at full document scale
     layers.forEach( layer => {
-        getSpriteForLayer( layer )?.draw( ctx, zcvs._viewport, true );
+        getSpriteForLayer( layer )?.draw( ctx, zcvs.getViewport(), true );
     });
     zcvs.dispose();
+
     return cvs;
 };
 
 /**
  * Creates a snapshot of the given layer at its full size. When an activeDocument
  * is provided, it's boundary box will crop the layer.
- *
- * @param {Object} layer
- * @param {Object=} optActiveDocument
- * @return {HTMLCanvasElement}
  */
-export const createLayerSnapshot = async ( layer, optActiveDocument ) => {
+export const createLayerSnapshot = async ( layer: Layer, optActiveDocument?: Document ): Promise<HTMLCanvasElement> => {
     const width  = optActiveDocument ? optActiveDocument.width  : layer.width;
     const height = optActiveDocument ? optActiveDocument.height : layer.height;
 
     const { zcvs, cvs, ctx } = createFullSizeZCanvas({ width, height });
 
     // if the layer is currently invisible, it has no sprite, create it lazily here.
-    const sprite = !layer.visible ? createSpriteForLayer( zcvs, layer, false ) : getSpriteForLayer( layer );
+    const sprite = !layer.visible ? createSpriteForLayer( zcvs as ZoomableCanvas, layer, false ) : getSpriteForLayer( layer );
 
     // ensure all layer effects are rendered, note we omit caching
     await renderEffectsForLayer( layer, false );
 
     // draw existing layers onto temporary canvas at full document scale
-    sprite?.draw( ctx, zcvs._viewport, true );
+    sprite?.draw( ctx, zcvs.getViewport(), true );
     zcvs.dispose();
 
     return cvs;
@@ -81,13 +78,10 @@ export const createLayerSnapshot = async ( layer, optActiveDocument ) => {
 /**
  * Creates a full size render of the current Document contents synchronously.
  * NOTE: this assumes all effects are currently cached (!)
- *
- * @param {Object} activeDocument
- * @param {Array<Number>=} optLayerIndices optional whitelist of layers to render, defaults
-                           to render all layers unless specified
- * @return {HTMLCanvasElement}
+ * optLayerIndices is optional whitelist of layers to render, defaults
+ * to render all layers unless specified
  */
-export const renderFullSize = ( activeDocument, optLayerIndices = [] ) => {
+export const renderFullSize = ( activeDocument: Document, optLayerIndices: number[] = [] ): HTMLCanvasElement => {
     const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
 
     // draw existing layers onto temporary canvas at full document scale
@@ -97,22 +91,18 @@ export const renderFullSize = ( activeDocument, optLayerIndices = [] ) => {
         if ( optLayerIndices.length && !optLayerIndices.includes( index )) {
             return;
         }
-        getSpriteForLayer( layer )?.draw( ctx, zcvs._viewport, true );
+        getSpriteForLayer( layer )?.draw( ctx, zcvs.getViewport(), true );
     });
     zcvs.dispose();
+
     return cvs;
 };
 
 /**
  * Slice the contents of given bitmap using a grid of given dimensions
- * into a list of grid-sized bitmaps
- *
- * @param {HTMLImageElement} sourceBitmap
- * @param {Number} tileWidth width of a single grid tile
- * @param {Number} tileHeight height of a single grid tile
- * @return {Array<HTMLCanvasElement>
+ * into a list of grid-sized bitmaps.
  */
-export const sliceTiles = ( sourceBitmap, tileWidth, tileHeight ) => {
+export const sliceTiles = ( sourceBitmap: HTMLImageElement, tileWidth: number, tileHeight: number ): HTMLCanvasElement[] => {
     const { width, height } = sourceBitmap;
     const out = [];
 
@@ -133,13 +123,13 @@ export const sliceTiles = ( sourceBitmap, tileWidth, tileHeight ) => {
  * Combines the contents of a list of tiles into a single image where the tiles
  * are spread across the given amountOfColumns for as many rows as necessary
  *
- * @param {Array<CanvasImageSource>} tiles
+ * @param {Array<HTMLCanvasElement>} tiles
  * @param {Number} tileWidth width of an individual tile
  * @param {Number} tileHeight height of an individual tile
  * @param {Number} amountOfColumns amount of columns to generate in the destination image
  * @return {HTMLCanvasElement}
  */
-export const tilesToSingle = ( tiles, tileWidth, tileHeight, amountOfColumns ) => {
+export const tilesToSingle = ( tiles: HTMLCanvasElement[], tileWidth: number, tileHeight: number, amountOfColumns: number ): HTMLCanvasElement => {
     const amountOfRows = Math.ceil( tiles.length / amountOfColumns );
     const width  = amountOfColumns * tileWidth;
     const height = amountOfRows * tileHeight;
@@ -158,13 +148,8 @@ export const tilesToSingle = ( tiles, tileWidth, tileHeight, amountOfColumns ) =
 
 /**
  * Copy the selection defined in activeLayer into a separate Image
- *
- * @param {Object} activeDocument
- * @param {Object} activeLayer
- * @param {Boolean=} copyMerged optional, defaults to false
- * @return {HTMLImageElement}
  */
-export const copySelection = async ( activeDocument, activeLayer, copyMerged = false ) => {
+export const copySelection = async ( activeDocument: Document, activeLayer: Layer, copyMerged = false ): Promise<SizedImage> => {
     // render all layers if a merged copy was requested
     const merged = copyMerged ? await createDocumentSnapshot( activeDocument ) : null;
 
@@ -187,7 +172,7 @@ export const copySelection = async ( activeDocument, activeLayer, copyMerged = f
         /*
         // the below could work but would require that all effects are currently cached
         const sprite = getSpriteForLayer( activeLayer );
-        sprite.draw( ctx, zcvs._viewport, true );
+        sprite.draw( ctx, zcvs.getViewport(), true );
         */
         // ensure pixel perfect render, consumes more CPU and memory though
         ctx.drawImage( await createLayerSnapshot( activeLayer ), 0, 0 );
@@ -209,13 +194,10 @@ export const copySelection = async ( activeDocument, activeLayer, copyMerged = f
 };
 
 /**
- * Deletes the pixel content inside the active selection of the document.
- *
- * @param {Object} activeDocument
- * @param {Object} activeLayer
- * @return {HTMLCanvasElement} document bitmap with erased selection contents
+ * Deletes the pixel content inside the active selection of the document by
+ * returning a new document bitmap without the selection contents
  */
-export const deleteSelectionContent = ( activeDocument, activeLayer ) => {
+export const deleteSelectionContent = ( activeDocument: Document, activeLayer: Layer ): HTMLCanvasElement => {
     let { left, top, width, height } = activeLayer;
     const { cvs, ctx } = createCanvas( width, height );
     const hasMask = !!activeLayer.mask;
@@ -253,11 +235,11 @@ export const deleteSelectionContent = ( activeDocument, activeLayer ) => {
  * @param {Object=} excludeLayer optional layer to exclude
  * @return {Array<Object>} list of rectangles to align to
  */
-export const getAlignableObjects = ( document, excludeLayer ) => {
+export const getAlignableObjects = ( document: Document, excludeLayer?: Layer ): Rectangle[] => {
     // create a rectangle describing the document boundaries
     const documentBounds = {
         left: 0, top: 0, width: document.width, height: document.height, visible: true
-    };
+    } as Partial<Layer>;
     // create bounding boxes for all eligible objects
     return [ documentBounds, ...document.layers ].reduce(( acc, object ) => {
         // ignore this object in case
@@ -298,10 +280,10 @@ export const getAlignableObjects = ( document, excludeLayer ) => {
  * Create a (temporary) instance of zCanvas at the full document size.
  * (as the current on-screen instance is a "best fit" for the screen size)
  */
-function createFullSizeZCanvas( object ) {
+function createFullSizeZCanvas( object: { width: number, height: number } ): { zcvs: canvas, cvs: HTMLCanvasElement, ctx: CanvasRenderingContext2D } {
      const { width, height } = object;
      const zcvs = new canvas({ width, height, viewport: { width: width * 10, height: height * 10 } });
-     const cvs  = zcvs.getElement();
+     const cvs  = zcvs.getElement() as HTMLCanvasElement;
      const ctx  = cvs.getContext( "2d" );
 
      return { zcvs, cvs, ctx };
