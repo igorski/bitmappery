@@ -20,6 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Document } from "@/definitions/document";
+import type { CanvasDimensions } from "@/definitions/editor";
 import { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import { getZoomRange } from "@/math/image-math";
 
@@ -27,7 +29,7 @@ import { getZoomRange } from "@/math/image-math";
  * Calculates the zoom level for given canvasDimensions to display the given
  * document in its entierity
  */
-export const fitInWindow = ( activeDocument, canvasDimensions ) => {
+export const fitInWindow = ( activeDocument: Document, canvasDimensions: CanvasDimensions ): number => {
     const { visibleWidth, visibleHeight, horizontalDominant } = canvasDimensions;
     const {
         zeroZoomWidth, zeroZoomHeight, pixelsPerZoomOutUnit,
@@ -44,14 +46,14 @@ export const fitInWindow = ( activeDocument, canvasDimensions ) => {
  * Calculates the zoom level for given canvasDimensions to display the given
  * document at its original size
  */
-export const displayOriginalSize = ( activeDocument, canvasDimensions ) => {
+export const displayOriginalSize = ( activeDocument: Document, canvasDimensions: CanvasDimensions ): number => {
     const { width, height } = activeDocument;
     const { horizontalDominant } = canvasDimensions;
     const {
         zeroZoomWidth, zeroZoomHeight, pixelsPerZoomOutUnit, pixelsPerZoomInUnit
     } = getZoomRange( activeDocument, canvasDimensions );
 
-    let level;
+    let level: number;
     if ( width === zeroZoomWidth ) {
         level = 0; // equals precalculated best fit
     } else if ( width < zeroZoomWidth ) {
@@ -72,4 +74,4 @@ export const displayOriginalSize = ( activeDocument, canvasDimensions ) => {
 
 /* internal methods */
 
-const clampLevel = level => Math.max( MIN_ZOOM, Math.min( MAX_ZOOM, level ));
+const clampLevel = ( level: number ): number => Math.max( MIN_ZOOM, Math.min( MAX_ZOOM, level ));

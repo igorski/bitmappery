@@ -20,10 +20,11 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import { resizeImage } from "@/utils/canvas-util";
 
-export const renderCross = ( ctx, x, y, size ) => {
+export const renderCross = ( ctx: CanvasRenderingContext2D, x: number, y: number, size: number ): void => {
     ctx.save();
     ctx.beginPath();
     ctx.moveTo( x - size, y - size );
@@ -34,7 +35,7 @@ export const renderCross = ( ctx, x, y, size ) => {
     ctx.restore();
 };
 
-export const resizeLayerContent = async ( layer, ratioX, ratioY ) => {
+export const resizeLayerContent = async ( layer: Layer, ratioX: number, ratioY: number ): Promise<void> => {
     const { source, mask } = layer;
 
     layer.source = await resizeImage( source, source.width * ratioX, source.height * ratioY );
@@ -57,7 +58,7 @@ export const resizeLayerContent = async ( layer, ratioX, ratioY ) => {
     }
 };
 
-export const cropLayerContent = async ( layer, left, top ) => {
+export const cropLayerContent = async ( layer: Layer, left: number, top: number ): Promise<void> => {
     /*
     if ( layer.mask ) {
         // no, mask coordinates are relative to layer

@@ -20,7 +20,14 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-const rafCallbacks = [];
+type RafCallback = () => void;
+
+interface Cancelable {
+    cancel: () => void;
+    reset: () => void;
+};
+
+const rafCallbacks: RafCallback[] = [];
 
 /**
  * Returns a Promise that resolves when given timeToWait has expired.
@@ -33,7 +40,7 @@ const rafCallbacks = [];
  *
  * @param {Number=} timeToWait in milliseconds
  */
-export const unblockedWait = ( timeToWait = 4 ) => {
+export const unblockedWait = ( timeToWait = 4 ): Promise<void> => {
     return new Promise( resolve => {
         window.setTimeout( resolve, timeToWait );
     });
@@ -47,15 +54,12 @@ export const unblockedWait = ( timeToWait = 4 ) => {
  *
  * @param {Function} callback fn to execute when delay has expired
  * @param {Number=} timeToWait in milliseconds
- * @returns {{
- *     cancel : Function,
- *     reset  : Function
- * }}
+ * @returns {Cancelable}
  */
-export const cancelableCallback = ( callback, timeToWait = 250 ) => {
-    let timerId;
+export const cancelableCallback = ( callback: () => void, timeToWait = 250 ): Cancelable => {
+    let timerId: number;
     const startTimeout = () => {
-        timerId = window.setTimeout( callback, timeToWait );
+        timerId = window.setTimeout( callback, timeToWait ) as number;
     };
     const cancelTimeout = () => {
         window.clearTimeout( timerId );
@@ -74,7 +78,7 @@ export const cancelableCallback = ( callback, timeToWait = 250 ) => {
  * This will debounce multiple invocations of the same callback if it
  * hasn't yet fired.
  */
-export const rafCallback = callback => {
+export const rafCallback = ( callback: RafCallback ): void => {
     if ( rafCallbacks.includes( callback )) {
         return;
     }

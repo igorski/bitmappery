@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Copyright (c) 2019-2020 Igor Zinken - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,7 +20,28 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-export const truncate = ( string = "", maxLength = 100 ) =>
-    string.length > maxLength ? `${string.substr( 0, maxLength )}...` : string;
 
-export const displayAsKb = size =>  `${( size / 1024 ).toFixed( 2 )} Kb`;
+type SelectOption = {
+    label: string;
+    value: any;
+};
+
+/**
+ * Format select options for use with vue-search-select component
+ */
+export const mapSelectOptions = ( items: any[] ): SelectOption[] => {
+    return items.map( value => {
+        if ( typeof value === "object" ) {
+            return value;
+        }
+        const label = ucFirst( value.toString() );
+        return { label, value };
+    });
+};
+
+/* internal methods */
+
+const ucFirst = ( text: string ): string => text.toLowerCase()
+    .split( " " )
+    .map(( s ) => s.charAt( 0 ).toUpperCase() + s.substring( 1 ))
+    .join( " " );

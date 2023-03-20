@@ -25,13 +25,16 @@ import {
 } from "@/definitions/file-types";
 import { blobToResource, disposeResource } from "@/utils/resource-manager";
 
+type FileDictionary = {
+    images: File[];
+    documents: File[];
+    thirdParty: File[];
+};
+
 /**
  * Saves the binary data in given blob to a file of given fileName
- *
- * @param {Blob|File} blob
- * @param {String} fileName
  */
-export const saveBlobAsFile = ( blob, fileName ) => {
+export const saveBlobAsFile = ( blob: Blob | File, fileName: string ): void => {
     const blobURL = blobToResource( blob );
     const anchor  = document.createElement( "a" );
     anchor.style.display = "none";
@@ -50,11 +53,8 @@ export const saveBlobAsFile = ( blob, fileName ) => {
 
 /**
  * Converts a base64 encoded String to a binary blob
- *
- * @param {String} base64string
- * @return {Promise<Blob>}
  */
-export const base64toBlob = async base64string => {
+export const base64toBlob = async ( base64string: string ): Promise<Blob> => {
     const base64 = await fetch( base64string );
     const blob   = await base64.blob();
     return blob;
@@ -62,13 +62,10 @@ export const base64toBlob = async base64string => {
 
 /**
  * Retrieves the binary data pointed to by given blobUrl
- *
- * @param {String} blobUrl
- * @return {Promise<Blob>}
  */
-export const blobUriToBlob = async blobUrl => await fetch( blobUrl ).then( r => r.blob() );
+export const blobUriToBlob = async ( blobUrl: string ): Promise<Blob> => await fetch( blobUrl ).then( r => r.blob() );
 
-export const selectFile = ( acceptedTypes, multiple = false ) => {
+export const selectFile = ( acceptedTypes: string, multiple = false ): Promise<FileList> => {
     const fileBrowser = document.createElement( "input" );
     fileBrowser.setAttribute( "type",   "file" );
     fileBrowser.setAttribute( "accept", acceptedTypes );
@@ -84,24 +81,25 @@ export const selectFile = ( acceptedTypes, multiple = false ) => {
     );
     fileBrowser.dispatchEvent( simulatedEvent );
     return new Promise(( resolve, reject ) => {
-        fileBrowser.onchange = ({ target }) => resolve( target.files );
+        fileBrowser.onchange = ({ target }) => resolve(( target as HTMLInputElement ).files );
         fileBrowser.onerror  = reject;
     });
 };
 
-export const readFile = ( file, optEncoding = "UTF-8" ) => {
+export const readFile = ( file: File | Blob, optEncoding = "UTF-8" ): Promise<string> => {
     const reader = new FileReader();
     return new Promise(( resolve, reject ) => {
-        reader.onload = readerEvent => {
-            resolve( readerEvent.target.result );
+        reader.onload = ( readerEvent: ProgressEvent ) => {
+            resolve(( readerEvent.target as FileReader ).result as string );
         };
         reader.onerror = reject;
         reader.readAsText( file, optEncoding );
     });
 };
 
-export const readClipboardFiles = clipboardData => {
-    const items = [ ...( clipboardData?.items || []) ];
+export const readClipboardFiles = ( clipboardData: DataTransfer ): FileDictionary => {
+    // @ts-expect-error Type 'DataTransferItemList' is not an array type (but it destructures just fine...)
+    const items = clipboardData ? [ ...clipboardData.items ] : [];
     const images = items
         .filter( item => item.kind === "file" && isImageFile( item ))
         .map( item => item.getAsFile());
@@ -117,8 +115,9 @@ export const readClipboardFiles = clipboardData => {
     return { images, documents, thirdParty };
 };
 
-export const readDroppedFiles = dataTransfer => {
-    const items = [ ...( dataTransfer?.files || []) ];
+export const readDroppedFiles = ( dataTransfer: DataTransfer ): FileDictionary => {
+    // @ts-expect-error Type 'FileList' is not an array type (but it destructures just fine...)
+    const items = dataTransfer ? [ ...dataTransfer.files ] : [];
     return {
         images     : items.filter( isImageFile ),
         documents  : items.filter( isProjectFile ),

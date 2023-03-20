@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,19 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-let dropbox;
-let drive;
+export const truncate = ( string = "", maxLength = 100 ): string =>
+    string.length > maxLength ? `${string.substr( 0, maxLength )}...` : string;
 
-export const getDropboxService = async () => {
-    if ( !dropbox ) {
-        dropbox = await import( /* webpackChunkName: "dropbox-service" */ "@/services/dropbox-service" );
-    }
-    return dropbox;
-};
-
-export const getGoogleDriveService = async () => {
-    if ( !drive ) {
-        drive = await import( /* webpackChunkName: "google-drive-service" */ "@/services/google-drive-service" );
-    }
-    return drive;
-};
+export const displayAsKb = ( size: number ): string => `${( size / 1024 ).toFixed( 2 )} Kb`;

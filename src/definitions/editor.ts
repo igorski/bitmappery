@@ -45,6 +45,25 @@ export type CanvasContextPairing = {
 // data types handled internally by BitMappery as the canvas source content
 export type CanvasDrawable = HTMLCanvasElement | HTMLImageElement;
 
+export type CanvasDimensions = {
+    // the base dimensions describe the "best fit" scale to represent
+    // the currently active document at the current window size, this
+    // is basically the baseline used for the unzoomed document view
+    width         : number;
+    height        : number;
+    // the visible area of the canvas (as it is positioned inside a container
+    // that offers scrollable overflow)
+    visibleWidth  : number;
+    visibleHeight : number;
+    // the maximum in- and out zoom level supported for the currently
+    // open document at the current available screen dimensions
+    maxInScale    : number;
+    maxOutScale   : number;
+    // whether the unzoomed images horizontal side is the dominant side (e.g. fills
+    // the full width of the visible canvas area)
+    horizontalDominant : boolean;
+};
+
 export type Brush = {
     radius: number;
     colors: string[];

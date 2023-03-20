@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2019-2020 Igor Zinken - https://www.igorski.nl
+ * Igor Zinken 2022 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,26 +20,19 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+let dropbox: any;
+let drive: any;
 
-/**
- * Format select options for use with vue-search-select component
- *
- * @param {Array} items
- * @return {Array<{value: *, text: string }>}
- */
-export const mapSelectOptions = items => {
-    return items.map( value => {
-        if ( typeof value === "object" ) {
-            return value;
-        }
-        const label = ucFirst( value.toString() );
-        return { label, value };
-    });
+export const getDropboxService = async (): Promise<any> => {
+    if ( !dropbox ) {
+        dropbox = await import( /* webpackChunkName: "dropbox-service" */ "@/services/dropbox-service" );
+    }
+    return dropbox;
 };
 
-/* internal methods */
-
-const ucFirst = text => text.toLowerCase()
-    .split(" ")
-    .map(( s ) => s.charAt(0).toUpperCase() + s.substring(1))
-    .join(" ");
+export const getGoogleDriveService = async (): Promise<any> => {
+    if ( !drive ) {
+        drive = await import( /* webpackChunkName: "google-drive-service" */ "@/services/google-drive-service" );
+    }
+    return drive;
+};

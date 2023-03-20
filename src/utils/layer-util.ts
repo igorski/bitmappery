@@ -20,18 +20,21 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Store } from "vuex";
+import type { Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import { enqueueState } from "@/factories/history-state-factory";
+import type { BitMapperyState } from "@/store";
 
 /**
  * Replace the source / mask contents of given layer, updating its
  * bounding box to be centered in relation to its previous size.
  *
- * @param {Object} layer
+ * @param {Layer} layer
  * @param {HTMLCanvasElement} newSource
  * @param {boolean=} isMask whether we're replacing the mask instead of source
  */
-export const replaceLayerSource = ( layer, newSource, isMask = false ) => {
+export const replaceLayerSource = ( layer: Layer, newSource: HTMLCanvasElement, isMask = false ): void => {
     const xDelta = ( layer.width  - newSource.width  ) / 2;
     const yDelta = ( layer.height - newSource.height ) / 2;
 
@@ -52,7 +55,7 @@ export const replaceLayerSource = ( layer, newSource, isMask = false ) => {
  * Text layer addition can be initiated directly from the toolbox
  * or keyboard shortcut. Here we define a resuable history enqueue
  */
-export const addTextLayer = ({ getters, commit }) => {
+export const addTextLayer = ({ getters, commit }: Store<BitMapperyState> ): void => {
     const fn = () => commit( "addLayer", { type: LayerTypes.LAYER_TEXT });
     fn();
     const addedLayerIndex = getters.activeLayerIndex;
