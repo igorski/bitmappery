@@ -33,7 +33,7 @@ import type { TextProps } from "@/factories/text-factory";
 
 let UID_COUNTER = 0;
 
-type LayerProps = Partial<Omit<Layer, "effects" | "filters" | "text">> & {
+export type LayerProps = Partial<Omit<Layer, "effects" | "filters" | "text">> & {
     effects?: EffectsProps;
     filters?: FiltersProps;
     text?: TextProps;

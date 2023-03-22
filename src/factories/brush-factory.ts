@@ -24,7 +24,7 @@ import type { Brush, BrushToolOptions } from "@/definitions/editor";
 
 type BrushProps = Partial<Brush> & {
     color?: string;
-    options?: BrushToolOptions;
+    options?: Partial<BrushToolOptions>;
 };
 
 const BrushFactory = {

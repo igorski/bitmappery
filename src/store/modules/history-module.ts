@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2016-2021 - https://www.igorski.nl
+ * Igor Zinken 2016-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,12 +20,36 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+// @ts-expect-error UndoManager has no types
 import UndoManager from "undo-manager";
+import type { ActionContext, Module } from "vuex";
 import { forceProcess, flushQueue } from "@/factories/history-state-factory";
+import type { UndoRedoState } from "@/factories/history-state-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { disposeResource } from "@/utils/resource-manager";
 
 export const STATES_TO_SAVE = 99;
+
+export interface HistoryState {
+    undoManager: UndoManager;
+    historyIndex: number; // used for reactivity (as undo manager isn't bound to Vue)
+    // states can specify an optional list of Blob URLs associated with their undo/redo
+    // operation. When such a state is popped from the avilable undo stack (because
+    // new states have been added beyond the STATES_TO_SAVE limit), these Blob URLs
+    // are revoked to free up memory.
+    blobUrls: Map<number, string[]>;
+    // the amount of states registered, this is not equal to the amount of states
+    // available for undo (which is capped at STATES_TO_SAVE).
+    stored: number;
+};
+
+export const createHistoryState = ( props?: Partial<HistoryState> ): HistoryState => ({
+    undoManager: null, // pass explicitly in props
+    historyIndex: -1,
+    blobUrls: new Map(),
+    stored: 0,
+    ...props,
+});
 
 // a module to store states so the application can undo/redo changes
 // made to a document. We do this by applying save and restore functions for
@@ -34,40 +58,24 @@ export const STATES_TO_SAVE = 99;
 // by using Vue.set() and Vue.delete() in the undo/redo functions reactivity
 // will be retained.
 
-const module = {
-    state: {
-        undoManager: new UndoManager(),
-        historyIndex: -1, // used for reactivity (as undo manager isn't bound to Vue)
-        // states can specify an optional list of Blob URLs associated with their undo/redo
-        // operation. When such a state is popped from the avilable undo stack (because
-        // new states have been added beyond the STATES_TO_SAVE limit), these Blob URLs
-        // are revoked to free up memory.
-        blobUrls: new Map(),
-        // the amount of states registered, this is not equal to the amount of states
-        // available for undo (which is capped at STATES_TO_SAVE).
-        stored: 0,
-    },
+const HistoryModule: Module<HistoryState, any> = {
+    state: createHistoryState({ undoManager: new UndoManager() }),
     getters: {
-        canUndo( state ) {
+        canUndo( state: HistoryState ): boolean {
             return state.historyIndex >= 0 && state.undoManager.hasUndo();
         },
-        canRedo( state ) {
+        canRedo( state: HistoryState ): boolean {
             return state.historyIndex < STATES_TO_SAVE && state.undoManager.hasRedo();
         },
-        amountOfStates( state ) {
+        amountOfStates( state: HistoryState ): number {
             return state.historyIndex + 1;
-        }
+        },
     },
     mutations: {
         /**
          * Store a state change inside the history.
          */
-        saveState( state, { undo, redo, resources = null }) {
-            if ( import.meta.env.DEV ) {
-                if ( typeof undo !== "function" || typeof redo !== "function" ) {
-                    throw new Error( "cannot store a state without specifying valid undo and redo actions" );
-                }
-            }
+        saveState( state: HistoryState, { undo, redo, resources = null }: UndoRedoState ): void {
             state.undoManager.add({ undo, redo });
             state.historyIndex = state.undoManager.getIndex();
             ++state.stored;
@@ -77,9 +85,10 @@ const module = {
             if ( storedIndex > STATES_TO_SAVE ) {
                 // the minimum index that should still be available in the undo stack
                 const minIndex = storedIndex - STATES_TO_SAVE;
+                // @ts-expect-error TS2802: Type 'IterableIterator<[number, string[]]>' can only be iterated thr...
                 [ ...state.blobUrls.entries()].forEach(([ index, urls ]) => {
                     if ( index < minIndex ) {
-                        urls.forEach( url => disposeResource( url ));
+                        ( urls as string[] ).forEach( url => disposeResource( url ));
                         state.blobUrls.delete( index );
                     }
                 });
@@ -89,13 +98,13 @@ const module = {
                 state.blobUrls.set( storedIndex, resources );
             }
         },
-        setHistoryIndex( state, value ) {
+        setHistoryIndex( state: HistoryState, value: number ): void {
             state.historyIndex = value;
         },
         /**
          * clears entire history
          */
-        resetHistory( state ) {
+        resetHistory( state: HistoryState ): void {
             flushQueue();
             state.undoManager.clear();
             state.historyIndex = -1;
@@ -108,7 +117,7 @@ const module = {
         /**
          * apply the previously stored state
          */
-        async undo({ state, getters, commit }) {
+        async undo({ state, getters, commit }: ActionContext<HistoryState, any> ): Promise<void> {
             // first: if there was a painting sprite, store its deferred state immediately
             const drawableSprite = getters.activeLayer && getSpriteForLayer( getters.activeLayer );
             if ( drawableSprite ) {
@@ -126,7 +135,7 @@ const module = {
         /**
          * apply the next stored state
          */
-        redo({ state, getters, commit }) {
+        redo({ state, getters, commit }: ActionContext<HistoryState, any> ): Promise<void> {
             return new Promise( resolve => {
                 if ( getters.canRedo ) {
                     state.undoManager.redo();
@@ -138,8 +147,9 @@ const module = {
     }
 };
 
-export default module;
+export default HistoryModule;
 
 /* initialization */
 
-module.state.undoManager.setLimit( STATES_TO_SAVE );
+// @ts-expect-error undoManager has no types
+HistoryModule.state.undoManager.setLimit( STATES_TO_SAVE );

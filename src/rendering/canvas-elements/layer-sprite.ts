@@ -164,7 +164,7 @@ class LayerSprite extends ZoomableSprite {
         this.setY( y );
     }
 
-    cacheBrush( color: string = "rgba(255,0,0,1)", toolOptions: BrushToolOptions = { radius: 5, strokes: 1 } ): void {
+    cacheBrush( color: string = "rgba(255,0,0,1)", toolOptions: Partial<BrushToolOptions> = { size: 5, strokes: 1 } ): void {
         this._brush = BrushFactory.create({
             color,
             radius   : toolOptions.size,
@@ -754,7 +754,6 @@ function positionSpriteFromHistory( layer: Layer, x: number, y: number ): void {
     if ( sprite ) {
         sprite.getBounds().left = x;
         sprite.getBounds().top  = y;
-        // @ts-expect-error protected member access
         sprite.invalidate();
     }
 }

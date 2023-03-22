@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2022 - https://www.igorski.nl
+ * Igor Zinken 2021-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,32 +20,48 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { ActionContext, Module } from "vuex";
 import { isMobile } from "@/utils/environment-util";
 import { setWasmFilters } from "@/services/render-service";
 
 const STORAGE_KEY = "bpy_pref";
 
-export default {
-    state: {
-        preferences: {
-            lowMemory   : isMobile(),
-            wasmFilters : false,
-            snapAlign   : false,
-            antiAlias   : true,
-        },
+export type Preferences = {
+    lowMemory: boolean;
+    wasmFilters: boolean;
+    snapAlign: boolean;
+    antiAlias: boolean;
+};
+
+export interface PreferencesState {
+    preferences: Preferences;
+};
+
+export const createPreferencesState = ( props?: Partial<Preferences> ): PreferencesState => ({
+    preferences: {
+        lowMemory   : isMobile(),
+        wasmFilters : false,
+        snapAlign   : false,
+        antiAlias   : true,
+        ...props,
     },
+})
+
+const PreferencesModule: Module<PreferencesState, any> = {
+    state: (): PreferencesState => createPreferencesState(),
     getters: {
-        preferences: state => state.preferences,
+        preferences: ( state: PreferencesState ): Preferences => state.preferences,
         // curried, so not reactive !
-        getPreference: state => name => state.preferences[ name ],
+        // @ts-expect-error using string as key
+        getPreference: ( state: PreferencesState ): ( n: string ) => string => ( name: string ): boolean => state.preferences[ name ],
     },
     mutations: {
-        setPreferences( state, preferences ) {
+        setPreferences( state: PreferencesState, preferences: Preferences ): void {
             state.preferences = { ...state.preferences, ...preferences };
         },
     },
     actions: {
-        restorePreferences({ commit }) {
+        restorePreferences({ commit }: ActionContext<PreferencesState, any> ): void {
             const existing = window.localStorage?.getItem( STORAGE_KEY );
             if ( existing ) {
                 try {
@@ -64,8 +80,9 @@ export default {
                 }
             }
         },
-        storePreferences({ state }) {
+        storePreferences({ state }: ActionContext<PreferencesState, any> ): void {
             window.localStorage?.setItem( STORAGE_KEY, JSON.stringify( state.preferences ));
-        }
+        },
     }
-}
+};
+export default PreferencesModule;

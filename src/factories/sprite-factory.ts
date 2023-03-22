@@ -40,9 +40,9 @@ const spriteCache = new Map();
 /**
  * Runs given fn on each Sprite in the cache
  * You can also pass in the active document to only run operations on
- * sprites rendering the layer of the current document
+ * sprites rendering the layers of the current document
  */
-export const runSpriteFn = ( fn: ( sprite: LayerSprite ) => void, optDocument: Document ): void => {
+export const runSpriteFn = ( fn: ( sprite: LayerSprite ) => void, optDocument?: Document ): void => {
     spriteCache.forEach(( sprite ) => {
         if ( !optDocument || optDocument.layers.includes( sprite.layer )) {
             fn( sprite );

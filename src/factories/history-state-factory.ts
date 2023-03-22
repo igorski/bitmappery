@@ -28,7 +28,7 @@ import type { BitMapperyState } from "@/store";
  * list of resources (blob URLs) associated with the undo / redo actions.
  * Blob URLs will be revoked when the state is popped from the history stack to free memory.
  */
-type UndoRedoState = {
+export type UndoRedoState = {
      undo: () => void;
      redo: () => void;
      resources?: string[];

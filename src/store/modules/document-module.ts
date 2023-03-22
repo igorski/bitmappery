@@ -21,31 +21,62 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Vue from "vue";
-
+import type { ActionContext, Module } from "vuex";
+import type { Size } from "zcanvas";
+import type { Document, Layer, Effects, Selection } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
-import LayerFactory    from "@/factories/layer-factory";
+import LayerFactory from "@/factories/layer-factory";
 import { flushLayerSprites, runSpriteFn, getSpriteForLayer, getCanvasInstance } from "@/factories/sprite-factory";
 import { resizeLayerContent, cropLayerContent } from "@/utils/render-util";
 
-export default {
-    state: {
-        documents : [], // opened documents
-        activeIndex: 0, // the currently active document
-        activeLayerIndex: 0, // the currently active layer within the currently active document
-        maskActive: false,
-    },
+export interface DocumentState {
+    documents : Document[]; // opened documents
+    activeIndex: number; // the currently active document
+    activeLayerIndex: number; // the currently active layer within the currently active document
+    maskActive: boolean;
+};
+
+export const createDocumentState = ( props?: Partial<DocumentState> ): DocumentState => ({
+    documents : [],
+    activeIndex: 0,
+    activeLayerIndex: 0,
+    maskActive: false,
+    ...props,
+});
+
+const DocumentModule: Module<DocumentState, any> = {
+    state: (): DocumentState => createDocumentState(),
     getters: {
-        documents: state => state.documents,
-        activeDocument: state => state.documents[ state.activeIndex ],
-        layers: ( state, getters ) => getters.activeDocument?.layers,
-        activeLayerIndex: state => state.activeLayerIndex,
-        activeLayer: ( state, getters ) => getters.layers?.[ state.activeLayerIndex ],
-        activeLayerMask: ( state, getters ) => ( state.maskActive && getters.activeLayer.mask ) || null,
-        activeLayerEffects: ( state, getters ) => getters.activeLayer?.effects || [],
-        hasSelection: ( state, getters ) => getters.activeDocument?.selection?.length > 0,
+        documents: ( state: DocumentState ): Document[] => {
+            return state.documents;
+        },
+        activeDocument: ( state: DocumentState ): Document => {
+            return state.documents[ state.activeIndex ];
+        },
+        // @ts-expect-error state is declared but never read
+        layers: ( state: DocumentState, getters: any ): Layer[] => {
+            return getters.activeDocument?.layers;
+        },
+        activeLayerIndex: ( state: DocumentState ): number => {
+            return state.activeLayerIndex;
+        },
+        activeLayer: ( state: DocumentState, getters: any ): Layer => {
+            return getters.layers?.[ state.activeLayerIndex ];
+        },
+        activeLayerMask: ( state: DocumentState, getters: any ): HTMLCanvasElement | null => {
+            return ( state.maskActive && getters.activeLayer.mask ) || null;
+        },
+        // @ts-expect-error state is declared but never read
+        activeLayerEffects: ( state: DocumentState, getters: any ): Effects => {
+            return getters.activeLayer?.effects || {};
+        },
+        // @ts-expect-error state is declared but never read
+        hasSelection: ( state: DocumentState, getters: any ): boolean => {
+            return getters.activeDocument?.selection?.length > 0;
+        },
     },
     mutations: {
-        setActiveDocument( state, index ) {
+        setActiveDocument( state: DocumentState, index: number ): void {
             state.activeIndex = index;
             const document = state.documents[ index ];
             if ( state.activeLayerIndex >=  document?.layers?.length ) {
@@ -53,10 +84,10 @@ export default {
             }
             runSpriteFn( sprite => sprite.invalidate(), document );
         },
-        setActiveDocumentName( state, name ) {
+        setActiveDocumentName( state: DocumentState, name: string ): void {
             state.documents[ state.activeIndex ].name = name;
         },
-        setActiveDocumentSize( state, { width, height }) {
+        setActiveDocumentSize( state: DocumentState, { width, height }: Size ): void {
             const document = state.documents[ state.activeIndex ];
             document.width  = width;
             document.height = height;
@@ -64,16 +95,16 @@ export default {
             getCanvasInstance()?.rescaleFn();
             getCanvasInstance()?.refreshFn();
         },
-        setRuntimeSelection( state, selection ) {
+        setRuntimeSelection( state: DocumentState, selection: Selection ): void {
             Vue.set( state.documents[ state.activeIndex ], "selection", selection );
         },
-        addNewDocument( state, nameOrDocument ) {
+        addNewDocument( state: DocumentState, nameOrDocument: string | Document ): void {
             const document = typeof nameOrDocument === "object" ? nameOrDocument : DocumentFactory.create({ name: nameOrDocument });
             state.documents.push( document );
-            state.activeIndex      = state.documents.length - 1;
+            state.activeIndex = state.documents.length - 1;
             state.activeLayerIndex = document.layers.length - 1;
         },
-        closeActiveDocument( state ) {
+        closeActiveDocument( state: DocumentState ): void {
             const document = state.documents[ state.activeIndex ];
             if ( !document ) {
                 return;
@@ -83,36 +114,37 @@ export default {
             Vue.delete( state.documents, state.activeIndex );
             state.activeIndex = Math.min( state.documents.length - 1, state.activeIndex );
         },
-        addLayer( state, opts = {} ) {
+        addLayer( state: DocumentState, opts: Partial<Layer> = {} ): void {
             const document = state.documents[ state.activeIndex ];
             const layers   = document.layers;
             if ( typeof opts.width !== "number" ) {
                 opts.width  = document.width;
                 opts.height = document.height;
             }
-            layers.push( opts.id ? opts : LayerFactory.create( opts ));
+            layers.push( opts.id ? opts as Layer : LayerFactory.create( opts ));
             state.activeLayerIndex = layers.length - 1;
         },
-        insertLayerAtIndex( state, { index, layer }) {
+        insertLayerAtIndex( state: DocumentState, { index, layer }: { index: number, layer: Layer }): void {
             layer = layer.id ? layer : LayerFactory.create( layer );
             const document = state.documents[ state.activeIndex ];
             document.layers.splice( index, 0, layer );
             state.activeLayerIndex = index;
         },
-        swapLayers( state, { index1, index2 } ) {
+        swapLayers( state: DocumentState, { index1, index2 }: { index1: number, index2: number } ): void {
             const layers = state.documents[ state.activeIndex ].layers;
             const obj1 = layers[ index1 ];
             Vue.set( layers, index1, layers[ index2 ]);
             Vue.set( layers, index2, obj1 );
         },
-        reorderLayers( state, { document, layerIds }) {
+        // @ts-expect-error state is declared but never read
+        reorderLayers( state: DocumentState, { document, layerIds }: { document: Document, layerIds: string[] }): void {
             const oldLayers = [ ...document.layers ];
             document.layers.splice( 0, oldLayers.length );
             layerIds.forEach( id => {
                 document.layers.push( oldLayers.find( layer => layer.id === id));
             });
         },
-        removeLayer( state, index ) {
+        removeLayer( state: DocumentState, index: number ): void {
             const layer = state.documents[ state.activeIndex ]?.layers[ index ];
             if ( !layer ) {
                 return;
@@ -123,21 +155,21 @@ export default {
                 state.activeLayerIndex = Math.max( 0, index - 1 );
             }
         },
-        setActiveLayerIndex( state, layerIndex ) {
+        setActiveLayerIndex( state: DocumentState, layerIndex: number ): void {
             state.activeLayerIndex = layerIndex;
             state.maskActive = false;
         },
-        setActiveLayer( state, layer ) {
+        setActiveLayer( state: DocumentState, layer: Layer ): void {
             const index = state.documents[ state.activeIndex ]?.layers.indexOf( layer );
             if ( index > -1 ) {
                 state.activeLayerIndex = index;
             }
         },
-        setActiveLayerMask( state, layerIndex ) {
+        setActiveLayerMask( state: DocumentState, layerIndex: number ): void {
             state.activeLayerIndex = layerIndex;
             state.maskActive = !!state.documents[ state.activeIndex ]?.layers[ layerIndex ]?.mask;
         },
-        updateLayer( state, { index, opts = {} }) {
+        updateLayer( state: DocumentState, { index, opts = {} }: { index: number, opts: Partial<Layer> }): void {
             let layer = state.documents[ state.activeIndex ]?.layers[ index ];
             if ( !layer ) {
                 return; // likely document unload during async update operation
@@ -154,7 +186,7 @@ export default {
                 opts.source ? sprite.resetFilterAndRecache() : sprite.cacheEffects();
             }
         },
-        updateLayerEffects( state, { index, effects = {} }) {
+        updateLayerEffects( state: DocumentState, { index, effects = {} }: { index: number, effects: Partial<Effects> }): void {
             const layer = state.documents[ state.activeIndex ]?.layers[ index ];
             if ( !layer ) {
                 return;
@@ -170,13 +202,13 @@ export default {
                 sprite.invalidate();
             }
         },
-        async resizeActiveDocumentContent( state, { scaleX, scaleY }) {
+        async resizeActiveDocumentContent( state: DocumentState, { scaleX, scaleY }: { scaleX: number, scaleY: number }): Promise<void> {
             const document = state.documents[ state.activeIndex ];
             for ( const layer of document?.layers ?? [] ) {
                 await resizeLayerContent( layer, scaleX, scaleY );
             }
         },
-        async cropActiveDocumentContent( state, { left, top }) {
+        async cropActiveDocumentContent( state: DocumentState, { left, top }: { left: number, top: number }): Promise<void> {
             const document = state.documents[ state.activeIndex ];
             if ( !document ) {
                 return;
@@ -186,13 +218,13 @@ export default {
                 getSpriteForLayer( layer )?.syncPosition();
             }
         },
-        saveSelection( state, { name, selection }) {
+        saveSelection( state: DocumentState, { name, selection }: { name: string, selection: Selection }): void {
             const document = state.documents[ state.activeIndex ];
             Vue.set( document.selections, name, selection );
         },
     },
     actions: {
-        requestDocumentClose({ state, commit, getters }) {
+        requestDocumentClose({ state, commit, getters }: ActionContext<DocumentState, any> ): void {
             const document = getters.activeDocument;
             if ( !document ) {
                 return;
@@ -206,8 +238,9 @@ export default {
                     commit( "removeImagesForDocument", document );
                     commit( "setActiveDocument", Math.min( state.documents.length - 1, state.activeIndex ));
                 },
-                cancel  : () => true
+                cancel : () => true
             });
         },
     }
-}
+};
+export default DocumentModule;

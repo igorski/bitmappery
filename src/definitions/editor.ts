@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Point, Size } from "zcanvas";
+import type BrushTypes from "@/definitions/brush-types";
 
 export type Notification = {
     title: string;
@@ -77,19 +78,13 @@ export type CanvasZoomRange = {
 
 export type Brush = {
     radius: number;
-    colors: string[];
-    pointers: Point[];
-    last?: number;
-    options: any,
     halfRadius: number;
     doubleRadius: number;
+    colors: string[];
+    pointers: Point[];
+    options: any,
     down: boolean;
-};
-
-export type BrushToolOptions = {
-    size?: number;
-    radius?: number;
-    strokes?: number;
+    last?: number;
 };
 
 export type BrushAction = {
@@ -97,4 +92,47 @@ export type BrushAction = {
     size: number;
     color: string;
     selection: Selection;
+};
+
+export type ZoomToolOptions = {
+    level: number;
+};
+
+export type BrushToolOptions = {
+    size: number;
+    type: BrushTypes;
+    opacity: number;
+    strokes: number;
+    thickness: number;
+};
+
+export type EraserToolOptions = {
+    size: number;
+    type: BrushTypes;
+    opacity: number;
+    thickness: number;
+};
+
+export type CloneToolOptions = {
+    size: number;
+    type: BrushTypes;
+    opacity: number;
+    sourceLayerId: string;
+    coords: Point;
+    thickness: number;
+};
+
+export type SelectionToolOptions = {
+    lockRatio: boolean;
+    xRatio: number;
+    yRatio: number;
+};
+
+export type FillToolOptions = {
+    smartFill: boolean;
+};
+
+export type WandToolOptions = {
+    threshold: number;
+    sampleMerged: boolean;
 };

@@ -34,12 +34,12 @@ import { LayerTypes } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS, PANEL_LAYERS } from "@/definitions/panel-types";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
 import { fontsConsented, consentFonts, rejectFonts } from "@/services/font-service";
-import canvasModule from "./modules/canvas-module";
-import documentModule from "./modules/document-module";
-import historyModule from "./modules/history-module";
-import imageModule from "./modules/image-module";
-import preferencesModule from "./modules/preferences-module";
-import toolModule from "./modules/tool-module";
+import canvas, { CanvasState } from "./modules/canvas-module";
+import document, { DocumentState } from "./modules/document-module";
+import history, { HistoryState } from "./modules/history-module";
+import image, { ImageState } from "./modules/image-module";
+import preferences, { PreferencesState } from "./modules/preferences-module";
+import tool, { ToolState } from "./modules/tool-module";
 import { cloneCanvas, imageToCanvas } from "@/utils/canvas-util";
 import { copySelection, deleteSelectionContent } from "@/utils/document-util";
 import { saveBlobAsFile, selectFile } from "@/utils/file-util";
@@ -63,6 +63,15 @@ export interface BitMapperyState {
     dropboxConnected: boolean;
     driveConnected: boolean;
     windowSize: Size;
+
+    // store sub-module states
+
+    canvas: CanvasState;
+    document: DocumentState;
+    history: HistoryState;
+    image: ImageState;
+    preferences: PreferencesState;
+    tool: ToolState;
 };
 
 // cheat a little by exposing the vue-i18n translations directly to the
@@ -73,13 +82,14 @@ const translate = ( key: string, optArgs?: any ): string => i18n?.t( key, optArg
 
 export default {
     modules: {
-        canvasModule,
-        documentModule,
-        historyModule,
-        imageModule,
-        preferencesModule,
-        toolModule,
+        canvas,
+        document,
+        history,
+        image,
+        preferences,
+        tool,
     },
+    // @ts-expect-error sub module states are injected by Vuex on store creation
     state: (): BitMapperyState => ({
         menuOpened: false,
         toolboxOpened: false,
@@ -102,9 +112,9 @@ export default {
         },
     }),
     getters: {
-        t: () => ( key: string, optArgs?: any ) => translate( key, optArgs ),
-        isLoading: ( state: BitMapperyState ) => state.loadingStates.length > 0,
-        hasCloudConnection: ( state: BitMapperyState ) => state.dropboxConnected || state.driveConnected,
+        t: () => ( key: string, optArgs?: any ): string => translate( key, optArgs ),
+        isLoading: ( state: BitMapperyState ): boolean => state.loadingStates.length > 0,
+        hasCloudConnection: ( state: BitMapperyState ): boolean => state.dropboxConnected || state.driveConnected,
     },
     mutations: {
         setMenuOpened( state: BitMapperyState, value: boolean ): void {

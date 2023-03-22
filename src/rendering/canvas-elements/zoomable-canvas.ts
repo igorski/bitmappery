@@ -44,9 +44,6 @@ class ZoomableCanvas extends canvas {
     private _bounds: DOMRect;
     private _interactionBlocked: boolean;
 
-    protected _width: number; // zCanvas 5.1.8+
-    protected _height: number; // zCanvas 5.1.8+
-
     constructor( opts: any, store: Store<BitMapperyState>, rescaleFn: () => void, refreshFn: () => void ) {
         super( opts );
 
