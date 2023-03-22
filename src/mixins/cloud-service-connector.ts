@@ -25,8 +25,14 @@ import { DROPBOX_FILE_SELECTOR, GOOGLE_DRIVE_FILE_SELECTOR } from "@/definitions
 import { STORAGE_TYPES } from "@/definitions/storage-types";
 import { getDropboxService, getGoogleDriveService } from "@/utils/cloud-service-loader";
 
-let isAuthenticated, requestLogin, registerAccessToken, init, validateScopes, disconnect;
-let loginWindow, boundHandler;
+let isAuthenticated: () => Promise<boolean>;
+let requestLogin: ( clientId?: string, redirectUrl?: string ) => Promise<void>;
+let registerAccessToken: ( token: string ) => void;
+let init: ( apiKey: string, clientId: string ) => void;
+let validateScopes: ( scope: string ) => boolean;
+let disconnect: () => void;
+let loginWindow: Window;
+let boundHandler: ( event: MessageEvent ) => void;
 
 const PRIVACY_POLICY_URL = "https://www.igorski.nl/bitmappery/privacy";
 
@@ -55,7 +61,7 @@ export default {
             "unsetLoading",
             "showNotification",
         ]),
-        openAuth( message, confirm, cancel = () => true ) {
+        openAuth( message: string, confirm: () => void, cancel = () => true ): void {
             this.openDialog({
                 type: "confirm",
                 title: this.$t( "cloud.establishConnection" ),
@@ -68,7 +74,7 @@ export default {
                 cancel,
             });
         },
-        showConnectionMessage( storageType ) {
+        showConnectionMessage( storageType: STORAGE_TYPES ): void {
             let i18n;
             switch ( storageType ) {
                 default:
@@ -83,7 +89,7 @@ export default {
             this.showNotification({ message: this.$t( i18n ) });
         },
         /* 1. Dropbox */
-        async initDropbox() {
+        async initDropbox(): Promise<void> {
             ({ isAuthenticated, requestLogin, registerAccessToken } = await getDropboxService() );
 
             const LOADING_KEY = "dbxc";
@@ -98,18 +104,20 @@ export default {
                 this.openFileBrowserDropbox();
             } else {
                 this.authUrl = await requestLogin(
+                    // @ts-expect-error Property 'dropboxClientId' does not exist on type 'Window & typeof globalThis'
                     window.dropboxClientId || localStorage?.getItem( "dropboxClientId" ),
+                    // @ts-expect-error Property 'dropboxRedirect' does not exist on type 'Window & typeof globalThis'
                     window.dropboxRedirect || `${window.location.href}login.html`
                 );
                 this.openAuth( this.$t( "cloud.connectionExplDropbox" ), this.loginDropbox.bind( this ));
             }
         },
-        loginDropbox() {
+        loginDropbox(): void {
             loginWindow  = window.open( this.authUrl );
             boundHandler = this.messageHandlerDropbox.bind( this );
             window.addEventListener( "message", boundHandler );
         },
-        messageHandlerDropbox({ data }) {
+        messageHandlerDropbox({ data }: MessageEvent ): void {
             if ( data?.accessToken ) {
                 registerAccessToken( data.accessToken );
                 window.removeEventListener( "message", boundHandler );
@@ -120,11 +128,11 @@ export default {
                 this.openFileBrowserDropbox();
             }
         },
-        openFileBrowserDropbox() {
+        openFileBrowserDropbox(): void {
             this.openModal( DROPBOX_FILE_SELECTOR );
         },
         /* 2. Google Drive */
-        async initDrive() {
+        async initDrive(): Promise<void> {
             ({ init, requestLogin, validateScopes, disconnect, isAuthenticated, registerAccessToken } = await getGoogleDriveService() );
 
             const LOADING_KEY = "gdc";
@@ -132,7 +140,9 @@ export default {
             this.setLoading( LOADING_KEY );
 
             this.initialized = await init(
+                // @ts-expect-error Property 'driveApiKey' does not exist on type 'Window & typeof globalThis'
                 window.driveApiKey   || localStorage?.getItem( "driveApiKey" ),
+                // @ts-expect-error Property 'driveClientId' does not exist on type 'Window & typeof globalThis'
                 window.driveClientId || localStorage?.getItem( "driveClientId" )
             );
             this.unsetLoading( LOADING_KEY );
@@ -159,17 +169,17 @@ export default {
                 );
             }
         },
-        loginDrive() {
+        loginDrive(): void {
             requestLogin();
             boundHandler = this.messageHandlerDrive.bind( this );
             window.addEventListener( "message", boundHandler );
         },
-        cancelLoginDrive() {
+        cancelLoginDrive(): void {
             this.initialized   = false;
             this.authenticated = false;
             window.removeEventListener( "message", boundHandler );
         },
-        messageHandlerDrive({ data }) {
+        messageHandlerDrive({ data }: MessageEvent ): void {
             // if ux_mode was specified as redirect, the data is posted from our redirect URI as JSON
             let result = data;
             // if ux_mode was specified as popup, the data is posted from Google API as Stringified JSON
@@ -205,7 +215,7 @@ export default {
                 this.cancelLoginDrive(); // user likely cancelled auth flow
             }
         },
-        openFileBrowserDrive() {
+        openFileBrowserDrive(): void {
             this.openModal( GOOGLE_DRIVE_FILE_SELECTOR );
         },
     },

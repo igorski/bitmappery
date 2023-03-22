@@ -21,6 +21,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { mapGetters, mapMutations, mapActions } from "vuex";
+import type { Size, SizedImage } from "zcanvas";
+import type { Layer } from "@/definitions/document";
 import { isTransparent } from "@/definitions/image-types";
 import { ACCEPTED_FILE_EXTENSIONS, isImageFile, isProjectFile, isThirdPartyDocument } from "@/definitions/file-types";
 import { LayerTypes } from "@/definitions/layer-types";
@@ -34,7 +36,7 @@ export default {
             "layers",
         ])
     },
-    created() {
+    created(): void {
         this.acceptedFileTypes = ACCEPTED_FILE_EXTENSIONS.map( ext => `.${ext}` ).join( "," );
     },
     methods: {
@@ -51,7 +53,7 @@ export default {
             "addImage",
             "loadDocument",
         ]),
-        async addLoadedFile( file, { image, size }) {
+        async addLoadedFile( file: File, { image, size }: SizedImage ): Promise<void> {
             const { source } = await this.addImage({ file, image, size });
 
             image.src = source;
@@ -87,17 +89,17 @@ export default {
             }
             this.registerUsage( source );
         },
-        async handleFileSelect({ target }) {
-            const files = target?.files;
+        async handleFileSelect({ target }: Event ): Promise<void> {
+            const files = ( target as any )?.files;
             if ( !files || files.length === 0 ) {
                 return;
             }
 
             // separate BitMappery documents from image files and third party documents
 
-            const bpyDocuments = [];
-            const tpyDocuments = [];
-            const imageFiles   = [];
+            const bpyDocuments: File[] = [];
+            const tpyDocuments: File[] = [];
+            const imageFiles: File[]   = [];
 
             for ( let i = 0, l = files.length; i < l; ++i ) {
                 const file = files[ i ];
@@ -130,23 +132,24 @@ export default {
 
             this.unsetLoading( LOADING_KEY );
         },
-        async loadThirdPartyDocuments( documents = [] ) {
-            if ( documents.length ) {
-                // currently only PSD is supported
-                const { importPSD } = await import( "@/services/psd-import-service" );
-                for ( const psd of documents ) {
-                    const document = await importPSD( psd );
-                    if ( document !== null ) {
-                        this.addNewDocument( document );
-                    }
+        async loadThirdPartyDocuments( documents: File[] = [] ): Promise<void> {
+            if ( !documents.length ) {
+                return;
+            }
+            // currently only PSD format is supported
+            const { importPSD } = await import( "@/services/psd-import-service" );
+            for ( const psd of documents ) {
+                const document = await importPSD( psd );
+                if ( document !== null ) {
+                    this.addNewDocument( document );
                 }
             }
         },
-        updateSizeAndLayer( size, opts ) {
+        updateSizeAndLayer( size: Size, opts: Partial<Layer> ): void {
             this.setActiveDocumentSize( size );
             this.updateLayer({ index: this.layers.length - 1, opts });
         },
-        registerUsage( source ) {
+        registerUsage( source: string ): void {
             this.setImageSourceUsage({ source, document: this.activeDocument });
         },
      }
