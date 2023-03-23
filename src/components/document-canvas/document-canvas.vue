@@ -69,7 +69,7 @@ import GuideRenderer from "@/rendering/canvas-elements/guide-renderer";
 import FileImport from "@/components/file-import/file-import.vue";
 import { HEADER_HEIGHT } from "@/definitions/editor-properties";
 import ToolTypes, { SELECTION_TOOLS, MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@/definitions/tool-types";
-import { MODE_PAN, MODE_LAYER_SELECT, MODE_SELECTION } from "@/rendering/canvas-elements/interaction-pane";
+import { InteractionModes } from "@/rendering/canvas-elements/interaction-pane";
 import Scrollbars from "./scrollbars/scrollbars.vue";
 import TouchDecorator from "./decorators/touch-decorator";
 import { scaleToRatio } from "@/math/image-math";
@@ -426,11 +426,11 @@ export default {
                 const enabled = true; // always enabled (shows active layer outline)//this.panMode || this.layerSelectMode || this.selectMode;
                 let mode;
                 if ( this.panMode ) {
-                    mode = MODE_PAN;
+                    mode = InteractionModes.MODE_PAN;
                 } else if ( this.layerSelectMode ) {
-                    mode = MODE_LAYER_SELECT;
+                    mode = InteractionModes.MODE_LAYER_SELECT;
                 } else if ( this.selectMode ) {
-                    mode = MODE_SELECTION;
+                    mode =InteractionModes.MODE_SELECTION;
                 }
                 zCanvas.interactionPane.setState( enabled, mode, this.activeTool, this.activeToolOptions );
                 if ( enabled ) {

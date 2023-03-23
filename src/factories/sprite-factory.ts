@@ -62,9 +62,9 @@ export const flushLayerSprites = ( layer: Layer ): void => {
     }
 };
 
-export const hasSpriteForLayer = ( layer?: Layer ): boolean => spriteCache.has( layer?.id );
+export const hasSpriteForLayer = ({ id }: Partial<Layer> ): boolean => spriteCache.has( id );
 
-export const getSpriteForLayer = ( layer?: Layer ): LayerSprite | null => spriteCache.get( layer?.id ) || null;
+export const getSpriteForLayer = ({ id }: Partial<Layer> ): LayerSprite | null => spriteCache.get( id ) || null;
 
 /**
  * Clears the entire cache and disposes all Sprites.

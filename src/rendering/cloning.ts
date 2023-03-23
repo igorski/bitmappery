@@ -20,11 +20,14 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Point } from "zcanvas";
+import type { Brush, CloneToolOptions } from "@/definitions/editor";
+import { TOOL_SRC_MERGED } from "@/definitions/tool-types";
 import { createDrawable } from "@/factories/brush-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { createCanvas, setCanvasDimensions } from "@/utils/canvas-util";
 import { renderFullSize } from "@/utils/document-util";
-import { TOOL_SRC_MERGED } from "@/definitions/tool-types";
+import type LayerSprite from "@/rendering/canvas-elements/layer-sprite";
 
 const tempCanvas = createCanvas();
 
@@ -34,11 +37,12 @@ const tempCanvas = createCanvas();
  *
  * @param {CanvasRenderingContext2D} destContext context to render on
  * @param {Object} brush operation to use
- * @param {zCanvas.sprite} sprite containg the relative (on-screen) Layer coordinates
+ * @param {LayerSprite} sprite containg the relative (on-screen) Layer coordinates
  * @param {String|Number} sourceLayerId identifier of the Layer to use as source, can also be TOOL_SRC_MERGED
- * @param {Array<{ x: Number, y: Number }>=} optPointers optional Array of alternative coordinates
+ * @param {Point[]=} optPointers optional Array of alternative coordinates
  */
-export const renderClonedStroke = ( destContext, brush, sprite, sourceLayerId, optPointers ) => {
+export const renderClonedStroke = ( destContext: CanvasRenderingContext2D, brush: Brush,
+    sprite: LayerSprite, sourceLayerId: string, optPointers?: Point[] ): void => {
     let left = 0;
     let top  = 0;
     let source;
@@ -54,24 +58,26 @@ export const renderClonedStroke = ( destContext, brush, sprite, sourceLayerId, o
     if ( !source ) {
         return;
     }
-    const { coords, opacity } = sprite._toolOptions;
+    const { coords, opacity } = sprite.toolOptions as CloneToolOptions;
     const { radius, doubleRadius } = brush;
     const pointers = optPointers || brush.pointers;
 
     const sourceX = ( coords.x - left ) - radius;
     const sourceY = ( coords.y - top ) - radius;
 
-    const relSource = sprite._cloneStartCoords || sprite._dragStartEventCoordinates;
+    const relSource = sprite.cloneStartCoords || sprite.getDragStartEventCoordinates();
 
     // prepare temporary canvas (match size with brush)
     const { cvs, ctx } = tempCanvas;
     setCanvasDimensions( tempCanvas, doubleRadius, doubleRadius );
 
+    const dragStartOffset = sprite.getDragStartOffset();
+
     for ( let i = 0; i < pointers.length; ++i ) {
         const destinationPoint = pointers[ i ];
 
-        const xDelta  = sprite._dragStartOffset.x + ( destinationPoint.x - relSource.x );
-        const yDelta  = sprite._dragStartOffset.y + ( destinationPoint.y - relSource.y );
+        const xDelta  = dragStartOffset.x + ( destinationPoint.x - relSource.x );
+        const yDelta  = dragStartOffset.y + ( destinationPoint.y - relSource.y );
 
         // draw source bitmap data onto temporary canvas
         ctx.globalCompositeOperation = "source-over";

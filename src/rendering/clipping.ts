@@ -20,20 +20,23 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Selection } from "@/definitions/document";
 import { isSelectionRectangular } from "@/math/selection-math";
+import type { OverrideConfig } from "@/rendering/lowres";
 
 /**
  * Prepares a clipping path corresponding to given selections outline, transformed
  * appropriately to the destination coordinates.
  *
  * @param {CanvasRenderingContext2D} ctx destination context to clip
- * @param {Array<{{ x: Number, y: Number }}>} selectionPoints all coordinates within the selection
+ * @param {Selection} selectionPoints all coordinates within the selection
  * @param {Number} offsetX destination offset to shift selection by (bounds relative to viewport)
  * @param {Number} offsetY destination offset to shift selection by (bounds relative to viewport)
  * @param {Boolean=} invert optional whether to invert the selection
- * @param {Object=} overrideConfig optional override Object when workin in lowres preview mode
+ * @param {OverrideConfig=} overrideConfig optional override Object when workin in lowres preview mode
  */
-export const clipContextToSelection = ( ctx, selectionPoints, offsetX, offsetY, invert = false, overrideConfig = null ) => {
+export const clipContextToSelection = ( ctx: CanvasRenderingContext2D, selectionPoints: Selection,
+    offsetX: number, offsetY: number, invert = false, overrideConfig: OverrideConfig = null ): void => {
     let scale = 1;
     let vpX   = 0;
     let vpY   = 0;
@@ -52,7 +55,8 @@ export const clipContextToSelection = ( ctx, selectionPoints, offsetX, offsetY, 
     ctx.clip();
 };
 
-export const createInverseClipping = ( ctx, selection, x, y, width, height ) => {
+export const createInverseClipping = ( ctx: CanvasRenderingContext2D, selection: Selection,
+    x: number, y: number, width: number, height: number ): void => {
     // when the selection is inverted, we can reverse the clipping operation
     // by drawing the rectangular outline over the clipping path
     if ( isSelectionRectangular( selection )) {

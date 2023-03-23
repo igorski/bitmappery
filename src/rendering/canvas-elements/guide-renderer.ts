@@ -21,31 +21,37 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { sprite } from "zcanvas";
+import type { Rectangle, Viewport } from "zcanvas";
 import { fastRound } from "@/math/unit-math";
+import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import { getClosestSnappingPoints } from "@/rendering/snapping";
 
 const AMOUNT_OF_PIXELS = 1; // currently only 1 pixel grid supported
 
 class GuideRenderer extends sprite  {
-    constructor( zCanvasInstance = null ) {
+    private drawGuides: boolean;
+    private drawPixelGrid: boolean;
+
+    constructor( zCanvasInstance: ZoomableCanvas = null ) {
+        // @ts-expect-error ignoring some arguments...
         super({ interactive: false });
         zCanvasInstance?.addChild( this );
     }
 
     /* public methods */
 
-    stayOnTop() {
+    stayOnTop(): void {
         const zCanvas = this.canvas;
         zCanvas?.removeChild( this );
         zCanvas?.addChild( this );
     }
 
-    setModes( drawGuides, drawPixelGrid ) {
+    setModes( drawGuides: boolean, drawPixelGrid: boolean ): void {
         this.drawGuides    = drawGuides;
         this.drawPixelGrid = drawPixelGrid;
     }
 
-    draw( ctx, viewport = null ) {
+    draw( ctx: CanvasRenderingContext2D, viewport: Viewport = null ): void {
 
         /* grid */
 
@@ -78,7 +84,7 @@ class GuideRenderer extends sprite  {
         const vpTop  = viewport?.top  || 0;
 
         // we can snap the currently draggingSprite against its edge and center
-        const guides = getClosestSnappingPoints( this.canvas.draggingSprite, this.canvas.guides );
+        const guides: Rectangle[] = getClosestSnappingPoints( this.canvas.draggingSprite, this.canvas.guides );
         ctx.strokeStyle = "red";
 
         for ( const { left, top, width, height } of guides ) {

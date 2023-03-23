@@ -20,17 +20,28 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { createCanvas, setCanvasDimensions } from "@/utils/canvas-util";
+import type { Point } from "zcanvas";
+import type { CanvasContextPairing, Brush } from "@/definitions/editor";
 import { hasSteppedLiveRender } from "@/definitions/brush-types";
+import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
+import { createCanvas, setCanvasDimensions } from "@/utils/canvas-util";
 
-let tempCanvas;
+export type OverrideConfig = {
+    scale: number;
+    zoom: number;
+    vpX: number;
+    vpY: number;
+    pointers: Point[]
+};
+
+let tempCanvas: CanvasContextPairing;
 
 /**
  * Lazily create / retrieve a low resolution canvas which can be used to render
  * low resolution content as a quick live preview measure.
  * The canvas will match the unzoomed viewport size.
  */
-export const getTempCanvas = zoomableCanvas => {
+export const getTempCanvas = ( zoomableCanvas: ZoomableCanvas ): CanvasContextPairing => {
     const { width, height } = zoomableCanvas.getViewport();
     if ( !tempCanvas ) {
         tempCanvas = createCanvas();
@@ -43,7 +54,7 @@ export const getTempCanvas = zoomableCanvas => {
  * Render the contents of the tempCanvas onto given destinationContext
  * using the scaling properties corresponding to given zoomableCanvas
  */
-export const renderTempCanvas = ( zoomableCanvas, destinationContext ) => {
+export const renderTempCanvas = ( zoomableCanvas: ZoomableCanvas, destinationContext: CanvasRenderingContext2D ): void => {
     const { cvs } = tempCanvas;
     const scale   = zoomableCanvas.documentScale;
     destinationContext.drawImage(
@@ -57,7 +68,7 @@ export const renderTempCanvas = ( zoomableCanvas, destinationContext ) => {
  * remains pooled for further use. It's size will however be reduced to
  * shrink its memory footprint.
  */
-export const disposeTempCanvas = () => {
+export const disposeTempCanvas = (): void => {
     if ( tempCanvas ) {
         setCanvasDimensions( tempCanvas, 1, 1 );
     }
@@ -68,11 +79,8 @@ export const disposeTempCanvas = () => {
  * This creates a deep copy of the pointers, leaving the original list unchanged.
  * This can be called in rendering iterations by supplying a positive value for
  * last (which indicates the offset of the last rendered pointer).
- *
- * @param {Object} brush
- * @return {Array<{ x: Number, y:Number }>}
  */
-export const slicePointers = brush => {
+export const slicePointers = ( brush: Brush ): Point[] => {
     const { pointers } = brush;
     const last = hasSteppedLiveRender( brush ) ? brush.last : undefined;
     return JSON.parse( JSON.stringify( pointers.slice( pointers.length - ( pointers.length - last ) - 1 )));
@@ -89,7 +97,7 @@ export const slicePointers = brush => {
  * @param {Array<{ x: Number, y:Number }>} pointers
  * @return {Object}
  */
-export const createOverrideConfig = ( zoomableCanvas, pointers ) => ({
+export const createOverrideConfig = ( zoomableCanvas: ZoomableCanvas, pointers: Point[] ): OverrideConfig => ({
     scale : 1 / zoomableCanvas.documentScale,
     zoom  : zoomableCanvas.zoomFactor,
     vpX   : zoomableCanvas.getViewport().left,
@@ -102,10 +110,10 @@ export const createOverrideConfig = ( zoomableCanvas, pointers ) => ({
  * NOTE: This will mutate the original instance. Only use on entries
  * of translatePointers()
  *
- * @param {Object} overrideConfig
- * @param {Array<{ x: Number, y: Number }>} pointers coordinates to transform
+ * @param {OverrideConfig} overrideConfig
+ * @param {Point[]} pointers coordinates to transform
  */
-export const applyOverrideConfig = ( overrideConfig, pointers ) => {
+export const applyOverrideConfig = ( overrideConfig: OverrideConfig, pointers: Point[] ): void => {
     const { vpX, vpY, scale } = overrideConfig;
     let i = pointers.length;
     while ( i-- )

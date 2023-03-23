@@ -22,21 +22,26 @@
  */
 import Vue from "vue";
 import { sprite } from "zcanvas";
-import { isInsideTransparentArea } from "@/utils/canvas-util";
-import { createDocumentSnapshot, createLayerSnapshot } from "@/utils/document-util";
+import type { Point, Size, Viewport } from "zcanvas";
+import type { Document, Layer, Selection } from "@/definitions/document";
+import ToolTypes from "@/definitions/tool-types";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { isPointInRange, translatePoints, snapToAngle, rectToCoordinateList } from "@/math/point-math";
 import { scaleRectangle } from "@/math/rectangle-math";
 import { isSelectionClosed, createSelectionForRectangle, selectByColor, mergeSelections } from "@/math/selection-math";
 import { fastRound } from "@/math/unit-math";
-import ToolTypes from "@/definitions/tool-types";
 import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
+import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import KeyboardService from "@/services/keyboard-service";
+import { isInsideTransparentArea } from "@/utils/canvas-util";
+import { createDocumentSnapshot, createLayerSnapshot } from "@/utils/document-util";
 
-export const MODE_PAN          = 0;
-export const MODE_LAYER_SELECT = 1;
-export const MODE_SELECTION    = 2;
+export enum InteractionModes {
+    MODE_PAN = 0,
+    MODE_LAYER_SELECT,
+    MODE_SELECTION,
+};
 
 /**
  * InteractionPane is a top-level canvas-sized Sprite that captures all Canvas
@@ -47,6 +52,20 @@ export const MODE_SELECTION    = 2;
  * 3. create selection outlines that can be used across layers
  */
 class InteractionPane extends sprite {
+    public mode: InteractionModes;
+    private _toolOptions: any;
+    private _pointerDown: boolean;
+    private _hasSelection: boolean;
+    private _selectionClosed: boolean;
+    private _isRectangleSelect: boolean;
+    private _activeTool: ToolTypes;
+    private _pointerX: number;
+    private _pointerY: number;
+    private _vpStartX: number;
+    private _vpStartY: number;
+    private _lastRelease: number;
+    private _enabled: boolean;
+
     constructor() {
         // dimensions will be synced when canvas on setState()
         super({ width : 10, height: 10 });
@@ -59,7 +78,7 @@ class InteractionPane extends sprite {
         this._lastRelease = 0;
     }
 
-    setState( enabled, mode, activeTool, activeToolOptions ) {
+    setState( enabled: boolean, mode: InteractionModes, activeTool: ToolTypes, active_toolOptions: any ): void {
         this._enabled = enabled;
         this.setDraggable( enabled );
 
@@ -83,7 +102,7 @@ class InteractionPane extends sprite {
 
         const document = this.getActiveDocument();
 
-        if ( document && mode === MODE_SELECTION ) {
+        if ( document && mode === InteractionModes.MODE_SELECTION ) {
             // create empty selection (or reset to empty selection when switching between
             // rectangle selection tool modes)
             if ( !document.selection ) {
@@ -101,11 +120,11 @@ class InteractionPane extends sprite {
             // unsets move listener
             this.isDragging = false;
         }
-        this.toolOptions = activeToolOptions;
+        this._toolOptions = active_toolOptions;
         this._activeTool = activeTool;
     }
 
-    handleActiveTool( tool, remainInteractive ) {
+    handleActiveTool( tool: ToolTypes, remainInteractive: boolean ): void {
         if ( tool !== ToolTypes.LASSO && this.getActiveDocument()?.selection && !this._selectionClosed ) {
             // reset unclosed selection when switching tools
             this.resetSelection();
@@ -113,7 +132,7 @@ class InteractionPane extends sprite {
         this.setInteractive( remainInteractive );
     }
 
-    stayOnTop() {
+    stayOnTop(): void {
         if ( !this._enabled ) {
             return;
         }
@@ -122,18 +141,18 @@ class InteractionPane extends sprite {
         zCanvas.addChild( this );
     }
 
-    getActiveDocument() {
+    getActiveDocument(): Document {
         return getCanvasInstance().store.getters.activeDocument;
     }
 
-    getActiveLayer() {
+    getActiveLayer(): Layer {
         return getCanvasInstance().store.getters.activeLayer;
     }
 
-    resetSelection() {
+    resetSelection(): void {
         const document = this.getActiveDocument();
         const currentSelection = document.selection || [];
-        if ( this.mode === MODE_SELECTION ) {
+        if ( this.mode === InteractionModes.MODE_SELECTION ) {
             this.setSelection( [] );
             if ( isSelectionClosed( currentSelection )) {
                 storeSelectionHistory( document, currentSelection, "reset" );
@@ -147,7 +166,7 @@ class InteractionPane extends sprite {
         this.invalidate();
     }
 
-    setSelection( value, optStoreState = false ) {
+    setSelection( value: Selection, optStoreState = false ): void {
         const document = this.getActiveDocument();
         const currentSelection = document.selection || [];
         Vue.set( document, "selection", value );
@@ -158,11 +177,11 @@ class InteractionPane extends sprite {
         this.invalidate();
     }
 
-    invertSelection() {
+    invertSelection(): void {
         const document = this.getActiveDocument();
         if ( document.selection?.length > 0 ) {
             const curValue = document.invertSelection;
-            const updateFn = value => {
+            const updateFn = ( value: boolean ) => {
                 Vue.set( document, "invertSelection", value );
                 syncSelection();
                 this.invalidate?.();
@@ -178,7 +197,7 @@ class InteractionPane extends sprite {
         }
     }
 
-    selectAll( targetLayer = null ) {
+    selectAll( targetLayer: Layer = null ): void {
         const bounds = targetLayer ? getSpriteForLayer( targetLayer ).getBounds() : this._bounds;
         this.setSelection(
             rectToCoordinateList( bounds.left, bounds.top, bounds.width, bounds.height )
@@ -186,28 +205,28 @@ class InteractionPane extends sprite {
     }
 
     // cheap way to hook into zCanvas.handleMove()-handler so we can keep following the cursor in tool modes
-    forceMoveListener() {
+    forceMoveListener(): void {
         this.isDragging = true;
         this._dragStartOffset = { x: this.getX(), y: this.getY() };
         this._dragStartEventCoordinates = { x: this._pointerX, y: this._pointerY };
     }
 
-    startOutsideSelection( x, y ) {
-        if ( this.mode !== MODE_SELECTION ) {
+    startOutsideSelection( x: number, y: number ): void {
+        if ( this.mode !== InteractionModes.MODE_SELECTION ) {
             return;
         }
         this._dragStartEventCoordinates = { x, y };
         this.handlePress( x, y );
     }
 
-    stopOutsideSelection() {
-        this.mode === MODE_SELECTION && this.handleRelease( this._pointerX, this._pointerY );
+    stopOutsideSelection(): void {
+        this.mode === InteractionModes.MODE_SELECTION && this.handleRelease( this._pointerX, this._pointerY );
     }
 
     /* zCanvas.sprite overrides */
 
-    async handlePress( x, y ) {
-        this.pointerDown = true;
+    async handlePress( x: number, y: number ): Promise<void> {
+        this._pointerDown = true;
         switch ( this.mode ) {
             default:
                 if ( this.isDragging ) {
@@ -218,25 +237,25 @@ class InteractionPane extends sprite {
                 }
                 break;
 
-            case MODE_LAYER_SELECT:
-                const sprites = this.canvas.getChildren().filter( sprite => sprite instanceof LayerSprite );
+            case InteractionModes.MODE_LAYER_SELECT:
+                const sprites: LayerSprite[] = this.canvas.getChildren().filter(( sprite: sprite ) => sprite instanceof LayerSprite );
                 // loop over all layer sprites in reverse (top of display list to bottom) order
                 let i = sprites.length;
                 while ( i-- ) {
                     const sprite = sprites[ i ];
                     // if the sprites Bitmap contents are non-transparent at the given coordinate, make it the active layer
-                    if ( !isInsideTransparentArea( sprite.getBitmap(), x - sprite.getX(), y - sprite.getY() )) {
+                    if ( !isInsideTransparentArea( sprite.getBitmap() as HTMLCanvasElement, x - sprite.getX(), y - sprite.getY() )) {
                         this.canvas.store.commit( "setActiveLayer", sprite.layer );
                         break;
                     }
                 }
                 break;
 
-            case MODE_SELECTION:
+            case InteractionModes.MODE_SELECTION:
                 let completeSelection = false;
                 if ( this._activeTool === ToolTypes.WAND ) {
-                    const cvs = await ( this.toolOptions.sampleMerged ? createDocumentSnapshot( this.getActiveDocument() ) : createLayerSnapshot( this.getActiveLayer() ));
-                    let selection = selectByColor( cvs, x, y, this.toolOptions.threshold );
+                    const cvs = await ( this._toolOptions.sampleMerged ? createDocumentSnapshot( this.getActiveDocument() ) : createLayerSnapshot( this.getActiveLayer() ));
+                    let selection = selectByColor( cvs, x, y, this._toolOptions.threshold );
                     if ( KeyboardService.hasShift() ) {
                         selection = mergeSelections( selection, this.getActiveDocument().selection ?? [] );
                     }
@@ -268,7 +287,7 @@ class InteractionPane extends sprite {
         }
     }
 
-    handleMove( x, y, { type } ) {
+    handleMove( x: number, y: number, { type }: Event ): void {
         // store reference to current pointer position (relative to canvas)
         // note that for touch events this is handled in handlePress() instead
         if ( !type.startsWith( "touch" )) {
@@ -278,9 +297,9 @@ class InteractionPane extends sprite {
         switch ( this.mode ) {
             default:
                 return;
-            case MODE_SELECTION:
+            case InteractionModes.MODE_SELECTION:
                 // when mouse is down and selection is closed, drag the selection
-                if ( this._selectionClosed && this.pointerDown ) {
+                if ( this._selectionClosed && this._pointerDown ) {
                     const document = this.getActiveDocument();
                     const currentSelection = document.selection;
                     document.selection = translatePoints( currentSelection, x - this._dragStartEventCoordinates.x, y - this._dragStartEventCoordinates.y );
@@ -288,7 +307,7 @@ class InteractionPane extends sprite {
                     storeSelectionHistory( document, currentSelection, "drag" );
                 }
                 break;
-            case MODE_PAN:
+            case InteractionModes.MODE_PAN:
                 const viewport = this.canvas.getViewport();
 
                 const distX = viewport.left - this._vpStartX;
@@ -302,13 +321,13 @@ class InteractionPane extends sprite {
         }
     }
 
-    handleRelease( x, y ) {
-        this.pointerDown = false;
+    handleRelease( x: number, y: number ): void {
+        this._pointerDown = false;
         const now           = Date.now();
         const isDoubleClick = ( now - this._lastRelease ) < 250;
         this._lastRelease   = now;
 
-        if ( this.mode === MODE_SELECTION ) {
+        if ( this.mode === InteractionModes.MODE_SELECTION ) {
             this.forceMoveListener(); // keep the move listener active
             if ( isDoubleClick && this._selectionClosed ) {
                 this.resetSelection();
@@ -320,7 +339,7 @@ class InteractionPane extends sprite {
                     // when releasing in rectangular select mode, set the selection to
                     // the bounding box of the down press coordinate and this release coordinate
                     const firstPoint = document.selection[ 0 ];
-                    const { width, height } = calculateSelectionSize( firstPoint, Math.max( 0, Math.min( document.width, x )), Math.max( 0, Math.min( document.height, y )), this.toolOptions );
+                    const { width, height } = calculateSelectionSize( firstPoint, Math.max( 0, Math.min( document.width, x )), Math.max( 0, Math.min( document.height, y )), this._toolOptions );
                     document.selection = rectToCoordinateList( firstPoint.x, firstPoint.y, width, height );
                     this._selectionClosed = true;
                     storeSelectionHistory( document );
@@ -335,10 +354,10 @@ class InteractionPane extends sprite {
         }
     }
 
-    draw( ctx, viewport ) {
+    draw( ctx: CanvasRenderingContext2D, viewport: Viewport ): void {
         // render selection outline
         let { selection, invertSelection, width, height } = this.getActiveDocument();
-        if ( /*this.mode === MODE_SELECTION && */ selection?.length ) {
+        if ( /*this.mode === InteractionModes.MODE_SELECTION && */ selection?.length ) {
             const firstPoint    = selection[ 0 ];
             const localPointerX = this._pointerX - viewport.left; // local to viewport
             const localPointerY = this._pointerY - viewport.top;
@@ -347,7 +366,7 @@ class InteractionPane extends sprite {
             // when in rectangular select mode, the outline will draw from the first coordinate
             // (defined in handlePress()) to the current pointer coordinate
             if ( this._isRectangleSelect && hasUnclosedSelection ) {
-                const { width, height } = calculateSelectionSize( firstPoint, this._pointerX, this._pointerY, this.toolOptions );
+                const { width, height } = calculateSelectionSize( firstPoint, this._pointerX, this._pointerY, this._toolOptions );
                 selection = rectToCoordinateList( firstPoint.x, firstPoint.y, width, height );
             }
             // for unclosed lasso selections, draw line to current cursor position
@@ -408,7 +427,8 @@ export default InteractionPane;
 
 /* internal methods */
 
-function drawSelection( ctx, zCanvas, viewport, selection, currentPosition ) {
+function drawSelection( ctx: CanvasRenderingContext2D, zCanvas: ZoomableCanvas, viewport: Viewport,
+    selection: Selection, currentPosition: Point ): void {
     ctx.save();
     drawSelectionOutline( ctx, zCanvas, viewport, selection, "#000", currentPosition );
     ctx.restore();
@@ -419,7 +439,8 @@ function drawSelection( ctx, zCanvas, viewport, selection, currentPosition ) {
     ctx.restore();
 }
 
-function drawSelectionOutline( ctx, zCanvas, viewport, selection, color, currentPosition = null ) {
+function drawSelectionOutline( ctx: CanvasRenderingContext2D, zCanvas: ZoomableCanvas, viewport: Viewport,
+    selection: Selection, color: string, currentPosition: Point = null ): void {
     ctx.lineWidth = 2 / zCanvas.zoomFactor;
     ctx.beginPath();
     ctx.strokeStyle = color;
@@ -436,7 +457,8 @@ function drawSelectionOutline( ctx, zCanvas, viewport, selection, color, current
     ctx.stroke();
 }
 
-function calculateSelectionSize( firstPoint, destX, destY, { lockRatio, xRatio, yRatio }) {
+function calculateSelectionSize( firstPoint: Point, destX: number, destY: number,
+    { lockRatio, xRatio, yRatio }: { lockRatio: boolean, xRatio: number, yRatio: number }): Size {
     if ( !lockRatio && !KeyboardService.hasShift() ) {
         return {
             width  : destX - firstPoint.x,
@@ -453,12 +475,12 @@ function calculateSelectionSize( firstPoint, destX, destY, { lockRatio, xRatio, 
 // synchronizes the selection with the layer Sprite representing the
 // currently active layer (e.g. for draw operations)
 
-function syncSelection() {
+function syncSelection(): void {
     const { getters } = getCanvasInstance().store;
     getSpriteForLayer( getters.activeLayer )?.setSelection( getters.activeDocument );
 }
 
-function storeSelectionHistory( document, optPreviousSelection = [], optType = "" ) {
+function storeSelectionHistory( document: Document, optPreviousSelection: Selection = [], optType = "" ): void {
     const selection = [ ...document.selection ];
     enqueueState( `selection_${document.name}${optType}`, {
         undo() {

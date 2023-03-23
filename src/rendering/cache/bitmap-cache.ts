@@ -20,30 +20,32 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-const layerCache = new Map();
+import type { Layer } from "@/definitions/document";
 
-export const getLayerCache = ({ id }) => layerCache.get( id );
+const layerCache: Map<string, any> = new Map();
 
-export const setLayerCache = ( layer, props ) => {
+export const getLayerCache = ( layer: Layer ): any => layerCache.get( layer.id );
+
+export const setLayerCache = ( layer: Layer, props: any ): void => {
     const cache = getLayerCache( layer ) ?? {};
     layerCache.set( layer.id, { ...cache, ...props });
 };
 
-export const hasLayerCache = ({ id }) => layerCache.has( id );
+export const hasLayerCache = ( layer: Layer ): boolean => layerCache.has( layer.id );
 
-export const clearCacheProperty = ( layer, propertyName ) => {
+export const clearCacheProperty = ( layer: Layer, propertyName: string ): void => {
     const cache = getLayerCache( layer );
     if ( cache?.[ propertyName ] ) {
         delete cache[ propertyName ];
     }
 };
 
-export const flushLayerCache = layer => {
+export const flushLayerCache = ( layer: Layer ): void => {
     //console.info( "flushing bitmap cache for layer " + layer.id );
     layerCache.delete( layer.id );
 };
 
-export const flushCache = () => {
+export const flushCache = (): void => {
     //console.info( "flushing bitmap cache" );
     layerCache.clear();
 };

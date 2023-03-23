@@ -47,15 +47,14 @@ const imageLoadQueue = [];
  * Each File will generate a Blob URL pointing to the resource and contain
  * a size description in the form of image width and height.
  *
- * @param {FileList} fileList of images
+ * @param {File[]} fileList of images
  * @param {Function} callback to execute for each loaded file (receives file and zCanvas load result as arguments)
- * @param {ctx} Vue component instance used for debouncing synced to the Vue render task queue
  */
-export const loadImageFiles = ( fileList, callback, ctx ) => {
+export const loadImageFiles = ( fileList, callback ) => {
     const promises = [];
     for ( let i = 0; i < fileList.length; ++i ) {
         const file = fileList[ i ];
-        promises.push( loadFile( file, callback, ctx ));
+        promises.push( loadFile( file, callback ));
     }
     return Promise.all( promises );
 };

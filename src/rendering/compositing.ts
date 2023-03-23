@@ -24,10 +24,8 @@
 /**
  * Applies an inverse colour operation onto a bitmap that contains
  * masked content of various opacities
- *
- * @param {HTMLCanvasElement} bitmap
  */
-export const inverseMask = bitmap => {
+export const inverseMask = ( bitmap: HTMLCanvasElement ): void => {
     const { width, height } = bitmap;
     const ctx = bitmap.getContext( "2d" );
 

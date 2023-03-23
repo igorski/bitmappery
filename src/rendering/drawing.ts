@@ -21,9 +21,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import BrushTypes, { getSizeForBrush } from "@/definitions/brush-types";
+import type { Brush } from "@/definitions/editor";
 import { createDrawable } from "@/factories/brush-factory";
 import { randomInRange } from "@/math/unit-math";
 import { applyOverrideConfig } from "@/rendering/lowres";
+import type { OverrideConfig } from "@/rendering/lowres";
 import { distanceBetween, angleBetween, pointBetween } from "@/math/point-math";
 
 const { cos, sin } = Math;
@@ -35,10 +37,9 @@ const TWO_PI = Math.PI * 2;
  *
  * @param {CanvasRenderingContext2D} ctx to render on
  * @param {Object} brush properties
- * @param {zCanvas.sprite} sprite defining relative (on-screen) Layer coordinates
  * @param {Object=} overrideConfig optional override to use (defines alternate pointers and coordinate scaling)
  */
-export const renderBrushStroke = ( ctx, brush, sprite, overrideConfig ) => {
+export const renderBrushStroke = ( ctx: CanvasRenderingContext2D, brush: Brush, overrideConfig: OverrideConfig ): void => {
     let { pointers, radius, doubleRadius, options } = brush;
     let scale = 1;
     const { type } = options;

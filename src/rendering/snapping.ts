@@ -20,19 +20,26 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Rectangle } from "zcanvas";
 import { SNAP_MARGIN } from "@/definitions/tool-types";
 import {
     rectToPoint, distanceBetween, isCoordinateInHorizontalRange, isCoordinateInVerticalRange
 } from "@/math/point-math";
+import type LayerSprite from "@/rendering/canvas-elements/layer-sprite";
+
+type SnappableAreas = {
+    horizontal: number[];
+    vertical: number[];
+};
 
 // pool the Arrays that describe the currently dragging Sprites snappable areas
 // we only allow dragging one Sprite at a time so this can be cached between
 // guide rendering and drag release operations
-const horizontal     = new Array( 3 );
-const vertical       = new Array( 3 );
-const snappableAreas = { horizontal, vertical };
+const horizontal: number[] = new Array( 3 );
+const vertical: number[] = new Array( 3 );
+const snappableAreas: SnappableAreas = { horizontal, vertical };
 
-function cacheSnappableAreas( sprite ) {
+function cacheSnappableAreas( sprite: LayerSprite ): SnappableAreas {
     const bounds = sprite.getActualBounds();
 
     horizontal[ 0 ] = bounds.left;
@@ -53,13 +60,13 @@ function cacheSnappableAreas( sprite ) {
  * This caches the snappable areas for given Sprite
  *
  * @param {LayerSprite} sprite to determine snapping points for
- * @param {Array<Object>} guides all available snapping points
+ * @param {Array<Rectangle>} guides all available snapping points
  */
-export const getClosestSnappingPoints = ( sprite, guides ) => {
+export const getClosestSnappingPoints = ( sprite: LayerSprite, guides: Rectangle[] ): Rectangle[] => {
     cacheSnappableAreas( sprite );
 
-    const horizontals = [];
-    const verticals   = [];
+    const horizontals: Rectangle[] = [];
+    const verticals: Rectangle[]   = [];
 
     for ( const guide of guides ) {
         for ( const cX of horizontal ) {
@@ -77,7 +84,9 @@ export const getClosestSnappingPoints = ( sprite, guides ) => {
 
     const comparePoint = rectToPoint( sprite.getActualBounds() );
 
-    const reducer = ( a, b ) => distanceBetween( comparePoint, rectToPoint( a )) < distanceBetween( comparePoint, rectToPoint( b )) ? a : b;
+    const reducer = ( a: Rectangle, b: Rectangle ) => {
+        return distanceBetween( comparePoint, rectToPoint( a )) < distanceBetween( comparePoint, rectToPoint( b )) ? a : b;
+    }
     return [
         horizontals.length > 1 ? horizontals.reduce( reducer ) : horizontals[ 0 ],
         verticals.length > 1 ? verticals.reduce( reducer ) : verticals[ 0 ]
@@ -87,11 +96,8 @@ export const getClosestSnappingPoints = ( sprite, guides ) => {
 /**
  * Aligns the position of given sprite to the most appropriate of given guides.
  * This should be called on drag release.
- *
- * @param {LayerSprite} sprite
- * @param {Array<Object} guides
  */
-export const snapSpriteToGuide = ( sprite, guides ) => {
+export const snapSpriteToGuide = ( sprite: LayerSprite, guides: Rectangle[] ): void => {
     const filteredGuides = getClosestSnappingPoints( sprite, guides );
     const { left, top, width, height } = sprite.getActualBounds();
 

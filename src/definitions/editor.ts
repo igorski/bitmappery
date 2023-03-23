@@ -22,6 +22,7 @@
  */
 import type { Point, Size } from "zcanvas";
 import type BrushTypes from "@/definitions/brush-types";
+import type { Selection } from "@/definitions/document";
 
 export type Notification = {
     title: string;

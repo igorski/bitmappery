@@ -20,15 +20,18 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Text } from "@/definitions/document";
 import { fastRound } from "@/math/unit-math";
+
+type MeasuredLineDef = {
+    line: string;
+    top: number;
+};
 
 /**
  * Renders a Layers text Object as multi line text onto given context.
- *
- * @param {CanvasRenderingContext2D} ctx
- * @param {Object} text Layer text Object
  */
-export const renderMultiLineText = ( ctx, text ) => {
+export const renderMultiLineText = ( ctx: CanvasRenderingContext2D, text: Text ): void => {
     // calculate bounding box and offsets for all lines in the text
     const { lines, width, height } = measureLines( text.value.split( "\n" ), text, ctx );
 
@@ -57,15 +60,16 @@ export const renderMultiLineText = ( ctx, text ) => {
 /**
  * Measure the bounding box occupied by given lines of text for given text properties
  *
- * @param {Array<String>} lines of text to render
+ * @param {string[]} lines of text to render
  * @param {Object} text Layer text Object
  * @param {CanvasRenderingContext2D} ctx
- * @return {{ lines: Object, width: Number, height: Number }} bounding box of the rendered text
+ * @return {{ lines: MeasuredLineDef[], width: Number, height: Number }} bounding box of the rendered text
  */
-function measureLines( lines, text, ctx ) {
+function measureLines( lines: string[], text: Text, ctx: CanvasRenderingContext2D ):
+    { lines: MeasuredLineDef[], width: number, height: number } {
     applyTextStyleToContext( text, ctx );
 
-    const linesOut = [];
+    const linesOut: MeasuredLineDef[] = [];
     let width  = 0;
     let height = 0;
 
@@ -97,7 +101,7 @@ function measureLines( lines, text, ctx ) {
     };
 }
 
-function applyTextStyleToContext( text, ctx ) {
+function applyTextStyleToContext( text: Text, ctx: CanvasRenderingContext2D ): void {
     ctx.font      = `${text.size}${text.unit} "${text.font}"`;
     ctx.fillStyle = text.color;
 }

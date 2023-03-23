@@ -67,6 +67,9 @@ class LayerSprite extends ZoomableSprite {
     public actionTarget: "source" | "mask";
     public canvas: ZoomableCanvas; // set through inherited addChild() method
     public tempCanvas: CanvasContextPairing;
+    public cloneStartCoords: Point = null;
+    public toolOptions: any;
+
     protected _pointerX: number;
     protected _pointerY: number;
     protected _brush: Brush;
@@ -76,8 +79,6 @@ class LayerSprite extends ZoomableSprite {
     protected _selection: Selection;
     protected _invertSelection: boolean;
     protected _toolType: ToolTypes;
-    protected _toolOptions: any;
-    protected _cloneStartCoords: Point = null;
     protected _orgSourceToStore: string;
     protected _pendingPaintState: number;
     protected _rafFx: boolean;
@@ -151,6 +152,14 @@ class LayerSprite extends ZoomableSprite {
         );
     }
 
+    getDragStartOffset(): Point {
+        return this._dragStartOffset;
+    }
+
+    getDragStartEventCoordinates(): Point {
+        return this._dragStartEventCoordinates;
+    }
+
     // forces sychronizing this Sprites positions to the layer position
     // to be called when outside factors have adjusted the Sprite source
     // otherwise use setBounds() for relative positioning with state history
@@ -221,8 +230,8 @@ class LayerSprite extends ZoomableSprite {
         this._isColorPicker    = false;
         this._selection        = null;
         this._toolType         = null;
-        this._toolOptions      = null;
-        this._cloneStartCoords = null;
+        this.toolOptions      = null;
+        this.cloneStartCoords  = null;
 
         // store pending paint states (if there were any)
         this.storePaintState();
@@ -232,7 +241,7 @@ class LayerSprite extends ZoomableSprite {
         }
 
         this._toolType    = tool;
-        this._toolOptions = toolOptions;
+        this.toolOptions = toolOptions;
 
         // note we use setDraggable() even outside of ToolTypes.DRAG
         // this is because draggable zCanvas.sprites will trigger the handleMove()
@@ -297,11 +306,11 @@ class LayerSprite extends ZoomableSprite {
         const isLowResPreview = this._brush.down && !( drawOnMask && isEraser );
 
         // if there is an active selection, painting will be constrained within
-        let selectionPoints = optAction?.selection || this._selection;
+        let selectionPoints: Selection = optAction?.selection || this._selection;
         if ( selectionPoints ) {
             let { left, top } = this.layer;
             if ( this.isRotated() && !isLowResPreview ) {
-                selectionPoints = rotatePointerLists( selectionPoints as Selection, this.layer, width, height );
+                selectionPoints = rotatePointerLists( selectionPoints as Point[], this.layer, width, height );
                 left = top = 0; // pointers have been rotated within clipping context
             }
             ctx.save(); // 2. clipping save()
@@ -316,7 +325,7 @@ class LayerSprite extends ZoomableSprite {
             }
         } else if ( isFillMode ) {
             const color = this.getStore().getters.activeColor;
-            if ( this._toolOptions.smartFill ) {
+            if ( this.toolOptions.smartFill ) {
                 const point = rotatePointer( this._pointerX, this._pointerY, this.layer, width, height );
                 floodFill( ctx, point.x, point.y, color );
             } else {
@@ -336,7 +345,7 @@ class LayerSprite extends ZoomableSprite {
 
             if ( isCloneStamp ) {
                 if ( isLowResPreview ) {
-                    renderClonedStroke( ctx, this._brush, this, this._toolOptions.sourceLayerId,
+                    renderClonedStroke( ctx, this._brush, this, this.toolOptions.sourceLayerId,
                         rotatePointerLists( pointers, this.layer, width, height )
                     );
                     // clone operation is direct-to-Layer-source
@@ -366,7 +375,7 @@ class LayerSprite extends ZoomableSprite {
                     ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
                     this._brush.pointers = rotatePointerLists( this._brush.pointers, this.layer, width, height );
                 }
-                renderBrushStroke( ctx, this._brush, this, overrides );
+                renderBrushStroke( ctx, this._brush, overrides );
 
                 if ( !isLowResPreview ) {
                     // draw the temp context with the fully rendered brush path
@@ -513,16 +522,16 @@ class LayerSprite extends ZoomableSprite {
         }
         else if ( this._isPaintMode ) {
             if ( this._toolType === ToolTypes.CLONE ) {
-                // pressing down when using the clone tool with no coords defined in the _toolOptions,
+                // pressing down when using the clone tool with no coords defined in the toolOptions,
                 // sets the source coords (within the source Layer)
-                if ( !this._toolOptions.coords ) {
-                    this._toolOptions.coords = { x, y };
-                    this._cloneStartCoords = null;
+                if ( !this.toolOptions.coords ) {
+                    this.toolOptions.coords = { x, y };
+                    this.cloneStartCoords = null;
                     return;
-                } else if ( !this._cloneStartCoords ) {
+                } else if ( !this.cloneStartCoords ) {
                     // pressing down again indicates the cloning paint operation starts (in handleMove())
                     // set the start coordinates (of this target Layer) relative to the source Layers coords
-                    this._cloneStartCoords = { x, y };
+                    this.cloneStartCoords = { x, y };
                 }
             } else if ( this._toolType === ToolTypes.FILL ) {
                 this.paint();
@@ -679,10 +688,10 @@ class LayerSprite extends ZoomableSprite {
             const ty = this._pointerY - viewport.top;
 
             documentContext.lineWidth = 2 / zoomFactor;
-            const drawBrushOutline = this._toolType !== ToolTypes.CLONE || !!this._toolOptions.coords;
+            const drawBrushOutline = this._toolType !== ToolTypes.CLONE || !!this.toolOptions.coords;
             if ( this._toolType === ToolTypes.CLONE ) {
-                const { coords } = this._toolOptions;
-                const relSource = this._cloneStartCoords ?? this._dragStartEventCoordinates;
+                const { coords } = this.toolOptions;
+                const relSource = this.cloneStartCoords ?? this._dragStartEventCoordinates;
                 const cx = coords ? ( coords.x - viewport.left ) + ( this._pointerX - relSource.x ) : tx;
                 const cy = coords ? ( coords.y - viewport.top  ) + ( this._pointerY - relSource.y ) : ty;
                 // when no source coordinate is set, or when applying the clone stamp, we show a cross to mark the origin

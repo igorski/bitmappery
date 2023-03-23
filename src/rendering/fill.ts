@@ -35,7 +35,8 @@ const TWO_PI = Math.PI * 2;
  * @param {String} fillColor RGBA String value for the fill color
  * @param {Number=} feather optional amount of pixels at edges to fill (less aliased result)
  */
-export const floodFill = ( ctx, sourceX, sourceY, fillColor, feather = 5 ) => {
+export const floodFill = ( ctx: CanvasRenderingContext2D, sourceX: number, sourceY: number,
+    fillColor: string, feather = 5 ): void => {
     const path = selectByColor( ctx.canvas, sourceX, sourceY );
 
     ctx.strokeStyle = fillColor;
