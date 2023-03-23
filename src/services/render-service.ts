@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Vue from "vue";
-import type { Layer, Filters, Text } from "@/definitions/document";
+import type { Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { hasFilters, isEqual as isFiltersEqual } from "@/factories/filters-factory";
@@ -29,6 +29,7 @@ import { isEqual as isTextEqual } from "@/factories/text-factory";
 import { createCanvas, cloneCanvas, matchDimensions } from "@/utils/canvas-util";
 import { replaceLayerSource } from "@/utils/layer-util";
 import { getLayerCache, setLayerCache } from "@/rendering/cache/bitmap-cache";
+import type { RenderCache } from "@/rendering/cache/bitmap-cache";
 import { renderMultiLineText } from "@/rendering/text";
 import { loadGoogleFont } from "@/services/font-service";
 import FilterWorker from "@/workers/filter.worker?worker";
@@ -38,13 +39,6 @@ type RenderJob = {
     id: number;
     success: ( data: { pixelData: ArrayLike<number> } ) => void;
     error: ( error?: any ) => void;
-};
-
-type RenderCache = {
-    text?: Text;
-    textBitmap?: HTMLCanvasElement;
-    filters?: Filters;
-    filterData?: ImageData;
 };
 
 const jobQueue: RenderJob[] = [];

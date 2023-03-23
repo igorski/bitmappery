@@ -20,13 +20,20 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Layer } from "@/definitions/document";
+import type { Layer, Filters, Text } from "@/definitions/document";
 
-const layerCache: Map<string, any> = new Map();
+export type RenderCache = {
+    text?: Text;
+    textBitmap?: HTMLCanvasElement;
+    filters?: Filters;
+    filterData?: ImageData;
+};
 
-export const getLayerCache = ( layer: Layer ): any => layerCache.get( layer.id );
+const layerCache: Map<string, RenderCache> = new Map();
 
-export const setLayerCache = ( layer: Layer, props: any ): void => {
+export const getLayerCache = ( layer: Layer ): RenderCache => layerCache.get( layer.id );
+
+export const setLayerCache = ( layer: Layer, props: RenderCache ): void => {
     const cache = getLayerCache( layer ) ?? {};
     layerCache.set( layer.id, { ...cache, ...props });
 };
@@ -35,7 +42,9 @@ export const hasLayerCache = ( layer: Layer ): boolean => layerCache.has( layer.
 
 export const clearCacheProperty = ( layer: Layer, propertyName: string ): void => {
     const cache = getLayerCache( layer );
+    // @ts-expect-error using string as key
     if ( cache?.[ propertyName ] ) {
+        // @ts-expect-error using string as key
         delete cache[ propertyName ];
     }
 };
