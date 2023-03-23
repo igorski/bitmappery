@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Vue from "vue";
+import type { Layer, Filters, Text } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { hasFilters, isEqual as isFiltersEqual } from "@/factories/filters-factory";
@@ -33,16 +34,29 @@ import { loadGoogleFont } from "@/services/font-service";
 import FilterWorker from "@/workers/filter.worker?worker";
 import wasmUrl from "@/wasm/bin/filters.wasm?url";
 
-const jobQueue = [];
+type RenderJob = {
+    id: number;
+    success: ( data: { pixelData: ArrayLike<number> } ) => void;
+    error: ( error?: any ) => void;
+};
+
+type RenderCache = {
+    text?: Text;
+    textBitmap?: HTMLCanvasElement;
+    filters?: Filters;
+    filterData?: ImageData;
+};
+
+const jobQueue: RenderJob[] = [];
 let UID = 0;
 
 let useWasm = false;
-let wasmWorker;
+let wasmWorker: Worker;
 
 // expose an Object in which we can keep treck of pending render jobs
 export const renderState = Vue.observable({ pending: 0, reset: () => renderState.pending = 0 });
 
-export const setWasmFilters = enabled => {
+export const setWasmFilters = ( enabled: boolean ): void => {
     useWasm = enabled;
     if ( enabled && !wasmWorker ) {
         wasmWorker = new FilterWorker();
@@ -51,7 +65,7 @@ export const setWasmFilters = enabled => {
     }
 };
 
-export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
+export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): Promise<void> => {
     const sprite = getSpriteForLayer( layer );
 
     if ( !sprite || !layer.source ) {
@@ -63,8 +77,8 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
     let { width, height } = layer;
     const { cvs, ctx } = createCanvas( width, height );
 
-    const cached     = useCaching ? getLayerCache( layer ) : null;
-    const cacheToSet = {};
+    const cached = useCaching ? getLayerCache( layer ) : null;
+    const cacheToSet: RenderCache = {};
 
     const applyMask     = !!layer.mask;
     const applyFilter   = hasFilters( layer.filters );
@@ -150,14 +164,16 @@ export const renderEffectsForLayer = async ( layer, useCaching = true ) => {
  * @param {Object} jobSettings job/cmd-specific properties
  * @return {Promise<ImageData>} processed source as ImageData (can be stored in cache)
  */
-const runFilterJob = ( source, jobSettings ) => {
+const runFilterJob = ( source: HTMLCanvasElement, jobSettings: any ): Promise<ImageData> => {
     const { width, height } = source;
     const imageData = source.getContext( "2d" ).getImageData( 0, 0, width, height );
     const wasm      = useWasm && wasmWorker;
 
     return new Promise( async ( resolve, reject ) => {
         const id = ( ++UID );
-        let worker, onComplete;
+        let worker: Worker;
+        let onComplete: () => void;
+
         if ( wasm ) {
             worker = wasmWorker;
         } else {
@@ -183,7 +199,7 @@ const runFilterJob = ( source, jobSettings ) => {
     })
 };
 
-function handleWorkerMessage({ data }) {
+function handleWorkerMessage({ data }: MessageEvent ): void {
     const jobQueueObj = getJobFromQueue( data?.id );
     if ( data?.cmd === "complete" ) {
         jobQueueObj?.success( data );
@@ -193,11 +209,7 @@ function handleWorkerMessage({ data }) {
     }
 }
 
-/**
- * @param {Object} layer
- * @returns {HTMLCanvasElement}
- */
-const renderText = async layer => {
+const renderText = async ( layer: Layer ): Promise<HTMLCanvasElement> => {
     const { text } = layer;
     let font = text.font;
     try {
@@ -215,7 +227,8 @@ const renderText = async layer => {
     return cvs;
 };
 
-const renderMask = async ( layer, ctx, sourceBitmap, width, height ) => {
+const renderMask = async ( layer: Layer, ctx: CanvasRenderingContext2D, sourceBitmap: HTMLCanvasElement,
+    width: number, height: number ): Promise<void> => {
     if ( !layer.mask ) {
         return;
     }
@@ -230,7 +243,7 @@ const renderMask = async ( layer, ctx, sourceBitmap, width, height ) => {
     ctx.restore();
 };
 
-function getJobFromQueue( jobId ) {
+function getJobFromQueue( jobId: number ): RenderJob {
     const jobQueueObj = jobQueue.find(({ id }) => id === jobId );
     if ( !jobQueueObj ) {
         return null;

@@ -22,17 +22,18 @@
  */
 import { createCanvas } from "@/utils/canvas-util";
 
-const loadedFonts      = new Set();
 const GOOGLE_FONTS_URL = "https://fonts.googleapis.com/css?family=";
 
-// Google Fonts deemed non-GDPR compliant. Request consent first
-export const fontsConsented = () => window.localStorage?.getItem( "gfontConsent" ) === "true";
+const loadedFonts: Set<string> = new Set();
 
-export const consentFonts = () => {
+// Google Fonts deemed non-GDPR compliant. Request consent first
+export const fontsConsented = (): boolean => window.localStorage?.getItem( "gfontConsent" ) === "true";
+
+export const consentFonts = (): void => {
     window.localStorage?.setItem?.( "gfontConsent", "true" );
 };
 
-export const rejectFonts = () => {
+export const rejectFonts = (): void => {
     window.localStorage?.setItem?.( "gfontRejected", "true" );
 };
 
@@ -41,7 +42,7 @@ export const rejectFonts = () => {
  * Returns boolean true indicating whether font was cache
  * or false when it has just been loaded (and added to the cache)
  */
-export const loadGoogleFont = fontName => {
+export const loadGoogleFont = ( fontName: string ): Promise<boolean> => {
     return new Promise(( resolve, reject ) => {
         if ( !fontsConsented() ) {
             reject();
@@ -54,7 +55,7 @@ export const loadGoogleFont = fontName => {
         const css = document.createElement( "link" );
         css.setAttribute( "rel", "stylesheet" );
         css.setAttribute( "type", "text/css" );
-        css.onload = () => {
+        css.onload = (): void => {
             loadedFonts.add( fontName );
             // CSS file has loaded, but font hasn't, create first request for font render
             const { ctx } = createCanvas();
@@ -65,7 +66,7 @@ export const loadGoogleFont = fontName => {
                 resolve( false );
             }, 250 );
         };
-        css.onerror = e => {
+        css.onerror = ( e: Event ): void => {
             console.error( `Could not load font ${fontName}`, e );
             reject();
         }

@@ -20,36 +20,34 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+// @ts-expect-error no declaration module for module 'gifshot'
 import gifshot from "gifshot";
 
 /**
  * Whether the current environment supports creation of GIF images
  */
-export const supportsGIF = () => gifshot.isExistingImagesGIFSupported();
+export const supportsGIF = (): boolean => gifshot.isExistingImagesGIFSupported();
 
 /**
- * Create a GIF from given image
- *
- * @param {HTMLCanvasElement} image
- * @return {String} base64 encoded GIF
+ * Create a base64 encoded GIF from given image
  */
-export const createGIF = image => createAnimatedGIF([ image ]);
+export const createGIF = ( image: HTMLCanvasElement ): Promise<string> => createAnimatedGIF([ image ]);
 
 /**
- * Create an animated GIF from a list of images
+ * Create a base64 encoded animated GIF from a list of images
  *
  * @param {Array<HTMLCanvasElement>} images
  * @param {Number} frameDuration (10 = 1s) interval between frames
  * @return {String} base64 encoded GIF animation
  */
-export const createAnimatedGIF = ( images, frameDuration = 1 ) => {
+export const createAnimatedGIF = ( images: HTMLCanvasElement[], frameDuration = 1 ): Promise<string> => {
     const options = {
         gifWidth  : images[ 0 ].width,
         gifHeight : images[ 0 ].height,
         frameDuration
     };
     return new Promise(( resolve, reject ) => {
-        gifshot.createGIF({ images, ...options }, ({ error, image }) => {
+        gifshot.createGIF({ images, ...options }, ({ error, image }: { error: Error, image: string }): void => {
             if ( error ) {
                 reject();
             } else {

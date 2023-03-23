@@ -20,15 +20,52 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+// @ts-expect-error no declaration file for module 'psd.js'
 import PSD from "psd.js";
+import type { Rectangle, Size } from "zcanvas";
+import type { Document, Layer } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
 import FiltersFactory from "@/factories/filters-factory";
 import LayerFactory from "@/factories/layer-factory";
+import type { LayerProps } from "@/factories/layer-factory";
 import { inverseMask } from "@/rendering/compositing";
 import { createCanvas, base64toCanvas } from "@/utils/canvas-util";
 import { unblockedWait } from "@/utils/debounce-util";
 
-export const importPSD = async psdFileReference => {
+type PSDLayer = Rectangle & {
+    mask: Rectangle;
+    opacity: number;
+    visible: boolean;
+    image: {
+        hasMask: boolean;
+        width: () => number;
+        height: () => number;
+        toBase64: () => string;
+        maskData: {
+            buffer: ArrayBuffer;
+        }
+    }
+};
+
+type PSDNode = {
+    name: string;
+    children: () => {
+        length: number;
+        reverse: () => {
+            name: string;
+            layer: PSDLayer;
+        }[]
+    }
+};
+
+type PSD = {
+    tree: () => Size & PSDNode;
+    image: {
+        toPng: () => HTMLImageElement;
+    },
+};
+
+export const importPSD = async ( psdFileReference: File ): Promise<Document> => {
     try {
         const psd = await PSD.fromDroppedFile( psdFileReference );
         await unblockedWait();
@@ -42,12 +79,12 @@ export const importPSD = async psdFileReference => {
 
 /* internal methods */
 
-async function psdToBitMapperyDocument( psd, psdFileReference ) {
+async function psdToBitMapperyDocument( psd: any, psdFileReference: File ): Promise<Document> {
     const psdTree = psd.tree();
     const { width, height } = psdTree;
 
     // collect layers
-    const layers = [];
+    const layers: Layer[] = [];
 
     const treeLayerObjects = psdTree.children().reverse();
     for ( const layerObj of treeLayerObjects ) {
@@ -86,7 +123,7 @@ async function psdToBitMapperyDocument( psd, psdFileReference ) {
     });
 }
 
-async function createLayer( layer, layers, name = "" ) {
+async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promise<void> {
     const layerX      = layer.left;
     const layerY      = layer.top;
     const layerWidth  = layer.width;
@@ -98,7 +135,7 @@ async function createLayer( layer, layers, name = "" ) {
 
     // 2. determine whether layer uses masking
 
-    const maskProps = {};
+    const layerProps: LayerProps = {};
 
     if ( layer.image.hasMask ) {
         // note that we position the mask at the 0, 0 coordinate relative to the layer, whereas Photoshop
@@ -111,7 +148,7 @@ async function createLayer( layer, layers, name = "" ) {
         // Photoshop masks use inverted colours compared to our Canvas masking
         inverseMask( cvs );
 
-        maskProps.mask = cvs;
+        layerProps.mask = cvs;
     }
 
     // 3. retrieve layer source
@@ -126,7 +163,7 @@ async function createLayer( layer, layers, name = "" ) {
         height  : layerHeight,
         name,
         source,
-        ...maskProps,
+        ...layerProps,
         filters : FiltersFactory.create({
             opacity: ( layer.opacity ?? 255 ) / 255,
         }),

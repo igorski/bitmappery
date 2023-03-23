@@ -20,6 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Store, Commit, Dispatch } from "vuex";
 import { LayerTypes } from "@/definitions/layer-types";
 import { ALL_PANELS } from "@/definitions/panel-types";
 import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM, canDraw } from "@/definitions/tool-types";
@@ -29,17 +30,27 @@ import {
 import { toggleLayerVisibility } from "@/factories/action-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { translatePoints } from "@/math/point-math";
+import type { BitMapperyState } from "@/store";
 import { supportsFullscreen, toggleFullscreen } from "@/utils/environment-util";
 import { addTextLayer } from "@/utils/layer-util";
 
-let store, state, getters, commit, dispatch, listener,
-    suspended = false, blockDefaults = true, optionDown = false, shiftDown = false,
-    lastKeyDown = 0, lastKeyCode = "";
+type ListenerRef = ( type: "up" | "down", keyCode: number, event: KeyboardEvent ) => void;
+
+let store: Store<BitMapperyState>;
+let state: BitMapperyState;
+let getters: any;
+let commit: Commit;
+let dispatch: Dispatch;
+let listener: ListenerRef;
+let suspended = false, blockDefaults = true, optionDown = false, shiftDown = false;
+let lastKeyDown = 0;
+let lastKeyCode = -1;
 
 const DEFAULT_BLOCKED    = [ 8, 32, 37, 38, 39, 40 ];
 const MOVABLE_TOOL_TYPES = [ ToolTypes.DRAG, ToolTypes.SELECTION, ToolTypes.LASSO, ToolTypes.WAND ];
 const BRUSH_TOOL_TYPES   = [ ToolTypes.BRUSH, ToolTypes.ERASER, ToolTypes.CLONE ];
-const defaultBlock = e => e.preventDefault();
+
+const defaultBlock = ( e: KeyboardEvent ): void => e.preventDefault();
 
 /**
  * KeyboardService is a dedicated controller that listens to keyboard
@@ -48,7 +59,7 @@ const defaultBlock = e => e.preventDefault();
  */
 const KeyboardService =
 {
-    init( storeReference ) {
+    init( storeReference: Store<BitMapperyState> ): void {
         store = storeReference;
         ({ state, getters, commit, dispatch } = storeReference );
 
@@ -61,59 +72,43 @@ const KeyboardService =
     /**
      * whether the Apple option or a control key is
      * currently held down for the given event
-     *
-     * @param {Event} aEvent
-     * @returns {boolean}
      */
-    hasOption( aEvent ) {
+    hasOption( aEvent: KeyboardEvent ): boolean {
         return ( optionDown === true ) || aEvent.metaKey || aEvent.ctrlKey;
     },
     /**
      * whether the shift key is currently held down
-     *
-     * @returns {boolean}
      */
-    hasShift() {
+    hasShift(): boolean {
         return ( shiftDown === true );
     },
     /**
      * attach a listener to receive updates whenever a key
-     * has been released. listenerRef is a function
+     * has been released. listenerRef is a function (usually inside a Vue component)
      * which receives three arguments:
      *
-     * {string} type, either "up" or "down"
-     * {number} keyCode, the keys keyCode
-     * {Event} event, the keyboard event
-     *
-     * the listener is usually a Vue component
-     *
-     * @param {Object|Function} listenerRef
+     * @param {ListenerRef} listenerRef
      */
-    setListener( listenerRef ) {
+    setListener( listenerRef: ListenerRef ): void {
         listener = listenerRef;
     },
     /**
      * the KeyboardService can be suspended so it
      * will not fire its callback to the listeners
      */
-     getSuspended() {
+     getSuspended(): boolean {
          return suspended;
      },
-     /**
-      * @param {boolean} value
-      */
-     setSuspended( value ) {
+     setSuspended( value: boolean ): void {
          suspended = value;
      },
     /**
      * whether to block default behaviour on certain keys
-     *
-     * @param {boolean} value
      */
-    setBlockDefaults( value ) {
+    setBlockDefaults( value: boolean ): void {
         blockDefaults = value;
     },
-    reset() {
+    reset(): void {
         KeyboardService.setListener( null );
         KeyboardService.setSuspended( false );
         KeyboardService.setBlockDefaults( true );
@@ -123,7 +118,7 @@ export default KeyboardService;
 
 /* internal methods */
 
-function handleKeyDown( event ) {
+function handleKeyDown( event: KeyboardEvent ): void {
     if ( suspended ) {
         return;
     }
@@ -265,6 +260,7 @@ function handleKeyDown( event ) {
                     preventDefault( event );
                 }
             } else {
+                // @ts-expect-error Property 'pickrInstance' does not exist on type 'Window & typeof globalThis'
                 window.pickrInstance?.show();
             }
             break;
@@ -473,7 +469,7 @@ function handleKeyDown( event ) {
     lastKeyDown = now;
 }
 
-function handleKeyUp( event ) {
+function handleKeyUp( event: KeyboardEvent ): void {
     shiftDown = false;
 
     switch ( event.keyCode ) {
@@ -509,21 +505,21 @@ function handleKeyUp( event ) {
     }
 }
 
-function handleFocus() {
+function handleFocus(): void {
     // when switching browser tabs it is possible these values were left active
     shiftDown = optionDown = false;
 }
 
-function preventDefault( event ) {
+function preventDefault( event: KeyboardEvent ): void {
     event.stopPropagation();
     event.preventDefault();
 }
 
-function setActiveTool( tool ) {
+function setActiveTool( tool: ToolTypes ): void {
     commit( "setActiveTool", { tool, document: getters.activeDocument });
 }
 
-function openModal( modal ) {
+function openModal( modal: number ): void {
     commit( "openModal", modal );
 }
 
@@ -531,7 +527,7 @@ function openModal( modal ) {
  * @param {number} axis to move (0 == horizontal, 1 == vertical)
  * @param {number} dir to move (0 == up/left, 1 == down/right)
  */
-function moveObject( axis = 0, dir = 0, activeTool ) {
+function moveObject( axis = 0, dir = 0, activeTool: ToolTypes ): void {
     const speed = shiftDown ? 10 : 1;
     switch ( activeTool ) {
         case ToolTypes.DRAG:

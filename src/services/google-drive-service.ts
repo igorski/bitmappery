@@ -51,32 +51,68 @@ const DELIMITER_CLOSE = `\r\n--${BOUNDARY}--`;
 export const ROOT_FOLDER   = "root";
 export const DEFAULT_SPACE = "drive";
 
-let accessToken = null;
-let gapi = null;
-let client = null;
-let currentFolder = ROOT_FOLDER;
+type GoogleDriveFileRef = {
+    id: string;
+    name: string;
+    type: "folder" | "file";
+    preview: string;
+    url: string;
+    mime: string;
+    path: string;
+};
 
-export const init = async ( apiKey, clientId ) => {
+type GoogleDriveFolderDef = {
+    id: string;
+    name: string;
+};
+const rootGoogleDriveFolderDef: GoogleDriveFolderDef = { id: ROOT_FOLDER, name: "My Drive" };
+
+let accessToken: string = null;
+let currentFolder: string = ROOT_FOLDER;
+let gapi: {
+    load: ( type: string, fn: () => void ) => void,
+    client: {
+        init: ( data: any ) => void,
+        request: ( data: any ) => { execute: ( data: any ) => void },
+        drive: {
+            files: {
+                get: ( data: any ) => { result: { id: string, mimeType: string, name: string, parents: any }, body: any },
+                list: ( data: any ) => { result: any },
+                create: ( data: any ) => { result: any },
+                update: ( data: any ) => { result: any },
+            }
+        }
+    },
+} = null;
+let client: {
+    requestAccessToken: () => string
+} = null;
+
+export const init = async ( apiKey: string, clientId: string ): Promise<boolean> => {
     if ( gapi !== null ) {
         return true;
     }
     return new Promise( async ( resolve ) => {
         try {
             await loadScript( IDENTITY_API );
+            // @ts-expect-error Property 'google' does not exist on type 'Window & typeof globalThis'.
             if ( !window.google ) {
                 throw new Error( "could not load Google Identity Services API" );
             }
             // 1. init Google Identity Services
+            // @ts-expect-error Property 'google' does not exist on type 'Window & typeof globalThis'.
             client = window.google.accounts.oauth2.initTokenClient({
                 client_id :  clientId,
                 scope     : ACCESS_SCOPES,
-                callback  : ({ access_token }) => registerAccessToken( access_token ),
+                callback  : ({ access_token }: { access_token: string }) => registerAccessToken( access_token ),
             });
             // 2. init Google Drive API
             await loadScript( DRIVE_API );
+            // @ts-expect-error Property 'gapi' does not exist on type 'Window & typeof globalThis'.
             if ( !window.gapi ) {
                 throw new Error( "could not load Google Drive API" );
             }
+            // @ts-expect-error Property 'gapi' does not exist on type 'Window & typeof globalThis'.
             gapi = window.gapi;
 
             gapi.load( "client", async () => {
@@ -92,43 +128,46 @@ export const init = async ( apiKey, clientId ) => {
     });
 };
 
-export const isAuthenticated = () => !!accessToken;
+export const isAuthenticated = (): boolean => !!accessToken;
 
 /**
  * Authentication step 1: for interacting with Drive : request access token
  * by opening an authentication page
  */
-export const requestLogin = () => {
+export const requestLogin = (): void => {
     client.requestAccessToken();
 };
 
 /**
  * Authentication step 2: user has received access token
  */
-export const registerAccessToken = token => {
+export const registerAccessToken = ( token: string ): void => {
     accessToken = token;
 };
 
-export const getAccessToken = () => accessToken;
+export const getAccessToken = (): string => accessToken;
 
-export const requestLogout = () => {
+export const requestLogout = (): void => {
     if ( accessToken === null ) {
         return;
     }
+    // @ts-expect-error Property 'google' does not exist on type 'Window & typeof globalThis'.
     window.google.accounts.oauth2.revoke( accessToken );
     accessToken = null;
 };
 
-export const validateScopes = grantedScopes => ACCESS_SCOPES.split( "," ).every( scope => grantedScopes.includes( scope ));
+export const validateScopes = ( grantedScopes: string[] ) => {
+    return ACCESS_SCOPES.split( "," ).every( scope => grantedScopes.includes( scope ));
+}
 
-export const disconnect = () => requestLogout;
+export const disconnect = (): void => requestLogout();
 
 /**
  * @param {string} path to search for. This is "root" to search from the
  * Google Drive root folder, or is a string identifier
  */
-export const listFolder = async ( path = ROOT_FOLDER ) => {
-    let entries = [];
+export const listFolder = async ( path = ROOT_FOLDER ): Promise<GoogleDriveFileRef[]> => {
+    let entries: GoogleDriveFileRef[] = [];
     let result;
     let nextPageToken = null;
 
@@ -146,7 +185,7 @@ export const listFolder = async ( path = ROOT_FOLDER ) => {
         if ( result.files.length === 0 ) {
             break;
         }
-        result.files.forEach( file => {
+        result.files.forEach(( file: { id: string, name: string, mimeType: string, webContentLink: string }) => {
             entries.push({
                 id      : file.id,
                 name    : file.name,
@@ -162,10 +201,11 @@ export const listFolder = async ( path = ROOT_FOLDER ) => {
     } while ( nextPageToken );
 
     setCurrentFolder( path );
+
     return entries;
 };
 
-export const createFolder = async ( parent = ROOT_FOLDER, folder = "folder" ) => {
+export const createFolder = async ( parent = ROOT_FOLDER, folder = "folder" ): Promise<string | boolean> => {
     try {
         const { result } = await gapi.client.drive.files.create({
             resource: {
@@ -181,11 +221,13 @@ export const createFolder = async ( parent = ROOT_FOLDER, folder = "folder" ) =>
     }
 };
 
-export const getCurrentFolder = () => currentFolder;
+export const getCurrentFolder = (): string => currentFolder;
 
-export const setCurrentFolder = folder => currentFolder = folder;
+export const setCurrentFolder = ( folder: string ): void => {
+    currentFolder = folder;
+}
 
-export const deleteEntry = async fileId => {
+export const deleteEntry = async ( fileId: string ): Promise<boolean> => {
     try {
         // note we don't use the delete endpoint as it omits the trash
         // and permanently deletes the file, instantly.
@@ -196,7 +238,7 @@ export const deleteEntry = async fileId => {
     }
 };
 
-export const downloadFileAsBlob = async ( file, returnAsURL = false ) => {
+export const downloadFileAsBlob = async ( file: { id: string, mime: string }, returnAsURL = false ): Promise<Blob | string> => {
     try {
         const result = await gapi.client.drive.files.get({ fileId: file.id, alt: "media" });
         const blob   = await base64toBlob( `data:${file.mime};base64,${btoa( result.body )}` );
@@ -214,13 +256,12 @@ export const downloadFileAsBlob = async ( file, returnAsURL = false ) => {
  * Traverses the folder specified by given fileId back up the
  * tree until the root is reached.
  */
-export const getFolderHierarchy = async fileId => {
-    const rootFolderDef = { id: ROOT_FOLDER, name: "My Drive" };
+export const getFolderHierarchy = async ( fileId: string ): Promise<GoogleDriveFolderDef[]> => {
 
     if ( fileId === ROOT_FOLDER && ACCESS_SCOPES === SCOPED_WRITE_ACCESS ) {
-        return [ rootFolderDef ];
+        return [ rootGoogleDriveFolderDef ];
     }
-    const folders = [];
+    const folders: GoogleDriveFolderDef[] = [];
     let result;
 
     ({ result } = await gapi.client.drive.files.get({
@@ -228,13 +269,13 @@ export const getFolderHierarchy = async fileId => {
         fields : "id, name, mimeType, parents"
     }));
 
-    if ( !result?.mimeType === MIME_FOLDER ) {
+    if ( result?.mimeType !== MIME_FOLDER ) {
         return folders;
     }
-    folders.push( result );
+    folders.push( result as GoogleDriveFolderDef );
 
     do {
-        const id = result.parents?.[ 0 ];
+        const id: string = result.parents?.[ 0 ];
         if ( !id ) {
             break;
         }
@@ -247,7 +288,7 @@ export const getFolderHierarchy = async fileId => {
             // likely access restriction (e.g. reached root folder under drive.file scope)
             result.parents = [];
             if ( ACCESS_SCOPES === SCOPED_WRITE_ACCESS ) {
-                folders.push( rootFolderDef );
+                folders.push( rootGoogleDriveFolderDef );
             }
             break;
         }
@@ -261,7 +302,7 @@ export const getFolderHierarchy = async fileId => {
     return folders.reverse();
 };
 
-export const uploadBlob = async ( fileOrBlob, folder, fileName ) => {
+export const uploadBlob = async ( fileOrBlob: File | Blob, folder: string, fileName: string ): Promise<boolean> => {
     const reader = new FileReader();
 
     // first verify if file exists, so we can make an update request instead
@@ -274,19 +315,20 @@ export const uploadBlob = async ( fileOrBlob, folder, fileName ) => {
     });
     const existingId = result.files[ 0 ]?.id || null;
 
-    return new Promise(( resolve, reject ) => {
-        reader.onload = () => {
+    return new Promise(( resolve, reject ): void => {
+        reader.onload = (): void => {
             const contentType = fileOrBlob.type || "application/octet-stream";
             const metadata = {
                 name     : fileName,
                 mimeType : fileOrBlob.type.split( ";" )[ 0 ],
+                parents  : undefined as string[]
             };
 
             if ( !existingId ) {
                 metadata.parents = [ folder ];
             }
 
-            const base64Data = btoa( reader.result );
+            const base64Data = btoa( reader.result as string );
             const multipartRequestBody =
                 DELIMITER +
                 "Content-Type: application/json\r\n\r\n" +
@@ -308,7 +350,7 @@ export const uploadBlob = async ( fileOrBlob, folder, fileName ) => {
                 body : multipartRequestBody
             });
 
-            request.execute( async file => {
+            request.execute( async ( file?: { id: string }) => {
                 if ( !file?.id ) {
                     return reject();
                 }

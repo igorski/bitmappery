@@ -56,7 +56,7 @@ export interface BitMapperyState {
     selectMode: boolean;      // whether the currently active tool is a selection type (works across layers)
     layerSelectMode: boolean; // whether clicking on the document should act as layer selection
     dialog: Dialog | null;    // currently opened dialog
-    modal: string | null;     // currently opened modal (by name)
+    modal: number | null;     // currently opened modal (see modal-windows definition)
     loadingStates: string[];  // wether one or more long running operations (identified by string key) are running
     notifications: Notification[]; // notification message queue
     storageType: STORAGE_TYPES;
@@ -171,7 +171,7 @@ export default {
         closeDialog( state: BitMapperyState ): void {
             state.dialog = null;
         },
-        openModal( state: BitMapperyState, modalName: string ): void {
+        openModal( state: BitMapperyState, modalName: number ): void {
             state.blindActive = !!modalName;
             state.modal = modalName;
             KeyboardService.setSuspended( !!state.modal );

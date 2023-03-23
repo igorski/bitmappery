@@ -21,8 +21,18 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { loader } from "zcanvas";
+import type { SizedImage } from "zcanvas";
 import { blobToResource, disposeResource } from "@/utils/resource-manager";
 import FileToResourceWorker from "@/workers/image-file-to-resource.worker?worker";
+
+type ImageLoadRequest = {
+    name: string;
+    success: ( data: SizedImage ) => void;
+    error: ( fileName: string, error: Error ) => void;
+};
+const imageLoadQueue: ImageLoadRequest[] = [];
+
+type FileLoadCallback = ( file: File, data: SizedImage ) => void;
 
 /**
  * We can use a Worker to load the files to bitmaps so we can retrieve
@@ -31,15 +41,14 @@ import FileToResourceWorker from "@/workers/image-file-to-resource.worker?worker
  * Ironically, Safari yields a 3500 % speedup without the Worker. Eitherway,
  * loading large queues should maintain responsiveness of the application.
  */
-let _worker = undefined;
-const getWorker = () => {
+let _worker: Worker = undefined;
+const getWorker = (): Worker => {
     if ( _worker === undefined && typeof window.createImageBitmap === "function" ) {
         _worker = new FileToResourceWorker();
         _worker.onmessage = handleWorkerMessage;
     }
     return _worker;
 };
-const imageLoadQueue = [];
 
 /**
  * Load a list of Image files in series in a way that ensures the main execution
@@ -48,9 +57,9 @@ const imageLoadQueue = [];
  * a size description in the form of image width and height.
  *
  * @param {File[]} fileList of images
- * @param {Function} callback to execute for each loaded file (receives file and zCanvas load result as arguments)
+ * @param {FileLoadCallback} callback to execute for each loaded file
  */
-export const loadImageFiles = ( fileList, callback ) => {
+export const loadImageFiles = ( fileList: File[], callback: FileLoadCallback ): Promise<void[]> => {
     const promises = [];
     for ( let i = 0; i < fileList.length; ++i ) {
         const file = fileList[ i ];
@@ -61,13 +70,13 @@ export const loadImageFiles = ( fileList, callback ) => {
 
 /* internal methods */
 
-function loadFile( file, callback ) {
+function loadFile( file: File, callback: FileLoadCallback ): Promise<void> {
     const worker = getWorker();
     if ( worker ) {
         return new Promise(( resolve, reject ) => {
             imageLoadQueue.push({
                 name: file.name,
-                success: async data => {
+                success: ( data: SizedImage ) => {
                     callback( file, data );
                     resolve();
                 },
@@ -91,10 +100,10 @@ function loadFile( file, callback ) {
     }
 }
 
-function handleWorkerMessage({ data }) {
+function handleWorkerMessage({ data }: MessageEvent ): void {
     const fileQueueObj = getFileFromQueue( data?.file );
     if ( data?.cmd === "loadComplete" ) {
-        const { blobUrl, width, height } = data;
+        const { blobUrl, width, height }: { blobUrl: string, width: number, height: number } = data;
         const image = new Image();
         image.src = blobUrl;
         fileQueueObj?.success({ image, size: { width, height } });
@@ -104,7 +113,7 @@ function handleWorkerMessage({ data }) {
     }
 }
 
-function getFileFromQueue( fileName ) {
+function getFileFromQueue( fileName: string ): ImageLoadRequest {
     const fileQueueObj = imageLoadQueue.find(({ name }) => name === fileName );
     if ( !fileQueueObj ) {
         return null;

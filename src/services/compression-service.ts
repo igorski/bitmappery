@@ -21,22 +21,29 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import CompressionWorker from "@/workers/compression.worker?worker";
-const jobQueue = [];
+
+type CompressionJob = {
+    id: number;
+    success: ( data: any ) => void;
+    error: ( error: any ) => void;
+};
+
+const jobQueue: CompressionJob[] = [];
 let UID = 0;
 
 /**
  * Compress given data Object into an compressed binary Blob.
  */
-export const compress = data => createJob( "compress", data );
+export const compress = ( data: any ): Promise<Blob> => createJob( "compress", data );
 
 /**
  * Decompress given data Blob into a JSON structure.
  */
-export const decompress = data => createJob( "decompress", data );
+export const decompress = ( data: Blob ): Promise<any> => createJob( "decompress", data );
 
 /* internal methods */
 
-function handleWorkerMessage({ data }) {
+function handleWorkerMessage({ data }: MessageEvent ): void {
     const jobQueueObj = getJobFromQueue( data?.id );
     if ( data?.cmd === "complete" ) {
         jobQueueObj?.success( data.data );
@@ -46,7 +53,7 @@ function handleWorkerMessage({ data }) {
     }
 }
 
-function createJob( cmd, data ) {
+function createJob( cmd: string, data: any ): Promise<any> {
     return new Promise(( resolve, reject ) => {
         const id = ( ++UID );
         // Worker is lazily created per process so we can parallelize
@@ -68,7 +75,7 @@ function createJob( cmd, data ) {
     })
 }
 
-function getJobFromQueue( jobId ) {
+function getJobFromQueue( jobId: number ): CompressionJob {
     const jobQueueObj = jobQueue.find(({ id }) => id === jobId );
     if ( !jobQueueObj ) {
         return null;

@@ -24,7 +24,7 @@ import LZString from "lz-string";
 import { readFile } from "@/utils/file-util";
 
 self.addEventListener( "message", ( event: MessageEvent ): void => {
-    const { cmd, data, id }: { cmd: string, data: any, id: string } = event.data;
+    const { cmd, data, id }: { cmd: string, data: any, id: number } = event.data;
     switch ( cmd )
     {
         default:
