@@ -29,11 +29,10 @@ import { createCanvas, canvasToBlob, globalToLocal } from "@/utils/canvas-util";
 import { renderCross } from "@/utils/render-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { getSizeForBrush } from "@/definitions/brush-types";
-import type { Document, Layer, Selection } from "@/definitions/document";
+import type { Document, Layer, SelectionList } from "@/definitions/document";
 import type { CanvasContextPairing, CanvasDrawable, Brush, BrushToolOptions, BrushAction } from "@/definitions/editor";
 import { LayerTypes } from "@/definitions/layer-types";
 import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
-import { isSelectionClosed } from "@/math/selection-math";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
@@ -50,6 +49,7 @@ import {
 import BrushFactory from "@/factories/brush-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
+import { isSelectionClosed, getLastSelection } from "@/utils/selection-util";
 import type { BitMapperyState } from "@/store";
 
 const HALF   = 0.5;
@@ -76,7 +76,7 @@ class LayerSprite extends ZoomableSprite {
     protected _isPaintMode: boolean;
     protected _isDragMode: boolean;
     protected _isColorPicker: boolean;
-    protected _selection: Selection;
+    protected _selection: SelectionList;
     protected _invertSelection: boolean;
     protected _toolType: ToolTypes;
     protected _orgSourceToStore: string;
@@ -215,7 +215,7 @@ class LayerSprite extends ZoomableSprite {
 
     setSelection( document: Document, onlyWhenClosed = false ): void {
         const { selection } = document;
-        if ( !onlyWhenClosed || ( isSelectionClosed( selection ) && canDrawOnSelection( this.layer ))) {
+        if ( !onlyWhenClosed || ( isSelectionClosed( getLastSelection( selection )) && canDrawOnSelection( this.layer ))) {
             this._selection = selection?.length ? selection : null;
         } else {
             this._selection = null;
@@ -240,7 +240,7 @@ class LayerSprite extends ZoomableSprite {
             return;
         }
 
-        this._toolType    = tool;
+        this._toolType   = tool;
         this.toolOptions = toolOptions;
 
         // note we use setDraggable() even outside of ToolTypes.DRAG
@@ -306,11 +306,11 @@ class LayerSprite extends ZoomableSprite {
         const isLowResPreview = this._brush.down && !( drawOnMask && isEraser );
 
         // if there is an active selection, painting will be constrained within
-        let selectionPoints: Selection = optAction?.selection || this._selection;
+        let selectionPoints: SelectionList = optAction?.selection || this._selection;
         if ( selectionPoints ) {
             let { left, top } = this.layer;
             if ( this.isRotated() && !isLowResPreview ) {
-                selectionPoints = rotatePointerLists( selectionPoints as Point[], this.layer, width, height );
+                selectionPoints = selectionPoints.map(( points: Point[] ) => rotatePointerLists( points, this.layer, width, height ));
                 left = top = 0; // pointers have been rotated within clipping context
             }
             ctx.save(); // 2. clipping save()

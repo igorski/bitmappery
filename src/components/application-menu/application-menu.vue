@@ -394,7 +394,6 @@ import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION,
     PREFERENCES, RESIZE_CANVAS, GRID_TO_LAYERS, STROKE_SELECTION
 } from "@/definitions/modal-windows";
-import { getRectangleForSelection } from "@/math/selection-math";
 import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { getCanvasInstance } from "@/factories/sprite-factory";
@@ -403,6 +402,7 @@ import LayerFactory from "@/factories/layer-factory";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { cloneCanvas } from "@/utils/canvas-util";
 import { renderFullSize } from "@/utils/document-util";
+import { getRectangleForSelection } from "@/utils/selection-util";
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
 

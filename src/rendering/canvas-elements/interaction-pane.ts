@@ -23,19 +23,21 @@
 import Vue from "vue";
 import { sprite } from "zcanvas";
 import type { Point, Size, Viewport } from "zcanvas";
-import type { Document, Layer, Selection } from "@/definitions/document";
+import type { Document, Layer, Shape, Selection, SelectionList } from "@/definitions/document";
 import ToolTypes from "@/definitions/tool-types";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { isPointInRange, translatePoints, snapToAngle, rectToCoordinateList } from "@/math/point-math";
 import { scaleRectangle } from "@/math/rectangle-math";
-import { isSelectionClosed, createSelectionForRectangle, selectByColor, mergeSelections } from "@/math/selection-math";
+import { selectByColor } from "@/math/selection-math";
 import { fastRound } from "@/math/unit-math";
 import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
 import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import KeyboardService from "@/services/keyboard-service";
 import { isInsideTransparentArea } from "@/utils/canvas-util";
 import { createDocumentSnapshot, createLayerSnapshot } from "@/utils/document-util";
+import { isSelectionClosed, getLastSelection, createSelectionForRectangle } from "@/utils/selection-util";
+import { mergeShapes } from "@/utils/shape-util";
 
 export enum InteractionModes {
     MODE_PAN = 0,
@@ -110,8 +112,8 @@ class InteractionPane extends sprite {
             } else if ( this._activeTool !== activeTool ) {
                 this.resetSelection();
             }
-            this._hasSelection    = document.selection.length > 0;
-            this._selectionClosed = isSelectionClosed( document.selection );
+            this._hasSelection = document.selection.length > 0;
+            this._selectionClosed = isSelectionClosed( getLastSelection( document.selection ));
             // we distinguish between the rectangular and lasso selection tool
             this._isRectangleSelect = activeTool === ToolTypes.SELECTION;
             // selection mode has an always active move listener
@@ -154,7 +156,7 @@ class InteractionPane extends sprite {
         const currentSelection = document.selection || [];
         if ( this.mode === InteractionModes.MODE_SELECTION ) {
             this.setSelection( [] );
-            if ( isSelectionClosed( currentSelection )) {
+            if ( isSelectionClosed( getLastSelection( currentSelection ))) {
                 storeSelectionHistory( document, currentSelection, "reset" );
             }
         } else {
@@ -166,14 +168,14 @@ class InteractionPane extends sprite {
         this.invalidate();
     }
 
-    setSelection( value: Selection, optStoreState = false ): void {
+    setSelection( value: SelectionList, optStoreState = false ): void {
         const document = this.getActiveDocument();
         const currentSelection = document.selection || [];
         Vue.set( document, "selection", value );
         if ( optStoreState ) {
             storeSelectionHistory( document, currentSelection );
         }
-        this._selectionClosed = value?.length > 1; // TODO: can we determine this from first and last point?
+        this._selectionClosed = isSelectionClosed( getLastSelection( value ));
         this.invalidate();
     }
 
@@ -200,7 +202,7 @@ class InteractionPane extends sprite {
     selectAll( targetLayer: Layer = null ): void {
         const bounds = targetLayer ? getSpriteForLayer( targetLayer ).getBounds() : this._bounds;
         this.setSelection(
-            rectToCoordinateList( bounds.left, bounds.top, bounds.width, bounds.height )
+            [ rectToCoordinateList( bounds.left, bounds.top, bounds.width, bounds.height )]
         );
     }
 
@@ -255,15 +257,23 @@ class InteractionPane extends sprite {
                 let completeSelection = false;
                 if ( this._activeTool === ToolTypes.WAND ) {
                     const cvs = await ( this._toolOptions.sampleMerged ? createDocumentSnapshot( this.getActiveDocument() ) : createLayerSnapshot( this.getActiveLayer() ));
-                    let selection = selectByColor( cvs, x, y, this._toolOptions.threshold );
+                    const selected: Shape = selectByColor( cvs, x, y, this._toolOptions.threshold );
+                    let selection: SelectionList;
                     if ( KeyboardService.hasShift() ) {
-                        selection = mergeSelections( selection, this.getActiveDocument().selection ?? [] );
+                        // TODO check if mergable first in above condition
+                        selection = [ mergeShapes( selected, getLastSelection( this.getActiveDocument().selection ) ?? [] ) ];
+                    } else {
+                        selection = [ ...this.getActiveDocument().selection, selected ];
                     }
                     this.canvas.store.commit( "setRuntimeSelection", selection );
                     completeSelection = true;
                 }
                 else if ( !this._selectionClosed ) {
-                    const { selection } = this.getActiveDocument();
+                    let selection: Selection = getLastSelection( this.getActiveDocument().selection );
+                    if ( !selection ) {
+                        selection = [];
+                        this.canvas.store.commit( "setRuntimeSelection", [ selection ]);
+                    }
                     // selection mode, set the click coordinate as the first point in the selection
                     const firstPoint = selection[ 0 ];
                     if ( firstPoint ) {
@@ -302,7 +312,7 @@ class InteractionPane extends sprite {
                 if ( this._selectionClosed && this._pointerDown ) {
                     const document = this.getActiveDocument();
                     const currentSelection = document.selection;
-                    document.selection = translatePoints( currentSelection, x - this._dragStartEventCoordinates.x, y - this._dragStartEventCoordinates.y );
+                    document.selection = currentSelection.map( s => translatePoints( s, x - this._dragStartEventCoordinates.x, y - this._dragStartEventCoordinates.y ));
                     this._dragStartEventCoordinates = { x, y }; // update to current position so we can easily move the selection using relative deltas
                     storeSelectionHistory( document, currentSelection, "drag" );
                 }
@@ -338,16 +348,16 @@ class InteractionPane extends sprite {
                 if ( document.selection.length > 0 && !this._selectionClosed ) {
                     // when releasing in rectangular select mode, set the selection to
                     // the bounding box of the down press coordinate and this release coordinate
-                    const firstPoint = document.selection[ 0 ];
+                    const firstPoint = getLastSelection( document.selection )[ 0 ];
                     const { width, height } = calculateSelectionSize( firstPoint, Math.max( 0, Math.min( document.width, x )), Math.max( 0, Math.min( document.height, y )), this._toolOptions );
-                    document.selection = rectToCoordinateList( firstPoint.x, firstPoint.y, width, height );
+                    document.selection[ document.selection.length - 1 ] = rectToCoordinateList( firstPoint.x, firstPoint.y, width, height );
                     this._selectionClosed = true;
                     storeSelectionHistory( document );
                 }
             }
             else if ( isDoubleClick && !this._selectionClosed ) {
                 // double click on unclosed lasso tool selections auto-closes the selection
-                document.selection.push({ ...document.selection[ 0 ] });
+                document.selection.at( -1 ).push({ ...document.selection.at( -1 )[ 0 ] });
                 this._selectionClosed = true;
                 storeSelectionHistory( document );
             }
@@ -356,45 +366,48 @@ class InteractionPane extends sprite {
 
     draw( ctx: CanvasRenderingContext2D, viewport: Viewport ): void {
         // render selection outline
-        let { selection, invertSelection, width, height } = this.getActiveDocument();
-        if ( /*this.mode === InteractionModes.MODE_SELECTION && */ selection?.length ) {
-            const firstPoint    = selection[ 0 ];
-            const localPointerX = this._pointerX - viewport.left; // local to viewport
-            const localPointerY = this._pointerY - viewport.top;
-            const hasUnclosedSelection = selection.length && !this._selectionClosed;
+        let { invertSelection, width, height } = this.getActiveDocument();
+        const selectionList = this.getActiveDocument().selection;
+        if ( /*this.mode === InteractionModes.MODE_SELECTION && */ selectionList?.length ) {
+            for ( let selection of selectionList ) {
+                const firstPoint    = selection[ 0 ];
+                const localPointerX = this._pointerX - viewport.left; // local to viewport
+                const localPointerY = this._pointerY - viewport.top;
+                const hasUnclosedSelection = selection.length && !this._selectionClosed;
 
-            // when in rectangular select mode, the outline will draw from the first coordinate
-            // (defined in handlePress()) to the current pointer coordinate
-            if ( this._isRectangleSelect && hasUnclosedSelection ) {
-                const { width, height } = calculateSelectionSize( firstPoint, this._pointerX, this._pointerY, this._toolOptions );
-                selection = rectToCoordinateList( firstPoint.x, firstPoint.y, width, height );
-            }
-            // for unclosed lasso selections, draw line to current cursor position
-            let currentPosition = null;
-            if ( !this._isRectangleSelect && hasUnclosedSelection ) {
-                currentPosition = KeyboardService.hasShift() ?
-                    snapToAngle( localPointerX, localPointerY, selection[ selection.length - 1 ], viewport )
-                : { x: localPointerX, y: localPointerY };
-            }
+                // when in rectangular select mode, the outline will draw from the first coordinate
+                // (defined in handlePress()) to the current pointer coordinate
+                if ( this._isRectangleSelect && hasUnclosedSelection ) {
+                    const { width, height } = calculateSelectionSize( firstPoint, this._pointerX, this._pointerY, this._toolOptions );
+                    selection = rectToCoordinateList( firstPoint.x, firstPoint.y, width, height );
+                }
+                // for unclosed lasso selections, draw line to current cursor position
+                let currentPosition = null;
+                if ( !this._isRectangleSelect && hasUnclosedSelection ) {
+                    currentPosition = KeyboardService.hasShift() ?
+                        snapToAngle( localPointerX, localPointerY, selection[ selection.length - 1 ], viewport )
+                    : { x: localPointerX, y: localPointerY };
+                }
 
-            // draw each point in the selection
-            drawSelection( ctx, this.canvas, viewport, selection, currentPosition );
-            if ( invertSelection && !hasUnclosedSelection ) {
-                drawSelection( ctx, this.canvas, viewport, createSelectionForRectangle( width, height ), currentPosition );
-            }
+                // draw each point in the selection
+                drawSelection( ctx, this.canvas, viewport, selection, currentPosition );
+                if ( invertSelection && !hasUnclosedSelection ) {
+                    drawSelection( ctx, this.canvas, viewport, createSelectionForRectangle( width, height ), currentPosition );
+                }
 
-            // highlight current cursor position for unclosed selections
-            ctx.save();
-            if ( !this._selectionClosed ) {
-                const { zoomFactor } = this.canvas;
-                ctx.beginPath();
-                ctx.lineWidth   = ctx.lineWidth * ( 2 / zoomFactor );
-                ctx.strokeStyle = "#0db0bc";
-                const size = firstPoint && isPointInRange( this._pointerX, this._pointerY, firstPoint.x, firstPoint.y, 5 / zoomFactor ) ? 15 : 5;
-                ctx.arc( localPointerX, localPointerY, size / zoomFactor, 0, 2 * Math.PI );
-                ctx.stroke();
+                // highlight current cursor position for unclosed selections
+                ctx.save();
+                if ( !this._selectionClosed ) {
+                    const { zoomFactor } = this.canvas;
+                    ctx.beginPath();
+                    ctx.lineWidth   = ctx.lineWidth * ( 2 / zoomFactor );
+                    ctx.strokeStyle = "#0db0bc";
+                    const size = firstPoint && isPointInRange( this._pointerX, this._pointerY, firstPoint.x, firstPoint.y, 5 / zoomFactor ) ? 15 : 5;
+                    ctx.arc( localPointerX, localPointerY, size / zoomFactor, 0, 2 * Math.PI );
+                    ctx.stroke();
+                }
+                ctx.restore();
             }
-            ctx.restore();
         } else {
             // show bounding box around active layer
             const activeLayer = this.getActiveLayer();
@@ -428,7 +441,7 @@ export default InteractionPane;
 /* internal methods */
 
 function drawSelection( ctx: CanvasRenderingContext2D, zCanvas: ZoomableCanvas, viewport: Viewport,
-    selection: Selection, currentPosition: Point ): void {
+    selection: Shape, currentPosition: Point ): void {
     ctx.save();
     drawSelectionOutline( ctx, zCanvas, viewport, selection, "#000", currentPosition );
     ctx.restore();
@@ -480,7 +493,7 @@ function syncSelection(): void {
     getSpriteForLayer( getters.activeLayer )?.setSelection( getters.activeDocument );
 }
 
-function storeSelectionHistory( document: Document, optPreviousSelection: Selection = [], optType = "" ): void {
+function storeSelectionHistory( document: Document, optPreviousSelection: SelectionList = [], optType = "" ): void {
     const selection = [ ...document.selection ];
     enqueueState( `selection_${document.name}${optType}`, {
         undo() {

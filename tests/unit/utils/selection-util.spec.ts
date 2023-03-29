@@ -1,7 +1,7 @@
 import { it, describe, expect } from "vitest";
-import { getRectangleForSelection, createSelectionForRectangle, isSelectionRectangular, isSelectionClosed } from "@/math/selection-math";
+import { getRectangleForSelection, createSelectionForRectangle, isSelectionRectangular, isSelectionClosed } from "@/utils/selection-util";
 
-describe( "selection math", () => {
+describe( "selection util", () => {
     it( "should be able to calculate the bounding box of the selection", () => {
         const selection = [
             { x: 100, y: 150 },

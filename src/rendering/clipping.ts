@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,8 +21,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Selection } from "@/definitions/document";
-import { isSelectionRectangular } from "@/math/selection-math";
 import type { OverrideConfig } from "@/rendering/lowres";
+import { isSelectionRectangular } from "@/utils/selection-util";
 
 /**
  * Prepares a clipping path corresponding to given selections outline, transformed
@@ -35,7 +35,7 @@ import type { OverrideConfig } from "@/rendering/lowres";
  * @param {Boolean=} invert optional whether to invert the selection
  * @param {OverrideConfig=} overrideConfig optional override Object when workin in lowres preview mode
  */
-export const clipContextToSelection = ( ctx: CanvasRenderingContext2D, selectionPoints: Selection,
+export const clipContextToSelection = ( ctx: CanvasRenderingContext2D, selection: Selection[],
     offsetX: number, offsetY: number, invert = false, overrideConfig: OverrideConfig = null ): void => {
     let scale = 1;
     let vpX   = 0;
@@ -44,13 +44,15 @@ export const clipContextToSelection = ( ctx: CanvasRenderingContext2D, selection
         ({ scale, vpX, vpY } = overrideConfig );
     }
     ctx.beginPath();
-    selectionPoints.forEach(( point, index ) => {
-        ctx[ index === 0 ? "moveTo" : "lineTo" ]( (( point.x - offsetX ) * scale ) - vpX, (( point.y - offsetY ) * scale ) - vpY );
-    });
-    // when the selection is inverted, we can reverse the clipping operation
-    // by drawing the rectangular outline over the clipping path
-    if ( invert ) {
-        createInverseClipping( ctx, selectionPoints, offsetX, offsetY, ctx.canvas.width, ctx.canvas.height );
+    for ( const selectionPoints of selection ) {
+        selectionPoints.forEach(( point, index ) => {
+            ctx[ index === 0 ? "moveTo" : "lineTo" ]( (( point.x - offsetX ) * scale ) - vpX, (( point.y - offsetY ) * scale ) - vpY );
+        });
+        // when the selection is inverted, we can reverse the clipping operation
+        // by drawing the rectangular outline over the clipping path
+        if ( invert ) {
+            createInverseClipping( ctx, selectionPoints, offsetX, offsetY, ctx.canvas.width, ctx.canvas.height );
+        }
     }
     ctx.clip();
 };

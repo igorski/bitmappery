@@ -69,7 +69,14 @@ export type Text = {
     color: string;
 };
 
-export type Selection = Point[];
+// a shape is a list of Points (describing coordinates within a polygon)
+export type Shape = Point[];
+
+// a Selection is a closed Shape
+export type Selection = Shape;
+
+// selections can consist of multiple non-connecting Shapes (used at runtime only)
+export type SelectionList = Selection[];
 
 export type Document = {
     id: string;
@@ -79,6 +86,6 @@ export type Document = {
     height: number;
     selections: Record<string, Selection>,
     // the below are only used at runtime, will not be serialized
-    selection: null | Selection;
+    selection: null | SelectionList;
     invertSelection: boolean;
 };

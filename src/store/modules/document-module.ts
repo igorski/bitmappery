@@ -23,7 +23,7 @@
 import Vue from "vue";
 import type { ActionContext, Module } from "vuex";
 import type { Size } from "zcanvas";
-import type { Document, Layer, Effects, Selection } from "@/definitions/document";
+import type { Document, Layer, Effects, Selection, SelectionList } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { flushLayerSprites, runSpriteFn, getSpriteForLayer, getCanvasInstance } from "@/factories/sprite-factory";
@@ -95,7 +95,7 @@ const DocumentModule: Module<DocumentState, any> = {
             getCanvasInstance()?.rescaleFn();
             getCanvasInstance()?.refreshFn();
         },
-        setRuntimeSelection( state: DocumentState, selection: Selection ): void {
+        setRuntimeSelection( state: DocumentState, selection: SelectionList ): void {
             Vue.set( state.documents[ state.activeIndex ], "selection", selection );
         },
         addNewDocument( state: DocumentState, nameOrDocument: string | Document ): void {
