@@ -42,7 +42,7 @@ let getters: any;
 let commit: Commit;
 let dispatch: Dispatch;
 let listener: ListenerRef;
-let suspended = false, blockDefaults = true, optionDown = false, shiftDown = false;
+let suspended = false, blockDefaults = true, optionDown = false, shiftDown = false, listenerCapturesAll = true;
 let lastKeyDown = 0;
 let lastKeyCode = -1;
 
@@ -84,13 +84,12 @@ const KeyboardService =
     },
     /**
      * attach a listener to receive updates whenever a key
-     * has been released. listenerRef is a function (usually inside a Vue component)
-     * which receives three arguments:
-     *
-     * @param {ListenerRef} listenerRef
+     * has been released. When captureAll is true the listener will capture all
+     * keyboard actions (meaning the internal handlers here are omitted)
      */
-    setListener( listenerRef: ListenerRef ): void {
+    setListener( listenerRef: ListenerRef, captureAll = true ): void {
         listener = listenerRef;
+        listenerCapturesAll = captureAll;
     },
     /**
      * the KeyboardService can be suspended so it
@@ -133,7 +132,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
     if ( typeof listener === "function" ) {
         listener( "down", keyCode, event );
 
-        if ( keyCode !== 90 ) {
+        if ( listenerCapturesAll && keyCode !== 90 ) {
             return; // unless "Z" is pressed (for undo/redo actions, skip remaining handling functions)
         }
     }
