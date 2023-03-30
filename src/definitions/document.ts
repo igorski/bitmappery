@@ -72,7 +72,7 @@ export type Text = {
 // a shape is a list of Points (describing coordinates within a polygon)
 export type Shape = Point[];
 
-// selections can consist of multiple non-connecting Shapes (used at runtime only)
+// selections can consist of multiple non-connecting Shapes
 export type Selection = Shape[];
 
 export type Document = {
@@ -81,8 +81,8 @@ export type Document = {
     layers: Layer[];
     width: number;
     height: number;
-    selections: Record<string, Shape>,
+    selections: Record<string, Selection>,
     // the below are only used at runtime, will not be serialized
-    selection: null | Selection;
+    selection: Selection;
     invertSelection: boolean;
 };

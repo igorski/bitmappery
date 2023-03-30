@@ -23,7 +23,7 @@
 import Vue from "vue";
 import type { ActionContext, Module } from "vuex";
 import type { Size } from "zcanvas";
-import type { Document, Layer, Effects, Shape, Selection } from "@/definitions/document";
+import type { Document, Layer, Effects, Selection } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { flushLayerSprites, runSpriteFn, getSpriteForLayer, getCanvasInstance } from "@/factories/sprite-factory";
@@ -218,7 +218,7 @@ const DocumentModule: Module<DocumentState, any> = {
                 getSpriteForLayer( layer )?.syncPosition();
             }
         },
-        saveSelection( state: DocumentState, { name, selection }: { name: string, selection: Shape }): void {
+        saveSelection( state: DocumentState, { name, selection }: { name: string, selection: Selection }): void {
             const document = state.documents[ state.activeIndex ];
             Vue.set( document.selections, name, selection );
         },

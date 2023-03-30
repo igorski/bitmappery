@@ -89,6 +89,6 @@ export const isSelectionClosed = ( selection: Shape ): boolean => {
     return firstPoint.x === lastPoint.x && firstPoint.y === lastPoint.y;
 };
 
-export const getLastSelection = ( Selection: Selection ): Shape => {
-    return Selection[ Selection.length - 1 ];
+export const getLastSelection = ( selection: Selection ): Shape => {
+    return selection[ selection.length - 1 ];
 };
