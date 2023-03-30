@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -216,10 +216,12 @@ export default {
             this.handleGuides();
         },
         activeTool( tool ) {
+            const isSelectionTool = SELECTION_TOOLS.includes( tool );
+            this.setSelectMode( isSelectionTool );
+
             if ( usesInteractionPane( tool )) {
                 this.setPanMode( tool === ToolTypes.MOVE );
-                this.setSelectMode( SELECTION_TOOLS.includes( tool ));
-                this.updateInteractionPane();
+                this.updateInteractionPane( isSelectionTool && tool !== ToolTypes.WAND ? "cursor-crosshair" : undefined );
             } else {
                 this.handleCursor();
                 getCanvasInstance()?.interactionPane?.handleActiveTool( tool, false );
@@ -244,9 +246,6 @@ export default {
             this.updateInteractionPane( "cursor-drag" );
         },
         layerSelectMode() {
-            this.updateInteractionPane();
-        },
-        selectMode() {
             this.updateInteractionPane();
         },
         hasGuideRenderer( value ) {
@@ -403,7 +402,7 @@ export default {
                     canvasClasses.add( "no-cursor" );
                     break;
                 case ToolTypes.EYEDROPPER:
-                    canvasClasses.add( "cursor-crosshair" );
+                    canvasClasses.add( "cursor-pointer" );
                     break;
             }
         },
