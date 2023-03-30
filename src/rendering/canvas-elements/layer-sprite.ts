@@ -29,7 +29,7 @@ import { createCanvas, canvasToBlob, globalToLocal } from "@/utils/canvas-util";
 import { renderCross } from "@/utils/render-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { getSizeForBrush } from "@/definitions/brush-types";
-import type { Document, Layer, SelectionList } from "@/definitions/document";
+import type { Document, Layer, Selection } from "@/definitions/document";
 import type { CanvasContextPairing, CanvasDrawable, Brush, BrushToolOptions, BrushAction } from "@/definitions/editor";
 import { LayerTypes } from "@/definitions/layer-types";
 import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
@@ -76,7 +76,7 @@ class LayerSprite extends ZoomableSprite {
     protected _isPaintMode: boolean;
     protected _isDragMode: boolean;
     protected _isColorPicker: boolean;
-    protected _selection: SelectionList;
+    protected _selection: Selection;
     protected _invertSelection: boolean;
     protected _toolType: ToolTypes;
     protected _orgSourceToStore: string;
@@ -306,7 +306,7 @@ class LayerSprite extends ZoomableSprite {
         const isLowResPreview = this._brush.down && !( drawOnMask && isEraser );
 
         // if there is an active selection, painting will be constrained within
-        let selectionPoints: SelectionList = optAction?.selection || this._selection;
+        let selectionPoints: Selection = optAction?.selection || this._selection;
         if ( selectionPoints ) {
             let { left, top } = this.layer;
             if ( this.isRotated() && !isLowResPreview ) {

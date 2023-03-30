@@ -1,5 +1,5 @@
 import { it, describe, expect } from "vitest";
-import { getRectangleForSelection, createSelectionForRectangle, isSelectionRectangular, isSelectionClosed } from "@/utils/selection-util";
+import { getRectangleForShape, createSelectionForRectangle, isSelectionRectangular, isSelectionClosed } from "@/utils/selection-util";
 
 describe( "selection util", () => {
     it( "should be able to calculate the bounding box of the selection", () => {
@@ -9,7 +9,7 @@ describe( "selection util", () => {
             { x: 50,  y: 100 },
             { x: 101, y: 100 }
         ];
-        expect( getRectangleForSelection( selection )).toEqual({
+        expect( getRectangleForShape( selection )).toEqual({
             left: 50,
             top: 100,
             width: 51,
@@ -29,7 +29,7 @@ describe( "selection util", () => {
 
     describe(" when determining whether a selection is rectangular", () => {
         it( "should recognize unclosed selections", () => {
-            expect(isSelectionRectangular([
+            expect( isSelectionRectangular([
                 { x: 50,  y: 50 },
                 { x: 250, y: 50 },
                 { x: 250, y: 150 },
@@ -38,7 +38,7 @@ describe( "selection util", () => {
         });
 
         it( "should recognize non-rectangular selections", () => {
-            expect(isSelectionRectangular([
+            expect( isSelectionRectangular([
                 { x: 50,  y: 50 },
                 { x: 250, y: 50 },
                 { x: 150, y: 150 },
@@ -46,7 +46,7 @@ describe( "selection util", () => {
                 { x: 50,  y: 50 }
             ])).toBe( false );
 
-            expect(isSelectionRectangular([
+            expect( isSelectionRectangular([
                 { x: 50,  y: 50 },
                 { x: 250, y: 50 },
                 { x: 250, y: 150 },
@@ -56,7 +56,7 @@ describe( "selection util", () => {
         });
 
         it( "should recognize a rectangular selection", () => {
-            expect(isSelectionRectangular([
+            expect( isSelectionRectangular([
                 { x: 50,  y: 50 },
                 { x: 250, y: 50 },
                 { x: 250, y: 150 },

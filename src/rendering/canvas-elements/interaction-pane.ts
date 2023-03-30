@@ -23,7 +23,7 @@
 import Vue from "vue";
 import { sprite } from "zcanvas";
 import type { Point, Size, Viewport } from "zcanvas";
-import type { Document, Layer, Shape, Selection, SelectionList } from "@/definitions/document";
+import type { Document, Layer, Shape, Selection } from "@/definitions/document";
 import ToolTypes from "@/definitions/tool-types";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
@@ -59,6 +59,7 @@ class InteractionPane extends sprite {
     private _pointerDown: boolean;
     private _hasSelection: boolean;
     private _selectionClosed: boolean;
+    private _isAddingToExistingSelection: boolean;
     private _isRectangleSelect: boolean;
     private _activeTool: ToolTypes;
     private _pointerX: number;
@@ -168,7 +169,7 @@ class InteractionPane extends sprite {
         this.invalidate();
     }
 
-    setSelection( value: SelectionList, optStoreState = false ): void {
+    setSelection( value: Selection, optStoreState = false ): void {
         const document = this.getActiveDocument();
         const currentSelection = document.selection || [];
         Vue.set( document, "selection", value );
@@ -254,31 +255,38 @@ class InteractionPane extends sprite {
                 break;
 
             case InteractionModes.MODE_SELECTION:
+                const isShiftKeyDown = KeyboardService.hasShift();
+                let { selection } = this.getActiveDocument();
                 let completeSelection = false;
+
                 if ( this._activeTool === ToolTypes.WAND ) {
                     const cvs = await ( this._toolOptions.sampleMerged ? createDocumentSnapshot( this.getActiveDocument() ) : createLayerSnapshot( this.getActiveLayer() ));
                     const selected: Shape = selectByColor( cvs, x, y, this._toolOptions.threshold );
-                    let selection: SelectionList;
-                    if ( KeyboardService.hasShift() ) {
+                    if ( isShiftKeyDown ) {
                         // TODO check if mergable first in above condition
-                        selection = [ mergeShapes( selected, getLastSelection( this.getActiveDocument().selection ) ?? [] ) ];
+                        selection = [ mergeShapes( selected, getLastSelection( selection ) ?? [] ) ];
                     } else {
-                        selection = [ ...this.getActiveDocument().selection, selected ];
+                        selection = [ ...selection, selected ];
                     }
                     this.canvas.store.commit( "setRuntimeSelection", selection );
                     completeSelection = true;
                 }
-                else if ( !this._selectionClosed ) {
-                    let selection: Selection = getLastSelection( this.getActiveDocument().selection );
-                    if ( !selection ) {
-                        selection = [];
-                        this.canvas.store.commit( "setRuntimeSelection", [ selection ]);
+                else if ( !this._selectionClosed || isShiftKeyDown ) {
+                    this._isAddingToExistingSelection = selection.length > 0 && isShiftKeyDown && this._selectionClosed;
+                    if ( this._isAddingToExistingSelection ) {
+                        selection.push( [] );
+                        this._selectionClosed = false;
+                    }
+                    let selectionShape: Shape = getLastSelection( selection );
+                    if ( !selectionShape ) {
+                        selectionShape = [];
+                        this.canvas.store.commit( "setRuntimeSelection", [ selectionShape ]);
                     }
                     // selection mode, set the click coordinate as the first point in the selection
-                    const firstPoint = selection[ 0 ];
+                    const firstPoint = selectionShape[ 0 ];
                     if ( firstPoint ) {
-                        if ( KeyboardService.hasShift() ) {
-                            ({ x, y } = snapToAngle( x, y, selection[ selection.length - 1 ] ));
+                        if ( isShiftKeyDown ) {
+                            ({ x, y } = snapToAngle( x, y, selectionShape[ selectionShape.length - 1 ] ));
                         }
                         else if ( isPointInRange( x, y, firstPoint.x, firstPoint.y, 5 / this.canvas.zoomFactor )) {
                             // point was in range of start coordinate, snap and close selection
@@ -287,7 +295,7 @@ class InteractionPane extends sprite {
                             completeSelection = true;
                         }
                     }
-                    selection.push({ x, y });
+                    selectionShape.push({ x, y });
                 }
                 if ( completeSelection ) {
                     storeSelectionHistory( this.getActiveDocument() );
@@ -338,6 +346,7 @@ class InteractionPane extends sprite {
         this._lastRelease   = now;
 
         if ( this.mode === InteractionModes.MODE_SELECTION ) {
+            this._isAddingToExistingSelection = false;
             this.forceMoveListener(); // keep the move listener active
             if ( isDoubleClick && this._selectionClosed ) {
                 this.resetSelection();
@@ -345,7 +354,7 @@ class InteractionPane extends sprite {
             }
             const document = this.getActiveDocument();
             if ( this._isRectangleSelect ) {
-                if ( document.selection.length > 0 && !this._selectionClosed ) {
+                if ( !this._selectionClosed ) {
                     // when releasing in rectangular select mode, set the selection to
                     // the bounding box of the down press coordinate and this release coordinate
                     const firstPoint = getLastSelection( document.selection )[ 0 ];
@@ -368,8 +377,9 @@ class InteractionPane extends sprite {
         // render selection outline
         let { invertSelection, width, height } = this.getActiveDocument();
         const selectionList = this.getActiveDocument().selection;
-        if ( /*this.mode === InteractionModes.MODE_SELECTION && */ selectionList?.length ) {
+        if ( /*this.mode === InteractionModes.MODE_SELECTION && */ selectionList?.length > 0 ) {
             for ( let selection of selectionList ) {
+                const connectToPointer = selection === selectionList.at( -1 );
                 const firstPoint    = selection[ 0 ];
                 const localPointerX = this._pointerX - viewport.left; // local to viewport
                 const localPointerY = this._pointerY - viewport.top;
@@ -377,13 +387,13 @@ class InteractionPane extends sprite {
 
                 // when in rectangular select mode, the outline will draw from the first coordinate
                 // (defined in handlePress()) to the current pointer coordinate
-                if ( this._isRectangleSelect && hasUnclosedSelection ) {
+                if ( connectToPointer && this._isRectangleSelect && hasUnclosedSelection ) {
                     const { width, height } = calculateSelectionSize( firstPoint, this._pointerX, this._pointerY, this._toolOptions );
                     selection = rectToCoordinateList( firstPoint.x, firstPoint.y, width, height );
                 }
                 // for unclosed lasso selections, draw line to current cursor position
                 let currentPosition = null;
-                if ( !this._isRectangleSelect && hasUnclosedSelection ) {
+                if ( connectToPointer && !this._isRectangleSelect && hasUnclosedSelection ) {
                     currentPosition = KeyboardService.hasShift() ?
                         snapToAngle( localPointerX, localPointerY, selection[ selection.length - 1 ], viewport )
                     : { x: localPointerX, y: localPointerY };
@@ -453,7 +463,7 @@ function drawSelection( ctx: CanvasRenderingContext2D, zCanvas: ZoomableCanvas, 
 }
 
 function drawSelectionOutline( ctx: CanvasRenderingContext2D, zCanvas: ZoomableCanvas, viewport: Viewport,
-    selection: Selection, color: string, currentPosition: Point = null ): void {
+    selection: Shape, color: string, currentPosition: Point = null ): void {
     ctx.lineWidth = 2 / zCanvas.zoomFactor;
     ctx.beginPath();
     ctx.strokeStyle = color;
@@ -493,7 +503,7 @@ function syncSelection(): void {
     getSpriteForLayer( getters.activeLayer )?.setSelection( getters.activeDocument );
 }
 
-function storeSelectionHistory( document: Document, optPreviousSelection: SelectionList = [], optType = "" ): void {
+function storeSelectionHistory( document: Document, optPreviousSelection: Selection = [], optType = "" ): void {
     const selection = [ ...document.selection ];
     enqueueState( `selection_${document.name}${optType}`, {
         undo() {

@@ -21,9 +21,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Rectangle } from "zcanvas";
-import type { Selection, SelectionList } from "@/definitions/document";
+import type { Shape, Selection } from "@/definitions/document";
 
-export const getRectangleForSelection = ( selection: Selection ): Rectangle => {
+export const getRectangleForShape = ( selection: Shape ): Rectangle => {
     let minX = Infinity;
     let minY = Infinity;
     let maxX = 0;
@@ -43,14 +43,14 @@ export const getRectangleForSelection = ( selection: Selection ): Rectangle => {
     };
 };
 
-export const getRectangleForSelectionList = ( list: SelectionList ): Rectangle => {
+export const getRectangleForSelection = ( list: Selection ): Rectangle => {
     let left = Infinity;
     let top  = Infinity;
     let width = 0;
     let height = 0;
 
     for ( const selection of list ) {
-        const rect = getRectangleForSelection( selection );
+        const rect = getRectangleForShape( selection );
         left = Math.min( left, rect.left );
         top = Math.min( top, rect.top );
         width = Math.max( width, rect.width );
@@ -59,7 +59,7 @@ export const getRectangleForSelectionList = ( list: SelectionList ): Rectangle =
     return { left, top, width, height };
 };
 
-export const createSelectionForRectangle = ( width: number, height: number, x = 0, y = 0 ): Selection => [
+export const createSelectionForRectangle = ( width: number, height: number, x = 0, y = 0 ): Shape => [
     { x, y },
     { x: x + width, y },
     { x: x + width, y: y + height },
@@ -67,7 +67,7 @@ export const createSelectionForRectangle = ( width: number, height: number, x = 
     { x, y }
 ];
 
-export const isSelectionRectangular = ( selection: Selection ): boolean => {
+export const isSelectionRectangular = ( selection: Shape ): boolean => {
     if ( selection.length !== 5 ) {
         return false;
     }
@@ -78,7 +78,7 @@ export const isSelectionRectangular = ( selection: Selection ): boolean => {
     return isSelectionClosed( selection );
 };
 
-export const isSelectionClosed = ( selection: Selection ): boolean => {
+export const isSelectionClosed = ( selection: Shape ): boolean => {
     // smallest selection is four point polygon
     if ( !selection || selection.length < 3 ) {
         return false;
@@ -89,6 +89,6 @@ export const isSelectionClosed = ( selection: Selection ): boolean => {
     return firstPoint.x === lastPoint.x && firstPoint.y === lastPoint.y;
 };
 
-export const getLastSelection = ( selectionList: SelectionList ): Selection => {
-    return selectionList[ selectionList.length - 1 ];
+export const getLastSelection = ( Selection: Selection ): Shape => {
+    return Selection[ Selection.length - 1 ];
 };

@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Store, Commit, Dispatch } from "vuex";
-import type { Selection } from "@/definitions/document";
+import type { Shape } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import { ALL_PANELS } from "@/definitions/panel-types";
 import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM, canDraw } from "@/definitions/tool-types";
@@ -549,7 +549,7 @@ function moveObject( axis = 0, dir = 0, activeTool: ToolTypes ): void {
         case ToolTypes.LASSO:
         case ToolTypes.WAND:
             getCanvasInstance()?.interactionPane.setSelection(
-                getters.activeDocument.selection.map(( selection: Selection ) => translatePoints(
+                getters.activeDocument.selection.map(( selection: Shape ) => translatePoints(
                     selection,
                     axis === 0 ? dir === 0 ? -speed : speed : 0,
                     axis === 1 ? dir === 0 ? -speed : speed : 0

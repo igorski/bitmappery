@@ -30,7 +30,7 @@ import { rotateRectangle, areEqual } from "@/math/rectangle-math";
 import { reverseTransformation } from "@/rendering/transforming";
 import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import { createCanvas } from "@/utils/canvas-util";
-import { getRectangleForSelectionList } from "@/utils/selection-util";
+import { getRectangleForSelection } from "@/utils/selection-util";
 
 /**
  * Creates a snapshot of the current document at its full size.
@@ -185,7 +185,7 @@ export const copySelection = async ( activeDocument: Document, activeLayer: Laye
 
     // when calculating the source rectangle we must take the device pixel ratio into account
     const pixelRatio = window.devicePixelRatio || 1;
-    const selectionRectangle = getRectangleForSelectionList( activeDocument.selection );
+    const selectionRectangle = getRectangleForSelection( activeDocument.selection );
     const selectionCanvas = createCanvas( selectionRectangle.width, selectionRectangle.height );
     selectionCanvas.ctx.drawImage(
         cvs,

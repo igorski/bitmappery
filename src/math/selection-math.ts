@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Selection } from "@/definitions/document";
+import type { Shape } from "@/definitions/document";
 
 const UP     = 0;
 const LEFT   = 1;
@@ -32,9 +32,9 @@ const RIGHT  = 3;
  * @param {number} sourceX
  * @param {number} sourceY
  * @param {number=} threshold in 0 - 100 range
- * @return {Selection}
+ * @return {Shape}
  */
-export const selectByColor = ( cvs: HTMLCanvasElement, sourceX: number, sourceY: number, threshold = 0 ): Selection => {
+export const selectByColor = ( cvs: HTMLCanvasElement, sourceX: number, sourceY: number, threshold = 0 ): Shape => {
     const { width, height } = cvs;
 
     const ctx = cvs.getContext( "2d" );

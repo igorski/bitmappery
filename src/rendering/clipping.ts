@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Selection } from "@/definitions/document";
+import type { Shape, Selection } from "@/definitions/document";
 import type { OverrideConfig } from "@/rendering/lowres";
 import { isSelectionRectangular } from "@/utils/selection-util";
 
@@ -35,7 +35,7 @@ import { isSelectionRectangular } from "@/utils/selection-util";
  * @param {Boolean=} invert optional whether to invert the selection
  * @param {OverrideConfig=} overrideConfig optional override Object when workin in lowres preview mode
  */
-export const clipContextToSelection = ( ctx: CanvasRenderingContext2D, selection: Selection[],
+export const clipContextToSelection = ( ctx: CanvasRenderingContext2D, selection: Selection,
     offsetX: number, offsetY: number, invert = false, overrideConfig: OverrideConfig = null ): void => {
     let scale = 1;
     let vpX   = 0;
@@ -57,7 +57,7 @@ export const clipContextToSelection = ( ctx: CanvasRenderingContext2D, selection
     ctx.clip();
 };
 
-export const createInverseClipping = ( ctx: CanvasRenderingContext2D, selection: Selection,
+export const createInverseClipping = ( ctx: CanvasRenderingContext2D, selection: Shape,
     x: number, y: number, width: number, height: number ): void => {
     // when the selection is inverted, we can reverse the clipping operation
     // by drawing the rectangular outline over the clipping path
