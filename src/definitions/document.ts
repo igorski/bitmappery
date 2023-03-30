@@ -83,6 +83,6 @@ export type Document = {
     height: number;
     selections: Record<string, Selection>,
     // the below are only used at runtime, will not be serialized
-    selection: Selection;
+    activeSelection: Selection;
     invertSelection: boolean;
 };

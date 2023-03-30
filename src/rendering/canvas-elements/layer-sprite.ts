@@ -214,9 +214,9 @@ class LayerSprite extends ZoomableSprite {
     }
 
     setSelection( document: Document, onlyWhenClosed = false ): void {
-        const { selection } = document;
-        if ( !onlyWhenClosed || ( isSelectionClosed( getLastSelection( selection )) && canDrawOnSelection( this.layer ))) {
-            this._selection = selection?.length > 0 ? selection : null;
+        const { activeSelection } = document;
+        if ( !onlyWhenClosed || ( isSelectionClosed( getLastSelection( activeSelection )) && canDrawOnSelection( this.layer ))) {
+            this._selection = activeSelection?.length > 0 ? activeSelection : null;
         } else {
             this._selection = null;
         }
@@ -230,7 +230,7 @@ class LayerSprite extends ZoomableSprite {
         this._isColorPicker    = false;
         this._selection        = null;
         this._toolType         = null;
-        this.toolOptions      = null;
+        this.toolOptions       = null;
         this.cloneStartCoords  = null;
 
         // store pending paint states (if there were any)

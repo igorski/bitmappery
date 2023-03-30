@@ -204,7 +204,7 @@ export default {
             let y = Infinity;
             let r = -Infinity;
             let b = -Infinity;
-            this.activeDocument.selection.forEach( point => {
+            this.activeDocument.activeSelection.forEach( point => {
                 x = point.x < x ? point.x : x;
                 y = point.y < y ? point.y : y;
                 r = point.x > r ? point.x : r;
@@ -237,7 +237,7 @@ export default {
         },
         moveSelection( deltaX = 0, deltaY = 0 ) {
             getCanvasInstance()?.interactionPane.setSelection(
-                this.activeDocument.selection.map(({ x, y }) => ({
+                this.activeDocument.activeSelection.map(({ x, y }) => ({
                     x: x + deltaX,
                     y: y + deltaY
                 })), true
@@ -252,7 +252,7 @@ export default {
             const prevBottom = this.y + this.height;
 
             getCanvasInstance()?.interactionPane.setSelection(
-                this.activeDocument.selection.map(({ x, y }) => ({
+                this.activeDocument.activeSelection.map(({ x, y }) => ({
                     x: wider  && x === prevRight  ? Math.max( maxX, x ) : Math.min( maxX, x ),
                     y: taller && y === prevBottom ? Math.max( maxY, y ) : Math.min( maxY, y ),
                 })), true

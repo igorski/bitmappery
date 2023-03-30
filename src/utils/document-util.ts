@@ -155,7 +155,7 @@ export const copySelection = async ( activeDocument: Document, activeLayer: Laye
 
     const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
 
-    activeDocument.selection.forEach( selection => {
+    activeDocument.activeSelection.forEach( selection => {
         ctx.beginPath();
         selection.forEach(( point, index ) => {
             ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x, point.y );
@@ -185,7 +185,7 @@ export const copySelection = async ( activeDocument: Document, activeLayer: Laye
 
     // when calculating the source rectangle we must take the device pixel ratio into account
     const pixelRatio = window.devicePixelRatio || 1;
-    const selectionRectangle = getRectangleForSelection( activeDocument.selection );
+    const selectionRectangle = getRectangleForSelection( activeDocument.activeSelection );
     const selectionCanvas = createCanvas( selectionRectangle.width, selectionRectangle.height );
     selectionCanvas.ctx.drawImage(
         cvs,
@@ -218,7 +218,7 @@ export const deleteSelectionContent = ( activeDocument: Document, activeLayer: L
        ({ left, top, width, height } = transformedBounds );
     }
 
-    activeDocument.selection.forEach( selection => {
+    activeDocument.activeSelection.forEach( selection => {
         ctx.beginPath();
         selection.forEach(( point, index ) => {
             ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x - left, point.y - top );

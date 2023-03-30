@@ -24,7 +24,7 @@ describe( "Document factory", () => {
                 height: 1000,
                 layers: [ { layer: "1" } ],
                 selections: {},
-                selection: [],
+                activeSelection: [],
                 invertSelection: false,
             });
         });
@@ -45,7 +45,7 @@ describe( "Document factory", () => {
                 height: 900,
                 layers,
                 selections: { foo: [{ x: 0, y: 0 }] },
-                selection: [],
+                activeSelection: [],
                 invertSelection: false,
             });
         });

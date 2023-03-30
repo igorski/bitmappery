@@ -47,7 +47,7 @@ const DocumentFactory = {
             height,
             selections,
             // only used at runtime, will not be serialized
-            selection: [],
+            activeSelection: [],
             invertSelection: false,
         };
     },

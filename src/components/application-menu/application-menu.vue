@@ -574,7 +574,7 @@ export default {
                 width  : this.activeDocument.width,
                 height : this.activeDocument.height
             };
-            const selection = [ ...this.activeDocument.selection ];
+            const selection = [ ...this.activeDocument.activeSelection ];
             const { left, top, width, height } = getRectangleForSelection( selection );
             const commit = async () => {
                 await store.commit( "cropActiveDocumentContent", { left, top });

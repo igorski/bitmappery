@@ -89,7 +89,7 @@ export default {
             if ( !this.isValid ) {
                 return;
             }
-            this.saveSelection({ name: this.name, selection: this.activeDocument.selection });
+            this.saveSelection({ name: this.name, selection: this.activeDocument.activeSelection });
             this.closeModal();
         },
     },
