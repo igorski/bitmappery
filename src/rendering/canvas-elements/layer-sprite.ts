@@ -49,7 +49,8 @@ import {
 import BrushFactory from "@/factories/brush-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
-import { isSelectionClosed, getLastSelection } from "@/utils/selection-util";
+import { getLastShape } from "@/utils/selection-util";
+import { isShapeClosed } from "@/utils/shape-util";
 import type { BitMapperyState } from "@/store";
 
 const HALF   = 0.5;
@@ -215,7 +216,7 @@ class LayerSprite extends ZoomableSprite {
 
     setSelection( document: Document, onlyWhenClosed = false ): void {
         const { activeSelection } = document;
-        if ( !onlyWhenClosed || ( isSelectionClosed( getLastSelection( activeSelection )) && canDrawOnSelection( this.layer ))) {
+        if ( !onlyWhenClosed || ( isShapeClosed( getLastShape( activeSelection )) && canDrawOnSelection( this.layer ))) {
             this._selection = activeSelection?.length > 0 ? activeSelection : null;
         } else {
             this._selection = null;

@@ -22,73 +22,30 @@
  */
 import type { Rectangle } from "zcanvas";
 import type { Shape, Selection } from "@/definitions/document";
+import { shapeToRectangle } from "@/utils/shape-util";
 
-export const getRectangleForShape = ( selection: Shape ): Rectangle => {
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = 0;
-    let maxY = 0;
+export const selectionToRectangle = ( selection: Selection ): Rectangle => {
+    if ( selection.length === 1 ) {
+        return shapeToRectangle( selection[ 0 ]);
+    }
 
-    selection.forEach(({ x, y }) => {
-        minX = Math.min( minX, x );
-        maxX = Math.max( maxX, x );
-        minY = Math.min( minY, y );
-        maxY = Math.max( maxY, y );
-    });
+    const [ xCoords, yCoords ] = selection.reduce(( acc: number[][], shape: Shape ) => {
+        acc[ 0 ].push( ...shape.map( s => s.x ));
+        acc[ 1 ].push( ...shape.map( s => s.y ));
+        return acc;
+    }, [[], []] );
+
+    const left = Math.min.apply( null, xCoords );
+    const top  = Math.min.apply( null, yCoords );
+
     return {
-        left   : minX,
-        top    : minY,
-        width  : maxX - minX,
-        height : maxY - minY
+        left,
+        top,
+        width  : Math.max.apply( null, xCoords ) - left,
+        height : Math.max.apply( null, yCoords ) - top,
     };
 };
 
-export const getRectangleForSelection = ( list: Selection ): Rectangle => {
-    let left = Infinity;
-    let top  = Infinity;
-    let width = 0;
-    let height = 0;
-
-    for ( const selection of list ) {
-        const rect = getRectangleForShape( selection );
-        left = Math.min( left, rect.left );
-        top = Math.min( top, rect.top );
-        width = Math.max( width, rect.width );
-        height = Math.max( height, rect.height );
-    }
-    return { left, top, width, height };
-};
-
-export const createSelectionForRectangle = ( width: number, height: number, x = 0, y = 0 ): Shape => [
-    { x, y },
-    { x: x + width, y },
-    { x: x + width, y: y + height },
-    { x, y: y + height },
-    { x, y }
-];
-
-export const isSelectionRectangular = ( selection: Shape ): boolean => {
-    if ( selection.length !== 5 ) {
-        return false;
-    }
-    if ( selection[ 1 ].x !== selection[ 2 ].x ||
-         selection[ 2 ].y !== selection[ 3 ].y ) {
-         return false;
-    }
-    return isSelectionClosed( selection );
-};
-
-export const isSelectionClosed = ( selection: Shape ): boolean => {
-    // smallest selection is four point polygon
-    if ( !selection || selection.length < 3 ) {
-        return false;
-    }
-    const firstPoint = selection[ 0 ];
-    const lastPoint  = selection[ selection.length - 1 ];
-
-    return firstPoint.x === lastPoint.x && firstPoint.y === lastPoint.y;
-};
-
-export const getLastSelection = ( selection: Selection ): Shape => {
+export const getLastShape = ( selection: Selection ): Shape => {
     return selection[ selection.length - 1 ];
 };

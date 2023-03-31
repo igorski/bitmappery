@@ -402,7 +402,7 @@ import LayerFactory from "@/factories/layer-factory";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { cloneCanvas } from "@/utils/canvas-util";
 import { renderFullSize } from "@/utils/document-util";
-import { getRectangleForSelection } from "@/utils/selection-util";
+import { selectionToRectangle } from "@/utils/selection-util";
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
 
@@ -575,7 +575,7 @@ export default {
                 height : this.activeDocument.height
             };
             const selection = [ ...this.activeDocument.activeSelection ];
-            const { left, top, width, height } = getRectangleForSelection( selection );
+            const { left, top, width, height } = selectionToRectangle( selection );
             const commit = async () => {
                 await store.commit( "cropActiveDocumentContent", { left, top });
                 store.commit( "setActiveDocumentSize", {

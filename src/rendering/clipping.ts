@@ -22,7 +22,7 @@
  */
 import type { Shape, Selection } from "@/definitions/document";
 import type { OverrideConfig } from "@/rendering/lowres";
-import { isSelectionRectangular } from "@/utils/selection-util";
+import { isShapeRectangular } from "@/utils/shape-util";
 
 /**
  * Prepares a clipping path corresponding to given selections outline, transformed
@@ -61,7 +61,7 @@ export const createInverseClipping = ( ctx: CanvasRenderingContext2D, selection:
     x: number, y: number, width: number, height: number ): void => {
     // when the selection is inverted, we can reverse the clipping operation
     // by drawing the rectangular outline over the clipping path
-    if ( isSelectionRectangular( selection )) {
+    if ( isShapeRectangular( selection )) {
         ctx.rect( width - x, -y, -width, height );
     } else {
         ctx.rect( width - x, height - y, -width, -height );

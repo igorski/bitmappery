@@ -20,7 +20,58 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { Rectangle } from "zcanvas";
 import type { Shape } from "@/definitions/document";
+
+export const shapeToRectangle = ( selection: Shape ): Rectangle => {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = 0;
+    let maxY = 0;
+
+    selection.forEach(({ x, y }) => {
+        minX = Math.min( minX, x );
+        maxX = Math.max( maxX, x );
+        minY = Math.min( minY, y );
+        maxY = Math.max( maxY, y );
+    });
+    return {
+        left   : minX,
+        top    : minY,
+        width  : maxX - minX,
+        height : maxY - minY
+    };
+};
+
+export const rectangleToShape = ( width: number, height: number, x = 0, y = 0 ): Shape => [
+    { x, y },
+    { x: x + width, y },
+    { x: x + width, y: y + height },
+    { x, y: y + height },
+    { x, y }
+];
+
+export const isShapeRectangular = ( selection: Shape ): boolean => {
+    if ( selection.length !== 5 ) {
+        return false;
+    }
+    if ( selection[ 1 ].x !== selection[ 2 ].x ||
+         selection[ 2 ].y !== selection[ 3 ].y ) {
+         return false;
+    }
+    return isShapeClosed( selection );
+};
+
+export const isShapeClosed = ( selection: Shape ): boolean => {
+    // smallest shape is four point polygon
+    if ( !selection || selection.length < 3 ) {
+        return false;
+    }
+    const firstPoint = selection[ 0 ];
+    const lastPoint  = selection[ selection.length - 1 ];
+
+    return firstPoint.x === lastPoint.x && firstPoint.y === lastPoint.y;
+};
 
 /**
  * Verifies whether given shapes overlap and thus can be merged.
