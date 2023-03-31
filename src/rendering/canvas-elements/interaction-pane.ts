@@ -406,9 +406,9 @@ class InteractionPane extends sprite {
                 }
 
                 // draw each point in the selection
-                drawSelection( ctx, this.canvas, viewport, shape, currentPosition );
+                drawSelectionShape( ctx, this.canvas, viewport, shape, currentPosition );
                 if ( invertSelection && !hasUnclosedSelection ) {
-                    drawSelection( ctx, this.canvas, viewport, rectangleToShape( width, height ), currentPosition );
+                    drawSelectionShape( ctx, this.canvas, viewport, rectangleToShape( width, height ), currentPosition );
                 }
 
                 // highlight current cursor position for unclosed selections
@@ -456,24 +456,24 @@ export default InteractionPane;
 
 /* internal methods */
 
-function drawSelection( ctx: CanvasRenderingContext2D, zCanvas: ZoomableCanvas, viewport: Viewport,
-    selection: Shape, currentPosition: Point ): void {
+function drawSelectionShape( ctx: CanvasRenderingContext2D, zCanvas: ZoomableCanvas, viewport: Viewport,
+                             shape: Shape, currentPosition: Point ): void {
     ctx.save();
-    drawSelectionOutline( ctx, zCanvas, viewport, selection, "#000", currentPosition );
+    drawShapeOutline( ctx, zCanvas, viewport, shape, "#000", currentPosition );
     ctx.restore();
 
     ctx.save();
     ctx.setLineDash([ 10 / zCanvas.zoomFactor ]);
-    drawSelectionOutline( ctx, zCanvas, viewport, selection, "#FFF", currentPosition );
+    drawShapeOutline( ctx, zCanvas, viewport, shape, "#FFF", currentPosition );
     ctx.restore();
 }
 
-function drawSelectionOutline( ctx: CanvasRenderingContext2D, zCanvas: ZoomableCanvas, viewport: Viewport,
-    selection: Shape, color: string, currentPosition: Point = null ): void {
+function drawShapeOutline( ctx: CanvasRenderingContext2D, zCanvas: ZoomableCanvas, viewport: Viewport,
+                           shape: Shape, color: string, currentPosition: Point = null ): void {
     ctx.lineWidth = 2 / zCanvas.zoomFactor;
     ctx.beginPath();
     ctx.strokeStyle = color;
-    selection.forEach(( point, index ) => {
+    shape.forEach(( point, index ) => {
         ctx[ index === 0 ? "moveTo" : "lineTo" ](
             ( .5 + point.x - viewport.left ) << 0,
             ( .5 + point.y - viewport.top )  << 0

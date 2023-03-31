@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,7 +23,7 @@
 import { canvas, loader } from "zcanvas";
 import type { Rectangle, SizedImage } from "zcanvas";
 import { PNG } from "@/definitions/image-types";
-import type { Document, Layer } from "@/definitions/document";
+import type { Document, Shape, Layer } from "@/definitions/document";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { createSpriteForLayer, getSpriteForLayer } from "@/factories/sprite-factory";
 import { rotateRectangle, areEqual } from "@/math/rectangle-math";
@@ -155,18 +155,18 @@ export const copySelection = async ( activeDocument: Document, activeLayer: Laye
 
     const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
 
-    activeDocument.activeSelection.forEach( selection => {
-        ctx.beginPath();
-        selection.forEach(( point, index ) => {
+    ctx.save();
+    ctx.beginPath();
+    activeDocument.activeSelection.forEach(( shape: Shape ) => {
+        shape.forEach(( point, index ) => {
             ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x, point.y );
         });
-        ctx.closePath();
     });
+    ctx.closePath();
 
     if ( activeDocument.invertSelection ) {
         ctx.globalCompositeOperation = "destination-in";
     }
-    ctx.save();
     ctx.clip();
 
     if ( copyMerged ) {
@@ -218,13 +218,13 @@ export const deleteSelectionContent = ( activeDocument: Document, activeLayer: L
        ({ left, top, width, height } = transformedBounds );
     }
 
+    ctx.beginPath();
     activeDocument.activeSelection.forEach( selection => {
-        ctx.beginPath();
         selection.forEach(( point, index ) => {
             ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x - left, point.y - top );
         });
-        ctx.closePath();
     });
+    ctx.closePath();
 
     if ( activeDocument.invertSelection ) {
         ctx.globalCompositeOperation = "destination-in";
