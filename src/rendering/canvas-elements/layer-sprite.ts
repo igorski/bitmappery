@@ -29,7 +29,7 @@ import { createCanvas, canvasToBlob, globalToLocal } from "@/utils/canvas-util";
 import { renderCross } from "@/utils/render-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { getSizeForBrush } from "@/definitions/brush-types";
-import type { Document, Layer, Selection } from "@/definitions/document";
+import type { Document, Layer, Shape, Selection } from "@/definitions/document";
 import type { CanvasContextPairing, CanvasDrawable, Brush, BrushToolOptions, BrushAction } from "@/definitions/editor";
 import { LayerTypes } from "@/definitions/layer-types";
 import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
@@ -311,7 +311,7 @@ class LayerSprite extends ZoomableSprite {
         if ( selectionPoints ) {
             let { left, top } = this.layer;
             if ( this.isRotated() && !isLowResPreview ) {
-                selectionPoints = selectionPoints.map(( points: Point[] ) => rotatePointerLists( points, this.layer, width, height ));
+                selectionPoints = selectionPoints.map(( shape: Shape ) => rotatePointerLists( shape as Point[], this.layer, width, height ));
                 left = top = 0; // pointers have been rotated within clipping context
             }
             ctx.save(); // 2. clipping save()

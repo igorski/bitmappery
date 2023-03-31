@@ -28,6 +28,7 @@ import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { flushLayerSprites, runSpriteFn, getSpriteForLayer, getCanvasInstance } from "@/factories/sprite-factory";
 import { resizeLayerContent, cropLayerContent } from "@/utils/render-util";
+import { isShapeClosed } from "@/utils/shape-util";
 
 export interface DocumentState {
     documents : Document[]; // opened documents
@@ -72,7 +73,10 @@ const DocumentModule: Module<DocumentState, any> = {
         },
         // @ts-expect-error state is declared but never read
         hasSelection: ( state: DocumentState, getters: any ): boolean => {
-            return getters.activeDocument?.activeSelection?.length > 0;
+            if ( !getters.activeDocument ) {
+                return false;
+            }
+            return isShapeClosed( getters.activeDocument.activeSelection[ 0 ] );
         },
     },
     mutations: {

@@ -549,8 +549,8 @@ function moveObject( axis = 0, dir = 0, activeTool: ToolTypes ): void {
         case ToolTypes.LASSO:
         case ToolTypes.WAND:
             getCanvasInstance()?.interactionPane.setSelection(
-                getters.activeDocument.activeSelection.map(( selection: Shape ) => translatePoints(
-                    selection,
+                getters.activeDocument.activeSelection.map(( shape: Shape ) => translatePoints(
+                    shape,
                     axis === 0 ? dir === 0 ? -speed : speed : 0,
                     axis === 1 ? dir === 0 ? -speed : speed : 0
                 ), true

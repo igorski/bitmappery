@@ -23,13 +23,13 @@
 import type { Rectangle } from "zcanvas";
 import type { Shape } from "@/definitions/document";
 
-export const shapeToRectangle = ( selection: Shape ): Rectangle => {
+export const shapeToRectangle = ( shape: Shape ): Rectangle => {
     let minX = Infinity;
     let minY = Infinity;
     let maxX = 0;
     let maxY = 0;
 
-    selection.forEach(({ x, y }) => {
+    shape.forEach(({ x, y }) => {
         minX = Math.min( minX, x );
         maxX = Math.max( maxX, x );
         minY = Math.min( minY, y );
@@ -51,24 +51,24 @@ export const rectangleToShape = ( width: number, height: number, x = 0, y = 0 ):
     { x, y }
 ];
 
-export const isShapeRectangular = ( selection: Shape ): boolean => {
-    if ( selection.length !== 5 ) {
+export const isShapeRectangular = ( shape: Shape ): boolean => {
+    if ( shape.length !== 5 ) {
         return false;
     }
-    if ( selection[ 1 ].x !== selection[ 2 ].x ||
-         selection[ 2 ].y !== selection[ 3 ].y ) {
+    if ( shape[ 1 ].x !== shape[ 2 ].x ||
+         shape[ 2 ].y !== shape[ 3 ].y ) {
          return false;
     }
-    return isShapeClosed( selection );
+    return isShapeClosed( shape );
 };
 
-export const isShapeClosed = ( selection: Shape ): boolean => {
+export const isShapeClosed = ( shape: Shape ): boolean => {
     // smallest shape is four point polygon
-    if ( !selection || selection.length < 3 ) {
+    if ( !shape || shape.length < 3 ) {
         return false;
     }
-    const firstPoint = selection[ 0 ];
-    const lastPoint  = selection[ selection.length - 1 ];
+    const firstPoint = shape[ 0 ];
+    const lastPoint  = shape[ shape.length - 1 ];
 
     return firstPoint.x === lastPoint.x && firstPoint.y === lastPoint.y;
 };

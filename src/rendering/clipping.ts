@@ -57,11 +57,11 @@ export const clipContextToSelection = ( ctx: CanvasRenderingContext2D, selection
     ctx.clip();
 };
 
-export const createInverseClipping = ( ctx: CanvasRenderingContext2D, selection: Shape,
+export const createInverseClipping = ( ctx: CanvasRenderingContext2D, shape: Shape,
     x: number, y: number, width: number, height: number ): void => {
     // when the selection is inverted, we can reverse the clipping operation
     // by drawing the rectangular outline over the clipping path
-    if ( isShapeRectangular( selection )) {
+    if ( isShapeRectangular( shape )) {
         ctx.rect( width - x, -y, -width, height );
     } else {
         ctx.rect( width - x, height - y, -width, -height );

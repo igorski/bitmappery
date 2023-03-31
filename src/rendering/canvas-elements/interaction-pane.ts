@@ -226,6 +226,12 @@ class InteractionPane extends sprite {
         this.mode === InteractionModes.MODE_SELECTION && this.handleRelease( this._pointerX, this._pointerY );
     }
 
+    closeSelection(): void {
+        this._selectionClosed = true;
+        // triggers reactivity (as activeSelection is a nested array)
+        this.canvas.store.commit( "setActiveSelection", [ ...this.getActiveDocument().activeSelection ]);
+    }
+
     /* zCanvas.sprite overrides */
 
     async handlePress( x: number, y: number ): Promise<void> {
@@ -360,14 +366,14 @@ class InteractionPane extends sprite {
                     const firstPoint = getLastShape( document.activeSelection )[ 0 ];
                     const { width, height } = calculateSelectionSize( firstPoint, Math.max( 0, Math.min( document.width, x )), Math.max( 0, Math.min( document.height, y )), this._toolOptions );
                     document.activeSelection[ document.activeSelection.length - 1 ] = rectToCoordinateList( firstPoint.x, firstPoint.y, width, height );
-                    this._selectionClosed = true;
+                    this.closeSelection();
                     storeSelectionHistory( document );
                 }
             }
             else if ( isDoubleClick && !this._selectionClosed ) {
                 // double click on unclosed lasso tool selections auto-closes the selection
                 document.activeSelection.at( -1 ).push({ ...document.activeSelection.at( -1 )[ 0 ] });
-                this._selectionClosed = true;
+                this.closeSelection();
                 storeSelectionHistory( document );
             }
         }
@@ -378,29 +384,29 @@ class InteractionPane extends sprite {
         let { invertSelection, width, height } = this.getActiveDocument();
         const { activeSelection } = this.getActiveDocument();
         if ( /*this.mode === InteractionModes.MODE_SELECTION && */ activeSelection?.length > 0 ) {
-            for ( let selection of activeSelection ) {
-                const connectToPointer = selection === activeSelection.at( -1 );
-                const firstPoint    = selection[ 0 ];
+            for ( let shape of activeSelection ) {
+                const connectToPointer = shape === activeSelection.at( -1 );
+                const firstPoint    = shape[ 0 ];
                 const localPointerX = this._pointerX - viewport.left; // local to viewport
                 const localPointerY = this._pointerY - viewport.top;
-                const hasUnclosedSelection = selection.length && !this._selectionClosed;
+                const hasUnclosedSelection = shape.length && !this._selectionClosed;
 
                 // when in rectangular select mode, the outline will draw from the first coordinate
                 // (defined in handlePress()) to the current pointer coordinate
                 if ( connectToPointer && this._isRectangleSelect && hasUnclosedSelection ) {
                     const { width, height } = calculateSelectionSize( firstPoint, this._pointerX, this._pointerY, this._toolOptions );
-                    selection = rectToCoordinateList( firstPoint.x, firstPoint.y, width, height );
+                    shape = rectToCoordinateList( firstPoint.x, firstPoint.y, width, height );
                 }
                 // for unclosed lasso selections, draw line to current cursor position
                 let currentPosition = null;
                 if ( connectToPointer && !this._isRectangleSelect && hasUnclosedSelection ) {
                     currentPosition = KeyboardService.hasShift() ?
-                        snapToAngle( localPointerX, localPointerY, selection.at( -1 ), viewport )
+                        snapToAngle( localPointerX, localPointerY, shape.at( -1 ), viewport )
                     : { x: localPointerX, y: localPointerY };
                 }
 
                 // draw each point in the selection
-                drawSelection( ctx, this.canvas, viewport, selection, currentPosition );
+                drawSelection( ctx, this.canvas, viewport, shape, currentPosition );
                 if ( invertSelection && !hasUnclosedSelection ) {
                     drawSelection( ctx, this.canvas, viewport, rectangleToShape( width, height ), currentPosition );
                 }
