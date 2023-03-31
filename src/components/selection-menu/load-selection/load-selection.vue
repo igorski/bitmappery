@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -29,8 +29,9 @@
             <div class="form" @keyup.enter="requestLoad()">
                 <div class="wrapper input">
                     <label v-t="'availableSelections'"></label>
-                    <select-box :options="selections"
-                                 v-model="name"
+                    <select-box
+                        :options="selections"
+                        v-model="name"
                     />
                 </div>
             </div>
@@ -82,17 +83,24 @@ export default {
             return this.name.length > 0;
         },
     },
+    created() {
+        this.name = this.selections[ 0 ].value;
+    },
     methods: {
         ...mapMutations([
             "closeModal",
             "setActiveTool",
         ]),
-        requestLoad() {
+        async requestLoad() {
             if ( !this.isValid ) {
                 return;
             }
             this.setActiveTool({ tool: ToolTypes.LASSO, document: this.activeDocument });
+
+            // allow interaction pane to spawn (if no select mode was active yet)
+            await this.$nextTick();
             getCanvasInstance()?.interactionPane.setSelection( this.activeDocument.selections[ this.name ]);
+
             this.closeModal();
         },
     },

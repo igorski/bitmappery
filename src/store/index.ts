@@ -305,7 +305,7 @@ export default {
         },
         async deleteInSelection({ getters }: ActionContext<BitMapperyState, any> ): Promise<void> {
             const activeLayer = getters.activeLayer;
-            if ( !activeLayer || !getters.activeDocument?.selection.length ) {
+            if ( !activeLayer || !getters.activeDocument?.activeSelection.length ) {
                 return;
             }
             const hasMask       = !!activeLayer.mask;

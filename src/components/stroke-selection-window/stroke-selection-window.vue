@@ -112,7 +112,7 @@ export default {
                 type      : "stroke",
                 size      : this.size,
                 color     : this.color,
-                selection : this.activeDocument.selection
+                selection : this.activeDocument.activeSelection
             });
             this.closeModal();
         },

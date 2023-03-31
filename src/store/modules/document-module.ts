@@ -72,7 +72,10 @@ const DocumentModule: Module<DocumentState, any> = {
         },
         // @ts-expect-error state is declared but never read
         hasSelection: ( state: DocumentState, getters: any ): boolean => {
-            return getters.activeDocument?.selection?.length > 0;
+            if ( !getters.activeDocument ) {
+                return false;
+            }
+            return getters.activeDocument.activeSelection[ 0 ]?.length > 0;
         },
     },
     mutations: {
@@ -95,8 +98,8 @@ const DocumentModule: Module<DocumentState, any> = {
             getCanvasInstance()?.rescaleFn();
             getCanvasInstance()?.refreshFn();
         },
-        setRuntimeSelection( state: DocumentState, selection: Selection ): void {
-            Vue.set( state.documents[ state.activeIndex ], "selection", selection );
+        setActiveSelection( state: DocumentState, selection: Selection ): void {
+            Vue.set( state.documents[ state.activeIndex ], "activeSelection", selection );
         },
         addNewDocument( state: DocumentState, nameOrDocument: string | Document ): void {
             const document = typeof nameOrDocument === "object" ? nameOrDocument : DocumentFactory.create({ name: nameOrDocument });

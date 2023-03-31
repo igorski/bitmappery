@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,22 +20,23 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Selection } from "@/definitions/document";
-import { isSelectionRectangular } from "@/math/selection-math";
+import type { Point } from "zcanvas";
+import type { Shape, Selection } from "@/definitions/document";
 import type { OverrideConfig } from "@/rendering/lowres";
+import { isShapeRectangular } from "@/utils/shape-util";
 
 /**
  * Prepares a clipping path corresponding to given selections outline, transformed
  * appropriately to the destination coordinates.
  *
  * @param {CanvasRenderingContext2D} ctx destination context to clip
- * @param {Selection} selectionPoints all coordinates within the selection
+ * @param {Selection} selection all shapes within the selection
  * @param {Number} offsetX destination offset to shift selection by (bounds relative to viewport)
  * @param {Number} offsetY destination offset to shift selection by (bounds relative to viewport)
  * @param {Boolean=} invert optional whether to invert the selection
- * @param {OverrideConfig=} overrideConfig optional override Object when workin in lowres preview mode
+ * @param {OverrideConfig=} overrideConfig optional override Object when working in lowres preview mode
  */
-export const clipContextToSelection = ( ctx: CanvasRenderingContext2D, selectionPoints: Selection,
+export const clipContextToSelection = ( ctx: CanvasRenderingContext2D, selection: Selection,
     offsetX: number, offsetY: number, invert = false, overrideConfig: OverrideConfig = null ): void => {
     let scale = 1;
     let vpX   = 0;
@@ -43,23 +44,28 @@ export const clipContextToSelection = ( ctx: CanvasRenderingContext2D, selection
     if ( overrideConfig ) {
         ({ scale, vpX, vpY } = overrideConfig );
     }
+
     ctx.beginPath();
-    selectionPoints.forEach(( point, index ) => {
-        ctx[ index === 0 ? "moveTo" : "lineTo" ]( (( point.x - offsetX ) * scale ) - vpX, (( point.y - offsetY ) * scale ) - vpY );
-    });
-    // when the selection is inverted, we can reverse the clipping operation
-    // by drawing the rectangular outline over the clipping path
-    if ( invert ) {
-        createInverseClipping( ctx, selectionPoints, offsetX, offsetY, ctx.canvas.width, ctx.canvas.height );
+    for ( const shape of selection ) {
+        shape.forEach(( point: Point, index: number ) => {
+            ctx[ index === 0 ? "moveTo" : "lineTo" ]( (( point.x - offsetX ) * scale ) - vpX, (( point.y - offsetY ) * scale ) - vpY );
+        });
+        // when the selection is inverted, we can reverse the clipping operation
+        // by drawing the rectangular outline over the clipping path
+        if ( invert ) {
+            createInverseClipping( ctx, shape, offsetX, offsetY, ctx.canvas.width, ctx.canvas.height );
+            ctx.clip(); // necessary when using multiple shapes within selection
+        }
     }
+    ctx.closePath();
     ctx.clip();
 };
 
-export const createInverseClipping = ( ctx: CanvasRenderingContext2D, selection: Selection,
+export const createInverseClipping = ( ctx: CanvasRenderingContext2D, shape: Shape,
     x: number, y: number, width: number, height: number ): void => {
     // when the selection is inverted, we can reverse the clipping operation
     // by drawing the rectangular outline over the clipping path
-    if ( isSelectionRectangular( selection )) {
+    if ( isShapeRectangular( shape )) {
         ctx.rect( width - x, -y, -width, height );
     } else {
         ctx.rect( width - x, height - y, -width, -height );

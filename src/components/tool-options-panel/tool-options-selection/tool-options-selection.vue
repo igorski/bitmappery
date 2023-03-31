@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2022 - https://www.igorski.nl
+ * Igor Zinken 2021-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -27,6 +27,7 @@
         @focusout="handleBlur"
     >
         <h3 v-t="'selection'"></h3>
+        <p v-t="'mergeDescr'"></p>
         <template v-if="!isLassoSelection">
             <div class="wrapper input">
                 <label v-t="'lockedRatio'" v-tooltip="$t('shiftKey')"></label>
@@ -82,7 +83,7 @@
                     class="input-field half"
                     :min="1"
                     :max="maxWidth"
-                    :disabled="!hasSelection"
+                    :disabled="!hasSelection || hasMultipleShapes"
                 />
                 <input
                     type="number"
@@ -90,23 +91,24 @@
                     class="input-field half"
                     :min="1"
                     :max="maxHeight"
-                    :disabled="!hasSelection"
+                    :disabled="!hasSelection || hasMultipleShapes"
                 />
             </div>
         </template>
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import { ToggleButton } from "vue-js-toggle-button";
 import ToolTypes from "@/definitions/tool-types";
-import KeyboardService from "@/services/keyboard-service";
+import type { Rectangle } from "@/definitions/document";
 import { getCanvasInstance } from "@/factories/sprite-factory";
+import { translatePoints } from "@/math/point-math";
+import KeyboardService from "@/services/keyboard-service";
+import { selectionToRectangle } from "@/utils/selection-util";
 
 import messages from "./messages.json";
-
-const clamp = value => value === Infinity ? 1 : value === -Infinity ? 0 : value;
 
 export default {
     i18n: { messages },
@@ -127,35 +129,35 @@ export default {
             "selectionOptions",
         ]),
         maintainRatio: {
-            get() {
+            get(): boolean {
                 return this.selectionOptions.lockRatio;
             },
-            set( value ) {
+            set( value: boolean ): void {
                 this.setToolOptionValue({ tool: ToolTypes.SELECTION, option: "lockRatio", value });
             }
         },
         xRatio: {
-            get() {
+            get(): number {
                 return this.selectionOptions.xRatio;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.setToolOptionValue({ tool: ToolTypes.SELECTION, option: "xRatio", value });
             }
         },
         yRatio: {
-            get() {
+            get(): number {
                 return this.selectionOptions.yRatio;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.setToolOptionValue({ tool: ToolTypes.SELECTION, option: "yRatio", value });
             }
         },
         /* existing selection coordinates */
         x: {
-            get() {
-                return Math.round( this.cachedSelectionBounds.x );
+            get(): number {
+                return Math.round( this.cachedSelectionBounds.left );
             },
-            set( value ) {
+            set( value: number ): void {
                 if ( isNaN( value )) {
                     return;
                 }
@@ -163,10 +165,10 @@ export default {
             }
         },
         y: {
-            get() {
-                return Math.round( this.cachedSelectionBounds.y );
+            get(): number {
+                return Math.round( this.cachedSelectionBounds.top );
             },
-            set( value ) {
+            set( value: number ): void {
                 if ( isNaN( value )) {
                     return;
                 }
@@ -174,10 +176,10 @@ export default {
             }
         },
         width: {
-            get() {
+            get(): number {
                 return Math.round( this.cachedSelectionBounds.width );
             },
-            set( value ) {
+            set( value: number ): void {
                 if ( isNaN( value )) {
                     return;
                 }
@@ -185,42 +187,30 @@ export default {
             }
         },
         height: {
-            get() {
+            get(): number {
                 return Math.round( this.cachedSelectionBounds.height );
             },
-            set( value ) {
+            set( value: number ): void {
                 if ( isNaN( value )) {
                     return;
                 }
                 this.adjustSelectionSize( this.width, Math.min( this.maxHeight - this.y, Math.abs( value )));
             }
         },
-        cachedSelectionBounds() {
+        cachedSelectionBounds(): Rectangle {
             if ( !this.hasSelection ) {
-                return { x: 0, y: 0, width: 0, height: 0 };
+                return { left: 0, top: 0, width: 0, height: 0 };
             }
-            let x = Infinity;
-            let y = Infinity;
-            let r = -Infinity;
-            let b = -Infinity;
-            this.activeDocument.selection.forEach( point => {
-                x = point.x < x ? point.x : x;
-                y = point.y < y ? point.y : y;
-                r = point.x > r ? point.x : r;
-                b = point.y > b ? point.y : b;
-            });
-            return {
-                x      : clamp( x ),
-                y      : clamp( y ),
-                width  : clamp( r - x ),
-                height : clamp( b - y )
-            };
+            return selectionToRectangle( this.activeDocument.activeSelection );
         },
-        isLassoSelection() {
+        isLassoSelection(): boolean {
             return this.activeTool === ToolTypes.LASSO;
         },
+        hasMultipleShapes(): boolean {
+            return this.activeDocument.activeSelection.length > 1;
+        },
     },
-    created() {
+    created(): void {
         this.maxWidth  = this.activeDocument.width - 1;
         this.maxHeight = this.activeDocument.height - 1;
     },
@@ -228,21 +218,18 @@ export default {
         ...mapMutations([
             "setToolOptionValue",
         ]),
-        handleFocus() {
+        handleFocus(): void {
             KeyboardService.setSuspended( true );
         },
-        handleBlur() {
+        handleBlur(): void {
             KeyboardService.setSuspended( false );
         },
-        moveSelection( deltaX = 0, deltaY = 0 ) {
+        moveSelection( deltaX = 0, deltaY = 0 ): void {
             getCanvasInstance()?.interactionPane.setSelection(
-                this.activeDocument.selection.map(({ x, y }) => ({
-                    x: x + deltaX,
-                    y: y + deltaY
-                })), true
-            );
+                this.activeDocument.activeSelection.map( shape => translatePoints( shape, deltaX, deltaY )
+            ), true );
         },
-        adjustSelectionSize( newWidth = 1, newHeight = 1 ) {
+        adjustSelectionSize( newWidth = 1, newHeight = 1 ): void {
             const wider  = newWidth  >= this.width;
             const taller = newHeight >= this.height;
             const maxX   = this.x + newWidth;
@@ -251,10 +238,10 @@ export default {
             const prevBottom = this.y + this.height;
 
             getCanvasInstance()?.interactionPane.setSelection(
-                this.activeDocument.selection.map(({ x, y }) => ({
+                this.activeDocument.activeSelection.map( shape => shape.map(({ x, y }) => ({
                     x: wider  && x === prevRight  ? Math.max( maxX, x ) : Math.min( maxX, x ),
                     y: taller && y === prevBottom ? Math.max( maxY, y ) : Math.min( maxY, y ),
-                })), true
+                }))), true
             );
         }
     }

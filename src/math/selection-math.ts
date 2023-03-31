@@ -20,72 +20,21 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Rectangle } from "zcanvas";
-import type { Selection } from "@/definitions/document";
+import type { Shape } from "@/definitions/document";
 
 const UP     = 0;
 const LEFT   = 1;
 const DOWN   = 2;
 const RIGHT  = 3;
 
-export const getRectangleForSelection = ( selection: Selection ): Rectangle => {
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = 0;
-    let maxY = 0;
-
-    selection.forEach(({ x, y }) => {
-        minX = Math.min( minX, x );
-        maxX = Math.max( maxX, x );
-        minY = Math.min( minY, y );
-        maxY = Math.max( maxY, y );
-    });
-    return {
-        left   : minX,
-        top    : minY,
-        width  : maxX - minX,
-        height : maxY - minY
-    };
-};
-
-export const createSelectionForRectangle = ( width: number, height: number, x = 0, y = 0 ): Selection => [
-    { x, y },
-    { x: x + width, y },
-    { x: x + width, y: y + height },
-    { x, y: y + height },
-    { x, y }
-];
-
-export const isSelectionRectangular = ( selection: Selection ): boolean => {
-    if ( selection.length !== 5 ) {
-        return false;
-    }
-    if ( selection[ 1 ].x !== selection[ 2 ].x ||
-         selection[ 2 ].y !== selection[ 3 ].y ) {
-        return false;
-    }
-    return isSelectionClosed( selection );
-};
-
-export const isSelectionClosed = ( selection: Selection ): boolean => {
-    // smallest selection is four point polygon
-    if ( !selection || selection.length < 3 ) {
-        return false;
-    }
-    const firstPoint = selection[ 0 ];
-    const lastPoint  = selection[ selection.length - 1 ];
-
-    return firstPoint.x === lastPoint.x && firstPoint.y === lastPoint.y;
-};
-
 /**
  * @param {HTMLCanvasElement} cvs
  * @param {number} sourceX
  * @param {number} sourceY
  * @param {number=} threshold in 0 - 100 range
- * @return {Selection}
+ * @return {Shape}
  */
-export const selectByColor = ( cvs: HTMLCanvasElement, sourceX: number, sourceY: number, threshold = 0 ): Selection => {
+export const selectByColor = ( cvs: HTMLCanvasElement, sourceX: number, sourceY: number, threshold = 0 ): Shape => {
     const { width, height } = cvs;
 
     const ctx = cvs.getContext( "2d" );
@@ -212,15 +161,4 @@ export const selectByColor = ( cvs: HTMLCanvasElement, sourceX: number, sourceY:
     while( !( path[ path.length - 1 ].x === firstPoint.x && path[ path.length - 1 ].y === firstPoint.y ));
 
     return path;
-};
-
-export const mergeSelections = ( selectionA: Selection, selectionB: Selection ): Selection => {
-    // TODO this is quite brute force...
-    const out = [ ...selectionA ];
-    for ( const { x, y } of selectionB ) {
-        if ( !out.find( compare => compare.x === x && compare.y === y )) {
-            out.push({ x, y });
-        }
-    }
-    return out;
 };

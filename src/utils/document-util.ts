@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,14 +23,14 @@
 import { canvas, loader } from "zcanvas";
 import type { Rectangle, SizedImage } from "zcanvas";
 import { PNG } from "@/definitions/image-types";
-import type { Document, Layer } from "@/definitions/document";
+import type { Document, Shape, Layer } from "@/definitions/document";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { createSpriteForLayer, getSpriteForLayer } from "@/factories/sprite-factory";
-import { createCanvas } from "@/utils/canvas-util";
+import { rotateRectangle, areEqual } from "@/math/rectangle-math";
 import { reverseTransformation } from "@/rendering/transforming";
 import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
-import { rotateRectangle, areEqual } from "@/math/rectangle-math";
-import { getRectangleForSelection } from "@/math/selection-math";
+import { createCanvas } from "@/utils/canvas-util";
+import { selectionToRectangle } from "@/utils/selection-util";
 
 /**
  * Creates a snapshot of the current document at its full size.
@@ -154,15 +154,19 @@ export const copySelection = async ( activeDocument: Document, activeLayer: Laye
     const merged = copyMerged ? await createDocumentSnapshot( activeDocument ) : null;
 
     const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
+
+    ctx.save();
     ctx.beginPath();
-    activeDocument.selection.forEach(( point, index ) => {
-        ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x, point.y );
+    activeDocument.activeSelection.forEach(( shape: Shape ) => {
+        shape.forEach(( point, index ) => {
+            ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x, point.y );
+        });
     });
     ctx.closePath();
+
     if ( activeDocument.invertSelection ) {
         ctx.globalCompositeOperation = "destination-in";
     }
-    ctx.save();
     ctx.clip();
 
     if ( copyMerged ) {
@@ -181,7 +185,7 @@ export const copySelection = async ( activeDocument: Document, activeLayer: Laye
 
     // when calculating the source rectangle we must take the device pixel ratio into account
     const pixelRatio = window.devicePixelRatio || 1;
-    const selectionRectangle = getRectangleForSelection( activeDocument.selection );
+    const selectionRectangle = selectionToRectangle( activeDocument.activeSelection );
     const selectionCanvas = createCanvas( selectionRectangle.width, selectionRectangle.height );
     selectionCanvas.ctx.drawImage(
         cvs,
@@ -215,9 +219,13 @@ export const deleteSelectionContent = ( activeDocument: Document, activeLayer: L
     }
 
     ctx.beginPath();
-    activeDocument.selection.forEach(( point, index ) => {
-        ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x - left, point.y - top );
+    activeDocument.activeSelection.forEach( selection => {
+        selection.forEach(( point, index ) => {
+            ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x - left, point.y - top );
+        });
     });
+    ctx.closePath();
+
     if ( activeDocument.invertSelection ) {
         ctx.globalCompositeOperation = "destination-in";
     }

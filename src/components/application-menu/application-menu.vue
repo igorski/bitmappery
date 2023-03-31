@@ -394,7 +394,6 @@ import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION,
     PREFERENCES, RESIZE_CANVAS, GRID_TO_LAYERS, STROKE_SELECTION
 } from "@/definitions/modal-windows";
-import { getRectangleForSelection } from "@/math/selection-math";
 import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { getCanvasInstance } from "@/factories/sprite-factory";
@@ -403,6 +402,7 @@ import LayerFactory from "@/factories/layer-factory";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { cloneCanvas } from "@/utils/canvas-util";
 import { renderFullSize } from "@/utils/document-util";
+import { selectionToRectangle } from "@/utils/selection-util";
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
 
@@ -574,8 +574,8 @@ export default {
                 width  : this.activeDocument.width,
                 height : this.activeDocument.height
             };
-            const selection = [ ...this.activeDocument.selection ];
-            const { left, top, width, height } = getRectangleForSelection( selection );
+            const selection = [ ...this.activeDocument.activeSelection ];
+            const { left, top, width, height } = selectionToRectangle( selection );
             const commit = async () => {
                 await store.commit( "cropActiveDocumentContent", { left, top });
                 store.commit( "setActiveDocumentSize", {

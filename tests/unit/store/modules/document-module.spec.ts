@@ -79,14 +79,14 @@ describe( "Vuex document module", () => {
             expect( getters.activeLayerEffects( {}, mockedGetters )).toEqual( mockedGetters.activeLayer.effects );
         });
 
-        it( "should know when the current Document has an active selection", () => {
-            const mockedGetters = { activeDocument: { selection: null } };
+        it( "should know whether the current Document has an active selection", () => {
+            const mockedGetters = { activeDocument: { activeSelection: [] } };
             expect( getters.hasSelection( {}, mockedGetters )).toBe( false );
 
-            mockedGetters.activeDocument.selection = [];
+            mockedGetters.activeDocument.activeSelection = [ [] ];
             expect( getters.hasSelection( {}, mockedGetters )).toBe( false );
 
-            mockedGetters.activeDocument.selection = [{ x: 0, y: 0 }];
+            mockedGetters.activeDocument.activeSelection = [[ { x: 0, y: 0 }] ];
             expect( getters.hasSelection( {}, mockedGetters )).toBe( true );
         });
     });
@@ -187,17 +187,17 @@ describe( "Vuex document module", () => {
             });
         });
 
-        it( "should be able to set the runtime selection for the currently active document", () => {
+        it( "should be able to set the active selection for the currently active document", () => {
             const selection = [{ x: 0, y: 0 }, { x: 10, y: 10 }];
 
             const state = {
-                documents: [ { name: "foo", selection: [] }, { name: "bar", selection: [] } ],
+                documents: [ { name: "foo", activeSelection: [] }, { name: "bar", activeSelection: [] } ],
                 activeIndex: 1
             };
-            mutations.setRuntimeSelection( state, selection );
+            mutations.setActiveSelection( state, selection );
 
-            expect( state.documents[ 0 ].selection ).toHaveLength( 0 );
-            expect( state.documents[ 1 ].selection ).toEqual( selection );
+            expect( state.documents[ 0 ].activeSelection ).toHaveLength( 0 );
+            expect( state.documents[ 1 ].activeSelection ).toEqual( selection );
         });
 
         it( "should be able to add a new Document to the list", () => {

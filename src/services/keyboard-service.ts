@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Store, Commit, Dispatch } from "vuex";
+import type { Shape } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import { ALL_PANELS } from "@/definitions/panel-types";
 import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM, canDraw } from "@/definitions/tool-types";
@@ -145,7 +146,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
     switch ( keyCode )
     {
         case 8: // backspace
-            if ( getters.activeDocument?.selection?.length && getters.activeLayer ) {
+            if ( getters.activeDocument?.activeSelection?.length && getters.activeLayer ) {
                 dispatch( "deleteInSelection" );
             }
             break;
@@ -254,7 +255,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
         case 67: // C
             // copy current selection
             if ( hasOption ) {
-                if ( getters.activeDocument?.selection?.length > 0 ) {
+                if ( getters.activeDocument?.activeSelection?.length > 0 ) {
                     dispatch( "requestSelectionCopy", shiftDown );
                     preventDefault( event );
                 }
@@ -310,7 +311,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
         case 73: // I
             if ( hasOption ) {
                 if ( shiftDown ) { // invert selection
-                    if ( getters.activeDocument.selection ) {
+                    if ( getters.activeDocument.activeSelection ) {
                         dispatch( "invertSelection" );
                         preventDefault( event ); // import Mail
                     }
@@ -414,7 +415,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
         case 88: // X
             // cut current selection
             if ( hasOption ) {
-                if ( getters.activeDocument?.selection?.length ) {
+                if ( getters.activeDocument?.activeSelection?.length ) {
                     dispatch( "requestSelectionCut" );
                     preventDefault( event ); // override browser cut
                 }
@@ -547,12 +548,12 @@ function moveObject( axis = 0, dir = 0, activeTool: ToolTypes ): void {
         case ToolTypes.LASSO:
         case ToolTypes.WAND:
             getCanvasInstance()?.interactionPane.setSelection(
-                translatePoints(
-                    getters.activeDocument.selection,
+                getters.activeDocument.activeSelection.map(( shape: Shape ) => translatePoints(
+                    shape,
                     axis === 0 ? dir === 0 ? -speed : speed : 0,
                     axis === 1 ? dir === 0 ? -speed : speed : 0
                 ), true
-            );
+            ));
             break;
     }
 }
