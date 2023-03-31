@@ -79,14 +79,14 @@ describe( "Vuex document module", () => {
             expect( getters.activeLayerEffects( {}, mockedGetters )).toEqual( mockedGetters.activeLayer.effects );
         });
 
-        it( "should know when the current Document has an active selection", () => {
+        it( "should know whether the current Document has an active selection", () => {
             const mockedGetters = { activeDocument: { activeSelection: [] } };
             expect( getters.hasSelection( {}, mockedGetters )).toBe( false );
 
-            mockedGetters.activeDocument.activeSelection = [];
+            mockedGetters.activeDocument.activeSelection = [ [] ];
             expect( getters.hasSelection( {}, mockedGetters )).toBe( false );
 
-            mockedGetters.activeDocument.activeSelection = [{ x: 0, y: 0 }];
+            mockedGetters.activeDocument.activeSelection = [[ { x: 0, y: 0 }] ];
             expect( getters.hasSelection( {}, mockedGetters )).toBe( true );
         });
     });

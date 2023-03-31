@@ -28,7 +28,6 @@ import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { flushLayerSprites, runSpriteFn, getSpriteForLayer, getCanvasInstance } from "@/factories/sprite-factory";
 import { resizeLayerContent, cropLayerContent } from "@/utils/render-util";
-import { isShapeClosed } from "@/utils/shape-util";
 
 export interface DocumentState {
     documents : Document[]; // opened documents
@@ -76,7 +75,7 @@ const DocumentModule: Module<DocumentState, any> = {
             if ( !getters.activeDocument ) {
                 return false;
             }
-            return isShapeClosed( getters.activeDocument.activeSelection[ 0 ] );
+            return getters.activeDocument.activeSelection[ 0 ]?.length > 0;
         },
     },
     mutations: {

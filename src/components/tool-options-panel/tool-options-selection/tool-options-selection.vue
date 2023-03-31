@@ -83,7 +83,7 @@
                     class="input-field half"
                     :min="1"
                     :max="maxWidth"
-                    :disabled="!hasSelection"
+                    :disabled="!hasSelection || hasMultipleShapes"
                 />
                 <input
                     type="number"
@@ -91,7 +91,7 @@
                     class="input-field half"
                     :min="1"
                     :max="maxHeight"
-                    :disabled="!hasSelection"
+                    :disabled="!hasSelection || hasMultipleShapes"
                 />
             </div>
         </template>
@@ -205,6 +205,9 @@ export default {
         },
         isLassoSelection(): boolean {
             return this.activeTool === ToolTypes.LASSO;
+        },
+        hasMultipleShapes(): boolean {
+            return this.activeDocument.activeSelection.length > 1;
         },
     },
     created(): void {

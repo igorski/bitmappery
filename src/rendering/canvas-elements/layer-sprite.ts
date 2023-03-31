@@ -307,15 +307,15 @@ class LayerSprite extends ZoomableSprite {
         const isLowResPreview = this._brush.down && !( drawOnMask && isEraser );
 
         // if there is an active selection, painting will be constrained within
-        let selectionPoints: Selection = optAction?.selection || this._selection;
-        if ( selectionPoints ) {
+        let selection: Selection = optAction?.selection || this._selection;
+        if ( selection ) {
             let { left, top } = this.layer;
             if ( this.isRotated() && !isLowResPreview ) {
-                selectionPoints = selectionPoints.map(( shape: Shape ) => rotatePointerLists( shape as Point[], this.layer, width, height ));
+                selection = selection.map(( shape: Shape ) => rotatePointers( shape as Point[], this.layer, width, height ));
                 left = top = 0; // pointers have been rotated within clipping context
             }
             ctx.save(); // 2. clipping save()
-            clipContextToSelection( ctx, selectionPoints, left, top, this._invertSelection );
+            clipContextToSelection( ctx, selection, left, top, this._invertSelection );
         }
 
         if ( optAction ) {
@@ -347,7 +347,7 @@ class LayerSprite extends ZoomableSprite {
             if ( isCloneStamp ) {
                 if ( isLowResPreview ) {
                     renderClonedStroke( ctx, this._brush, this, this.toolOptions.sourceLayerId,
-                        rotatePointerLists( pointers, this.layer, width, height )
+                        rotatePointers( pointers, this.layer, width, height )
                     );
                     // clone operation is direct-to-Layer-source
                     this.setBitmap( ctx.canvas );
@@ -365,16 +365,16 @@ class LayerSprite extends ZoomableSprite {
                     overrides = createOverrideConfig( this.canvas, pointers );
                     ctx = this.tempCanvas.ctx;
 
-                    if ( selectionPoints && this.tempCanvas ) {
+                    if ( selection && this.tempCanvas ) {
                         ctx.save(); // 3. tempCanvas clipping save()
-                        clipContextToSelection( ctx, selectionPoints, 0, 0, this._invertSelection, overrides );
+                        clipContextToSelection( ctx, selection, 0, 0, this._invertSelection, overrides );
                     }
                 } else {
                     // render full brush stroke path directly onto the Layer source
                     ctx = createCanvas( orgContext.canvas.width, orgContext.canvas.height ).ctx;
                     // transform destination context in case the current layer is rotated or mirrored
                     ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
-                    this._brush.pointers = rotatePointerLists( this._brush.pointers, this.layer, width, height );
+                    this._brush.pointers = rotatePointers( this._brush.pointers, this.layer, width, height );
                 }
                 renderBrushStroke( ctx, this._brush, overrides );
 
@@ -387,12 +387,12 @@ class LayerSprite extends ZoomableSprite {
                     }
                     orgContext.drawImage( ctx.canvas, 0, 0 );
                     ctx = orgContext;
-                } else if ( selectionPoints && this.tempCanvas ) {
+                } else if ( selection && this.tempCanvas ) {
                     orgContext.restore(); // 3. tempCanvas clipping restore()
                 }
             }
         }
-        if ( selectionPoints ) {
+        if ( selection ) {
             ctx.restore(); // 2. clipping restore()
         }
         ctx.restore(); // 1. preparation restore()
@@ -726,7 +726,7 @@ export default LayerSprite;
 
 /* internal non-instance methods */
 
-function rotatePointerLists( pointers: Point[], layer: Layer, sourceWidth: number, sourceHeight: number ): Point[] {
+function rotatePointers( pointers: Point[], layer: Layer, sourceWidth: number, sourceHeight: number ): Point[] {
     // we take layer.left instead of bounds.left as it provides the unrotated Layer offset
     const { left, top } = layer;
     // translate pointer to translated space, when layer is rotated or mirrored
@@ -752,7 +752,7 @@ function rotatePointerLists( pointers: Point[], layer: Layer, sourceWidth: numbe
 }
 
 function rotatePointer( x: number, y: number, layer: Layer, sourceWidth: number, sourceHeight: number ): Point {
-    return rotatePointerLists([{ x, y }], layer, sourceWidth, sourceHeight )[ 0 ];
+    return rotatePointers([{ x, y }], layer, sourceWidth, sourceHeight )[ 0 ];
 }
 
 // NOTE we use getSpriteForLayer() instead of passing the Sprite by reference
