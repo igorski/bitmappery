@@ -21,7 +21,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div class="tool-option">
+    <div
+        class="tool-option"
+        @focusin="handleFocus"
+        @focusout="handleBlur"
+    >
         <h3 v-t="'magicWand'"></h3>
         <p v-t="'wandDescr'"></p>
         <div class="wrapper full slider">
@@ -47,9 +51,10 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import { ToggleButton } from "vue-js-toggle-button";
+import KeyboardService from "@/services/keyboard-service";
 import ToolTypes from "@/definitions/tool-types";
 import messages from "./messages.json";
 
@@ -64,10 +69,10 @@ export default {
             "wandOptions",
         ]),
         sampleMerged: {
-            get() {
+            get(): boolean {
                 return this.wandOptions.sampleMerged;
             },
-            set( value ) {
+            set( value: boolean ): void {
                 this.setToolOptionValue({
                     tool: ToolTypes.WAND,
                     option: "sampleMerged",
@@ -76,10 +81,10 @@ export default {
             }
         },
         threshold: {
-            get() {
+            get(): number {
                 return this.wandOptions.threshold;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.setToolOptionValue({
                     tool: ToolTypes.WAND,
                     option: "threshold",
@@ -92,6 +97,12 @@ export default {
         ...mapMutations([
             "setToolOptionValue",
         ]),
+        handleFocus(): void {
+            KeyboardService.setSuspended( true );
+        },
+        handleBlur(): void {
+            KeyboardService.setSuspended( false );
+        },
     },
 };
 </script>
