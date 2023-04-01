@@ -27,10 +27,9 @@
         @focusout="handleBlur"
     >
         <h3 v-t="'selection'"></h3>
-        <p v-t="'mergeDescr'"></p>
         <template v-if="!isLassoSelection">
             <div class="wrapper input">
-                <label v-t="'lockedRatio'" v-tooltip="$t('shiftKey')"></label>
+                <label v-t="'lockRatio'" v-tooltip="$t('shiftKey')"></label>
                 <toggle-button
                     v-model="maintainRatio"
                     name="ratio"
@@ -44,13 +43,13 @@
                     type="number"
                     v-model.number="xRatio"
                     class="input-field half"
-                    :disabled="!activeLayer || !maintainRatio"
+                    :disabled="!activeLayer"
                 />
                 <input
                     type="number"
                     v-model.number="yRatio"
                     class="input-field half"
-                    :disabled="!activeLayer || !maintainRatio"
+                    :disabled="!activeLayer"
                 />
             </div>
         </template>

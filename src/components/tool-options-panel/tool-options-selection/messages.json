@@ -1,9 +1,8 @@
 {
     "en-US": {
         "selection": "Selection",
-        "lockedRatio": "Locked ratio",
+        "lockRatio": "Lock ratio",
         "shiftKey": "Hold Shift while drawing selection",
-        "mergeDescr": "Hold shift prior to drawing a new selection to add to the existing selection.",
         "widthToHeight": "Width : height",
         "existingSelection": "Existing selection",
         "coordinates": "Coordinates",
