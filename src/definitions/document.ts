@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Point } from "zcanvas";
+import type { BlendModes } from "./blend-modes";
 import type { LayerTypes } from "./layer-types";
 
 export type Layer = {
@@ -51,6 +52,7 @@ export type Effects = {
 
 export type Filters = {
     enabled: boolean;
+    blendMode: BlendModes;
     opacity: number;
     gamma: number;
     brightness: number;

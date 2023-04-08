@@ -28,6 +28,7 @@ import type { Viewport, TransformedDrawBounds } from "zcanvas";
 import { createCanvas, canvasToBlob, globalToLocal } from "@/utils/canvas-util";
 import { renderCross } from "@/utils/render-util";
 import { blobToResource } from "@/utils/resource-manager";
+import { BlendModes } from "@/definitions/blend-modes";
 import { getSizeForBrush } from "@/definitions/brush-types";
 import type { Document, Layer, Shape, Selection } from "@/definitions/document";
 import type { CanvasContextPairing, CanvasDrawable, Brush, BrushToolOptions, BrushAction } from "@/definitions/editor";
@@ -36,6 +37,7 @@ import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
+import { blendLayer } from "@/rendering/blending";
 import { clipContextToSelection } from "@/rendering/clipping";
 import { renderClonedStroke } from "@/rendering/cloning";
 import { renderBrushStroke } from "@/rendering/drawing";
@@ -646,7 +648,7 @@ class LayerSprite extends ZoomableSprite {
     draw( documentContext: CanvasRenderingContext2D, viewport: Viewport, omitOutlines = false ): void {
         drawBounds = this._bounds;
 
-        const { enabled, opacity } = this.layer.filters;
+        const { enabled, blendMode, opacity } = this.layer.filters;
         const altOpacity = enabled && opacity !== 1;
         if ( altOpacity ) {
             documentContext.globalAlpha = opacity;
@@ -656,15 +658,26 @@ class LayerSprite extends ZoomableSprite {
 
         const transformedBounds = applyTransformation( documentContext, this.layer, viewport );
         const transformCanvas   = transformedBounds !== null;
+        const applyBlending     = enabled && blendMode !== BlendModes.NORMAL;
+        let blendContext: CanvasRenderingContext2D;
 
         if ( transformCanvas ) {
             drawBounds = transformedBounds;
         }
 
+        if ( applyBlending ) {
+            // TODO: clever caching!
+            blendContext = createCanvas( viewport.width, viewport.height ).ctx;
+        }
+
         // invoke base class behaviour to render bitmap
-        super.draw( documentContext, transformCanvas ? null : viewport, drawBounds );
+        super.draw( applyBlending ? blendContext : documentContext, transformCanvas ? null : viewport, drawBounds );
 
         documentContext.restore(); // 1. transformation restore()
+
+        if ( applyBlending ) {
+            blendLayer( documentContext, blendContext, blendMode, viewport );
+        }
 
         // sprite is currently brushing, render low resolution temp contents onto screen
         if ( this.tempCanvas ) {

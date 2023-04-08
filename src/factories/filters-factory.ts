@@ -20,6 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { BlendModes } from "@/definitions/blend-modes";
 import type { Filters } from "@/definitions/document";
 
 export type FiltersProps = Partial<Filters>;
@@ -29,6 +30,7 @@ let defaultFilters: Filters | null = null;
 const FiltersFactory = {
     create({
         enabled    = true,
+        blendMode  = BlendModes.NORMAL,
         opacity    = 1,
         gamma      = .5,
         brightness = .5,
@@ -38,6 +40,7 @@ const FiltersFactory = {
     }: FiltersProps = {}): Filters {
         return {
             enabled,
+            blendMode,
             opacity,
             gamma,
             brightness,
@@ -54,6 +57,7 @@ const FiltersFactory = {
     serialize( filters: Filters ): any {
         return {
             e: filters.enabled,
+            m: filters.blendMode,
             o: filters.opacity,
             g: filters.gamma,
             b: filters.brightness,
@@ -70,6 +74,7 @@ const FiltersFactory = {
      deserialize( filters: any = {} ): Filters {
          return FiltersFactory.create({
              enabled: filters.e,
+             blendMode: filters.m,
              opacity: filters.o,
              gamma: filters.g,
              brightness: filters.b,
@@ -96,6 +101,7 @@ export const isEqual = ( filters: Filters, filtersToCompareTo?: Filters ): boole
         return false;
     }
     return filters.enabled    === filtersToCompareTo.enabled    &&
+           filters.blendMode  === filtersToCompareTo.blendMode  &&
            filters.opacity    === filtersToCompareTo.opacity    &&
            filters.gamma      === filtersToCompareTo.gamma      &&
            filters.brightness === filtersToCompareTo.brightness &&
