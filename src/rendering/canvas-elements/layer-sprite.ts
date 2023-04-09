@@ -37,7 +37,7 @@ import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
-import { blendLayer } from "@/rendering/blending";
+import { getBlendContext, blendLayer } from "@/rendering/blending";
 import { clipContextToSelection } from "@/rendering/clipping";
 import { renderClonedStroke } from "@/rendering/cloning";
 import { renderBrushStroke } from "@/rendering/drawing";
@@ -658,8 +658,7 @@ class LayerSprite extends ZoomableSprite {
         const applyBlending = enabled && blendMode !== BlendModes.NORMAL;
 
         if ( applyBlending ) {
-            // TODO: clever caching!
-            drawContext = createCanvas( documentContext.canvas.width, documentContext.canvas.height ).ctx;
+            drawContext = getBlendContext( documentContext.canvas );
             if ( !isHighresExport ) {
                 drawContext.scale( this.canvas.zoomFactor, this.canvas.zoomFactor );
             }

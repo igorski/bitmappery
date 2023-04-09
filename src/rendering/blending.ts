@@ -25,13 +25,29 @@
 import type { Rectangle } from "zcanvas";
 import { BlendModes } from "@/definitions/blend-modes";
 import type { RGB, HSV } from "@/definitions/colors";
+import { createCanvas } from "@/utils/canvas-util";
 import { rgb2YCbCr, YCbCr2rgb, rgb2hsv, hsv2rgb } from "@/utils/color-util";
+
+const { cvs, ctx } = createCanvas();
+
+/**
+ * Retrieve a pooled empty context to use for drawing layer content on prior to blending
+ * @param {HTMLCanvasElement} documentCanvas to match dimensions of
+ */
+export const getBlendContext = ( documentCanvas: HTMLCanvasElement ): CanvasRenderingContext2D => {
+    const { width, height } = documentCanvas;
+
+    cvs.width  = width;
+    cvs.height = height;
+
+    return ctx;
+}
 
 /**
  * Blend a Layer onto the underlying Document content
  *
  * @param {CanvasRenderingContext2D} dest the context that contains all rendered content below the Layer
- * @param {CanvasRenderingContext2D} layer the context that contains the content of the Layer
+ * @param {CanvasRenderingContext2D} layer the context that contains the content of the Layer (see getBlendContext)
  * @param {BlendModes} blendMode the blend mode to use
  * @param {Rectangle?} bounds optional bounds to constraint blending within defaults to full dest size
  */
@@ -218,6 +234,9 @@ export const blendLayer = ( dest: CanvasRenderingContext2D, layer: CanvasRenderi
         }
     }
     dest.putImageData( dstImageData, left, top );
+
+    // free allocated memory of temp context
+    layer.canvas.width = layer.canvas.height = 1;
 };
 
 /* internal methods */
