@@ -28,6 +28,7 @@ import type { Viewport, TransformedDrawBounds } from "zcanvas";
 import { createCanvas, canvasToBlob, globalToLocal } from "@/utils/canvas-util";
 import { renderCross } from "@/utils/render-util";
 import { blobToResource } from "@/utils/resource-manager";
+import { BlendModes } from "@/definitions/blend-modes";
 import { getSizeForBrush } from "@/definitions/brush-types";
 import type { Document, Layer, Shape, Selection } from "@/definitions/document";
 import type { CanvasContextPairing, CanvasDrawable, Brush, BrushToolOptions, BrushAction } from "@/definitions/editor";
@@ -36,6 +37,7 @@ import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
+import { getBlendContext, blendLayer } from "@/rendering/blending";
 import { clipContextToSelection } from "@/rendering/clipping";
 import { renderClonedStroke } from "@/rendering/cloning";
 import { renderBrushStroke } from "@/rendering/drawing";
@@ -643,18 +645,28 @@ class LayerSprite extends ZoomableSprite {
     }
 
     // @ts-expect-error incompatible override
-    draw( documentContext: CanvasRenderingContext2D, viewport: Viewport, omitOutlines = false ): void {
+    draw( documentContext: CanvasRenderingContext2D, viewport: Viewport, isHighresExport = false ): void {
         drawBounds = this._bounds;
 
-        const { enabled, opacity } = this.layer.filters;
+        const { enabled, blendMode, opacity } = this.layer.filters;
         const altOpacity = enabled && opacity !== 1;
         if ( altOpacity ) {
             documentContext.globalAlpha = opacity;
         }
 
-        documentContext.save(); // 1. transformation save()
+        let drawContext: CanvasRenderingContext2D = documentContext;
+        const applyBlending = enabled && blendMode !== BlendModes.NORMAL;
 
-        const transformedBounds = applyTransformation( documentContext, this.layer, viewport );
+        if ( applyBlending ) {
+            drawContext = getBlendContext( documentContext.canvas );
+            if ( !isHighresExport ) {
+                drawContext.scale( this.canvas.zoomFactor, this.canvas.zoomFactor );
+            }
+        }
+
+        drawContext.save(); // 1. transformation save()
+
+        const transformedBounds = applyTransformation( drawContext, this.layer, viewport );
         const transformCanvas   = transformedBounds !== null;
 
         if ( transformCanvas ) {
@@ -662,9 +674,13 @@ class LayerSprite extends ZoomableSprite {
         }
 
         // invoke base class behaviour to render bitmap
-        super.draw( documentContext, transformCanvas ? null : viewport, drawBounds );
+        super.draw( drawContext, transformCanvas ? null : viewport, drawBounds );
 
-        documentContext.restore(); // 1. transformation restore()
+        if ( applyBlending ) {
+            blendLayer( documentContext, drawContext, blendMode );
+        }
+
+        drawContext.restore(); // 1. transformation restore()
 
         // sprite is currently brushing, render low resolution temp contents onto screen
         if ( this.tempCanvas ) {
@@ -683,7 +699,7 @@ class LayerSprite extends ZoomableSprite {
 
         // render brush outline at pointer position
 
-        if ( !omitOutlines && this._isPaintMode ) {
+        if ( !isHighresExport && this._isPaintMode ) {
             const { zoomFactor } = this.canvas;
             const tx = this._pointerX - viewport.left;
             const ty = this._pointerY - viewport.top;

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -140,8 +140,7 @@ class ZoomableCanvas extends canvas {
     // see QQQ comments to see what the difference is. Ideally these changes
     // should eventually be propagated to the zCanvas library.
 
-    render(): void {
-        const now   = Date.now();  // current timestamp
+    render( now: DOMHighResTimeStamp = 0 ): void {
         const delta = now - this._lastRender;
 
         this._renderPending = false;

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2022 - https://www.igorski.nl
+ * Igor Zinken 2021-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -29,6 +29,13 @@
                     v-model="internalValue.enabled"
                     name="enabled"
                     sync
+                />
+            </div>
+            <div class="wrapper input">
+                <label v-t="'blendMode'"></label>
+                <select-box
+                    v-model="internalValue.blendMode"
+                    :options="blendModes"
                 />
             </div>
             <div class="wrapper slider">
@@ -108,11 +115,14 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import isEqual from "lodash.isequal";
 import { ToggleButton } from "vue-js-toggle-button";
+import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
+import { Layer, Filters } from "@/definitions/document";
+import { BlendModes } from "@/definitions/blend-modes";
 import FiltersFactory from "@/factories/filters-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import messages from "./messages.json";
@@ -120,57 +130,89 @@ import messages from "./messages.json";
 export default {
     i18n: { messages },
     components: {
+        SelectBox,
         Slider,
         ToggleButton,
     },
     data: () => ({
-        internalValue: {},
+        internalValue: {} as Partial<Filters>,
     }),
     computed: {
         ...mapGetters([
             "activeLayer",
             "activeLayerIndex",
         ]),
-        filters() {
+        filters(): Filters {
             return this.activeLayer.filters;
         },
+        blendModes(): any {
+            return [
+                { label: this.$t( "normal" ), value: BlendModes.NORMAL },
+                { label: this.$t( "darken" ), value: BlendModes.DARKEN },
+                { label: this.$t( "multiply" ), value: BlendModes.MULTIPLY },
+                { label: this.$t( "colorBurn" ), value: BlendModes.COLOR_BURN },
+                { label: this.$t( "darkerColor" ), value: BlendModes.DARKER_COLOR },
+                { label: this.$t( "lighten" ), value: BlendModes.LIGHTEN },
+                { label: this.$t( "screen" ), value: BlendModes.SCREEN },
+                { label: this.$t( "colorDodge" ), value: BlendModes.COLOR_DODGE },
+                { label: this.$t( "linearDodgeAdd" ), value: BlendModes.LINEAR_DODGE },
+                { label: this.$t( "lighterColor" ), value: BlendModes.LIGHTER_COLOR },
+                { label: this.$t( "overlay" ), value: BlendModes.OVERLAY },
+                { label: this.$t( "softLight" ), value: BlendModes.SOFT_LIGHT },
+                { label: this.$t( "hardLight" ), value: BlendModes.HARD_LIGHT },
+                { label: this.$t( "difference" ), value: BlendModes.DIFFERENCE },
+                { label: this.$t( "exclusion" ), value: BlendModes.EXCLUSION },
+                { label: this.$t( "hue" ), value: BlendModes.HUE },
+                { label: this.$t( "saturation" ), value: BlendModes.SATURATION },
+                { label: this.$t( "color" ), value: BlendModes.COLOR },
+                { label: this.$t( "luminosity" ), value: BlendModes.LUMINOSITY },
+            ];
+        },
+        blendMode: {
+            get(): BlendModes {
+                return this.internalValue.blendMode;
+            },
+            set( value: BlendModes ): void {
+                this.internalValue.blendMode = value;
+            }
+        },
         opacity: {
-            get() {
+            get(): number {
                 return this.internalValue.opacity * 100;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.internalValue.opacity = value / 100;
             }
         },
         gamma: {
-            get() {
+            get(): number {
                 return this.internalValue.gamma * 100;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.internalValue.gamma = value / 100;
             }
         },
         brightness: {
-            get() {
+            get(): number {
                 return this.internalValue.brightness * 100;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.internalValue.brightness = value / 100;
             }
         },
         contrast: {
-            get() {
+            get(): number {
                 return this.internalValue.contrast * 100;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.internalValue.contrast = value / 100;
             }
         },
         vibrance: {
-            get() {
+            get(): number {
                 return this.internalValue.vibrance * 100;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.internalValue.vibrance = value / 100;
             }
         },
@@ -178,7 +220,7 @@ export default {
     watch: {
         internalValue: {
             deep: true,
-            handler() {
+            handler(): void {
                 // debounce the model update (and subsequent filter render)
                 // to not update directly after each change event
                 if ( this.renderPending ) {
@@ -191,7 +233,7 @@ export default {
                 }, 250 );
             },
         },
-        activeLayer( value, oldValue ) {
+        activeLayer( value?: Layer, oldValue?: Layer ): void {
             if ( !value ) {
                 this.close(); // document has been closed
             } else if ( oldValue && value.id !== oldValue.id ) {
@@ -201,7 +243,7 @@ export default {
             }
         }
     },
-    created() {
+    created(): void {
         this.orgFilters    = { ...this.filters };
         this.internalValue = { ...this.filters };
     },
@@ -210,7 +252,7 @@ export default {
             "updateLayer",
             "closeModal",
         ]),
-        save() {
+        save(): void {
             // if filter settings were changed, store these in state history
             const store      = this.$store;
             const index      = this.activeLayerIndex;
@@ -229,18 +271,18 @@ export default {
             // no need to call update(), computed setters have triggered model update
             this.close();
         },
-        reset() {
+        reset(): void {
             this.internalValue = FiltersFactory.create();
             this.update();
         },
-        cancel( optLayerIndex ) {
+        cancel( optLayerIndex?: number ): void {
             this.update( this.orgFilters, optLayerIndex );
             this.close();
         },
-        close() {
+        close(): void {
             this.$emit( "close" );
         },
-        update( optData, optLayerIndex ) {
+        update( optData?: Filters, optLayerIndex?: number ): void {
             const filters = optData || { ...this.internalValue };
             this.updateLayer({
                 index: optLayerIndex ?? this.activeLayerIndex,
