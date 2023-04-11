@@ -126,6 +126,7 @@ import { Layer, Filters } from "@/definitions/document";
 import { BlendModes } from "@/definitions/blend-modes";
 import FiltersFactory from "@/factories/filters-factory";
 import { enqueueState } from "@/factories/history-state-factory";
+import KeyboardService from "@/services/keyboard-service";
 import messages from "./messages.json";
 
 export default {
@@ -247,12 +248,21 @@ export default {
     created(): void {
         this.orgFilters    = { ...this.filters };
         this.internalValue = { ...this.filters };
+        KeyboardService.setListener( this.handleKeyUp.bind( this ), false );
+    },
+    beforeDestroy(): void {
+        KeyboardService.setListener( null );
     },
     methods: {
         ...mapMutations([
             "updateLayer",
             "closeModal",
         ]),
+        handleKeyUp( type: string, keyCode: number ): void {
+            if ( keyCode === 27 ) {
+                this.cancel();
+            }
+        },
         save(): void {
             // if filter settings were changed, store these in state history
             const store      = this.$store;
