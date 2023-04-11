@@ -37,7 +37,7 @@ import KeyboardService from "@/services/keyboard-service";
 import { isInsideTransparentArea } from "@/utils/canvas-util";
 import { createDocumentSnapshot, createLayerSnapshot } from "@/utils/document-util";
 import { getLastShape } from "@/utils/selection-util";
-import { rectangleToShape, mergeShapes, isShapeClosed } from "@/utils/shape-util";
+import { rectangleToShape, hasOverlap, mergeShapes, isShapeClosed } from "@/utils/shape-util";
 
 export enum InteractionModes {
     MODE_PAN = 0,
@@ -268,10 +268,11 @@ class InteractionPane extends sprite {
                 if ( this._activeTool === ToolTypes.WAND ) {
                     const cvs = await ( this._toolOptions.sampleMerged ? createDocumentSnapshot( this.getActiveDocument() ) : createLayerSnapshot( this.getActiveLayer() ));
                     const selectedShape: Shape = selectByColor( cvs, x, y, this._toolOptions.threshold );
-                    if ( isShiftKeyDown ) {
-                        // TODO check if mergable first in above condition
+                    if ( isShiftKeyDown && hasOverlap( selectedShape, getLastShape( activeSelection )) ) {
+                        console.warn('merging');
                         activeSelection = [ mergeShapes( selectedShape, getLastShape( activeSelection ) ?? [] ) ];
                     } else {
+                        console.warn('cannot be merged');
                         activeSelection = [ ...activeSelection, selectedShape ];
                     }
                     this.canvas.store.commit( "setActiveSelection", activeSelection );
@@ -291,6 +292,7 @@ class InteractionPane extends sprite {
                     // selection mode, set the click coordinate as the first point in the selection
                     const firstPoint = selectionShape[ 0 ];
                     if ( firstPoint ) {
+                        console.info('has first point.')
                         if ( isShiftKeyDown ) {
                             ({ x, y } = snapToAngle( x, y, selectionShape.at( -1 ) ));
                         }
@@ -299,6 +301,13 @@ class InteractionPane extends sprite {
                             x = firstPoint.x;
                             y = firstPoint.y;
                             completeSelection = true;
+
+                            if ( activeSelection.length > 1 && hasOverlap( selectionShape, activeSelection[ 0 ]) ) {
+                                console.warn('merging');
+                                activeSelection = [ mergeShapes( selectionShape, activeSelection[ 0 ] ) ];
+                            } else {
+                                console.warn('no mergy mergy');
+                            }
                         }
                     }
                     selectionShape.push({ x, y });

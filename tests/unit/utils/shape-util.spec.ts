@@ -1,7 +1,7 @@
 import { it, describe, expect } from "vitest";
 import {
     shapeToRectangle, rectangleToShape,
-    isShapeRectangular, isShapeClosed
+    isShapeRectangular, isShapeClosed, mergeShapes, getConvexHull
 } from "@/utils/shape-util";
 
 describe( "Shape utilities", () => {
@@ -97,6 +97,53 @@ describe( "Shape utilities", () => {
                 { x: 100, y: 150 }
             ];
             expect( isShapeClosed( shape )).toBe( true );
+        });
+    });
+
+    describe( "when merging overlapping Shapes", () => {
+        // box { top: 1, left: 1, width: 5, height: 5 }
+        const shapeA: Shape = [
+            { x: 1, y: 1 },
+            { x: 6, y: 1 },
+            { x: 6, y: 6 },
+            { x: 6, y: 1 }
+        ];
+        // triangle /\
+        const shapeB: Shape = [
+            { x: 0,   y: 0 },
+            { x: 7,   y: 0 },
+            { x: 3.5, y: 7 }
+        ];
+
+        it.skip( "should be able to merge overlapping Shapes into a single Shape", () => {
+            expect( mergeShapes( shapeA, shapeB )).toEqual([
+                { x: 0,   y: 0 },
+                { x: 7,   y: 0 },
+                { x: 6,   y: 2 },
+                { x: 6,   y: 6 },
+                { x: 4,   y: 6 },
+                { x: 3.5, y: 7 },
+                { x: 3,   y: 6 },
+                { x: 1,   y: 6 },
+                { x: 1,   y: 2 },
+                { x: 0,   y: 0 }
+            ]);
+        });
+
+        it( "should be able to calculate the convex hull of a Shape", () => {
+            const shape: Shape = [
+                { x: 1, y: 1 },
+                { x: 6, y: 1 },
+                { x: 6, y: 6 },
+                { x: 6, y: 1 }
+            ];
+            console.log('convex hull',getConvexHull(shape));
+            expect( getConvexHull( shape )).toEqual([
+                { x: 1, y: 1 },
+                { x: 6, y: 1 },
+                { x: 6, y: 6 },
+                { x: 6, y: 1 }
+            ]);
         });
     });
 });
