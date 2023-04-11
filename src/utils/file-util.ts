@@ -29,6 +29,7 @@ type FileDictionary = {
     images: File[];
     documents: File[];
     thirdParty: File[];
+    url?: string;
 };
 
 /**
@@ -122,5 +123,6 @@ export const readDroppedFiles = ( dataTransfer: DataTransfer ): FileDictionary =
         images     : items.filter( isImageFile ),
         documents  : items.filter( isProjectFile ),
         thirdParty : items.filter( isThirdPartyDocument ),
+        url        : dataTransfer.getData( "URL" )
     };
 };

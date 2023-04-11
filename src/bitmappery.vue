@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -83,13 +83,14 @@ import Toolbox from "@/components/toolbox/toolbox.vue";
 import DialogWindow from "@/components/dialog-window/dialog-window.vue";
 import Notifications from "@/components/notifications/notifications.vue";
 import Loader from "@/components/loader/loader.vue";
+import ToolTypes from "@/definitions/tool-types";
 import DocumentFactory from "@/factories/document-factory";
 import { isMobile } from "@/utils/environment-util";
 import { loadImageFiles } from "@/services/file-loader-queue";
 import { renderState } from "@/services/render-service";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { readClipboardFiles, readDroppedFiles } from "@/utils/file-util";
-import ToolTypes from "@/definitions/tool-types";
+import { truncate } from "@/utils/string-util";
 import store from "./store";
 import messages from "./messages.json";
 import {
@@ -222,7 +223,7 @@ export default {
 
         // if File content is pasted or dragged into the application, parse and load image files within
 
-        const loadFiles = async ({ images, documents, thirdParty }) => {
+        const loadFiles = async ({ images, documents, thirdParty, url }) => {
             const LOADING_KEY = `drop_${Date.now()}`;
             this.setLoading( LOADING_KEY );
             try {
@@ -232,6 +233,17 @@ export default {
                     this.addNewDocument( document );
                 }
                 await this.loadThirdPartyDocuments( thirdParty );
+                if ( typeof url === "string" && url.length > 0 ) {
+                    try {
+                        const blob = await fetch( url ).then( r => r.blob() );
+                        loadImageFiles([ blob ], this.addLoadedFile.bind( this ));
+                    } catch {
+                        this.openDialog({
+                            type: "error",
+                            message: this.$t( "corsError", { file: truncate( decodeURIComponent( url ).split( "/" ).at( -1 ), 40 ) })
+                        });
+                    }
+                }
             } catch {
                 // aren't these caught internally ?
             }
@@ -255,13 +267,14 @@ export default {
     },
     methods: {
         ...mapMutations([
-            "setWindowSize",
+            "addNewDocument",
             "closeModal",
             "closeOpenedPanels",
+            "openDialog",
             "resetHistory",
             "setToolboxOpened",
             "setToolOptionValue",
-            "addNewDocument",
+            "setWindowSize",
             "setLoading",
             "unsetLoading",
         ]),
