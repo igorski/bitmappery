@@ -36,6 +36,7 @@
                 <select-box
                     v-model="internalValue.blendMode"
                     :options="blendModes"
+                    :disabled="activeLayerIndex === 0"
                 />
             </div>
             <div class="wrapper slider">
