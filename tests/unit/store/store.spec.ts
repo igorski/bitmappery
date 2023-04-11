@@ -22,7 +22,7 @@ vi.mock( "@/utils/file-util", () => ({
     saveBlobAsFile: (...args) => mockUpdateFn?.( "saveBlobAsFile", ...args ),
 }));
 vi.mock("@/utils/canvas-util", () => ({
-    createCanvas: vi.fn(),
+    createCanvas: vi.fn(() => ({ cvs: {}, ctx: {} })),
     imageToBase64: vi.fn(),
     imageToCanvas: vi.fn(),
     base64ToLayerImage: vi.fn()

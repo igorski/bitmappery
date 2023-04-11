@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2022 - https://www.igorski.nl
+ * Igor Zinken 2022-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,6 +23,7 @@
 // @ts-expect-error no declaration file for module 'psd.js'
 import PSD from "psd.js";
 import type { Rectangle, Size } from "zcanvas";
+import { BlendModes } from "@/definitions/blend-modes";
 import type { Document, Layer } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
 import FiltersFactory from "@/factories/filters-factory";
@@ -36,6 +37,9 @@ type PSDLayer = Rectangle & {
     mask: Rectangle;
     opacity: number;
     visible: boolean;
+    blendMode: {
+        blendKey: string;
+    },
     image: {
         hasMask: boolean;
         width: () => number;
@@ -165,10 +169,57 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
         source,
         ...layerProps,
         filters : FiltersFactory.create({
-            opacity: ( layer.opacity ?? 255 ) / 255,
+            opacity   : ( layer.opacity ?? 255 ) / 255,
+            blendMode : convertBlendMode( layer.blendMode.blendKey )
         }),
     }));
 
     // layer bitmap parsing can be heavy, unblock CPU on each iteration
     await unblockedWait();
+}
+
+
+function convertBlendMode( blendKey: string ): BlendModes {
+    switch ( blendKey ) {
+        // we don't support lbrn (linear burn), vLit (vivid light), lLit (linear light), pLit (pin light),
+        // hMix (hard mix), pass (passthru), fsub (subtract) and fdiv (divide) blend modes
+        default:
+            return BlendModes.NORMAL;
+        case "darken":
+            return BlendModes.DARKEN;
+        case "lite":
+            return BlendModes.LIGHTEN;
+        case "hue":
+            return BlendModes.HUE;
+        case "sat":
+            return BlendModes.SATURATION;
+        case "colr":
+            return BlendModes.COLOR;
+        case "lum":
+            return BlendModes.LUMINOSITY;
+        case "mul":
+            return BlendModes.MULTIPLY;
+        case "scrn":
+            return BlendModes.SCREEN;
+        case "over":
+            return BlendModes.OVERLAY;
+        case "hLit":
+            return BlendModes.HARD_LIGHT;
+        case "sLit":
+            return BlendModes.SOFT_LIGHT;
+        case "diff":
+            return BlendModes.DIFFERENCE;
+        case "smud":
+            return BlendModes.EXCLUSION;
+        case "div":
+            return BlendModes.COLOR_DODGE;
+        case "idiv":
+            return BlendModes.COLOR_BURN;
+        case "lddg":
+            return BlendModes.LINEAR_DODGE;
+        case "dkCl":
+            return BlendModes.DARKER_COLOR;
+        case "lgCl":
+            return BlendModes.LIGHTER_COLOR;
+    }
 }
