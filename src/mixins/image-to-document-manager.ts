@@ -24,7 +24,7 @@ import { mapGetters, mapMutations, mapActions } from "vuex";
 import type { Size, SizedImage } from "zcanvas";
 import type { Layer } from "@/definitions/document";
 import { isTransparent } from "@/definitions/image-types";
-import { ACCEPTED_FILE_EXTENSIONS, isImageFile, isProjectFile, isThirdPartyDocument } from "@/definitions/file-types";
+import { ACCEPTED_FILE_EXTENSIONS, PSD, isImageFile, isProjectFile, isThirdPartyDocument } from "@/definitions/file-types";
 import { LayerTypes } from "@/definitions/layer-types";
 import { loadImageFiles } from "@/services/file-loader-queue";
 
@@ -136,10 +136,12 @@ export default {
             if ( !documents.length ) {
                 return;
             }
-            // currently only PSD format is supported
+            // currently only PSD and PDF formats are supported
+            // TODO only import what you need.
             const { importPSD } = await import( "@/services/psd-import-service" );
-            for ( const psd of documents ) {
-                const document = await importPSD( psd );
+            const { importPDF } = await import( "@/services/pdf-import-service" );
+            for ( const file of documents ) {
+                const document = file.type === PSD.mime ? await importPSD( file ) : await importPDF( file );
                 if ( document !== null ) {
                     this.addNewDocument( document );
                 }
