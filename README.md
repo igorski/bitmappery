@@ -49,7 +49,7 @@ the source bitmap represented by the LayerSprite. The LayerSprite invokes the re
 Layer content changes and manages its own cache.
 
 All types related to the editor are either defined in `src/definitions/editor.ts` or the more specifically
-named files. 
+named files.
 
 ### Rendering concepts
 
@@ -86,23 +86,23 @@ as it is used by the undo/redo methods to update a specific Layer. _activeLayerI
 the application lifetime before the undo/redo handler fires which would otherwise lead to the _wrong Layer_
 being updated.
 
-```javascript
-update( propertyName, newValue ) {
+```typescript
+update( propertyName: string, newValue: any ): void {
     // cache the existing values of the property value we are about to mutate...
     const existingValue = this.getterForExistingValue;
     // ...and the layer index that is used to identify the layer containing the property
     const index = this.activeLayerIndex;
-    const store = this.$store;
+    const store: Store<BitMapperyState> = this.$store;
     // define the method that will mutate the existing value to given newValue
-    const commit = () => store.commit( "updateLayer", { index, opts: { newValue } });
+    const commit = (): void => store.commit( "updateLayer", { index, opts: { newValue } });
     // and perform the mutation directly
     commit();
     // now define and enqueue undo/redo handlers to reverse and redo the commit mutation
     enqueueState( propertyName, {
-        undo() {
+        undo(): void {
             store.commit( "updateLayerEffects", { index, opts: { existingValue } });
         },
-        redo() {
+        redo(): void {
             commit();
         },
     });

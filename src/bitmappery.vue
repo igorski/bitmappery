@@ -235,8 +235,8 @@ export default {
                 await this.loadThirdPartyDocuments( thirdParty );
                 if ( typeof url === "string" && url.length > 0 ) {
                     try {
-                        const blob = await fetch( url ).then( r => r.blob() );
-                        loadImageFiles([ blob ], this.addLoadedFile.bind( this ));
+                        const resource = await fetch( url );
+                        loadImageFiles([ await resource.blob() ], this.addLoadedFile.bind( this ));
                     } catch {
                         this.openDialog({
                             type: "error",
