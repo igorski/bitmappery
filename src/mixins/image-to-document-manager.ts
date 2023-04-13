@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -22,11 +22,18 @@
  */
 import { mapGetters, mapMutations, mapActions } from "vuex";
 import type { Size, SizedImage } from "zcanvas";
-import type { Layer } from "@/definitions/document";
+import type { Document, Layer } from "@/definitions/document";
 import { isTransparent } from "@/definitions/image-types";
-import { ACCEPTED_FILE_EXTENSIONS, isImageFile, isProjectFile, isThirdPartyDocument } from "@/definitions/file-types";
+import { ACCEPTED_FILE_EXTENSIONS, PSD, PDF, isImageFile, isProjectFile, isThirdPartyDocument } from "@/definitions/file-types";
 import { LayerTypes } from "@/definitions/layer-types";
 import { loadImageFiles } from "@/services/file-loader-queue";
+
+// third party files are handled by their own import services which are lazily loaded
+
+type ThirdPartyServiceImport = ( file: File ) => Promise<Document>;
+
+let importPSD: ThirdPartyServiceImport;
+let importPDF: ThirdPartyServiceImport;
 
 export default {
     computed: {
@@ -132,14 +139,13 @@ export default {
 
             this.unsetLoading( LOADING_KEY );
         },
-        async loadThirdPartyDocuments( documents: File[] = [] ): Promise<void> {
+        async loadThirdPartyDocuments( documents: File[] = [], optMime?: string ): Promise<void> {
             if ( !documents.length ) {
                 return;
             }
-            // currently only PSD format is supported
-            const { importPSD } = await import( "@/services/psd-import-service" );
-            for ( const psd of documents ) {
-                const document = await importPSD( psd );
+            for ( const file of documents ) {
+                const serviceImport = await getServiceForThirdPartyFile( optMime || file.type );
+                const document = await serviceImport( file );
                 if ( document !== null ) {
                     this.addNewDocument( document );
                 }
@@ -154,3 +160,22 @@ export default {
         },
      }
 };
+
+/* internal methods */
+
+async function getServiceForThirdPartyFile( mime: string ): Promise<ThirdPartyServiceImport> {
+    switch ( mime ) {
+        default:
+        case PSD.mime:
+            if ( !importPSD ) {
+                ({ importPSD } = await import( "@/services/psd-import-service" ));
+            }
+            return importPSD;
+
+        case PDF.mime:
+            if ( !importPDF ) {
+                ({ importPDF } = await import( "@/services/pdf-import-service" ));
+            }
+            return importPDF;
+    }
+}

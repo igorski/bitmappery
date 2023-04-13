@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,10 +23,13 @@
 import { ACCEPTED_IMAGE_TYPES, ACCEPTED_IMAGE_EXTENSIONS } from "@/definitions/image-types";
 
 export const PROJECT_FILE_EXTENSION = "bpy"; // BitMappery document
-export const PSD = { mime: "image/vnd.adobe.photoshop", ext: "psd" };
 
-export const ACCEPTED_FILE_TYPES      = [ ...ACCEPTED_IMAGE_TYPES, PSD.mime ];
-export const ACCEPTED_FILE_EXTENSIONS = [ ...ACCEPTED_IMAGE_EXTENSIONS, PROJECT_FILE_EXTENSION, PSD.ext ];
+export const PSD = { mime: "image/vnd.adobe.photoshop", ext: "psd" };
+export const PDF = { mime: "application/pdf", ext: "pdf" };
+
+export const ACCEPTED_FILE_TYPES      = [ ...ACCEPTED_IMAGE_TYPES, PSD.mime, PDF.mime ];
+export const ACCEPTED_FILE_EXTENSIONS = [ ...ACCEPTED_IMAGE_EXTENSIONS, PROJECT_FILE_EXTENSION, PSD.ext, PDF.ext ];
+export const THIRD_PARTY_DOCUMENTS    = [ PSD, PDF ];
 
 export const isImageFile = ( item: File ): boolean => ACCEPTED_IMAGE_TYPES.includes( item.type );
 
@@ -35,8 +38,11 @@ export const isProjectFile = ( file: File ): boolean => {
     return ext === PROJECT_FILE_EXTENSION;
 };
 
+export const getMimeForThirdPartyDocument = ( file: File ): string | undefined => {
+    const [ , fileExtension ] = file.name.split( "." );
+    return THIRD_PARTY_DOCUMENTS.find(({ ext }) => ext === fileExtension )?.mime;
+};
+
 export const isThirdPartyDocument = ( file: File ): boolean => {
-    const [ , ext ] = file.name.split( "." );
-    // currently only Photoshop documents are supported
-    return ext === PSD.ext;
+    return getMimeForThirdPartyDocument( file ) !== undefined;
 };

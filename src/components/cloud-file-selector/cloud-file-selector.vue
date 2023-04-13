@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -119,7 +119,7 @@
 <script>
 import { mapState, mapMutations, mapActions } from "vuex";
 import { loader } from "zcanvas";
-import { ACCEPTED_FILE_EXTENSIONS, isThirdPartyDocument } from "@/definitions/file-types";
+import { ACCEPTED_FILE_EXTENSIONS, isThirdPartyDocument, getMimeForThirdPartyDocument } from "@/definitions/file-types";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { truncate } from "@/utils/string-util";
 import { disposeResource } from "@/utils/resource-manager";
@@ -295,7 +295,7 @@ export default {
                         const url = await this._downloadFile( node, true );
                         if ( isThirdPartyDocument( node )) {
                             const blob = await fetch( url ).then( r => r.blob() );
-                            await this.loadThirdPartyDocuments([ blob ]);
+                            await this.loadThirdPartyDocuments([ blob ], getMimeForThirdPartyDocument( node ));
                         } else {
                             const { image, size } = await loader.loadImage( url );
                             this.setStorageType( this.STORAGE_PROVIDER );
