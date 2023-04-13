@@ -141,7 +141,7 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
 
     const layerProps: LayerProps = {};
 
-    if ( layer.image.hasMask ) {
+    if ( layer.image.hasMask && layer.mask.width ) {
         // note that we position the mask at the 0, 0 coordinate relative to the layer, whereas Photoshop
         // positions the mask relative to the document
         const { cvs, ctx } = createCanvas( layer.mask.width, layer.mask.height );
