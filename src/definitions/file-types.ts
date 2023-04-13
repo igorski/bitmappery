@@ -38,11 +38,11 @@ export const isProjectFile = ( file: File ): boolean => {
     return ext === PROJECT_FILE_EXTENSION;
 };
 
-export const getMimeForDocument = ( file: File ): string | undefined => {
+export const getMimeForThirdPartyDocument = ( file: File ): string | undefined => {
     const [ , fileExtension ] = file.name.split( "." );
     return THIRD_PARTY_DOCUMENTS.find(({ ext }) => ext === fileExtension )?.mime;
 };
 
 export const isThirdPartyDocument = ( file: File ): boolean => {
-    return getMimeForDocument( file ) !== undefined;
+    return getMimeForThirdPartyDocument( file ) !== undefined;
 };
