@@ -158,7 +158,31 @@ now you can compile all source files to WASM using:
 npm run wasm
 ```
 
-#### Benchmarks
+
+## Docker
+
+### Step 1 : Go into a folder on your local machine and git clone the BitMappery project : 
+
+```bash
+git clone https://github.com/igorski/bitmappery.git 
+```
+
+
+### Step 2 : Build the image using the dockerfile provided :
+```bash
+docker build -t bitmappery .
+``` 
+### Step 3 : Once the image is built, run the container and bind the ports :
+
+```bash
+docker run -d -p 5173:5173 --name bitmappery-container bitmappery
+```
+
+### Step 4 : Once the container is started, you should be able to reach `http://localhost:5173`
+
+
+
+## Benchmarks
 
 On a particular (low powered) configuration, running all filters on a particular source takes:
 
