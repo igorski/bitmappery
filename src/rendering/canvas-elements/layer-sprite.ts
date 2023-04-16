@@ -330,7 +330,7 @@ class LayerSprite extends ZoomableSprite {
             const color = this.getStore().getters.activeColor;
             if ( this.toolOptions.smartFill ) {
                 const point = rotatePointer( this._pointerX, this._pointerY, this.layer, width, height );
-                floodFill( ctx, point.x * this.layer.effects.scale, point.y * this.layer.effects.scale, color );
+                floodFill( ctx, point.x, point.y, color );
             } else {
                 ctx.fillStyle = this.getStore().getters.activeColor;
                 if ( this._selection ) {
