@@ -1,6 +1,6 @@
 import { it, describe, expect } from "vitest";
 import {
-    shapeToRectangle, rectangleToShape,
+    shapeToRectangle, rectangleToShape, scaleShape,
     isShapeRectangular, isShapeClosed
 } from "@/utils/shape-util";
 
@@ -27,6 +27,21 @@ describe( "Shape utilities", () => {
             { x: 450, y: 375 },
             { x: 50,  y: 375 },
             { x: 50,  y: 75 }
+        ]);
+    });
+
+    it( "should be able to scale a Shape by given factor", () => {
+        const shape = [
+            { x: 100, y: 150 },
+            { x: 50,  y: 899 },
+            { x: 50,  y: 100 },
+            { x: 101, y: 100 }
+        ];
+        expect( scaleShape( shape, 2 )).toEqual([
+            { x: 200, y: 300 },
+            { x: 100, y: 1798 },
+            { x: 100, y: 200 },
+            { x: 202, y: 200 }
         ]);
     });
 

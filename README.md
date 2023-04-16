@@ -6,17 +6,17 @@ No, I'm building a tool that does the bare minimum what I require and what I don
 find in other open source tools. That doesn't mean of course that contributions
 related to Photoshop-esque features aren't welcomed.
 
-## The [Issue Tracker](https://github.com/igorski/bitmappery/issues) is your point of contact
-
-Bug reports, feature requests, questions and discussions are welcome on the GitHub Issue Tracker, please do not send e-mails through the development website. However, please search before posting to avoid duplicates, and limit to one issue per post.
-
-Please vote on feature requests by using the Thumbs Up/Down reaction on the first post.
-
 ### All hand-written ?
 
 Yep, though it helps having worked in the photo software industry for five years, having
 tackled the problems before. Also, BitMappery is reusing [zCanvas](https://github.com/igorski/zCanvas)
 under the hood for rendering and bitmap blitting. BitMappery is written on top of [Vue](https://github.com/vuejs/vue) using [Vuex](https://github.com/vuejs/vuex) and [VueI18n](https://github.com/kazupon/vue-i18n).
+
+## The [Issue Tracker](https://github.com/igorski/bitmappery/issues) is your point of contact
+
+Bug reports, feature requests, questions and discussions are welcome on the GitHub Issue Tracker, please do not send e-mails through the development website. However, please search before posting to avoid duplicates, and limit to one issue per post.
+
+Please vote on feature requests by using the Thumbs Up/Down reaction on the first post.
 
 ## Model
 
@@ -113,9 +113,10 @@ Whenever an action (that requires an undo state) can be triggered in multiple lo
 inside a component and as a keyboard shortcut in `@/src/services/keyboard-service`), you can
 create a custom handler inside `@/src/factories/action-factory` to avoid code duplication.
 
-## Dropbox integration
+## Third party storage integration
 
-Requires you to [register a client id or access token](https://www.dropbox.com/developers/apps).
+Requires you to register a client id or access token in the developer portal of the third party
+storage provider. Currently, there is support for [Dropbox](https://www.dropbox.com/developers/apps) and [Google Drive](https://console.cloud.google.com/).
 
 ## Project setup
 
@@ -134,7 +135,29 @@ after which you can run:
 
 The above will suffice when working solely on the JavaScript side of things.
 
-### WebAssembly
+## Docker based self hosted version
+
+#### Step 1 : Clone the BitMappery project into a local folder :
+
+```bash
+git clone https://github.com/igorski/bitmappery.git
+```
+
+#### Step 2 : Build the image using the provided Dockerfile :
+
+```bash
+docker build -t bitmappery .
+```
+
+#### Step 3 : Once the image is built, run the container and bind the ports :
+
+```bash
+docker run -d -p 5173:5173 --name bitmappery-container bitmappery
+```
+
+Once the container is started, you can access BitMappery at `http://localhost:5173`
+
+## WebAssembly
 
 BitMappery can also use WebAssembly to increase performance of image manipulation. The source
 code is C based and compiled to WASM using [Emscripten](https://github.com/emscripten-core/emscripten). Because this setup is a little more cumbersome, the repository contains precompiled binaries
@@ -158,31 +181,7 @@ now you can compile all source files to WASM using:
 npm run wasm
 ```
 
-
-## Docker
-
-### Step 1 : Go into a folder on your local machine and git clone the BitMappery project : 
-
-```bash
-git clone https://github.com/igorski/bitmappery.git 
-```
-
-
-### Step 2 : Build the image using the dockerfile provided :
-```bash
-docker build -t bitmappery .
-``` 
-### Step 3 : Once the image is built, run the container and bind the ports :
-
-```bash
-docker run -d -p 5173:5173 --name bitmappery-container bitmappery
-```
-
-### Step 4 : Once the container is started, you should be able to reach `http://localhost:5173`
-
-
-
-## Benchmarks
+### Benchmarks
 
 On a particular (low powered) configuration, running all filters on a particular source takes:
 

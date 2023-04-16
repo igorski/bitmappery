@@ -53,9 +53,7 @@ export const SELECTION_TOOLS = [ ToolTypes.SELECTION, ToolTypes.LASSO, ToolTypes
 
 export const canDraw = ( activeDocument: Document, activeLayer: Layer ): boolean => {
     return activeDocument &&
-    ( activeLayer?.mask || activeLayer?.type === LayerTypes.LAYER_GRAPHIC ) &&
-    // scaled layers should commit their scale before allowing draw operations
-    ( activeLayer.effects.scale === 1 );
+    ( activeLayer?.mask !== null || activeLayer?.type === LayerTypes.LAYER_GRAPHIC );
 };
 
 // we cannot draw in selection if a layer is mirrored (see https://github.com/igorski/bitmappery/issues/5)

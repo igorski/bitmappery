@@ -374,9 +374,15 @@ class LayerSprite extends ZoomableSprite {
                 } else {
                     // render full brush stroke path directly onto the Layer source
                     ctx = createCanvas( orgContext.canvas.width, orgContext.canvas.height ).ctx;
+                    // take optional layer scaling into account
+                    const scale = 1 / this.layer.effects.scale;
+                    ctx.translate(
+                        ( this.layer.width  / 2 ) - ( this.layer.width  * scale ) / 2,
+                        ( this.layer.height / 2 ) - ( this.layer.height * scale ) / 2
+                    );
                     // transform destination context in case the current layer is rotated or mirrored
                     ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
-                    this._brush.pointers = rotatePointers( this._brush.pointers, this.layer, width, height );
+                    this._brush.pointers = rotatePointers( this._brush.pointers, this.layer, width, height ).map(({ x, y }) => ({ x: x * scale, y: y * scale }));
                 }
                 renderBrushStroke( ctx, this._brush, overrides );
 
