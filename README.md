@@ -113,9 +113,10 @@ Whenever an action (that requires an undo state) can be triggered in multiple lo
 inside a component and as a keyboard shortcut in `@/src/services/keyboard-service`), you can
 create a custom handler inside `@/src/factories/action-factory` to avoid code duplication.
 
-## Dropbox integration
+## Third party storage integration
 
-Requires you to [register a client id or access token](https://www.dropbox.com/developers/apps).
+Requires you to register a client id or access token in the developer portal of the third party
+storage provider. Currently, there is support for [Dropbox](https://www.dropbox.com/developers/apps) and [Google Drive](https://console.cloud.google.com/).
 
 ## Project setup
 
