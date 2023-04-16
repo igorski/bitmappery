@@ -142,13 +142,13 @@ The above will suffice when working solely on the JavaScript side of things.
 git clone https://github.com/igorski/bitmappery.git
 ```
 
-### Step 2 : Build the image using the provided Dockerfile :
+#### Step 2 : Build the image using the provided Dockerfile :
 
 ```bash
 docker build -t bitmappery .
 ```
 
-### Step 3 : Once the image is built, run the container and bind the ports :
+#### Step 3 : Once the image is built, run the container and bind the ports :
 
 ```bash
 docker run -d -p 5173:5173 --name bitmappery-container bitmappery
