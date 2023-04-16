@@ -134,7 +134,7 @@ after which you can run:
 
 The above will suffice when working solely on the JavaScript side of things.
 
-### Docker
+## Docker based self host
 
 #### Step 1 : Go into a folder on your local machine and git clone the BitMappery project :
 
@@ -156,7 +156,7 @@ docker run -d -p 5173:5173 --name bitmappery-container bitmappery
 
 Once the container is started, you can access BitMappery at `http://localhost:5173`
 
-### WebAssembly
+## WebAssembly
 
 BitMappery can also use WebAssembly to increase performance of image manipulation. The source
 code is C based and compiled to WASM using [Emscripten](https://github.com/emscripten-core/emscripten). Because this setup is a little more cumbersome, the repository contains precompiled binaries
@@ -180,7 +180,7 @@ now you can compile all source files to WASM using:
 npm run wasm
 ```
 
-## Benchmarks
+### Benchmarks
 
 On a particular (low powered) configuration, running all filters on a particular source takes:
 
