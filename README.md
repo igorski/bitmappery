@@ -6,17 +6,17 @@ No, I'm building a tool that does the bare minimum what I require and what I don
 find in other open source tools. That doesn't mean of course that contributions
 related to Photoshop-esque features aren't welcomed.
 
-## The [Issue Tracker](https://github.com/igorski/bitmappery/issues) is your point of contact
-
-Bug reports, feature requests, questions and discussions are welcome on the GitHub Issue Tracker, please do not send e-mails through the development website. However, please search before posting to avoid duplicates, and limit to one issue per post.
-
-Please vote on feature requests by using the Thumbs Up/Down reaction on the first post.
-
 ### All hand-written ?
 
 Yep, though it helps having worked in the photo software industry for five years, having
 tackled the problems before. Also, BitMappery is reusing [zCanvas](https://github.com/igorski/zCanvas)
 under the hood for rendering and bitmap blitting. BitMappery is written on top of [Vue](https://github.com/vuejs/vue) using [Vuex](https://github.com/vuejs/vuex) and [VueI18n](https://github.com/kazupon/vue-i18n).
+
+## The [Issue Tracker](https://github.com/igorski/bitmappery/issues) is your point of contact
+
+Bug reports, feature requests, questions and discussions are welcome on the GitHub Issue Tracker, please do not send e-mails through the development website. However, please search before posting to avoid duplicates, and limit to one issue per post.
+
+Please vote on feature requests by using the Thumbs Up/Down reaction on the first post.
 
 ## Model
 
@@ -134,6 +134,28 @@ after which you can run:
 
 The above will suffice when working solely on the JavaScript side of things.
 
+### Docker
+
+#### Step 1 : Go into a folder on your local machine and git clone the BitMappery project :
+
+```bash
+git clone https://github.com/igorski/bitmappery.git
+```
+
+### Step 2 : Build the image using the provided Dockerfile :
+
+```bash
+docker build -t bitmappery .
+```
+
+### Step 3 : Once the image is built, run the container and bind the ports :
+
+```bash
+docker run -d -p 5173:5173 --name bitmappery-container bitmappery
+```
+
+Once the container is started, you can access BitMappery at `http://localhost:5173`
+
 ### WebAssembly
 
 BitMappery can also use WebAssembly to increase performance of image manipulation. The source
@@ -157,30 +179,6 @@ now you can compile all source files to WASM using:
 ```
 npm run wasm
 ```
-
-
-## Docker
-
-### Step 1 : Go into a folder on your local machine and git clone the BitMappery project : 
-
-```bash
-git clone https://github.com/igorski/bitmappery.git 
-```
-
-
-### Step 2 : Build the image using the dockerfile provided :
-```bash
-docker build -t bitmappery .
-``` 
-### Step 3 : Once the image is built, run the container and bind the ports :
-
-```bash
-docker run -d -p 5173:5173 --name bitmappery-container bitmappery
-```
-
-### Step 4 : Once the container is started, you should be able to reach `http://localhost:5173`
-
-
 
 ## Benchmarks
 

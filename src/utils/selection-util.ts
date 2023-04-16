@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Rectangle } from "zcanvas";
+import type { Point, Rectangle } from "zcanvas";
 import type { Shape, Selection } from "@/definitions/document";
 import { shapeToRectangle } from "@/utils/shape-util";
 
@@ -44,6 +44,12 @@ export const selectionToRectangle = ( selection: Selection ): Rectangle => {
         width  : Math.max.apply( null, xCoords ) - left,
         height : Math.max.apply( null, yCoords ) - top,
     };
+};
+
+export const scaleSelection = ( selection: Selection, scale: number ): Selection => {
+    return selection.map(( shape: Shape ) =>
+        shape.map(( point: Point ) => ({ x: point.x * scale, y: point.y * scale }))
+    );
 };
 
 export const getLastShape = ( selection: Selection ): Shape => {
