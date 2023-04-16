@@ -22,7 +22,7 @@
  */
 import type { Point, Rectangle } from "zcanvas";
 import type { Shape, Selection } from "@/definitions/document";
-import { shapeToRectangle } from "@/utils/shape-util";
+import { shapeToRectangle, scaleShape } from "@/utils/shape-util";
 
 export const selectionToRectangle = ( selection: Selection ): Rectangle => {
     if ( selection.length === 1 ) {
@@ -47,9 +47,7 @@ export const selectionToRectangle = ( selection: Selection ): Rectangle => {
 };
 
 export const scaleSelection = ( selection: Selection, scale: number ): Selection => {
-    return selection.map(( shape: Shape ) =>
-        shape.map(( point: Point ) => ({ x: point.x * scale, y: point.y * scale }))
-    );
+    return selection.map(( shape: Shape ) => scaleShape( shape, scale ));
 };
 
 export const getLastShape = ( selection: Selection ): Shape => {

@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Rectangle } from "zcanvas";
+import type { Point, Rectangle } from "zcanvas";
 import type { Shape } from "@/definitions/document";
 
 export const shapeToRectangle = ( shape: Shape ): Rectangle => {
@@ -50,6 +50,10 @@ export const rectangleToShape = ( width: number, height: number, x = 0, y = 0 ):
     { x, y: y + height },
     { x, y }
 ];
+
+export const scaleShape = ( shape: Shape, scale: number ): Shape => {
+    return shape.map(( point: Point ) => ({ x: point.x * scale, y: point.y * scale }));
+};
 
 export const isShapeRectangular = ( shape: Shape ): boolean => {
     if ( shape.length !== 5 ) {
