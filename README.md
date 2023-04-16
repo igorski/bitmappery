@@ -134,9 +134,9 @@ after which you can run:
 
 The above will suffice when working solely on the JavaScript side of things.
 
-## Docker based self host
+## Docker based self hosted version
 
-#### Step 1 : Go into a folder on your local machine and git clone the BitMappery project :
+#### Step 1 : Clone the BitMappery project into a local folder :
 
 ```bash
 git clone https://github.com/igorski/bitmappery.git
