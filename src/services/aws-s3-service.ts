@@ -22,8 +22,8 @@
  */
 import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3";
 import { createWriteStream } from "fs";
-import type { FileNode } from "@/components/cloud-file-selector/cloud-file-selector";
 import { PROJECT_FILE_EXTENSION, getMimeByFileName } from "@/definitions/file-types";
+import type { FileNode } from "@/definitions/storage-types";
 import { blobToResource } from "@/utils/resource-manager";
 
 const UPLOAD_FILE_SIZE_LIMIT = 150 * 1024 * 1024;
@@ -38,6 +38,7 @@ let currentFolder = "";
  */
 export const initS3 = async (
     accessKeyId: string, secretAccessKey: string, bucketName: string,
+    // @ts-expect-error endpoint currently unused (TODO)
     region?: string, endpoint?: string ): Promise<boolean> => {
 
     bucket = bucketName;
@@ -58,6 +59,8 @@ export const initS3 = async (
 };
 
 export const listFolder = async ( path = "", MaxKeys = 500 ): Promise<FileNode[]> => {
+    console.info( "TODO allow support for " + path );
+
     const command = new ListObjectsV2Command({
         Bucket: bucket,
         MaxKeys,
@@ -75,19 +78,23 @@ export const listFolder = async ( path = "", MaxKeys = 500 ): Promise<FileNode[]
                     name: entry.Key,
                     type: mime === PROJECT_FILE_EXTENSION ? PROJECT_FILE_EXTENSION : "file",
                     mime,
+                    path,
+                    children: [],
+                    preview: "", // not supported for S3
                 });
             }
             isTruncated = IsTruncated;
             command.input.ContinuationToken = NextContinuationToken;
         }
-    } catch ( err: Error ) {
+    } catch ( err: any ) {
         console.error( err );
     }
     return output;
 };
 
 export const createFolder = async ( path = "/", folder = "folder" ): Promise<boolean> => {
-
+    console.info( "TODO implement creation of folder " + folder + " at path " + path );
+    return false;
 };
 
 export const getCurrentFolder = (): string => currentFolder;
@@ -96,6 +103,7 @@ export const setCurrentFolder = ( folder: string ): void => {
     currentFolder = folder;
 };
 
+// @ts-expect-error unused variables
 export const getThumbnail = async ( path: string, large = false ): Promise<string | null> => {
     // thumbnails are not for free on S3, these need generation...
     return null;
@@ -108,7 +116,7 @@ export const downloadFileAsBlob = async ( path: string, returnAsURL = false ): P
             Bucket: bucket,
         }))
 
-        const res = new Response( Body );
+        const res = new Response( Body as BodyInit );
         const blob = await res.blob();
 
         if ( returnAsURL ) {
@@ -116,33 +124,22 @@ export const downloadFileAsBlob = async ( path: string, returnAsURL = false ): P
         }
         return blob;
 
-    } catch ( err: Error ) {
+    } catch ( err: any ) {
         console.error( err );
     }
     return null;
 };
 
 export const deleteEntry = async ( path: string ): Promise<boolean> => {
-
+    console.info( "todo delete " + path );
+    return false;
 };
 
 export const uploadBlob = async ( fileOrBlob: File | Blob, folder: string, fileName: string ): Promise<boolean> => {
-// NO! use multipart!
-// https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/javascript_s3_code_examples.html
-    const command = new PutObjectCommand({
-        Bucket: bucket,
-        Key: `${folder}/${fileName}`,
-        Body: "Hello S3!", // TODO
-    });
-
-    try {
-        const response = await client.send( command );
-        console.log( response );
-        return true;
-    } catch ( err: Error ) {
-        console.error( err );
-        return false;
-    }
+    // use multipart!
+    // https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/javascript_s3_code_examples.html
+    console.info( "todo upload " + fileOrBlob + " to " + folder + " with name " + fileName );
+    return false;
 };
 
 /* internal methods */

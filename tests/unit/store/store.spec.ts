@@ -246,6 +246,12 @@ describe( "Vuex store", () => {
             mutations.setDriveConnected( state, true );
             expect( state.driveConnected ).toEqual( true );
         });
+
+        it( "should be able to set the S3 bucket connection status", () => {
+            const state = { s3Connected: false };
+            mutations.setS3Connected( state, true );
+            expect( state.s3Connected ).toEqual( true );
+        });
     });
 
     describe( "actions", () => {

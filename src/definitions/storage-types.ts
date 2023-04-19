@@ -26,3 +26,13 @@ export enum STORAGE_TYPES {
     DRIVE   = "drive",
     S3      = "s3",
 };
+
+export type FileNode = {
+    name: string;
+    type: string; // use by cloud-file-selector, supported types : "folder" | "file" | "bpy";
+    path: string;
+    preview: string;
+    mime: string;
+    children?: FileNode[];
+    parent?: FileNode[];
+};

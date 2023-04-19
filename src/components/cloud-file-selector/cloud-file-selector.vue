@@ -121,21 +121,12 @@ import type { Component } from "vue";
 import { mapState, mapMutations, mapActions } from "vuex";
 import { loader } from "zcanvas";
 import { ACCEPTED_FILE_EXTENSIONS, isThirdPartyDocument, getMimeForThirdPartyDocument } from "@/definitions/file-types";
+import type { FileNode } from "@/definitions/storage-types";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { truncate } from "@/utils/string-util";
 import { disposeResource } from "@/utils/resource-manager";
 
 import messages from "./messages.json";
-
-export type FileNode = {
-    name: string;
-    type: "folder" | "file" | "bpy";
-    path: string;
-    preview: string;
-    mime: string;
-    children: FileNode[];
-    parent?: FileNode[];
-};
 
 const RETRIEVAL_LOAD_KEY = "cld_r";
 const ACTION_LOAD_KEY    = "cld_a";

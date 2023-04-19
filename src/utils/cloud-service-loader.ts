@@ -27,6 +27,7 @@ let s3: any;
 // Dropbox
 
 export const supportsDropbox = (): boolean => {
+    // @ts-expect-error import.meta unsupported for current module option (no issue, Vite will replace)
     return !!import.meta.env.VITE_DROPBOX_API_KEY;
 };
 
@@ -40,6 +41,7 @@ export const getDropboxService = async (): Promise<any> => {
 // Google Drive
 
 export const supportsGoogleDrive = (): boolean => {
+    // @ts-expect-error import.meta unsupported for current module option (no issue, Vite will replace)
     return !!import.meta.env.VITE_DRIVE_API_KEY;
 };
 
@@ -53,6 +55,7 @@ export const getGoogleDriveService = async (): Promise<any> => {
 // AWS S3
 
 export const supportsS3 = (): boolean => {
+    // @ts-expect-error import.meta unsupported for current module option (no issue, Vite will replace)
     return !!import.meta.env.VITE_S3_ACCESS_KEY;
 };
 
