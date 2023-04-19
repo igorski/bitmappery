@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2022-2023 - https://www.igorski.nl
+ * Igor Zinken 2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,9 +20,34 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-export enum STORAGE_TYPES {
-    LOCAL   = "local",
-    DROPBOX = "dropbox",
-    DRIVE   = "drive",
-    S3      = "s3",
+<template>
+    <div class="image-preview" v-on="$listeners">
+        <p>{{ node.name }}</p>
+        <!-- there are no thumbnails generated "for free" by S3... -->
+        <!-- <img
+            :src="node.preview"
+            v-on="$listeners"
+            class="image-preview__image"
+        /> -->
+    </div>
+</template>
+
+<script>
+export default {
+    props: {
+        node: {
+            type: Object,
+            required: true,
+        },
+    },
 };
+</script>
+
+<style lang="scss" scoped>
+@import "@/styles/_mixins";
+
+.image-preview {
+    background: url("../../../assets-inline/images/icon-bpy.svg") no-repeat 50% $spacing-xlarge;
+    background-size: 50%;
+}
+</style>

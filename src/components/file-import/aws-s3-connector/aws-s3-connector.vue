@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2022-2023 - https://www.igorski.nl
+ * Igor Zinken 2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,9 +20,31 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-export enum STORAGE_TYPES {
-    LOCAL   = "local",
-    DROPBOX = "dropbox",
-    DRIVE   = "drive",
-    S3      = "s3",
+<template>
+    <div class="form">
+        <button
+            v-t="'importFromS3'"
+            type="button"
+            class="button button--block button--third-party s3"
+            @click="openFileBrowserS3()"
+        ></button>
+    </div>
+</template>
+
+<script lang="ts">
+import CloudServiceConnector from "@/mixins/cloud-service-connector";
+import sharedMessages from "@/messages.json"; // for CloudServiceConnector
+import messages from "./messages.json";
+
+export default {
+    i18n: { messages, sharedMessages },
+    mixins: [ CloudServiceConnector ],
+    async created(): Promise<void> {
+        await this.initS3();
+    },
 };
+</script>
+
+<style lang="scss" scoped>
+@import "@/styles/third-party";
+</style>

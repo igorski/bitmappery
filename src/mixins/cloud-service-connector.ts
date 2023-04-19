@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,9 +21,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { mapState, mapMutations } from "vuex";
-import { DROPBOX_FILE_SELECTOR, GOOGLE_DRIVE_FILE_SELECTOR } from "@/definitions/modal-windows";
+import { DROPBOX_FILE_SELECTOR, GOOGLE_DRIVE_FILE_SELECTOR, AWS_S3_FILE_SELECTOR } from "@/definitions/modal-windows";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
-import { getDropboxService, getGoogleDriveService } from "@/utils/cloud-service-loader";
+import { getDropboxService, getGoogleDriveService, getS3Service } from "@/utils/cloud-service-loader";
 
 let isAuthenticated: () => Promise<boolean>;
 let requestLogin: ( clientId?: string, redirectUrl?: string ) => Promise<void>;
@@ -104,10 +104,8 @@ export default {
                 this.openFileBrowserDropbox();
             } else {
                 this.authUrl = await requestLogin(
-                    // @ts-expect-error Property 'dropboxClientId' does not exist on type 'Window & typeof globalThis'
-                    window.dropboxClientId || localStorage?.getItem( "dropboxClientId" ),
-                    // @ts-expect-error Property 'dropboxRedirect' does not exist on type 'Window & typeof globalThis'
-                    window.dropboxRedirect || `${window.location.href}login.html`
+                    import.meta.env.VITE_DROPBOX_API_KEY,
+                    import.meta.env.VITE_DROPBOX_REDIRECT_URL || `${window.location.href}login.html`
                 );
                 this.openAuth( this.$t( "cloud.connectionExplDropbox" ), this.loginDropbox.bind( this ));
             }
@@ -140,10 +138,8 @@ export default {
             this.setLoading( LOADING_KEY );
 
             this.initialized = await init(
-                // @ts-expect-error Property 'driveApiKey' does not exist on type 'Window & typeof globalThis'
-                window.driveApiKey   || localStorage?.getItem( "driveApiKey" ),
-                // @ts-expect-error Property 'driveClientId' does not exist on type 'Window & typeof globalThis'
-                window.driveClientId || localStorage?.getItem( "driveClientId" )
+                import.meta.env.VITE_DRIVE_API_KEY,
+                import.meta.env.VITE_DRIVE_CLIENT_ID,
             );
             this.unsetLoading( LOADING_KEY );
 
@@ -217,6 +213,29 @@ export default {
         },
         openFileBrowserDrive(): void {
             this.openModal( GOOGLE_DRIVE_FILE_SELECTOR );
+        },
+        // AWS S3
+        async initS3(): Promise<boolean> {
+            const s3 = await getS3Service();
+            const connected = await s3.initS3(
+                import.meta.env.VITE_S3_ACCESS_KEY,
+                import.meta.env.VITE_S3_SECRET_KEY,
+                import.meta.env.VITE_S3_BUCKET_NAME,
+                import.meta.env.VITE_S3_REGION,
+                import.meta.env.VITE_S3_ENDPOINT
+            );
+
+            if ( connected ) {
+                this.openFileBrowserS3();
+            } else {
+                this.openDialog({
+                    type: "error",
+                    message: this.$t( "cloud.errorConnectingS3" )
+                });
+            }
+        },
+        openFileBrowserS3(): void {
+            this.openModal( AWS_S3_FILE_SELECTOR );
         },
     },
 };

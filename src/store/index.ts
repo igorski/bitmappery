@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -62,6 +62,7 @@ export interface BitMapperyState {
     storageType: STORAGE_TYPES;
     dropboxConnected: boolean;
     driveConnected: boolean;
+    s3Connected: boolean;
     windowSize: Size;
 
     // store sub-module states
@@ -106,6 +107,7 @@ export default {
         storageType: STORAGE_TYPES.LOCAL,
         dropboxConnected: false,
         driveConnected: false,
+        s3Connected: false,
         windowSize: {
             width: window.innerWidth,
             height: window.innerHeight
@@ -206,6 +208,9 @@ export default {
         },
         setDriveConnected( state: BitMapperyState, value: boolean ): void {
             state.driveConnected = value;
+        },
+        setS3Connected( state: BitMapperyState, value: boolean ): void {
+            state.s3Connected = value;
         },
     },
     actions: {

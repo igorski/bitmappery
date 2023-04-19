@@ -116,7 +116,9 @@ create a custom handler inside `@/src/factories/action-factory` to avoid code du
 ## Third party storage integration
 
 Requires you to register a client id or access token in the developer portal of the third party
-storage provider. Currently, there is support for [Dropbox](https://www.dropbox.com/developers/apps) and [Google Drive](https://console.cloud.google.com/).
+storage provider. Currently, there is support for [Dropbox](https://www.dropbox.com/developers/apps), [Google Drive](https://console.cloud.google.com/) and S3 Buckets.
+
+You can enable each of these integrations by providing the required key values in the `.env` file.
 
 ## Project setup
 

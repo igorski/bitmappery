@@ -6,6 +6,7 @@
         "createNewDocument": "Create new document",
         "importFromDropbox": "Import from Dropbox",
         "importFromGoogleDrive": "Import from Google Drive",
+        "importFromAwsS3": "Import from S3",
         "openImageAsNew": "Open images as new",
         "fileAndHelpExpl": "You can always open files from the \"File\"-menu. Consult the \"Help\"-menu for further assistance."
     }

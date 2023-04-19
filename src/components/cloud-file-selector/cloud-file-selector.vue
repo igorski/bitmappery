@@ -116,7 +116,8 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
+import type { Component } from "vue";
 import { mapState, mapMutations, mapActions } from "vuex";
 import { loader } from "zcanvas";
 import { ACCEPTED_FILE_EXTENSIONS, isThirdPartyDocument, getMimeForThirdPartyDocument } from "@/definitions/file-types";
@@ -126,10 +127,20 @@ import { disposeResource } from "@/utils/resource-manager";
 
 import messages from "./messages.json";
 
+export type FileNode = {
+    name: string;
+    type: "folder" | "file" | "bpy";
+    path: string;
+    preview: string;
+    mime: string;
+    children: FileNode[];
+    parent?: FileNode[];
+};
+
 const RETRIEVAL_LOAD_KEY = "cld_r";
 const ACTION_LOAD_KEY    = "cld_a";
 
-function recurseChildren( node, path ) {
+function recurseChildren( node: FileNode, path: string ): FileNode {
     const { children } = node;
     if ( !Array.isArray( children )) {
         return null;
@@ -148,7 +159,7 @@ function recurseChildren( node, path ) {
     return null;
 }
 
-function findLeafByPath( node, path ) {
+function findLeafByPath( node: FileNode, path: string ): FileNode {
     if ( node.path === path ) {
         return node;
     }
@@ -174,13 +185,13 @@ export default {
         ...mapState([
             "loadingStates",
         ]),
-        loading() {
+        loading(): boolean {
             return this.loadingStates.includes( RETRIEVAL_LOAD_KEY );
         },
-        disabled() {
+        disabled(): boolean {
             return this.loadingStates.includes( ACTION_LOAD_KEY );
         },
-        breadcrumbs() {
+        breadcrumbs(): FileNode[] {
             let parent = this.leaf.parent;
             const out = [];
             while ( parent ) {
@@ -189,7 +200,7 @@ export default {
             }
             return out.reverse();
         },
-        filesAndFolders() {
+        filesAndFolders(): FileNode[] {
             return this.leaf.children.filter( entry => {
                 // only show folders and image files
                 if ( entry.type === "file" ) {
@@ -198,11 +209,11 @@ export default {
                 return true;
             });
         },
-        imagePreviewComponent() {
+        imagePreviewComponent(): Component {
             return null; // extend in inheriting components
         },
     },
-    mounted() {
+    mounted(): void {
         focus( this.$refs.content );
         this.escListener = ({ keyCode }) => {
             if ( keyCode === 27 ) {
@@ -211,7 +222,7 @@ export default {
         };
         window.addEventListener( "keyup", this.escListener );
     },
-    destroyed() {
+    destroyed(): void {
         window.removeEventListener( "keyup", this.escListener );
     },
     methods: {
@@ -226,7 +237,7 @@ export default {
         ...mapActions([
             "loadDocument",
         ]),
-        async retrieveFiles( path ) {
+        async retrieveFiles( path ): Promise<void> {
             this.setLoading( RETRIEVAL_LOAD_KEY );
             try {
                 const entries = await this._listFolder( path );
@@ -251,7 +262,7 @@ export default {
             }
             this.unsetLoading( RETRIEVAL_LOAD_KEY );
         },
-        async handleCreateFolderClick() {
+        async handleCreateFolderClick(): Promise<void> {
             const folder = this.newFolderName;
             this.setLoading( ACTION_LOAD_KEY );
             try {
@@ -271,7 +282,7 @@ export default {
             }
             this.unsetLoading( ACTION_LOAD_KEY );
         },
-        async handleNodeClick( node ) {
+        async handleNodeClick( node: FileNode ): Promise<void> {
             if ( this.disabled ) {
                 return;
             }
@@ -316,7 +327,7 @@ export default {
             }
             this.unsetLoading( ACTION_LOAD_KEY );
         },
-        handleDeleteClick( node ) {
+        handleDeleteClick( node: FileNode ): void {
             const { name } = node;
             this.openDialog({
                 type: "confirm",
@@ -341,24 +352,24 @@ export default {
         },
         /* the below should be implemented in inheriting components */
         // eslint-disable-next-line no-unused-vars
-        async _listFolder( path ) {
-
+        async _listFolder( path: string ): Promise<FileNode[]> {
+            return [];
         },
         // eslint-disable-next-line no-unused-vars
-        async _createFolder( parent, name ) {
-
+        async _createFolder( parent: FileNode, name: string ): Promise<boolean> {
+            return false;
         },
         // eslint-disable-next-line no-unused-vars
-        async _downloadFile( node, returnAsURL = false  ) {
-
+        async _downloadFile( node: FileNode, returnAsURL = false  ): Promise<Blob | string | null> {
+            return null;
         },
         // eslint-disable-next-line no-unused-vars
-        async _deleteEntry( node ) {
-
+        async _deleteEntry( node: FileNode ): Promise<boolean> {
+            return false;
         },
         // eslint-disable-next-line no-unused-vars
-        _mapEntry( entry, children = [], parent = null ) {
-            return {};
+        _mapEntry( entry: FileNode, children: FileNode[] = [], parent: FileNode = null ): FileNode {
+            return {} as FileNode;
         }
     }
 };

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -35,23 +35,41 @@
             ></button>
             <div class="file-fieldset">
                 <p v-t="'orImportFile'"></p>
+                <!-- Local -->
                 <file-selector />
-                <button
-                    v-if="!dropbox"
-                    v-t="'importFromDropbox'"
-                    type="button"
-                    class="button button--block dropbox"
-                    @click="dropbox = true"
-                ></button>
-                <component :is="dropboxImportType" />
-                <button
-                    v-if="!drive"
-                    v-t="'importFromGoogleDrive'"
-                    type="button"
-                    class="button button--block drive"
-                    @click="drive = true"
-                ></button>
-                <component :is="driveImportType" />
+                <!-- Dropbox -->
+                <template v-if="hasDropbox">
+                    <button
+                        v-if="!dropbox"
+                        v-t="'importFromDropbox'"
+                        type="button"
+                        class="button button--block button--third-party dropbox"
+                        @click="dropbox = true"
+                    ></button>
+                    <component :is="dropboxImportType" />
+                </template>
+                <!-- Google Drive -->
+                <template v-if="hasDrive">
+                    <button
+                        v-if="!drive"
+                        v-t="'importFromGoogleDrive'"
+                        type="button"
+                        class="button button--block button--third-party drive"
+                        @click="drive = true"
+                    ></button>
+                    <component :is="driveImportType" />
+                </template>
+                <!-- AWS S3 -->
+                <template v-if="hasS3">
+                    <button
+                        v-if="!s3"
+                        v-t="'importFromAwsS3'"
+                        type="button"
+                        class="button button--block button--third-party s3"
+                        @click="s3 = true"
+                    ></button>
+                    <component :is="s3ImportType" />
+                </template>
                 <div class="wrapper input">
                     <label v-t="'openImageAsNew'" class="file-target-label"></label>
                     <select-box
@@ -70,7 +88,8 @@
 import { mapGetters, mapMutations } from "vuex";
 import { CREATE_DOCUMENT } from "@/definitions/modal-windows";
 import FileSelector from "./file-selector/file-selector.vue";
-import SelectBox    from "@/components/ui/select-box/select-box.vue";
+import SelectBox from "@/components/ui/select-box/select-box.vue";
+import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
 import { mapSelectOptions } from "@/utils/search-select-util"
 import messages from "./messages.json";
 
@@ -83,6 +102,10 @@ export default {
     data: () => ({
         dropbox: false,
         drive: false,
+        s3: false,
+        hasDropbox: supportsDropbox(),
+        hasDrive: supportsGoogleDrive(),
+        hasS3: supportsS3(),
     }),
     computed: {
         ...mapGetters([
@@ -112,6 +135,12 @@ export default {
         driveImportType() {
             if ( this.drive ) {
                 return () => import( "./google-drive-connector/google-drive-connector.vue" );
+            }
+            return null;
+        },
+        s3ImportType() {
+            if ( this.s3 ) {
+                return () => import( "./aws-s3-connector/aws-s3-connector.vue" );
             }
             return null;
         },
@@ -165,7 +194,7 @@ export default {
     width: 50% !important;
 }
 
-.drive {
+.button--third-party:last-of-type {
     margin-bottom: $spacing-medium;
 }
 </style>
