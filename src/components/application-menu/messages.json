@@ -7,6 +7,7 @@
         "save": "Save",
         "openDropboxDocument": "Open from Dropbox",
         "openDriveDocument": "Open from Google Drive",
+        "openS3Document": "Open from S3 bucket",
         "exportImage": "Export image",
         "edit": "Edit",
         "undo": "Undo",

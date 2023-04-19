@@ -21,14 +21,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div class="form">
-        <button
-            v-t="'importFromS3'"
-            type="button"
-            class="button button--block button--third-party s3"
-            @click="openFileBrowserS3()"
-        ></button>
-    </div>
+    <button
+        v-t="'importFromS3'"
+        type="button"
+        class="button button--block button--third-party s3"
+        @click="openFileBrowserS3()"
+    ></button>
 </template>
 
 <script lang="ts">

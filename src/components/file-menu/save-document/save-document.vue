@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -71,7 +71,8 @@
     </modal>
 </template>
 
-<script>
+<script lang="ts">
+import type { Component } from "vue";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
@@ -93,16 +94,17 @@ export default {
         ...mapState([
             "dropboxConnected",
             "driveConnected",
+            "s3Connected",
             "storageType",
         ]),
         ...mapGetters([
             "activeDocument",
             "hasCloudConnection",
         ]),
-        isValid() {
+        isValid(): boolean {
             return this.name.length > 0;
         },
-        storageLocations() {
+        storageLocations(): { label: string, value: STORAGE_TYPES }[] {
             const out = [{ label: this.$t( "local" ), value: STORAGE_TYPES.LOCAL }];
             if ( this.dropboxConnected ) {
                 out.push({ label: this.$t( "dropbox" ), value: STORAGE_TYPES.DROPBOX });
@@ -110,25 +112,34 @@ export default {
             if ( this.driveConnected ) {
                 out.push({ label: this.$t( "drive" ), value: STORAGE_TYPES.DRIVE });
             }
+            if ( this.s3Connected ) {
+                out.push({ label: this.$t( "s3" ), value: STORAGE_TYPES.S3 });
+            }
             return out;
         },
-        dropboxSaveComponent() {
+        dropboxSaveComponent(): Component {
             if ( this.storageLocation === STORAGE_TYPES.DROPBOX ) {
                 return () => import( "./dropbox/save-dropbox-document.vue" );
             }
             return null;
         },
-        driveSaveComponent() {
+        driveSaveComponent(): Component {
             if ( this.storageLocation === STORAGE_TYPES.DRIVE ) {
                 return () => import( "./google-drive/save-google-drive-document.vue" );
             }
             return null;
         },
+        s3SaveComponent(): Component {
+            if ( this.storageLocation === STORAGE_TYPES.S3 ) {
+                // TODO
+            }
+            return null;
+        },
     },
-    created() {
+    created(): void {
         this.storageLocation = this.storageType;
     },
-    mounted() {
+    mounted(): void {
         this.name = this.activeDocument.name.split( "." )[ 0 ];
         focus( this.$refs.nameInput );
     },
@@ -142,7 +153,7 @@ export default {
         ...mapActions([
             "saveDocument",
         ]),
-        requestSave() {
+        requestSave(): void {
             if ( !this.isValid ) {
                 return;
             }

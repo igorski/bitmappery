@@ -20,14 +20,13 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, ListObjectsV2Command, GetObjectCommand, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { createWriteStream } from "fs";
 import { PROJECT_FILE_EXTENSION, getMimeByFileName } from "@/definitions/file-types";
 import type { FileNode } from "@/definitions/storage-types";
 import { blobToResource } from "@/utils/resource-manager";
 
 const UPLOAD_FILE_SIZE_LIMIT = 150 * 1024 * 1024;
-const DOWNLOAD_CHUNK_SIZE    = 1024 * 1024;
 
 let s3client: S3Client;
 let bucket: string;
@@ -58,14 +57,14 @@ export const initS3 = async (
     }
 };
 
-export const listFolder = async ( path = "", MaxKeys = 500 ): Promise<FileNode[]> => {
-    console.info( "TODO allow support for " + path );
-
+export const listFolder = async ( path = "", MaxKeys = 1000 ): Promise<FileNode[]> => {
+    const searchFolder = path.length > 0;
     const command = new ListObjectsV2Command({
         Bucket: bucket,
+        // Delimiter: "/"
+        Prefix: path,
         MaxKeys,
     });
-
     const output = [];
 
     try {
@@ -73,10 +72,14 @@ export const listFolder = async ( path = "", MaxKeys = 500 ): Promise<FileNode[]
         while ( isTruncated ) {
             const { Contents, IsTruncated, NextContinuationToken } = await s3client.send( command );
             for ( const entry of Contents ) {
-                const mime = getMimeByFileName( entry.Key );
+                const name = entry.Key;
+                if ( searchFolder && name === path ) {
+                    continue;
+                }
+                const mime = getMimeByFileName( name );
                 output.push({
-                    name: entry.Key,
-                    type: mime === PROJECT_FILE_EXTENSION ? PROJECT_FILE_EXTENSION : "file",
+                    type: mime === PROJECT_FILE_EXTENSION ? PROJECT_FILE_EXTENSION : name.charAt( name.length - 1 ) === "/" ? "folder" : "file",
+                    name,
                     mime,
                     path,
                     children: [],
@@ -93,8 +96,13 @@ export const listFolder = async ( path = "", MaxKeys = 500 ): Promise<FileNode[]
 };
 
 export const createFolder = async ( path = "/", folder = "folder" ): Promise<boolean> => {
-    console.info( "TODO implement creation of folder " + folder + " at path " + path );
-    return false;
+    const command = new PutObjectCommand({
+        Bucket: bucket,
+        Key: `${sanitizePath( path )}${sanitizePath( folder, true )}`
+    });
+    const result = await s3client.send( command );
+
+    return !!result.ETag;
 };
 
 export const getCurrentFolder = (): string => currentFolder;
@@ -116,7 +124,7 @@ export const downloadFileAsBlob = async ( path: string, returnAsURL = false ): P
             Bucket: bucket,
         }))
 
-        const res = new Response( Body as BodyInit );
+        const res  = new Response( Body as BodyInit );
         const blob = await res.blob();
 
         if ( returnAsURL ) {
@@ -131,7 +139,16 @@ export const downloadFileAsBlob = async ( path: string, returnAsURL = false ): P
 };
 
 export const deleteEntry = async ( path: string ): Promise<boolean> => {
-    console.info( "todo delete " + path );
+    try {
+        const command = new DeleteObjectCommand({
+            Bucket: bucket,
+            Key: path,
+        });
+        const success = await s3client.send( command );
+        return !!success;
+    } catch ( err: any ) {
+        console.error( err );
+    }
     return false;
 };
 
@@ -144,7 +161,10 @@ export const uploadBlob = async ( fileOrBlob: File | Blob, folder: string, fileN
 
 /* internal methods */
 
-function sanitizePath( path = "" ): string {
-    path = path.charAt( path.length - 1 ) === "/" ? path.substr( 0, path.length - 1 ) : path;
-    return ( path.charAt( 0 ) !== "/" && path.length > 1 ) ? `/${path}` : path;
+function sanitizePath( path = "", assertTrailingSlash = false ): string {
+    path = ( path.charAt( 0 ) !== "/" && path.length > 1 ) ? `/${path}` : path;
+    if ( assertTrailingSlash && path.charAt( path.length - 1 ) !== "/" ) {
+        path += "/";
+    }
+    return path;
 }
