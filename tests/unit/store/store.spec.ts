@@ -43,13 +43,16 @@ describe( "Vuex store", () => {
         });
 
         it( "should whether there is an active cloud storage connection", () => {
-            let state = { dropboxConnected: false, driveConnected: false };
+            let state = { dropboxConnected: false, driveConnected: false, s3Connected: false };
             expect( getters.hasCloudConnection( state )).toBe( false );
 
-            state = { dropboxConnected: true, driveConnected: false };
+            state = { dropboxConnected: true, driveConnected: false, s3Connected: false };
             expect( getters.hasCloudConnection( state )).toBe( true );
 
-            state = { dropboxConnected: false, driveConnected: true };
+            state = { dropboxConnected: false, driveConnected: true, s3Connected: false };
+            expect( getters.hasCloudConnection( state )).toBe( true );
+
+            state = { dropboxConnected: false, driveConnected: false, s3Connected: true };
             expect( getters.hasCloudConnection( state )).toBe( true );
         });
     });

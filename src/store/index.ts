@@ -116,7 +116,7 @@ export default {
     getters: {
         t: () => ( key: string, optArgs?: any ): string => translate( key, optArgs ),
         isLoading: ( state: BitMapperyState ): boolean => state.loadingStates.length > 0,
-        hasCloudConnection: ( state: BitMapperyState ): boolean => state.dropboxConnected || state.driveConnected,
+        hasCloudConnection: ( state: BitMapperyState ): boolean => state.dropboxConnected || state.driveConnected || state.s3Connected,
     },
     mutations: {
         setMenuOpened( state: BitMapperyState, value: boolean ): void {

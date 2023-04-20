@@ -51,6 +51,7 @@
                 </div>
                 <component :is="dropboxSaveComponent" ref="dropboxComponent" />
                 <component :is="driveSaveComponent"   ref="driveComponent" />
+                <component :is="s3SaveComponent"   ref="s3Component" />
             </div>
         </template>
         <template #actions>
@@ -131,7 +132,7 @@ export default {
         },
         s3SaveComponent(): Component {
             if ( this.storageLocation === STORAGE_TYPES.S3 ) {
-                // TODO
+                return () => import( "./aws-s3/save-s3-document.vue" );
             }
             return null;
         },
