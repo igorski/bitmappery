@@ -37,26 +37,32 @@ const UPLOAD_CHUNK_SIZE = 5 * 1024 * 1024; // min accepted size is 5 Mb
 let s3client: S3Client;
 let bucket: string;
 let currentFolder = "";
+let initialized = false;
 
 /**
- * Authentication step 1: request access token
+ * Lazily initialize the S3 client
  */
-export const initS3 = async (
-    accessKeyId: string, secretAccessKey: string, bucketName: string,
-    // @ts-expect-error endpoint currently unused (TODO)
-    region?: string, endpoint?: string ): Promise<boolean> => {
-
-    bucket = bucketName;
+export const initS3 = async (): Promise<boolean> => {
+    if ( initialized ) {
+        return true;
+    }
+    // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
+    bucket = import.meta.env.VITE_S3_BUCKET_NAME;
 
     try {
         s3client = new S3Client({
-        //    endpoint,
-            region,
+        //    endpoint: import.meta.env.VITE_S3_ENDPOINT,
+            // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
+            region: import.meta.env.VITE_S3_REGION,
             credentials: {
-                accessKeyId,
-                secretAccessKey
+                // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
+                accessKeyId    : import.meta.env.VITE_S3_ACCESS_KEY,
+                // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
+                secretAccessKey: import.meta.env.VITE_S3_SECRET_KEY
             },
         });
+        initialized = true;
+
         return true;
     } catch {
         return false;
@@ -143,7 +149,6 @@ export const listFolder = async ( path = "", MaxKeys = 1000, filterByType = true
     } catch ( err: any ) {
         console.error( err );
     }
-
     setCurrentFolder( path );
 
     return entries;
@@ -201,8 +206,7 @@ export const deleteEntry = async ( fileKeyOrPath: string ): Promise<boolean> => 
         let Objects = [{ Key: fileKeyOrPath }];
 
         const matchingObjects = await listFolder( fileKeyOrPath, 1000, false );
-        console.warn(matchingObjects.length);
-
+        
         if ( matchingObjects.length > 0 ) {
             Objects = matchingObjects.map( node => ({ Key: node.key }));
         }

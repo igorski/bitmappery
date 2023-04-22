@@ -37,14 +37,18 @@
 <script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import DocumentFactory from "@/factories/document-factory";
+import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import { getS3Service } from "@/utils/cloud-service-loader";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 
+import sharedMessages from "@/messages.json"; // for CloudServiceConnector
+import messages from "./messages.json";
+
 let getCurrentFolder, setCurrentFolder, uploadBlob;
 
-import messages from "./messages.json";
 export default {
     i18n: { messages },
+    mixins: [ CloudServiceConnector ],
     data: () => ({
         folder: "",
     }),
@@ -58,6 +62,7 @@ export default {
     },
     async created(): Promise<void> {
         ({ getCurrentFolder, setCurrentFolder, uploadBlob  } = await getS3Service());
+        await this.initS3( false );
         this.folder = getCurrentFolder();
     },
     methods: {
@@ -77,7 +82,7 @@ export default {
                 }
                 setCurrentFolder( this.folder );
                 this.showNotification({ message: this.$t( "fileSavedInS3", { file: this.activeDocument.name }) });
-            } catch ( e ) {
+            } catch ( e: any ) {
                 this.openDialog({ type: "error", message: this.$t( "errorOccurred" ) });
             }
             this.unsetLoading( "save" );

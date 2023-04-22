@@ -20,7 +20,6 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-// @ts-nocheck
 import { mapState, mapMutations } from "vuex";
 import { DROPBOX_FILE_SELECTOR, GOOGLE_DRIVE_FILE_SELECTOR, AWS_S3_FILE_SELECTOR } from "@/definitions/modal-windows";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
@@ -29,7 +28,7 @@ import { getDropboxService, getGoogleDriveService, getS3Service } from "@/utils/
 let isAuthenticated: () => Promise<boolean>;
 let requestLogin: ( clientId?: string, redirectUrl?: string ) => Promise<void>;
 let registerAccessToken: ( token: string ) => void;
-let init: ( apiKey: string, clientId: string ) => void;
+let init: () => void;
 let validateScopes: ( scope: string ) => boolean;
 let disconnect: () => void;
 let loginWindow: Window;
@@ -90,7 +89,7 @@ export default {
             this.showNotification({ message: this.$t( i18n ) });
         },
         /* 1. Dropbox */
-        async initDropbox(): Promise<void> {
+        async initDropbox( openFileBrowserOnSuccess = true ): Promise<void> {
             ({ isAuthenticated, requestLogin, registerAccessToken } = await getDropboxService() );
 
             const LOADING_KEY = "dbxc";
@@ -102,12 +101,11 @@ export default {
                 if ( !this.dropboxConnected ) {
                     this.showConnectionMessage( STORAGE_TYPES.DROPBOX );
                 }
-                this.openFileBrowserDropbox();
+                if ( openFileBrowserOnSuccess ) {
+                    this.openFileBrowserDropbox();
+                }
             } else {
-                this.authUrl = await requestLogin(
-                    import.meta.env.VITE_DROPBOX_API_KEY,
-                    import.meta.env.VITE_DROPBOX_REDIRECT_URL || `${window.location.href}login.html`
-                );
+                this.authUrl = await requestLogin();
                 this.openAuth( this.$t( "cloud.connectionExplDropbox" ), this.loginDropbox.bind( this ));
             }
         },
@@ -131,17 +129,14 @@ export default {
             this.openModal( DROPBOX_FILE_SELECTOR );
         },
         /* 2. Google Drive */
-        async initDrive(): Promise<void> {
+        async initDrive( openFileBrowserOnSuccess = true ): Promise<void> {
             ({ init, requestLogin, validateScopes, disconnect, isAuthenticated, registerAccessToken } = await getGoogleDriveService() );
 
             const LOADING_KEY = "gdc";
 
             this.setLoading( LOADING_KEY );
 
-            this.initialized = await init(
-                import.meta.env.VITE_DRIVE_API_KEY,
-                import.meta.env.VITE_DRIVE_CLIENT_ID,
-            );
+            this.initialized = await init();
             this.unsetLoading( LOADING_KEY );
 
             if ( !this.initialized ) {
@@ -157,7 +152,9 @@ export default {
                 if ( !this.driveConnected ) {
                     this.showConnectionMessage( STORAGE_TYPES.DRIVE );
                 }
-                this.openFileBrowserDrive();
+                if ( openFileBrowserOnSuccess ) {
+                    this.openFileBrowserDrive();
+                }
             } else {
                 this.openAuth(
                     this.$t( "cloud.connectionExplDrive" ),
@@ -216,18 +213,14 @@ export default {
             this.openModal( GOOGLE_DRIVE_FILE_SELECTOR );
         },
         // AWS S3
-        async initS3(): Promise<boolean> {
+        async initS3( openFileBrowserOnSuccess = true ): Promise<void> {
             const s3 = await getS3Service();
-            const connected = await s3.initS3(
-                import.meta.env.VITE_S3_ACCESS_KEY,
-                import.meta.env.VITE_S3_SECRET_KEY,
-                import.meta.env.VITE_S3_BUCKET_NAME,
-                import.meta.env.VITE_S3_REGION,
-                import.meta.env.VITE_S3_ENDPOINT
-            );
+            const connected = await s3.initS3();
 
             if ( connected ) {
-                this.openFileBrowserS3();
+                if ( openFileBrowserOnSuccess ) {
+                    this.openFileBrowserS3();
+                }
             } else {
                 this.openDialog({
                     type: "error",

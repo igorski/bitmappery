@@ -1,9 +1,9 @@
 import { it, describe, expect, vi } from "vitest";
 import {
     PROJECT_FILE_EXTENSION, PSD, PDF,
-    isImageFile, isProjectFile, isThirdPartyDocument, getMimeForThirdPartyDocument
+    isImageFile, isProjectFile, isThirdPartyDocument, getMimeForThirdPartyDocument, getMimeByFileName,
 } from "@/definitions/file-types";
-import { ALL_IMAGE_TYPES } from "@/definitions/image-types";
+import { ALL_IMAGE_TYPES, JPEG, PNG, GIF, WEBP } from "@/definitions/image-types";
 
 vi.mock( "@/utils/environment-util", () => ({
     isSafari: () => false, // forces webp support
@@ -41,4 +41,35 @@ describe( "file types", () => {
         expect( getMimeForThirdPartyDocument( psdFile )).toEqual( PSD.mime );
         expect( getMimeForThirdPartyDocument( pdfFile )).toEqual( PDF.mime );
     });
+
+    describe( "when retrieving the MIME from the file name", () => {
+        it( "should recognise all JPEG extensions", () => {
+            expect( getMimeByFileName( "image.jpg" )).toEqual( JPEG.mime );
+            expect( getMimeByFileName( "image.jpeg" )).toEqual( JPEG.mime );
+        });
+
+        it( "should recognise a GIF file", () => {
+            expect( getMimeByFileName( "image.gif" )).toEqual( GIF.mime );
+        });
+
+        it( "should recognise a PNG file", () => {
+            expect( getMimeByFileName( "image.png" )).toEqual( PNG.mime );
+        });
+
+        it( "should recognise a WEBP file", () => {
+            expect( getMimeByFileName( "image.webp" )).toEqual( WEBP.mime );
+        });
+
+        it( "should recognise a PSD file", () => {
+            expect( getMimeByFileName( "image.psd" )).toEqual( PSD.mime );
+        });
+
+        it( "should recognise a PDF file", () => {
+            expect( getMimeByFileName( "image.pdf" )).toEqual( PDF.mime );
+        });
+
+        it( "should recognise a BitMappery document", () => {
+            expect( getMimeByFileName( `image.${PROJECT_FILE_EXTENSION}` )).toEqual( PROJECT_FILE_EXTENSION );
+        });
+    })
 });

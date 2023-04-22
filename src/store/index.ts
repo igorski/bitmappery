@@ -62,7 +62,6 @@ export interface BitMapperyState {
     storageType: STORAGE_TYPES;
     dropboxConnected: boolean;
     driveConnected: boolean;
-    s3Connected: boolean;
     windowSize: Size;
 
     // store sub-module states
@@ -105,9 +104,8 @@ export default {
         loadingStates: [],
         notifications: [],
         storageType: STORAGE_TYPES.LOCAL,
-        dropboxConnected: false,
-        driveConnected: false,
-        s3Connected: false,
+        dropboxConnected: false, // whether a Dropbox session has been authorized
+        driveConnected: false, // whether a Google Drive session has been authorized
         windowSize: {
             width: window.innerWidth,
             height: window.innerHeight
@@ -116,7 +114,6 @@ export default {
     getters: {
         t: () => ( key: string, optArgs?: any ): string => translate( key, optArgs ),
         isLoading: ( state: BitMapperyState ): boolean => state.loadingStates.length > 0,
-        hasCloudConnection: ( state: BitMapperyState ): boolean => state.dropboxConnected || state.driveConnected || state.s3Connected,
     },
     mutations: {
         setMenuOpened( state: BitMapperyState, value: boolean ): void {
@@ -208,9 +205,6 @@ export default {
         },
         setDriveConnected( state: BitMapperyState, value: boolean ): void {
             state.driveConnected = value;
-        },
-        setS3Connected( state: BitMapperyState, value: boolean ): void {
-            state.s3Connected = value;
         },
     },
     actions: {

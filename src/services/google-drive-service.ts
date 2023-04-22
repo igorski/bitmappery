@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2022 - https://www.igorski.nl
+ * Igor Zinken 2022-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -89,26 +89,31 @@ let client: {
     requestAccessToken: () => string
 } = null;
 
-export const init = async ( apiKey: string, clientId: string ): Promise<boolean> => {
+export const init = async (): Promise<boolean> => {
     if ( gapi !== null ) {
         return true;
     }
     return new Promise( async ( resolve ) => {
         try {
             await loadScript( IDENTITY_API );
+
             // @ts-expect-error Property 'google' does not exist on type 'Window & typeof globalThis'.
             if ( !window.google ) {
                 throw new Error( "could not load Google Identity Services API" );
             }
+
             // 1. init Google Identity Services
             // @ts-expect-error Property 'google' does not exist on type 'Window & typeof globalThis'.
             client = window.google.accounts.oauth2.initTokenClient({
-                client_id :  clientId,
+                // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
+                client_id :  import.meta.env.VITE_DRIVE_CLIENT_ID,
                 scope     : ACCESS_SCOPES,
                 callback  : ({ access_token }: { access_token: string }) => registerAccessToken( access_token ),
             });
+
             // 2. init Google Drive API
             await loadScript( DRIVE_API );
+
             // @ts-expect-error Property 'gapi' does not exist on type 'Window & typeof globalThis'.
             if ( !window.gapi ) {
                 throw new Error( "could not load Google Drive API" );
@@ -118,7 +123,8 @@ export const init = async ( apiKey: string, clientId: string ): Promise<boolean>
 
             gapi.load( "client", async () => {
                 await gapi.client.init({
-                    apiKey,
+                    // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
+                    apiKey: import.meta.env.VITE_DRIVE_API_KEY,
                     discoveryDocs : DISCOVERY_DOCS,
                 });
                 resolve( true );

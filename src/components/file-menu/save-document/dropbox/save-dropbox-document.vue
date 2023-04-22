@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -37,14 +37,18 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import DocumentFactory from "@/factories/document-factory";
+import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import { getDropboxService } from "@/utils/cloud-service-loader";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 
-let getCurrentFolder, setCurrentFolder, uploadBlob;
-
+import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
+
+let isAuthenticated, getCurrentFolder, setCurrentFolder, uploadBlob;
+
 export default {
-    i18n: { messages },
+    i18n: { sharedMessages, messages },
+    mixins: [ CloudServiceConnector ],
     data: () => ({
         folder: "",
     }),
@@ -57,7 +61,10 @@ export default {
         },
     },
     async created() {
-        ({ getCurrentFolder, setCurrentFolder, uploadBlob  } = await getDropboxService());
+        ({ isAuthenticated, getCurrentFolder, setCurrentFolder, uploadBlob  } = await getDropboxService());
+        if ( !isAuthenticated() ) {
+            this.initDropbox( false );
+        }
         this.folder = getCurrentFolder();
     },
     methods: {

@@ -40,7 +40,7 @@
                     />
                 </div>
                 <div
-                    v-if="hasCloudConnection"
+                    v-if="hasCloudStorage"
                     class="wrapper input"
                 >
                     <label v-t="'storageLocation'"></label>
@@ -78,6 +78,7 @@ import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
+import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
 import { focus } from "@/utils/environment-util";
 
 import messages from "./messages.json";
@@ -89,31 +90,28 @@ export default {
     },
     data: () => ({
         name : "",
-        storageLocation : STORAGE_TYPES.LOCAL
+        storageLocation : STORAGE_TYPES.LOCAL,
+        hasCloudStorage : supportsDropbox() || supportsGoogleDrive() || supportsS3(),
     }),
     computed: {
         ...mapState([
-            "dropboxConnected",
-            "driveConnected",
-            "s3Connected",
             "storageType",
         ]),
         ...mapGetters([
             "activeDocument",
-            "hasCloudConnection",
         ]),
         isValid(): boolean {
             return this.name.length > 0;
         },
         storageLocations(): { label: string, value: STORAGE_TYPES }[] {
             const out = [{ label: this.$t( "local" ), value: STORAGE_TYPES.LOCAL }];
-            if ( this.dropboxConnected ) {
+            if ( supportsDropbox() ) {
                 out.push({ label: this.$t( "dropbox" ), value: STORAGE_TYPES.DROPBOX });
             }
-            if ( this.driveConnected ) {
+            if ( supportsGoogleDrive() ) {
                 out.push({ label: this.$t( "drive" ), value: STORAGE_TYPES.DRIVE });
             }
-            if ( this.s3Connected ) {
+            if ( supportsS3() ) {
                 out.push({ label: this.$t( "s3" ), value: STORAGE_TYPES.S3 });
             }
             return out;

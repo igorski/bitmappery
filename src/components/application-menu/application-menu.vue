@@ -430,8 +430,6 @@ export default {
             "menuOpened",
             "blindActive",
             "selectionContent",
-            "dropboxConnected",
-            "driveConnected",
         ]),
         ...mapGetters([
             "documents",

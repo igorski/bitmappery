@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -38,15 +38,18 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import DocumentFactory from "@/factories/document-factory";
+import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import { getGoogleDriveService } from "@/utils/cloud-service-loader";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 
+import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
 
 let getCurrentFolder, setCurrentFolder, getFolderHierarchy, createFolder, uploadBlob;
 
 export default {
-    i18n: { messages },
+    i18n: { sharedMessages, messages },
+    mixins: [ CloudServiceConnector ],
     data: () => ({
         loading   : true,
         folder    : "",
@@ -62,6 +65,8 @@ export default {
     },
     async created() {
         ({ getCurrentFolder, setCurrentFolder, getFolderHierarchy, createFolder, uploadBlob } = await getGoogleDriveService() );
+
+        await this.initDrive( false );
 
         this.hierarchy = await getFolderHierarchy( getCurrentFolder() );
         this.folder = `/${this.hierarchy.map(({ name }) => name ).join( "/" )}`;

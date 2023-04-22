@@ -41,20 +41,6 @@ describe( "Vuex store", () => {
             state.loadingStates.push( "foo" );
             expect( getters.isLoading( state )).toBe( true );
         });
-
-        it( "should whether there is an active cloud storage connection", () => {
-            let state = { dropboxConnected: false, driveConnected: false, s3Connected: false };
-            expect( getters.hasCloudConnection( state )).toBe( false );
-
-            state = { dropboxConnected: true, driveConnected: false, s3Connected: false };
-            expect( getters.hasCloudConnection( state )).toBe( true );
-
-            state = { dropboxConnected: false, driveConnected: true, s3Connected: false };
-            expect( getters.hasCloudConnection( state )).toBe( true );
-
-            state = { dropboxConnected: false, driveConnected: false, s3Connected: true };
-            expect( getters.hasCloudConnection( state )).toBe( true );
-        });
     });
 
     describe( "mutations", () => {
@@ -248,12 +234,6 @@ describe( "Vuex store", () => {
             const state = { driveConnected: false };
             mutations.setDriveConnected( state, true );
             expect( state.driveConnected ).toEqual( true );
-        });
-
-        it( "should be able to set the S3 bucket connection status", () => {
-            const state = { s3Connected: false };
-            mutations.setS3Connected( state, true );
-            expect( state.s3Connected ).toEqual( true );
         });
     });
 

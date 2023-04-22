@@ -35,10 +35,11 @@ let currentFolder = "";
  * Authentication step 1: for interacting with Dropbox : request access token
  * by opening an authentication page
  */
-export const requestLogin = async ( clientId: string, loginUrl: string ): Promise<string> => {
-    dbx = new Dropbox({ clientId });
+export const requestLogin = async (): Promise<string> => {
+    // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
+    dbx = new Dropbox({ clientId: import.meta.env.VITE_DROPBOX_API_KEY });
     // @ts-expect-error 'auth' is not recognized on Dropbox class, but it's definitely an instance of DropboxAuth!
-    return dbx.auth.getAuthenticationUrl( loginUrl );
+    return dbx.auth.getAuthenticationUrl( import.meta.env.VITE_DROPBOX_REDIRECT_URL || `${window.location.href}login.html` );
 };
 
 /**

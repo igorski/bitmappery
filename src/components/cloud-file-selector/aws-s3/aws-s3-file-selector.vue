@@ -58,16 +58,12 @@ let listFolder, createFolder, downloadFileAsBlob, deleteEntry;
          this.retrieveFiles( pathToRetrieve );
      },
      methods: {
-         ...mapMutations([
-             "setS3Connected",
-         ]),
          /* base component overrides */
          _getServicePathForNode( node: FileNode ): string {
              return node.key ?? node.path;
          },
          async _listFolder( path: string ): Promise<FileNode[]> {
              const entries = await listFolder( path );
-             this.setS3Connected( true ); // opened browser implies we have a valid connection
              return entries;
          },
          async _createFolder( parent: string, name: string ): Promise<Boolean> {
