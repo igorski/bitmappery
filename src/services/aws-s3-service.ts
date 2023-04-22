@@ -69,7 +69,7 @@ export const initS3 = async (): Promise<boolean> => {
     }
 };
 
-export const listFolder = async ( path = "", MaxKeys = 1000, filterByType = true ): Promise<FileNode[]> => {
+export const listFolder = async ( path = "", MaxKeys = 500, filterByType = true ): Promise<FileNode[]> => {
     path = path.length > 0 ? sanitizePath( path, true ) : "";
     const isSubFolder = path.length > 0 ;
     const level = isSubFolder ? path.match( /\//gi ).length : 1;
@@ -205,8 +205,8 @@ export const deleteEntry = async ( fileKeyOrPath: string ): Promise<boolean> => 
 
         let Objects = [{ Key: fileKeyOrPath }];
 
-        const matchingObjects = await listFolder( fileKeyOrPath, 1000, false );
-        
+        const matchingObjects = await listFolder( fileKeyOrPath, 500, false );
+
         if ( matchingObjects.length > 0 ) {
             Objects = matchingObjects.map( node => ({ Key: node.key }));
         }
