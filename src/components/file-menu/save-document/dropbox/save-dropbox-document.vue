@@ -44,7 +44,7 @@ import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
 
-let isAuthenticated, getCurrentFolder, setCurrentFolder, uploadBlob;
+let getCurrentFolder, setCurrentFolder, uploadBlob;
 
 export default {
     i18n: { sharedMessages, messages },
@@ -61,10 +61,10 @@ export default {
         },
     },
     async created() {
-        ({ isAuthenticated, getCurrentFolder, setCurrentFolder, uploadBlob  } = await getDropboxService());
-        if ( !isAuthenticated() ) {
-            this.initDropbox( false );
-        }
+        ({ getCurrentFolder, setCurrentFolder, uploadBlob  } = await getDropboxService());
+
+        await this.initDropbox( false );
+
         this.folder = getCurrentFolder();
     },
     methods: {

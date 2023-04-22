@@ -36,6 +36,8 @@ let boundHandler: ( event: MessageEvent ) => void;
 
 const PRIVACY_POLICY_URL = "https://www.igorski.nl/bitmappery/privacy";
 
+let autoOpenFileBrowserOnConnect = true;
+
 /**
  * A mixin that provides a generic behaviour with regards to interacting with
  * third party storage providers. The init() methods open file browsers for the
@@ -92,6 +94,8 @@ export default {
         async initDropbox( openFileBrowserOnSuccess = true ): Promise<void> {
             ({ isAuthenticated, requestLogin, registerAccessToken } = await getDropboxService() );
 
+            autoOpenFileBrowserOnConnect = openFileBrowserOnSuccess;
+
             const LOADING_KEY = "dbxc";
             this.setLoading( LOADING_KEY );
             this.authenticated = await isAuthenticated();
@@ -101,7 +105,7 @@ export default {
                 if ( !this.dropboxConnected ) {
                     this.showConnectionMessage( STORAGE_TYPES.DROPBOX );
                 }
-                if ( openFileBrowserOnSuccess ) {
+                if ( autoOpenFileBrowserOnConnect ) {
                     this.openFileBrowserDropbox();
                 }
             } else {
@@ -122,7 +126,10 @@ export default {
                 loginWindow = null;
                 this.showConnectionMessage( STORAGE_TYPES.DROPBOX );
                 this.authenticated = true;
-                this.openFileBrowserDropbox();
+
+                if ( autoOpenFileBrowserOnConnect ) {
+                    this.openFileBrowserDropbox();
+                }
             }
         },
         openFileBrowserDropbox(): void {
@@ -131,6 +138,8 @@ export default {
         /* 2. Google Drive */
         async initDrive( openFileBrowserOnSuccess = true ): Promise<void> {
             ({ init, requestLogin, validateScopes, disconnect, isAuthenticated, registerAccessToken } = await getGoogleDriveService() );
+
+            autoOpenFileBrowserOnConnect = openFileBrowserOnSuccess;
 
             const LOADING_KEY = "gdc";
 
@@ -204,7 +213,10 @@ export default {
                 window.removeEventListener( "message", boundHandler );
                 this.showConnectionMessage( STORAGE_TYPES.DRIVE );
                 this.authenticated = true;
-                window.setTimeout( this.openFileBrowserDrive.bind( this ), TIMEOUT );
+
+                if ( autoOpenFileBrowserOnConnect ) {
+                    window.setTimeout( this.openFileBrowserDrive.bind( this ), TIMEOUT );
+                }
             } else {
                 this.cancelLoginDrive(); // user likely cancelled auth flow
             }
