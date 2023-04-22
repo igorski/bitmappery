@@ -120,7 +120,7 @@ storage provider. Currently, there is support for [Dropbox](https://www.dropbox.
 
 You can enable each of these integrations by providing the required key values for your configuration
 by creating a local `env.local`-file which will contain your custom files. You can create this
-file using the contents of `.env`-file.
+file by duplicating the contents of the `.env`-file provided in the repository.
 
 ## Project setup
 
