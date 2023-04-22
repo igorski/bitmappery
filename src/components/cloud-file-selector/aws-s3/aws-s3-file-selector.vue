@@ -62,6 +62,9 @@ let listFolder, createFolder, downloadFileAsBlob, deleteEntry;
              "setS3Connected",
          ]),
          /* base component overrides */
+         _getServicePathForNode( node: FileNode ): string {
+             return node.key ?? node.path;
+         },
          async _listFolder( path: string ): Promise<FileNode[]> {
              const entries = await listFolder( path );
              this.setS3Connected( true ); // opened browser implies we have a valid connection
@@ -71,10 +74,10 @@ let listFolder, createFolder, downloadFileAsBlob, deleteEntry;
              return createFolder( parent, name );
          },
          async _downloadFile( node: FileNode, returnAsURL = false  ): Promise<Blob | string | null> {
-            return downloadFileAsBlob( node.name, returnAsURL );
+            return downloadFileAsBlob( node.key, returnAsURL );
          },
          async _deleteEntry( node: FileNode ): Promise<boolean> {
-             return deleteEntry( node.name );
+             return deleteEntry( node.key );
          },
          _mapEntry( entry: FileNode, children = [], parent = null ): FileNode {
              if ( entry.name.endsWith( PROJECT_FILE_EXTENSION )) {

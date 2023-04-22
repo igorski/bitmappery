@@ -22,7 +22,7 @@
  */
 import {
     S3Client, ListObjectsV2Command, GetObjectCommand,
-    PutObjectCommand, DeleteObjectCommand,
+    PutObjectCommand, DeleteObjectsCommand,
     CreateMultipartUploadCommand, UploadPartCommand, CompleteMultipartUploadCommand, AbortMultipartUploadCommand,
 } from "@aws-sdk/client-s3";
 import { createWriteStream } from "fs";
@@ -63,31 +63,76 @@ export const initS3 = async (
     }
 };
 
-export const listFolder = async ( path = "", MaxKeys = 1000 ): Promise<FileNode[]> => {
-    const searchFolder = path.length > 0;
-    const command = new ListObjectsV2Command({
-        Bucket: bucket,
-        // Delimiter: "/"
-        Prefix: path,
-        MaxKeys,
-    });
-    const output = [];
+export const listFolder = async ( path = "", MaxKeys = 1000, filterByType = true ): Promise<FileNode[]> => {
+    path = path.length > 0 ? sanitizePath( path, true ) : "";
+    const isSubFolder = path.length > 0 ;
+    const level = isSubFolder ? path.match( /\//gi ).length : 1;
+
+    const entries: FileNode[] = [];
 
     try {
+        const command = new ListObjectsV2Command({
+            Bucket: bucket,
+            Prefix: path,
+            Delimiter: path,
+            MaxKeys,
+        });
         let isTruncated = true;
+        let type: string;
+
         while ( isTruncated ) {
             const { Contents, IsTruncated, NextContinuationToken } = await s3client.send( command );
+
+            if ( !Contents ) {
+                break;
+            }
+
             for ( const entry of Contents ) {
-                const name = entry.Key;
-                if ( searchFolder && name === path ) {
-                    continue;
+                let key  = entry.Key;
+                let name = key;
+                let mime = "";
+
+                const isInDirectory = name.charAt( 0 ) === "/";
+                let isFile = name.charAt( name.length - 1 ) !== "/";
+
+                if ( filterByType && isInDirectory ) {
+                    // we only traverse directories at the current level in depth
+                    name = name.split( "/" )[ level ];
+
+                    if ( !isFile ) {
+                        // if we already have listed the directory, ignore
+                        // scenario: subfolder of previously harvested directory
+                        if ( name.length === 0 || entries.find( entry => entry.name === name )) {
+                            continue;
+                        }
+                    } else {
+                        if ( key.replace( path, "" ) === name ) {
+                            // entry is a file in a not yet harvested subdirectory,
+                            isFile = false;
+                        } else if ( !entries.find( entry => entry.name === name )) {
+                            isFile = false;
+                        } else {
+                            // file's directory is known, ignore the file
+                            continue;
+                        }
+                    }
+
+                    if ( !isFile ) {
+                        type = "folder";
+                        key  = `${path}${name}`;
+                    }
                 }
-                const mime = getMimeByFileName( name );
-                output.push({
-                    type: mime === PROJECT_FILE_EXTENSION ? PROJECT_FILE_EXTENSION : name.charAt( name.length - 1 ) === "/" ? "folder" : "file",
+
+                if ( isFile ) {
+                    mime = getMimeByFileName( name );
+                    type = mime === PROJECT_FILE_EXTENSION ? PROJECT_FILE_EXTENSION : "file";
+                }
+                entries.push({
+                    type,
                     name,
                     mime,
                     path,
+                    key,
                     children: [],
                     preview: "", // not supported for S3
                 });
@@ -98,7 +143,10 @@ export const listFolder = async ( path = "", MaxKeys = 1000 ): Promise<FileNode[
     } catch ( err: any ) {
         console.error( err );
     }
-    return output;
+
+    setCurrentFolder( path );
+
+    return entries;
 };
 
 export const createFolder = async ( path = "/", folder = "folder" ): Promise<boolean> => {
@@ -123,10 +171,10 @@ export const getThumbnail = async ( path: string, large = false ): Promise<strin
     return null;
 };
 
-export const downloadFileAsBlob = async ( path: string, returnAsURL = false ): Promise<Blob | string | null> => {
+export const downloadFileAsBlob = async ( fileKey: string, returnAsURL = false ): Promise<Blob | string | null> => {
     try {
         const { Body } = await s3client.send( new GetObjectCommand({
-            Key: path,
+            Key: fileKey,
             Bucket: bucket,
         }))
 
@@ -144,14 +192,28 @@ export const downloadFileAsBlob = async ( path: string, returnAsURL = false ): P
     return null;
 };
 
-export const deleteEntry = async ( path: string ): Promise<boolean> => {
+export const deleteEntry = async ( fileKeyOrPath: string ): Promise<boolean> => {
     try {
-        const command = new DeleteObjectCommand({
+        // folders don't exist in S3, retrieve all objects that have a matching
+        // path as prefix and delete them recursively (a folder truly doesn't exist
+        // if there's no object with its prefix left)
+
+        let Objects = [{ Key: fileKeyOrPath }];
+
+        const matchingObjects = await listFolder( fileKeyOrPath, 1000, false );
+        console.warn(matchingObjects.length);
+
+        if ( matchingObjects.length > 0 ) {
+            Objects = matchingObjects.map( node => ({ Key: node.key }));
+        }
+
+        const command = new DeleteObjectsCommand({
             Bucket: bucket,
-            Key: path,
+            Delete: { Objects },
         });
         const success = await s3client.send( command );
         return !!success;
+
     } catch ( err: any ) {
         console.error( err );
     }
@@ -190,7 +252,7 @@ export const uploadBlob = async ( fileOrBlob: File | Blob, folder: string, fileN
                     PartNumber: i + 1,
                 })
             );
-            console.log( "Part", i + 1, "uploaded" );
+            console.info( "Part", i + 1, "uploaded" );
 
             uploadResults.push( chunkResult );
         }

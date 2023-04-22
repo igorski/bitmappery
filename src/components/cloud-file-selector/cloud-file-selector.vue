@@ -232,8 +232,13 @@ export default {
             this.setLoading( RETRIEVAL_LOAD_KEY );
             try {
                 const entries = await this._listFolder( path );
+                let leaf = findLeafByPath( this.tree, path );
 
-                const leaf   = findLeafByPath( this.tree, path );
+                if ( !leaf ) {
+                    // S3 uses full path keys instead of nested directory names, get last name
+                    const dirs = path.split( "/" ).filter( Boolean );
+                    leaf = findLeafByPath( this.tree, dirs[ dirs.length - 1 ] );
+                }
                 const parent = { type: "folder", name: leaf.name, parent: leaf.parent, path };
 
                 // populate leaf with fetched children
@@ -247,7 +252,8 @@ export default {
                         return a.name.localeCompare( b.name );
                     });
                 this.leaf = leaf;
-            } catch {
+            } catch ( e: any ) {
+                console.error(e)
                 this.openDialog({ type: "error", message: this.$t( "couldNotRetrieveFilesForPath", { path } ) });
                 sessionStorage.removeItem( this.LAST_FOLDER_STORAGE_KEY );
             }
@@ -261,7 +267,7 @@ export default {
                 if ( !result ) {
                     throw new Error();
                 }
-                this.retrieveFiles( this.leaf.path );
+                this.retrieveFiles( this._getServicePathForNode( this.leaf ));
                 this.newFolderName = "";
                 this.showNotification({
                     message: this.$t( "folderCreatedSuccessfully", { folder })
@@ -278,11 +284,12 @@ export default {
                 return;
             }
             this.setLoading( ACTION_LOAD_KEY );
+            const path = this._getServicePathForNode( node );
             switch ( node.type ) {
                 case "folder":
-                    await this.retrieveFiles( node.path );
+                    await this.retrieveFiles( path );
                     // cache the currently visited tree
-                    sessionStorage.setItem( this.LAST_FOLDER_STORAGE_KEY, JSON.stringify({ path: node.path, tree: this.tree }));
+                    sessionStorage.setItem( this.LAST_FOLDER_STORAGE_KEY, JSON.stringify({ path, tree: this.tree }));
                     break;
                 case "bpy":
                     const blob = await this._downloadFile( node );
@@ -330,7 +337,7 @@ export default {
                         this.showNotification({
                             message: this.$t( "entryDeletedSuccessfully", { entry: name })
                         });
-                        this.retrieveFiles( this.leaf.path );
+                        this.retrieveFiles( this._getServicePathForNode( this.leaf ));
                     } else {
                         this.openDialog({
                             type: "error",
@@ -342,6 +349,9 @@ export default {
             });
         },
         /* the below should be implemented in inheriting components */
+        _getServicePathForNode( node: FileNode ): string {
+            return node.path;
+        },
         // eslint-disable-next-line no-unused-vars
         async _listFolder( path: string ): Promise<FileNode[]> {
             return [];

@@ -75,7 +75,7 @@ export const listFolder = async ( path = "" ): Promise<files.ListFolderResult> =
         ({ result } = await dbx.filesListFolderContinue({ cursor: result.cursor }));
         entries.push( ...result.entries );
     }
-    currentFolder = path;
+    setCurrentFolder( path );
 
     return entries as unknown as files.ListFolderResult;
 };

@@ -33,6 +33,7 @@ export type FileNode = {
     path: string;
     preview: string;
     mime: string;
+    key?: string; // unique identifier for the storage service
     children?: FileNode[];
     parent?: FileNode[];
 };

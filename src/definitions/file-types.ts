@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { ALL_IMAGE_TYPES, ACCEPTED_IMAGE_TYPES, ACCEPTED_IMAGE_EXTENSIONS } from "@/definitions/image-types";
+import { ALL_IMAGE_TYPES, ACCEPTED_IMAGE_TYPES, ACCEPTED_IMAGE_EXTENSIONS, JPEG } from "@/definitions/image-types";
 
 export const PROJECT_FILE_EXTENSION = "bpy"; // BitMappery document
 
@@ -49,6 +49,10 @@ export const isThirdPartyDocument = ( file: File ): boolean => {
 
 export const getMimeByFileName = ( fileName: string ): string | undefined => {
     const [ , fileExtension ] = fileName.split( "." );
+
+    if ( fileExtension === "jpeg" ) {
+        return JPEG.mime;
+    }
 
     if ( fileExtension === PROJECT_FILE_EXTENSION ) {
         return PROJECT_FILE_EXTENSION;
