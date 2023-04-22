@@ -1,7 +1,7 @@
 /**
 * The MIT License (MIT)
 *
-* Igor Zinken 2019-2022 - https://www.igorski.nl
+* Igor Zinken 2019-2023 - https://www.igorski.nl
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 * this software and associated documentation files (the "Software"), to deal in
@@ -95,6 +95,17 @@ export const readFile = ( file: File | Blob, optEncoding = "UTF-8" ): Promise<st
         };
         reader.onerror = reject;
         reader.readAsText( file, optEncoding );
+    });
+};
+
+export const readBufferFromFile = ( file: File | Blob ): Promise<ArrayBuffer> => {
+    const reader = new FileReader();
+    return new Promise(( resolve, reject ) => {
+        reader.onload = ( readerEvent: ProgressEvent ) => {
+            resolve(( readerEvent.target as FileReader ).result as ArrayBuffer );
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer( file );
     });
 };
 

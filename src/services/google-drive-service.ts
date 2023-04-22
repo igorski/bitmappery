@@ -23,6 +23,7 @@
 import loadScript from "tiny-script-loader/loadScriptPromised";
 import { base64toBlob } from "@/utils/file-util";
 import { blobToResource } from "@/utils/resource-manager";
+import { formatFileName } from "@/utils/string-util";
 
 /**
  * Full write access is nice, but is considered to be a sensitive to restricted
@@ -319,7 +320,7 @@ export const uploadBlob = async ( fileOrBlob: File | Blob, folder: string, fileN
         reader.onload = (): void => {
             const contentType = fileOrBlob.type || "application/octet-stream";
             const metadata = {
-                name     : fileName,
+                name     : formatFileName( fileName ),
                 mimeType : fileOrBlob.type.split( ";" )[ 0 ],
                 parents  : undefined as string[]
             };

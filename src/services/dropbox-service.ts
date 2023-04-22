@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,6 +23,7 @@
 import { Dropbox } from "dropbox";
 import type { files } from "dropbox"; // note: Dropbox types are known not to reflect the actual API correctly!
 import { blobToResource } from "@/utils/resource-manager";
+import { formatFileName } from "@/utils/string-util";
 
 const UPLOAD_FILE_SIZE_LIMIT = 150 * 1024 * 1024;
 
@@ -134,7 +135,7 @@ export const deleteEntry = async ( path: string ): Promise<boolean> => {
 };
 
 export const uploadBlob = async ( fileOrBlob: File | Blob, folder: string, fileName: string ): Promise<boolean> => {
-    const path = `${sanitizePath( folder )}/${fileName.split( " " ).join ( "_" )}`;
+    const path = `${sanitizePath( folder )}/${formatFileName( fileName )}`;
     if ( fileOrBlob.size < UPLOAD_FILE_SIZE_LIMIT ) {
         // File is smaller than 150 Mb - use filesUpload API
         try {

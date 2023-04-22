@@ -20,13 +20,19 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { S3Client, ListObjectsV2Command, GetObjectCommand, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import {
+    S3Client, ListObjectsV2Command, GetObjectCommand,
+    PutObjectCommand, DeleteObjectCommand,
+    CreateMultipartUploadCommand, UploadPartCommand, CompleteMultipartUploadCommand, AbortMultipartUploadCommand,
+} from "@aws-sdk/client-s3";
 import { createWriteStream } from "fs";
 import { PROJECT_FILE_EXTENSION, getMimeByFileName } from "@/definitions/file-types";
 import type { FileNode } from "@/definitions/storage-types";
+import { readBufferFromFile } from "@/utils/file-util";
 import { blobToResource } from "@/utils/resource-manager";
+import { formatFileName } from "@/utils/string-util";
 
-const UPLOAD_FILE_SIZE_LIMIT = 150 * 1024 * 1024;
+const UPLOAD_CHUNK_SIZE = 5 * 1024 * 1024; // min accepted size is 5 Mb
 
 let s3client: S3Client;
 let bucket: string;
@@ -153,18 +159,82 @@ export const deleteEntry = async ( path: string ): Promise<boolean> => {
 };
 
 export const uploadBlob = async ( fileOrBlob: File | Blob, folder: string, fileName: string ): Promise<boolean> => {
-    // use multipart!
-    // https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/javascript_s3_code_examples.html
-    console.info( "todo upload " + fileOrBlob + " to " + folder + " with name " + fileName );
+    const Key = `${sanitizePath( folder, true )}${formatFileName( fileName )}`;
+    let uploadId;
+
+    console.info( `uploading Blob of size ${fileOrBlob.size} to S3 storage` );
+
+    try {
+        const multipartUpload = await s3client.send(
+            new CreateMultipartUploadCommand({
+                Bucket: bucket,
+                Key,
+            })
+        );
+        uploadId = multipartUpload.UploadId;
+
+        const uploadResults = [];
+        const totalChunks   = Math.ceil( fileOrBlob.size / UPLOAD_CHUNK_SIZE );
+
+        for ( let i = 0; i < totalChunks; i++ ) {
+            const start = i * UPLOAD_CHUNK_SIZE;
+            const end   = start + UPLOAD_CHUNK_SIZE;
+
+            const buffer = await readBufferFromFile( fileOrBlob.slice( start, end ));
+            const chunkResult = await s3client.send(
+                new UploadPartCommand({
+                    Bucket: bucket,
+                    Key,
+                    UploadId: uploadId,
+                    Body: buffer as Uint8Array,
+                    PartNumber: i + 1,
+                })
+            );
+            console.log( "Part", i + 1, "uploaded" );
+
+            uploadResults.push( chunkResult );
+        }
+        const result = await s3client.send( new CompleteMultipartUploadCommand({
+            Bucket: bucket,
+            Key,
+            UploadId: uploadId,
+            MultipartUpload: {
+                Parts: uploadResults.map(({ ETag }, i ) => ({
+                    ETag,
+                    PartNumber: i + 1,
+                })),
+            },
+        }));
+        return !!result;
+
+    } catch ( err: any ) {
+        console.error( err );
+
+        if ( uploadId ) {
+            await s3client.send( new AbortMultipartUploadCommand({
+                Bucket: bucket,
+                Key,
+                UploadId: uploadId,
+            }));
+        }
+    }
     return false;
 };
 
 /* internal methods */
 
 function sanitizePath( path = "", assertTrailingSlash = false ): string {
+    if ( path.length === 0 ) {
+        return "";
+    }
     path = ( path.charAt( 0 ) !== "/" && path.length > 1 ) ? `/${path}` : path;
-    if ( assertTrailingSlash && path.charAt( path.length - 1 ) !== "/" ) {
+
+    const lastChar = path.charAt( path.length - 1 );
+
+    if ( assertTrailingSlash && lastChar !== "/" ) {
         path += "/";
+    } else if ( !assertTrailingSlash && lastChar === "/" ) {
+        path = path.substr( 0, path.length - 1 );
     }
     return path;
 }

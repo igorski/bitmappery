@@ -51,7 +51,7 @@
                 </div>
                 <component :is="dropboxSaveComponent" ref="dropboxComponent" />
                 <component :is="driveSaveComponent"   ref="driveComponent" />
-                <component :is="s3SaveComponent"   ref="s3Component" />
+                <component :is="s3SaveComponent"      ref="s3Component" />
             </div>
         </template>
         <template #actions>
@@ -176,6 +176,10 @@ export default {
 
                 case STORAGE_TYPES.DRIVE:
                     this.$refs.driveComponent.requestSave();
+                    break;
+
+                case STORAGE_TYPES.S3:
+                    this.$refs.s3Component.requestSave();
                     break;
             }
             this.closeModal();
