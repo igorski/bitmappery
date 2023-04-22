@@ -61,7 +61,7 @@ export default {
         },
     },
     async created(): Promise<void> {
-        ({ getCurrentFolder, setCurrentFolder, uploadBlob  } = await getS3Service());
+        ({ getCurrentFolder, setCurrentFolder, uploadBlob } = await getS3Service());
         await this.initS3( false );
         this.folder = getCurrentFolder();
     },

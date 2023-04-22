@@ -253,7 +253,6 @@ export default {
                     });
                 this.leaf = leaf;
             } catch ( e: any ) {
-                console.error(e)
                 this.openDialog({ type: "error", message: this.$t( "couldNotRetrieveFilesForPath", { path } ) });
                 sessionStorage.removeItem( this.LAST_FOLDER_STORAGE_KEY );
             }

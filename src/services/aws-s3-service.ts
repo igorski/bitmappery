@@ -32,7 +32,7 @@ import { readBufferFromFile } from "@/utils/file-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { formatFileName } from "@/utils/string-util";
 
-const UPLOAD_CHUNK_SIZE = 5 * 1024 * 1024; // min accepted size is 5 Mb
+const UPLOAD_CHUNK_SIZE = 5 * 1024 * 1024; // min accepted chunk size is 5 Mb
 
 let s3client: S3Client;
 let bucket: string;
@@ -50,8 +50,11 @@ export const initS3 = async (): Promise<boolean> => {
     bucket = import.meta.env.VITE_S3_BUCKET_NAME;
 
     try {
+        // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
+        const endpoint = import.meta.env.VITE_S3_BUCKET_URL;
+
         s3client = new S3Client({
-        //    endpoint: import.meta.env.VITE_S3_ENDPOINT,
+            endpoint: endpoint.length ? endpoint : undefined,
             // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
             region: import.meta.env.VITE_S3_REGION,
             credentials: {
