@@ -20,8 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-// @ts-expect-error no declaration file for module 'psd.js'
-import PSD from "psd.js";
+import PSD from "@webtoon/psd";
+import type { Node } from "@webtoon/psd";
 import type { Rectangle, Size } from "zcanvas";
 import { BlendModes } from "@/definitions/blend-modes";
 import type { Document, Layer } from "@/definitions/document";
@@ -30,48 +30,12 @@ import FiltersFactory from "@/factories/filters-factory";
 import LayerFactory from "@/factories/layer-factory";
 import type { LayerProps } from "@/factories/layer-factory";
 import { inverseMask } from "@/rendering/compositing";
-import { createCanvas, base64toCanvas } from "@/utils/canvas-util";
-import { unblockedWait } from "@/utils/debounce-util";
-
-type PSDLayer = Rectangle & {
-    mask: Rectangle;
-    opacity: number;
-    visible: boolean;
-    blendMode: {
-        blendKey: string;
-    },
-    image: {
-        hasMask: boolean;
-        width: () => number;
-        height: () => number;
-        toBase64: () => string;
-        maskData: {
-            buffer: ArrayBuffer;
-        }
-    }
-};
-
-type PSDNode = {
-    name: string;
-    children: () => {
-        length: number;
-        reverse: () => {
-            name: string;
-            layer: PSDLayer;
-        }[]
-    }
-};
-
-type PSD = {
-    tree: () => Size & PSDNode;
-    image: {
-        toPng: () => HTMLImageElement;
-    },
-};
+import { createCanvas, byteArrayToCanvas } from "@/utils/canvas-util";
+import { unblockedWait, unblockedWaitUnlessFree } from "@/utils/debounce-util";
 
 export const importPSD = async ( psdFileReference: File ): Promise<Document> => {
     try {
-        const psd = await PSD.fromDroppedFile( psdFileReference );
+        const psd = await PSD.parse( await psdFileReference.arrayBuffer() );
         await unblockedWait();
         const doc = await psdToBitMapperyDocument( psd, psdFileReference );
         return doc;
@@ -83,48 +47,56 @@ export const importPSD = async ( psdFileReference: File ): Promise<Document> => 
 
 /* internal methods */
 
-async function psdToBitMapperyDocument( psd: any, psdFileReference: File ): Promise<Document> {
-    const psdTree = psd.tree();
-    const { width, height } = psdTree;
+async function psdToBitMapperyDocument( psd: PSD, psdFileReference: File ): Promise<Document> {
+    const { width, height } = psd;
 
-    // collect layers
+    // collect content
     const layers: Layer[] = [];
-
-    const treeLayerObjects = psdTree.children().reverse();
-    for ( const layerObj of treeLayerObjects ) {
-        const { layer } = layerObj;
-
-        // 1. determine layer bounding box
-
-        const children = layer.node?.children() ?? [];
-
-        if ( children.length ) {
-            // we are likely looking at a group layer
-            for ( const childLayer of children.reverse() ) {
-                await createLayer( childLayer.layer, layers, childLayer.name );
-            }
-        } else {
-            await createLayer( layer, layers, layerObj.name );
-        }
+    for ( const node of psd.children ) {
+        await traverseNode( node, layers );
     }
 
     // also add the merged layer preview
     // (in case the above layer collection loop ran into an incompatibility issue
     // this provides a nice fallback that will always display content)
 
+    const composite = await psd.composite();
     layers.push( LayerFactory.create({
         name: "Flattened preview",
         width,
         height,
-        source: psd.image.toPng()
+        source: byteArrayToCanvas( composite, width, height )
     }));
 
     return DocumentFactory.create({
-        name: psdTree.name || psdFileReference.name,
+        name: psdFileReference.name,
         width,
         height,
         layers
     });
+}
+
+async function traverseNode( node: Node, output: Layer[] ): void {
+    switch ( node.type ) {
+        default:
+            throw new Error( `Unsupported node type "${node.type}"` );
+        case "Layer":
+            await createLayer( node, output, node.name );
+            break;
+        case "Group":
+            for ( const childNode of node.children ) {
+                await traverseNode( childNode, output );
+            }
+            break;
+        case "Psd":
+            break;
+    }
+
+    if ( node.children ) {
+        for ( const childNode of node.children ) {
+            await traverseNode( childNode, output );
+        }
+    }
 }
 
 async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promise<void> {
@@ -133,7 +105,7 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
     const layerWidth  = layer.width;
     const layerHeight = layer.height;
 
-    if ( !layerWidth || !layerHeight ) {
+    if ( layerWidth <= 1 && layerHeight <= 1 ) {
         return; // likely an adjustment layer, which we don't support
     }
 
@@ -141,13 +113,37 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
 
     const layerProps: LayerProps = {};
 
-    if ( layer.image.hasMask && layer.mask.width ) {
+    if ( layer.layerFrame?.userMask?.data ) {
         // note that we position the mask at the 0, 0 coordinate relative to the layer, whereas Photoshop
         // positions the mask relative to the document
-        const { cvs, ctx } = createCanvas( layer.mask.width, layer.mask.height );
+        const maskWidth  = layer.maskData.right  - layer.maskData.left;
+        const maskHeight = layer.maskData.bottom - layer.maskData.top;
+        const { cvs, ctx } = createCanvas( maskWidth, maskHeight );
+/*
         ctx.putImageData( new ImageData(
-            new Uint8ClampedArray( layer.image.maskData.buffer ), layer.mask.width, layer.mask.height
-        ), layer.mask.left - layerX, layer.mask.top - layerY );
+            new Uint8ClampedArray( layer.layerFrame.userMask.data.buffer ), size, size
+        ), layer.maskData.left - layerX, layer.maskData.top - layerY );*/
+
+        const layerData = ctx.getImageData( 0, 0, maskWidth, maskHeight );
+        const maskBuffer = layer.layerFrame.userMask.data;
+        /*
+        for ( let i = 0, si = 0, l = maskBuffer.byteLength; i < l; ++i, si += 4 ) {
+            //layerData.data[ si ] = maskBuffer[ i ];
+            //layerData.data[ si +1 ] = maskBuffer[ i ];
+            //layerData.data[ si +2] = maskBuffer[ i ];
+            layerData.data[ si +3] = maskBuffer[ i ];
+        }
+        */
+        const coordinateToIndex = ( x: number, y: number ): number => x + ( maskWidth * y );
+        let i = 0;
+        for ( let y = 0; y < maskHeight; ++y ) {
+            for ( let x = 0; x < maskWidth; ++x ) {
+                i = coordinateToIndex( x, y );
+                layerData.data[ i + 3 ] = maskBuffer[ i ];
+            }
+        }
+
+        ctx.putImageData( layerData, 0, 0 );
 
         // Photoshop masks use inverted colours compared to our Canvas masking
         inverseMask( cvs );
@@ -156,11 +152,11 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
     }
 
     // 3. retrieve layer source
-
-    const source = layer.image ? await base64toCanvas( layer.image.toBase64(), layer.image.width(), layer.image.height() ) : null;
+    const composite = await layer.composite( false );
+    const source = byteArrayToCanvas( composite, layerWidth, layerHeight );
 
     layers.push( LayerFactory.create({
-        visible : layer.visible,
+        visible : !layer.isHidden,
         left    : layerX,
         top     : layerY,
         width   : layerWidth,
@@ -170,12 +166,12 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
         ...layerProps,
         filters : FiltersFactory.create({
             opacity   : ( layer.opacity ?? 255 ) / 255,
-            blendMode : convertBlendMode( layer.blendMode.blendKey )
+            blendMode : convertBlendMode( layer.layerFrame.layerProperties.blendMode )
         }),
     }));
 
     // layer bitmap parsing can be heavy, unblock CPU on each iteration
-    await unblockedWait();
+    await unblockedWaitUnlessFree();
 }
 
 

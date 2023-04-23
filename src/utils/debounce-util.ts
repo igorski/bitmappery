@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2022 - https://www.igorski.nl
+ * Igor Zinken 2022-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -29,6 +29,8 @@ interface Cancelable {
 
 const rafCallbacks: RafCallback[] = [];
 
+let lastWait = window.performance.now();
+
 /**
  * Returns a Promise that resolves when given timeToWait has expired.
  * The Promise is no-op in that it performs no action.
@@ -42,8 +44,24 @@ const rafCallbacks: RafCallback[] = [];
  */
 export const unblockedWait = ( timeToWait = 4 ): Promise<void> => {
     return new Promise( resolve => {
-        window.setTimeout( resolve, timeToWait );
+        window.setTimeout( () => {
+            lastWait = window.performance.now();
+            resolve();
+        }, timeToWait );
     });
+};
+
+/**
+ * Same as above but the wait is not executed if the last invocation was
+ * within given timeSinceLast (value in milliseconds). Basically we don't need
+ * to unnecessary block the execution if there's still time for the CPU to
+ * render the screen (16.66 ms is one frame at 60 fps)
+ */
+export const unblockedWaitUnlessFree = ( timeSinceLast = 16, timeToWait = 4 ): Promise<void> => {
+    if (( window.performance.now() - lastWait ) < timeSinceLast ) {
+        return;
+    }
+    return unblockedWait( timeToWait );
 };
 
 /**

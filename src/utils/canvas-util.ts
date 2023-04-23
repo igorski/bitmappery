@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -67,6 +67,15 @@ export const imageToBase64 = ( bitmap: CanvasDrawable, width: number, height: nu
 export const imageToCanvas = ( bitmap: CanvasDrawable, width: number, height: number ): HTMLCanvasElement => {
     const { cvs, ctx } = createCanvas( width, height );
     ctx.drawImage( bitmap, 0, 0 );
+    return cvs;
+};
+
+export const byteArrayToCanvas = ( data: Uint8ClampedArray, width: number, height: number ): HTMLCanvasElement => {
+    const { cvs, ctx } = createCanvas( width, height );
+
+    const imageData = new ImageData( data, width, height );
+    ctx.putImageData( imageData, 0, 0 );
+
     return cvs;
 };
 
