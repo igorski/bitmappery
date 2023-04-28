@@ -52,11 +52,13 @@ export const initS3 = async (): Promise<boolean> => {
     try {
         // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
         const endpoint = import.meta.env.VITE_S3_BUCKET_URL;
+        const isCustom = endpoint.length > 0;
 
         s3client = new S3Client({
-            endpoint: endpoint.length ? endpoint : undefined,
+            endpoint: isCustom ? endpoint : undefined,
             // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
-            region: import.meta.env.VITE_S3_REGION,
+            region: isCustom ? undefined : import.meta.env.VITE_S3_REGION,
+            forcePathStyle: isCustom ? true : undefined,
             credentials: {
                 // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
                 accessKeyId    : import.meta.env.VITE_S3_ACCESS_KEY,
