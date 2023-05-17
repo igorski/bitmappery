@@ -146,6 +146,7 @@
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { ADD_LAYER } from "@/definitions/modal-windows";
 import { PANEL_LAYERS } from "@/definitions/panel-types";
+import ToolTypes from "@/definitions/tool-types";
 import { createCanvas } from "@/utils/canvas-util";
 import { toggleLayerVisibility } from "@/factories/action-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
@@ -153,6 +154,8 @@ import { enqueueState } from "@/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
 import { focus } from "@/utils/environment-util";
 import messages from "./messages.json";
+
+const NON_OVERRIDABLE_TOOLS = [ ToolTypes.MOVE, ToolTypes.DRAG ];
 
 export default {
     i18n: { messages },
@@ -173,6 +176,8 @@ export default {
             "activeLayer",
             "activeLayerIndex",
             "activeLayerMask",
+            "activeTool",
+            "hasSelection",
             "layers",
         ]),
         collapsed: {
@@ -209,6 +214,9 @@ export default {
         },
         currentLayerHasMask() {
             return !!this.activeLayer?.mask;
+        },
+        overrideCustomKeyHandler() {
+            return this.hasSelection || NON_OVERRIDABLE_TOOLS.includes( this.activeTool );
         },
     },
     watch: {
@@ -344,7 +352,7 @@ export default {
             KeyboardService.setListener( null );
         },
         handleKeyboard( type, keyCode, event ) {
-            if ( type !== "up" ) {
+            if ( type !== "up" || this.overrideCustomKeyHandler ) {
                 return;
             }
             switch ( keyCode ) {
