@@ -92,10 +92,12 @@ async function traverseNode( node: Node, output: Layer[] ): void {
             break;
     }
 
-    if ( node.children ) {
-        for ( const childNode of node.children ) {
-            await traverseNode( childNode, output );
-        }
+    if ( !node.children ) {
+        return;
+    }
+
+    for ( const childNode of node.children ) {
+        await traverseNode( childNode, output );
     }
 }
 
@@ -119,34 +121,16 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
         const maskWidth  = layer.maskData.right  - layer.maskData.left;
         const maskHeight = layer.maskData.bottom - layer.maskData.top;
         const { cvs, ctx } = createCanvas( maskWidth, maskHeight );
-/*
-        ctx.putImageData( new ImageData(
-            new Uint8ClampedArray( layer.layerFrame.userMask.data.buffer ), size, size
-        ), layer.maskData.left - layerX, layer.maskData.top - layerY );*/
 
-        const layerData = ctx.getImageData( 0, 0, maskWidth, maskHeight );
-        const maskBuffer = layer.layerFrame.userMask.data;
-        /*
-        for ( let i = 0, si = 0, l = maskBuffer.byteLength; i < l; ++i, si += 4 ) {
-            //layerData.data[ si ] = maskBuffer[ i ];
-            //layerData.data[ si +1 ] = maskBuffer[ i ];
-            //layerData.data[ si +2] = maskBuffer[ i ];
-            layerData.data[ si +3] = maskBuffer[ i ];
-        }
-        */
-        const coordinateToIndex = ( x: number, y: number ): number => x + ( maskWidth * y );
-        let i = 0;
-        for ( let y = 0; y < maskHeight; ++y ) {
-            for ( let x = 0; x < maskWidth; ++x ) {
-                i = coordinateToIndex( x, y );
-                layerData.data[ i + 3 ] = maskBuffer[ i ];
-            }
-        }
+        const maskData = await layer.userMask();
 
-        ctx.putImageData( layerData, 0, 0 );
+        ctx.putImageData(
+            new ImageData( new Uint8ClampedArray( maskData ), maskWidth, maskHeight ),
+            layer.maskData.left - layerX, layer.maskData.top - layerY
+        );
 
         // Photoshop masks use inverted colours compared to our Canvas masking
-        inverseMask( cvs );
+        //inverseMask( cvs );
 
         layerProps.mask = cvs;
     }
