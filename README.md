@@ -119,7 +119,7 @@ Requires you to register a client id or access token in the developer portal of 
 storage provider. Currently, there is support for [Dropbox](https://www.dropbox.com/developers/apps), [Google Drive](https://console.cloud.google.com/) and S3 Buckets.
 
 You can enable each of these integrations by providing the required key values for your configuration
-by creating a local `env.local`-file which will contain your custom files. You can create this
+by creating a local `.env.local`-file which will contain your custom files. You can create this
 file by duplicating the contents of the `.env`-file provided in the repository.
 
 ## Project setup
