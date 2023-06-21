@@ -38,6 +38,7 @@ let s3client: S3Client;
 let bucket: string;
 let currentFolder = "";
 let initialized = false;
+let usePathStyles = false;
 
 /**
  * Lazily initialize the S3 client
@@ -52,13 +53,13 @@ export const initS3 = async (): Promise<boolean> => {
     try {
         // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
         const endpoint = import.meta.env.VITE_S3_BUCKET_URL;
-        const isCustom = endpoint.length > 0;
+        usePathStyles  = endpoint.length > 0; // only when using non-AWS based S3 providers (e.g. MinIO)
 
         s3client = new S3Client({
-            endpoint: isCustom ? endpoint : undefined,
+            endpoint: usePathStyles ? endpoint.split( `/${bucket}` ).join ( `` ) : undefined,
             // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
             region: import.meta.env.VITE_S3_REGION,
-            forcePathStyle: isCustom ? true : undefined,
+            forcePathStyle: usePathStyles ? true : undefined,
             credentials: {
                 // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
                 accessKeyId    : import.meta.env.VITE_S3_ACCESS_KEY,
@@ -78,7 +79,6 @@ export const listFolder = async ( path = "", MaxKeys = 500, filterByType = true 
     path = path.length > 0 ? sanitizePath( path, true ) : "";
     const isSubFolder = path.length > 0 ;
     const level = isSubFolder ? path.match( /\//gi ).length : 1;
-
     const entries: FileNode[] = [];
 
     try {
@@ -89,7 +89,6 @@ export const listFolder = async ( path = "", MaxKeys = 500, filterByType = true 
             MaxKeys,
         });
         let isTruncated = true;
-        let type: string;
 
         while ( isTruncated ) {
             const { Contents, IsTruncated, NextContinuationToken } = await s3client.send( command );
@@ -102,13 +101,14 @@ export const listFolder = async ( path = "", MaxKeys = 500, filterByType = true 
                 let key  = entry.Key;
                 let name = key;
                 let mime = "";
+                let type: string;
 
-                const isInDirectory = name.charAt( 0 ) === "/";
+                const isInDirectory = usePathStyles ? name.includes( "/" ) : name.charAt( 0 ) === "/";
                 let isFile = name.charAt( name.length - 1 ) !== "/";
 
                 if ( filterByType && isInDirectory ) {
                     // we only traverse directories at the current level in depth
-                    name = name.split( "/" )[ level ];
+                    name = name.split( "/" )[ usePathStyles ? level - 1 : level ];
 
                     if ( !isFile ) {
                         // if we already have listed the directory, ignore
@@ -118,7 +118,7 @@ export const listFolder = async ( path = "", MaxKeys = 500, filterByType = true 
                         }
                     } else {
                         if ( key.replace( path, "" ) === name ) {
-                            // entry is a file in a not yet harvested subdirectory,
+                            // entry is a file in a not yet harvested subdirectory
                             isFile = false;
                         } else if ( !entries.find( entry => entry.name === name )) {
                             isFile = false;
@@ -127,17 +127,19 @@ export const listFolder = async ( path = "", MaxKeys = 500, filterByType = true 
                             continue;
                         }
                     }
-
-                    if ( !isFile ) {
-                        type = "folder";
-                        key  = `${path}${name}`;
-                    }
                 }
 
                 if ( isFile ) {
                     mime = getMimeByFileName( name );
                     type = mime === PROJECT_FILE_EXTENSION ? PROJECT_FILE_EXTENSION : "file";
+        		    if ( key.charAt( 0 ) === "/" ) {
+			             key = key.slice( 1 );
+        		    }
+                } else {
+                    type = "folder";
+                    key  = `${path}${name}`;
                 }
+
                 entries.push({
                     type,
                     name,
