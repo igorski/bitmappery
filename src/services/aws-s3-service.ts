@@ -26,9 +26,12 @@ import {
     CreateMultipartUploadCommand, UploadPartCommand, CompleteMultipartUploadCommand, AbortMultipartUploadCommand,
 } from "@aws-sdk/client-s3";
 import { createWriteStream } from "fs";
-import { PROJECT_FILE_EXTENSION, getMimeByFileName } from "@/definitions/file-types";
+import { PROJECT_FILE_EXTENSION, PREVIEW_THUMBNAIL, getMimeByFileName } from "@/definitions/file-types";
+import { JPEG } from "@/definitions/image-types";
 import type { FileNode } from "@/definitions/storage-types";
-import { readBufferFromFile } from "@/utils/file-util";
+import { scaleToRatio } from "@/math/image-math";
+import { readBufferFromFile, base64toBlob } from "@/utils/file-util";
+import { blobToCanvas, resizeToBase64 } from "@/utils/canvas-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { formatFileName } from "@/utils/string-util";
 
@@ -39,6 +42,9 @@ let bucket: string;
 let currentFolder = "";
 let initialized = false;
 let usePathStyles = false;
+
+// @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
+const generateThumbnails = import.meta.env.VITE_S3_GENERATE_THUMBNAILS === "true";
 
 /**
  * Lazily initialize the S3 client
@@ -100,15 +106,19 @@ export const listFolder = async ( path = "", MaxKeys = 500, filterByType = true 
             for ( const entry of Contents ) {
                 let key  = entry.Key;
                 let name = key;
-                let mime = "";
+                let mime = getMimeByFileName( key );
                 let type: string;
 
-                const isInDirectory = usePathStyles ? name.includes( "/" ) : name.charAt( 0 ) === "/";
-                let isFile = name.charAt( name.length - 1 ) !== "/";
+                if ( key === path ) {
+                    continue; // do not list self
+                }
+
+                const isInDirectory = ( usePathStyles ? key.includes( "/" ) : key.startsWith( "/" )) && ( key.split( "/" ).length - 1 ) > level;
+                let isFile = mime !== undefined;
 
                 if ( filterByType && isInDirectory ) {
                     // we only traverse directories at the current level in depth
-                    name = name.split( "/" )[ usePathStyles ? level - 1 : level ];
+                    name = key.split( "/" )[ usePathStyles ? level - 1 : level ];
 
                     if ( !isFile ) {
                         // if we already have listed the directory, ignore
@@ -117,27 +127,31 @@ export const listFolder = async ( path = "", MaxKeys = 500, filterByType = true 
                             continue;
                         }
                     } else {
+                        // we are looking at a file that is not in the current directory
+                        // verify whether its path is already listed in the entries list
+                        // and if not push it (means directory is discovered), otherwise ignore
                         if ( key.replace( path, "" ) === name ) {
-                            // entry is a file in a not yet harvested subdirectory
                             isFile = false;
                         } else if ( !entries.find( entry => entry.name === name )) {
                             isFile = false;
                         } else {
-                            // file's directory is known, ignore the file
-                            continue;
+                            continue; // file's directory is known, ignore the file
                         }
                     }
                 }
 
                 if ( isFile ) {
-                    mime = getMimeByFileName( name );
+                    if ( mime === PREVIEW_THUMBNAIL ) {
+                        continue; // filter generated preview thumbnails out of the list result
+                    }
                     type = mime === PROJECT_FILE_EXTENSION ? PROJECT_FILE_EXTENSION : "file";
-        		    if ( key.charAt( 0 ) === "/" ) {
-			             key = key.slice( 1 );
-        		    }
+                    if ( mime === PROJECT_FILE_EXTENSION ) {
+                        name = name.split( "/" ).at( -1 );
+                    }
                 } else {
                     type = "folder";
                     key  = `${path}${name}`;
+                    mime = "";
                 }
 
                 entries.push({
@@ -147,7 +161,7 @@ export const listFolder = async ( path = "", MaxKeys = 500, filterByType = true 
                     path,
                     key,
                     children: [],
-                    preview: "", // not supported for S3
+                    preview: "", // not supported for S3, use getThumbnail() instead
                 });
             }
             isTruncated = IsTruncated;
@@ -177,10 +191,47 @@ export const setCurrentFolder = ( folder: string ): void => {
     currentFolder = folder;
 };
 
-// @ts-expect-error unused variables
+const getThumbnailSize = ( large = false ): number => large ? 128 : 64;
+
+const getPreviewFileName = ( path: string, large = false ): string => {
+    return `${path}_${getThumbnailSize( large )}.${PREVIEW_THUMBNAIL}`;
+};
+
 export const getThumbnail = async ( path: string, large = false ): Promise<string | null> => {
-    // thumbnails are not for free on S3, these need generation...
-    return null;
+    const size = getThumbnailSize( large );
+    const previewFileName = getPreviewFileName( path, large );
+
+    let blob: Blob | string;
+
+    // first check if thumbnail file already existed
+    blob = await downloadFileAsBlob( previewFileName, true );
+
+    if ( blob !== null ) {
+        return blob as string;
+    }
+
+    if ( !generateThumbnails ) {
+        // thumbnails are not for free on S3, these need generation...
+        return null;
+    }
+
+    // download the full file and generate a thumbnail on the fly
+    blob = await downloadFileAsBlob( path, false );
+
+    if ( blob === null ) {
+        return null;
+    }
+    const cvs = await blobToCanvas( blob as Blob );
+
+    const scaled = scaleToRatio( cvs.width, cvs.height, size, size );
+    const img = await resizeToBase64( cvs, scaled.width, scaled.height, JPEG.mime, 1 );
+
+    // save thumbnail file to prevent download next time round
+    // note we don't wait for the upload to complete and directly return the thumbnail
+    blob = await base64toBlob( img );
+    uploadBlob( blob, "", previewFileName );
+
+    return img;
 };
 
 export const downloadFileAsBlob = async ( fileKey: string, returnAsURL = false ): Promise<Blob | string | null> => {
@@ -210,7 +261,14 @@ export const deleteEntry = async ( fileKeyOrPath: string ): Promise<boolean> => 
         // path as prefix and delete them recursively (a folder truly doesn't exist
         // if there's no object with its prefix left)
 
-        let Objects = [{ Key: fileKeyOrPath }];
+        let Objects = [{ Key: fileKeyOrPath }, { Key: `${fileKeyOrPath}/` }];
+
+        // also delete the generated preview thumbnails, if existing
+
+        Objects = Objects.concat([
+            { Key: getPreviewFileName( fileKeyOrPath, false ) },
+            { Key: getPreviewFileName( fileKeyOrPath, true ) }
+        ]);
 
         const matchingObjects = await listFolder( fileKeyOrPath, 500, false );
 

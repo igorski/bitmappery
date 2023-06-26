@@ -1,6 +1,6 @@
 import { it, describe, expect, vi } from "vitest";
 import {
-    PROJECT_FILE_EXTENSION, PSD, PDF,
+    PROJECT_FILE_EXTENSION, PREVIEW_THUMBNAIL, PSD, PDF,
     isImageFile, isProjectFile, isThirdPartyDocument, getMimeForThirdPartyDocument, getMimeByFileName,
 } from "@/definitions/file-types";
 import { ALL_IMAGE_TYPES, JPEG, PNG, GIF, WEBP } from "@/definitions/image-types";
@@ -71,5 +71,9 @@ describe( "file types", () => {
         it( "should recognise a BitMappery document", () => {
             expect( getMimeByFileName( `image.${PROJECT_FILE_EXTENSION}` )).toEqual( PROJECT_FILE_EXTENSION );
         });
+
+        it( "should recognise a BitMappery preview thumbnail", () => {
+            expect( getMimeByFileName( `file.${PREVIEW_THUMBNAIL}` )).toEqual( PREVIEW_THUMBNAIL );
+        })
     })
 });

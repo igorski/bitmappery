@@ -474,7 +474,7 @@ $actionsHeight: 74px;
 
 .entry {
     display: inline-block;
-    width: 128px;
+    min-width: 128px;
     height: 128px;
     vertical-align: top;
     position: relative;

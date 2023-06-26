@@ -21,23 +21,70 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div class="image-preview" v-on="$listeners">
-        <p>{{ node.name }}</p>
-        <!-- there are no thumbnails generated "for free" by S3... -->
-        <!-- <img
-            :src="node.preview"
-            v-on="$listeners"
-            class="image-preview__image"
-        /> -->
+    <div
+        class="image-preview"
+        :class="{ 'loading': isLoading }"
+    >
+        <p v-if="hasNoThumb">{{ node.name }}</p>
+        <div v-else>
+            <img
+                v-if="isLoading"
+                src="../../../assets-inline/animations/loader.svg"
+                class="image-preview__loader"
+            />
+            <img
+                v-else
+                :src="src"
+                v-on="$listeners"
+                class="image-preview__image"
+                @load="handleImageLoad"
+            />
+        </div>
     </div>
 </template>
 
 <script>
+import { getS3Service } from "@/utils/cloud-service-loader";
+import { disposeResource } from "@/utils/resource-manager";
+
+let getThumbnail;
+
 export default {
     props: {
         node: {
             type: Object,
             required: true,
+        },
+    },
+    data: () => ({
+        src: null,
+        hasNoThumb: false,
+    }),
+    computed: {
+        isLoading() {
+            return !this.src;
+        },
+    },
+    async created() {
+        ({ getThumbnail } = await getS3Service() );
+        getThumbnail( this.node.path, true ).then( blobUrl => {
+            if ( blobUrl === null ) {
+                this.hasNoThumb = true;
+            }
+            if ( this._destroyed ) {
+                disposeResource( blobUrl );
+            } else {
+                this.src = blobUrl;
+            }
+        });
+    },
+    destroyed() {
+        this._destroyed = true;
+    },
+    methods: {
+        handleImageLoad() {
+            // free memory allocated by dropbox-service#getThumbnail()
+            disposeResource( this.src );
         },
     },
 };

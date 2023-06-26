@@ -38,15 +38,15 @@ export const scaleToRatio = ( imageWidth: number, imageHeight: number, destWidth
     let ratio  = 1;
     let height = destHeight;
 
-    if ( imageWidth > imageHeight ) {
+    if ( isLandscape( imageWidth, imageHeight )) {
         ratio  = imageHeight / imageWidth;
         height = destWidth * ratio;
     }
-    else if ( imageHeight > imageWidth ) {
+    else if ( isPortrait( imageWidth, imageHeight )) {
         ratio  = imageHeight / imageWidth;
         height = destWidth * ratio;
     }
-    else if ( imageHeight === imageWidth ) {
+    else if ( isSquare( imageWidth, imageHeight )) {
         height = destWidth;
     }
 
