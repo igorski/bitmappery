@@ -24,8 +24,11 @@
     <div
         class="image-preview"
         :class="{ 'loading': isLoading }"
+        v-on="$listeners"
     >
-        <p v-if="hasNoThumb">{{ node.name }}</p>
+        <p
+            v-if="hasNoThumb"
+        >{{ node.name }}</p>
         <div v-else>
             <img
                 v-if="isLoading"
@@ -35,7 +38,6 @@
             <img
                 v-else
                 :src="src"
-                v-on="$listeners"
                 class="image-preview__image"
                 @load="handleImageLoad"
             />
