@@ -109,16 +109,30 @@ export const listFolder = async ( path = "", MaxKeys = 500, filterByType = true 
                 let mime = getMimeByFileName( key );
                 let type: string;
 
-                if ( key === path ) {
+                const sanitizedKey = sanitizePath( key, true );
+
+                if ( sanitizedKey === path ) {
                     continue; // do not list self
                 }
 
-                const isInDirectory = ( usePathStyles ? key.includes( "/" ) : key.startsWith( "/" )) && ( key.split( "/" ).length - 1 ) > level;
                 let isFile = mime !== undefined;
+                let isInDirectory = false;
+
+                // this is a little hackish, AWS S3 and MinIO handle paths differently...
+                // keep the keys intact (as these are for Object lookup), but unify
+                // the path format used when structuring the file/directory tree
+
+                const pathSeparatorAmount = key.split( "/" ).length - 1;
+
+                if ( usePathStyles ) {
+                    isInDirectory = key.includes( "/" ) && pathSeparatorAmount >= level;
+                } else if ( key.startsWith( "/" )) {
+                    isInDirectory = pathSeparatorAmount > level;
+                }
 
                 if ( filterByType && isInDirectory ) {
                     // we only traverse directories at the current level in depth
-                    name = key.split( "/" )[ usePathStyles ? level - 1 : level ];
+                    name = sanitizedKey.split( "/" )[ level ];
 
                     if ( !isFile ) {
                         // if we already have listed the directory, ignore

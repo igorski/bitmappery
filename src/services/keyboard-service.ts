@@ -311,7 +311,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
         case 73: // I
             if ( hasOption ) {
                 if ( shiftDown ) { // invert selection
-                    if ( getters.activeDocument.activeSelection ) {
+                    if ( getters.activeDocument?.activeSelection ) {
                         dispatch( "invertSelection" );
                         preventDefault( event ); // import Mail
                     }
