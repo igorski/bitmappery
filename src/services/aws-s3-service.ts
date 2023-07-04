@@ -25,6 +25,7 @@ import {
     PutObjectCommand, DeleteObjectsCommand,
     CreateMultipartUploadCommand, UploadPartCommand, CompleteMultipartUploadCommand, AbortMultipartUploadCommand,
 } from "@aws-sdk/client-s3";
+import type { ListObjectsV2CommandOutput } from "@aws-sdk/client-s3";
 import { createWriteStream } from "fs";
 import { PROJECT_FILE_EXTENSION, PREVIEW_THUMBNAIL, getMimeByFileName } from "@/definitions/file-types";
 import { JPEG } from "@/definitions/image-types";
@@ -41,7 +42,6 @@ let s3client: S3Client;
 let bucket: string;
 let currentFolder = "";
 let initialized = false;
-let usePathStyles = false;
 
 // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
 const generateThumbnails = import.meta.env.VITE_S3_GENERATE_THUMBNAILS === "true";
@@ -59,13 +59,13 @@ export const initS3 = async (): Promise<boolean> => {
     try {
         // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
         const endpoint = import.meta.env.VITE_S3_BUCKET_URL;
-        usePathStyles  = endpoint.length > 0; // only when using non-AWS based S3 providers (e.g. MinIO)
+        const isCustom = endpoint.length > 0; // only when using non-AWS based S3 providers (e.g. MinIO)
 
         s3client = new S3Client({
-            endpoint: usePathStyles ? endpoint.split( `/${bucket}` ).join ( `` ) : undefined,
+            endpoint: isCustom ? endpoint.split( `/${bucket}` ).join ( `` ) : undefined,
             // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
             region: import.meta.env.VITE_S3_REGION,
-            forcePathStyle: usePathStyles ? true : undefined,
+            forcePathStyle: isCustom ? true : undefined,
             credentials: {
                 // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
                 accessKeyId    : import.meta.env.VITE_S3_ACCESS_KEY,
@@ -81,10 +81,93 @@ export const initS3 = async (): Promise<boolean> => {
     }
 };
 
+export const formatEntries = ( path: string, Contents: ListObjectsV2CommandOutput[ "Contents" ], entries: FileNode[], filterByType = true ): void => {
+    const isSubFolder = path.length > 0 ;
+    const level       = isSubFolder ? path.match( /\//gi ).length : 1;
+
+    for ( const entry of Contents ) {
+        let key  = entry.Key;
+        let name = key;
+        let mime = getMimeByFileName( key );
+        let type: string;
+
+        if ( isSubFolder && !key.includes( "/" )) {
+            continue; // do not list keys without path separators when looking into subfolders
+        }
+
+        const sanitizedKey = sanitizePath( key, true );
+
+        if ( sanitizedKey === path ) {
+            continue; // do not list self
+        }
+
+        let isFile = mime !== undefined;
+        let isInDirectory = false;
+
+        // this is a little hackish, AWS S3 and MinIO handle paths differently...
+        // keep the keys intact (as these are for Object lookup), but unify
+        // the path format used when structuring the file/directory tree
+        // (AWS uses leading slashes, MinIO doesn't)
+
+        const pathSeparatorAmount = key.split( "/" ).length - 1;
+
+        if ( !key.startsWith( "/" ) && !isSubFolder ) {
+            isInDirectory = key.includes( "/" ) && pathSeparatorAmount >= level;
+        } else {
+            isInDirectory = pathSeparatorAmount > level;
+        }
+
+        if ( filterByType && isInDirectory ) {
+            // we only traverse directories at the current level in depth
+            name = sanitizedKey.split( "/" )[ level ];
+
+            if ( !isFile ) {
+                // if we already have listed the directory, ignore
+                // scenario: subfolder of previously harvested directory
+                if ( name.length === 0 || entries.find( entry => entry.name === name )) {
+                    continue;
+                }
+            } else {
+                // we are looking at a file that is not in the current directory
+                // verify whether its path is already listed in the entries list
+                // and if not, push it (means directory is discovered), otherwise ignore
+                if ( key.replace( path, "" ) === name ) {
+                    isFile = false;
+                } else if ( !entries.find( entry => entry.name === name )) {
+                    isFile = false;
+                } else {
+                    continue; // file's directory is known, ignore the file
+                }
+            }
+        }
+
+        if ( isFile ) {
+            if ( mime === PREVIEW_THUMBNAIL ) {
+                continue; // filter generated preview thumbnails out of the list result
+            }
+            type = mime === PROJECT_FILE_EXTENSION ? PROJECT_FILE_EXTENSION : "file";
+            name = name.split( "/" ).at( -1 );
+        } else {
+            type = "folder";
+            key  = `${path}${name}`;
+            mime = "";
+        }
+
+        entries.push({
+            type,
+            name,
+            mime,
+            path,
+            key,
+            children: [],
+            preview: "", // not supported for S3, use getThumbnail() instead
+        });
+    }
+};
+
 export const listFolder = async ( path = "", MaxKeys = 500, filterByType = true ): Promise<FileNode[]> => {
     path = path.length > 0 ? sanitizePath( path, true ) : "";
-    const isSubFolder = path.length > 0 ;
-    const level = isSubFolder ? path.match( /\//gi ).length : 1;
+
     const entries: FileNode[] = [];
 
     try {
@@ -103,81 +186,8 @@ export const listFolder = async ( path = "", MaxKeys = 500, filterByType = true 
                 break;
             }
 
-            for ( const entry of Contents ) {
-                let key  = entry.Key;
-                let name = key;
-                let mime = getMimeByFileName( key );
-                let type: string;
+            formatEntries( path, Contents, entries, filterByType );
 
-                const sanitizedKey = sanitizePath( key, true );
-
-                if ( sanitizedKey === path ) {
-                    continue; // do not list self
-                }
-
-                let isFile = mime !== undefined;
-                let isInDirectory = false;
-
-                // this is a little hackish, AWS S3 and MinIO handle paths differently...
-                // keep the keys intact (as these are for Object lookup), but unify
-                // the path format used when structuring the file/directory tree
-
-                const pathSeparatorAmount = key.split( "/" ).length - 1;
-
-                if ( usePathStyles ) {
-                    isInDirectory = key.includes( "/" ) && pathSeparatorAmount >= level;
-                } else if ( key.startsWith( "/" )) {
-                    isInDirectory = pathSeparatorAmount > level;
-                }
-
-                if ( filterByType && isInDirectory ) {
-                    // we only traverse directories at the current level in depth
-                    name = sanitizedKey.split( "/" )[ level ];
-
-                    if ( !isFile ) {
-                        // if we already have listed the directory, ignore
-                        // scenario: subfolder of previously harvested directory
-                        if ( name.length === 0 || entries.find( entry => entry.name === name )) {
-                            continue;
-                        }
-                    } else {
-                        // we are looking at a file that is not in the current directory
-                        // verify whether its path is already listed in the entries list
-                        // and if not push it (means directory is discovered), otherwise ignore
-                        if ( key.replace( path, "" ) === name ) {
-                            isFile = false;
-                        } else if ( !entries.find( entry => entry.name === name )) {
-                            isFile = false;
-                        } else {
-                            continue; // file's directory is known, ignore the file
-                        }
-                    }
-                }
-
-                if ( isFile ) {
-                    if ( mime === PREVIEW_THUMBNAIL ) {
-                        continue; // filter generated preview thumbnails out of the list result
-                    }
-                    type = mime === PROJECT_FILE_EXTENSION ? PROJECT_FILE_EXTENSION : "file";
-                    if ( mime === PROJECT_FILE_EXTENSION ) {
-                        name = name.split( "/" ).at( -1 );
-                    }
-                } else {
-                    type = "folder";
-                    key  = `${path}${name}`;
-                    mime = "";
-                }
-
-                entries.push({
-                    type,
-                    name,
-                    mime,
-                    path,
-                    key,
-                    children: [],
-                    preview: "", // not supported for S3, use getThumbnail() instead
-                });
-            }
             isTruncated = IsTruncated;
             command.input.ContinuationToken = NextContinuationToken;
         }
@@ -335,7 +345,7 @@ export const uploadBlob = async ( fileOrBlob: File | Blob, folder: string, fileN
                     PartNumber: i + 1,
                 })
             );
-            console.info( "Part", i + 1, "uploaded" );
+            console.info( `Part ${i + 1} of ${totalChunks} uploaded` );
 
             uploadResults.push( chunkResult );
         }
