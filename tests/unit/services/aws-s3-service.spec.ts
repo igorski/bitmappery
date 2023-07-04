@@ -11,6 +11,7 @@ describe( "AWS S3 service", () => {
         ID: "foo",
         DisplayName: "bar"
     };
+    const StorageClass = "STANDARD";
 
     describe( "when formatting the entries for keys using a leading path slash (e.g. AWS S3)", () => {
         const Contents = [{
@@ -18,21 +19,21 @@ describe( "AWS S3 service", () => {
             LastModified: "2023-07-02T07:33:53.285Z",
             ETag: "a343a825346f55ea0aaa46400f61726c-1",
             Size: 1832856,
-            StorageClass: "STANDARD",
+            StorageClass,
             Owner,
         }, {
             Key: "/foo/Panda.bpy",
             LastModified: "2023-07-02T07:34:43.775Z",
             ETag: "b5ab72a6040546a0063eba4bf1d1252f-",
             Size: 438932,
-            StorageClass: "STANDARD",
+            StorageClass,
             Owner,
         }, {
             Key: "/foo/Gerbil.jpg",
             LastModified: "2023-07-02T07:34:43.775Z",
             ETag: "b5ab72a6040546a0063eba4bf1d1252f-",
             Size: 438932,
-            StorageClass: "STANDARD",
+            StorageClass,
             Owner,
         }];
 
@@ -93,14 +94,14 @@ describe( "AWS S3 service", () => {
             LastModified: "2023-07-02T07:33:53.285Z",
             ETag: "a343a825346f55ea0aaa46400f61726c-1",
             Size: 1832856,
-            StorageClass: "STANDARD",
+            StorageClass,
             Owner,
         }, {
             Key: "foo/Gerbil.jpg",
             LastModified: "2023-07-02T07:34:43.775Z",
             ETag: "b5ab72a6040546a0063eba4bf1d1252f-",
             Size: 438932,
-            StorageClass: "STANDARD",
+            StorageClass,
             Owner,
         }];
 

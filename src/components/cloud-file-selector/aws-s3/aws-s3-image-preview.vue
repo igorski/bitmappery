@@ -69,7 +69,7 @@ export default {
     },
     async created() {
         ({ getThumbnail } = await getS3Service() );
-        getThumbnail( this.node.path, true ).then( blobUrl => {
+        getThumbnail( this.node.key, true ).then( blobUrl => {
             if ( blobUrl === null ) {
                 this.hasNoThumb = true;
             }
