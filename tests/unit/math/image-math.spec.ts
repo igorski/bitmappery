@@ -1,5 +1,5 @@
 import { it, describe, expect } from "vitest";
-import { scaleToRatio, constrain, isPortrait, isLandscape, isSquare } from "@/math/image-math";
+import { constrain, isPortrait, isLandscape, isSquare } from "@/math/image-math";
 
 describe( "Image math utilities", () => {
     describe( "When constrainting an image to the maximum supported size in megapixels", () => {

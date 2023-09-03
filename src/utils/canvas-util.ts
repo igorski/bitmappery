@@ -126,7 +126,7 @@ export const resizeImage = async ( image: CanvasDrawable | string, targetWidth: 
 };
 
 export const resizeToBase64 = async ( image: CanvasDrawable | string, targetWidth: number, targetHeight: number,
-    mime: string, encoderOptions: number, srcWidth: number, srcHeight: number ): Promise<string> => {
+    mime: string, encoderOptions: number, srcWidth?: number, srcHeight?: number ): Promise<string> => {
     if ( typeof image === "string" ) {
         if ( srcWidth === targetWidth && srcHeight === targetHeight ) {
             return image;

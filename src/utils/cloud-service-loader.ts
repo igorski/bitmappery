@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2022 - https://www.igorski.nl
+ * Igor Zinken 2022-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -22,6 +22,14 @@
  */
 let dropbox: any;
 let drive: any;
+let s3: any;
+
+// Dropbox
+
+export const supportsDropbox = (): boolean => {
+    // @ts-expect-error import.meta unsupported for current module option (no issue, Vite will replace)
+    return !!import.meta.env.VITE_DROPBOX_API_KEY;
+};
 
 export const getDropboxService = async (): Promise<any> => {
     if ( !dropbox ) {
@@ -30,9 +38,30 @@ export const getDropboxService = async (): Promise<any> => {
     return dropbox;
 };
 
+// Google Drive
+
+export const supportsGoogleDrive = (): boolean => {
+    // @ts-expect-error import.meta unsupported for current module option (no issue, Vite will replace)
+    return !!import.meta.env.VITE_DRIVE_API_KEY;
+};
+
 export const getGoogleDriveService = async (): Promise<any> => {
     if ( !drive ) {
         drive = await import( /* webpackChunkName: "google-drive-service" */ "@/services/google-drive-service" );
     }
     return drive;
+};
+
+// AWS S3
+
+export const supportsS3 = (): boolean => {
+    // @ts-expect-error import.meta unsupported for current module option (no issue, Vite will replace)
+    return !!import.meta.env.VITE_S3_ACCESS_KEY;
+};
+
+export const getS3Service = async (): Promise<any> => {
+    if ( !s3 ) {
+        s3 = await import( /* webpackChunkName: "aws-s3-service" */ "@/services/aws-s3-service" );
+    }
+    return s3;
 };

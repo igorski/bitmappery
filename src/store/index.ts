@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -104,8 +104,8 @@ export default {
         loadingStates: [],
         notifications: [],
         storageType: STORAGE_TYPES.LOCAL,
-        dropboxConnected: false,
-        driveConnected: false,
+        dropboxConnected: false, // whether a Dropbox session has been authorized
+        driveConnected: false, // whether a Google Drive session has been authorized
         windowSize: {
             width: window.innerWidth,
             height: window.innerHeight
@@ -114,7 +114,6 @@ export default {
     getters: {
         t: () => ( key: string, optArgs?: any ): string => translate( key, optArgs ),
         isLoading: ( state: BitMapperyState ): boolean => state.loadingStates.length > 0,
-        hasCloudConnection: ( state: BitMapperyState ): boolean => state.dropboxConnected || state.driveConnected,
     },
     mutations: {
         setMenuOpened( state: BitMapperyState, value: boolean ): void {

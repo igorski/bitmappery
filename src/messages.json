@@ -27,7 +27,8 @@
             "connectionExplDropbox": "In order to import files from or save projects to Dropbox you must first connect to Dropbox and grant BitMappery read and write permission. Dropbox connects directly to your machine without middleware, keeping your data private at all times.\n\nFor more information, consult the privacy policy.",
             "connectionExplDrive": "In order to import files from or save projects to Google Drive you must first connect to Google Drive and grant BitMappery read and write permission.\n\nDrive operates under stricter restrictions than Dropbox, it is not possible to access just any file or folder in your Google Drive, only those created by the BitMappery app.\n\nGoogle Drive connects directly to your machine without any middleware, keeping your data and file access private at all times. For more information, consult the privacy policy.",
             "errorLoadingDrive": "An unknown error has occurred while loading the Google Drive API",
-            "notAllPermissionsGrantedDrive": "Not all required read and write permissions were granted. Without these BitMappery cannot use Google Drive. If this was by mistake, reconnect and tick the appropriate permission box."
+            "notAllPermissionsGrantedDrive": "Not all required read and write permissions were granted. Without these BitMappery cannot use Google Drive. If this was by mistake, reconnect and tick the appropriate permission box.",
+            "errorConnectingS3": "An unknown error has occurred while connecting to S3"
         }
     }
 }

@@ -28,6 +28,7 @@ import type { Document, Layer } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { createCanvas } from "@/utils/canvas-util";
+import { readBufferFromFile } from "@/utils/file-util";
 
 type PDFJSLib = {
     getDocument: ( data: ArrayBuffer ) => {
@@ -58,8 +59,8 @@ export const importPDF = async ( pdfFileReference: File ): Promise<Document> => 
         // but it is injected by the loaded scripts
         pdfjsLib = window.pdfjsLib;
     }
-    const data = await readFile( pdfFileReference );
-    const pdf = await pdfjsLib.getDocument( data ).promise;
+    const data = await readBufferFromFile( pdfFileReference );
+    const pdf  = await pdfjsLib.getDocument( data ).promise;
 
     const numPages = pdf.numPages;
     const layers: Layer[] = [];
@@ -92,16 +93,3 @@ export const importPDF = async ( pdfFileReference: File ): Promise<Document> => 
         layers: layers.reverse()
     });
 };
-
-/* internal methods */
-
-function readFile( file: File ): Promise<ArrayBuffer> {
-    const reader = new FileReader();
-    return new Promise(( resolve, reject ) => {
-        reader.onload = ( readerEvent: ProgressEvent ) => {
-            resolve(( readerEvent.target as FileReader ).result as ArrayBuffer );
-        };
-        reader.onerror = reject;
-        reader.readAsArrayBuffer( file );
-    });
-}

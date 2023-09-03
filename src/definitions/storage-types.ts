@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2022 - https://www.igorski.nl
+ * Igor Zinken 2022-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,4 +24,16 @@ export enum STORAGE_TYPES {
     LOCAL   = "local",
     DROPBOX = "dropbox",
     DRIVE   = "drive",
+    S3      = "s3",
+};
+
+export type FileNode = {
+    name: string;
+    type: string; // use by cloud-file-selector, supported types : "folder" | "file" | "bpy";
+    path: string;
+    preview: string;
+    mime: string;
+    key?: string; // unique identifier for the storage service
+    children?: FileNode[];
+    parent?: FileNode[];
 };

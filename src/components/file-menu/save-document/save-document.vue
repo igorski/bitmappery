@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -40,7 +40,7 @@
                     />
                 </div>
                 <div
-                    v-if="hasCloudConnection"
+                    v-if="hasCloudStorage"
                     class="wrapper input"
                 >
                     <label v-t="'storageLocation'"></label>
@@ -51,6 +51,7 @@
                 </div>
                 <component :is="dropboxSaveComponent" ref="dropboxComponent" />
                 <component :is="driveSaveComponent"   ref="driveComponent" />
+                <component :is="s3SaveComponent"      ref="s3Component" />
             </div>
         </template>
         <template #actions>
@@ -71,11 +72,13 @@
     </modal>
 </template>
 
-<script>
+<script lang="ts">
+import type { Component } from "vue";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
+import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
 import { focus } from "@/utils/environment-util";
 
 import messages from "./messages.json";
@@ -87,48 +90,55 @@ export default {
     },
     data: () => ({
         name : "",
-        storageLocation : STORAGE_TYPES.LOCAL
+        storageLocation : STORAGE_TYPES.LOCAL,
+        hasCloudStorage : supportsDropbox() || supportsGoogleDrive() || supportsS3(),
     }),
     computed: {
         ...mapState([
-            "dropboxConnected",
-            "driveConnected",
             "storageType",
         ]),
         ...mapGetters([
             "activeDocument",
-            "hasCloudConnection",
         ]),
-        isValid() {
+        isValid(): boolean {
             return this.name.length > 0;
         },
-        storageLocations() {
+        storageLocations(): { label: string, value: STORAGE_TYPES }[] {
             const out = [{ label: this.$t( "local" ), value: STORAGE_TYPES.LOCAL }];
-            if ( this.dropboxConnected ) {
+            if ( supportsDropbox() ) {
                 out.push({ label: this.$t( "dropbox" ), value: STORAGE_TYPES.DROPBOX });
             }
-            if ( this.driveConnected ) {
+            if ( supportsGoogleDrive() ) {
                 out.push({ label: this.$t( "drive" ), value: STORAGE_TYPES.DRIVE });
+            }
+            if ( supportsS3() ) {
+                out.push({ label: this.$t( "s3" ), value: STORAGE_TYPES.S3 });
             }
             return out;
         },
-        dropboxSaveComponent() {
+        dropboxSaveComponent(): Component {
             if ( this.storageLocation === STORAGE_TYPES.DROPBOX ) {
                 return () => import( "./dropbox/save-dropbox-document.vue" );
             }
             return null;
         },
-        driveSaveComponent() {
+        driveSaveComponent(): Component {
             if ( this.storageLocation === STORAGE_TYPES.DRIVE ) {
                 return () => import( "./google-drive/save-google-drive-document.vue" );
             }
             return null;
         },
+        s3SaveComponent(): Component {
+            if ( this.storageLocation === STORAGE_TYPES.S3 ) {
+                return () => import( "./aws-s3/save-s3-document.vue" );
+            }
+            return null;
+        },
     },
-    created() {
+    created(): void {
         this.storageLocation = this.storageType;
     },
-    mounted() {
+    mounted(): void {
         this.name = this.activeDocument.name.split( "." )[ 0 ];
         focus( this.$refs.nameInput );
     },
@@ -142,7 +152,7 @@ export default {
         ...mapActions([
             "saveDocument",
         ]),
-        requestSave() {
+        requestSave(): void {
             if ( !this.isValid ) {
                 return;
             }
@@ -164,6 +174,10 @@ export default {
 
                 case STORAGE_TYPES.DRIVE:
                     this.$refs.driveComponent.requestSave();
+                    break;
+
+                case STORAGE_TYPES.S3:
+                    this.$refs.s3Component.requestSave();
                     break;
             }
             this.closeModal();

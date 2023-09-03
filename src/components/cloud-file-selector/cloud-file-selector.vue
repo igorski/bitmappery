@@ -116,10 +116,12 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
+import type { Component } from "vue";
 import { mapState, mapMutations, mapActions } from "vuex";
 import { loader } from "zcanvas";
 import { ACCEPTED_FILE_EXTENSIONS, isThirdPartyDocument, getMimeForThirdPartyDocument } from "@/definitions/file-types";
+import type { FileNode } from "@/definitions/storage-types";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { truncate } from "@/utils/string-util";
 import { disposeResource } from "@/utils/resource-manager";
@@ -129,7 +131,7 @@ import messages from "./messages.json";
 const RETRIEVAL_LOAD_KEY = "cld_r";
 const ACTION_LOAD_KEY    = "cld_a";
 
-function recurseChildren( node, path ) {
+function recurseChildren( node: FileNode, path: string ): FileNode {
     const { children } = node;
     if ( !Array.isArray( children )) {
         return null;
@@ -148,7 +150,7 @@ function recurseChildren( node, path ) {
     return null;
 }
 
-function findLeafByPath( node, path ) {
+function findLeafByPath( node: FileNode, path: string ): FileNode {
     if ( node.path === path ) {
         return node;
     }
@@ -174,13 +176,13 @@ export default {
         ...mapState([
             "loadingStates",
         ]),
-        loading() {
+        loading(): boolean {
             return this.loadingStates.includes( RETRIEVAL_LOAD_KEY );
         },
-        disabled() {
+        disabled(): boolean {
             return this.loadingStates.includes( ACTION_LOAD_KEY );
         },
-        breadcrumbs() {
+        breadcrumbs(): FileNode[] {
             let parent = this.leaf.parent;
             const out = [];
             while ( parent ) {
@@ -189,7 +191,7 @@ export default {
             }
             return out.reverse();
         },
-        filesAndFolders() {
+        filesAndFolders(): FileNode[] {
             return this.leaf.children.filter( entry => {
                 // only show folders and image files
                 if ( entry.type === "file" ) {
@@ -198,11 +200,11 @@ export default {
                 return true;
             });
         },
-        imagePreviewComponent() {
+        imagePreviewComponent(): Component {
             return null; // extend in inheriting components
         },
     },
-    mounted() {
+    mounted(): void {
         focus( this.$refs.content );
         this.escListener = ({ keyCode }) => {
             if ( keyCode === 27 ) {
@@ -211,7 +213,7 @@ export default {
         };
         window.addEventListener( "keyup", this.escListener );
     },
-    destroyed() {
+    destroyed(): void {
         window.removeEventListener( "keyup", this.escListener );
     },
     methods: {
@@ -226,12 +228,17 @@ export default {
         ...mapActions([
             "loadDocument",
         ]),
-        async retrieveFiles( path ) {
+        async retrieveFiles( path ): Promise<void> {
             this.setLoading( RETRIEVAL_LOAD_KEY );
             try {
                 const entries = await this._listFolder( path );
+                let leaf = findLeafByPath( this.tree, path );
 
-                const leaf   = findLeafByPath( this.tree, path );
+                if ( !leaf ) {
+                    // S3 uses full path keys instead of nested directory names, get last name
+                    const dirs = path.split( "/" ).filter( Boolean );
+                    leaf = findLeafByPath( this.tree, dirs[ dirs.length - 1 ] );
+                }
                 const parent = { type: "folder", name: leaf.name, parent: leaf.parent, path };
 
                 // populate leaf with fetched children
@@ -245,13 +252,13 @@ export default {
                         return a.name.localeCompare( b.name );
                     });
                 this.leaf = leaf;
-            } catch {
+            } catch ( e: any ) {
                 this.openDialog({ type: "error", message: this.$t( "couldNotRetrieveFilesForPath", { path } ) });
                 sessionStorage.removeItem( this.LAST_FOLDER_STORAGE_KEY );
             }
             this.unsetLoading( RETRIEVAL_LOAD_KEY );
         },
-        async handleCreateFolderClick() {
+        async handleCreateFolderClick(): Promise<void> {
             const folder = this.newFolderName;
             this.setLoading( ACTION_LOAD_KEY );
             try {
@@ -259,7 +266,7 @@ export default {
                 if ( !result ) {
                     throw new Error();
                 }
-                this.retrieveFiles( this.leaf.path );
+                this.retrieveFiles( this._getServicePathForNode( this.leaf ));
                 this.newFolderName = "";
                 this.showNotification({
                     message: this.$t( "folderCreatedSuccessfully", { folder })
@@ -271,16 +278,17 @@ export default {
             }
             this.unsetLoading( ACTION_LOAD_KEY );
         },
-        async handleNodeClick( node ) {
+        async handleNodeClick( node: FileNode ): Promise<void> {
             if ( this.disabled ) {
                 return;
             }
             this.setLoading( ACTION_LOAD_KEY );
+            const path = this._getServicePathForNode( node );
             switch ( node.type ) {
                 case "folder":
-                    await this.retrieveFiles( node.path );
+                    await this.retrieveFiles( path );
                     // cache the currently visited tree
-                    sessionStorage.setItem( this.LAST_FOLDER_STORAGE_KEY, JSON.stringify({ path: node.path, tree: this.tree }));
+                    sessionStorage.setItem( this.LAST_FOLDER_STORAGE_KEY, JSON.stringify({ path, tree: this.tree }));
                     break;
                 case "bpy":
                     const blob = await this._downloadFile( node );
@@ -316,7 +324,7 @@ export default {
             }
             this.unsetLoading( ACTION_LOAD_KEY );
         },
-        handleDeleteClick( node ) {
+        handleDeleteClick( node: FileNode ): void {
             const { name } = node;
             this.openDialog({
                 type: "confirm",
@@ -328,7 +336,7 @@ export default {
                         this.showNotification({
                             message: this.$t( "entryDeletedSuccessfully", { entry: name })
                         });
-                        this.retrieveFiles( this.leaf.path );
+                        this.retrieveFiles( this._getServicePathForNode( this.leaf ));
                     } else {
                         this.openDialog({
                             type: "error",
@@ -340,25 +348,28 @@ export default {
             });
         },
         /* the below should be implemented in inheriting components */
-        // eslint-disable-next-line no-unused-vars
-        async _listFolder( path ) {
-
+        _getServicePathForNode( node: FileNode ): string {
+            return node.path;
         },
         // eslint-disable-next-line no-unused-vars
-        async _createFolder( parent, name ) {
-
+        async _listFolder( path: string ): Promise<FileNode[]> {
+            return [];
         },
         // eslint-disable-next-line no-unused-vars
-        async _downloadFile( node, returnAsURL = false  ) {
-
+        async _createFolder( parent: FileNode, name: string ): Promise<boolean> {
+            return false;
         },
         // eslint-disable-next-line no-unused-vars
-        async _deleteEntry( node ) {
-
+        async _downloadFile( node: FileNode, returnAsURL = false  ): Promise<Blob | string | null> {
+            return null;
         },
         // eslint-disable-next-line no-unused-vars
-        _mapEntry( entry, children = [], parent = null ) {
-            return {};
+        async _deleteEntry( node: FileNode ): Promise<boolean> {
+            return false;
+        },
+        // eslint-disable-next-line no-unused-vars
+        _mapEntry( entry: FileNode, children: FileNode[] = [], parent: FileNode = null ): FileNode {
+            return {} as FileNode;
         }
     }
 };
@@ -463,7 +474,7 @@ $actionsHeight: 74px;
 
 .entry {
     display: inline-block;
-    width: 128px;
+    min-width: 128px;
     height: 128px;
     vertical-align: top;
     position: relative;

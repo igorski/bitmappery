@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,20 +21,22 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { mapState, mapMutations } from "vuex";
-import { DROPBOX_FILE_SELECTOR, GOOGLE_DRIVE_FILE_SELECTOR } from "@/definitions/modal-windows";
+import { DROPBOX_FILE_SELECTOR, GOOGLE_DRIVE_FILE_SELECTOR, AWS_S3_FILE_SELECTOR } from "@/definitions/modal-windows";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
-import { getDropboxService, getGoogleDriveService } from "@/utils/cloud-service-loader";
+import { getDropboxService, getGoogleDriveService, getS3Service } from "@/utils/cloud-service-loader";
 
 let isAuthenticated: () => Promise<boolean>;
 let requestLogin: ( clientId?: string, redirectUrl?: string ) => Promise<void>;
 let registerAccessToken: ( token: string ) => void;
-let init: ( apiKey: string, clientId: string ) => void;
+let init: () => void;
 let validateScopes: ( scope: string ) => boolean;
 let disconnect: () => void;
 let loginWindow: Window;
 let boundHandler: ( event: MessageEvent ) => void;
 
 const PRIVACY_POLICY_URL = "https://www.igorski.nl/bitmappery/privacy";
+
+let autoOpenFileBrowserOnConnect = true;
 
 /**
  * A mixin that provides a generic behaviour with regards to interacting with
@@ -89,8 +91,10 @@ export default {
             this.showNotification({ message: this.$t( i18n ) });
         },
         /* 1. Dropbox */
-        async initDropbox(): Promise<void> {
+        async initDropbox( openFileBrowserOnSuccess = true ): Promise<void> {
             ({ isAuthenticated, requestLogin, registerAccessToken } = await getDropboxService() );
+
+            autoOpenFileBrowserOnConnect = openFileBrowserOnSuccess;
 
             const LOADING_KEY = "dbxc";
             this.setLoading( LOADING_KEY );
@@ -101,14 +105,11 @@ export default {
                 if ( !this.dropboxConnected ) {
                     this.showConnectionMessage( STORAGE_TYPES.DROPBOX );
                 }
-                this.openFileBrowserDropbox();
+                if ( autoOpenFileBrowserOnConnect ) {
+                    this.openFileBrowserDropbox();
+                }
             } else {
-                this.authUrl = await requestLogin(
-                    // @ts-expect-error Property 'dropboxClientId' does not exist on type 'Window & typeof globalThis'
-                    window.dropboxClientId || localStorage?.getItem( "dropboxClientId" ),
-                    // @ts-expect-error Property 'dropboxRedirect' does not exist on type 'Window & typeof globalThis'
-                    window.dropboxRedirect || `${window.location.href}login.html`
-                );
+                this.authUrl = await requestLogin();
                 this.openAuth( this.$t( "cloud.connectionExplDropbox" ), this.loginDropbox.bind( this ));
             }
         },
@@ -125,26 +126,26 @@ export default {
                 loginWindow = null;
                 this.showConnectionMessage( STORAGE_TYPES.DROPBOX );
                 this.authenticated = true;
-                this.openFileBrowserDropbox();
+
+                if ( autoOpenFileBrowserOnConnect ) {
+                    this.openFileBrowserDropbox();
+                }
             }
         },
         openFileBrowserDropbox(): void {
             this.openModal( DROPBOX_FILE_SELECTOR );
         },
         /* 2. Google Drive */
-        async initDrive(): Promise<void> {
+        async initDrive( openFileBrowserOnSuccess = true ): Promise<void> {
             ({ init, requestLogin, validateScopes, disconnect, isAuthenticated, registerAccessToken } = await getGoogleDriveService() );
+
+            autoOpenFileBrowserOnConnect = openFileBrowserOnSuccess;
 
             const LOADING_KEY = "gdc";
 
             this.setLoading( LOADING_KEY );
 
-            this.initialized = await init(
-                // @ts-expect-error Property 'driveApiKey' does not exist on type 'Window & typeof globalThis'
-                window.driveApiKey   || localStorage?.getItem( "driveApiKey" ),
-                // @ts-expect-error Property 'driveClientId' does not exist on type 'Window & typeof globalThis'
-                window.driveClientId || localStorage?.getItem( "driveClientId" )
-            );
+            this.initialized = await init();
             this.unsetLoading( LOADING_KEY );
 
             if ( !this.initialized ) {
@@ -160,7 +161,9 @@ export default {
                 if ( !this.driveConnected ) {
                     this.showConnectionMessage( STORAGE_TYPES.DRIVE );
                 }
-                this.openFileBrowserDrive();
+                if ( openFileBrowserOnSuccess ) {
+                    this.openFileBrowserDrive();
+                }
             } else {
                 this.openAuth(
                     this.$t( "cloud.connectionExplDrive" ),
@@ -210,13 +213,35 @@ export default {
                 window.removeEventListener( "message", boundHandler );
                 this.showConnectionMessage( STORAGE_TYPES.DRIVE );
                 this.authenticated = true;
-                window.setTimeout( this.openFileBrowserDrive.bind( this ), TIMEOUT );
+
+                if ( autoOpenFileBrowserOnConnect ) {
+                    window.setTimeout( this.openFileBrowserDrive.bind( this ), TIMEOUT );
+                }
             } else {
                 this.cancelLoginDrive(); // user likely cancelled auth flow
             }
         },
         openFileBrowserDrive(): void {
             this.openModal( GOOGLE_DRIVE_FILE_SELECTOR );
+        },
+        // AWS S3
+        async initS3( openFileBrowserOnSuccess = true ): Promise<void> {
+            const s3 = await getS3Service();
+            const connected = await s3.initS3();
+
+            if ( connected ) {
+                if ( openFileBrowserOnSuccess ) {
+                    this.openFileBrowserS3();
+                }
+            } else {
+                this.openDialog({
+                    type: "error",
+                    message: this.$t( "cloud.errorConnectingS3" )
+                });
+            }
+        },
+        openFileBrowserS3(): void {
+            this.openModal( AWS_S3_FILE_SELECTOR );
         },
     },
 };

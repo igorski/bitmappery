@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -49,18 +49,25 @@
                                 @click="openFileSelector()"
                         ></button>
                     </li>
-                    <li>
+                    <li v-if="hasDropbox">
                         <button
                             v-t="'openDropboxDocument'"
                             type="button"
                             @click="initDropbox()"
                         ></button>
                     </li>
-                    <li>
+                    <li v-if="hasDrive">
                         <button
                             v-t="'openDriveDocument'"
                             type="button"
                             @click="initDrive()"
+                        ></button>
+                    </li>
+                    <li v-if="hasS3">
+                        <button
+                            v-t="'openS3Document'"
+                            type="button"
+                            @click="initS3()"
                         ></button>
                     </li>
                     <li>
@@ -401,6 +408,7 @@ import { enqueueState } from "@/factories/history-state-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { cloneCanvas } from "@/utils/canvas-util";
+import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
 import { renderFullSize } from "@/utils/document-util";
 import { selectionToRectangle } from "@/utils/selection-util";
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector
@@ -413,14 +421,15 @@ export default {
         activeSubMenu: null, // used for mobile views collapsed / expanded view
         clonedFilters: null,
         isFullscreen: false,
+        hasDropbox: supportsDropbox(),
+        hasDrive: supportsGoogleDrive(),
+        hasS3: supportsS3(),
     }),
     computed: {
         ...mapState([
             "menuOpened",
             "blindActive",
             "selectionContent",
-            "dropboxConnected",
-            "driveConnected",
         ]),
         ...mapGetters([
             "documents",

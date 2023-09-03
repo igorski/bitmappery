@@ -21,3 +21,7 @@
 .drive {
     @include thirdPartyButton( #FFD04B, #000 ); // #1FA463
 }
+
+.s3 {
+    @include thirdPartyButton( #F90, #000 );
+}

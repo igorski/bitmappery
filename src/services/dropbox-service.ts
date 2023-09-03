@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,6 +23,7 @@
 import { Dropbox } from "dropbox";
 import type { files } from "dropbox"; // note: Dropbox types are known not to reflect the actual API correctly!
 import { blobToResource } from "@/utils/resource-manager";
+import { formatFileName } from "@/utils/string-util";
 
 const UPLOAD_FILE_SIZE_LIMIT = 150 * 1024 * 1024;
 
@@ -34,10 +35,11 @@ let currentFolder = "";
  * Authentication step 1: for interacting with Dropbox : request access token
  * by opening an authentication page
  */
-export const requestLogin = async ( clientId: string, loginUrl: string ): Promise<string> => {
-    dbx = new Dropbox({ clientId });
+export const requestLogin = async (): Promise<string> => {
+    // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
+    dbx = new Dropbox({ clientId: import.meta.env.VITE_DROPBOX_API_KEY });
     // @ts-expect-error 'auth' is not recognized on Dropbox class, but it's definitely an instance of DropboxAuth!
-    return dbx.auth.getAuthenticationUrl( loginUrl );
+    return dbx.auth.getAuthenticationUrl( import.meta.env.VITE_DROPBOX_REDIRECT_URL || `${window.location.href}login.html` );
 };
 
 /**
@@ -74,7 +76,7 @@ export const listFolder = async ( path = "" ): Promise<files.ListFolderResult> =
         ({ result } = await dbx.filesListFolderContinue({ cursor: result.cursor }));
         entries.push( ...result.entries );
     }
-    currentFolder = path;
+    setCurrentFolder( path );
 
     return entries as unknown as files.ListFolderResult;
 };
@@ -134,7 +136,7 @@ export const deleteEntry = async ( path: string ): Promise<boolean> => {
 };
 
 export const uploadBlob = async ( fileOrBlob: File | Blob, folder: string, fileName: string ): Promise<boolean> => {
-    const path = `${sanitizePath( folder )}/${fileName.split( " " ).join ( "_" )}`;
+    const path = `${sanitizePath( folder )}/${formatFileName( fileName )}`;
     if ( fileOrBlob.size < UPLOAD_FILE_SIZE_LIMIT ) {
         // File is smaller than 150 Mb - use filesUpload API
         try {

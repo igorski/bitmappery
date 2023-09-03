@@ -1,0 +1,10 @@
+{
+    "en-US": {
+        "folder": "Folder",
+        "folderExpl": "You can create a folder structure directly in your S3 bucket by typing a new folder name. Nested folders are separated with a slash (/).",
+        "fileSavedInS3": "\"{file}\" saved in your S3 bucket",
+        "errorOccurred": "An error occurred while saving document. Verify your S3 connection or export the document locally.",
+        "save": "Save",
+        "cancel": "Cancel"
+    }
+}
