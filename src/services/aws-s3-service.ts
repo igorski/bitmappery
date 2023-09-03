@@ -169,31 +169,36 @@ export const listFolder = async ( path = "", MaxKeys = 500, filterByType = true 
     path = path.length > 0 ? sanitizePath( path, true ) : "";
 
     const entries: FileNode[] = [];
+    const command = new ListObjectsV2Command({
+        Bucket: bucket,
+        Prefix: path,
+        Delimiter: path,
+        MaxKeys,
+    });
+    let isTruncated = true;
+    let retryHandler: ( err: any ) => Promise<void>;
 
-    try {
-        const command = new ListObjectsV2Command({
-            Bucket: bucket,
-            Prefix: path,
-            Delimiter: path,
-            MaxKeys,
-        });
-        let isTruncated = true;
+    const execute = async (): Promise<void> => {
+        try {
+            while ( isTruncated ) {
+                const { Contents, IsTruncated, NextContinuationToken } = await s3client.send( command );
 
-        while ( isTruncated ) {
-            const { Contents, IsTruncated, NextContinuationToken } = await s3client.send( command );
+                if ( !Contents ) {
+                    break;
+                }
 
-            if ( !Contents ) {
-                break;
+                formatEntries( path, Contents, entries, filterByType );
+
+                isTruncated = IsTruncated;
+                command.input.ContinuationToken = NextContinuationToken;
             }
-
-            formatEntries( path, Contents, entries, filterByType );
-
-            isTruncated = IsTruncated;
-            command.input.ContinuationToken = NextContinuationToken;
+        } catch ( err: any ) {
+            await retryHandler( err );
         }
-    } catch ( err: any ) {
-        console.error( err );
     }
+    retryHandler = retryableExecution( execute );
+    await execute();
+
     setCurrentFolder( path );
 
     return entries;
@@ -392,4 +397,28 @@ function sanitizePath( path = "", assertTrailingSlash = false ): string {
         path = path.substr( 0, path.length - 1 );
     }
     return path;
+}
+
+function retryableExecution( executeFn: () => Promise<void>, amountOfRetries = 2 ): ( err: any ) => Promise<void> {
+    let retryAmount = 0;
+    const handler = async ( err: any ): Promise<void> => {
+        /**
+         * It has been noted that containers hosted on the same Docker environment can
+         * suffer from time drift which can fail the S3 request. By repeating the request
+         * after a short timeout, this should sync the S3 clock to the request time of the host.
+         */
+        if ( err?.Code === "RequestTimeTooSkewed" || err?.message?.includes( "The difference between the request time and the current time is too large" )) {
+            if ( ++retryAmount < amountOfRetries ) {
+                return new Promise( resolve => {
+                    setTimeout( async () => {
+                        await executeFn();
+                        resolve();
+                    }, 1000 );
+                });
+            }
+        } else {
+            console.error( err );
+        }
+    };
+    return handler;
 }
