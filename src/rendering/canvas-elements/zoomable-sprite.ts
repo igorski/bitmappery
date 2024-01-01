@@ -47,10 +47,6 @@ class ZoomableSprite extends Sprite {
 
     /* zCanvas overrides */
 
-    override isVisible(): boolean {
-        
-    }
-
     // unlike regular zCanvas Sprites, ZoomableSprites don't function as masks, don't support tile
     // sheets and have no children
     // NOTE : we take some creative liberty here by changing the function arity, we can pass

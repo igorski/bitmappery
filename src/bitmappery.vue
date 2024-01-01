@@ -231,8 +231,8 @@ export default {
             try {
                 loadImageFiles( images, this.addLoadedFile.bind( this ));
                 for ( const file of documents ) {
-                    const bpyDocument = await DocumentFactory.fromBlob( file );
-                    this.addNewDocument( bpyDocument );
+                    const document = await DocumentFactory.fromBlob( file );
+                    this.addNewDocument( document );
                 }
                 await this.loadThirdPartyDocuments( thirdParty );
                 if ( typeof url === "string" && url.length > 0 ) {
