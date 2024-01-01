@@ -21,13 +21,13 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Vue from "vue";
-import { sprite } from "zcanvas";
-import type { Point, Size, Viewport } from "zcanvas";
+import { Sprite } from "zcanvas";
+import type { Point, Size, Viewport, IRenderer } from "zcanvas";
 import type { Document, Layer, Shape, Selection } from "@/definitions/document";
 import ToolTypes from "@/definitions/tool-types";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
-import { isPointInRange, translatePoints, snapToAngle, rectToCoordinateList } from "@/math/point-math";
+import { isPointInRange, translatePoints, snapToAngle, rectToCoordinateList, } from "@/math/point-math";
 import { scaleRectangle } from "@/math/rectangle-math";
 import { selectByColor } from "@/math/selection-math";
 import { fastRound } from "@/math/unit-math";
@@ -53,7 +53,7 @@ export enum InteractionModes {
  * 2. select the active layer by finding non-transparent pixels at the pointer position
  * 3. create selection outlines that can be used across layers
  */
-class InteractionPane extends sprite {
+class InteractionPane extends Sprite {
     public mode: InteractionModes;
     private _toolOptions: any;
     private _pointerDown: boolean;
@@ -139,7 +139,7 @@ class InteractionPane extends sprite {
         if ( !this._enabled ) {
             return;
         }
-        const zCanvas = this._parent;
+        const zCanvas = this.getCanvas();
         zCanvas.removeChild( this );
         zCanvas.addChild( this );
     }
@@ -210,15 +210,15 @@ class InteractionPane extends sprite {
     // cheap way to hook into zCanvas.handleMove()-handler so we can keep following the cursor in tool modes
     forceMoveListener(): void {
         this.isDragging = true;
-        this._dragStartOffset = { x: this.getX(), y: this.getY() };
-        this._dragStartEventCoordinates = { x: this._pointerX, y: this._pointerY };
+        this._dro = { x: this.getX(), y: this.getY() };
+        this._drc = { x: this._pointerX, y: this._pointerY };
     }
 
     startOutsideSelection( x: number, y: number ): void {
         if ( this.mode !== InteractionModes.MODE_SELECTION ) {
             return;
         }
-        this._dragStartEventCoordinates = { x, y };
+        this._drc = { x, y };
         this.handlePress( x, y );
     }
 
@@ -229,7 +229,7 @@ class InteractionPane extends sprite {
     closeSelection(): void {
         this._selectionClosed = true;
         // triggers reactivity (as activeSelection is a nested array)
-        this.canvas.store.commit( "setActiveSelection", [ ...this.getActiveDocument().activeSelection ]);
+        this.getCanvas().store.commit( "setActiveSelection", [ ...this.getActiveDocument().activeSelection ]);
     }
 
     /* zCanvas.sprite overrides */
@@ -240,21 +240,22 @@ class InteractionPane extends sprite {
             default:
                 if ( this.isDragging ) {
                     // implies press has start drag mode
-                    const viewport = this.canvas.getViewport();
+                    const viewport = this.getCanvas().getViewport();
                     this._vpStartX = viewport.left;
                     this._vpStartY = viewport.top;
                 }
                 break;
 
             case InteractionModes.MODE_LAYER_SELECT:
-                const sprites: LayerSprite[] = this.canvas.getChildren().filter(( sprite: sprite ) => sprite instanceof LayerSprite );
+                const sprites: LayerSprite[] = this.getCanvas().getChildren().filter(( sprite: Sprite ) => sprite instanceof LayerSprite ) as LayerSprite[];
                 // loop over all layer sprites in reverse (top of display list to bottom) order
                 let i = sprites.length;
                 while ( i-- ) {
                     const sprite = sprites[ i ];
                     // if the sprites Bitmap contents are non-transparent at the given coordinate, make it the active layer
-                    if ( !isInsideTransparentArea( sprite.getBitmap() as HTMLCanvasElement, x - sprite.getX(), y - sprite.getY() )) {
-                        this.canvas.store.commit( "setActiveLayer", sprite.layer );
+                    const bitmap = await sprite.getBitmap();
+                    if ( !isInsideTransparentArea( bitmap, x - sprite.getX(), y - sprite.getY() )) {
+                        this.getCanvas().store.commit( "setActiveLayer", sprite.layer );
                         break;
                     }
                 }
@@ -274,7 +275,7 @@ class InteractionPane extends sprite {
                     } else {
                         activeSelection = [ ...activeSelection, selectedShape ];
                     }
-                    this.canvas.store.commit( "setActiveSelection", activeSelection );
+                    this.getCanvas().store.commit( "setActiveSelection", activeSelection );
                     completeSelection = true;
                 }
                 else if ( !this._selectionClosed || isShiftKeyDown ) {
@@ -286,7 +287,7 @@ class InteractionPane extends sprite {
                     let selectionShape: Shape = getLastShape( activeSelection );
                     if ( !selectionShape ) {
                         selectionShape = [];
-                        this.canvas.store.commit( "setActiveSelection", [ selectionShape ]);
+                        this.getCanvas().store.commit( "setActiveSelection", [ selectionShape ]);
                     }
                     // selection mode, set the click coordinate as the first point in the selection
                     const firstPoint = selectionShape[ 0 ];
@@ -294,7 +295,7 @@ class InteractionPane extends sprite {
                         if ( isShiftKeyDown ) {
                             ({ x, y } = snapToAngle( x, y, selectionShape.at( -1 ) ));
                         }
-                        else if ( isPointInRange( x, y, firstPoint.x, firstPoint.y, 5 / this.canvas.zoomFactor )) {
+                        else if ( isPointInRange( x, y, firstPoint.x, firstPoint.y, 5 / this.getCanvas().zoomFactor )) {
                             // point was in range of start coordinate, snap and close selection
                             x = firstPoint.x;
                             y = firstPoint.y;
@@ -326,21 +327,21 @@ class InteractionPane extends sprite {
                 if ( this._selectionClosed && this._pointerDown ) {
                     const document = this.getActiveDocument();
                     const currentSelection = document.activeSelection;
-                    document.activeSelection = currentSelection.map( s => translatePoints( s, x - this._dragStartEventCoordinates.x, y - this._dragStartEventCoordinates.y ));
-                    this._dragStartEventCoordinates = { x, y }; // update to current position so we can easily move the selection using relative deltas
+                    document.activeSelection = currentSelection.map( s => translatePoints( s, x - this._drc.x, y - this._drc.y ));
+                    this._drc = { x, y }; // update to current position so we can easily move the selection using relative deltas
                     storeSelectionHistory( document, currentSelection, "drag" );
                 }
                 break;
             case InteractionModes.MODE_PAN:
-                const viewport = this.canvas.getViewport();
+                const viewport = this.getCanvas().getViewport();
 
                 const distX = viewport.left - this._vpStartX;
                 const distY = viewport.top  - this._vpStartY;
 
-                const deltaX = (( x - this._dragStartEventCoordinates.x ) * this.canvas.zoomFactor ) - distX;
-                const deltaY = (( y - this._dragStartEventCoordinates.y ) * this.canvas.zoomFactor ) - distY;
+                const deltaX = (( x - this._drc.x ) * this.getCanvas().zoomFactor ) - distX;
+                const deltaY = (( y - this._drc.y ) * this.getCanvas().zoomFactor ) - distY;
 
-                this.canvas.panViewport( this._vpStartX - deltaX, this._vpStartY - deltaY, true );
+                this.getCanvas().panViewport( this._vpStartX - deltaX, this._vpStartY - deltaY, true );
                 break;
         }
     }
@@ -379,7 +380,7 @@ class InteractionPane extends sprite {
         }
     }
 
-    draw( ctx: CanvasRenderingContext2D, viewport: Viewport ): void {
+    override draw( renderer: IRenderer, viewport: Viewport ): void {
         // render selection outline
         let { invertSelection, width, height } = this.getActiveDocument();
         const { activeSelection } = this.getActiveDocument();
@@ -398,7 +399,7 @@ class InteractionPane extends sprite {
                     shape = rectToCoordinateList( firstPoint.x, firstPoint.y, width, height );
                 }
                 // for unclosed lasso selections, draw line to current cursor position
-                let currentPosition = null;
+                let currentPosition: Point | undefined;
                 if ( connectToPointer && !this._isRectangleSelect && hasUnclosedSelection ) {
                     currentPosition = KeyboardService.hasShift() ?
                         snapToAngle( localPointerX, localPointerY, shape.at( -1 ), viewport )
@@ -406,84 +407,86 @@ class InteractionPane extends sprite {
                 }
 
                 // draw each point in the selection
-                drawSelectionShape( ctx, this.canvas, viewport, shape, currentPosition );
+                drawSelectionShape( renderer, this.getCanvas(), viewport, shape, currentPosition );
                 if ( invertSelection && !hasUnclosedSelection ) {
-                    drawSelectionShape( ctx, this.canvas, viewport, rectangleToShape( width, height ), currentPosition );
+                    drawSelectionShape( renderer, this.getCanvas(), viewport, rectangleToShape( width, height ), currentPosition );
                 }
 
                 // highlight current cursor position for unclosed selections
-                ctx.save();
                 if ( !this._selectionClosed ) {
-                    const { zoomFactor } = this.canvas;
-                    ctx.beginPath();
-                    ctx.lineWidth   = ctx.lineWidth * ( 2 / zoomFactor );
-                    ctx.strokeStyle = "#0db0bc";
+                    const { zoomFactor } = this.getCanvas();
                     const size = firstPoint && isPointInRange( this._pointerX, this._pointerY, firstPoint.x, firstPoint.y, 5 / zoomFactor ) ? 15 : 5;
-                    ctx.arc( localPointerX, localPointerY, size / zoomFactor, 0, 2 * Math.PI );
-                    ctx.stroke();
+                    
+                    renderer.drawCircle( localPointerX, localPointerY, size / zoomFactor, "transparent", {
+                        color: "#0db0bc",
+                        size: 2 / zoomFactor,
+                    });
                 }
-                ctx.restore();
             }
         } else {
             // show bounding box around active layer
             const activeLayer = this.getActiveLayer();
             if ( activeLayer ) {
-                ctx.save();
-                ctx.lineWidth   = 1 / this.canvas.zoomFactor;
-                ctx.strokeStyle = "#0db0bc";
                 const { mirrorY, scale, rotation } = activeLayer.effects;
                 const { left, top, width, height } = ( scale !== 1 ) ? scaleRectangle( activeLayer, scale ) : activeLayer;
                 const destX = left - viewport.left;
                 const destY = top  - viewport.top;
+                /*
+                ctx.save();
+                ctx.lineWidth   = 1 / this.getCanvas().zoomFactor;
+                ctx.strokeStyle = "#0db0bc";
+                const { mirrorY, scale, rotation } = activeLayer.effects;
                 if ( rotation % 360 !== 0 ) {
                     const tX = destX + ( width  * 0.5 );
                     const tY = destY + ( height * 0.5 );
                     ctx.translate( tX, tY );
                     ctx.rotate( mirrorY ? -rotation : rotation );
                     ctx.translate( -tX, -tY );
-                }
-                ctx.strokeRect( fastRound( destX ), fastRound( destY ), fastRound( width ), fastRound( height ));
-                ctx.restore();
+                }*/
+                renderer.drawRect(
+                    fastRound( destX ), fastRound( destY ), fastRound( width ), fastRound( height ),
+                    undefined, { size: 1 / this.getCanvas().zoomFactor, color: "#0db0bc" },
+                    { rotation: mirrorY ? -rotation  : rotation, scale, alpha: 1 }
+                );
+                //ctx.restore();
             }
         }
-
         // DEBUG only
-        //ctx.fillStyle = "rgba(255,0,128,.5)";
-        //ctx.fillRect( 0, 0, this._bounds.width, this._bounds.height );
+        //renderer.fillRect( 0, 0, this._bounds.width, this._bounds.height, "rgba(255,0,128,.5)" );
+    }
+
+    protected getCanvas(): ZoomableCanvas {
+        return ( this.canvas || this._parent ) as unknown as ZoomableCanvas;
     }
 }
 export default InteractionPane;
 
 /* internal methods */
 
-function drawSelectionShape( ctx: CanvasRenderingContext2D, zCanvas: ZoomableCanvas, viewport: Viewport,
-                             shape: Shape, currentPosition: Point ): void {
-    ctx.save();
-    drawShapeOutline( ctx, zCanvas, viewport, shape, "#000", currentPosition );
-    ctx.restore();
-
-    ctx.save();
-    ctx.setLineDash([ 10 / zCanvas.zoomFactor ]);
-    drawShapeOutline( ctx, zCanvas, viewport, shape, "#FFF", currentPosition );
-    ctx.restore();
+function drawSelectionShape( renderer: IRenderer, zCanvas: ZoomableCanvas, viewport: Viewport,
+                             shape: Shape, currentPosition?: Point ): void {
+    drawShapeOutline( renderer, zCanvas, viewport, shape, "#000", currentPosition );
+    drawShapeOutline( renderer, zCanvas, viewport, shape, "#FFF", currentPosition, [ 10 / zCanvas.zoomFactor ] );
 }
 
-function drawShapeOutline( ctx: CanvasRenderingContext2D, zCanvas: ZoomableCanvas, viewport: Viewport,
-                           shape: Shape, color: string, currentPosition: Point = null ): void {
-    ctx.lineWidth = 2 / zCanvas.zoomFactor;
-    ctx.beginPath();
-    ctx.strokeStyle = color;
-    shape.forEach(( point, index ) => {
-        ctx[ index === 0 ? "moveTo" : "lineTo" ](
-            ( .5 + point.x - viewport.left ) << 0,
-            ( .5 + point.y - viewport.top )  << 0
-        );
-    });
+function drawShapeOutline( renderer: IRenderer, zCanvas: ZoomableCanvas, viewport: Viewport,
+                           shape: Shape, color: string, currentPosition?: Point, dash?: number[] ): void {
+    // @todo can we cache this?
+    const points = shape.reduce(( acc, point ) => {
+        acc.push({
+            x: ( .5 + point.x - viewport.left ) << 0,
+            y: ( .5 + point.y - viewport.top )  << 0
+        });
+        return acc;
+    }, [] as Point[]);
+
     // for lasso selections, draw line to current cursor position
     if ( currentPosition && currentPosition.x !== 0 && currentPosition.y !== 0 ) {
-        ctx.lineTo(( .5 + currentPosition.x ) << 0, ( .5 + currentPosition.y ) << 0 );
+        points.push({ x: ( .5 + currentPosition.x ) << 0, y: ( .5 + currentPosition.y ) << 0 });
     }
-    ctx.stroke();
+    renderer.drawPath(
+        points, undefined, { size: 2 / zCanvas.zoomFactor, color, dash }
+    );
 }
 
 function calculateSelectionSize( firstPoint: Point, destX: number, destY: number,

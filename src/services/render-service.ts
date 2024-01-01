@@ -145,7 +145,7 @@ export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): 
     // note that updating the bitmap will also adjust the sprite bounds
     // as appropriate (f.i. if rotation were handled by this service), the
     // Layer model remains unaffected by this
-    sprite.setBitmap( cvs, width, height );
+    sprite.setBitmap( cvs );
     sprite.invalidate();
 };
 
@@ -160,7 +160,7 @@ export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): 
  */
 const runFilterJob = ( source: HTMLCanvasElement, jobSettings: any ): Promise<ImageData> => {
     const { width, height } = source;
-    const imageData = source.getContext( "2d" ).getImageData( 0, 0, width, height );
+    const imageData = source.getContext( "2d" )!.getImageData( 0, 0, width, height );
     const wasm      = useWasm && wasmWorker;
 
     return new Promise( async ( resolve, reject ) => {
@@ -237,10 +237,10 @@ const renderMask = async ( layer: Layer, ctx: CanvasRenderingContext2D, sourceBi
     ctx.restore();
 };
 
-function getJobFromQueue( jobId: number ): RenderJob {
+function getJobFromQueue( jobId: number ): RenderJob | undefined {
     const jobQueueObj = jobQueue.find(({ id }) => id === jobId );
     if ( !jobQueueObj ) {
-        return null;
+        return;
     }
     jobQueue.splice( jobQueue.indexOf( jobQueueObj ), 1 );
     return jobQueueObj;

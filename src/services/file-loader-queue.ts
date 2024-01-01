@@ -20,8 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { loader } from "zcanvas";
-import type { SizedImage } from "zcanvas";
+import { Loader } from "zcanvas";
+import type { SizedImage } from "@/definitions/editor";
 import { blobToResource, disposeResource } from "@/utils/resource-manager";
 import FileToResourceWorker from "@/workers/image-file-to-resource.worker?worker";
 
@@ -41,7 +41,7 @@ type FileLoadCallback = ( file: File, data: SizedImage ) => void;
  * Ironically, Safari yields a 3500 % speedup without the Worker. Eitherway,
  * loading large queues should maintain responsiveness of the application.
  */
-let _worker: Worker = undefined;
+let _worker: Worker;
 const getWorker = (): Worker => {
     if ( _worker === undefined && typeof window.createImageBitmap === "function" ) {
         _worker = new FileToResourceWorker();
@@ -59,8 +59,8 @@ const getWorker = (): Worker => {
  * @param {File[]} fileList of images
  * @param {FileLoadCallback} callback to execute for each loaded file
  */
-export const loadImageFiles = ( fileList: File[], callback: FileLoadCallback ): Promise<void[]> => {
-    const promises = [];
+export const loadImageFiles = ( fileList: File[], callback: FileLoadCallback ): Promise<(SizedImage | void)[]> => {
+    const promises: Promise<SizedImage | void>[] = [];
     for ( let i = 0; i < fileList.length; ++i ) {
         const file = fileList[ i ];
         promises.push( loadFile( file, callback ));
@@ -70,7 +70,7 @@ export const loadImageFiles = ( fileList: File[], callback: FileLoadCallback ): 
 
 /* internal methods */
 
-function loadFile( file: File, callback: FileLoadCallback ): Promise<void> {
+function loadFile( file: File, callback: FileLoadCallback ): Promise<SizedImage | void> {
     const worker = getWorker();
     if ( worker ) {
         return new Promise(( resolve, reject ) => {
@@ -83,13 +83,13 @@ function loadFile( file: File, callback: FileLoadCallback ): Promise<void> {
                 error: reject,
             });
             worker.postMessage({ cmd: "loadImageFile", file });
-        });
+        }) as Promise<void>;
     } else {
         return new Promise( async ( resolve, reject ) => {
             let imageSource;
             try {
                 imageSource = blobToResource( file );
-                const result = await loader.loadImage( imageSource );
+                const result = await Loader.loadImage( imageSource );
                 await callback( file, result );
                 resolve( result );
             } catch {
@@ -113,10 +113,10 @@ function handleWorkerMessage({ data }: MessageEvent ): void {
     }
 }
 
-function getFileFromQueue( fileName: string ): ImageLoadRequest {
+function getFileFromQueue( fileName: string ): ImageLoadRequest | undefined {
     const fileQueueObj = imageLoadQueue.find(({ name }) => name === fileName );
     if ( !fileQueueObj ) {
-        return null;
+        return;
     }
     imageLoadQueue.splice( imageLoadQueue.indexOf( fileQueueObj ), 1 );
     return fileQueueObj;

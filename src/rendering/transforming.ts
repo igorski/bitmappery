@@ -20,8 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Rectangle, Viewport } from "zcanvas";
-import type { Document, Layer } from "@/definitions/document";
+import type { Rectangle, Viewport, IRenderer } from "zcanvas";
+import type { Layer } from "@/definitions/document";
 import { layerToRect } from "@/factories/layer-factory";
 import { scaleRectangle, getRotationCenter } from "@/math/rectangle-math";
 
@@ -39,13 +39,13 @@ let bounds: Rectangle;
  * bounding box of the Layer after transformation. (when using these bounds with
  * a ZoomableSprites draw-routine, this would allow for easy re-use of the existing zCanvas API)
  *
- * @param {CanvasRenderingContext2D} ctx
+ * @param {IRenderer} renderer
  * @param {Layer} layer to be rendering the contents of
- * @param {Object=} viewport optional ZoomableCanvas viewport (when using within a sprite)
- * @return {Rectangle|null} null when no transformation took place, updated bounds Object when
- *                       transformation did take place.
+ * @param {Partial<Viewport>=} viewport optional ZoomableCanvas viewport (when using within a sprite)
+ * @return {Rectangle} undefined when no transformation took place or updated bounds Object when
+ *                     a transformation did take place.
  */
-export const applyTransformation = ( ctx: CanvasRenderingContext2D, layer: Layer, viewport: Partial<Viewport> = { left: 0, top: 0 }): Rectangle => {
+export const applyTransformation = ( renderer: IRenderer, layer: Layer, viewport: Partial<Viewport> = { left: 0, top: 0 }): Rectangle | undefined => {
     const { mirrorX, mirrorY, scale, rotation } = layer.effects;
 
     const isMirrored = mirrorX || mirrorY;
@@ -53,7 +53,7 @@ export const applyTransformation = ( ctx: CanvasRenderingContext2D, layer: Layer
     const isRotated  = rotation % 360 !== 0;
 
     if ( !isMirrored && !isRotated && !isScaled ) {
-        return null; // nothing to transform
+        return; // nothing to transform
     }
 
     bounds = layerToRect( layer );
@@ -70,13 +70,13 @@ export const applyTransformation = ( ctx: CanvasRenderingContext2D, layer: Layer
 
     // 2. offset the canvas to make up for the viewport pan position
 
-    ctx.translate( -viewport.left, -viewport.top );
+    renderer.translate( -viewport.left, -viewport.top );
 
     // 3. apply mirror transformation
 
     if ( isMirrored ) {
-        ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
-        ctx.translate( mirrorX ? -width : 0, mirrorY ? -height : 0 );
+        renderer.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
+        renderer.translate( mirrorX ? -width : 0, mirrorY ? -height : 0 );
 
         // the below corrects for the inverted axes of the mirror, making sure
         // makes sure interactions (draw, draw) with the canvas feel natural
@@ -99,9 +99,9 @@ export const applyTransformation = ( ctx: CanvasRenderingContext2D, layer: Layer
             height
         }, true );
 
-        ctx.translate( x, y );
-        ctx.rotate( mirrorX ? -rotation : rotation );
-        ctx.translate( -x, -y );
+        renderer.translate( x, y );
+        renderer.rotate( mirrorX ? -rotation : rotation );
+        renderer.translate( -x, -y );
     }
     return bounds;
 };

@@ -287,7 +287,6 @@ export default {
                     height: this.cvsHeight,
                     animate: false,
                     smoothing: this.antiAlias,
-                    stretchToFit: false,
                     viewport: {
                         width  : this.viewportWidth,
                         height : this.viewportHeight

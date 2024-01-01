@@ -45,7 +45,7 @@ export type CanvasContextPairing = {
 
 // technically a more limited version of "CanvasImageSource", these are the only
 // data types handled internally by BitMappery as the canvas source content
-export type CanvasDrawable = HTMLCanvasElement | HTMLImageElement;
+export type CanvasDrawable = HTMLCanvasElement | HTMLImageElement | ImageBitmap; // @todo make ImageBitmap only?
 
 export type CanvasDimensions = {
     // the base dimensions describe the "best fit" scale to represent
@@ -136,4 +136,10 @@ export type FillToolOptions = {
 export type WandToolOptions = {
     threshold: number;
     sampleMerged: boolean;
+};
+
+// @todo we shouldn't need this when using and loading ImageBitmap throughout!
+export type SizedImage = {
+    image: HTMLImageElement;
+    size: Size;
 };

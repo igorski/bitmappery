@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2022 - https://www.igorski.nl
+ * Igor Zinken 2021-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,17 +20,18 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { sprite } from "zcanvas";
-import type { Rectangle, Viewport } from "zcanvas";
+import { Sprite } from "zcanvas";
+import type { Rectangle, Viewport, IRenderer, StrokeProps } from "zcanvas";
 import { fastRound } from "@/math/unit-math";
 import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import { getClosestSnappingPoints } from "@/rendering/snapping";
 
 const AMOUNT_OF_PIXELS = 1; // currently only 1 pixel grid supported
 
-class GuideRenderer extends sprite  {
+class GuideRenderer extends Sprite  {
     private drawGuides: boolean;
     private drawPixelGrid: boolean;
+    private strokeProps: StrokeProps = { color: "#FFF", size: 1 };
 
     constructor( zCanvasInstance: ZoomableCanvas = null ) {
         // @ts-expect-error ignoring some arguments...
@@ -51,32 +52,32 @@ class GuideRenderer extends sprite  {
         this.drawPixelGrid = drawPixelGrid;
     }
 
-    draw( ctx: CanvasRenderingContext2D, viewport: Viewport = null ): void {
+    override draw( renderer: IRenderer, viewport?: Viewport ): void {
+
+        const canvas = this.canvas as ZoomableCanvas;
+
+        this.strokeProps.color = "#000";
+        this.strokeProps.size  = 1 / canvas.zoomFactor;
 
         /* grid */
 
         if ( this.drawPixelGrid ) {
-            const width  = viewport?.width  || this.canvas.getWidth();
-            const height = viewport?.height || this.canvas.getHeight();
+            const width  = viewport?.width  || canvas.getWidth();
+            const height = viewport?.height || canvas.getHeight();
 
-            ctx.strokeStyle = "000";
-            ctx.lineWidth = 1 / this.canvas.zoomFactor;
+            // @todo cache the points ?
 
-            ctx.beginPath();
             for ( let x = 0; x < width; x += AMOUNT_OF_PIXELS ) {
-                ctx.moveTo( x, 0 );
-                ctx.lineTo( x, height );
+                renderer.drawPath([ { x, y: 0 }, { x, y: height }], undefined, this.strokeProps );
             }
             for ( let y = 0; y < height; y += AMOUNT_OF_PIXELS ) {
-                ctx.moveTo( 0, y );
-                ctx.lineTo( width, y );
+                renderer.drawPath([ { x: 0, y }, { x: width, y }], undefined, this.strokeProps );
             }
-            ctx.stroke();
         }
 
         /* guides */
 
-        if ( !this.drawGuides || !this.canvas.guides || !this.canvas.draggingSprite ) {
+        if ( !this.drawGuides || !canvas.guides || !canvas.draggingSprite ) {
             return;
         }
 
@@ -84,18 +85,19 @@ class GuideRenderer extends sprite  {
         const vpTop  = viewport?.top  || 0;
 
         // we can snap the currently draggingSprite against its edge and center
-        const guides: Rectangle[] = getClosestSnappingPoints( this.canvas.draggingSprite, this.canvas.guides );
-        ctx.strokeStyle = "red";
+        const guides: Rectangle[] = getClosestSnappingPoints( canvas.draggingSprite, canvas.guides );
+
+        this.strokeProps.color = "red";
 
         for ( const { left, top, width, height } of guides ) {
             // make up for canvas viewport offset
             const localX = left - vpLeft;
             const localY = top - vpTop;
 
-            ctx.beginPath();
-            ctx.moveTo( fastRound( localX ), fastRound( localY ));
-            ctx.lineTo( fastRound( localX + width ), fastRound( localY + height ));
-            ctx.stroke();
+            renderer.drawPath([
+                { x: fastRound( localX ), y: fastRound( localY ) },
+                { x: fastRound( localX + width ), y: fastRound( localY + height ) }
+            ], undefined, this.strokeProps );
         }
     }
 }
