@@ -29,19 +29,17 @@
         <p
             v-if="hasNoThumb"
         >{{ node.name }}</p>
-        <div v-else>
-            <img
-                v-if="isLoading"
-                src="../../../assets-inline/animations/loader.svg"
-                class="image-preview__loader"
-            />
-            <img
-                v-else
-                :src="src"
-                class="image-preview__image"
-                @load="handleImageLoad"
-            />
-        </div>
+        <img
+            v-if="isLoading"
+            src="../../../assets-inline/animations/loader.svg"
+            class="image-preview__loader"
+        />
+        <img
+            v-else
+            :src="src"
+            class="image-preview__image"
+            @load="handleImageLoad"
+        />
     </div>
 </template>
 
@@ -98,5 +96,11 @@ export default {
 .image-preview {
     background: url("../../../assets-inline/images/icon-bpy.svg") no-repeat 50% $spacing-xlarge;
     background-size: 50%;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 }
 </style>
