@@ -22,11 +22,12 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Rectangle } from "zcanvas";
+import type { IRenderer, Rectangle } from "zcanvas";
 import { BlendModes } from "@/definitions/blend-modes";
 import type { RGB, HSV } from "@/definitions/colors";
 import { createCanvas } from "@/utils/canvas-util";
 import { rgb2YCbCr, YCbCr2rgb, rgb2hsv, hsv2rgb } from "@/utils/color-util";
+import ZoomableCanvas from "./canvas-elements/zoomable-canvas";
 
 const { cvs, ctx } = createCanvas();
 
@@ -48,22 +49,27 @@ export const getBlendContext = ( documentCanvas: HTMLCanvasElement ): CanvasRend
 /**
  * Blend a Layer onto the underlying Document content
  *
- * @param {CanvasRenderingContext2D} dest the context that contains all rendered content below the Layer
+ * @param {ZoomableCanvas} zoomableCanvas the ZoomableCanvas instance to render on
  * @param {CanvasRenderingContext2D} layer the context that contains the content of the Layer (see getBlendContext)
  * @param {BlendModes} blendMode the blend mode to use
  * @param {Rectangle?} bounds optional bounds to constrain blending within. defaults to full dest size
  */
-export const blendLayer = ( dest: CanvasRenderingContext2D, layer: CanvasRenderingContext2D,
+export const blendLayer = async ( zoomableCanvas: ZoomableCanvas, layer: CanvasRenderingContext2D,
                             blendMode: BlendModes, bounds?: Rectangle ): void => {
     let left = 0;
     let top = 0;
-    let { width, height } = dest.canvas;
+    let width = zoomableCanvas.getWidth();
+    let height = zoomableCanvas.getHeight();
+    const renderer = zoomableCanvas.getRenderer();
+
     if ( bounds ) {
         ({ left, top, width, height } = bounds );
     }
 
     const srcImageData: ImageData = layer.getImageData( left, top, width, height );
-    const dstImageData: ImageData = dest.getImageData( left, top, width, height );
+    // @todo is Promise but should be sync when not using Worker, this entire method should be sync!
+    const content = await zoomableCanvas.getContent();
+    const dstImageData: ImageData = content.getContext( "2d" )!.getImageData( left, top, width, height );
 
     const src: Uint8ClampedArray = srcImageData.data;
     const dst: Uint8ClampedArray = dstImageData.data;
@@ -235,7 +241,7 @@ export const blendLayer = ( dest: CanvasRenderingContext2D, layer: CanvasRenderi
                 break;
         }
     }
-    dest.putImageData( dstImageData, left, top );
+    renderer.putImageData( dstImageData, left, top );
 
     // free allocated memory of temp context
     layer.canvas.width = layer.canvas.height = 1;

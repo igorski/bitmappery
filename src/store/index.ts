@@ -22,8 +22,9 @@
  */
 import { ActionContext } from "vuex";
 import type { IVueI18n } from "vue-i18n";
-import type { Size, SizedImage } from "zcanvas";
+import type { Size } from "zcanvas";
 import type { Notification, Dialog } from "@/definitions/editor";
+import type { SizedImage } from "@/definitions/editor";
 import KeyboardService from "@/services/keyboard-service";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";

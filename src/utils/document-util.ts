@@ -20,8 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { canvas, loader } from "zcanvas";
-import type { Rectangle, SizedImage } from "zcanvas";
+import { Canvas, Loader, type Rectangle } from "zcanvas";
+import type { SizedImage } from "@/definitions/editor";
 import { PNG } from "@/definitions/image-types";
 import type { Document, Shape, Layer } from "@/definitions/document";
 import { renderEffectsForLayer } from "@/services/render-service";
@@ -45,7 +45,7 @@ export const createDocumentSnapshot = async ( activeDocument: Document ): Promis
     }
     // draw existing layers onto temporary canvas at full document scale
     layers.forEach( layer => {
-        getSpriteForLayer( layer )?.draw( ctx, zcvs.getViewport(), true );
+        getSpriteForLayer( layer )?.draw( zcvs.getRenderer(), zcvs.getViewport(), true );
     });
     zcvs.dispose();
 
@@ -69,7 +69,7 @@ export const createLayerSnapshot = async ( layer: Layer, optActiveDocument?: Doc
     await renderEffectsForLayer( layer, false );
 
     // draw existing layers onto temporary canvas at full document scale
-    sprite?.draw( ctx, zcvs.getViewport(), true );
+    sprite?.draw( zcvs.getRenderer(), zcvs.getViewport(), true );
     zcvs.dispose();
 
     return cvs;
@@ -91,7 +91,7 @@ export const renderFullSize = ( activeDocument: Document, optLayerIndices: numbe
         if ( optLayerIndices.length && !optLayerIndices.includes( index )) {
             return;
         }
-        getSpriteForLayer( layer )?.draw( ctx, zcvs.getViewport(), true );
+        getSpriteForLayer( layer )?.draw( zcvs.getRenderer(), zcvs.getViewport(), true );
     });
     zcvs.dispose();
 
@@ -194,7 +194,7 @@ export const copySelection = async ( activeDocument: Document, activeLayer: Laye
         0, 0, selectionRectangle.width, selectionRectangle.height
     );
     zcvs.dispose();
-    return await loader.loadImage( selectionCanvas.cvs.toDataURL( PNG.mime ));
+    return await Loader.loadImage( selectionCanvas.cvs.toDataURL( PNG.mime ));
 };
 
 /**
@@ -288,11 +288,11 @@ export const getAlignableObjects = ( document: Document, excludeLayer?: Layer ):
  * Create a (temporary) instance of zCanvas at the full document size.
  * (as the current on-screen instance is a "best fit" for the screen size)
  */
-function createFullSizeZCanvas( object: { width: number, height: number } ): { zcvs: canvas, cvs: HTMLCanvasElement, ctx: CanvasRenderingContext2D } {
+function createFullSizeZCanvas( object: { width: number, height: number } ): { zcvs: Canvas, cvs: HTMLCanvasElement, ctx: CanvasRenderingContext2D } {
      const { width, height } = object;
-     const zcvs = new canvas({ width, height, viewport: { width: width * 10, height: height * 10 } });
-     const cvs  = zcvs.getElement() as HTMLCanvasElement;
-     const ctx  = cvs.getContext( "2d" );
+     const zcvs = new Canvas({ width, height, viewport: { width: width * 10, height: height * 10 }, optimize: "none" });
+     const cvs  = zcvs.getElement();
+     const ctx  = cvs.getContext( "2d" )!;
 
      return { zcvs, cvs, ctx };
 }

@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { loader } from "zcanvas";
+import { Loader } from "zcanvas";
 import type { Point } from "zcanvas";
 import type { CanvasContextPairing, CanvasDrawable } from "@/definitions/editor";
 import { JPEG, PNG } from "@/definitions/image-types";
@@ -74,7 +74,7 @@ export const base64toCanvas = async ( base64: string, width: number, height: num
     if ( !base64 ) {
         return null;
     }
-    const { image } = await loader.loadImage( base64 );
+    const { image } = await Loader.loadImage( base64 );
 
     const { cvs, ctx } = createCanvas( width, height );
     ctx.drawImage( image, 0, 0 );
@@ -100,7 +100,7 @@ export const resizeImage = async ( image: CanvasDrawable | string, targetWidth: 
     optSourceX = 0, optSourceY = 0, optSrcWidth = 0, optSrcHeight = 0 ): Promise<HTMLCanvasElement> => {
     if ( typeof image === "string" ) {
         let size;
-        ({ image, size } = await loader.loadImage( image ));
+        ({ image, size } = await Loader.loadImage( image ));
         if ( optSrcWidth === 0 || optSrcHeight === 0 ) {
             optSrcWidth  = size.width;
             optSrcHeight = size.height;
@@ -131,7 +131,7 @@ export const resizeToBase64 = async ( image: CanvasDrawable | string, targetWidt
         if ( srcWidth === targetWidth && srcHeight === targetHeight ) {
             return image;
         }
-        ({ image } = await loader.loadImage( image ));
+        ({ image } = await Loader.loadImage( image ));
     }
     const cvs = await resizeImage( image, targetWidth, targetHeight, 0, 0, srcWidth, srcHeight );
     return cvs.toDataURL( mime, encoderOptions );
@@ -171,7 +171,7 @@ export const isInsideTransparentArea = ( source: HTMLCanvasElement, x: number, y
     const height = bottom - top;
 
     // get list of RGBA values at the requested rectangle within given source
-    const imageData = source.getContext( "2d" ).getImageData( left, top, size, size ).data;
+    const imageData = source.getContext( "2d" )!.getImageData( left, top, size, size ).data;
 
     // we define a threshold for opaque pixels, the reason being that visually
     // we might perceive a fractional value just above 0 to be "transparent"

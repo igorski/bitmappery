@@ -98,8 +98,8 @@ export default {
     background-size: 50%;
 
     img {
-        width: 100%;
-        height: 100%;
+        width: calc(100% - #{$spacing-small});
+        height: calc(100% - #{$spacing-small});
         object-fit: cover;
     }
 }

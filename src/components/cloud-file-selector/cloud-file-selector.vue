@@ -119,7 +119,7 @@
 <script lang="ts">
 import type { Component } from "vue";
 import { mapState, mapMutations, mapActions } from "vuex";
-import { loader } from "zcanvas";
+import { Loader } from "zcanvas";
 import { ACCEPTED_FILE_EXTENSIONS, isThirdPartyDocument, getMimeForThirdPartyDocument } from "@/definitions/file-types";
 import type { FileNode } from "@/definitions/storage-types";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
@@ -305,7 +305,7 @@ export default {
                             const blob = await fetch( url ).then( r => r.blob() );
                             await this.loadThirdPartyDocuments([ blob ], getMimeForThirdPartyDocument( node ));
                         } else {
-                            const { image, size } = await loader.loadImage( url );
+                            const { image, size } = await Loader.loadImage( url );
                             this.setStorageType( this.STORAGE_PROVIDER );
                             await this.addLoadedFile({ type: this.STORAGE_PROVIDER, name: node.name }, { image, size });
                         }

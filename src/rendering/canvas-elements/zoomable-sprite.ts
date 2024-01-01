@@ -20,20 +20,20 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { sprite } from "zcanvas";
-import type { Rectangle, TransformedDrawBounds, Viewport } from "zcanvas";
+import { Sprite } from "zcanvas";
+import type { Rectangle, Viewport, IRenderer } from "zcanvas";
 
 const { min } = Math;
 const HALF    = 0.5;
 
-class ZoomableSprite extends sprite {
+class ZoomableSprite extends Sprite {
     constructor( opts: any ) {
         super( opts );
     }
 
-    drawCropped( canvasContext: CanvasRenderingContext2D, { src, dest }: TransformedDrawBounds ): void {
-        canvasContext.drawImage(
-            this._bitmap,
+    drawCropped( renderer: IRenderer, { src, dest }: { src: Rectangle, dest: Rectangle } ): void {
+        renderer.drawImageCropped(
+            this._resourceId,
             ( HALF + src.left )    << 0,
             ( HALF + src.top )     << 0,
             ( HALF + src.width )   << 0,
@@ -53,20 +53,16 @@ class ZoomableSprite extends sprite {
     // a custom bounds object here to override the internal reference. This is done when
     // multiple transformations take place on the source (see layer-sprite.draw())
 
-    draw( canvasContext: CanvasRenderingContext2D, viewport: Viewport = null, bounds: Rectangle = this._bounds ): void {
-        let render = this._bitmapReady;
-        if ( render && viewport ) {
-            render = isInsideViewport( bounds, viewport );
-        }
-        if ( !render ) {
+    override draw( renderer: IRenderer, viewport?: Viewport, bounds: Rectangle = this._bounds ): void {
+        if ( !this.isVisible( viewport )) {
             return;
         }
         if ( viewport ) {
-            this.drawCropped( canvasContext, calculateDrawRectangle( bounds, viewport ));
+            this.drawCropped( renderer, calculateDrawRectangle( bounds, viewport ));
         } else {
             const { left, top, width, height } = bounds;
-            canvasContext.drawImage(
-                this._bitmap,
+            renderer.drawImage(
+                this._resourceId,
                 ( HALF + left )   << 0,
                 ( HALF + top )    << 0,
                 ( HALF + width )  << 0,
@@ -79,17 +75,12 @@ export default ZoomableSprite;
 
 /* internal methods */
 
-export const isInsideViewport = ({ left, top, width, height }: Rectangle, viewport: Viewport ): boolean => {
-    return ( left + width )  >= viewport.left && left <= viewport.right &&
-           ( top  + height ) >= viewport.top  && top  <= viewport.bottom;
-};
-
 /**
  * If the full zCanvas "document" is represented inside a smaller, pannable viewport
  * we can omit drawing a Sprites unseen pixels by calculating the visible area from both
  * the source drawable and destination canvas context.
  */
-export const calculateDrawRectangle = ({ left, top, width, height }: Rectangle, viewport: Viewport ): TransformedDrawBounds => {
+export const calculateDrawRectangle = ({ left, top, width, height }: Rectangle, viewport: Viewport ): { src: Rectangle, dest: Rectangle } => {
     const {
         left   : viewportX,
         top    : viewportY,

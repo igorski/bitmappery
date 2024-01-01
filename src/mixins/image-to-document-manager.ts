@@ -21,8 +21,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { mapGetters, mapMutations, mapActions } from "vuex";
-import type { Size, SizedImage } from "zcanvas";
+import type { Size } from "zcanvas";
 import type { Document, Layer } from "@/definitions/document";
+import type { SizedImage } from "@/definitions/editor";
 import { isTransparent } from "@/definitions/image-types";
 import { ACCEPTED_FILE_EXTENSIONS, PSD, PDF, isImageFile, isProjectFile, isThirdPartyDocument } from "@/definitions/file-types";
 import { LayerTypes } from "@/definitions/layer-types";
@@ -145,9 +146,9 @@ export default {
             }
             for ( const file of documents ) {
                 const serviceImport = await getServiceForThirdPartyFile( optMime || file.type );
-                const document = await serviceImport( file );
-                if ( document !== null ) {
-                    this.addNewDocument( document );
+                const bpyDocument = await serviceImport( file );
+                if ( bpyDocument !== null ) {
+                    this.addNewDocument( bpyDocument );
                 }
             }
         },

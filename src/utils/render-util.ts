@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,19 +20,14 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import type { IRenderer, StrokeProps } from "zcanvas";
 import type { Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import { resizeImage } from "@/utils/canvas-util";
 
-export const renderCross = ( ctx: CanvasRenderingContext2D, x: number, y: number, size: number ): void => {
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo( x - size, y - size );
-    ctx.lineTo( x + size, y + size );
-    ctx.moveTo( x + size, y - size );
-    ctx.lineTo( x - size, y + size );
-    ctx.stroke();
-    ctx.restore();
+export const renderCross = ( renderer: IRenderer, x: number, y: number, size: number, stroke: StrokeProps ): void => {
+    renderer.drawPath([ { x: x - size, y: y - size }, { x: x + size, y: y + size }], undefined, stroke );
+    renderer.drawPath([ { x: x + size, y: y - size }, { x: x - size, y: y + size }], undefined, stroke );
 };
 
 export const resizeLayerContent = async ( layer: Layer, ratioX: number, ratioY: number ): Promise<void> => {
