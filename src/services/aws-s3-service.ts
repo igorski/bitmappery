@@ -410,7 +410,7 @@ function retryableExecution( executeFn: () => Promise<void>, amountOfRetries = 2
         if ( err?.Code === "RequestTimeTooSkewed" || err?.message?.includes( "The difference between the request time and the current time is too large" )) {
             if ( ++retryAmount < amountOfRetries ) {
                 return new Promise( resolve => {
-                    setTimeout( async () => {
+                    window.setTimeout( async () => {
                         await executeFn();
                         resolve();
                     }, 1000 );

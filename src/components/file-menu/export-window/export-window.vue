@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2024 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -74,6 +74,19 @@
                             />
                         </div>
                     </template>
+                    <div
+                        v-if="hasCloudStorage"
+                        class="wrapper input"
+                    >
+                        <label v-t="'storageLocation'"></label>
+                        <select-box
+                            :options="storageLocations"
+                            v-model="storageLocation"
+                        />
+                    </div>
+                    <component :is="dropboxSaveComponent" ref="dropboxComponent" />
+                    <component :is="driveSaveComponent"   ref="driveComponent" />
+                    <component :is="s3SaveComponent"      ref="s3Component" />
                     <template v-if="canCreateSpriteSheet">
                         <p v-t="'layersToSheetExpl'" class="expl"></p>
                         <div class="wrapper input">
@@ -139,7 +152,8 @@
     </modal>
 </template>
 
-<script>
+<script lang="ts">
+import type { Component } from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { ToggleButton } from "vue-js-toggle-button";
 import Modal from "@/components/modal/modal.vue";
@@ -147,12 +161,14 @@ import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
 import { MAX_SPRITESHEET_WIDTH } from "@/definitions/editor-properties";
 import { EXPORTABLE_IMAGE_TYPES, GIF, typeToExt, isCompressableFileType } from "@/definitions/image-types";
+import { STORAGE_TYPES } from "@/definitions/storage-types";
 import { supportsGIF, createGIF, createAnimatedGIF } from "@/services/gif-creation-service";
-import { mapSelectOptions }  from "@/utils/search-select-util";
+import { mapSelectOptions, type SelectOption }  from "@/utils/search-select-util";
 import { isLandscape, isSquare } from "@/math/image-math";
-import { createDocumentSnapshot, createLayerSnapshot, tilesToSingle } from "@/utils/document-util";
 import { resizeToBase64 } from "@/utils/canvas-util";
+import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
 import { unblockedWait } from "@/utils/debounce-util";
+import { createDocumentSnapshot, createLayerSnapshot, tilesToSingle } from "@/utils/document-util";
 import { saveBlobAsFile, base64toBlob } from "@/utils/file-util";
 import { displayAsKb } from "@/utils/string-util";
 import messages from "./messages.json";
@@ -178,6 +194,8 @@ export default {
         height: 1,
         actualSize: false,
         canChooseSize: true,
+        storageLocation : STORAGE_TYPES.LOCAL,
+        hasCloudStorage : supportsDropbox() || supportsGoogleDrive() || supportsS3(),
     }),
     computed: {
         ...mapState([
@@ -187,45 +205,76 @@ export default {
             "activeDocument",
             "isLoading",
         ]),
-        fileTypes() {
+        fileTypes(): SelectOption[] {
             const types = this.canCreateGIF ? [ ...EXPORTABLE_IMAGE_TYPES, GIF.mime ] : EXPORTABLE_IMAGE_TYPES;
             return mapSelectOptions( types );
         },
-        hasQualityOptions() {
+        hasQualityOptions(): boolean {
             return isCompressableFileType( this.type );
         },
-        qualityPercentile() {
+        qualityPercentile(): number {
             return parseFloat(( this.quality / 100 ).toFixed( 2 ));
         },
-        fileSize() {
+        fileSize(): string | null  {
             if ( !this.base64preview ) {
                 return null;
             }
             return displayAsKb( Math.round( this.base64preview.length * 6 / 8 ));
         },
-        canCreateSpriteSheet() {
+        canCreateSpriteSheet(): boolean {
             return this.activeDocument.layers.length > 1 &&
                    this.activeDocument.width <= MAX_SPRITESHEET_WIDTH &&
                    !this.layersToAnimatedGIF;
         },
-        canCreateAnimatedGIF() {
+        canCreateAnimatedGIF(): boolean {
             return this.canCreateGIF && this.type === GIF.mime &&
                    this.activeDocument.layers.length > 1 &&
                    this.activeDocument.width <= MAX_SPRITESHEET_WIDTH;
         },
-        isLandscape() {
+        isLandscape(): boolean {
             return isLandscape( this.width, this.height ) || isSquare( this.width, this.height );
+        },
+        storageLocations(): { label: string, value: STORAGE_TYPES }[] {
+            const out = [{ label: this.$t( "local" ), value: STORAGE_TYPES.LOCAL }];
+            if ( supportsDropbox() ) {
+                out.push({ label: this.$t( "dropbox" ), value: STORAGE_TYPES.DROPBOX });
+            }
+            if ( supportsGoogleDrive() ) {
+                out.push({ label: this.$t( "drive" ), value: STORAGE_TYPES.DRIVE });
+            }
+            if ( supportsS3() ) {
+                out.push({ label: this.$t( "s3" ), value: STORAGE_TYPES.S3 });
+            }
+            return out;
+        },
+        dropboxSaveComponent(): Component {
+            if ( this.storageLocation === STORAGE_TYPES.DROPBOX ) {
+                return () => import( "@/components/file-menu/save-document/dropbox/save-dropbox-document.vue" );
+            }
+            return null;
+        },
+        driveSaveComponent(): Component {
+            if ( this.storageLocation === STORAGE_TYPES.DRIVE ) {
+                return () => import( "@/components/file-menu/save-document/google-drive/save-google-drive-document.vue" );
+            }
+            return null;
+        },
+        s3SaveComponent(): Component {
+            if ( this.storageLocation === STORAGE_TYPES.S3 ) {
+                return () => import( "@/components/file-menu/save-document/aws-s3/save-s3-document.vue" );
+            }
+            return null;
         },
     },
     watch: {
         // see additional watchers added in created hook
-        sheetCols() {
+        sheetCols(): void {
             if ( this.layersToSpriteSheet ) {
                 this.renderPreview();
             }
         }
     },
-    created() {
+    created(): void {
         this.canCreateGIF = supportsGIF();
         this.name = this.activeDocument.name.split( "." )[ 0 ];
         [
@@ -238,7 +287,7 @@ export default {
         });
         this.renderPreview();
     },
-    beforeDestroy() {
+    beforeDestroy(): void {
         this.base64preview = null;
         this.snapshots = null;
         this.snapshot = null;
@@ -249,7 +298,7 @@ export default {
             "setLoading",
             "unsetLoading",
         ]),
-        async exportImage() {
+        async exportImage(): Promise<void> {
             this.setLoading( "exp" );
 
             // zCanvas magnifies content by the pixel ratio for a crisper result, downscale
@@ -264,13 +313,33 @@ export default {
                 width  * ( window.devicePixelRatio || 1 ),
                 height * ( window.devicePixelRatio || 1 )
             );
-            const blob = await base64toBlob( resizedImage );
+            const file: Blob = await base64toBlob( resizedImage );;
+            const fileName = `${this.name}.${typeToExt(this.type)}`;
+            
+            switch ( this.storageLocation ) {
+                default:
+                    saveBlobAsFile( file, fileName );
+                    break;
 
-            saveBlobAsFile( blob, `${this.name}.${typeToExt(this.type)}` );
+                // by using refs we have tightly coupled these components
+                // this however ensures we can separate the necessary SDK code
+                // from the core bundle and minimize file size
+                case STORAGE_TYPES.DROPBOX:
+                    await this.$refs.dropboxComponent.requestSave( file, fileName );
+                    break;
+
+                case STORAGE_TYPES.DRIVE:
+                    await this.$refs.driveComponent.requestSave( file, fileName );
+                    break;
+
+                case STORAGE_TYPES.S3:
+                    await this.$refs.s3Component.requestSave( file, fileName );
+                    break;
+            }
             this.unsetLoading( "exp" );
             this.closeModal();
         },
-        async renderPreview() {
+        async renderPreview(): Promise<void> {
             const LOADING_KEY = "preview";
             if ( this.loadingStates.includes( LOADING_KEY )) {
                 this.reRenderOnCompletion = true;
@@ -325,7 +394,7 @@ export default {
                 this.renderPreview();
             }
         },
-        async canvasToImageFormat( canvas ) {
+        async canvasToImageFormat( canvas: HTMLCanvasElement ): Promise<string> {
             if ( this.type === GIF.mime ) {
                 const base64gif = await createGIF( canvas );
                 return base64gif;

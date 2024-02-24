@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2024 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -34,12 +34,10 @@
     </div>
 </template>
 
-<script>
-import { mapGetters, mapMutations } from "vuex";
-import DocumentFactory from "@/factories/document-factory";
+<script lang="ts">
+import { mapMutations } from "vuex";
 import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import { getDropboxService } from "@/utils/cloud-service-loader";
-import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
@@ -53,14 +51,11 @@ export default {
         folder: "",
     }),
     computed: {
-        ...mapGetters([
-            "activeDocument",
-        ]),
-        isValid() {
+        isValid(): boolean {
             return this.name.length > 0;
         },
     },
-    async created() {
+    async created(): Promise<void> {
         ({ getCurrentFolder, setCurrentFolder, uploadBlob  } = await getDropboxService());
 
         await this.initDropbox( false );
@@ -74,16 +69,15 @@ export default {
             "setLoading",
             "unsetLoading",
         ]),
-        async requestSave() {
+        async requestSave( file: Blob, fileName: string ): Promise<void> {
             this.setLoading( "save" );
             try {
-                const blob = await DocumentFactory.toBlob( this.activeDocument );
-                const result = await uploadBlob( blob, this.folder, `${this.activeDocument.name}.${PROJECT_FILE_EXTENSION}` );
+                const result = await uploadBlob( file, this.folder, fileName );
                 if ( !result ) {
                     throw new Error();
                 }
                 setCurrentFolder( this.folder );
-                this.showNotification({ message: this.$t( "fileSavedInDropbox", { file: this.activeDocument.name }) });
+                this.showNotification({ message: this.$t( "fileSavedInDropbox", { file: fileName }) });
             } catch ( e ) {
                 this.openDialog({ type: "error", message: this.$t( "errorOccurred" ) });
             }

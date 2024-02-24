@@ -398,7 +398,7 @@ import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import cloneDeep from "lodash.clonedeep";
 import { MAX_SPRITESHEET_WIDTH } from "@/definitions/editor-properties";
 import {
-    CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_IMAGE, LOAD_SELECTION, SAVE_SELECTION,
+    CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_WINDOW, LOAD_SELECTION, SAVE_SELECTION,
     PREFERENCES, RESIZE_CANVAS, GRID_TO_LAYERS, STROKE_SELECTION
 } from "@/definitions/modal-windows";
 import CloudServiceConnector from "@/mixins/cloud-service-connector";
@@ -551,7 +551,7 @@ export default {
             this.$refs.fileSelector?.click();
         },
         requestImageExport() {
-            this.openModal( EXPORT_IMAGE );
+            this.openModal( EXPORT_WINDOW );
         },
         requestDocumentResize() {
             this.openModal( RESIZE_DOCUMENT );

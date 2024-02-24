@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2023 - https://www.igorski.nl
+ * Igor Zinken 2023-2024 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -35,11 +35,9 @@
 </template>
 
 <script lang="ts">
-import { mapGetters, mapMutations } from "vuex";
-import DocumentFactory from "@/factories/document-factory";
+import { mapMutations } from "vuex";
 import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import { getS3Service } from "@/utils/cloud-service-loader";
-import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
@@ -53,9 +51,6 @@ export default {
         folder: "",
     }),
     computed: {
-        ...mapGetters([
-            "activeDocument",
-        ]),
         isValid(): boolean {
             return this.name.length > 0;
         },
@@ -72,16 +67,15 @@ export default {
             "setLoading",
             "unsetLoading",
         ]),
-        async requestSave() {
+        async requestSave( blob: Blob, fileName: string ): Promise<void> {
             this.setLoading( "save" );
             try {
-                const blob = await DocumentFactory.toBlob( this.activeDocument );
-                const result = await uploadBlob( blob, this.folder, `${this.activeDocument.name}.${PROJECT_FILE_EXTENSION}` );
+                const result = await uploadBlob( blob, this.folder, fileName );
                 if ( !result ) {
                     throw new Error();
                 }
                 setCurrentFolder( this.folder );
-                this.showNotification({ message: this.$t( "fileSavedInS3", { file: this.activeDocument.name }) });
+                this.showNotification({ message: this.$t( "fileSavedInS3", { file: fileName }) });
             } catch ( e: any ) {
                 this.openDialog({ type: "error", message: this.$t( "errorOccurred" ) });
             }

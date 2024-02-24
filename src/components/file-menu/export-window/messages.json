@@ -12,6 +12,11 @@
         "columnAmount": "Column amount",
         "export": "Export",
         "cancel": "Cancel",
-        "viewActualSize": "View actual size"
+        "viewActualSize": "View actual size",
+        "storageLocation": "Storage location",
+        "local": "Local",
+        "dropbox": "Dropbox",
+        "drive": "Google Drive",
+        "s3": "S3 bucket"
     }
 }

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2024 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -94,7 +94,7 @@ import { truncate } from "@/utils/string-util";
 import store from "./store";
 import messages from "./messages.json";
 import {
-    CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_IMAGE,
+    CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_WINDOW,
     DROPBOX_FILE_SELECTOR, GOOGLE_DRIVE_FILE_SELECTOR, AWS_S3_FILE_SELECTOR,
     ADD_LAYER, LOAD_SELECTION, SAVE_SELECTION, PREFERENCES, RESIZE_CANVAS,
     GRID_TO_LAYERS, STROKE_SELECTION
@@ -152,8 +152,8 @@ export default {
                     return () => import( "@/components/resize-document-window/resize-document-window.vue" );
                 case SAVE_DOCUMENT:
                     return () => import( "@/components/file-menu/save-document/save-document.vue" );
-                case EXPORT_IMAGE:
-                    return () => import( "@/components/file-menu/export-image/export-image.vue" );
+                case EXPORT_WINDOW:
+                    return () => import( "@/components/file-menu/export-window/export-window.vue" );
                 case DROPBOX_FILE_SELECTOR:
                     return () => import( "@/components/cloud-file-selector/dropbox/dropbox-file-selector.vue" );
                 case GOOGLE_DRIVE_FILE_SELECTOR:

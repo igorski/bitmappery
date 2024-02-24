@@ -77,7 +77,9 @@ import type { Component } from "vue";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
+import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
+import DocumentFactory from "@/factories/document-factory";
 import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
 import { focus } from "@/utils/environment-util";
 
@@ -152,11 +154,14 @@ export default {
         ...mapActions([
             "saveDocument",
         ]),
-        requestSave(): void {
+        async requestSave(): Promise<void> {
             if ( !this.isValid ) {
                 return;
             }
             this.setActiveDocumentName( this.name );
+            
+            const fileName = `${this.name}.${PROJECT_FILE_EXTENSION}`;
+            let file: Blob;
 
             switch ( this.storageLocation ) {
                 default:
@@ -169,15 +174,18 @@ export default {
                 // this however ensures we can separate the necessary SDK code
                 // from the core bundle and minimize file size
                 case STORAGE_TYPES.DROPBOX:
-                    this.$refs.dropboxComponent.requestSave();
+                    file = await DocumentFactory.toBlob( this.activeDocument );
+                    await this.$refs.dropboxComponent.requestSave( file, fileName );
                     break;
 
                 case STORAGE_TYPES.DRIVE:
-                    this.$refs.driveComponent.requestSave();
+                    file = await DocumentFactory.toBlob( this.activeDocument );
+                    await this.$refs.driveComponent.requestSave( file, fileName );
                     break;
 
                 case STORAGE_TYPES.S3:
-                    this.$refs.s3Component.requestSave();
+                    file = await DocumentFactory.toBlob( this.activeDocument );
+                    await this.$refs.s3Component.requestSave( file, fileName );
                     break;
             }
             this.closeModal();

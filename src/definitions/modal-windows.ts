@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2024 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,7 +23,7 @@
 export const CREATE_DOCUMENT            = 1;
 export const RESIZE_DOCUMENT            = 2;
 export const SAVE_DOCUMENT              = 3;
-export const EXPORT_IMAGE               = 4;
+export const EXPORT_WINDOW              = 4;
 export const DROPBOX_FILE_SELECTOR      = 5;
 export const GOOGLE_DRIVE_FILE_SELECTOR = 6;
 export const AWS_S3_FILE_SELECTOR       = 7;
