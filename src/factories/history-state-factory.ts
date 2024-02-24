@@ -48,7 +48,7 @@ export const hasQueue = (): boolean => queueLength() > 0;
 export const queueLength = (): number => stateQueue.size;
 
 export const flushQueue = (): void => {
-    clearTimeout( timeout );
+    window.clearTimeout( timeout );
     stateQueue.clear();
 };
 
@@ -80,13 +80,13 @@ export const enqueueState = ( key: string, undoRedoState: UndoRedoState ): void 
         processQueue();
     }
     stateQueue.set( key, undoRedoState );
-    setTimeout( processQueue, ENQUEUE_TIMEOUT );
+    window.setTimeout( processQueue, ENQUEUE_TIMEOUT );
 };
 
 /* internal methods */
 
 function processQueue(): void {
-    clearTimeout( timeout );
+    window.clearTimeout( timeout );
     stateQueue.forEach( undoRedoState => store.commit( "saveState", undoRedoState ));
     stateQueue.clear();
 }

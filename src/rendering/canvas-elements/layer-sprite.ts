@@ -425,14 +425,14 @@ class LayerSprite extends ZoomableSprite {
     }
 
     debouncePaintStore( timeout: number = 5000 ): void {
-        this._pendingPaintState = setTimeout( this.storePaintState.bind( this ), timeout ) as unknown as number;
+        this._pendingPaintState = window.setTimeout( this.storePaintState.bind( this ), timeout ) as unknown as number;
     }
 
     async storePaintState(): Promise<boolean> {
         if ( !this._pendingPaintState ) {
             return true;
         }
-        clearTimeout( this._pendingPaintState );
+        window.clearTimeout( this._pendingPaintState );
         if ( this._brush.down ) {
             // still painting, debounce again (layer.source only updated on handleRelease())
             this.debouncePaintStore( 1000 );
