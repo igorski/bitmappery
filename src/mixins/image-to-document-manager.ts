@@ -146,9 +146,9 @@ export default {
             }
             for ( const file of documents ) {
                 const serviceImport = await getServiceForThirdPartyFile( optMime || file.type );
-                const bpyDocument = await serviceImport( file );
-                if ( bpyDocument !== null ) {
-                    this.addNewDocument( bpyDocument );
+                const doc = await serviceImport( file );
+                if ( doc !== null ) {
+                    this.addNewDocument( doc );
                 }
             }
         },

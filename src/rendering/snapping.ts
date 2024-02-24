@@ -40,7 +40,7 @@ const vertical: number[] = new Array( 3 );
 const snappableAreas: SnappableAreas = { horizontal, vertical };
 
 function cacheSnappableAreas( sprite: LayerSprite ): SnappableAreas {
-    const bounds = sprite.getActualBounds();
+    const bounds = sprite.getBounds( true );
 
     horizontal[ 0 ] = bounds.left;
     horizontal[ 1 ] = bounds.left + bounds.width / 2;
@@ -82,7 +82,7 @@ export const getClosestSnappingPoints = ( sprite: LayerSprite, guides: Rectangle
     // for each snappable area we must find the closest guide
     // one for the horizontal and one for the vertical axis
 
-    const comparePoint = rectToPoint( sprite.getActualBounds() );
+    const comparePoint = rectToPoint( sprite.getBounds( true ) );
 
     const reducer = ( a: Rectangle, b: Rectangle ) => {
         return distanceBetween( comparePoint, rectToPoint( a )) < distanceBetween( comparePoint, rectToPoint( b )) ? a : b;
@@ -99,7 +99,7 @@ export const getClosestSnappingPoints = ( sprite: LayerSprite, guides: Rectangle
  */
 export const snapSpriteToGuide = ( sprite: LayerSprite, guides: Rectangle[] ): void => {
     const filteredGuides = getClosestSnappingPoints( sprite, guides );
-    const { left, top, width, height } = sprite.getActualBounds();
+    const { left, top, width, height } = sprite.getBounds( true );
 
     // if a sprite is rotated / scaled we need to know the delta between
     // the original, untransformed bounding box and the transformed bouding box

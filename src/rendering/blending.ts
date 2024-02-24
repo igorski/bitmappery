@@ -241,7 +241,7 @@ export const blendLayer = async ( zoomableCanvas: ZoomableCanvas, layer: CanvasR
                 break;
         }
     }
-    renderer.putImageData( dstImageData, left, top );
+    renderer.drawImageData( dstImageData, left, top );
 
     // free allocated memory of temp context
     layer.canvas.width = layer.canvas.height = 1;

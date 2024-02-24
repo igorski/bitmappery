@@ -202,7 +202,7 @@ const DocumentModule: Module<DocumentState, any> = {
             const sprite = getSpriteForLayer( layer );
             if ( sprite ) {
                 sprite.layer = layer;
-                sprite.invalidate();
+                sprite.syncEffects();
             }
         },
         async resizeActiveDocumentContent( state: DocumentState, { scaleX, scaleY }: { scaleX: number, scaleY: number }): Promise<void> {

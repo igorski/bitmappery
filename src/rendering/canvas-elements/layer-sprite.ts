@@ -34,7 +34,7 @@ import type { Document, Layer, Shape, Selection } from "@/definitions/document";
 import type { CanvasContextPairing, CanvasDrawable, Brush, BrushToolOptions, BrushAction } from "@/definitions/editor";
 import { LayerTypes } from "@/definitions/layer-types";
 import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
-import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
+import { radiansToDegrees } from "@/math/unit-math";
 import { translatePointerRotation } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { getBlendContext, blendLayer } from "@/rendering/blending";
@@ -57,8 +57,6 @@ import type { BitMapperyState } from "@/store";
 
 const HALF   = 0.5;
 const TWO_PI = 2 * Math.PI;
-
-let drawBounds; // see draw()
 
 /**
  * A LayerSprite is the renderer for a Documents Layer.
@@ -140,21 +138,6 @@ class LayerSprite extends ZoomableSprite {
         return this.layer.effects.scale !== 1;
     }
 
-    /**
-     * Get the actual bounds of the sprite (as transformations like
-     * scale and rotation affect the original bounds)
-     */
-    getActualBounds(): Rectangle {
-        if ( !this.isRotated() && !this.isScaled() ) {
-            return this._bounds;
-        }
-        // TODO can we cache this value ?
-        return rotateRectangle(
-            scaleRectangle( this._bounds, this.layer.effects.scale ),
-            this.layer.effects.rotation
-        );
-    }
-
     getDragStartOffset(): Point {
         return this._dro;
     }
@@ -174,6 +157,18 @@ class LayerSprite extends ZoomableSprite {
         }
         this.setX( x );
         this.setY( y );
+    }
+
+    // invoked whenever the effects of the Layer have changed
+
+    syncEffects(): void {
+        if ( this.isRotated() ) {
+            this.setRotation( radiansToDegrees( this.layer.effects.rotation ));
+        }
+        if ( this.isScaled() ) {
+            this.setScale( this.layer.effets.scale );
+        }
+        this.invalidate();
     }
 
     cacheBrush( color: string = "rgba(255,0,0,1)", toolOptions: Partial<BrushToolOptions> = { size: 5, strokes: 1 } ): void {
@@ -466,9 +461,9 @@ class LayerSprite extends ZoomableSprite {
         return true;
     }
 
-    /* the following override zCanvas.sprite */
+    /* the following override zCanvas.Sprite methods */
 
-    setBounds( x: number, y: number, width = 0, height = 0 ): void {
+    override setBounds( x: number, y: number, width = 0, height = 0 ): void {
         const bounds = this._bounds;
         const layer  = this.layer;
 
@@ -512,17 +507,7 @@ class LayerSprite extends ZoomableSprite {
         this.invalidate();
     }
 
-    /**
-     * override that takes rotation into account
-     * TODO : port to zCanvas
-     */
-    insideBounds( x: number, y: number ): boolean {
-        const { left, top, width, height } = this.getActualBounds();
-        return x >= left && x <= ( left + width ) &&
-               y >= top  && y <= ( top  + height );
-    }
-
-    handlePress( x: number, y: number, { type }: Event ): void {
+    override handlePress( x: number, y: number, { type }: Event ): void {
         if ( type.startsWith( "touch" )) {
             this._pointerX = x;
             this._pointerY = y;
@@ -563,7 +548,7 @@ class LayerSprite extends ZoomableSprite {
         }
     }
 
-    handleMove( x: number, y: number, event: Event ): void {
+    override handleMove( x: number, y: number, event: Event ): void {
         // store reference to current pointer position (relative to canvas)
         // note that for touch events this is handled in handlePress() instead
         if ( !event.type.startsWith( "touch" )) {
@@ -606,7 +591,7 @@ class LayerSprite extends ZoomableSprite {
         }
     }
 
-    handleRelease( /*x: number, y: number*/ ): void {
+    override handleRelease( /*x: number, y: number*/ ): void {
         const { getters } = this.getStore();
         if ( this._brush.down ) {
             // brushing was active, deactivate brushing and render the
@@ -634,7 +619,7 @@ class LayerSprite extends ZoomableSprite {
         }
     }
 
-    update(): void {
+    override update(): void {
         if ( this._brush.down ) {
             this.paint();
             this._brush.last = this._brush.pointers.length;
@@ -645,27 +630,21 @@ class LayerSprite extends ZoomableSprite {
         if ( !this.isScaled() ) {
             return super.drawCropped( renderer, transformedBounds );
         }
-        // @todo DrawProps
         const scale = 1 / this.layer.effects.scale;
         const { src, dest } = transformedBounds;
+        // @TODO can this just be replaced with the scale on the draw props object?
         renderer.drawImageCropped(
-            this.layer.id,
-            ( HALF + src.left * scale )    << 0,
-            ( HALF + src.top * scale )     << 0,
-            ( HALF + src.width * scale )   << 0,
-            ( HALF + src.height * scale )  << 0,
-            ( HALF + dest.left )   << 0,
-            ( HALF + dest.top )    << 0,
-            ( HALF + dest.width )  << 0,
-            ( HALF + dest.height ) << 0
+            this._resourceId,
+            src.left * scale, src.top * scale, src.width * scale, src.height * scale,
+            dest.left, dest.top, dest.width, dest.height,
+            this.getDrawProps()
         );
     }
 
     // @ts-expect-error incompatible override
     override draw( renderer: IRenderer, viewport: Viewport, isHighresExport = false ): void {
         let drawContext: CanvasRenderingContext2D | undefined; // only when blending
-        drawBounds = this._bounds;
-
+       
         const { enabled, blendMode, opacity } = this.layer.filters;
         const altOpacity = enabled && opacity !== 1;
         if ( altOpacity ) {
@@ -680,23 +659,19 @@ class LayerSprite extends ZoomableSprite {
             }
         }
 
-        renderer.save(); // 1. transformation save()
+        // renderer.save(); // 1. transformation save()
 
-        const transformedBounds = applyTransformation( renderer, this.layer, viewport );
-        const transformCanvas   = transformedBounds !== null;
-
-        if ( transformCanvas ) {
-            drawBounds = transformedBounds;
-        }
+        // const transformedBounds = applyTransformation( renderer, this.layer, viewport );
+    //    const transformCanvas   = transformedBounds !== null;
 
         // invoke base ZoomableSprite-class behaviour to render bitmap
-        super.draw( renderer, transformCanvas ? undefined : viewport, drawBounds );
+        super.draw( renderer, viewport );
 
         if ( applyBlending ) {
             blendLayer( this.canvas, drawContext!, blendMode );
         }
 
-        renderer.restore(); // 1. transformation restore()
+        // renderer.restore(); // 1. transformation restore()
 
         // sprite is currently brushing, render low resolution temp contents onto screen
         if ( this.tempCanvas ) {
@@ -742,7 +717,7 @@ class LayerSprite extends ZoomableSprite {
         }
     }
 
-    dispose(): void {
+    override dispose(): void {
         this.canvas.disposeResource( this._resourceId );
         super.dispose();
 

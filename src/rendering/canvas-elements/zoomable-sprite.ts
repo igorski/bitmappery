@@ -22,6 +22,7 @@
  */
 import { Sprite } from "zcanvas";
 import type { Rectangle, Viewport, IRenderer } from "zcanvas";
+import ZoomableCanvas from "./zoomable-canvas";
 
 const { min } = Math;
 const HALF    = 0.5;
@@ -31,43 +32,36 @@ class ZoomableSprite extends Sprite {
         super( opts );
     }
 
-    drawCropped( renderer: IRenderer, { src, dest }: { src: Rectangle, dest: Rectangle } ): void {
-        renderer.drawImageCropped(
-            this._resourceId,
-            ( HALF + src.left )    << 0,
-            ( HALF + src.top )     << 0,
-            ( HALF + src.width )   << 0,
-            ( HALF + src.height )  << 0,
-            ( HALF + dest.left )   << 0,
-            ( HALF + dest.top )    << 0,
-            ( HALF + dest.width )  << 0,
-            ( HALF + dest.height ) << 0
-        );
+    protected getCanvas(): ZoomableCanvas {
+        return this.canvas as ZoomableCanvas;
     }
 
+    protected drawCropped( renderer: IRenderer, { src, dest }: { src: Rectangle, dest: Rectangle } ): void {
+        renderer.drawImageCropped(
+            this._resourceId,
+            src.left, src.top, src.width, src.height,
+            dest.left, dest.top, dest.width, dest.height,
+            this.getDrawProps()
+        );
+    }
+    
     /* zCanvas overrides */
 
     // unlike regular zCanvas Sprites, ZoomableSprites don't function as masks, don't support tile
     // sheets and have no children
-    // NOTE : we take some creative liberty here by changing the function arity, we can pass
-    // a custom bounds object here to override the internal reference. This is done when
-    // multiple transformations take place on the source (see layer-sprite.draw())
 
-    override draw( renderer: IRenderer, viewport?: Viewport, bounds: Rectangle = this._bounds ): void {
+    override draw( renderer: IRenderer, viewport?: Viewport ): void {
         if ( !this.isVisible( viewport )) {
             return;
         }
+        // TODO: should Canvas zoomFactor be applied to DrawProps scale ?
+        const { zoomFactor } = this.getCanvas();
+        
         if ( viewport ) {
-            this.drawCropped( renderer, calculateDrawRectangle( bounds, viewport ));
+            this.drawCropped( renderer, calculateDrawRectangle( this.getBounds( true ), viewport ));
         } else {
-            const { left, top, width, height } = bounds;
-            renderer.drawImage(
-                this._resourceId,
-                ( HALF + left )   << 0,
-                ( HALF + top )    << 0,
-                ( HALF + width )  << 0,
-                ( HALF + height ) << 0
-            );
+            const { left, top, width, height } = this._bounds;
+            renderer.drawImage( this._resourceId, left, top, width, height, this.getDrawProps() );
         }
     }
 }
