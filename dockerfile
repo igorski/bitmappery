@@ -1,6 +1,6 @@
 # Written by Ange Cesari
 # Use official Node.js based on Alpine
-FROM node:16-alpine
+FROM node:18-alpine
 
 # Install Yarn
 RUN apk add --no-cache yarn
