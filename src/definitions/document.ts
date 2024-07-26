@@ -58,6 +58,7 @@ export type Filters = {
     brightness: number;
     contrast: number;
     vibrance: number;
+    threshold: number;
     desaturate: boolean;
 };
 

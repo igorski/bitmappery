@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2023 - https://www.igorski.nl
+ * Igor Zinken 2021-2024 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -81,6 +81,15 @@
                     v-model="vibrance"
                     :min="0"
                     :max="100"
+                    :tooltip="'none'"
+                />
+            </div>
+            <div class="wrapper input">
+                <label v-t="'threshold'"></label>
+                <slider
+                    v-model="threshold"
+                    :min="-1"
+                    :max="255"
                     :tooltip="'none'"
                 />
             </div>
@@ -216,6 +225,14 @@ export default {
             },
             set( value: number ): void {
                 this.internalValue.vibrance = value / 100;
+            }
+        },
+        threshold: {
+            get(): number {
+                return this.internalValue.threshold;
+            },
+            set( value: number ): void {
+                this.internalValue.threshold = value;
             }
         },
     },

@@ -26,6 +26,7 @@
         "contrast": "Contrast",
         "brightness": "Brightness",
         "vibrance": "Vibrance",
+        "threshold": "Threshold",
         "desaturate": "Desaturate",
         "reset": "Reset",
         "cancel": "Cancel",

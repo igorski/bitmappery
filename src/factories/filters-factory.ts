@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2023 - https://www.igorski.nl
+ * Igor Zinken 2021-2024 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -36,6 +36,7 @@ const FiltersFactory = {
         brightness = .5,
         contrast   = 0,
         vibrance   = .5,
+        threshold  = -1, // -1 == off, working range is 0 - 255
         desaturate = false
     }: FiltersProps = {}): Filters {
         return {
@@ -47,6 +48,7 @@ const FiltersFactory = {
             contrast,
             desaturate,
             vibrance,
+            threshold,
         };
     },
 
@@ -64,6 +66,7 @@ const FiltersFactory = {
             c: filters.contrast,
             d: filters.desaturate,
             v: filters.vibrance,
+            t: filters.threshold,
         };
     },
 
@@ -81,6 +84,7 @@ const FiltersFactory = {
              contrast: filters.c,
              desaturate: filters.d,
              vibrance: filters.v,
+             threshold: filters.t,
          });
      }
 };
@@ -107,5 +111,6 @@ export const isEqual = ( filters: Filters, filtersToCompareTo?: Filters ): boole
            filters.brightness === filtersToCompareTo.brightness &&
            filters.contrast   === filtersToCompareTo.contrast   &&
            filters.desaturate === filtersToCompareTo.desaturate &&
-           filters.vibrance   === filtersToCompareTo.vibrance;
+           filters.vibrance   === filtersToCompareTo.vibrance   &&
+           filters.threshold  === filtersToCompareTo.threshold;
 };

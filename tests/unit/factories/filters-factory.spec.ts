@@ -14,6 +14,7 @@ describe( "Filters factory", () => {
                 brightness: .5,
                 contrast: 0,
                 vibrance: .5,
+                threshold: -1,
                 desaturate: false,
             });
         });
@@ -27,6 +28,7 @@ describe( "Filters factory", () => {
                 brightness: .6,
                 contrast: .3,
                 vibrance: .2,
+                threshold: 127,
                 desaturate: true,
             });
             expect( filters ).toEqual({
@@ -37,6 +39,7 @@ describe( "Filters factory", () => {
                 brightness: .6,
                 contrast: .3,
                 vibrance: .2,
+                threshold: 127,
                 desaturate: true,
             });
         });
@@ -52,6 +55,7 @@ describe( "Filters factory", () => {
                 brightness: .6,
                 contrast: .3,
                 vibrance: .2,
+                threshold: 255,
                 desaturate: true,
             });
             const serialized   = FiltersFactory.serialize( filters );
@@ -86,6 +90,9 @@ describe( "Filters factory", () => {
             filter = FiltersFactory.create({ vibrance: .4 });
             expect( hasFilters( filter )).toBe( true );
 
+            filter = FiltersFactory.create({ threshold: 0 });
+            expect( hasFilters( filter )).toBe( true );
+
             filter = FiltersFactory.create({ desaturate: true });
             expect( hasFilters( filter )).toBe( true );
         });
@@ -93,7 +100,7 @@ describe( "Filters factory", () => {
 
     it( "should know when two filters instances are equal", () => {
         const defaultFilter = FiltersFactory.create();
-        [ "enabled", "blendMode", "opacity", "gamma", "brightness", "contrast", "vibrance", "desaturate" ].forEach( property => {
+        [ "enabled", "blendMode", "opacity", "gamma", "brightness", "contrast", "vibrance", "threshold", "desaturate" ].forEach( property => {
             const filters = FiltersFactory.create({ [ property ]: .88 });
             expect( isEqual( filters, defaultFilter )).toBe( false );
         });

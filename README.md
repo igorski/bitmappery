@@ -163,10 +163,12 @@ Once the container is started, you can access BitMappery at `http://localhost:51
 
 ## WebAssembly
 
-BitMappery can also use WebAssembly to increase performance of image manipulation. The source
-code is C based and compiled to WASM using [Emscripten](https://github.com/emscripten-core/emscripten). Because this setup is a little more cumbersome, the repository contains precompiled binaries
-in the _./src/wasm/bin/_-folder meaning you can omit this setup if you don't intend to make changes
-to these sources.
+BitMappery can also use WebAssembly to _potentially_ increase performance of image manipulation.
+WebAssembly filtering is a user controllable feature in the preferences pane, as long as the `.env` file has set
+support for `VITE_ENABLE_WASM_FILTERS` to true.
+
+The source code is C based and compiled to WASM using [Emscripten](https://github.com/emscripten-core/emscripten). Because this setup is a little more cumbersome, the repository contains precompiled binaries in the _./src/wasm/bin/_-folder meaning you can
+omit this setup if you don't intend to make changes to these sources.
 
 If you do wish to make contributions on this end, to compile the source (_/src/wasm/_) C-code to WASM, you
 will first need to prepare your environment (note the last _source_ call does not permanently update your paths):
@@ -187,7 +189,7 @@ npm run wasm
 
 ### Benchmarks
 
-On a particular (low powered) configuration, running all filters on a particular source takes:
+On a particular (deliberately low powered) configuration, running all filters at their heaviest setting on a particular source takes:
 
 * 7000+ ms in JavaScript
 * 558 ms in WebAssembly
@@ -195,7 +197,8 @@ On a particular (low powered) configuration, running all filters on a particular
 * 603 ms in WebAssembly inside a Web Worker
 
 Note that the WebAssembly Web Worker takes a performance hit from converting the ImageData buffer
-to float32 prior to allocating the buffer in the WASM instance's memory. This can benefit from
+to float32 prior to allocating the buffer in the WASM instance's memory. This could benefit from
 further tweaking to see if it gets closer to the JavaScript Web Worker performance.
 
-WebAssembly filtering is a user controllable feature in the preferences pane.
+However, as in the current setup the JS solution alone is performant enough _and you would need to write the
+filter code twice_, the default for WASM is disabled.

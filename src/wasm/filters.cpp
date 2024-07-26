@@ -81,8 +81,22 @@ inline void vibrance( float vibrance, float& r, float& g, float& b ) {
     }
 }
 
+inline void threshold( float threshold, float& r, float& g, float& b ) {
+    float luma = r * 0.3 + g * 0.59 + b * 0.11;
+
+    luma = luma < threshold ? 0 : 255;
+
+    r = luma;
+    g = luma;
+    b = luma;
+}
+
 extern "C" {
-    void filter( float* pixels, int length, float vGamma, float vBrightness, float vContrast, float vVibrance, bool doGamma, bool doDesaturate, bool doBrightness, bool doContrast, bool doVibrance ) {
+    void filter(
+        float* pixels, int length,
+        float vGamma, float vBrightness, float vContrast, float vVibrance, /*float vThreshold,*/
+        bool doGamma, bool doDesaturate, bool doBrightness, bool doContrast, bool doVibrance/*, bool doThreshold*/
+    ) {
         float r, g, b, a;
         float gammaSquared = vGamma * vGamma;
 
@@ -90,6 +104,7 @@ extern "C" {
             r = pixels[ i ];
             g = pixels[ i + 1 ];
             b = pixels[ i + 2 ];
+            a = pixels[ i + 3 ];
 
             if ( doGamma )
                 gamma( gammaSquared, r, g, b );
@@ -105,6 +120,9 @@ extern "C" {
 
             if ( doVibrance )
                 vibrance( vVibrance, r, g, b );
+
+            // if ( doThreshold && a > 0 )
+                // threshold( vThreshold, r, g, b );
 
             pixels[ i ]     = r;
             pixels[ i + 1 ] = g;

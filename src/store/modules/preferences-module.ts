@@ -24,6 +24,9 @@ import type { ActionContext, Module } from "vuex";
 import { isMobile } from "@/utils/environment-util";
 import { setWasmFilters } from "@/services/render-service";
 
+// @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
+const SUPPORT_WASM = import.meta.env.VITE_ENABLE_WASM_FILTERS === "true" && "WebAssembly" in window;
+
 const STORAGE_KEY = "bpy_pref";
 
 export type Preferences = {
@@ -54,6 +57,7 @@ const PreferencesModule: Module<PreferencesState, any> = {
         // curried, so not reactive !
         // @ts-expect-error using string as key
         getPreference: ( state: PreferencesState ): ( n: string ) => string => ( name: string ): boolean => state.preferences[ name ],
+        supportWASM: (): boolean => SUPPORT_WASM,
     },
     mutations: {
         setPreferences( state: PreferencesState, preferences: Preferences ): void {
@@ -74,7 +78,7 @@ const PreferencesModule: Module<PreferencesState, any> = {
                     if ( typeof preferences.antiAlias === "boolean" ) {
                         commit( "setAntiAlias", preferences.antiAlias );
                     }
-                    setWasmFilters( !!preferences.wasmFilters );
+                    setWasmFilters( SUPPORT_WASM && !!preferences.wasmFilters );
                 } catch {
                     // non-blocking
                 }

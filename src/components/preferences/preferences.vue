@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2022 - https://www.igorski.nl
+ * Igor Zinken 2021-2024 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -83,16 +83,17 @@ export default {
     computed: {
         ...mapGetters([
             "preferences",
+            "supportWASM",
         ]),
         hasWebAssembly() {
-            return "WebAssembly" in window;
+            return this.supportWASM;
         },
     },
     watch: {
         internalValue: {
             deep: true,
             handler( value ) {
-                setWasmFilters( !!value.wasmFilters );
+                setWasmFilters( this.supportWASM && !!value.wasmFilters );
             }
         }
     },

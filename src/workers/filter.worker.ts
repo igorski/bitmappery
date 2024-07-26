@@ -84,10 +84,12 @@ function renderFilters( imageData: ImageData, filters: any ): Uint8ClampedArray 
     const contrast       = Math.pow((( filters.contrast * 100 ) + 100 ) / 100, 2 ); // -100 to 100 range
     const gamma          = ( filters.gamma * 2 ); // 0 to 2 range
     const vibrance       = -(( filters.vibrance * 200 ) - 100 ); // -100 to 100 range
-    const { desaturate } = filters; // boolean
+
+    const { desaturate, threshold } = filters;
 
     const pixels = imageData.data;
-    let r, g, b;//, a;
+
+    let r, g, b, a;
     let grayScale, max, avg, amt;
     const gammaSquared = gamma * gamma;
 
@@ -95,6 +97,7 @@ function renderFilters( imageData: ImageData, filters: any ): Uint8ClampedArray 
     const doContrast   = filters.contrast   !== defaultFilters.contrast;
     const doGamma      = filters.gamma      !== defaultFilters.gamma;
     const doVibrance   = filters.vibrance   !== defaultFilters.vibrance;
+    const doThreshold  = filters.threshold  !== defaultFilters.threshold;
 
     // loop through the pixels, note we increment the iterator by four
     // as each pixel is defined by four channel values : red, green, blue and the alpha channel
@@ -105,7 +108,7 @@ function renderFilters( imageData: ImageData, filters: any ): Uint8ClampedArray 
         r = pixels[ i ];
         g = pixels[ i + 1 ];
         b = pixels[ i + 2 ];
-        //a = pixels[ i + 3 ]; // currently no filter uses alpha channel
+        a = pixels[ i + 3 ];
 
         // 1. adjust gamma
         if ( doGamma ) {
@@ -153,6 +156,16 @@ function renderFilters( imageData: ImageData, filters: any ): Uint8ClampedArray 
             }
         }
 
+        // 6. adjust threshold
+
+        if ( doThreshold && a > 0 ) {
+            let luma = r * 0.3 + g * 0.59 + b * 0.11;
+
+            luma = luma < threshold ? 0 : 255;
+
+            r = g = b = luma;
+        }
+
         // commit the changes
         pixels[ i ]     = r;
         pixels[ i + 1 ] = g;
@@ -169,20 +182,21 @@ function renderFiltersWasm( imageData: ImageData, filters: any ): Uint8ClampedAr
     const contrast       = Math.pow((( filters.contrast * 100 ) + 100 ) / 100, 2 ); // -100 to 100 range
     const gamma          = ( filters.gamma * 2 ); // 0 to 2 range
     const vibrance       = -(( filters.vibrance * 200 ) - 100 ); // -100 to 100 range
-    const { desaturate } = filters; // boolean
+    const { desaturate, threshold } = filters;
 
     const doBrightness = filters.brightness !== defaultFilters.brightness;
     const doContrast   = filters.contrast   !== defaultFilters.contrast;
     const doGamma      = filters.gamma      !== defaultFilters.gamma;
     const doVibrance   = filters.vibrance   !== defaultFilters.vibrance;
+    const doThreshold  = filters.threshold  !== defaultFilters.threshold;
 
     // run WASM operations
 
     return imageDataAsFloat( imageData, wasmInstance, ( memory, length ) => {
         wasmInstance._filter(
             memory, length,
-            gamma, brightness, contrast, vibrance,
-            doGamma, desaturate, doBrightness, doContrast, doVibrance
+            gamma, brightness, contrast, vibrance,/* threshold,*/
+            doGamma, desaturate, doBrightness, doContrast, doVibrance/*, doThreshold*/
         );
     });
 }
