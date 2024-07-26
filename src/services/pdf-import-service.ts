@@ -20,9 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import pdfLibUrl from "pdfjs-dist/build/pdf.min.js?url";
-import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.js?url";
-import loadScript from "tiny-script-loader/loadScriptPromised";
+import { getDocument } from "pdfjs-dist"; // provides pdfjsLib onto window
+import workerUrl from "pdfjs-dist/build/pdf.worker.mjs?url";
 import type { Size } from "zcanvas";
 import type { Document, Layer } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
@@ -34,6 +33,9 @@ type PDFJSLib = {
     getDocument: ( data: ArrayBuffer ) => {
         promise: Promise<PDFDocument>
     };
+    GlobalWorkerOptions: {
+        workerSrc: string; // assign to Worker URL at runtime
+    },
 };
 
 type PDFDocument = {
@@ -48,19 +50,17 @@ type PDFPage = {
     };
 };
 
-let pdfjsLib: PDFJSLib;
+let initialized = false;
 
 export const importPDF = async ( pdfFileReference: File ): Promise<Document> => {
-    if ( !pdfjsLib ) {
-        await loadScript( pdfLibUrl );
-        await loadScript( pdfWorkerUrl );
-
-        // @ts-expect-error  Property 'pdfjsLib' does not exist on type 'Window & typeof globalThis'.
-        // but it is injected by the loaded scripts
-        pdfjsLib = window.pdfjsLib;
+    if ( !initialized ) {
+        // @ts-expect-error Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+        const pdfjsLib: PDFJSLib = globalThis.pdfjsLib; // provided by import of pdfjs-dist above
+        pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+        initialized = true;
     }
     const data = await readBufferFromFile( pdfFileReference );
-    const pdf  = await pdfjsLib.getDocument( data ).promise;
+    const pdf  = await getDocument( data ).promise;
 
     const numPages = pdf.numPages;
     const layers: Layer[] = [];
