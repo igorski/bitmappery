@@ -23,7 +23,7 @@
     "register-service-worker": "^1.7.1",
     "tiny-script-loader": "^2.2.1",
     "v-tooltip": "^2.0.3",
-    "vue": "v2-latest",
+    "vue": "v3-latest",
     "vuex": "^3.6.2"
   },
   "devDependencies": {
