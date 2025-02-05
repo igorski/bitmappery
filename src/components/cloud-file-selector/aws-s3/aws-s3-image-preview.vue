@@ -78,7 +78,7 @@ export default {
             }
         });
     },
-    destroyed() {
+    unmounted() {
         this._destroyed = true;
     },
     methods: {

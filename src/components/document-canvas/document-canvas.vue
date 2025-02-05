@@ -62,11 +62,12 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import GuideRenderer from "@/rendering/canvas-elements/guide-renderer";
 import FileImport from "@/components/file-import/file-import.vue";
+import type { Document, Layer } from "@/definitions/types/document";
 import { HEADER_HEIGHT } from "@/definitions/editor-properties";
 import ToolTypes, { SELECTION_TOOLS, MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@/definitions/tool-types";
 import { InteractionModes } from "@/rendering/canvas-elements/interaction-pane";
@@ -142,23 +143,23 @@ export default {
             "pixelGrid",
             "zoomOptions",
         ]),
-        documentTitle() {
+        documentTitle(): string {
             const { name } = this.activeDocument;
             if ( name.includes( "." )) {
                 return name; // is local image
             }
             return `${name}.${PROJECT_FILE_EXTENSION}`;
         },
-        hasGuideRenderer() {
+        hasGuideRenderer(): boolean {
             return this.snapAlign || this.pixelGrid;
         },
     },
     watch: {
-        windowSize() {
+        windowSize(): void {
             this.calcIdealDimensions();
         },
         activeDocument: {
-            handler( document ) {
+            handler( document?: Document ): void {
                 // no active document or no document content
                 if ( !document?.layers ) {
                     if ( getCanvasInstance() ) {
@@ -185,7 +186,7 @@ export default {
                     renderState.reset();
                     layerPool.clear();
                     this.calcIdealDimensions( true );
-                    this.$nextTick( async () => {
+                    this.$nextTick( async (): Promise<void> => {
                         // previously active tool needs to update to new document ref
                         const tool = this.activeTool;
                         if ( tool === null ) {
@@ -201,11 +202,11 @@ export default {
             }
         },
         layers: {
-            handler() {
+            handler(): void {
                 this.createLayerRenderers();
             },
         },
-        activeLayer( layer ) {
+        activeLayer( layer: Layer ): void {
             if ( !layer ) {
                 return;
             }
@@ -215,7 +216,7 @@ export default {
             });
             this.handleGuides();
         },
-        activeTool( tool ) {
+        activeTool( tool: ToolTypes ): void {
             const isSelectionTool = SELECTION_TOOLS.includes( tool );
             this.setSelectMode( isSelectionTool );
 
@@ -230,7 +231,7 @@ export default {
         },
         zoomOptions: {
             deep: true,
-            handler({ level }) {
+            handler({ level }): void {
                 // are we zooming in or out (relative from the base, not necessarily the previous value)
                 if ( level > 0 ) {
                     zoom = scale( level, MAX_ZOOM, maxInScale - 1 ) + 1;
@@ -242,27 +243,27 @@ export default {
                 rafCallback( calculateCanvasBoundingBox );
             }
         },
-        panMode() {
+        panMode(): void {
             this.updateInteractionPane( "cursor-drag" );
         },
-        layerSelectMode() {
+        layerSelectMode(): void {
             this.updateInteractionPane();
         },
-        hasGuideRenderer( value ) {
+        hasGuideRenderer( value: boolean ): void {
             getCanvasInstance()?.[ value ? "addChild" : "removeChild" ]( guideRenderer );
         },
-        snapAlign() {
+        snapAlign(): void {
             this.updateGuideModes();
             this.handleGuides();
         },
-        pixelGrid() {
+        pixelGrid(): void {
             this.updateGuideModes();
         },
-        antiAlias( value ) {
+        antiAlias( value: boolean ): void {
             getCanvasInstance()?.setSmoothing( value );
         },
     },
-    async mounted() {
+    async mounted(): Promise<void> {
         this.detectTouch();
         await this.$nextTick();
         this.cacheContainerSize();
@@ -279,7 +280,7 @@ export default {
         ...mapActions([
             "requestDocumentClose",
         ]),
-        createCanvas() {
+        createCanvas(): void {
             // note dimensions will be adjusted by scaleCanvas()
             const zCanvas = new ZoomableCanvas(
                 {
@@ -303,7 +304,7 @@ export default {
             this.updateGuideModes();
             return zCanvas;
         },
-        cacheContainerSize() {
+        cacheContainerSize(): void {
             containerSize = this.$el.parentNode?.getBoundingClientRect();
             containerSize.height -= HEADER_HEIGHT;
 
@@ -318,7 +319,7 @@ export default {
          * This resulting value is used as the baseline for the unzoomed level. This
          * should be recalculated on window resize.
          */
-        scaleCanvas( calculateBestFit = true ) {
+        scaleCanvas( calculateBestFit = true ): void {
             if ( !this.activeDocument ) {
                 return;
             }
@@ -351,12 +352,12 @@ export default {
             zCanvas.setDocumentScale( this.cvsWidth, this.cvsHeight, xScale, zoom, this.activeDocument );
             this.centerCanvas = zCanvas.getWidth() < containerSize.width || zCanvas.getHeight() < containerSize.height ;
         },
-        scaleWrapper() {
+        scaleWrapper(): void {
             if ( !mobileView ) {
                 this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
             }
         },
-        calcIdealDimensions( scaleDocumentToFit = false ) {
+        calcIdealDimensions( scaleDocumentToFit = false ): void {
             this.cacheContainerSize();
             this.scaleCanvas();
             if ( scaleDocumentToFit && this.activeDocument ) {
@@ -364,13 +365,13 @@ export default {
                 this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value: fitInWindow( this.activeDocument, this.canvasDimensions ) });
             }
         },
-        panViewport({ left, top }) {
+        panViewport({ left, top }): void {
             getCanvasInstance().panViewport(
                 Math.round( left * ( this.cvsWidth  - this.viewportWidth )),
                 Math.round( top  * ( this.cvsHeight - this.viewportHeight ))
             );
         },
-        handleCanvasEvent({ type, value }) {
+        handleCanvasEvent({ type, value }): void {
             switch ( type ) {
                 default:
                     break;
@@ -383,7 +384,7 @@ export default {
                     break;
             }
         },
-        handleCursor() {
+        handleCursor(): void {
             const canvasClasses = getCanvasInstance()?.getElement().classList;
             if ( !canvasClasses ) {
                 return;
@@ -406,10 +407,10 @@ export default {
                     break;
             }
         },
-        updateGuideModes() {
+        updateGuideModes(): void {
             guideRenderer?.setModes( this.snapAlign, this.pixelGrid );
         },
-        handleGuides() {
+        handleGuides(): void {
             if ( !this.snapAlign ) {
                 return;
             }
@@ -419,7 +420,7 @@ export default {
             }
             getCanvasInstance()?.setGuides( alignableObjects );
         },
-        updateInteractionPane( pointerStyle = "cursor-pointer" ) {
+        updateInteractionPane( pointerStyle = "cursor-pointer" ): void {
             const zCanvas = getCanvasInstance();
             if ( zCanvas ) {
                 const enabled = true; // always enabled (shows active layer outline)//this.panMode || this.layerSelectMode || this.selectMode;
@@ -446,7 +447,7 @@ export default {
          * so subsequent calls (for instance on addition / removal of individual layers)
          * only affect the appropriate layers.
          */
-        createLayerRenderers() {
+        createLayerRenderers(): void {
             const seen    = [];
             const zCanvas = getCanvasInstance();
             this.layers?.forEach( layer => {
@@ -478,7 +479,7 @@ export default {
          * source content has changed (e.g. document resize), forcing all sprites
          * to re-render their cached contents.
          */
-        async refreshRenderers() {
+        async refreshRenderers(): Promise<void> {
             flushSpriteCache();
             flushBitmapCache();
             renderState.reset();
@@ -486,7 +487,7 @@ export default {
             await unblockedWait();
             this.createLayerRenderers();
         },
-        handleOutsideDown( event ) {
+        handleOutsideDown( event: Event ): void {
             if ( event.target.tagName === "CANVAS" || !getCanvasInstance() ) {
                 return; // don't handle clicks originating from the canvas
             }
@@ -502,14 +503,14 @@ export default {
             }
             this.hasOutsideAction = true;
         },
-        handleOutsideMove( event ) {
+        handleOutsideMove( event: Event ): void {
             if ( event.target.tagName === "CANVAS" || !getCanvasInstance() ) {
                 return;
             }
             // TODO only when supported outside tools/modes are active ?
             getCanvasInstance().handleInteraction( event );
         },
-        handleOutsideUp( event ) {
+        handleOutsideUp( event: Event ): void {
             if ( !this.hasOutsideAction ) {
                 return;
             }

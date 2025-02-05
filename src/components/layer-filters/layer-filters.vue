@@ -139,6 +139,7 @@ import KeyboardService from "@/services/keyboard-service";
 import messages from "./messages.json";
 
 export default {
+    emits: [ "close" ],
     i18n: { messages },
     components: {
         SelectBox,
@@ -267,7 +268,7 @@ export default {
         this.internalValue = { ...this.filters };
         KeyboardService.setListener( this.handleKeyUp.bind( this ), false );
     },
-    beforeDestroy(): void {
+    beforeUnmount(): void {
         KeyboardService.setListener( null );
     },
     methods: {

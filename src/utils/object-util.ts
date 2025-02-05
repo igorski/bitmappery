@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2025 - https://www.igorski.nl
+ * Igor Zinken 2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,26 +20,6 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-<template>
-    <div class="font-preview" :class="fontPreviewClass"></div>
-</template>
-
-<script lang="ts">
-export default {
-    props: {
-        font: {
-            type: String,
-            required: true
-        }
-    },
-    computed: {
-        fontPreviewClass(): string {
-            return this.font.split( " " ).join( "" );
-        },
-    },
+export const clone = ( object: T ): T => {
+    return JSON.parse( JSON.stringify( object ));
 };
-</script>
-
-<style lang="scss" scoped>
-@import "@/styles/font-previews";
-</style>

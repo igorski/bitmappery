@@ -53,8 +53,9 @@
 import KeyboardService from "@/services/keyboard-service";
 
 export default {
+    emits: [ "update:modelValue" ],
     props: {
-        value: {
+        modelValue: {
             type: Number,
             default: 0
         },
@@ -81,14 +82,14 @@ export default {
     computed: {
         internalValue: {
             get() {
-                return this.value;
+                return this.modelValue;
             },
             set( value ) {
                 const numericalValue = parseFloat( value );
                 if ( isNaN( numericalValue )) {
                     return;
                 }
-                this.$emit( "input", numericalValue );
+                this.$emit( "update:modelValue", numericalValue );
             }
         },
     },

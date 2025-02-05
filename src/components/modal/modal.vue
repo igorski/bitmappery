@@ -60,7 +60,7 @@ export default {
         };
         window.addEventListener( "keyup", this.escListener );
     },
-    destroyed() {
+    unmounted() {
         window.removeEventListener( "keyup", this.escListener );
     }
 };

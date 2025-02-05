@@ -56,6 +56,7 @@ const MOVE_EVENTS = [ "mousemove", "touchmove", "wheel" ];
 const UP_EVENTS   = [ "mouseup", "touchend", "touchcancel" ];
 
 export default {
+    emits: [ "input" ],
     props: {
         contentWidth: {
             type: Number,

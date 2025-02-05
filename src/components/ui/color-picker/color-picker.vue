@@ -34,9 +34,10 @@ import Pickr from "@simonwep/pickr";
 const FRAC_VALUE = 0;
 
 export default {
+    emits: [ "update:modelValue" ],
     props: {
         // the value is represented as RGBA
-        value: {
+        modelValue: {
             type: String,
             default: "rgba(255,255,255,1)",
         },
@@ -50,7 +51,7 @@ export default {
         this.pickrInstance = Pickr.create({
             el: this.$refs.picker,
             theme: "nano",
-            default: this.value,
+            default: this.modelValue,
             defaultRepresentation: "HEX",
             components: {
                 preview: true,
@@ -88,7 +89,7 @@ export default {
             const blue  = rgba[ 2 ].toFixed( FRAC_VALUE );
             const alpha = rgba[ 3 ];
 
-            this.$emit( "input", `rgba(${red},${green},${blue},${alpha})` );
+            this.$emit( "update:modelValue", `rgba(${red},${green},${blue},${alpha})` );
         },
     },
 };

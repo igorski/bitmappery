@@ -96,6 +96,7 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { LayerTypes } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS } from "@/definitions/panel-types";
@@ -122,7 +123,9 @@ export default {
         ]),
         colorPicker() {
             // load async as this adds to the bundle size
-            return () => import( "@/components/ui/color-picker/color-picker.vue" );
+            return defineAsyncComponent({
+                loader: () => import( "@/components/ui/color-picker/color-picker.vue" )
+            });
         },
         collapsed: {
             get() {

@@ -98,6 +98,7 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapGetters, mapMutations } from "vuex";
 import VueSelect from "vue-select";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
@@ -141,7 +142,9 @@ export default {
         },
         colorPicker() {
             // load async as this adds to the bundle size
-            return () => import( "@/components/ui/color-picker/color-picker.vue" );
+            return defineAsyncComponent({
+                loader: () => import( "@/components/ui/color-picker/color-picker.vue" )
+            });
         },
         fonts() {
             return mapSelectOptions( [ ...googleFonts ].sort() );
@@ -256,7 +259,7 @@ export default {
             focus( this.$refs.textInput );
         }
     },
-    destroyed() {
+    unmounted() {
         this.handleBlur();
     },
     methods: {

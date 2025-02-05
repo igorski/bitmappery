@@ -213,7 +213,7 @@ export default {
         };
         window.addEventListener( "keyup", this.escListener );
     },
-    destroyed(): void {
+    unmounted(): void {
         window.removeEventListener( "keyup", this.escListener );
     },
     methods: {

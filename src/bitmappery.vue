@@ -71,8 +71,8 @@
     </div>
 </template>
 
-<script>
-import Vue from "vue";
+<script lang="ts">
+import { type Component, defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { createI18n } from "vue-i18n";
 import ApplicationMenu from "@/components/application-menu/application-menu.vue";
@@ -82,6 +82,7 @@ import Toolbox from "@/components/toolbox/toolbox.vue";
 import DialogWindow from "@/components/dialog-window/dialog-window.vue";
 import Notifications from "@/components/notifications/notifications.vue";
 import Loader from "@/components/loader/loader.vue";
+import type { Document } from "@/definitions/document";
 import ToolTypes from "@/definitions/tool-types";
 import DocumentFactory from "@/factories/document-factory";
 import { isMobile } from "@/utils/environment-util";
@@ -98,14 +99,30 @@ import {
     GRID_TO_LAYERS, STROKE_SELECTION
 } from "@/definitions/modal-windows";
 
-Vue.use( Vuex );
-Vue.use( VueI18n );
-
 // Create VueI18n instance with options
 const i18n = createI18n({
     messages
 });
 let lastDocumentId = null;
+
+// wrapper for loading dynamic components with custom loading states
+type IAsyncComponent = { component: Promise<Component>};
+function asyncComponent( key: string, importFn: () => Promise<any> ): IAsyncComponent {
+    return defineAsyncComponent({
+        loader: async () => {
+            try {
+                const component = await importFn();
+                return component;
+            } catch ( e ) {
+                // @ts-expect-error 'import.meta' property not allowed, not an issue Vite takes care of it
+                if ( import.meta.env.MODE !== "production" ) {
+                    console.error( e );
+                }
+                reject();
+            }
+        }
+    });
+}
 
 export default {
     mixins: [ ImageToDocumentManager ],
@@ -134,49 +151,65 @@ export default {
             "activeDocument",
             "isLoading",
         ]),
-        documentCanvas() {
-            return () => import( "@/components/document-canvas/document-canvas.vue" );
+        documentCanvas(): IAsyncComponent {
+            return asyncComponent( "dc", () => import( "@/components/document-canvas/document-canvas.vue" ));
         },
-        activeModal() {
+        activeModal(): IAsyncComponent | null {
+            let loadFn: () => Promise<any>;
             switch ( this.modal ) {
                 default:
                     return null;
                 case CREATE_DOCUMENT:
-                    return () => import( "@/components/file-menu/create-document/create-document.vue" );
+                    loadFn = () => import( "@/components/file-menu/create-document/create-document.vue" );
+                    break;
                 case RESIZE_DOCUMENT:
-                    return () => import( "@/components/resize-document-window/resize-document-window.vue" );
+                    loadFn = () => import( "@/components/resize-document-window/resize-document-window.vue" );
+                    break;
                 case SAVE_DOCUMENT:
-                    return () => import( "@/components/file-menu/save-document/save-document.vue" );
+                    loadFn = () => import( "@/components/file-menu/save-document/save-document.vue" );
+                    break;
                 case EXPORT_WINDOW:
-                    return () => import( "@/components/file-menu/export-window/export-window.vue" );
+                    loadFn = () => import( "@/components/file-menu/export-window/export-window.vue" );
+                    break;
                 case DROPBOX_FILE_SELECTOR:
-                    return () => import( "@/components/cloud-file-selector/dropbox/dropbox-file-selector.vue" );
+                    loadFn = () => import( "@/components/cloud-file-selector/dropbox/dropbox-file-selector.vue" );
+                    break;
                 case GOOGLE_DRIVE_FILE_SELECTOR:
-                    return () => import( "@/components/cloud-file-selector/google-drive/google-drive-file-selector.vue" );
+                    loadFn = () => import( "@/components/cloud-file-selector/google-drive/google-drive-file-selector.vue" );
+                    break;
                 case AWS_S3_FILE_SELECTOR:
-                    return () => import( "@/components/cloud-file-selector/aws-s3/aws-s3-file-selector.vue" );
+                    loadFn = () => import( "@/components/cloud-file-selector/aws-s3/aws-s3-file-selector.vue" );
+                    break;
                 case ADD_LAYER:
-                    return () => import( "@/components/new-layer-window/new-layer-window.vue" );
+                    loadFn = () => import( "@/components/new-layer-window/new-layer-window.vue" );
+                    break;
                 case LOAD_SELECTION:
-                    return () => import( "@/components/selection-menu/load-selection/load-selection.vue" );
+                    loadFn = () => import( "@/components/selection-menu/load-selection/load-selection.vue" );
+                    break;
                 case SAVE_SELECTION:
-                    return () => import( "@/components/selection-menu/save-selection/save-selection.vue" );
+                    loadFn = () => import( "@/components/selection-menu/save-selection/save-selection.vue" );
+                    break;
                 case PREFERENCES:
-                    return () => import( "@/components/preferences/preferences.vue" );
+                    loadFn = () => import( "@/components/preferences/preferences.vue" );
+                    break;
                 case RESIZE_CANVAS:
-                    return () => import( "@/components/resize-canvas-window/resize-canvas-window.vue" );
+                    loadFn = () => import( "@/components/resize-canvas-window/resize-canvas-window.vue" );
+                    break;
                 case GRID_TO_LAYERS:
-                    return () => import( "@/components/grid-to-layers-window/grid-to-layers-window.vue" );
+                    loadFn = () => import( "@/components/grid-to-layers-window/grid-to-layers-window.vue" );
+                    break;
                 case STROKE_SELECTION:
-                    return () => import( "@/components/stroke-selection-window/stroke-selection-window.vue" );
+                    loadFn = () => import( "@/components/stroke-selection-window/stroke-selection-window.vue" );
+                    break;
             }
+            return asyncComponent( "mw", loadFn );
         },
-        showLoader() {
+        showLoader(): boolean {
             return this.isLoading || renderState.pending > 0;
         },
     },
     watch: {
-        activeDocument( document ) {
+        activeDocument( document: Document ): void {
             if ( !document?.layers ) {
                 this.resetHistory();
                 if ( isMobile() ) {
@@ -190,14 +223,14 @@ export default {
                 }
             }
         },
-        toolboxOpened() {
+        toolboxOpened(): void {
             this.$nextTick( this.scaleContainer );
         },
-        openedPanels() {
+        openedPanels(): void {
             this.$nextTick( this.scaleContainer );
         },
     },
-    async created() {
+    async created(): Promise<void> {
         await this.setupServices( this.$t );
         // no need to remove the below as we will require it throughout the application lifetime
         window.addEventListener( "resize", this.handleResize.bind( this ));
@@ -207,7 +240,7 @@ export default {
             this.closeOpenedPanels();
         }
     },
-    mounted() {
+    mounted(): void {
         if ( import.meta.env.PROD ) {
             window.onbeforeunload = e => {
                 if ( this.activeDocument ) {
@@ -278,7 +311,7 @@ export default {
         ...mapActions([
             "setupServices",
         ]),
-        handleResize() {
+        handleResize(): void {
             this.setWindowSize({ width: window.innerWidth, height: window.innerHeight });
             // prevent maximum zoom at previous small window size to lead to excessively large document canvas
             this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value: 1 });
@@ -288,7 +321,7 @@ export default {
          * CSS solution, but the toolbox and options panel widths are dynamic (and
          * in both cases fixed), making flexbox cumbersome.
          */
-        scaleContainer() {
+        scaleContainer(): void {
             if ( isMobile() ) {
                 return;
             }

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -52,9 +52,8 @@ const DocumentModule: Module<DocumentState, any> = {
         activeDocument: ( state: DocumentState ): Document => {
             return state.documents[ state.activeIndex ];
         },
-        // @ts-expect-error state is declared but never read
-        layers: ( state: DocumentState, getters: any ): Layer[] => {
-            return getters.activeDocument?.layers;
+        layers: ( state: DocumentState ): Layer[] => {
+            return state.documents[ state.activeIndex ]?.layers;
         },
         activeLayerIndex: ( state: DocumentState ): number => {
             return state.activeLayerIndex;
@@ -113,7 +112,7 @@ const DocumentModule: Module<DocumentState, any> = {
             }
             // free allocated resources
             document.layers.forEach( layer => flushLayerSprites( layer ));
-            delete state.documents[ state.activeIndex ];
+            state.documents.splice( state.activeIndex, 1 );
             state.activeIndex = Math.min( state.documents.length - 1, state.activeIndex );
         },
         addLayer( state: DocumentState, opts: Partial<Layer> = {} ): void {
@@ -152,7 +151,7 @@ const DocumentModule: Module<DocumentState, any> = {
                 return;
             }
             flushLayerSprites( layer );
-            delete state.documents[ state.activeIndex ].layers[ index ];
+            state.documents[ state.activeIndex ].layers.splice( index, 1 );
             if ( state.activeLayerIndex === index ) {
                 state.activeLayerIndex = Math.max( 0, index - 1 );
             }

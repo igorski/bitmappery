@@ -5,8 +5,8 @@ import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfil
 import path from "path";
 
 const dirSrc    = `./src`;
-const dirPublic = `${dirSrc}/public`;
-const dirAssets = `${dirSrc}/assets`;
+const dirPublic = `./public`;
+const dirAssets = `${dirPublic}/assets`;
 const dest      = `${__dirname}/dist`;
 
 // https://vitejs.dev/config/

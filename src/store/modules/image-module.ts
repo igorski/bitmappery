@@ -80,7 +80,7 @@ const ImageModule: Module<ImageState, any> = {
             if ( index === -1 ) {
                 return;
             }
-            delete state.images[ index ];
+            state.images.splice( index, 1 );
         },
         /**
          * Invoke when closing a document, this frees memory allocated in addImage()

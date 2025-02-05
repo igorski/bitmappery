@@ -104,7 +104,7 @@ export default {
         this.focusedElement = document.activeElement;
         this.$refs.windowOutline?.focus();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         this.focusedElement?.focus();
     },
 };
