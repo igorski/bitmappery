@@ -128,7 +128,7 @@
 <script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import isEqual from "lodash.isequal";
-import { ToggleButton } from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
+import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
 import { Layer, Filters } from "@/definitions/document";

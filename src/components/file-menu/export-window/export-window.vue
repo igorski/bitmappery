@@ -155,7 +155,7 @@
 <script lang="ts">
 import type { Component } from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
-import { ToggleButton } from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
+import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
