@@ -2,6 +2,7 @@
     "extends": "./tsconfig.app.json",
     "includes": [ "src/**/*.ts", "src/**/*.vue", "tests/**/*.ts" ],
     "compilerOptions": {
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "module": "commonjs"
     }
 }

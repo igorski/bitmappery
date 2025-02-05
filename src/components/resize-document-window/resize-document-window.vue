@@ -58,7 +58,7 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import { ToggleButton } from "vue-js-toggle-button";
+import { ToggleButton } from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import Modal from "@/components/modal/modal.vue";
 import DimensionsFormatter from "@/components/ui/dimensions-formatter/dimensions-formatter.vue";
 import messages from "./messages.json";

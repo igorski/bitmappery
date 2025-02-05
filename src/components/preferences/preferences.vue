@@ -67,7 +67,7 @@
 <script>
 import { mapGetters, mapMutations, mapActions } from "vuex";
 import Modal from "@/components/modal/modal.vue";
-import { ToggleButton } from "vue-js-toggle-button";
+import { ToggleButton } from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import { setWasmFilters } from "@/services/render-service";
 import messages from "./messages.json";
 
