@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,7 +20,6 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import Vue from "vue";
 import { sprite } from "zcanvas";
 import type { Point, Size, Viewport } from "zcanvas";
 import type { Document, Layer, Shape, Selection } from "@/definitions/document";
@@ -161,9 +160,9 @@ class InteractionPane extends sprite {
                 storeSelectionHistory( document, currentSelection, "reset" );
             }
         } else {
-            Vue.set( document, "activeSelection", [] );
+            document.activeSelection = [];
         }
-        Vue.set( document, "invertSelection", false );
+        document.invertSelection = false;
         this._selectionClosed = false;
         syncSelection();
         this.invalidate();
@@ -172,7 +171,7 @@ class InteractionPane extends sprite {
     setSelection( value: Selection, optStoreState = false ): void {
         const document = this.getActiveDocument();
         const currentSelection = document.activeSelection || [];
-        Vue.set( document, "activeSelection", value );
+        document.activeSelection = value;
         if ( optStoreState ) {
             storeSelectionHistory( document, currentSelection );
         }
@@ -185,7 +184,7 @@ class InteractionPane extends sprite {
         if ( document.activeSelection?.length > 0 ) {
             const curValue = document.invertSelection;
             const updateFn = ( value: boolean ) => {
-                Vue.set( document, "invertSelection", value );
+                document.invertSelection = value;
                 syncSelection();
                 this.invalidate?.();
             };

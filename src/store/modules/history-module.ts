@@ -55,8 +55,6 @@ export const createHistoryState = ( props?: Partial<HistoryState> ): HistoryStat
 // made to a document. We do this by applying save and restore functions for
 // individual changes made to a document. This is preferred over cloning
 // entire document structures as this will consume a large amount of memory!
-// by using Vue.set() and Vue.delete() in the undo/redo functions reactivity
-// will be retained.
 
 const HistoryModule: Module<HistoryState, any> = {
     state: createHistoryState({ undoManager: new UndoManager() }),

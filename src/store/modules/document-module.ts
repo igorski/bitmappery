@@ -20,7 +20,6 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import Vue from "vue";
 import type { ActionContext, Module } from "vuex";
 import type { Size } from "zcanvas";
 import type { Document, Layer, Effects, Selection } from "@/definitions/document";
@@ -99,7 +98,7 @@ const DocumentModule: Module<DocumentState, any> = {
             getCanvasInstance()?.refreshFn();
         },
         setActiveSelection( state: DocumentState, selection: Selection ): void {
-            Vue.set( state.documents[ state.activeIndex ], "activeSelection", selection );
+            state.documents[ state.activeIndex ].activeSelection = selection;
         },
         addNewDocument( state: DocumentState, nameOrDocument: string | Document ): void {
             const document = typeof nameOrDocument === "object" ? nameOrDocument : DocumentFactory.create({ name: nameOrDocument });
@@ -114,7 +113,7 @@ const DocumentModule: Module<DocumentState, any> = {
             }
             // free allocated resources
             document.layers.forEach( layer => flushLayerSprites( layer ));
-            Vue.delete( state.documents, state.activeIndex );
+            state.documents[ state.activeIndex ] = undefined;
             state.activeIndex = Math.min( state.documents.length - 1, state.activeIndex );
         },
         addLayer( state: DocumentState, opts: Partial<Layer> = {} ): void {
@@ -136,8 +135,8 @@ const DocumentModule: Module<DocumentState, any> = {
         swapLayers( state: DocumentState, { index1, index2 }: { index1: number, index2: number } ): void {
             const layers = state.documents[ state.activeIndex ].layers;
             const obj1 = layers[ index1 ];
-            Vue.set( layers, index1, layers[ index2 ]);
-            Vue.set( layers, index2, obj1 );
+            layers[ index1 ] = layers[ index2 ];
+            layers[ index2 ] = obj1;
         },
         // @ts-expect-error state is declared but never read
         reorderLayers( state: DocumentState, { document, layerIds }: { document: Document, layerIds: string[] }): void {
@@ -153,7 +152,7 @@ const DocumentModule: Module<DocumentState, any> = {
                 return;
             }
             flushLayerSprites( layer );
-            Vue.delete( state.documents[ state.activeIndex ].layers, index );
+            state.documents[ state.activeIndex ].layers[ index ] = undefined;
             if ( state.activeLayerIndex === index ) {
                 state.activeLayerIndex = Math.max( 0, index - 1 );
             }
@@ -181,7 +180,7 @@ const DocumentModule: Module<DocumentState, any> = {
                 ...layer,
                 ...opts
             };
-            Vue.set( state.documents[ state.activeIndex ].layers, index, layer );
+            state.documents[ state.activeIndex ].layers[ index ] = layer;
             // update layer in sprite
             const sprite = getSpriteForLayer( layer );
             if ( sprite ) {
@@ -194,10 +193,10 @@ const DocumentModule: Module<DocumentState, any> = {
             if ( !layer ) {
                 return;
             }
-            Vue.set( layer, "effects", {
+            layer.effects = {
                 ...layer.effects,
                 ...effects
-            });
+            };
             // update layer renderer
             const sprite = getSpriteForLayer( layer );
             if ( sprite ) {
@@ -223,7 +222,7 @@ const DocumentModule: Module<DocumentState, any> = {
         },
         saveSelection( state: DocumentState, { name, selection }: { name: string, selection: Selection }): void {
             const document = state.documents[ state.activeIndex ];
-            Vue.set( document.selections, name, selection );
+            document.selections[ name ] = selection;
         },
     },
     actions: {
