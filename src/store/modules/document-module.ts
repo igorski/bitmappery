@@ -113,7 +113,7 @@ const DocumentModule: Module<DocumentState, any> = {
             }
             // free allocated resources
             document.layers.forEach( layer => flushLayerSprites( layer ));
-            state.documents[ state.activeIndex ] = undefined;
+            delete state.documents[ state.activeIndex ];
             state.activeIndex = Math.min( state.documents.length - 1, state.activeIndex );
         },
         addLayer( state: DocumentState, opts: Partial<Layer> = {} ): void {
@@ -152,7 +152,7 @@ const DocumentModule: Module<DocumentState, any> = {
                 return;
             }
             flushLayerSprites( layer );
-            state.documents[ state.activeIndex ].layers[ index ] = undefined;
+            delete state.documents[ state.activeIndex ].layers[ index ];
             if ( state.activeLayerIndex === index ) {
                 state.activeLayerIndex = Math.max( 0, index - 1 );
             }
