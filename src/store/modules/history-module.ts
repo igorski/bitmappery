@@ -83,7 +83,6 @@ const HistoryModule: Module<HistoryState, any> = {
             if ( storedIndex > STATES_TO_SAVE ) {
                 // the minimum index that should still be available in the undo stack
                 const minIndex = storedIndex - STATES_TO_SAVE;
-                // @ts-expect-error TS2802: Type 'IterableIterator<[number, string[]]>' can only be iterated thr...
                 [ ...state.blobUrls.entries()].forEach(([ index, urls ]) => {
                     if ( index < minIndex ) {
                         ( urls as string[] ).forEach( url => disposeResource( url ));

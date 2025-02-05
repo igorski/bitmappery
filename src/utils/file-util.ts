@@ -110,10 +110,9 @@ export const readBufferFromFile = ( file: File | Blob ): Promise<ArrayBuffer> =>
 };
 
 export const readClipboardFiles = ( clipboardData: DataTransfer ): FileDictionary => {
-    // @ts-expect-error Type 'DataTransferItemList' is not an array type (but it destructures just fine...)
     const items = clipboardData ? [ ...clipboardData.items ] : [];
     const images = items
-        .filter( item => item.kind === "file" && isImageFile( item ))
+        .filter( item => item.kind === "file" && isImageFile( item as unknown as File ))
         .map( item => item.getAsFile());
 
     const documents = items
@@ -128,7 +127,6 @@ export const readClipboardFiles = ( clipboardData: DataTransfer ): FileDictionar
 };
 
 export const readDroppedFiles = ( dataTransfer: DataTransfer ): FileDictionary => {
-    // @ts-expect-error Type 'FileList' is not an array type (but it destructures just fine...)
     const items = dataTransfer ? [ ...dataTransfer.files ] : [];
     return {
         images     : items.filter( isImageFile ),

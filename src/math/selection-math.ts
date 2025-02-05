@@ -43,7 +43,6 @@ export const selectByColor = ( cvs: HTMLCanvasElement, sourceX: number, sourceY:
     sourceY = Math.min( height - 1, Math.round( sourceY ));
 
     // the source color
-    // @ts-expect-error can only be iterated with es2015 or higher --target
     const [ r, g, b, a ] = ctx.getImageData( sourceX, sourceY, 1, 1 ).data;
 
     const imageData = ctx.getImageData( 0, 0, width, height ).data;
