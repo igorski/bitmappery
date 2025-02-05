@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,7 +21,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { ActionContext } from "vuex";
-import type { IVueI18n } from "vue-i18n";
 import type { Size, SizedImage } from "zcanvas";
 import type { Notification, Dialog } from "@/definitions/editor";
 import KeyboardService from "@/services/keyboard-service";
@@ -77,8 +76,10 @@ export interface BitMapperyState {
 // cheat a little by exposing the vue-i18n translations directly to the
 // store so we can commit translated error/success messages from actions
 
-let i18n: IVueI18n;
-const translate = ( key: string, optArgs?: any ): string => i18n?.t( key, optArgs ) as string ?? key;
+let translator: ( key: string, ...opts: unknown[] ) => string;
+const translate = ( key: string, optArgs?: any ): string => {
+    return typeof translator === "function" ? translator?.( key, optArgs ) as string : key;
+}
 
 export default {
     modules: {
@@ -330,8 +331,8 @@ export default {
          * @param {Object} i18nReference vue-i18n Object instance so we can
          *                 access translations inside Vuex store modules
          */
-        setupServices({ dispatch }: ActionContext<BitMapperyState, any>, i18nReference: IVueI18n ): Promise<void> {
-            i18n = i18nReference;
+        setupServices({ dispatch }: ActionContext<BitMapperyState, any>, i18nTranslator: ( key: string, ...opts: unknown[] ) => string ): Promise<void> {
+            translator = i18nTranslator;
             const storeReference = this;
             return new Promise( async resolve => {
                 KeyboardService.init( storeReference );

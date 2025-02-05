@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2024 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -72,10 +72,9 @@
 </template>
 
 <script>
-import Vuex, { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import Vue from "vue";
-import VueI18n from "vue-i18n";
-import VTooltip from "v-tooltip";
+import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
+import { createI18n } from "vue-i18n";
 import ApplicationMenu from "@/components/application-menu/application-menu.vue";
 import ToolOptionsPanel from "@/components/tool-options-panel/tool-options-panel.vue";
 import LayerPanel from "@/components/layer-panel/layer-panel.vue";
@@ -91,7 +90,6 @@ import { renderState } from "@/services/render-service";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { readClipboardFiles, readDroppedFiles } from "@/utils/file-util";
 import { truncate } from "@/utils/string-util";
-import store from "./store";
 import messages from "./messages.json";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_WINDOW,
@@ -102,17 +100,14 @@ import {
 
 Vue.use( Vuex );
 Vue.use( VueI18n );
-Vue.use( VTooltip, { defaultDelay: 500 });
 
 // Create VueI18n instance with options
-const i18n = new VueI18n({
+const i18n = createI18n({
     messages
 });
 let lastDocumentId = null;
 
 export default {
-    i18n,
-    store: new Vuex.Store( store ),
     mixins: [ ImageToDocumentManager ],
     components: {
         ApplicationMenu,
@@ -203,7 +198,7 @@ export default {
         },
     },
     async created() {
-        await this.setupServices( i18n );
+        await this.setupServices( this.$t );
         // no need to remove the below as we will require it throughout the application lifetime
         window.addEventListener( "resize", this.handleResize.bind( this ));
         // prepare adaptive view for mobile environment
