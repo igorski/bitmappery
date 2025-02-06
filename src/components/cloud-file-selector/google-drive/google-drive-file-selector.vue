@@ -20,71 +20,76 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-<script>
+<template src="../cloud-file-selector.html"></template>
+
+<script lang="ts">
+import { type Component } from "vue";
 import { mapMutations } from "vuex";
-import CloudFileSelector from "../cloud-file-selector.vue";
+import CloudFileSelector from "../cloud-file-selector";
 import GoogleDriveImagePreview from "./google-drive-image-preview.vue";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
-import { STORAGE_TYPES } from "@/definitions/storage-types";
+import { type FileNode, STORAGE_TYPES } from "@/definitions/storage-types";
 import { getGoogleDriveService } from "@/utils/cloud-service-loader";
 
 let ROOT_FOLDER, listFolder, createFolder, downloadFileAsBlob, deleteEntry;
 
- export default {
-     extends: CloudFileSelector,
-     data: () => ({
-         LAST_FOLDER_STORAGE_KEY: "bpy_driveDb",
-         STORAGE_PROVIDER: STORAGE_TYPES.DRIVE,
-     }),
-     computed: {
-         imagePreviewComponent() {
-             return GoogleDriveImagePreview;
-         },
-     },
-     async created() {
-         ({ ROOT_FOLDER, listFolder, createFolder, downloadFileAsBlob, deleteEntry } = await getGoogleDriveService() );
-         this.tree.path = ROOT_FOLDER;
+export default {
+    mixins: [ CloudFileSelector ],
+    data: () => ({
+        LAST_FOLDER_STORAGE_KEY: "bpy_driveDb",
+        STORAGE_PROVIDER: STORAGE_TYPES.DRIVE,
+    }),
+    computed: {
+        imagePreviewComponent(): Component {
+            return GoogleDriveImagePreview;
+        },
+    },
+    async created(): Promise<void> {
+        ({ ROOT_FOLDER, listFolder, createFolder, downloadFileAsBlob, deleteEntry } = await getGoogleDriveService() );
+        this.tree.path = ROOT_FOLDER;
 
-         let pathToRetrieve = this.tree.path;
-         try {
-             const { tree, path } = JSON.parse( sessionStorage.getItem( this.LAST_FOLDER_STORAGE_KEY ));
-             this.tree = { ...this.tree, ...tree };
-             pathToRetrieve = path;
-         } catch {
-             // no tree stored in SessionStorage, continue.
-         }
-         this.retrieveFiles( pathToRetrieve );
-     },
-     methods: {
-         ...mapMutations([
-             "setDriveConnected",
-         ]),
-         /* base component overrides */
-         async _listFolder( path ) {
-             const entries = await listFolder( path );
-             this.setDriveConnected( true ); // opened browser implies we have a valid connection
-             return entries;
-         },
-         async _createFolder( parent, name ) {
-             return createFolder( parent, name );
-         },
-         async _downloadFile( node, returnAsURL = false  ) {
+        let pathToRetrieve = this.tree.path;
+        try {
+            const { tree, path } = JSON.parse( sessionStorage.getItem( this.LAST_FOLDER_STORAGE_KEY ));
+            this.tree = { ...this.tree, ...tree };
+            pathToRetrieve = path;
+        } catch {
+            // no tree stored in SessionStorage, continue.
+        }
+        this.retrieveFiles( pathToRetrieve );
+    },
+    methods: {
+        ...mapMutations([
+            "setDriveConnected",
+        ]),
+        /* base component overrides */
+        async _listFolder( path: string ): Promise<FileNode[]> {
+            const entries = await listFolder( path );
+            this.setDriveConnected( true ); // opened browser implies we have a valid connection
+            return entries;
+        },
+        async _createFolder( parent: string, name: string ): Promise<boolean> {
+            return createFolder( parent, name );
+        },
+        async _downloadFile( node: FileNode, returnAsURL = false ): Promise<Blob | string | null> {
             return downloadFileAsBlob( node, returnAsURL );
-         },
-         async _deleteEntry( node ) {
-             return deleteEntry( node.id );
-         },
-         _mapEntry( entry, children = [], parent = null ) {
-             if ( entry.name.endsWith( PROJECT_FILE_EXTENSION )) {
-                 entry.type = "bpy";
-             }
-             return {
-                 ...entry,
-                 path : entry.id,
-                 children,
-                 parent,
-             };
-         },
-     }
- };
- </script>
+        },
+        async _deleteEntry( node: FileNode ): Promise<boolean> {
+            return deleteEntry( node.id );
+        },
+        _mapEntry( entry: FileNode, children = [], parent = null ): FileNode {
+            if ( entry.name.endsWith( PROJECT_FILE_EXTENSION )) {
+                entry.type = "bpy";
+            }
+            return {
+                ...entry,
+                path : entry.id,
+                children,
+                parent,
+            };
+        },
+    }
+};
+</script>
+
+<style lang="scss" src="../cloud-file-selector.scss" scoped />

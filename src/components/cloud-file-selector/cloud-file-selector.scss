@@ -1,0 +1,168 @@
+@import "@/styles/component";
+@import "@/styles/form";
+@import "@/styles/typography";
+@import "@/styles/ui";
+
+$actionsHeight: 74px;
+
+.cloud-file-modal {
+    @include overlay();
+    @include component();
+
+    .component__title {
+        color: #FFF;
+    }
+
+    @include large() {
+        width: 80%;
+        height: 85%;
+        max-width: 1280px;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .content__wrapper {
+        height: 100%;
+    }
+
+    .content__folders {
+        overflow: auto;
+        height: calc(100% - #{$heading-height + $actionsHeight});
+        padding-top: $spacing-small;
+    }
+
+    @include mobile() {
+        .component__content {
+            height: calc(100% - #{$actionsHeight});
+        }
+    }
+
+    .component__header-button {
+        @include closeButton();
+    }
+
+    .component__actions {
+        @include actionsFooter();
+        background-image: $color-window-bg;
+        padding: $spacing-xxsmall $spacing-medium;
+
+        &-content {
+            display: flex;
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            align-items: baseline;
+        }
+
+        &-form {
+            flex: 2;
+        }
+    }
+}
+
+.breadcrumbs {
+    padding: $spacing-small 0 $spacing-small $spacing-small;
+    background-color: $color-bg;
+
+    &__button {
+        display: inline;
+        position: relative;
+        cursor: pointer;
+        border: none;
+        background: none;
+        padding-left: $spacing-xsmall;
+        padding-right: 0;
+        font-size: 100%;
+        @include customFont();
+
+        &:after {
+            content: " /";
+        }
+
+        &:hover {
+            color: $color-4;
+        }
+
+        &--active {
+            color: #FFF;
+        }
+
+        &:disabled {
+            color: inherit;
+        }
+    }
+}
+
+.entry {
+    display: inline-block;
+    min-width: 128px;
+    height: 128px;
+    vertical-align: top;
+    position: relative;
+    cursor: pointer;
+    @include customFont();
+
+    .title {
+        position: absolute;
+        bottom: $spacing-medium;
+        width: 100%;
+        text-align: center;
+        @include truncate();
+    }
+
+    &__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: inherit;
+        height: inherit;
+
+        &--folder {
+            background: url("../../assets-inline/images/folder.png") no-repeat 50% $spacing-xlarge;
+            background-size: 50%;
+        }
+
+        &--document {
+            background: url("../../assets-inline/images/icon-bpy.svg") no-repeat 50% $spacing-xlarge;
+            background-size: 50%;
+        }
+    }
+
+    &__delete-button {
+        display: none;
+        position: absolute;
+        z-index: 1;
+        cursor: pointer;
+        top: -$spacing-small;
+        right: -$spacing-small;
+        background-color: #FFF;
+        color: $color-1;
+        width: $spacing-large;
+        height: $spacing-large;
+        border: none;
+        border-radius: 50%;
+    }
+
+    &:hover {
+        .entry__icon--folder,
+        .entry__icon--document {
+            background-color: $color-1;
+            color: #FFF;
+        }
+
+        .entry__delete-button {
+            display: block;
+        }
+    }
+
+    &__disabled {
+        opacity: 0.5;
+
+        &:hover {
+            .entry__delete-button {
+                display: none;
+            }
+        }
+    }
+}

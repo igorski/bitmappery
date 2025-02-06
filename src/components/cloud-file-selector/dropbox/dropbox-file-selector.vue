@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,18 +20,21 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-<script>
+<template src="../cloud-file-selector.html"></template>
+
+<script lang="ts">
+import { type Component } from "vue";
 import { mapMutations } from "vuex";
-import CloudFileSelector from "../cloud-file-selector.vue";
+import CloudFileSelector from "../cloud-file-selector";
 import DropboxImagePreview from "./dropbox-image-preview.vue";
-import { STORAGE_TYPES } from "@/definitions/storage-types";
+import { type FileNode, STORAGE_TYPES } from "@/definitions/storage-types";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { getDropboxService } from "@/utils/cloud-service-loader";
 
 let listFolder, createFolder, downloadFileAsBlob, deleteEntry;
 
 export default {
-    extends: CloudFileSelector,
+    mixins: [ CloudFileSelector ],
     components: {
         DropboxImagePreview,
     },
@@ -40,11 +43,11 @@ export default {
         STORAGE_PROVIDER : STORAGE_TYPES.DROPBOX,
     }),
     computed: {
-        imagePreviewComponent() {
+        imagePreviewComponent(): Component {
             return DropboxImagePreview;
         },
     },
-    async created() {
+    async created(): Promise<void> {
         ({ listFolder, createFolder, downloadFileAsBlob, deleteEntry } = await getDropboxService());
         let pathToRetrieve = this.tree.path;
         try {
@@ -61,21 +64,21 @@ export default {
             "setDropboxConnected",
         ]),
         /* base component overrides */
-        async _listFolder( path ) {
+        async _listFolder( path: string ): Promise<FileNode> {
             const entries = await listFolder( path );
             this.setDropboxConnected( true ); // opened browser implies we have a valid connection
             return entries;
         },
-        async _createFolder( parent, name ) {
+        async _createFolder( parent: string, name: string ): Promise<boolean> {
             return createFolder( parent, name );
         },
-        async _downloadFile( node, returnAsURL = false  ) {
+        async _downloadFile( node: FileNode, returnAsURL = false  ): Promise<Blob | string | null> {
             return downloadFileAsBlob( node.path, returnAsURL );
         },
-        async _deleteEntry( node ) {
+        async _deleteEntry( node: FileNode ): Promise<boolean> {
             return deleteEntry( node.path );
         },
-        _mapEntry( entry, children = [], parent = null ) {
+        _mapEntry( entry: FileNode, children = [], parent = null ): FileNode {
             let type = entry[ ".tag" ]; // folder/file
             if ( entry.name.endsWith( PROJECT_FILE_EXTENSION )) {
                 type = "bpy";
@@ -92,3 +95,5 @@ export default {
     },
 };
 </script>
+
+<style lang="scss" src="../cloud-file-selector.scss" scoped />

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,103 +20,6 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-<template>
-    <div class="cloud-file-modal">
-        <div class="component__header">
-            <h2 v-t="'files'" class="component__title"></h2>
-            <button
-                type="button"
-                class="component__header-button"
-                @click="closeModal()"
-            >&#215;</button>
-        </div>
-        <div ref="content" class="component__content">
-            <div v-if="leaf" class="content__wrapper">
-                <div class="breadcrumbs">
-                    <!-- parent folders -->
-                    <button
-                        v-for="parent in breadcrumbs"
-                        :key="parent.path"
-                        :disabled="disabled"
-                        type="button"
-                        class="breadcrumbs__button"
-                        @click="handleNodeClick( parent )"
-                    >{{ parent.name || "." }}</button>
-                    <!-- current folder -->
-                    <button
-                        :disabled="disabled"
-                        type="button"
-                        class="breadcrumbs__button breadcrumbs__button--active"
-                    >{{ leaf.name }}</button>
-                </div>
-                <div v-if="!loading" class="content__folders">
-                    <!-- files and folders within current leaf -->
-                    <p v-if="!filesAndFolders.length" v-t="'noImageFiles'"></p>
-                    <template v-else>
-                        <div
-                            v-for="node in filesAndFolders"
-                            :key="`entry_${node.path}`"
-                            class="entry"
-                            :class="{ 'entry__disabled': disabled }"
-                        >
-                            <div
-                                v-if="node.type === 'folder'"
-                                class="entry__icon entry__icon--folder"
-                                @click="handleNodeClick( node )"
-                            >
-                                <span class="title">{{ node.name }}</span>
-                            </div>
-                            <div
-                                v-else-if="node.type === 'bpy'"
-                                class="entry__icon entry__icon--document"
-                                @click="handleNodeClick( node )"
-                            >
-                                <span class="title">{{ node.name }}</span>
-                            </div>
-                            <component
-                                v-else
-                                :is="imagePreviewComponent"
-                                :node="node"
-                                class="entry__icon entry__icon--image-preview"
-                                @click="handleNodeClick( node )"
-                            />
-                            <button
-                                type="button"
-                                class="entry__delete-button"
-                                :title="$t('delete')"
-                                @click="handleDeleteClick( node )"
-                            >x</button>
-                        </div>
-                    </template>
-                </div>
-            </div>
-        </div>
-        <div class="component__actions">
-            <div class="component__actions-content">
-                <div class="form component__actions-form">
-                    <div class="wrapper input">
-                        <input
-                            v-model="newFolderName"
-                            :placeholder="$t('newFolderName')"
-                            :disabled="disabled"
-                            type="text"
-                            class="input-field full"
-                        />
-                    </div>
-                </div>
-                <button
-                    v-t="'createFolder'"
-                    type="button"
-                    class="button"
-                    :disabled="!newFolderName || disabled"
-                    @click="handleCreateFolderClick()"
-                ></button>
-            </div>
-        </div>
-    </div>
-</template>
-
-<script lang="ts">
 import type { Component } from "vue";
 import { mapState, mapMutations, mapActions } from "vuex";
 import { loader } from "zcanvas";
@@ -184,7 +87,7 @@ export default {
         },
         breadcrumbs(): FileNode[] {
             let parent = this.leaf.parent;
-            const out = [];
+            const out: FileNode = [];
             while ( parent ) {
                 out.push( parent );
                 parent = parent.parent;
@@ -200,7 +103,7 @@ export default {
                 return true;
             });
         },
-        imagePreviewComponent(): Component {
+        imagePreviewComponent(): Component | null {
             return null; // extend in inheriting components
         },
     },
@@ -373,175 +276,3 @@ export default {
         }
     }
 };
-</script>
-
-<style lang="scss" scoped>
-@import "@/styles/component";
-@import "@/styles/form";
-@import "@/styles/typography";
-@import "@/styles/ui";
-
-$actionsHeight: 74px;
-
-.cloud-file-modal {
-    @include overlay();
-    @include component();
-
-    .component__title {
-        color: #FFF;
-    }
-
-    @include large() {
-        width: 80%;
-        height: 85%;
-        max-width: 1280px;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-    }
-
-    .content__wrapper {
-        height: 100%;
-    }
-
-    .content__folders {
-        overflow: auto;
-        height: calc(100% - #{$heading-height + $actionsHeight});
-        padding-top: $spacing-small;
-    }
-
-    @include mobile() {
-        .component__content {
-            height: calc(100% - #{$actionsHeight});
-        }
-    }
-
-    .component__header-button {
-        @include closeButton();
-    }
-
-    .component__actions {
-        @include actionsFooter();
-        background-image: $color-window-bg;
-        padding: $spacing-xxsmall $spacing-medium;
-
-        &-content {
-            display: flex;
-            width: 100%;
-            max-width: 400px;
-            margin-left: auto;
-            align-items: baseline;
-        }
-
-        &-form {
-            flex: 2;
-        }
-    }
-}
-
-.breadcrumbs {
-    padding: $spacing-small 0 $spacing-small $spacing-small;
-    background-color: $color-bg;
-
-    &__button {
-        display: inline;
-        position: relative;
-        cursor: pointer;
-        border: none;
-        background: none;
-        padding-left: $spacing-xsmall;
-        padding-right: 0;
-        font-size: 100%;
-        @include customFont();
-
-        &:after {
-            content: " /";
-        }
-
-        &:hover {
-            color: $color-4;
-        }
-
-        &--active {
-            color: #FFF;
-        }
-
-        &:disabled {
-            color: inherit;
-        }
-    }
-}
-
-.entry {
-    display: inline-block;
-    min-width: 128px;
-    height: 128px;
-    vertical-align: top;
-    position: relative;
-    cursor: pointer;
-    @include customFont();
-
-    .title {
-        position: absolute;
-        bottom: $spacing-medium;
-        width: 100%;
-        text-align: center;
-        @include truncate();
-    }
-
-    &__icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: inherit;
-        height: inherit;
-
-        &--folder {
-            background: url("../../assets-inline/images/folder.png") no-repeat 50% $spacing-xlarge;
-            background-size: 50%;
-        }
-
-        &--document {
-            background: url("../../assets-inline/images/icon-bpy.svg") no-repeat 50% $spacing-xlarge;
-            background-size: 50%;
-        }
-    }
-
-    &__delete-button {
-        display: none;
-        position: absolute;
-        z-index: 1;
-        cursor: pointer;
-        top: -$spacing-small;
-        right: -$spacing-small;
-        background-color: #FFF;
-        color: $color-1;
-        width: $spacing-large;
-        height: $spacing-large;
-        border: none;
-        border-radius: 50%;
-    }
-
-    &:hover {
-        .entry__icon--folder,
-        .entry__icon--document {
-            background-color: $color-1;
-            color: #FFF;
-        }
-
-        .entry__delete-button {
-            display: block;
-        }
-    }
-
-    &__disabled {
-        opacity: 0.5;
-
-        &:hover {
-            .entry__delete-button {
-                display: none;
-            }
-        }
-    }
-}
-</style>
