@@ -60,7 +60,6 @@
                                 :class="{
                                     'layer--active': element.index === activeLayerIndex
                                 }"
-                                @dblclick="handleLayerDoubleClick( element )"
                             >
                                 <!-- layer name is an input on double click -->
                                 <input
@@ -68,8 +67,9 @@
                                     ref="nameInput"
                                     class="input-field layer__name-input"
                                     :value="element.name"
-                                    @blur="editable = false"
-                                    @keyup.enter="editable = false"
+                                    @blur="setEditable( false )"
+                                    @keyup.enter="setEditable( false )"
+                                    @keyup.esc="setEditable( false )"
                                     @change="updateActiveLayerName"
                                 />
                                 <span
@@ -79,6 +79,7 @@
                                     :class="{
                                         'layer--highlight': element.index === activeLayerIndex && !activeLayerMask
                                     }"
+                                    @dblclick="handleLayerDoubleClick( element )"
                                     @click="handleLayerClick( element )"
                                 >{{ element.name }}</span>
                                 <div class="layer__actions">
@@ -223,16 +224,6 @@ export default {
             return this.hasSelection || NON_OVERRIDABLE_TOOLS.includes( this.activeTool );
         },
     },
-    watch: {
-        editable( value: boolean ): void {
-            KeyboardService.setSuspended( value );
-            if ( value ) {
-                this.$nextTick(() => {
-                    focus( this.$refs.nameInput[0] );
-                });
-            }
-        },
-    },
     methods: {
         ...mapMutations([
             "openModal",
@@ -245,11 +236,6 @@ export default {
         ]),
         requestLayerAdd(): void {
             this.openModal( ADD_LAYER );
-        },
-        async handleLayerDoubleClick( /* layer: IndexedLayer */ ): Promise<void> {
-            this.editable = true;
-            await this.$nextTick();
-            this.$refs.nameInput[ 0 ]?.select(); // focused layer will always be at 0 index nameInput
         },
         updateActiveLayerName({ target }): void {
             const newName     = target.value;
@@ -336,6 +322,10 @@ export default {
                 }
             });
         },
+        handleLayerDoubleClick( layer: IndexedLayer ): void {
+            this.setActiveLayerIndex( layer.index );
+            this.setEditable( true );
+        },
         handleLayerClick( layer: IndexedLayer ): void {
             this.setActiveLayerIndex( layer.index );
             getSpriteForLayer( layer )?.setActionTarget( "source" );
@@ -370,7 +360,7 @@ export default {
                     this.handleFiltersClick( this.activeLayerIndex );
                     break;
                 case 27: // escape
-                    this.editable = false;
+                    this.setEditable( false );
                     this.showFilters = false;
                     break;
                 case 32: // spacebar
@@ -384,6 +374,18 @@ export default {
                     break;
             }
             event.preventDefault();
+        },
+        async setEditable( value: boolean ): Promise<void> {
+            const isEditable = this.editable;
+            this.editable = value;
+
+            KeyboardService.setSuspended( value );
+
+            if ( !isEditable && value ) {
+                await this.$nextTick(); // allow component to update with input field
+                focus( this.$refs.nameInput );
+                this.$refs.nameInput?.select();
+            }
         },
     },
 };
