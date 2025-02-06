@@ -64,12 +64,10 @@ const DocumentModule: Module<DocumentState, any> = {
         activeLayerMask: ( state: DocumentState, getters: any ): HTMLCanvasElement | null => {
             return ( state.maskActive && getters.activeLayer.mask ) || null;
         },
-        // @ts-expect-error state is declared but never read
-        activeLayerEffects: ( state: DocumentState, getters: any ): Effects => {
+        activeLayerEffects: ( _: DocumentState, getters: any ): Effects => {
             return getters.activeLayer?.effects || {};
         },
-        // @ts-expect-error state is declared but never read
-        hasSelection: ( state: DocumentState, getters: any ): boolean => {
+        hasSelection: ( _: DocumentState, getters: any ): boolean => {
             if ( !getters.activeDocument ) {
                 return false;
             }
@@ -128,7 +126,12 @@ const DocumentModule: Module<DocumentState, any> = {
         insertLayerAtIndex( state: DocumentState, { index, layer }: { index: number, layer: Layer }): void {
             layer = layer.id ? layer : LayerFactory.create( layer );
             const document = state.documents[ state.activeIndex ];
-            document.layers.splice( index, 0, layer );
+            const updatedLayers = [
+                ...document.layers.slice(0 , index ),
+                layer,
+                ...document.layers.slice( index ),
+            ];
+            document.layers = updatedLayers;
             state.activeLayerIndex = index;
         },
         swapLayers( state: DocumentState, { index1, index2 }: { index1: number, index2: number } ): void {

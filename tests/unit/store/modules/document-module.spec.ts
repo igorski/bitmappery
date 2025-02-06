@@ -297,7 +297,7 @@ describe( "Vuex document module", () => {
                 };
                 const layer = { name: "layer3" };
                 mutations.insertLayerAtIndex( state, { index: 1, layer });
-                expect( state.documents[0].layers).toEqual([
+                expect( state.documents[ 0 ].layers ).toEqual([
                     { name: "layer1" }, layer, { name: "layer2" }
                 ]);
                 expect( state.activeLayerIndex ).toEqual( 1 );

@@ -48,7 +48,7 @@ let UID = 0;
 let useWasm = false;
 let wasmWorker: Worker;
 
-// expose an Object in which we can keep treck of pending render jobs
+// expose an Object in which we can keep track of pending render jobs
 export const renderState = reactive({ pending: 0, reset: () => renderState.pending = 0 });
 
 export const setWasmFilters = ( enabled: boolean ): void => {
