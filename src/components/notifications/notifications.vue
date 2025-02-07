@@ -1,7 +1,7 @@
 /**
 * The MIT License (MIT)
 *
-* Igor Zinken 2019-2022 - https://www.igorski.nl
+* Igor Zinken 2019-2025 - https://www.igorski.nl
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 * this software and associated documentation files (the "Software"), to deal in
@@ -78,6 +78,8 @@ export default {
             }
             // trigger 1 sec close animation (see css)
             notificationVO.visible = false;
+            this.$forceUpdate();
+            
             window.setTimeout( this.removeNotification.bind( this, notificationVO ), 1000 );
         },
         removeNotification( notificationVO ) {

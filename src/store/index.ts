@@ -186,7 +186,7 @@ export default {
          * multiple notifications can be stacked.
          */
         showNotification( state: BitMapperyState, { message = "", title = null }: Notification ): void {
-            state.notifications.push({ title: title || translate( "title.success" ), message });
+            state.notifications = [ ...state.notifications, { title: title || translate( "title.success" ), message }];
         },
         clearNotifications( state: BitMapperyState ): void {
             state.notifications = [];
