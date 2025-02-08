@@ -55,6 +55,7 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { PANEL_TOOL_OPTIONS } from "@/definitions/panel-types";
 import ToolTypes from "@/definitions/tool-types";
@@ -82,35 +83,49 @@ export default {
          * are loaded asynchronously at runtime
          */
         activeToolOptions() {
+            let loader;
             switch ( this.activeTool ) {
                 default:
                     return null;
                 case ToolTypes.DRAG:
-                    return () => import( "./tool-options-drag/tool-options-drag.vue" );
+                    loader = () => import( "./tool-options-drag/tool-options-drag.vue" );
+                    break;
                 case ToolTypes.SELECTION:
                 case ToolTypes.LASSO:
-                    return () => import( "./tool-options-selection/tool-options-selection.vue" );
+                    loader =  () => import( "./tool-options-selection/tool-options-selection.vue" );
+                    break;
                 case ToolTypes.FILL:
-                    return () => import( "./tool-options-fill/tool-options-fill.vue" );
+                    loader =  () => import( "./tool-options-fill/tool-options-fill.vue" );
+                    break;
                 case ToolTypes.ZOOM:
-                    return () => import( "./tool-options-zoom/tool-options-zoom.vue" );
+                    loader =  () => import( "./tool-options-zoom/tool-options-zoom.vue" );
+                    break;
                 case ToolTypes.ERASER:
-                    return () => import( "./tool-options-eraser/tool-options-eraser.vue" );
+                    loader =  () => import( "./tool-options-eraser/tool-options-eraser.vue" );
+                    break;
                 case ToolTypes.BRUSH:
-                    return () => import( "./tool-options-brush/tool-options-brush.vue" );
+                    loader =  () => import( "./tool-options-brush/tool-options-brush.vue" );
+                    break;
                 case ToolTypes.CLONE:
-                    return () => import( "./tool-options-clone/tool-options-clone.vue" );
+                    loader =  () => import( "./tool-options-clone/tool-options-clone.vue" );
+                    break;
                 case ToolTypes.ROTATE:
-                    return () => import( "./tool-options-rotate/tool-options-rotate.vue" );
+                    loader =  () => import( "./tool-options-rotate/tool-options-rotate.vue" );
+                    break;
                 case ToolTypes.SCALE:
-                    return () => import( "./tool-options-scale/tool-options-scale.vue" );
+                    loader =  () => import( "./tool-options-scale/tool-options-scale.vue" );
+                    break;
                 case ToolTypes.MIRROR:
-                    return () => import( "./tool-options-mirror/tool-options-mirror.vue" );
+                    loader =  () => import( "./tool-options-mirror/tool-options-mirror.vue" );
+                    break;
                 case ToolTypes.TEXT:
-                    return () => import( "./tool-options-text/tool-options-text.vue" );
+                    loader =  () => import( "./tool-options-text/tool-options-text.vue" );
+                    break;
                 case ToolTypes.WAND:
-                    return () => import( "./tool-options-wand/tool-options-wand.vue" );
+                    loader =  () => import( "./tool-options-wand/tool-options-wand.vue" );
+                    break;
             }
+            return defineAsyncComponent({ loader });
         },
     },
     methods: {

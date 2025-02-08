@@ -42,11 +42,11 @@ describe( "Vuex document module", () => {
         });
 
         it( "should be able to retrieve the Layers for the active Document", () => {
-            const state = {};
-            const mockedGetters = {
-                activeDocument: { layers: [ { name: "foo" }, { name: "bar" } ] },
+            const state = {
+                documents: [ { name: "foo", layers: [ { name: "foo" }, { name: "bar" } ] } ],
+                activeIndex: 0
             };
-            expect( getters.layers( state, mockedGetters )).toEqual( mockedGetters.activeDocument.layers );
+            expect( getters.layers( state )).toEqual( state.documents[ 0 ].layers );
         });
 
         it( "should be able to retrieve the active Layer index", () => {
@@ -297,7 +297,7 @@ describe( "Vuex document module", () => {
                 };
                 const layer = { name: "layer3" };
                 mutations.insertLayerAtIndex( state, { index: 1, layer });
-                expect( state.documents[0].layers).toEqual([
+                expect( state.documents[ 0 ].layers ).toEqual([
                     { name: "layer1" }, layer, { name: "layer2" }
                 ]);
                 expect( state.activeLayerIndex ).toEqual( 1 );

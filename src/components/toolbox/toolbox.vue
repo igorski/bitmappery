@@ -71,7 +71,7 @@
                 v-for="tool in tools"
                 :key="tool.type"
                 type="button"
-                v-tooltip="`${$t( tool.i18n )} (${tool.key})`"
+                v-tooltip.right="`${$t( tool.i18n )} (${tool.key})`"
                 :title="$t( tool.i18n )"
                 class="tool-button"
                 :class="{
@@ -96,6 +96,7 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { LayerTypes } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS } from "@/definitions/panel-types";
@@ -122,7 +123,9 @@ export default {
         ]),
         colorPicker() {
             // load async as this adds to the bundle size
-            return () => import( "@/components/ui/color-picker/color-picker.vue" );
+            return defineAsyncComponent({
+                loader: () => import( "@/components/ui/color-picker/color-picker.vue" )
+            });
         },
         collapsed: {
             get() {

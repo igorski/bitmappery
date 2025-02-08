@@ -73,7 +73,7 @@
 </template>
 
 <script lang="ts">
-import type { Component } from "vue";
+import { type Component, defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
@@ -118,21 +118,27 @@ export default {
             }
             return out;
         },
-        dropboxSaveComponent(): Component {
+        dropboxSaveComponent(): Promise<Component> | null {
             if ( this.storageLocation === STORAGE_TYPES.DROPBOX ) {
-                return () => import( "./dropbox/save-dropbox-document.vue" );
+                return defineAsyncComponent({
+                    loader: () => import( "./dropbox/save-dropbox-document.vue" )
+                });
             }
             return null;
         },
-        driveSaveComponent(): Component {
+        driveSaveComponent(): Promise<Component> | null {
             if ( this.storageLocation === STORAGE_TYPES.DRIVE ) {
-                return () => import( "./google-drive/save-google-drive-document.vue" );
+                return defineAsyncComponent({
+                    loader: () => import( "./google-drive/save-google-drive-document.vue" )
+                });
             }
             return null;
         },
-        s3SaveComponent(): Component {
+        s3SaveComponent(): Promise<Component> | null {
             if ( this.storageLocation === STORAGE_TYPES.S3 ) {
-                return () => import( "./aws-s3/save-s3-document.vue" );
+                return defineAsyncComponent({
+                    loader: () => import( "./aws-s3/save-s3-document.vue" )
+                });
             }
             return null;
         },

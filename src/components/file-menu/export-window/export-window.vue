@@ -153,9 +153,9 @@
 </template>
 
 <script lang="ts">
-import type { Component } from "vue";
+import { type Component, defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
-import { ToggleButton } from "vue-js-toggle-button";
+import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
@@ -247,21 +247,27 @@ export default {
             }
             return out;
         },
-        dropboxSaveComponent(): Component {
+        dropboxSaveComponent(): Promise<Component> | null {
             if ( this.storageLocation === STORAGE_TYPES.DROPBOX ) {
-                return () => import( "@/components/file-menu/save-document/dropbox/save-dropbox-document.vue" );
+                return defineAsyncComponent({
+                    loader: () => import( "@/components/file-menu/save-document/dropbox/save-dropbox-document.vue" )
+                });
             }
             return null;
         },
-        driveSaveComponent(): Component {
+        driveSaveComponent(): Promise<Component> | null {
             if ( this.storageLocation === STORAGE_TYPES.DRIVE ) {
-                return () => import( "@/components/file-menu/save-document/google-drive/save-google-drive-document.vue" );
+                return defineAsyncComponent({
+                    loader: () => import( "@/components/file-menu/save-document/google-drive/save-google-drive-document.vue" )
+                });
             }
             return null;
         },
-        s3SaveComponent(): Component {
+        s3SaveComponent(): Promise<Component> | null {
             if ( this.storageLocation === STORAGE_TYPES.S3 ) {
-                return () => import( "@/components/file-menu/save-document/aws-s3/save-s3-document.vue" );
+                return defineAsyncComponent({
+                    loader: () => import( "@/components/file-menu/save-document/aws-s3/save-s3-document.vue" )
+                });
             }
             return null;
         },
@@ -287,7 +293,7 @@ export default {
         });
         this.renderPreview();
     },
-    beforeDestroy(): void {
+    beforeUnmount(): void {
         this.base64preview = null;
         this.snapshots = null;
         this.snapshot = null;

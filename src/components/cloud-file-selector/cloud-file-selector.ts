@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,109 +20,13 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-<template>
-    <div class="cloud-file-modal">
-        <div class="component__header">
-            <h2 v-t="'files'" class="component__title"></h2>
-            <button
-                type="button"
-                class="component__header-button"
-                @click="closeModal()"
-            >&#215;</button>
-        </div>
-        <div ref="content" class="component__content">
-            <div v-if="leaf" class="content__wrapper">
-                <div class="breadcrumbs">
-                    <!-- parent folders -->
-                    <button
-                        v-for="parent in breadcrumbs"
-                        :key="parent.path"
-                        :disabled="disabled"
-                        type="button"
-                        class="breadcrumbs__button"
-                        @click="handleNodeClick( parent )"
-                    >{{ parent.name || "." }}</button>
-                    <!-- current folder -->
-                    <button
-                        :disabled="disabled"
-                        type="button"
-                        class="breadcrumbs__button breadcrumbs__button--active"
-                    >{{ leaf.name }}</button>
-                </div>
-                <div v-if="!loading" class="content__folders">
-                    <!-- files and folders within current leaf -->
-                    <p v-if="!filesAndFolders.length" v-t="'noImageFiles'"></p>
-                    <template v-else>
-                        <div
-                            v-for="node in filesAndFolders"
-                            :key="`entry_${node.path}`"
-                            class="entry"
-                            :class="{ 'entry__disabled': disabled }"
-                        >
-                            <div
-                                v-if="node.type === 'folder'"
-                                class="entry__icon entry__icon--folder"
-                                @click="handleNodeClick( node )"
-                            >
-                                <span class="title">{{ node.name }}</span>
-                            </div>
-                            <div
-                                v-else-if="node.type === 'bpy'"
-                                class="entry__icon entry__icon--document"
-                                @click="handleNodeClick( node )"
-                            >
-                                <span class="title">{{ node.name }}</span>
-                            </div>
-                            <component
-                                v-else
-                                :is="imagePreviewComponent"
-                                :node="node"
-                                class="entry__icon entry__icon--image-preview"
-                                @click="handleNodeClick( node )"
-                            />
-                            <button
-                                type="button"
-                                class="entry__delete-button"
-                                :title="$t('delete')"
-                                @click="handleDeleteClick( node )"
-                            >x</button>
-                        </div>
-                    </template>
-                </div>
-            </div>
-        </div>
-        <div class="component__actions">
-            <div class="component__actions-content">
-                <div class="form component__actions-form">
-                    <div class="wrapper input">
-                        <input
-                            v-model="newFolderName"
-                            :placeholder="$t('newFolderName')"
-                            :disabled="disabled"
-                            type="text"
-                            class="input-field full"
-                        />
-                    </div>
-                </div>
-                <button
-                    v-t="'createFolder'"
-                    type="button"
-                    class="button"
-                    :disabled="!newFolderName || disabled"
-                    @click="handleCreateFolderClick()"
-                ></button>
-            </div>
-        </div>
-    </div>
-</template>
-
-<script lang="ts">
 import type { Component } from "vue";
 import { mapState, mapMutations, mapActions } from "vuex";
 import { loader } from "zcanvas";
 import { ACCEPTED_FILE_EXTENSIONS, isThirdPartyDocument, getMimeForThirdPartyDocument } from "@/definitions/file-types";
 import type { FileNode } from "@/definitions/storage-types";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
+import { focus } from "@/utils/environment-util";
 import { truncate } from "@/utils/string-util";
 import { disposeResource } from "@/utils/resource-manager";
 
@@ -157,10 +61,23 @@ function findLeafByPath( node: FileNode, path: string ): FileNode {
     return recurseChildren( node, path );
 }
 
+interface ICloudFileSelectorProps {
+    LAST_FOLDER_STORAGE_KEY: string;
+    STORAGE_PROVIDER: string;
+    tree: {
+        type: string;
+        name: string;
+        path: string;
+        children: FileNode[];
+    },
+    leaf: FileNode | null;
+    newFolderName: string;
+};
+
 export default {
     i18n: { messages },
     mixins: [ ImageToDocumentManager ],
-    data: () => ({
+    data: (): ICloudFileSelectorProps => ({
         LAST_FOLDER_STORAGE_KEY : "x", // define in inheriting component
         STORAGE_PROVIDER        : "", // name of storage provider (e.g. Dropbox, Drive) define in inheriting component
         tree: {
@@ -184,7 +101,7 @@ export default {
         },
         breadcrumbs(): FileNode[] {
             let parent = this.leaf.parent;
-            const out = [];
+            const out: FileNode[] = [];
             while ( parent ) {
                 out.push( parent );
                 parent = parent.parent;
@@ -192,7 +109,7 @@ export default {
             return out.reverse();
         },
         filesAndFolders(): FileNode[] {
-            return this.leaf.children.filter( entry => {
+            return this.leaf.children.filter(( entry: FileNode ): boolean => {
                 // only show folders and image files
                 if ( entry.type === "file" ) {
                     return ACCEPTED_FILE_EXTENSIONS.some( ext => entry.name.includes( `.${ext}` ));
@@ -200,20 +117,20 @@ export default {
                 return true;
             });
         },
-        imagePreviewComponent(): Component {
+        imagePreviewComponent(): Component | null {
             return null; // extend in inheriting components
         },
     },
     mounted(): void {
         focus( this.$refs.content );
-        this.escListener = ({ keyCode }) => {
+        this.escListener = ({ keyCode }: KeyboardEvent ) => {
             if ( keyCode === 27 ) {
                 this.closeModal();
             }
         };
         window.addEventListener( "keyup", this.escListener );
     },
-    destroyed(): void {
+    unmounted(): void {
         window.removeEventListener( "keyup", this.escListener );
     },
     methods: {
@@ -228,10 +145,10 @@ export default {
         ...mapActions([
             "loadDocument",
         ]),
-        async retrieveFiles( path ): Promise<void> {
+        async retrieveFiles( path: string ): Promise<void> {
             this.setLoading( RETRIEVAL_LOAD_KEY );
             try {
-                const entries = await this._listFolder( path );
+                const entries: FileNode[] = await this._listFolder( path );
                 let leaf = findLeafByPath( this.tree, path );
 
                 if ( !leaf ) {
@@ -243,7 +160,7 @@ export default {
 
                 // populate leaf with fetched children
                 leaf.children = ( entries?.map( entry => this._mapEntry( entry, [], parent )) ?? [] )
-                    .sort(( a, b ) => {
+                    .sort(( a: FileNode, b: FileNode ): number => {
                         if ( a.type < b.type ) {
                             return 1;
                         } else if ( a.type > b.type ) {
@@ -351,197 +268,20 @@ export default {
         _getServicePathForNode( node: FileNode ): string {
             return node.path;
         },
-        // eslint-disable-next-line no-unused-vars
-        async _listFolder( path: string ): Promise<FileNode[]> {
+        async _listFolder( _path: string ): Promise<FileNode[]> {
             return [];
         },
-        // eslint-disable-next-line no-unused-vars
-        async _createFolder( parent: FileNode, name: string ): Promise<boolean> {
+        async _createFolder( _parent: FileNode, _name: string ): Promise<boolean> {
             return false;
         },
-        // eslint-disable-next-line no-unused-vars
-        async _downloadFile( node: FileNode, returnAsURL = false  ): Promise<Blob | string | null> {
+        async _downloadFile( _node: FileNode, _returnAsURL = false  ): Promise<Blob | string | null> {
             return null;
         },
-        // eslint-disable-next-line no-unused-vars
-        async _deleteEntry( node: FileNode ): Promise<boolean> {
+        async _deleteEntry( _node: FileNode ): Promise<boolean> {
             return false;
         },
-        // eslint-disable-next-line no-unused-vars
-        _mapEntry( entry: FileNode, children: FileNode[] = [], parent: FileNode = null ): FileNode {
+        _mapEntry( _entry: FileNode, _children: FileNode[] = [], _parent: FileNode = null ): FileNode {
             return {} as FileNode;
         }
     }
 };
-</script>
-
-<style lang="scss" scoped>
-@import "@/styles/component";
-@import "@/styles/form";
-@import "@/styles/typography";
-@import "@/styles/ui";
-
-$actionsHeight: 74px;
-
-.cloud-file-modal {
-    @include overlay();
-    @include component();
-
-    .component__title {
-        color: #FFF;
-    }
-
-    @include large() {
-        width: 80%;
-        height: 85%;
-        max-width: 1280px;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-    }
-
-    .content__wrapper {
-        height: 100%;
-    }
-
-    .content__folders {
-        overflow: auto;
-        height: calc(100% - #{$heading-height + $actionsHeight});
-        padding-top: $spacing-small;
-    }
-
-    @include mobile() {
-        .component__content {
-            height: calc(100% - #{$actionsHeight});
-        }
-    }
-
-    .component__header-button {
-        @include closeButton();
-    }
-
-    .component__actions {
-        @include actionsFooter();
-        background-image: $color-window-bg;
-        padding: $spacing-xxsmall $spacing-medium;
-
-        &-content {
-            display: flex;
-            width: 100%;
-            max-width: 400px;
-            margin-left: auto;
-            align-items: baseline;
-        }
-
-        &-form {
-            flex: 2;
-        }
-    }
-}
-
-.breadcrumbs {
-    padding: $spacing-small 0 $spacing-small $spacing-small;
-    background-color: $color-bg;
-
-    &__button {
-        display: inline;
-        position: relative;
-        cursor: pointer;
-        border: none;
-        background: none;
-        padding-left: $spacing-xsmall;
-        padding-right: 0;
-        font-size: 100%;
-        @include customFont();
-
-        &:after {
-            content: " /";
-        }
-
-        &:hover {
-            color: $color-4;
-        }
-
-        &--active {
-            color: #FFF;
-        }
-
-        &:disabled {
-            color: inherit;
-        }
-    }
-}
-
-.entry {
-    display: inline-block;
-    min-width: 128px;
-    height: 128px;
-    vertical-align: top;
-    position: relative;
-    cursor: pointer;
-    @include customFont();
-
-    .title {
-        position: absolute;
-        bottom: $spacing-medium;
-        width: 100%;
-        text-align: center;
-        @include truncate();
-    }
-
-    &__icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: inherit;
-        height: inherit;
-
-        &--folder {
-            background: url("../../assets-inline/images/folder.png") no-repeat 50% $spacing-xlarge;
-            background-size: 50%;
-        }
-
-        &--document {
-            background: url("../../assets-inline/images/icon-bpy.svg") no-repeat 50% $spacing-xlarge;
-            background-size: 50%;
-        }
-    }
-
-    &__delete-button {
-        display: none;
-        position: absolute;
-        z-index: 1;
-        cursor: pointer;
-        top: -$spacing-small;
-        right: -$spacing-small;
-        background-color: #FFF;
-        color: $color-1;
-        width: $spacing-large;
-        height: $spacing-large;
-        border: none;
-        border-radius: 50%;
-    }
-
-    &:hover {
-        .entry__icon--folder,
-        .entry__icon--document {
-            background-color: $color-1;
-            color: #FFF;
-        }
-
-        .entry__delete-button {
-            display: block;
-        }
-    }
-
-    &__disabled {
-        opacity: 0.5;
-
-        &:hover {
-            .entry__delete-button {
-                display: none;
-            }
-        }
-    }
-}
-</style>

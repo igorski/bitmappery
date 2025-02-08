@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,7 +20,6 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import Vue from "vue";
 import type { ActionContext, Module } from "vuex";
 import type { Document } from "@/definitions/document";
 import {
@@ -81,7 +80,7 @@ const ImageModule: Module<ImageState, any> = {
             if ( index === -1 ) {
                 return;
             }
-            Vue.delete( state.images, index );
+            state.images.splice( index, 1 );
         },
         /**
          * Invoke when closing a document, this frees memory allocated in addImage()

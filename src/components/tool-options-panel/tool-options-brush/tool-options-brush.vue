@@ -89,7 +89,7 @@ import ToolTypes, { MAX_BRUSH_SIZE, canDraw } from "@/definitions/tool-types";
 import BrushTypes from "@/definitions/brush-types";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
-import { ToggleButton } from "vue-js-toggle-button";
+import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import messages from "./messages.json";
 
 export default {

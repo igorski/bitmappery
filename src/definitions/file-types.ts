@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { ALL_IMAGE_TYPES, ACCEPTED_IMAGE_TYPES, ACCEPTED_IMAGE_EXTENSIONS, JPEG } from "@/definitions/image-types";
+import { type FileNode } from "@/definitions/storage-types";
 
 export const PROJECT_FILE_EXTENSION = "bpy"; // BitMappery document
 export const PREVIEW_THUMBNAIL = "bpp"; // BitMappery document preview
@@ -39,12 +40,12 @@ export const isProjectFile = ( file: File ): boolean => {
     return ext === PROJECT_FILE_EXTENSION;
 };
 
-export const getMimeForThirdPartyDocument = ( file: File ): string | undefined => {
+export const getMimeForThirdPartyDocument = ( file: File | FileNode ): string | undefined => {
     const [ , fileExtension ] = file.name.split( "." );
     return THIRD_PARTY_DOCUMENTS.find(({ ext }) => ext === fileExtension )?.mime;
 };
 
-export const isThirdPartyDocument = ( file: File ): boolean => {
+export const isThirdPartyDocument = ( file: File | FileNode ): boolean => {
     return getMimeForThirdPartyDocument( file ) !== undefined;
 };
 

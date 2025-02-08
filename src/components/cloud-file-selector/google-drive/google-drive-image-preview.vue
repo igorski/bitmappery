@@ -24,7 +24,7 @@
     <div class="image-preview">
         <img
             :src="node.preview"
-            v-on="$listeners"
+            v-bind="$attrs"
             class="image-preview__image"
         />
     </div>

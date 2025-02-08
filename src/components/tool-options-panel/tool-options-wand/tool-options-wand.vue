@@ -53,7 +53,7 @@
 
 <script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
-import { ToggleButton } from "vue-js-toggle-button";
+import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import KeyboardService from "@/services/keyboard-service";
 import ToolTypes from "@/definitions/tool-types";
 import messages from "./messages.json";

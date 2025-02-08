@@ -149,7 +149,7 @@ export default {
         window.addEventListener( "keydown", this._handler );
         window.addEventListener( "keyup",  this._handler );
     },
-    destroyed() {
+    unmounted() {
         window.removeEventListener( "keydown", this._handler );
         window.removeEventListener( "keyup",   this._handler );
     },

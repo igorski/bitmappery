@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -53,67 +53,68 @@
                     v-if="reverseLayers.length"
                     class="layer-list"
                 >
-                    <draggable v-model="reverseLayers">
-                        <div
-                            v-for="layer in reverseLayers"
-                            :key="layer.id"
-                            class="layer"
-                            :class="{
-                                'layer--active': layer.index === activeLayerIndex
-                            }"
-                            @dblclick="handleLayerDoubleClick( layer )"
-                        >
-                            <!-- layer name is an input on double click -->
-                            <input
-                                v-if="editable && layer.index === activeLayerIndex"
-                                ref="nameInput"
-                                class="input-field layer__name-input"
-                                :value="layer.name"
-                                @blur="editable = false"
-                                @keyup.enter="editable = false"
-                                @change="updateActiveLayerName"
-                            />
-                            <span
-                                v-else
-                                v-tooltip="$t( layer.mask && layer.mask === activeLayerMask ? 'clickToEditLayer' : 'dblClickToRename')"
-                                class="layer__name"
+                    <draggable v-model="reverseLayers" itemKey="id">
+                        <template #item="{element}">
+                            <div
+                                class="layer"
                                 :class="{
-                                    'layer--highlight': layer.index === activeLayerIndex && !activeLayerMask
+                                    'layer--active': element.index === activeLayerIndex
                                 }"
-                                @click="handleLayerClick( layer )"
-                            >{{ layer.name }}</span>
-                            <div class="layer__actions">
-                                <!-- optional layer mask -->
-                                <button
-                                    v-if="layer.mask"
-                                    v-tooltip="$t('clickToEditMask')"
-                                    class="layer__actions-button button--ghost"
+                            >
+                                <!-- layer name is an input on double click -->
+                                <input
+                                    v-if="editable && element.index === activeLayerIndex"
+                                    ref="nameInput"
+                                    class="input-field layer__name-input"
+                                    :value="element.name"
+                                    @blur="setEditable( false )"
+                                    @keyup.enter="setEditable( false )"
+                                    @keyup.esc="setEditable( false )"
+                                    @change="updateActiveLayerName"
+                                />
+                                <span
+                                    v-else
+                                    v-tooltip.left="$t( element.mask && element.mask === activeLayerMask ? 'clickToEditLayer' : 'dblClickToRename')"
+                                    class="layer__name"
                                     :class="{
-                                        'layer--highlight': layer.mask === activeLayerMask
+                                        'layer--highlight': element.index === activeLayerIndex && !activeLayerMask
                                     }"
-                                    @click="handleLayerMaskClick( layer )"
-                                ><img src="@/assets-inline/images/icon-mask.svg" /></button>
-                                <button
-                                    v-tooltip="$t('toggleVisibility')"
-                                    type="button"
-                                    class="layer__actions-button button--ghost"
-                                    @click="toggleLayerVisibility( layer.index )"
-                                    :class="{ 'layer__actions-button--disabled': !layer.visible }"
-                                ><img src="@/assets-inline/images/icon-eye.svg" /></button>
-                                <button
-                                    v-tooltip="$t('filters')"
-                                    type="button"
-                                    class="layer__actions-button button--ghost"
-                                    @click="handleFiltersClick( layer.index )"
-                                ><img src="@/assets-inline/images/icon-settings.svg" /></button>
-                                <button
-                                    v-tooltip="$t( layer.mask ? 'deleteMask' : 'deleteLayer' )"
-                                    type="button"
-                                    class="layer__actions-button button--ghost"
-                                    @click="handleRemoveClick( layer.index )"
-                                ><img src="@/assets-inline/images/icon-trashcan.svg" /></button>
+                                    @dblclick="handleLayerDoubleClick( element )"
+                                    @click="handleLayerClick( element )"
+                                >{{ element.name }}</span>
+                                <div class="layer__actions">
+                                    <!-- optional layer mask -->
+                                    <button
+                                        v-if="element.mask"
+                                        v-tooltip="$t('clickToEditMask')"
+                                        class="layer__actions-button button--ghost"
+                                        :class="{
+                                            'layer--highlight': element.mask === activeLayerMask
+                                        }"
+                                        @click="handleLayerMaskClick( element )"
+                                    ><img src="@/assets-inline/images/icon-mask.svg" /></button>
+                                    <button
+                                        v-tooltip="$t('toggleVisibility')"
+                                        type="button"
+                                        class="layer__actions-button button--ghost"
+                                        @click="toggleLayerVisibility( element.index )"
+                                        :class="{ 'layer__actions-button--disabled': !element.visible }"
+                                    ><img src="@/assets-inline/images/icon-eye.svg" /></button>
+                                    <button
+                                        v-tooltip="$t('filters')"
+                                        type="button"
+                                        class="layer__actions-button button--ghost"
+                                        @click="handleFiltersClick( element.index )"
+                                    ><img src="@/assets-inline/images/icon-settings.svg" /></button>
+                                    <button
+                                        v-tooltip="$t( element.mask ? 'deleteMask' : 'deleteLayer' )"
+                                        type="button"
+                                        class="layer__actions-button button--ghost"
+                                        @click="handleRemoveClick( element.index )"
+                                    ><img src="@/assets-inline/images/icon-trashcan.svg" /></button>
+                                </div>
                             </div>
-                        </div>
+                        </template>
                     </draggable>
                 </div>
                 <p
@@ -142,11 +143,13 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { ADD_LAYER } from "@/definitions/modal-windows";
 import { PANEL_LAYERS } from "@/definitions/panel-types";
 import ToolTypes from "@/definitions/tool-types";
+import type { Layer } from "@/definitions/types/document";
 import { createCanvas } from "@/utils/canvas-util";
 import { toggleLayerVisibility } from "@/factories/action-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
@@ -157,11 +160,13 @@ import messages from "./messages.json";
 
 const NON_OVERRIDABLE_TOOLS = [ ToolTypes.MOVE, ToolTypes.DRAG ];
 
+type IndexedLayer = Layer & { index: number };
+
 export default {
     i18n: { messages },
     components: {
-        Draggable    : () => import( "vuedraggable" ),
-        LayerFilters : () => import( "@/components/layer-filters/layer-filters.vue" )
+        Draggable    : defineAsyncComponent({ loader: () => import( "vuedraggable" ) }),
+        LayerFilters : defineAsyncComponent({ loader: () => import( "@/components/layer-filters/layer-filters.vue" ) }),
     },
     data: () => ({
         editable: false,
@@ -181,19 +186,19 @@ export default {
             "layers",
         ]),
         collapsed: {
-            get() {
+            get(): boolean {
                 return !this.openedPanels.includes( PANEL_LAYERS );
             },
-            set() {
+            set(): void {
                 this.setOpenedPanel( PANEL_LAYERS );
             }
         },
         reverseLayers: {
-            get() {
+            get(): IndexedLayer[] {
                 // we like to see the highest layer on top, so reverse order for v-for templating
                 return this.layers?.slice().map(( layer, index ) => ({ ...layer, index })).reverse() ?? [];
             },
-            set( value ) {
+            set( value: Layer[] ): void {
                 // when updating the Vuex store, we reverse the layers again
                 const originalOrder = this.reverseLayers.map(({ id }) => id ).reverse();
                 const updatedOrder  = value.map(({ id }) => id ).reverse();
@@ -212,21 +217,11 @@ export default {
                 });
             }
         },
-        currentLayerHasMask() {
+        currentLayerHasMask(): boolean {
             return !!this.activeLayer?.mask;
         },
-        overrideCustomKeyHandler() {
+        overrideCustomKeyHandler(): boolean {
             return this.hasSelection || NON_OVERRIDABLE_TOOLS.includes( this.activeTool );
-        },
-    },
-    watch: {
-        editable( value ) {
-            KeyboardService.setSuspended( value );
-            if ( value ) {
-                this.$nextTick(() => {
-                    focus( this.$refs.nameInput[0] );
-                });
-            }
         },
     },
     methods: {
@@ -239,15 +234,10 @@ export default {
             "setOpenedPanel",
             "openDialog",
         ]),
-        requestLayerAdd() {
+        requestLayerAdd(): void {
             this.openModal( ADD_LAYER );
         },
-        async handleLayerDoubleClick( /*layer*/ ) {
-            this.editable = true;
-            await this.$nextTick();
-            this.$refs.nameInput[ 0 ]?.select(); // focused layer will always be at 0 index nameInput
-        },
-        updateActiveLayerName({ target }) {
+        updateActiveLayerName({ target }): void {
             const newName     = target.value;
             const currentName = this.activeLayer.name;
             const index       = this.activeLayerIndex;
@@ -261,14 +251,14 @@ export default {
                 redo: commit,
             });
         },
-        toggleLayerVisibility( index ) {
+        toggleLayerVisibility( index: number): void {
             toggleLayerVisibility( this.$store, index );
         },
-        handleFiltersClick( index ) {
+        handleFiltersClick( index: number ): void {
             this.setActiveLayerIndex( index );
             this.showFilters = true;
         },
-        handleRemoveClick( index ) {
+        handleRemoveClick( index: number ): void {
             const layer = this.layers[ index ];
             if ( layer.mask ) {
                 this.requestMaskRemove( index );
@@ -276,7 +266,7 @@ export default {
                 this.requestLayerRemove( index );
             }
         },
-        requestLayerRemove( index ) {
+        requestLayerRemove( index: number ): void {
             const layer = this.layers[ index ];
             this.openDialog({
                 type: "confirm",
@@ -295,7 +285,7 @@ export default {
                 }
             });
         },
-        requestMaskAdd() {
+        requestMaskAdd(): void {
             const index   = this.activeLayerIndex;
             const mask    = createCanvas( this.activeLayer.width, this.activeLayer.height ).cvs;
             const curMask = this.activeLayerMask;
@@ -313,7 +303,7 @@ export default {
                 redo: commit,
             });
         },
-        requestMaskRemove( index ) {
+        requestMaskRemove( index: number ): void {
             const mask = this.layers[ index ].mask;
             this.openDialog({
                 type: "confirm",
@@ -332,7 +322,11 @@ export default {
                 }
             });
         },
-        handleLayerClick( layer ) {
+        handleLayerDoubleClick( layer: IndexedLayer ): void {
+            this.setActiveLayerIndex( layer.index );
+            this.setEditable( true );
+        },
+        handleLayerClick( layer: IndexedLayer ): void {
             this.setActiveLayerIndex( layer.index );
             getSpriteForLayer( layer )?.setActionTarget( "source" );
             /*
@@ -341,17 +335,17 @@ export default {
             }
             */
         },
-        handleLayerMaskClick( layer ) {
+        handleLayerMaskClick( layer: IndexedLayer ): void {
             this.setActiveLayerMask( layer.index );
             getSpriteForLayer( layer )?.setActionTarget( "mask" );
         },
-        handleFocus() {
+        handleFocus(): void {
             KeyboardService.setListener( this.handleKeyboard.bind( this ), false );
         },
-        handleBlur() {
+        handleBlur(): void {
             KeyboardService.setListener( null );
         },
-        handleKeyboard( type, keyCode, event ) {
+        handleKeyboard( type: string, keyCode: number, event: Event ): void {
             if ( type !== "up" || this.overrideCustomKeyHandler ) {
                 return;
             }
@@ -366,7 +360,7 @@ export default {
                     this.handleFiltersClick( this.activeLayerIndex );
                     break;
                 case 27: // escape
-                    this.editable = false;
+                    this.setEditable( false );
                     this.showFilters = false;
                     break;
                 case 32: // spacebar
@@ -380,6 +374,18 @@ export default {
                     break;
             }
             event.preventDefault();
+        },
+        async setEditable( value: boolean ): Promise<void> {
+            const isEditable = this.editable;
+            this.editable = value;
+
+            KeyboardService.setSuspended( value );
+
+            if ( !isEditable && value ) {
+                await this.$nextTick(); // allow component to update with input field
+                focus( this.$refs.nameInput );
+                this.$refs.nameInput?.select();
+            }
         },
     },
 };

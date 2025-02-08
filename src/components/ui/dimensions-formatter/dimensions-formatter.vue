@@ -1,7 +1,7 @@
 /**
 * The MIT License (MIT)
 *
-* Igor Zinken 2021 - https://www.igorski.nl
+* Igor Zinken 2021-2025 - https://www.igorski.nl
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 * this software and associated documentation files (the "Software"), to deal in
@@ -26,13 +26,15 @@
         <div class="wrapper input">
             <label v-t="'unit'"></label>
             <div class="select-combo">
-                <select-box :options="units"
-                             v-model="unit"
-                             class="first"
+                <select-box
+                    :options="units"
+                    v-model="unit"
+                    class="first"
                 />
-                <select-box v-model="dpi"
-                            :options="dpis"
-                            :disabled="!showDPI"
+                <select-box
+                    v-model="dpi"
+                    :options="dpis"
+                    :disabled="!showDPI"
                 />
             </div>
         </div>
@@ -57,7 +59,7 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import { pixelsToInch, pixelsToCm, pixelsToMm, inchesToPixels, cmToPixels, mmToPixels,  } from "@/math/unit-math";
 import messages from "./messages.json";
@@ -65,15 +67,16 @@ import messages from "./messages.json";
 const DPI   = [ 72, 97, 150, 300, 600 ];
 const UNITS = [ "px", "in", "cm", "mm" ];
 
-const toFixedFloat = ( value, exp = 2 ) => parseFloat( value.toFixed( exp ));
+const toFixedFloat = ( value: number, exp = 2 ): number => parseFloat( value.toFixed( exp ));
 
 export default {
+    emits: [ "update:modelValue" ],
     i18n: { messages },
     components: {
         SelectBox,
     },
     props: {
-        value: {
+        modelValue: {
             type: Object,
             required: true,
             validator: ({ width, height }) => typeof width === "number" && typeof height === "number"
@@ -85,38 +88,38 @@ export default {
         internalValue: {},
     }),
     computed: {
-        showDPI() {
+        showDPI(): boolean {
             return this.unit !== "px";
         },
-        dpis() {
+        dpis(): { label: string, value: string }[] {
             return DPI.map( dpi => ({ label: `${dpi} DPI`, value: dpi.toString() }));
         },
-        units() {
+        units(): { label: string, value: string }[] {
             return UNITS.map( unit => ({ label: this.$t( unit ), value: unit }));
         },
         translatedWidth: {
-            get() {
+            get(): number {
                 return this.valueFromPx( this.internalValue.width );
             },
-            set( value ) {
+            set( value: number ): void {
                 this.internalValue.width = this.valueToPx( value );
             },
         },
         translatedHeight: {
-            get() {
+            get(): number {
                 return this.valueFromPx( this.internalValue.height );
             },
-            set( value ) {
+            set( value: number ): number {
                 this.internalValue.height = this.valueToPx( value )
             },
         }
     },
     mounted() {
-        this.internalValue = { ...this.value };
+        this.internalValue = { ...this.modelValue };
     },
     watch: {
         internalValue( value ) {
-            this.$emit( "input", value );
+            this.$emit( "update:modelValue", value );
         },
         dpi( value, oldValue = value ) {
             const ratio = value / oldValue;
@@ -126,7 +129,7 @@ export default {
         }
     },
     methods: {
-        valueFromPx( valueInPx ) {
+        valueFromPx( valueInPx: number ): number {
             const dpi = parseFloat( this.dpi );
             switch ( this.unit ) {
                 default:
@@ -140,7 +143,7 @@ export default {
                     return toFixedFloat( pixelsToMm( valueInPx, dpi ));
             }
         },
-        valueToPx( value ) {
+        valueToPx( value: number ): number {
             switch ( this.unit ) {
                 default:
                 case "px":
@@ -152,7 +155,7 @@ export default {
                 case "mm":
                     return mmToPixels( value, this.dpi );
             }
-        }
+        },
     }
 };
 </script>

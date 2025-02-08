@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import Vue from "vue";
+import { reactive } from "vue";
 import type { Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
@@ -28,6 +28,7 @@ import { hasFilters, isEqual as isFiltersEqual } from "@/factories/filters-facto
 import { isEqual as isTextEqual } from "@/factories/text-factory";
 import { createCanvas, cloneCanvas, matchDimensions } from "@/utils/canvas-util";
 import { replaceLayerSource } from "@/utils/layer-util";
+import { clone } from "@/utils/object-util";
 import { getLayerCache, setLayerCache } from "@/rendering/cache/bitmap-cache";
 import type { RenderCache } from "@/rendering/cache/bitmap-cache";
 import { renderMultiLineText } from "@/rendering/text";
@@ -47,8 +48,8 @@ let UID = 0;
 let useWasm = false;
 let wasmWorker: Worker;
 
-// expose an Object in which we can keep treck of pending render jobs
-export const renderState = Vue.observable({ pending: 0, reset: () => renderState.pending = 0 });
+// expose an Object in which we can keep track of pending render jobs
+export const renderState = reactive({ pending: 0, reset: () => renderState.pending = 0 });
 
 export const setWasmFilters = ( enabled: boolean ): void => {
     useWasm = enabled;
@@ -189,7 +190,7 @@ const runFilterJob = ( source: HTMLCanvasElement, jobSettings: any ): Promise<Im
                 reject( optError );
             }
         });
-        worker.postMessage({ cmd: wasm ? "filterWasm" : "filter", id, imageData, ...jobSettings });
+        worker.postMessage({ cmd: wasm ? "filterWasm" : "filter", id, imageData, ...clone( jobSettings ) });
     })
 };
 

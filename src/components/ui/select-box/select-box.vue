@@ -39,8 +39,9 @@ import VueSelect from "vue-select";
 import "vue-select/dist/vue-select.css";
 
 export default {
+    emits: [ "update:modelValue" ],
     props: {
-        value: {
+        modelValue: {
             type: [ String, Number ],
             default: null,
         },
@@ -63,10 +64,10 @@ export default {
     computed: {
         internalValue: {
             get() {
-                return this.options.find(({ value }) => value === this.value );
+                return this.options.find(({ value }) => value === this.modelValue );
             },
             set({ value }) {
-                this.$emit( "input", value );
+                this.$emit( "update:modelValue", value );
             }
         },
     }

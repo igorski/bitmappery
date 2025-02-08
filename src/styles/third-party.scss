@@ -8,7 +8,7 @@
     background: transparent;
 
     &:hover {
-        border-color: #FFF;
+        border-color: $color;
         background-color: $color;
         color: $optHoverColor;
     }

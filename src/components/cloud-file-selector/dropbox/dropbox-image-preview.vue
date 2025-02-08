@@ -32,8 +32,8 @@
         />
         <img
             v-else
+            v-bind="$attrs"
             :src="src"
-            v-on="$listeners"
             class="image-preview__image"
             @load="handleImageLoad"
         />
@@ -71,7 +71,7 @@ export default {
                 }
             });
     },
-    destroyed() {
+    unmounted() {
         this._destroyed = true;
     },
     methods: {

@@ -128,7 +128,7 @@
 <script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import isEqual from "lodash.isequal";
-import { ToggleButton } from "vue-js-toggle-button";
+import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
 import { Layer, Filters } from "@/definitions/document";
@@ -139,6 +139,7 @@ import KeyboardService from "@/services/keyboard-service";
 import messages from "./messages.json";
 
 export default {
+    emits: [ "close" ],
     i18n: { messages },
     components: {
         SelectBox,
@@ -267,7 +268,7 @@ export default {
         this.internalValue = { ...this.filters };
         KeyboardService.setListener( this.handleKeyUp.bind( this ), false );
     },
-    beforeDestroy(): void {
+    beforeUnmount(): void {
         KeyboardService.setListener( null );
     },
     methods: {

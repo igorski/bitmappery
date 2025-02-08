@@ -58,7 +58,7 @@
     </modal>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import DocumentFactory from "@/factories/document-factory";
@@ -84,7 +84,7 @@ export default {
             "documents",
         ]),
     },
-    mounted() {
+    mounted(): void {
         this.name = this.$t( "newDocumentNum", { num: this.documents.length + 1 });
         focus( this.$refs.first );
     },
@@ -93,7 +93,7 @@ export default {
             "closeModal",
             "addNewDocument",
         ]),
-        async save() {
+        async save(): Promise<void> {
             this.addNewDocument( DocumentFactory.create({
                 name   : this.name,
                 width  : Math.round( this.dimensions.width ),

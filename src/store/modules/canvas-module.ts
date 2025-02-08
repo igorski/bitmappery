@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,7 +20,6 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import Vue from "vue";
 import type { Module } from "vuex";
 import type { CanvasDimensions } from "@/definitions/editor";
 
@@ -49,11 +48,7 @@ const CanvasModule: Module<CanvasState, any> = {
     },
     mutations: {
         setCanvasDimensions( state: CanvasState, { width, height, horizontalDominant, visibleWidth, visibleHeight, maxInScale, maxOutScale }: CanvasDimensions ) {
-            Vue.set(
-                state,
-                "canvasDimensions",
-                { width, height, horizontalDominant, visibleWidth, visibleHeight, maxInScale, maxOutScale }
-            );
+            state.canvasDimensions = { width, height, horizontalDominant, visibleWidth, visibleHeight, maxInScale, maxOutScale };
         },
     },
 };

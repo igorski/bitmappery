@@ -1,0 +1,93 @@
+<div class="cloud-file-modal">
+    <div class="component__header">
+        <h2 v-t="'files'" class="component__title"></h2>
+        <button
+            type="button"
+            class="component__header-button"
+            @click="closeModal()"
+        >&#215;</button>
+    </div>
+    <div ref="content" class="component__content">
+        <div v-if="leaf" class="content__wrapper">
+            <div class="breadcrumbs">
+                <!-- parent folders -->
+                <button
+                    v-for="parent in breadcrumbs"
+                    :key="parent.path"
+                    :disabled="disabled"
+                    type="button"
+                    class="breadcrumbs__button"
+                    @click="handleNodeClick( parent )"
+                >{{ parent.name || "." }}</button>
+                <!-- current folder -->
+                <button
+                    :disabled="disabled"
+                    type="button"
+                    class="breadcrumbs__button breadcrumbs__button--active"
+                >{{ leaf.name }}</button>
+            </div>
+            <div v-if="!loading" class="content__folders">
+                <!-- files and folders within current leaf -->
+                <p v-if="!filesAndFolders.length" v-t="'noImageFiles'"></p>
+                <template v-else>
+                    <div
+                        v-for="node in filesAndFolders"
+                        :key="`entry_${node.path}`"
+                        class="entry"
+                        :class="{ 'entry__disabled': disabled }"
+                    >
+                        <div
+                            v-if="node.type === 'folder'"
+                            class="entry__icon entry__icon--folder"
+                            @click="handleNodeClick( node )"
+                        >
+                            <span class="title">{{ node.name }}</span>
+                        </div>
+                        <div
+                            v-else-if="node.type === 'bpy'"
+                            class="entry__icon entry__icon--document"
+                            @click="handleNodeClick( node )"
+                        >
+                            <span class="title">{{ node.name }}</span>
+                        </div>
+                        <component
+                            v-else
+                            :is="imagePreviewComponent"
+                            :node="node"
+                            class="entry__icon entry__icon--image-preview"
+                            @click="handleNodeClick( node )"
+                        />
+                        <button
+                            type="button"
+                            class="entry__delete-button"
+                            :title="$t('delete')"
+                            @click="handleDeleteClick( node )"
+                        >x</button>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+    <div class="component__actions">
+        <div class="component__actions-content">
+            <div class="form component__actions-form">
+                <div class="wrapper input">
+                    <input
+                        v-model="newFolderName"
+                        :placeholder="$t('newFolderName')"
+                        :disabled="disabled"
+                        type="text"
+                        class="input-field full"
+                    />
+                </div>
+            </div>
+            <button
+                v-t="'createFolder'"
+                type="button"
+                class="button"
+                :disabled="!newFolderName || disabled"
+                @click="handleCreateFolderClick()"
+            ></button>
+        </div>
+    </div>
+</div>

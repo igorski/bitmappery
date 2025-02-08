@@ -84,7 +84,8 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
+import { type Component, defineAsyncComponent } from "vue";
 import { mapGetters, mapMutations } from "vuex";
 import { CREATE_DOCUMENT } from "@/definitions/modal-windows";
 import FileSelector from "./file-selector/file-selector.vue";
@@ -126,21 +127,27 @@ export default {
          * Cloud import code is loaded at runtime to omit packaging
          * third party SDK within the core bundle.
          */
-        dropboxImportType() {
+        dropboxImportType(): Promise<Component> | null {
             if ( this.dropbox ) {
-                return () => import( "./dropbox-connector/dropbox-connector.vue" );
+                return defineAsyncComponent({
+                    loader: () => import( "./dropbox-connector/dropbox-connector.vue" )
+                });
             }
             return null;
         },
-        driveImportType() {
+        driveImportType(): Promise<Component> | null {
             if ( this.drive ) {
-                return () => import( "./google-drive-connector/google-drive-connector.vue" );
+                return defineAsyncComponent({
+                    loader: () => import( "./google-drive-connector/google-drive-connector.vue" )
+                });
             }
             return null;
         },
-        s3ImportType() {
+        s3ImportType(): Promise<Component> | null {
             if ( this.s3 ) {
-                return () => import( "./aws-s3-connector/aws-s3-connector.vue" );
+                return defineAsyncComponent({
+                    loader: () => import( "./aws-s3-connector/aws-s3-connector.vue" )
+                });
             }
             return null;
         },
@@ -150,7 +157,7 @@ export default {
             "openModal",
             "setFileTarget",
         ]),
-        requestNewDocument() {
+        requestNewDocument(): void {
             this.openModal( CREATE_DOCUMENT );
         },
     },
