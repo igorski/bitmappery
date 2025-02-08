@@ -27,14 +27,16 @@ import type { Document, Shape, Layer } from "@/definitions/document";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { createSpriteForLayer, getSpriteForLayer } from "@/factories/sprite-factory";
 import { rotateRectangle, areEqual } from "@/math/rectangle-math";
+import { fastRound } from "@/math/unit-math";
 import { reverseTransformation } from "@/rendering/transforming";
 import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
-import { createCanvas } from "@/utils/canvas-util";
+import { createCanvas, resizeImage, getPixelRatio } from "@/utils/canvas-util";
 import { SmartExecutor } from "@/utils/debounce-util";
 import { selectionToRectangle } from "@/utils/selection-util";
 
 /**
- * Creates a snapshot of the current document at its full size.
+ * Creates a snapshot of the current document. THIS MULTIPLIES FOR THE DEVICE PIXEL RATIO
+ * (as it mimics the onscreen presentation of zCanvas)
  */
 export const createDocumentSnapshot = async ( activeDocument: Document ): Promise<HTMLCanvasElement> => {
     const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
@@ -54,10 +56,10 @@ export const createDocumentSnapshot = async ( activeDocument: Document ): Promis
 };
 
 /**
- * Creates a snapshot of the given layer at its full size. When an activeDocument
- * is provided, it's boundary box will crop the layer.
+ * Creates a snapshot of the provided layer. When an activeDocument is provided, it's boundary box
+ * will crop the layer. THIS MULTIPLIES FOR THE DEVICE PIXEL RATIO (as it mimics the onscreen presentation of zCanvas)
  */
-export const createLayerSnapshot = async ( layer: Layer, optActiveDocument?: Document ): Promise<HTMLCanvasElement> => {
+export const createLayerSnapshot = async ( layer: Layer, optActiveDocument?: Document): Promise<HTMLCanvasElement> => {
     const width  = optActiveDocument ? optActiveDocument.width  : layer.width;
     const height = optActiveDocument ? optActiveDocument.height : layer.height;
 
@@ -152,20 +154,18 @@ export const tilesToSingle = ( tiles: HTMLCanvasElement[], tileWidth: number, ti
     return cvs;
 };
 
+  
 /**
  * Copy the selection defined in activeLayer into a separate Image
  */
 export const copySelection = async ( activeDocument: Document, activeLayer: Layer, copyMerged = false ): Promise<SizedImage> => {
-    // render all layers if a merged copy was requested
-    const merged = copyMerged ? await createDocumentSnapshot( activeDocument ) : null;
-
     const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
 
     ctx.save();
     ctx.beginPath();
     activeDocument.activeSelection.forEach(( shape: Shape ) => {
         shape.forEach(( point, index ) => {
-            ctx[ index === 0 ? "moveTo" : "lineTo" ]( point.x, point.y );
+            ctx[ index === 0 ? "moveTo" : "lineTo" ]( fastRound( point.x ), fastRound( point.y ));
         });
     });
     ctx.closePath();
@@ -176,21 +176,17 @@ export const copySelection = async ( activeDocument: Document, activeLayer: Laye
     ctx.clip();
 
     if ( copyMerged ) {
-        ctx.drawImage( merged, 0, 0 );
+        // render all layers if a merged copy was requested
+        const mergedSnapshot = await createDocumentSnapshot( activeDocument );
+        ctx.drawImage( mergedSnapshot, 0, 0, activeDocument.width, activeDocument.height );
     } else {
-        // draw active layer onto temporary canvas at full document scale
-        /*
-        // the below could work but would require that all effects are currently cached
-        const sprite = getSpriteForLayer( activeLayer );
-        sprite.draw( ctx, zcvs.getViewport(), true );
-        */
-        // ensure pixel perfect render, consumes more CPU and memory though
-        ctx.drawImage( await createLayerSnapshot( activeLayer ), 0, 0 );
+        // draw active layer onto temporary canvas
+        ctx.drawImage( await createLayerSnapshot( activeLayer ), 0, 0, activeDocument.width, activeDocument.height );
     }
     ctx.restore();
 
-    // when calculating the source rectangle we must take the device pixel ratio into account
-    const pixelRatio = window.devicePixelRatio || 1;
+    // note that when calculating the source rectangle we must take the device pixel ratio into account
+    const pixelRatio = getPixelRatio();
     const selectionRectangle = selectionToRectangle( activeDocument.activeSelection );
     const selectionCanvas = createCanvas( selectionRectangle.width, selectionRectangle.height );
     selectionCanvas.ctx.drawImage(
@@ -298,7 +294,7 @@ function createFullSizeZCanvas( object: { width: number, height: number } ): { z
      const { width, height } = object;
      const zcvs = new canvas({ width, height, viewport: { width: width * 10, height: height * 10 } });
      const cvs  = zcvs.getElement() as HTMLCanvasElement;
-     const ctx  = cvs.getContext( "2d" );
+     const ctx  = cvs.getContext( "2d" )!;
 
      return { zcvs, cvs, ctx };
 }
