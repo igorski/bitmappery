@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2022 - https://www.igorski.nl
+ * Igor Zinken 2022-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -88,3 +88,40 @@ export const rafCallback = ( callback: RafCallback ): void => {
         rafCallbacks.splice( rafCallbacks.indexOf( callback ), 1 );
     });
 };
+
+/**
+ * Convenience utility which can be used to debounce repeated calls to
+ * heavy operations in case the preconfigured CPU budget is exceeded. This
+ * can be used to prevent blocking the main thread.
+ */
+export class SmartExecutor {
+    private executionBudgetMs;
+    private startTime;
+
+    constructor( executionBudgetMs = 1000 / 60, startTime = window.performance.now() ) {
+        this.executionBudgetMs = executionBudgetMs;
+        this.startTime = startTime;
+    }
+
+    /**
+     * Await this function in between heavy operations to determine
+     * whether there is still time to continue or whether to wait
+     * for a single RAF to unblock UI rendering.
+     * 
+     * If there is no time left, this will await the next animationFrame
+     * before resolving, otherwise this return immediately without stalling execution.
+     */
+    async waitWhenBusy(): Promise<void> {
+        const now = window.performance.now();
+        const elapsed = now - this.startTime;
+
+        if ( elapsed > this.executionBudgetMs ) {
+            return new Promise( resolve => {
+                window.requestAnimationFrame( time => {
+                    this.startTime = time;
+                    resolve();
+                });
+            });
+        }
+    }
+}
