@@ -1,6 +1,6 @@
 {
     "extends": "./tsconfig.app.json",
-    "includes": [ "src/**/*.ts", "src/**/*.vue", "tests/**/*.ts" ],
+    "include": [ "src/**/*.json" ],
     "compilerOptions": {
         "skipLibCheck": true,
         "module": "commonjs"
