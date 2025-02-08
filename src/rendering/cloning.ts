@@ -24,8 +24,8 @@ import type { Point } from "zcanvas";
 import type { Brush, CloneToolOptions } from "@/definitions/editor";
 import { TOOL_SRC_MERGED } from "@/definitions/tool-types";
 import { createDrawable } from "@/factories/brush-factory";
-import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
-import { createCanvas, setCanvasDimensions } from "@/utils/canvas-util";
+import { getCanvasInstance } from "@/factories/sprite-factory";
+import { createCanvas, getPixelRatio, setCanvasDimensions } from "@/utils/canvas-util";
 import { createSyncSnapshot } from "@/utils/document-util";
 import type LayerSprite from "@/rendering/canvas-elements/layer-sprite";
 
@@ -43,19 +43,19 @@ const tempCanvas = createCanvas();
  */
 export const renderClonedStroke = ( destContext: CanvasRenderingContext2D, brush: Brush,
     sprite: LayerSprite, sourceLayerId: string, optPointers?: Point[] ): void => {
-    let left = 0;
-    let top  = 0;
-    let source;
+    const left = 0;
+    const top  = 0;
+    let source: HTMLCanvasElement | undefined;
+
+    const activeDocument = getCanvasInstance().getActiveDocument();
+    
     if ( sourceLayerId === TOOL_SRC_MERGED ) {
-        source = createSyncSnapshot( getCanvasInstance().getActiveDocument() );
+        source = createSyncSnapshot( activeDocument );
     } else {
-        const sourceSprite = getSpriteForLayer({ id: sourceLayerId });
-        if ( sourceSprite ) {
-            ({ left, top } = sourceSprite.getBounds());
-            source = sourceSprite.getBitmap();
-        }
+        source = createSyncSnapshot( activeDocument, [ activeDocument.layers.findIndex(({ id }) => id === sourceLayerId )]);
     }
-    if ( !source ) {
+
+    if ( source === undefined ) {
         return;
     }
     const { coords, opacity } = sprite.toolOptions as CloneToolOptions;
@@ -84,10 +84,21 @@ export const renderClonedStroke = ( destContext: CanvasRenderingContext2D, brush
         ctx.globalAlpha = opacity;
 
         ctx.clearRect( 0, 0, cvs.width, cvs.height );
-        ctx.drawImage(
-            source, sourceX + xDelta, sourceY + yDelta, doubleRadius, doubleRadius, 0, 0, doubleRadius, doubleRadius
-        );
 
+        // source layers are rendered w/multiplication for devicePixelRatio
+        const multiplier = getPixelRatio();
+
+        ctx.drawImage(
+            source,
+            // source props
+            ( sourceX + xDelta ) * multiplier,
+            ( sourceY + yDelta ) * multiplier,
+            doubleRadius * multiplier,
+            doubleRadius * multiplier,
+            // destination props
+            0, 0, doubleRadius, doubleRadius
+        );
+    
         // draw the brush above the bitmap, keeping only the overlapping area
         ctx.globalCompositeOperation = "destination-in";
 

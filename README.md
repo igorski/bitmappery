@@ -24,13 +24,13 @@ BitMappery works with entities known as `Document`s. A Document contains several
 which define their content, transformation, `Effect`s, etc. Each of the nested entity properties
 has its own factory (see `src/factories`). The Document is managed by the Vuex `document-module.ts`.
 
-The types for each of these are defined in `/src/definitions/document.ts`.
+The types for each of these are defined in `src/definitions/document.ts`.
 
 ## Document rendering and interactions
 
 The Document is rendered one layer at a time onto a Canvas element, using [zCanvas](https://github.com/igorski/zCanvas). Both the rendering and interaction handling is performed by dedicated "Sprite" classes.
 
-All layer rendering and layer interactions are handled by `src/rendering/canvas-elements/layer_sprite.ts`.
+All layer rendering and layer interactions are handled by `src/rendering/canvas-elements/layer-sprite.ts`.
 Note that the purpose of the renderer is solely to delegate interactions events to the Layer entity. The
 renderer should represent the properties of the Layer, the Layer should never reverse-engineer from the onscreen
 content (especially as different window size and scaling factor will greatly complicate these matters when
@@ -110,8 +110,8 @@ update( propertyName: string, newValue: any ): void {
 ```
 
 Whenever an action (that requires an undo state) can be triggered in multiple locations (for instance
-inside a component and as a keyboard shortcut in `@/src/services/keyboard-service`), you can
-create a custom handler inside `@/src/factories/action-factory` to avoid code duplication.
+inside a component and as a keyboard shortcut in `src/services/keyboard-service`), you can
+create a custom handler inside `src/factories/action-factory` to avoid code duplication.
 
 ## Third party storage integration
 
