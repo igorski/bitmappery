@@ -83,7 +83,7 @@ import Modal from "@/components/modal/modal.vue";
 import { enqueueState } from "@/factories/history-state-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { resizeImage } from "@/utils/canvas-util";
-import { renderFullSize, sliceTiles } from "@/utils/document-util";
+import { createSyncSnapshot, sliceTiles } from "@/utils/document-util";
 import { focus } from "@/utils/environment-util";
 
 import messages from "./messages.json";
@@ -133,7 +133,7 @@ export default {
             // flatten document
             // also keep in mind zCanvas magnifies content by the pixel ratio for a crisper result
             // downscale to actual dimensions of the document
-            const flattenedLayer = await resizeImage( renderFullSize( this.activeDocument ), originalWidth, originalHeight );
+            const flattenedLayer = await resizeImage( createSyncSnapshot( this.activeDocument ), originalWidth, originalHeight );
 
             // create layers from slices created from the flattened document
             const { width, height } = this;

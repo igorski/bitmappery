@@ -407,9 +407,9 @@ import { getCanvasInstance } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
-import { cloneCanvas } from "@/utils/canvas-util";
+import { cloneCanvas, resizeImage } from "@/utils/canvas-util";
 import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
-import { renderFullSize } from "@/utils/document-util";
+import { createSyncSnapshot } from "@/utils/document-util";
 import { selectionToRectangle } from "@/utils/selection-util";
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
@@ -627,7 +627,7 @@ export default {
                 redo: commit,
             });
         },
-        mergeLayerDown( allLayers = false ) {
+        async mergeLayerDown( allLayers = false ) {
             let layers = [];
             let layerIndices = [];
             // collect the layers in ascending order
@@ -640,12 +640,13 @@ export default {
                 layerIndices = [ this.activeLayerIndex - 1, this.activeLayerIndex ];
                 layers = [ this.activeDocument.layers[ layerIndices[ 0 ]], this.activeLayer ];
             }
+            const { width, height } = this.activeDocument;
             const mergeIndex = allLayers ? 0 : layerIndices[ 0 ];
             const newLayer = LayerFactory.create({
                 name: this.$t( "mergedLayer" ),
-                source: renderFullSize( this.activeDocument, layerIndices ),
-                width: this.activeDocument.width,
-                height: this.activeDocument.height
+                source: await resizeImage( createSyncSnapshot( this.activeDocument, layerIndices ), width, height ),
+                width,
+                height,
             });
             const store = this.$store;
             const commit = () => {

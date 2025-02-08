@@ -30,7 +30,7 @@ import { rotateRectangle, areEqual } from "@/math/rectangle-math";
 import { fastRound } from "@/math/unit-math";
 import { reverseTransformation } from "@/rendering/transforming";
 import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
-import { createCanvas, resizeImage, getPixelRatio } from "@/utils/canvas-util";
+import { createCanvas, getPixelRatio } from "@/utils/canvas-util";
 import { SmartExecutor } from "@/utils/debounce-util";
 import { selectionToRectangle } from "@/utils/selection-util";
 
@@ -79,12 +79,13 @@ export const createLayerSnapshot = async ( layer: Layer, optActiveDocument?: Doc
 };
 
 /**
- * Creates a full size render of the current Document contents synchronously.
- * NOTE: this assumes all effects are currently cached (!)
+ * Creates a snapshot of the currently visible Document contents synchronously.
+ * NOTE 1: this assumes all effects are currently cached (!).
+ * NOTE 2: THIS MULTIPLIES FOR THE DEVICE PIXEL RATIO
  * optLayerIndices is optional whitelist of layers to render, defaults
  * to render all layers unless specified
  */
-export const renderFullSize = ( activeDocument: Document, optLayerIndices: number[] = [] ): HTMLCanvasElement => {
+export const createSyncSnapshot = ( activeDocument: Document, optLayerIndices: number[] = [] ): HTMLCanvasElement => {
     const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
 
     // draw existing layers onto temporary canvas at full document scale

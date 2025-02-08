@@ -26,7 +26,7 @@ import { TOOL_SRC_MERGED } from "@/definitions/tool-types";
 import { createDrawable } from "@/factories/brush-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { createCanvas, setCanvasDimensions } from "@/utils/canvas-util";
-import { renderFullSize } from "@/utils/document-util";
+import { createSyncSnapshot } from "@/utils/document-util";
 import type LayerSprite from "@/rendering/canvas-elements/layer-sprite";
 
 const tempCanvas = createCanvas();
@@ -47,7 +47,7 @@ export const renderClonedStroke = ( destContext: CanvasRenderingContext2D, brush
     let top  = 0;
     let source;
     if ( sourceLayerId === TOOL_SRC_MERGED ) {
-        source = renderFullSize( getCanvasInstance().getActiveDocument() );
+        source = createSyncSnapshot( getCanvasInstance().getActiveDocument() );
     } else {
         const sourceSprite = getSpriteForLayer({ id: sourceLayerId });
         if ( sourceSprite ) {
