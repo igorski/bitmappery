@@ -27,8 +27,8 @@ import { ACCEPTED_FILE_EXTENSIONS, isThirdPartyDocument, getMimeForThirdPartyDoc
 import type { FileNode } from "@/definitions/storage-types";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { focus } from "@/utils/environment-util";
-import { truncate } from "@/utils/string-util";
 import { disposeResource } from "@/utils/resource-manager";
+import { truncate } from "@/utils/string-util";
 
 import messages from "./messages.json";
 
@@ -222,11 +222,11 @@ export default {
                             const blob = await fetch( url ).then( r => r.blob() );
                             await this.loadThirdPartyDocuments([ blob ], getMimeForThirdPartyDocument( node ));
                         } else {
-                            const { image, size } = await loader.loadImage( url );
+                            const { size } = await loader.loadImage( url );
                             this.setStorageType( this.STORAGE_PROVIDER );
-                            await this.addLoadedFile({ type: this.STORAGE_PROVIDER, name: node.name }, { image, size });
+                            await this.addLoadedFile({ type: this.STORAGE_PROVIDER, name: node.name }, { source: url, size });
                         }
-                        disposeResource( url ); // Blob has been converted to internal resource
+                        disposeResource( url ); // Blob has been converted to internal resource, free memory.
                         this.showNotification({
                             message: this.$t( "importedFileSuccessfully", { file: truncate( node.name, 35 ) })
                         });

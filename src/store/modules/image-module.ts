@@ -22,9 +22,7 @@
  */
 import type { ActionContext, Module } from "vuex";
 import type { Document } from "@/definitions/document";
-import {
-    imageToResource, disposeResource, isResource
-} from "@/utils/resource-manager";
+import { disposeResource } from "@/utils/resource-manager";
 
 type FileTarget = "document" | "layer";
 type WrappedImage = {
@@ -109,11 +107,12 @@ const ImageModule: Module<ImageState, any> = {
         async addImage({ state }: ActionContext<ImageState, any>,
             { file, image, size }: { file: File | Blob, image: HTMLImageElement, size: number }
         ): Promise<WrappedImage> {
-            const isValidResource = isResource( image ) || image.src.startsWith( "http" );
-
-            const source = isValidResource ? image.src : await imageToResource( image, file.type );
-            const imageData: WrappedImage = { file, size, source, usages: [] };
-
+            const imageData: WrappedImage = {
+                file,
+                size,
+                source: image.src,
+                usages: []
+            };
             state.images.push( imageData );
 
             return imageData;

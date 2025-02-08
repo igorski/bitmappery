@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,12 +21,13 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { mapGetters, mapMutations, mapActions } from "vuex";
-import type { Size, SizedImage } from "zcanvas";
+import { type Size, loader } from "zcanvas";
 import type { Document, Layer } from "@/definitions/document";
 import { isTransparent } from "@/definitions/image-types";
 import { ACCEPTED_FILE_EXTENSIONS, PSD, PDF, isImageFile, isProjectFile, isThirdPartyDocument } from "@/definitions/file-types";
 import { LayerTypes } from "@/definitions/layer-types";
-import { loadImageFiles } from "@/services/file-loader-queue";
+import { loadImageFiles, type SizedResource } from "@/services/file-loader-queue";
+import { imageToCanvas } from "@/utils/canvas-util";
 
 // third party files are handled by their own import services which are lazily loaded
 
@@ -61,14 +62,13 @@ export default {
             "addImage",
             "loadDocument",
         ]),
-        async addLoadedFile( file: File, { image, size }: SizedImage ): Promise<void> {
-            const { source } = await this.addImage({ file, image, size });
-
-            image.src = source;
-
+        async addLoadedFile( file: File, { source, size }: SizedResource ): Promise<void> {
+            const { image } = await loader.loadImage( source );
+            await this.addImage({ file, image, size });
+            
             const currentDocumentIsEmpty = this.layers?.length <= 1 && this.layers?.[0]?.source === null;
             const layerOpts = {
-                source: image,
+                source: imageToCanvas( image, size.width, size.height ),
                 type: LayerTypes.LAYER_IMAGE,
                 name: file.name,
                 transparent: isTransparent( file ),
@@ -125,10 +125,8 @@ export default {
 
             // load the image files
 
-            //const start = Date.now();
             await loadImageFiles( imageFiles, this.addLoadedFile.bind( this ));
-            //const elapsed = Date.now() - start;
-
+   
             // load the BitMappery documents
 
             for ( const doc of bpyDocuments ) {

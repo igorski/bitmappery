@@ -52,12 +52,18 @@ export const imageToResource = async ( imageElement: HTMLImageElement, type = "i
 
 export const blobToResource = ( blob: Blob ): string => {
     const blobUrl = URL.createObjectURL( blob );
-    // console.info( `Registed URI "${blobUrl}"` );
+    // @ts-expect-error 'import.meta' property not allowed, not an issue Vite takes care of it
+    if ( import.meta.env.MODE !== "production" ) {
+        console.info( `Registered URI "${blobUrl}"` );
+    }
     return blobUrl;
 };
 
 export const disposeResource = ( blobURL: string ): void => {
-    // console.info( `Disposing Blob for URI "${blobUrl}"` );
+    // @ts-expect-error 'import.meta' property not allowed, not an issue Vite takes care of it
+    if ( import.meta.env.MODE !== "production" ) {
+        console.info( `Disposing Blob for URI "${blobURL}"` );
+    }
     URL.revokeObjectURL( blobURL );
 };
 

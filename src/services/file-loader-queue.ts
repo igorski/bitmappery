@@ -20,19 +20,23 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { loader } from "zcanvas";
-import type { SizedImage } from "zcanvas";
+import { loader, type Size } from "zcanvas";
 import { blobToResource, disposeResource } from "@/utils/resource-manager";
 import FileToResourceWorker from "@/workers/image-file-to-resource.worker?worker";
 
 type ImageLoadRequest = {
     name: string;
-    success: ( data: SizedImage ) => void;
+    success: ( data: SizedResource ) => void;
     error: ( fileName: string, error: Error ) => void;
 };
 const imageLoadQueue: ImageLoadRequest[] = [];
 
-type FileLoadCallback = ( file: File, data: SizedImage ) => void;
+export type SizedResource = {
+    source: string; // Blob/remote URL
+    size: Size;
+};
+
+type FileLoadCallback = ( file: File, data: SizedResource ) => void;
 
 /**
  * We can use a Worker to load the files to bitmaps so we can retrieve
@@ -76,7 +80,7 @@ function loadFile( file: File, callback: FileLoadCallback ): Promise<void> {
         return new Promise(( resolve, reject ) => {
             imageLoadQueue.push({
                 name: file.name,
-                success: ( data: SizedImage ) => {
+                success: ( data: SizedResource ) => {
                     callback( file, data );
                     resolve();
                 },
@@ -85,15 +89,17 @@ function loadFile( file: File, callback: FileLoadCallback ): Promise<void> {
             worker.postMessage({ cmd: "loadImageFile", file });
         });
     } else {
+        // TODO eventually this can be removed (all should be using Worker)
+        // there is duplicate loadImage() here and in image-to-document-manager
         return new Promise( async ( resolve, reject ) => {
-            let imageSource;
+            let source;
             try {
-                imageSource = blobToResource( file );
-                const result = await loader.loadImage( imageSource );
-                await callback( file, result );
-                resolve( result );
+                source = blobToResource( file );
+                const { size } = await loader.loadImage( source );
+                callback( file, { source, size });
+                resolve();
             } catch {
-                disposeResource( imageSource );
+                disposeResource( source );
                 reject();
             }
         });
@@ -104,19 +110,17 @@ function handleWorkerMessage({ data }: MessageEvent ): void {
     const fileQueueObj = getFileFromQueue( data?.file );
     if ( data?.cmd === "loadComplete" ) {
         const { blobUrl, width, height }: { blobUrl: string, width: number, height: number } = data;
-        const image = new Image();
-        image.src = blobUrl;
-        fileQueueObj?.success({ image, size: { width, height } });
+        fileQueueObj?.success({ source: blobUrl, size: { width, height } });
     }
     if ( data?.cmd === "loadError" ) {
         fileQueueObj?.error( data.file, data?.error );
     }
 }
 
-function getFileFromQueue( fileName: string ): ImageLoadRequest {
+function getFileFromQueue( fileName: string ): ImageLoadRequest | undefined {
     const fileQueueObj = imageLoadQueue.find(({ name }) => name === fileName );
     if ( !fileQueueObj ) {
-        return null;
+        return undefined;
     }
     imageLoadQueue.splice( imageLoadQueue.indexOf( fileQueueObj ), 1 );
     return fileQueueObj;
