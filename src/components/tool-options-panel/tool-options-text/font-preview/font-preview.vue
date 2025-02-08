@@ -21,7 +21,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div class="font-preview" :class="fontPreviewClass"></div>
+    <div class="font-preview__wrapper">
+        <div class="font-preview" :class="fontPreviewClass"></div>
+    </div>
 </template>
 
 <script lang="ts">
@@ -42,4 +44,9 @@ export default {
 
 <style lang="scss" scoped>
 @import "@/styles/font-previews";
+
+.font-preview__wrapper {
+    padding-top: 4px;
+    height: 18px;
+}
 </style>
