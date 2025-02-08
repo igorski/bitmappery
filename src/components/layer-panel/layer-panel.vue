@@ -74,7 +74,7 @@
                                 />
                                 <span
                                     v-else
-                                    v-tooltip="$t( element.mask && element.mask === activeLayerMask ? 'clickToEditLayer' : 'dblClickToRename')"
+                                    v-tooltip.left="$t( element.mask && element.mask === activeLayerMask ? 'clickToEditLayer' : 'dblClickToRename')"
                                     class="layer__name"
                                     :class="{
                                         'layer--highlight': element.index === activeLayerIndex && !activeLayerMask

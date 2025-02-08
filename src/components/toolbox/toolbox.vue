@@ -71,7 +71,7 @@
                 v-for="tool in tools"
                 :key="tool.type"
                 type="button"
-                v-tooltip="`${$t( tool.i18n )} (${tool.key})`"
+                v-tooltip.right="`${$t( tool.i18n )} (${tool.key})`"
                 :title="$t( tool.i18n )"
                 class="tool-button"
                 :class="{

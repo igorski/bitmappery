@@ -374,7 +374,7 @@
         <!-- fullscreen button -->
         <button
             v-if="supportsFullscreen"
-            v-tooltip="fullscreenTooltip"
+            v-tooltip.left="fullscreenTooltip"
             ref="fullscreenBtn"
             class="fullscreen-button"
             :title="$t( isFullscreen ? 'minimize' : 'maximize' )"
