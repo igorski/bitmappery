@@ -310,7 +310,8 @@ export default {
             // zCanvas magnifies content by the pixel ratio for a crisper result, downscale
             // to actual dimensions of the document
             const { width, height } = this.activeDocument;
-            const resizedImage = await resizeToBase64(
+         
+            const resizedImage = this.layersToSpriteSheet ? this.base64preview : await resizeToBase64(
                 this.base64preview,
                 width,
                 height,
