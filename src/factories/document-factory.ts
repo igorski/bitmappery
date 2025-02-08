@@ -63,7 +63,7 @@ const DocumentFactory = {
             w: document.width,
             h: document.height,
             l: layers,
-            s: document.selections,
+            s: { ...document.selections },
         };
     },
 
