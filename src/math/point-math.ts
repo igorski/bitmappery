@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -49,6 +49,29 @@ export const pointBetween = ( point1: Point, point2: Point ): Point => ({
 export const isPointInRange = ( point1x: number, point1y: number, point2x: number, point2y: number, margin = 5 ): boolean => {
     return isCoordinateInHorizontalRange( point1x, point2x, margin ) &&
            isCoordinateInVerticalRange( point1y, point2y, margin );
+};
+
+export const isPointInsidePolygon = ( point: Point, polygon: Point[] ): boolean => {
+    const { x, y } = point;
+    let isInside = false;
+
+    for ( let i = 0, l = polygon.length, j = polygon.length - 1; i < l; j = i++ ) {
+        const compare1 = polygon[ i ];
+        const compare2 = polygon[ j ];
+
+        const x1 = compare1.x;
+        const y1 = compare1.y;
+        const x2 = compare2.x;
+        const y2 = compare2.y;
+
+        const intersect = (( y1 > y ) !== ( y2 > y )) && ( x < ( x2 - x1 ) * ( y - y1 ) / ( y2 - y1 ) + x1 );
+        if ( intersect ) {
+            // we are ray-casting, an odd number of line crossing determines whether a point is inside the polygon.
+            // when even, the point is outside the polygon. We cannot directly return true here!
+            isInside = !isInside;
+        }
+    }
+    return isInside;
 };
 
 export const isCoordinateInHorizontalRange = ( point1x: number, point2x: number, margin = 5 ): boolean => {

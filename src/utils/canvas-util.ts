@@ -24,6 +24,8 @@ import { loader } from "zcanvas";
 import type { Point } from "zcanvas";
 import type { CanvasContextPairing, CanvasDrawable } from "@/definitions/editor";
 import { JPEG, PNG } from "@/definitions/image-types";
+import { isPointInsidePolygon } from "@/math/point-math";
+import { fastRound } from "@/math/unit-math";
 import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import { blobToResource, disposeResource } from "@/utils/resource-manager";
 
@@ -235,3 +237,40 @@ export const blobToCanvas = ( blob: Blob ): Promise<HTMLCanvasElement> => {
 };
 
 export const getPixelRatio = (): number => window.devicePixelRatio ?? 1;
+
+
+/**
+ * Pixel-accurate copying of selection content. This is quite slow though, depending
+ * on the source content quality, using drawImage() (provides aliasing) is more than satisfactory.
+ */
+export const copySelectionCrisp = ( sourceCtx: CanvasRenderingContext2D, destCtx: CanvasRenderingContext2D, selection: Point[] ): void => {
+    // get bounding box of the selection
+    const minX = fastRound( Math.min( ...selection.map( point => point.x )));
+    const minY = fastRound( Math.min( ...selection.map( point => point.y )));
+    const maxX = fastRound( Math.max( ...selection.map( point => point.x )));
+    const maxY = fastRound( Math.max( ...selection.map( point => point.y )));
+
+    const width  = maxX - minX;
+    const height = maxY - minY;
+
+    const sourceData = sourceCtx.getImageData( minX, minY, width, height ).data;
+    const outputImageData = destCtx.createImageData( width, height );
+    const outputData = outputImageData.data;
+
+    // Loop through each pixel in the bounding box
+    for ( let y = 0; y < height; y++ ) {
+        for ( let x = 0; x < width; x++ ) {
+            const pixelIndex = ( y * width + x ) * 4;
+
+            if ( isPointInsidePolygon({ x: minX + x, y: minY + y }, selection )) {
+                outputData[ pixelIndex ]     = sourceData[ pixelIndex ];
+                outputData[ pixelIndex + 1 ] = sourceData[ pixelIndex + 1 ];
+                outputData[ pixelIndex + 2 ] = sourceData[ pixelIndex + 2 ];
+                outputData[ pixelIndex + 3 ] = sourceData[ pixelIndex + 3 ];
+            } else {
+                outputData[ pixelIndex + 3 ] = 0; // make transparent
+            }
+        }
+    }
+    destCtx.putImageData( outputImageData, minX, minY );
+};
