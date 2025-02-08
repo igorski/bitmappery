@@ -24,7 +24,7 @@
     <div
         class="image-preview"
         :class="{ 'loading': isLoading }"
-        v-on="$listeners"
+        v-bind="$attrs"
     >
         <p
             v-if="hasNoThumb"
