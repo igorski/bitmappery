@@ -26,6 +26,7 @@ import { loader } from "zcanvas";
 import { ACCEPTED_FILE_EXTENSIONS, isThirdPartyDocument, getMimeForThirdPartyDocument } from "@/definitions/file-types";
 import type { FileNode } from "@/definitions/storage-types";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
+import { focus } from "@/utils/environment-util";
 import { truncate } from "@/utils/string-util";
 import { disposeResource } from "@/utils/resource-manager";
 
@@ -60,10 +61,23 @@ function findLeafByPath( node: FileNode, path: string ): FileNode {
     return recurseChildren( node, path );
 }
 
+interface ICloudFileSelectorProps {
+    LAST_FOLDER_STORAGE_KEY: string;
+    STORAGE_PROVIDER: string;
+    tree: {
+        type: string;
+        name: string;
+        path: string;
+        children: FileNode[];
+    },
+    leaf: FileNode | null;
+    newFolderName: string;
+};
+
 export default {
     i18n: { messages },
     mixins: [ ImageToDocumentManager ],
-    data: () => ({
+    data: (): ICloudFileSelectorProps => ({
         LAST_FOLDER_STORAGE_KEY : "x", // define in inheriting component
         STORAGE_PROVIDER        : "", // name of storage provider (e.g. Dropbox, Drive) define in inheriting component
         tree: {
@@ -87,7 +101,7 @@ export default {
         },
         breadcrumbs(): FileNode[] {
             let parent = this.leaf.parent;
-            const out: FileNode = [];
+            const out: FileNode[] = [];
             while ( parent ) {
                 out.push( parent );
                 parent = parent.parent;
@@ -95,7 +109,7 @@ export default {
             return out.reverse();
         },
         filesAndFolders(): FileNode[] {
-            return this.leaf.children.filter( entry => {
+            return this.leaf.children.filter(( entry: FileNode ): boolean => {
                 // only show folders and image files
                 if ( entry.type === "file" ) {
                     return ACCEPTED_FILE_EXTENSIONS.some( ext => entry.name.includes( `.${ext}` ));
@@ -109,7 +123,7 @@ export default {
     },
     mounted(): void {
         focus( this.$refs.content );
-        this.escListener = ({ keyCode }) => {
+        this.escListener = ({ keyCode }: KeyboardEvent ) => {
             if ( keyCode === 27 ) {
                 this.closeModal();
             }
@@ -131,10 +145,10 @@ export default {
         ...mapActions([
             "loadDocument",
         ]),
-        async retrieveFiles( path ): Promise<void> {
+        async retrieveFiles( path: string ): Promise<void> {
             this.setLoading( RETRIEVAL_LOAD_KEY );
             try {
-                const entries = await this._listFolder( path );
+                const entries: FileNode[] = await this._listFolder( path );
                 let leaf = findLeafByPath( this.tree, path );
 
                 if ( !leaf ) {
@@ -146,7 +160,7 @@ export default {
 
                 // populate leaf with fetched children
                 leaf.children = ( entries?.map( entry => this._mapEntry( entry, [], parent )) ?? [] )
-                    .sort(( a, b ) => {
+                    .sort(( a: FileNode, b: FileNode ): number => {
                         if ( a.type < b.type ) {
                             return 1;
                         } else if ( a.type > b.type ) {
@@ -254,24 +268,19 @@ export default {
         _getServicePathForNode( node: FileNode ): string {
             return node.path;
         },
-        // eslint-disable-next-line no-unused-vars
-        async _listFolder( path: string ): Promise<FileNode[]> {
+        async _listFolder( _path: string ): Promise<FileNode[]> {
             return [];
         },
-        // eslint-disable-next-line no-unused-vars
-        async _createFolder( parent: FileNode, name: string ): Promise<boolean> {
+        async _createFolder( _parent: FileNode, _name: string ): Promise<boolean> {
             return false;
         },
-        // eslint-disable-next-line no-unused-vars
-        async _downloadFile( node: FileNode, returnAsURL = false  ): Promise<Blob | string | null> {
+        async _downloadFile( _node: FileNode, _returnAsURL = false  ): Promise<Blob | string | null> {
             return null;
         },
-        // eslint-disable-next-line no-unused-vars
-        async _deleteEntry( node: FileNode ): Promise<boolean> {
+        async _deleteEntry( _node: FileNode ): Promise<boolean> {
             return false;
         },
-        // eslint-disable-next-line no-unused-vars
-        _mapEntry( entry: FileNode, children: FileNode[] = [], parent: FileNode = null ): FileNode {
+        _mapEntry( _entry: FileNode, _children: FileNode[] = [], _parent: FileNode = null ): FileNode {
             return {} as FileNode;
         }
     }
