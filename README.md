@@ -20,9 +20,9 @@ Please vote on feature requests by using the Thumbs Up/Down reaction on the firs
 
 ## Model
 
-BitMappery works with entities known as _Documents_. A Document contains several _Layers_, each of
-which define their content, transformation, _Effects_, etc. Each of the nested entity properties
-has its own factory (see _/src/factories/_). The Document is managed by the Vuex _document-module.js_.
+BitMappery works with entities known as `Document`s. A Document contains several `Layer`s, each of
+which define their content, transformation, `Effect`s, etc. Each of the nested entity properties
+has its own factory (see `src/factories`). The Document is managed by the Vuex `document-module.ts`.
 
 The types for each of these are defined in `/src/definitions/document.ts`.
 
@@ -30,7 +30,7 @@ The types for each of these are defined in `/src/definitions/document.ts`.
 
 The Document is rendered one layer at a time onto a Canvas element, using [zCanvas](https://github.com/igorski/zCanvas). Both the rendering and interaction handling is performed by dedicated "Sprite" classes.
 
-All layer rendering and layer interactions are handled by _/src/rendering/canvas-elements/layer_sprite.js_.
+All layer rendering and layer interactions are handled by `src/rendering/canvas-elements/layer_sprite.ts`.
 Note that the purpose of the renderer is solely to delegate interactions events to the Layer entity. The
 renderer should represent the properties of the Layer, the Layer should never reverse-engineer from the onscreen
 content (especially as different window size and scaling factor will greatly complicate these matters when
@@ -38,13 +38,13 @@ performed two-way).
 
 All interactions that work across layers (viewport panning, layer selection by clicking on non-transparent
 pixels and drawing of selections) is handled by a single top level sprite that covers the entire zCanvas area.
-This sprite is _/src/rendering/canvas-elements/interaction-pane.js_.
+This sprite is `src/rendering/canvas-elements/interaction-pane.ts`.
 
 Interactions that start/end from _outside the canvas_ (for instance the opening/closing of a selection or the
-drawing of a brush stroke outside of the canvas area) are handled by _document-canvas.vue_ where the global DOM coordinates are translated to coordinates relative to the canvas document before being forwarded to the zCanvas
+drawing of a brush stroke outside of the canvas area) are handled by `document-canvas.vue` where the global DOM coordinates are translated to coordinates relative to the canvas document before being forwarded to the zCanvas
 event handler. See "Rendering concepts" below for more details on screen-to-document coordinates.
 
-Rendering of transformations, text and effects is an asynchronous operation handled by _/src/services/render-service.js_. The purpose of this service is to perform and cache repeated operations and eventually maintain
+Rendering of transformations, text and effects is an asynchronous operation handled by `src/services/render-service.ts`. The purpose of this service is to perform and cache repeated operations and eventually maintain
 the source bitmap represented by the LayerSprite. The LayerSprite invokes the rendering service whenever
 Layer content changes and manages its own cache.
 
@@ -69,7 +69,7 @@ and translating these to (non-zoomed and non-panned) source bitmaps.
 
 ## State history
 
-Mutations can be registered in state history (Vuex _history-module.js_) in order to provide undo and redo
+Mutations can be registered in state history (Vuex `history-module.ts`) in order to provide undo and redo
 of operations. In order to prevent storing a lot of changes of the same property (for instance when dragging a slider), the storage of a new state is deferred through a queue. This is why history states are enqueued by _propertyName_:
 
 When enqueuing a new state while there is an existing one enqueued for the same property name, the first state is updated so its redo will match that of the newest state, the undo remaining unchanged. The second state will not
@@ -167,10 +167,10 @@ BitMappery can also use WebAssembly to _potentially_ increase performance of ima
 WebAssembly filtering is a user controllable feature in the preferences pane, as long as the `.env` file has set
 support for `VITE_ENABLE_WASM_FILTERS` to true.
 
-The source code is C based and compiled to WASM using [Emscripten](https://github.com/emscripten-core/emscripten). Because this setup is a little more cumbersome, the repository contains precompiled binaries in the _./src/wasm/bin/_-folder meaning you can
+The source code is C based and compiled to WASM using [Emscripten](https://github.com/emscripten-core/emscripten). Because this setup is a little more cumbersome, the repository contains precompiled binaries in the `src/wasm/bin`-folder meaning you can
 omit this setup if you don't intend to make changes to these sources.
 
-If you do wish to make contributions on this end, to compile the source (_/src/wasm/_) C-code to WASM, you
+If you do wish to make contributions on this end, to compile the source (`src/wasm`) C-code to WASM, you
 will first need to prepare your environment (note the last _source_ call does not permanently update your paths):
 
 ```bash

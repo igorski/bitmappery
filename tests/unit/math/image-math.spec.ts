@@ -1,3 +1,7 @@
+import { mockZCanvas } from "../__mocks";
+
+mockZCanvas();
+
 import { it, describe, expect } from "vitest";
 import { constrain, isPortrait, isLandscape, isSquare } from "@/math/image-math";
 
