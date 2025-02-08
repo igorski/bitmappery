@@ -70,7 +70,7 @@ class LayerSprite extends ZoomableSprite {
     public actionTarget: "source" | "mask";
     public canvas: ZoomableCanvas; // set through inherited addChild() method
     public tempCanvas: CanvasContextPairing;
-    public cloneStartCoords: Point = null;
+    public cloneStartCoords: Point;
     public toolOptions: any;
 
     protected _pointerX: number;
@@ -221,20 +221,23 @@ class LayerSprite extends ZoomableSprite {
         if ( !onlyWhenClosed || ( isShapeClosed( getLastShape( activeSelection )) && canDrawOnSelection( this.layer ))) {
             this._selection = activeSelection?.length > 0 ? activeSelection : null;
         } else {
-            this._selection = null;
+            this._selection = undefined;
         }
         this._invertSelection = this._selection && document.invertSelection;
     }
 
     handleActiveTool( tool: ToolTypes, toolOptions: any, activeDocument: Document ): void {
+        if ( tool === this._toolType && toolOptions === this.toolOptions ) {
+            return;
+        }
         this.isDragging        = false;
         this._isPaintMode      = false;
         this._isDragMode       = false;
         this._isColorPicker    = false;
-        this._selection        = null;
-        this._toolType         = null;
-        this.toolOptions       = null;
-        this.cloneStartCoords  = null;
+        this._selection        = undefined;
+        this._toolType         = undefined;
+        this.toolOptions       = undefined;
+        this.cloneStartCoords  = undefined;
 
         // store pending paint states (if there were any)
         this.storePaintState();
@@ -535,7 +538,7 @@ class LayerSprite extends ZoomableSprite {
                 // sets the source coords (within the source Layer)
                 if ( !this.toolOptions.coords ) {
                     this.toolOptions.coords = { x, y };
-                    this.cloneStartCoords = null;
+                    this.cloneStartCoords = undefined;
                     return;
                 } else if ( !this.cloneStartCoords ) {
                     // pressing down again indicates the cloning paint operation starts (in handleMove())

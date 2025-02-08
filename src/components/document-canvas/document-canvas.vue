@@ -64,6 +64,7 @@
 
 <script lang="ts">
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
+import { type Viewport } from "zcanvas";
 import ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import GuideRenderer from "@/rendering/canvas-elements/guide-renderer";
 import FileImport from "@/components/file-import/file-import.vue";
@@ -365,7 +366,7 @@ export default {
                 Math.round( top  * ( this.cvsHeight - this.viewportHeight ))
             );
         },
-        handleCanvasEvent({ type, value }: Event ): void {
+        handleCanvasEvent({ type, value }: { type: string, value: Viewport } ): void {
             switch ( type ) {
                 default:
                     break;
@@ -473,7 +474,7 @@ export default {
             const { activeLayer } = this;
             if ( !activeLayer ) {
                 return;
-            }   
+            }
             [ ...layerPool.entries() ].forEach(([ , sprite ]) => {
                 sprite.handleActiveLayer( activeLayer );
                 sprite.handleActiveTool( this.activeTool, this.activeToolOptions, this.activeDocument );
