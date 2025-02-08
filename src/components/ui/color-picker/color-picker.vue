@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -26,7 +26,7 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import "@simonwep/pickr/dist/themes/nano.min.css";
 //import Pickr from "@simonwep/pickr/dist/pickr.es5.min"; // 3 x size of modern bundle
 import Pickr from "@simonwep/pickr";
@@ -43,11 +43,11 @@ export default {
         },
     },
     watch: {
-        value( color ) {
+        modelValue( color: string ): void {
             this.pickrInstance?.setColor( color );
         }
     },
-    mounted() {
+    mounted(): void {
         this.pickrInstance = Pickr.create({
             el: this.$refs.picker,
             theme: "nano",
@@ -74,14 +74,14 @@ export default {
             this.globalInstance = true;
         }
     },
-    destroy() {
+    destroy(): void {
         this.pickrInstance?.destroyAndRemove();
         if ( this.globalInstance ) {
             window.pickrInstance = null;
         }
     },
     methods: {
-        saveColor( value ) {
+        saveColor( value: string ): void {
             const rgba  = value.toRGBA();
 
             const red   = rgba[ 0 ].toFixed( FRAC_VALUE );
