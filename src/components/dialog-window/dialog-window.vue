@@ -143,6 +143,8 @@ export default {
     }
 
     &__message {
+        overflow: hidden;
+        text-overflow: ellipsis;
         white-space: pre-line;
     }
 
