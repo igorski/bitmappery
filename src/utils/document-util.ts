@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -30,6 +30,7 @@ import { rotateRectangle, areEqual } from "@/math/rectangle-math";
 import { reverseTransformation } from "@/rendering/transforming";
 import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import { createCanvas } from "@/utils/canvas-util";
+import { SmartExecutor } from "@/utils/debounce-util";
 import { selectionToRectangle } from "@/utils/selection-util";
 
 /**
@@ -102,21 +103,26 @@ export const renderFullSize = ( activeDocument: Document, optLayerIndices: numbe
  * Slice the contents of given bitmap using a grid of given dimensions
  * into a list of grid-sized bitmaps.
  */
-export const sliceTiles = ( sourceBitmap: HTMLImageElement, tileWidth: number, tileHeight: number ): HTMLCanvasElement[] => {
+export const sliceTiles = async ( sourceBitmap: HTMLImageElement, tileWidth: number, tileHeight: number ): Promise<HTMLCanvasElement[]> => {
     const { width, height } = sourceBitmap;
-    const out = [];
+    const out: HTMLCanvasElement[] = [];
+
+    const smartExec = new SmartExecutor(); // this operation can get heavy on large documents
 
     for ( let y = 0; y < height; y += tileHeight ) {
-        for ( let x = 0; x < width; x += tileWidth ) {
+       for ( let x = 0; x < width; x += tileWidth ) {
             // ensure the current slice isn't exceeding the sourceBitmap bounds
-            const w = ( x + tileWidth > width ) ? ( x + tileWidth - width ) : width;
-            const h = ( y + tileHeight > height ) ? ( y + tileHeight - height ) : height;
+            const w = ( x + tileWidth > width ) ? ( x + tileWidth - width ) : tileWidth;
+            const h = ( y + tileHeight > height ) ? ( y + tileHeight - height ) : tileHeight;
+
             const { cvs, ctx } = createCanvas( w, h );
             ctx.drawImage( sourceBitmap, x, y, w, h, 0, 0, w, h );
             out.push( cvs );
+
+            await smartExec.waitWhenBusy();
         }
     }
-    return out;
+    return out.reverse();
 };
 
 /**

@@ -161,6 +161,15 @@ const DocumentModule: Module<DocumentState, any> = {
                 state.activeLayerIndex = Math.max( 0, index - 1 );
             }
         },
+        replaceLayers( state: DocumentState, layers: Layer[] ): void {
+            const activeDocument = state.documents[ state.activeIndex ];
+            if ( activeDocument ) {
+                activeDocument.layers = layers;
+            }
+            if ( state.activeLayerIndex > layers.length ) {
+                state.activeLayerIndex = layers.length - 1;
+            }
+        },
         setActiveLayerIndex( state: DocumentState, layerIndex: number ): void {
             state.activeLayerIndex = layerIndex;
             state.maskActive = false;

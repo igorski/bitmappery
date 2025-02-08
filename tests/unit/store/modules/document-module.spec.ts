@@ -325,6 +325,24 @@ describe( "Vuex document module", () => {
             });
         });
 
+        it( "should be able to replace all layers in a single operation", () => {
+            const state = {
+                documents: [{
+                    name: "foo",
+                    layers: [ { name: "layer1" }, { name: "layer2" }, { name: "layer3" } ]
+                }],
+                activeIndex: 0,
+                activeLayerIndex: 1,
+            };
+            const newLayers = [ { name: "layer4" }, { name: "layer5" }];
+
+            mutations.replaceLayers( state, newLayers );
+
+            expect( state.documents[ 0 ].layers ).toEqual([
+                { name: "layer4" }, { name: "layer5" }
+            ]);
+        });
+
         it( "should be able to swap the layers in the currently active Document", () => {
             const state = {
                 documents: [

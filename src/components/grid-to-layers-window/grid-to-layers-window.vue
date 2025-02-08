@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2022 - https://www.igorski.nl
+ * Igor Zinken 2022-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -76,12 +76,13 @@
     </modal>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import Modal from "@/components/modal/modal.vue";
 import { enqueueState } from "@/factories/history-state-factory";
 import LayerFactory from "@/factories/layer-factory";
+import { resizeImage } from "@/utils/canvas-util";
 import { renderFullSize, sliceTiles } from "@/utils/document-util";
 import { focus } from "@/utils/environment-util";
 
@@ -103,16 +104,16 @@ export default {
             "activeDocument",
             "layers",
         ]),
-        isValid() {
+        isValid(): boolean {
             return this.width > 0 && this.height > 0 &&
                    ( this.width !== this.activeDocument.width || this.height !== this.activeDocument.height );
         },
     },
-    created() {
+    created(): void {
         this.width  = Math.round( this.activeDocument.width  / 2 );
         this.height = Math.round( this.activeDocument.height / 2 );
     },
-    mounted() {
+    mounted(): void {
         focus( this.$refs.widthInput );
     },
     methods: {
@@ -121,18 +122,23 @@ export default {
             "setLoading",
             "unsetLoading",
         ]),
-        requestSlice() {
+        async requestSlice(): Promise<void> {
             this.setLoading( "slice" );
 
             // collect existing layers
             const originalLayers = [ ...this.activeDocument.layers ];
             const originalWidth  = this.activeDocument.width;
             const originalHeight = this.activeDocument.height;
+
             // flatten document
-            const flattenedLayer = renderFullSize( this.activeDocument );
+            // also keep in mind zCanvas magnifies content by the pixel ratio for a crisper result
+            // downscale to actual dimensions of the document
+            const flattenedLayer = await resizeImage( renderFullSize( this.activeDocument ), originalWidth, originalHeight );
+
             // create layers from slices created from the flattened document
             const { width, height } = this;
-            const slicedTiles  = sliceTiles( flattenedLayer, width, height );
+            const slicedTiles  = await sliceTiles( flattenedLayer, width, height );
+      
             const slicedLayers = slicedTiles.map(( bitmap, index ) => {
                 return LayerFactory.create({
                     name   : `${this.$t( "slice" )} #${index + 1}`,
@@ -144,26 +150,14 @@ export default {
             });
             // commit changes, add to state history
             const store = this.$store;
-            const commit = () => {
-                // remove existing layer(s)
-                let i = originalLayers.length;
-                while ( i-- ) {
-                    store.commit( "removeLayer", 0 );
-                }
-                // add sliced layers
-                slicedLayers.forEach(( layer, index ) => {
-                    store.commit( "insertLayerAtIndex", { index, layer });
-                });
+            const commit = async (): Promise<void> => {
+                store.commit( "replaceLayers", slicedLayers );
                 store.commit( "setActiveDocumentSize", { width, height });
             };
             commit();
             enqueueState( "slice-to-layers", {
-                undo() {
-                    let i = slicedLayers.length;
-                    while ( i-- ) {
-                        store.commit( "removeLayer", i );
-                    }
-                    originalLayers.forEach(( layer, index ) => store.commit( "insertLayerAtIndex", { index, layer }));
+                undo(): void {
+                    store.commit( "replaceLayers", originalLayers );
                     store.commit( "setActiveDocumentSize", { width: originalWidth, height: originalHeight });
                 },
                 redo: commit,
