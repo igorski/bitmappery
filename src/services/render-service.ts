@@ -161,7 +161,7 @@ export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): 
  */
 const runFilterJob = ( source: HTMLCanvasElement, jobSettings: any ): Promise<ImageData> => {
     const { width, height } = source;
-    const imageData = source.getContext( "2d" ).getImageData( 0, 0, width, height );
+    const imageData = source.getContext( "2d" )!.getImageData( 0, 0, width, height );
     const wasm      = useWasm && wasmWorker;
 
     return new Promise( async ( resolve, reject ) => {

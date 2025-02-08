@@ -25,7 +25,7 @@ import type { Point, Rectangle } from "zcanvas";
 import type ZoomableCanvas from "./zoomable-canvas";
 import ZoomableSprite from "./zoomable-sprite";
 import type { Viewport, TransformedDrawBounds } from "zcanvas";
-import { createCanvas, canvasToBlob, globalToLocal } from "@/utils/canvas-util";
+import { createCanvas, canvasToBlob, globalToLocal, getPixelRatio } from "@/utils/canvas-util";
 import { renderCross } from "@/utils/render-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { BlendModes } from "@/definitions/blend-modes";
@@ -665,9 +665,8 @@ class LayerSprite extends ZoomableSprite {
 
         if ( applyBlending ) {
             drawContext = getBlendContext( documentContext.canvas );
-            if ( !isHighresExport ) {
-                drawContext.scale( this.canvas.zoomFactor, this.canvas.zoomFactor );
-            }
+            const scaleFactor = isHighresExport ? getPixelRatio() : getPixelRatio() * this.canvas.zoomFactor;
+            drawContext.scale( scaleFactor, scaleFactor );
         }
 
         drawContext.save(); // 1. transformation save()
@@ -680,7 +679,7 @@ class LayerSprite extends ZoomableSprite {
         }
 
         // invoke base class behaviour to render bitmap
-        super.draw( drawContext, transformCanvas ? null : viewport, drawBounds );
+        super.draw( drawContext, transformCanvas ? undefined : viewport, drawBounds );
 
         if ( applyBlending ) {
             blendLayer( documentContext, drawContext, blendMode );

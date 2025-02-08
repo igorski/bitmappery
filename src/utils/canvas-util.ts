@@ -233,3 +233,5 @@ export const blobToCanvas = ( blob: Blob ): Promise<HTMLCanvasElement> => {
         image.src = blobURL;
     });
 };
+
+export const getPixelRatio = (): number => window.devicePixelRatio ?? 1;

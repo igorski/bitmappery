@@ -24,6 +24,7 @@ import type { Document, Layer } from "@/definitions/document";
 import { constrain, isPortrait } from "@/math/image-math";
 import { MAX_IMAGE_SIZE, MAX_MEGAPIXEL, getMinImageSize } from "@/definitions/editor-properties";
 import { LayerTypes } from "@/definitions/layer-types";
+import { getPixelRatio } from "@/utils/canvas-util";
 
 enum ToolTypes {
     MOVE       = "move",  // pans viewport
@@ -80,7 +81,7 @@ export const SNAP_MARGIN    = 20;  // amount of pixels within which we allow sna
 export const calculateMaxScaling = ( baseWidth: number, baseHeight: number,
     docWidth: number, docHeight: number, containerWidth: number
 ): ScalingDef => {
-    const pixelRatio = window.devicePixelRatio; // zCanvas magnifies for pixel ratio
+    const pixelRatio = getPixelRatio(); // zCanvas magnifies for pixel ratio
     const portrait   = isPortrait( baseWidth, baseHeight );
 
     // dimensions of document at max displayable megapixel size

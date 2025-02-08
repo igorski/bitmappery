@@ -165,7 +165,7 @@ import { STORAGE_TYPES } from "@/definitions/storage-types";
 import { supportsGIF, createGIF, createAnimatedGIF } from "@/services/gif-creation-service";
 import { mapSelectOptions, type SelectOption }  from "@/utils/search-select-util";
 import { isLandscape, isSquare } from "@/math/image-math";
-import { resizeToBase64 } from "@/utils/canvas-util";
+import { resizeToBase64, getPixelRatio } from "@/utils/canvas-util";
 import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
 import { unblockedWait } from "@/utils/debounce-util";
 import { createDocumentSnapshot, createLayerSnapshot, tilesToSingle } from "@/utils/document-util";
@@ -317,8 +317,8 @@ export default {
                 height,
                 this.type,
                 this.qualityPercentile,
-                width  * ( window.devicePixelRatio || 1 ),
-                height * ( window.devicePixelRatio || 1 )
+                width  * getPixelRatio(),
+                height * getPixelRatio()
             );
             const file: Blob = await base64toBlob( resizedImage );;
             const fileName = `${this.name}.${typeToExt(this.type)}`;
