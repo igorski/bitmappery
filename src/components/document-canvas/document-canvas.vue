@@ -202,19 +202,13 @@ export default {
             }
         },
         layers: {
+            deep: true, // allows tracking visibility changes
             handler(): void {
                 this.createLayerRenderers();
             },
         },
-        activeLayer( layer: Layer ): void {
-            if ( !layer ) {
-                return;
-            }
-            [ ...layerPool.entries() ].forEach(([ , sprite ]) => {
-                sprite.handleActiveLayer( layer );
-                sprite.handleActiveTool( this.activeTool, this.activeToolOptions, this.activeDocument );
-            });
-            this.handleGuides();
+        activeLayer( _layer: Layer ): void {
+            this.handleActiveLayer();
         },
         activeTool( tool: ToolTypes ): void {
             const isSelectionTool = SELECTION_TOOLS.includes( tool );
@@ -371,7 +365,7 @@ export default {
                 Math.round( top  * ( this.cvsHeight - this.viewportHeight ))
             );
         },
-        handleCanvasEvent({ type, value }): void {
+        handleCanvasEvent({ type, value }: Event ): void {
             switch ( type ) {
                 default:
                     break;
@@ -473,6 +467,18 @@ export default {
             });
             zCanvas?.interactionPane.stayOnTop();
             this.hasGuideRenderer && guideRenderer.stayOnTop();
+            this.handleActiveLayer();
+        },
+        handleActiveLayer(): void {
+            const { activeLayer } = this;
+            if ( !activeLayer ) {
+                return;
+            }   
+            [ ...layerPool.entries() ].forEach(([ , sprite ]) => {
+                sprite.handleActiveLayer( activeLayer );
+                sprite.handleActiveTool( this.activeTool, this.activeToolOptions, this.activeDocument );
+            });
+            this.handleGuides();
         },
         /**
          * A hard "reset" of all layer sprites. This is only necessary when layer

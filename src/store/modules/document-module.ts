@@ -115,23 +115,24 @@ const DocumentModule: Module<DocumentState, any> = {
         },
         addLayer( state: DocumentState, opts: Partial<Layer> = {} ): void {
             const document = state.documents[ state.activeIndex ];
-            const layers   = document.layers;
+            const layers   = [ ...document.layers ];
             if ( typeof opts.width !== "number" ) {
                 opts.width  = document.width;
                 opts.height = document.height;
             }
             layers.push( opts.id ? opts as Layer : LayerFactory.create( opts ));
+            document.layers = layers;
             state.activeLayerIndex = layers.length - 1;
         },
         insertLayerAtIndex( state: DocumentState, { index, layer }: { index: number, layer: Layer }): void {
             layer = layer.id ? layer : LayerFactory.create( layer );
             const document = state.documents[ state.activeIndex ];
-            const updatedLayers = [
-                ...document.layers.slice(0 , index ),
+            const orgLayers = [ ...document.layers ];
+            document.layers = [
+                ...orgLayers.slice( 0, index ),
                 layer,
-                ...document.layers.slice( index ),
+                ...orgLayers.slice( index ),
             ];
-            document.layers = updatedLayers;
             state.activeLayerIndex = index;
         },
         swapLayers( state: DocumentState, { index1, index2 }: { index1: number, index2: number } ): void {
@@ -140,13 +141,14 @@ const DocumentModule: Module<DocumentState, any> = {
             layers[ index1 ] = layers[ index2 ];
             layers[ index2 ] = obj1;
         },
-        // @ts-expect-error state is declared but never read
-        reorderLayers( state: DocumentState, { document, layerIds }: { document: Document, layerIds: string[] }): void {
+        reorderLayers( _state: DocumentState, { document, layerIds }: { document: Document, layerIds: string[] }): void {
             const oldLayers = [ ...document.layers ];
-            document.layers.splice( 0, oldLayers.length );
+            const layers = [ ...document.layers ];
+            layers.splice( 0, oldLayers.length );
             layerIds.forEach( id => {
-                document.layers.push( oldLayers.find( layer => layer.id === id));
+                layers.push( oldLayers.find( layer => layer.id === id));
             });
+            document.layers = layers;
         },
         removeLayer( state: DocumentState, index: number ): void {
             const layer = state.documents[ state.activeIndex ]?.layers[ index ];
