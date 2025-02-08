@@ -54,6 +54,7 @@ export default {
             "updateLayer",
             "setImageSourceUsage",
             "setLoading",
+            "showNotification",
             "unsetLoading",
         ]),
         ...mapActions([
@@ -146,7 +147,9 @@ export default {
             for ( const file of documents ) {
                 const serviceImport = await getServiceForThirdPartyFile( optMime || file.type );
                 const document = await serviceImport( file );
-                if ( document !== null ) {
+                if ( document === null ) {
+                    this.showNotification({ title: this.$t( "title.error" ), message: this.$t( "importError", { file: file.name }) });
+                } else {
                     this.addNewDocument( document );
                 }
             }

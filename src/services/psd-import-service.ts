@@ -104,7 +104,11 @@ async function psdToBitMapperyDocument( psd: any, psdFileReference: File ): Prom
                 await createLayer( childLayer.layer, layers, childLayer.name );
             }
         } else {
-            await createLayer( layer, layers, layerObj.name );
+            try {
+                await createLayer( layer, layers, layerObj.name );
+            } catch ( e: any ) {
+                console.error( `Error occured importing layer "${layerObj.name}".`, e );
+            }
         }
     }
 
