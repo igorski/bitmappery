@@ -209,7 +209,7 @@ export default {
         },
     },
     actions: {
-        async loadDocument({ commit }: ActionContext<BitMapperyState, any>, file: File = null ): Promise<void> {
+        async loadDocument({ commit }: ActionContext<BitMapperyState, any>, file?: File ): Promise<void> {
             if ( !file ) {
                 const fileList = await selectFile( `.${PROJECT_FILE_EXTENSION}`, false );
                 if ( !fileList?.length ) {
@@ -223,7 +223,7 @@ export default {
                 const openDocument = () => {
                     commit( "addNewDocument", document );
                     commit( "showNotification", {
-                        message: translate( "loadedFileSuccessfully", { file: truncate( file.name, 35 ) })
+                        message: translate( "loadedFileSuccessfully", { file: truncate( file!.name, 35 ) })
                     });
                 };
                 // if document contains text, show GDPR consention message before using Google Fonts
@@ -247,17 +247,17 @@ export default {
             } catch ( e ) {
                 commit( "showNotification", {
                     title: translate( "title.error" ),
-                    message: translate( "errorLoadingFile", { file: truncate( file.name, 35 ) })
+                    message: translate( "errorLoadingFile", { file: truncate( file!.name, 35 ) })
                 });
             }
             commit( "unsetLoading", "doc" );
         },
-        async saveDocument({ commit, getters }: ActionContext<BitMapperyState, any>, name: string = null ): Promise<void> {
+        async saveDocument({ commit, getters }: ActionContext<BitMapperyState, any>, name?: string ): Promise<void> {
             if ( !name ) {
                 name = getters.activeDocument.name;
             }
             const binary = await DocumentFactory.toBlob( getters.activeDocument );
-            saveBlobAsFile( binary, `${name.split( "." )[ 0 ]}.${PROJECT_FILE_EXTENSION}` );
+            saveBlobAsFile( binary, `${name!.split( "." )[ 0 ]}.${PROJECT_FILE_EXTENSION}` );
             commit( "showNotification", {
                 message: translate( "savedFileSuccessfully" , { file: truncate( name, 35 ) })
             });

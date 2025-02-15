@@ -1,31 +1,32 @@
 import { it, describe, expect, beforeEach, afterAll, vi } from "vitest";
-import { sprite, mockZCanvas } from "../../__mocks";
+import { mockZCanvas } from "../../mocks";
+// @ts-expect-error UndoManager has no types
 import UndoManager from "undo-manager";
-import store, { STATES_TO_SAVE } from "@/store/modules/history-module";
+import store, { createHistoryState, type HistoryState, STATES_TO_SAVE } from "@/store/modules/history-module";
 const { getters, mutations, actions }  = store;
 
-let mockUpdateFn;
+let mockUpdateFn: ( fnName: string, ...args: any[] ) => void;
 vi.mock( "@/factories/history-state-factory", () => ({
-    forceProcess: (...args) => mockUpdateFn?.( "forceProcess", ...args ),
-    flushQueue: (...args) => mockUpdateFn?.( "flushQueue", ...args )
+    forceProcess: (...args: any[]) => mockUpdateFn?.( "forceProcess", ...args ),
+    flushQueue: (...args: any[]) => mockUpdateFn?.( "flushQueue", ...args )
 }));
 vi.mock( "@/utils/resource-manager", () => ({
-    "disposeResource": (...args) => mockUpdateFn?.( "disposeResource", ...args ),
+    "disposeResource": (...args: any[]) => mockUpdateFn?.( "disposeResource", ...args ),
 }));
 mockZCanvas();
 
 describe( "History State module", () => {
     const noop = () => {};
     let commit = vi.fn();
-    let state;
+    let state: HistoryState;
 
     beforeEach( () => {
-        state = {
+        state = createHistoryState({
             undoManager: new UndoManager(),
             historyIndex: -1,
             blobUrls: new Map(),
             stored: 0,
-        };
+        });
         state.undoManager.setLimit( STATES_TO_SAVE );
     });
 
@@ -35,40 +36,56 @@ describe( "History State module", () => {
 
     describe("getters", () => {
         it("should know when it can undo an action", async () => {
-            expect(getters.canUndo(state, { canUndo: state.undoManager.hasUndo() })).toBe(false); // expected no undo to be available after construction
+            expect(getters.canUndo(state, { canUndo: state.undoManager.hasUndo() }, {}, {})).toBe(false); // expected no undo to be available after construction
+            
             mutations.saveState(state, { undo: noop, redo: noop });
-            expect(getters.canUndo(state, { canUndo: state.undoManager.hasUndo() })).toBe(true); // expected undo to be available after addition of action
+            
+            expect(getters.canUndo(state, { canUndo: state.undoManager.hasUndo() }, {}, {})).toBe(true); // expected undo to be available after addition of action
+            
+            // @ts-expect-error Not all constituents of type 'Action<HistoryState, any>' are callable.
             await actions.undo({ state, commit, getters: { canUndo: state.undoManager.hasUndo() }});
-            expect(getters.canUndo(state, { canUndo: state.undoManager.hasUndo() })).toBe(false); // expected no undo to be available after having undone all actions
+            
+            expect(getters.canUndo(state, { canUndo: state.undoManager.hasUndo() }, {}, {})).toBe(false); // expected no undo to be available after having undone all actions
         });
 
         it("should know when it can redo an action", async () => {
-            expect(getters.canRedo(state)).toBe(false); // expected no redo to be available after construction
+            expect(getters.canRedo(state, getters, {}, {})).toBe(false); // expected no redo to be available after construction
+            
             mutations.saveState(state, { undo: noop, redo: noop });
-            expect(getters.canRedo(state)).toBe(false); // expected no redo to be available after addition of action
+            
+            expect(getters.canRedo(state, getters, {}, {})).toBe(false); // expected no redo to be available after addition of action
+            
+            // @ts-expect-error Not all constituents of type 'Action<HistoryState, any>' are callable.
             await actions.undo({ state, commit, getters: { canUndo: state.undoManager.hasUndo() }});
-            expect(getters.canRedo(state)).toBe(true); // expected redo to be available after having undone actions
+            
+            expect(getters.canRedo(state, getters, {}, {})).toBe(true); // expected redo to be available after having undone actions
+            
+            // @ts-expect-error Not all constituents of type 'Action<HistoryState, any>' are callable.
             await actions.redo({ state, commit, getters: { canRedo: state.undoManager.hasRedo() }});
-            expect(getters.canRedo(state)).toBe(false); // expected no redo to be available after having redone all actions
+
+            expect(getters.canRedo(state, getters, {}, {})).toBe(false); // expected no redo to be available after having redone all actions
         });
 
         it("should know the amount of states it can restore", async () => {
-            commit = (action, value) => state.historyIndex = value;
-            expect(0).toEqual(getters.amountOfStates(state)); // expected no states to be present after construction
+            // @ts-expect-error Mock<Procedure>
+            commit = (_action, value) => state.historyIndex = value;
+            expect(0).toEqual(getters.amountOfStates(state, getters, {}, {})); // expected no states to be present after construction
 
             for ( let i = 0; i < STATES_TO_SAVE; ++i ) {
                 mutations.saveState(state, { undo: noop, redo: noop });
-                expect(i + 1).toEqual(getters.amountOfStates(state)); // expected amount of states to increase when storing new states
+                expect(i + 1).toEqual(getters.amountOfStates(state, getters, {}, {})); // expected amount of states to increase when storing new states
             }
 
             for ( let i = STATES_TO_SAVE - 1; i >= 0; --i ) {
+                // @ts-expect-error Not all constituents of type 'Action<HistoryState, any>' are callable.
                 await actions.undo({ state, commit, getters: { canUndo: state.undoManager.hasUndo() }});
-                expect(i).toEqual(getters.amountOfStates(state)); // expected amount of states to decrease when performing undo
+                expect(i).toEqual(getters.amountOfStates(state, getters, {}, {})); // expected amount of states to decrease when performing undo
             }
 
             for ( let i = 0; i < STATES_TO_SAVE; ++i ) {
+                // @ts-expect-error Not all constituents of type 'Action<HistoryState, any>' are callable.
                 await actions.redo({ state, commit, getters: { canRedo: state.undoManager.hasRedo() }});
-                expect(i + 1).toEqual(getters.amountOfStates(state)); // expected amount of states to increase when performing redo
+                expect(i + 1).toEqual(getters.amountOfStates(state, getters, {}, {})); // expected amount of states to increase when performing redo
             }
         });
 
@@ -77,7 +94,7 @@ describe( "History State module", () => {
                 mutations.saveState(state, { undo: noop, redo: noop });
             }
             expect( state.stored ).toEqual( STATES_TO_SAVE * 2 ); // total counts the cumulatives
-            expect( getters.amountOfStates( state )).toEqual( STATES_TO_SAVE ); // states never exceed the total
+            expect( getters.amountOfStates( state, getters, {}, {} )).toEqual( STATES_TO_SAVE ); // states never exceed the total
         });
     });
 
@@ -95,7 +112,7 @@ describe( "History State module", () => {
                     mutations.saveState( state, { undo: noop, redo: noop });
                 }
                 // expected model to not have recorded more states than the defined maximum
-                expect( getters.amountOfStates( state )).toEqual( STATES_TO_SAVE );
+                expect( getters.amountOfStates( state, getters, {}, {} )).toEqual( STATES_TO_SAVE );
             });
 
             it( "should be able to store a list of optional Blob resources within a state", () => {
@@ -156,9 +173,9 @@ describe( "History State module", () => {
 
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushQueue" );
             expect( state.historyIndex ).toEqual( -1 );
-            expect( getters.canUndo( state )).toBe( false ); // expected no undo to be available after flushing of history
-            expect( getters.canRedo( state )).toBe( false ); // expected no redo to be available after flushing of history
-            expect( getters.amountOfStates( state )).toEqual( 0 ); // expected no states to be present in history
+            expect( getters.canUndo( state, getters, {}, {} )).toBe( false ); // expected no undo to be available after flushing of history
+            expect( getters.canRedo( state, getters, {}, {} )).toBe( false ); // expected no redo to be available after flushing of history
+            expect( getters.amountOfStates( state, getters, {}, {} )).toEqual( 0 ); // expected no states to be present in history
             expect( state.stored ).toEqual( 0 );
 
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "disposeResource", "foo" );
@@ -175,8 +192,12 @@ describe( "History State module", () => {
             const redo = vi.fn();
             mutations.saveState(state, { undo: noop, redo: redo });
 
+            // @ts-expect-error Not all constituents of type 'Action<HistoryState, any>' are callable.
             await actions.undo({ state, commit, getters: { canUndo: state.undoManager.hasUndo() }});
+
             expect(commit).toHaveBeenNthCalledWith(1, "setHistoryIndex", -1);
+
+            // @ts-expect-error Not all constituents of type 'Action<HistoryState, any>' are callable.
             await actions.redo({ state, commit, getters: { canRedo: state.undoManager.hasRedo() }});
 
             expect(redo).toHaveBeenCalled();
@@ -189,6 +210,7 @@ describe( "History State module", () => {
             const undo = vi.fn();
             mutations.saveState(state, { undo: undo, redo: noop });
 
+            // @ts-expect-error Not all constituents of type 'Action<HistoryState, any>' are callable.
             await actions.undo({ state, commit, getters: { canUndo: state.undoManager.hasUndo() }});
 
             expect(mockUpdateFn).toHaveBeenCalledWith( "forceProcess" );

@@ -37,12 +37,18 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { mapState, mapMutations } from "vuex";
+import { type Notification } from "@/definitions/editor";
+
+type NotificationVO = Notification & {
+    visible: boolean;
+    destroyed: boolean;
+};
 
 export default {
     data: () => ({
-        queue: []
+        queue: [] as NotificationVO[]
     }),
     computed: {
         ...mapState([
@@ -52,17 +58,17 @@ export default {
     watch: {
         notifications: {
             immediate: true,
-            handler( value = [] ) {
+            handler( value: Notification[] = [] ): void {
                 if ( !value.length ) {
                     return;
                 }
                 value.forEach( notification => {
                     // create Value Object for the message
                     const notificationVO = { ...notification, visible: true, destroyed: false };
-                    this.queue.push(notificationVO);
+                    this.queue.push( notificationVO );
 
                     // auto close after a short delay
-                    window.setTimeout( this.closeNotification.bind(this, notificationVO), 5000 );
+                    window.setTimeout( this.closeNotification.bind( this, notificationVO ), 5000 );
                 });
                 this.clearNotifications();
             }
@@ -72,7 +78,7 @@ export default {
         ...mapMutations([
             "clearNotifications",
         ]),
-        closeNotification( notificationVO ) {
+        closeNotification( notificationVO: NotificationVO ): void {
             if ( !notificationVO.visible ) {
                 return;
             }
@@ -82,7 +88,7 @@ export default {
             
             window.setTimeout( this.removeNotification.bind( this, notificationVO ), 1000 );
         },
-        removeNotification( notificationVO ) {
+        removeNotification( notificationVO: NotificationVO ): void {
             notificationVO.destroyed = true;
             // only clear queue once all notifications have been destroyed
             // (v-for does not guarantee order so clearing when there are multiple notifications
@@ -90,7 +96,7 @@ export default {
             if ( !this.queue.find( notificationVO => !notificationVO.destroyed )) {
                 this.queue = [];
             }
-        }
+        },
     }
 };
 </script>

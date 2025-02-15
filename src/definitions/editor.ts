@@ -20,20 +20,23 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Point, Size } from "zcanvas";
+import type { Point } from "zcanvas";
 import type BrushTypes from "@/definitions/brush-types";
 import type { Selection } from "@/definitions/document";
 
 export type Notification = {
-    title: string;
+    title?: string;
     message: string;
 };
 
 export type Dialog = {
-    type: "info";
-    title: string;
-    message: string;
-    link?: string;
+    type?: "info";
+    title?: string;
+    message?: string;
+    link?: {
+        href: string;
+        title: string;
+    };
     confirm?: () => void;
     cancel?: () => void;
 };

@@ -1,5 +1,8 @@
 import { it, describe, expect, beforeEach, vi } from "vitest";
-import { sprite, mockZCanvas } from "../__mocks";
+import LayerFactory from "@/factories/layer-factory";
+import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
+import type LayerSprite from "@/rendering/canvas-elements/layer-sprite";
+import { sprite, mockZCanvas, createMockZoomableCanvas } from "../mocks";
 
 mockZCanvas();
 
@@ -16,7 +19,7 @@ describe( "Sprite factory", () => {
         });
 
         it( "should be able to set and retrieve the active zCanvas instance", () => {
-            const zCanvas = { name: "zcanvas" };
+            const zCanvas = createMockZoomableCanvas();
             setCanvasInstance( zCanvas );
             expect( getCanvasInstance() ).toEqual( zCanvas );
         });
@@ -29,12 +32,14 @@ describe( "Sprite factory", () => {
     });
 
     describe( "when lazily creating / caching sprites", () => {
-        let zCanvas, layer1sprite;
-        const layer1 = { id: "layer1", x: 0, y: 0, width: 10, height: 10 };
-        const layer2 = { id: "layer2", x: 0, y: 0, width: 10, height: 10 };
+        let zCanvas: ZoomableCanvas;
+        let layer1sprite: LayerSprite;
+
+        const layer1 = LayerFactory.create({ id: "layer1", width: 10, height: 10 });
+        const layer2 = LayerFactory.create({ id: "layer2", width: 10, height: 10 });
 
         beforeEach(() => {
-            zCanvas = { name: "zcanvas", addChild: vi.fn() };
+            zCanvas = createMockZoomableCanvas();
         });
 
         it( "should create a new Sprite on first request", () => {
@@ -68,9 +73,9 @@ describe( "Sprite factory", () => {
     });
 
     it( "should be able to flush its cache in its entierity", () => {
-        const zCanvas = { name: "zcanvas", addChild: vi.fn() };
-        const layer1  = { id: "layer1", x: 0, y: 0, width: 10, height: 10 };
-        const layer2  = { id: "layer2", x: 0, y: 0, width: 10, height: 10 };
+        const zCanvas = createMockZoomableCanvas();
+        const layer1  = LayerFactory.create({ id: "layer1", width: 10, height: 10 });
+        const layer2  = LayerFactory.create({ id: "layer2", width: 10, height: 10 });
 
         const layer1sprite = createSpriteForLayer( zCanvas, layer1 );
         const layer2sprite = createSpriteForLayer( zCanvas, layer2 );

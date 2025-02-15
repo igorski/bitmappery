@@ -4,6 +4,7 @@ import {
     isImageFile, isProjectFile, isThirdPartyDocument, getMimeForThirdPartyDocument, getMimeByFileName,
 } from "@/definitions/file-types";
 import { ALL_IMAGE_TYPES, JPEG, PNG, GIF, WEBP } from "@/definitions/image-types";
+import { createMockFile } from "../mocks";
 
 vi.mock( "@/utils/environment-util", () => ({
     isSafari: () => false, // forces webp support
@@ -11,9 +12,9 @@ vi.mock( "@/utils/environment-util", () => ({
 
 describe( "file types", () => {
     const imageFiles = ALL_IMAGE_TYPES.map(({ mime, ext }) => ({ type: mime, name: `file.${ext}` }));
-    const bpyFile    = { name: `file.${PROJECT_FILE_EXTENSION}` };
-    const psdFile    = { name: `file.${PSD.ext}` };
-    const pdfFile    = { name: `file.${PDF.ext}` };
+    const bpyFile    = createMockFile( `file.${PROJECT_FILE_EXTENSION}` );
+    const psdFile    = createMockFile( `file.${PSD.ext}` );
+    const pdfFile    = createMockFile( `file.${PDF.ext}` );
 
     it( "should be able to recognize the supported image files", () => {
         expect( imageFiles.filter( isImageFile )).toHaveLength( imageFiles.length );

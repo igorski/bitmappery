@@ -1,7 +1,9 @@
-import { it, describe, expect, vi } from "vitest";
-import { mockZCanvas } from "../__mocks";
+import { it, describe, expect } from "vitest";
+import { mockZCanvas } from "../mocks";
+import type { ListObjectsV2CommandOutput } from "@aws-sdk/client-s3";
 import { JPEG } from "@/definitions/image-types";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
+import { type FileNode } from "@/definitions/storage-types";
 import { formatEntries } from "@/services/aws-s3-service";
 
 mockZCanvas();
@@ -16,26 +18,26 @@ describe( "AWS S3 service", () => {
     describe( "when formatting the entries for keys using a leading path slash (e.g. AWS S3)", () => {
         const Contents = [{
             Key: "Koala.bpy",
-            LastModified: "2023-07-02T07:33:53.285Z",
+            LastModified: new Date( "2023-07-02T07:33:53.285Z" ),
             ETag: "a343a825346f55ea0aaa46400f61726c-1",
             Size: 1832856,
             StorageClass,
             Owner,
         }, {
             Key: "/foo/Panda.bpy",
-            LastModified: "2023-07-02T07:34:43.775Z",
+            LastModified: new Date("2023-07-02T07:34:43.775Z" ),
             ETag: "b5ab72a6040546a0063eba4bf1d1252f-",
             Size: 438932,
             StorageClass,
             Owner,
         }, {
             Key: "/foo/Gerbil.jpg",
-            LastModified: "2023-07-02T07:34:43.775Z",
+            LastModified: new Date( "2023-07-02T07:34:43.775Z" ),
             ETag: "b5ab72a6040546a0063eba4bf1d1252f-",
             Size: 438932,
             StorageClass,
             Owner,
-        }];
+        }] as ListObjectsV2CommandOutput[ "Contents" ];
 
         it( "should be able to recognise subdirectories, list these and ignore the files within", () => {
             const path = "";
@@ -91,19 +93,19 @@ describe( "AWS S3 service", () => {
     describe( "when formatting the entries for keys without a leading path slash (e.g. MinIO)", () => {
         const Contents = [{
             Key: "Koala.bpy",
-            LastModified: "2023-07-02T07:33:53.285Z",
+            LastModified: new Date( "2023-07-02T07:33:53.285Z" ),
             ETag: "a343a825346f55ea0aaa46400f61726c-1",
             Size: 1832856,
             StorageClass,
             Owner,
         }, {
             Key: "foo/Gerbil.jpg",
-            LastModified: "2023-07-02T07:34:43.775Z",
+            LastModified: new Date( "2023-07-02T07:34:43.775Z" ),
             ETag: "b5ab72a6040546a0063eba4bf1d1252f-",
             Size: 438932,
             StorageClass,
             Owner,
-        }];
+        }] as ListObjectsV2CommandOutput[ "Contents" ];
 
         it( "should be able to recognise subdirectories, list these and ignore the files within", () => {
             const path = "";

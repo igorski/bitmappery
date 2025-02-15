@@ -26,7 +26,6 @@ import {
     CreateMultipartUploadCommand, UploadPartCommand, CompleteMultipartUploadCommand, AbortMultipartUploadCommand,
 } from "@aws-sdk/client-s3";
 import type { ListObjectsV2CommandOutput } from "@aws-sdk/client-s3";
-import { createWriteStream } from "fs";
 import { PROJECT_FILE_EXTENSION, PREVIEW_THUMBNAIL, getMimeByFileName } from "@/definitions/file-types";
 import { JPEG } from "@/definitions/image-types";
 import type { FileNode } from "@/definitions/storage-types";
