@@ -1,8 +1,8 @@
 import { it, describe, expect, beforeEach, vi } from "vitest";
+import { sprite, mockZCanvas, createMockZoomableCanvas } from "../mocks";
 import LayerFactory from "@/factories/layer-factory";
 import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import type LayerSprite from "@/rendering/canvas-elements/layer-sprite";
-import { sprite, mockZCanvas, createMockZoomableCanvas } from "../mocks";
 
 mockZCanvas();
 

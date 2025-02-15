@@ -1,10 +1,10 @@
 import { it, describe, expect, vi, beforeEach, afterAll } from "vitest";
+import { mockZCanvas, createMockCanvasElement } from "../../mocks";
 import { type Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory, { type LayerProps } from "@/factories/layer-factory";
 import DocumentModule, { createDocumentState, type DocumentState } from "@/store/modules/document-module";
-import { mockZCanvas, createMockCanvasElement } from "../../mocks";
 
 const { getters, mutations } = DocumentModule;
 
@@ -188,11 +188,14 @@ describe( "Vuex document module", () => {
                     ],
                     activeIndex : 1,
                 });
+                const [ document1, document2 ] = state.documents;
+
                 const size = { width: 75, height: 40 };
                 mutations.setActiveDocumentSize( state, size );
+
                 expect( state.documents ).toEqual([
-                    { name: "foo", width: 30, height: 30 },
-                    { name: "bar", width: size.width, height: size.height },
+                    document1,
+                    { ...document2, width: size.width, height: size.height },
                 ]);
             });
 
@@ -264,9 +267,12 @@ describe( "Vuex document module", () => {
                 ],
                 activeIndex: 1
             });
+            const [ document1 ] = state.documents;
+
             mockUpdateFn = vi.fn();
             mutations.closeActiveDocument( state );
-            expect( state.documents ).toEqual([ { name: "foo", layers: [ layer1 ] }]);
+
+            expect( state.documents ).toEqual([ document1 ]);
             expect( state.activeIndex ).toEqual( 0 );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushLayerSprites", layer2 );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "flushLayerSprites", layer3 );
@@ -277,7 +283,7 @@ describe( "Vuex document module", () => {
 
             it( "should be able to add a Layer to the active Document", () => {
                 const state = createDocumentState({
-                    documents: [ DocumentFactory.create({ name: "foo", width: 1000, height: 1000, layers: [] }) ],
+                    documents: [ DocumentFactory.create({ name: "foo", width: 1000, height: 1000 }) ],
                     activeIndex: 0
                 });
 
@@ -286,17 +292,13 @@ describe( "Vuex document module", () => {
 
                 // assert LayerFactory is invoked with provided opts when calling addLayer()
                 expect( layerCreateMock ).toHaveBeenCalledWith( layerOpts );
-                expect( state.documents[ 0 ].layers ).toEqual([{
-                    name: "layer1",
-                    width: 50,
-                    height: 100
-                } ]);
+                expect( state.documents[ 0 ].layers[ 1 ] ).toEqual( LayerFactory.create( layerOpts ));
             });
 
             it( "when adding a Layer without specified dimensions, these should default to the Document dimensions", () => {
                 const state = createDocumentState({
                     documents: [
-                        DocumentFactory.create({ name: "foo", width: 1000, height: 1000, layers: [] })
+                        DocumentFactory.create({ name: "foo", width: 1000, height: 1000 })
                     ],
                     activeIndex: 0
                 });
@@ -305,11 +307,11 @@ describe( "Vuex document module", () => {
                 const layerOpts = { name: "layer1" };
                 mutations.addLayer( state, layerOpts );
 
-                expect( state.documents[ 0 ].layers ).toEqual([{
+                expect( state.documents[ 0 ].layers[ 1 ] ).toEqual({
                     name: layerOpts.name,
                     width: state.documents[ 0 ].width,
                     height: state.documents[ 0 ].height
-                }]);
+                });
             });
 
             it( "should update the active layer index to the last added layers index", () => {
@@ -380,7 +382,7 @@ describe( "Vuex document module", () => {
                     activeIndex: 0,
                     activeLayerIndex: 1,
                 });
-                const [ layer1, layer2, layer3 ] = state.documents;
+                const [ layer1, layer2, layer3 ] = state.documents[ 0 ].layers;
                 mockUpdateFn = vi.fn();
 
                 mutations.removeLayer( state, 1 );

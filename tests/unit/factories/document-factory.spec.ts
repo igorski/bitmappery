@@ -1,8 +1,8 @@
 import { it, describe, expect, afterAll, vi } from "vitest";
+import { mockZCanvas } from "../mocks";
 import type { Layer, Selection } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
-import { mockZCanvas } from "../mocks";
 
 vi.mock( "@/workers/compression.worker", () => ({
     // nowt... just to resolve import issue
@@ -23,7 +23,7 @@ describe( "Document factory", () => {
                 name: "New document",
                 width: 1000,
                 height: 1000,
-                layers: [ { layer: "1" } ],
+                layers: [ { name: "layer1" } ],
                 selections: {},
                 activeSelection: [],
                 invertSelection: false,
