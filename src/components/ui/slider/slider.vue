@@ -110,9 +110,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@use "sass:color";
 @use "sass:math";
 
-@import "@/styles/_mixins";
+@use "@/styles/_mixins";
+@use "@/styles/_variables";
 
 $track-color: #333;
 $thumb-color: #FFF;
@@ -120,18 +122,18 @@ $thumb-color-hover: #FFF;
 $thumb-color-disabled: #666;
 
 $thumb-radius: 50%;
-$thumb-height: $spacing-medium;
-$thumb-width: $spacing-medium;
+$thumb-height: variables.$spacing-medium;
+$thumb-width: variables.$spacing-medium;
 $mobile-thumb-height: 40px;
 $mobile-thumb-width: 40px;
 $thumb-shadow-size: 1px;
 $thumb-shadow-blur: 2px;
 $thumb-shadow-color: #111;
 $thumb-border-width: 2px;
-$thumb-border-color: darken($thumb-color-hover, 5%);
+$thumb-border-color: color.scale($thumb-color-hover, $lightness: -5%);
 
 $track-width: 100%;
-$track-height: $spacing-medium;
+$track-height: variables.$spacing-medium;
 $track-shadow-size: 0;
 $track-shadow-blur: 2px;
 $track-shadow-color: #000;
@@ -142,7 +144,7 @@ $track-radius: 5px;
 $contrast: 5%;
 
 @mixin shadow($shadow-size, $shadow-blur, $shadow-color) {
-    box-shadow: $shadow-size $shadow-size $shadow-blur $shadow-color, 0 0 $shadow-size lighten($shadow-color, 5%);
+    box-shadow: $shadow-size $shadow-size $shadow-blur $shadow-color, 0 0 $shadow-size color.scale($shadow-color, $lightness: 5%);
 }
 
 @mixin track() {
@@ -190,7 +192,7 @@ input[type=range] {
     }
 
     &:focus::-webkit-slider-runnable-track {
-        background: lighten($track-color, $contrast);
+        background: color.scale($track-color, $lightness: $contrast);
     }
 
     &::-moz-range-track {
@@ -213,7 +215,7 @@ input[type=range] {
     }
 
     &::-ms-fill-lower {
-        background: darken($track-color, $contrast);
+        background: color.scale($track-color, $lightness: -$contrast);
         border: $track-border-width solid $track-border-color;
         border-radius: $track-radius*2;
         @include shadow($track-shadow-size, $track-shadow-blur, $track-shadow-color);
@@ -231,7 +233,7 @@ input[type=range] {
         background: $track-color;
     }
     &:focus::-ms-fill-upper {
-        background: lighten($track-color, $contrast);
+        background: color.scale($track-color, $lightness: $contrast);
     }
 
     // disabled state
@@ -252,7 +254,7 @@ input[type=range] {
     }
 }
 
-@include mobile() {
+@include mixins.mobile() {
     input[type=range] {
         &::-webkit-slider-thumb {
             width: $mobile-thumb-width;

@@ -1,64 +1,69 @@
-@import "@/styles/component";
+@use "@/styles/_mixins";
+@use "@/styles/_variables";
+@use "@/styles/component";
 
 $collapsed-panel-width: 40px; // large view
 $collapsed-panel-height: 40px; // mobile view
 
 @mixin panel() {
-    @include component();
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
+    @include component.component();
 
-    .component__content {
-        padding: $spacing-small $spacing-medium $spacing-medium;
-        overflow-x: hidden;
-        overflow-y: auto;
-    }
+    & {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
 
-    @include mobile() {
         .component__content {
-            max-height: calc(100% - #{$heading-height});
+            padding: variables.$spacing-small variables.$spacing-medium variables.$spacing-medium;
             overflow-x: hidden;
             overflow-y: auto;
-            padding: $spacing-small $spacing-medium;
         }
-    }
 
-    // overrides component mixin
-    .component__header-button {
-        top: $spacing-small - $spacing-xxsmall;
-        right: $spacing-small;
-        width: 36px;
-        height: 29px;
-
-        img {
-            width: $spacing-medium + $spacing-small;
-            height: $spacing-medium + $spacing-small;
-        }
-    }
-
-    .component__actions {
-        margin: $spacing-small 0;
-        padding: 0 $spacing-medium;
-        box-sizing: border-box;
-        display: flex;
-
-        button {
-            flex: 1;
-            margin: 0 $spacing-small;
-        }
-    }
-
-    &.collapsed {
-        @include large() {
-            width: $collapsed-panel-width;
-
-            .component__title {
-                display: none;
+        @include mixins.mobile() {
+            .component__content {
+                max-height: calc(100% - #{variables.$heading-height});
+                overflow-x: hidden;
+                overflow-y: auto;
+                padding: variables.$spacing-small variables.$spacing-medium;
             }
         }
+
+        // overrides component mixin
         .component__header-button {
-            right: $spacing-xxsmall;
+            top: variables.$spacing-small - variables.$spacing-xxsmall;
+            right: variables.$spacing-small;
+            width: 36px;
+            height: 29px;
+
+            img {
+                width: variables.$spacing-medium + variables.$spacing-small;
+                height: variables.$spacing-medium + variables.$spacing-small;
+            }
+        }
+
+        .component__actions {
+            margin: variables.$spacing-small 0;
+            padding: 0 variables.$spacing-medium;
+            box-sizing: border-box;
+            display: flex;
+
+            button {
+                flex: 1;
+                margin: 0 variables.$spacing-small;
+            }
+        }
+
+        &.collapsed {
+            @include mixins.large() {
+                width: $collapsed-panel-width;
+
+                .component__title {
+                    display: none;
+                }
+            }
+            .component__header-button {
+                right: variables.$spacing-xxsmall;
+            }
         }
     }
 }

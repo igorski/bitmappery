@@ -536,21 +536,22 @@ export default {
 </script>
 
 <style lang="scss">
-@import "@/styles/_mixins";
-@import "@/styles/component";
-@import "@/styles/ui";
+@use "@/styles/_colors";
+@use "@/styles/_mixins";
+@use "@/styles/component";
+@use "@/styles/ui";
 
 .canvas-wrapper {
     display: inline-block;
     width: 100%;
-    @include component();
+    @include component.component();
 
     &.has-content {
-        background-color: $color-bg-light;
+        background-color: colors.$color-bg-light;
     }
 
     .component__header-button {
-        @include closeButton();
+        @include ui.closeButton();
     }
 
     .component__content {
@@ -577,13 +578,13 @@ export default {
         }
 
         &.center canvas {
-            @include large() {
+            @include mixins.large() {
                 position: absolute;
                 top: 50%;
                 left: 50%;
                 transform: translate(-50%, -50%);
             }
-            @include mobile() {
+            @include mixins.mobile() {
                 display: block;
                 margin: 0 auto;
             }

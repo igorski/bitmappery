@@ -165,7 +165,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/third-party";
+@use "@/styles/_mixins";
+@use "@/styles/_variables";
+@use "@/styles/third-party";
 
 .file-import {
     height: 100%;
@@ -175,17 +177,17 @@ export default {
 }
 
 .file-fieldset {
-    @include large() {
+    @include mixins.large() {
         border: 3px solid #444;
-        border-radius: $spacing-large;
+        border-radius: variables.$spacing-large;
         box-sizing: border-box;
-        padding: $spacing-small $spacing-xlarge $spacing-medium;
-        margin: $spacing-large 0 $spacing-medium;
+        padding: variables.$spacing-small variables.$spacing-xlarge variables.$spacing-medium;
+        margin: variables.$spacing-large 0 variables.$spacing-medium;
     }
 }
 
 .import-form {
-    padding: 0 $spacing-medium $spacing-small;
+    padding: 0 variables.$spacing-medium variables.$spacing-small;
     box-sizing: border-box;
     max-width: 420px;
     margin: 0 auto;
@@ -193,7 +195,7 @@ export default {
 
 .new-document-button {
     width: 100%;
-    margin-bottom: $spacing-small;
+    margin-bottom: variables.$spacing-small;
 }
 
 .file-target-label,
@@ -202,6 +204,6 @@ export default {
 }
 
 .button--third-party:last-of-type {
-    margin-bottom: $spacing-medium;
+    margin-bottom: variables.$spacing-medium;
 }
 </style>

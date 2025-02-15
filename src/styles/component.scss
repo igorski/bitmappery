@@ -1,21 +1,23 @@
-@import "_mixins";
-@import "typography";
+@use "_colors";
+@use "_mixins";
+@use "_variables";
+@use "typography";
 
 @mixin component {
     position: relative;
     box-shadow: 0 0 5px rgba(0,0,0,.5);
-    background-image: $color-window-bg;
+    background-image: colors.$color-window-bg;
 
     .component__header {
         margin: 0;
-        padding: $spacing-small $spacing-medium;
-        @include boxSize();
-        @include truncate();
-        @include customFont();
-        color: $color-text;
-        background-image: $color-window-bg;
-        height: $heading-height;
-        border-bottom: 1px solid $color-1;
+        padding: variables.$spacing-small variables.$spacing-medium;
+        @include mixins.boxSize();
+        @include mixins.truncate();
+        @include typography.customFont();
+        color: colors.$color-text;
+        background-image: colors.$color-window-bg;
+        height: variables.$heading-height;
+        border-bottom: 1px solid colors.$color-1;
     }
 
     .component__title {
@@ -25,7 +27,7 @@
         width: calc(100% - 24px); // minus close button width
         text-overflow: ellipsis;
         overflow: hidden;
-        color: $color-text;
+        color: colors.$color-text;
 
         &--no-action {
             width: 100%;
@@ -33,21 +35,21 @@
     }
 
     .component__content {
-        @include boxSize();
+        @include mixins.boxSize();
 
-        @include large() {
-            padding: $spacing-medium;
-            height: calc(100% - #{$heading-height});
+        @include mixins.large() {
+            padding: variables.$spacing-medium;
+            height: calc(100% - #{variables.$heading-height});
         }
-        @include mobile() {
-            padding: $spacing-xsmall $spacing-small;
+        @include mixins.mobile() {
+            padding: variables.$spacing-xsmall variables.$spacing-small;
         }
     }
 
     .component__header-button {
         cursor: pointer;
         position: absolute;
-        top: $spacing-small;
-        right: $spacing-medium;
+        top: variables.$spacing-small;
+        right: variables.$spacing-medium;
     }
 }

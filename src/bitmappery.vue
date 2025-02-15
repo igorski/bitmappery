@@ -342,25 +342,27 @@ export default {
  */
 @use "sass:math";
 
-@import "@/styles/_global";
-@import "@/styles/_mixins";
-@import "@/styles/panel";
+@use "@/styles/_colors";
+@use "@/styles/_global";
+@use "@/styles/_mixins";
+@use "@/styles/_variables";
+@use "@/styles/panel";
 
 #app {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-image: linear-gradient(to bottom, $color-bg-dark 35%, $color-bg-light 90%);
+    background-image: linear-gradient(to bottom, colors.$color-bg-dark 35%, colors.$color-bg-light 90%);
     height: 100%;
     font-size: 15px;
-    @include noSelect();
+    @include mixins.noSelect();
 
     .main {
-        @include boxSize();
-        height: calc(100% - #{$menu-height});
+        @include mixins.boxSize();
+        height: calc(100% - #{variables.$menu-height});
         position: relative;
 
-        @include large() {
-            padding: $spacing-medium;
+        @include mixins.large() {
+            padding: variables.$spacing-medium;
         }
     }
 
@@ -376,12 +378,12 @@ export default {
 
     .document-container {
         width: 100%;
-        margin: 0 $spacing-medium;
+        margin: 0 variables.$spacing-medium;
     }
 
     /* three column layout on tablet / desktops */
 
-    @include large() {
+    @include mixins.large() {
         .toolbox,
         .document-container,
         .panels {
@@ -391,8 +393,8 @@ export default {
         .toolbox,
         .panels {
             &.collapsed {
-                width: $collapsed-panel-width;
-                min-height: $heading-height;
+                width: panel.$collapsed-panel-width;
+                min-height: variables.$heading-height;
             }
         }
         .panels {
@@ -400,21 +402,21 @@ export default {
             height: 100%;
 
             .tool-options-panel {
-                height: calc(#{$optionsHeight - math.div( $spacing-medium, 2 )});
+                height: calc(#{$optionsHeight - math.div( variables.$spacing-medium, 2 )});
             }
             .layer-panel {
-                height: calc(100% - #{$optionsHeight + math.div( $spacing-medium, 2 )});
-                margin-top: $spacing-medium;
+                height: calc(100% - #{$optionsHeight + math.div( variables.$spacing-medium, 2 )});
+                margin-top: variables.$spacing-medium;
             }
 
-            @include minHeight( 900px ) {
+            @include mixins.minHeight( 900px ) {
                 $optionsHeight: 390px;
                 .tool-options-panel {
-                    height: calc(#{$optionsHeight - math.div( $spacing-medium, 2 )});
+                    height: calc(#{$optionsHeight - math.div( variables.$spacing-medium, 2 )});
                 }
                 .layer-panel {
-                    height: calc(100% - #{$optionsHeight + math.div( $spacing-medium, 2 )});
-                    margin-top: $spacing-medium;
+                    height: calc(100% - #{$optionsHeight + math.div( variables.$spacing-medium, 2 )});
+                    margin-top: variables.$spacing-medium;
                 }
             }
         }
@@ -429,31 +431,31 @@ export default {
 
     /* three row layout on phones */
 
-    @include mobile() {
+    @include mixins.mobile() {
         .toolbox {
             position: fixed;
-            top: $menu-height;
+            top: variables.$menu-height;
             width: 100%;
-            height: $menu-height;
+            height: variables.$menu-height;
         }
         .panels {
             position: fixed;
             width: 100%;
             max-height: 50%;
-            //max-height: calc(100% - #{$menu-height * 3});
+            //max-height: calc(100% - #{variables.$menu-height * 3});
             bottom: 0;
             overflow-y: scroll;
-            border-top: 1px solid $color-bg;
+            border-top: 1px solid colors.$color-bg;
 
             &.collapsed {
-                height: $menu-height;
+                height: variables.$menu-height;
             }
         }
         .document-container {
             position: fixed;
-            top: $menu-height * 2;
+            top: variables.$menu-height * 2;
             width: 100%;
-            height: calc(100% - #{$menu-height * 3 });
+            height: calc(100% - #{variables.$menu-height * 3 });
             margin: 0;
         }
     }

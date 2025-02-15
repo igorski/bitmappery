@@ -318,16 +318,17 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/tool-option";
+@use "@/styles/_variables";
+@use "@/styles/tool-option";
 
 .color-picker {
     width: 50%;
     display: inline-block;
-    transform: translateY(-$spacing-xsmall);
+    transform: translateY(-(variables.$spacing-xsmall));
 }
 
 .half {
     width: 75px !important;
-    margin-right: $spacing-small;
+    margin-right: variables.$spacing-small;
 }
 </style>

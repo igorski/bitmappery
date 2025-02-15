@@ -111,23 +111,25 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/_mixins";
-@import "@/styles/typography";
-@import "@/styles/ui";
+@use "@/styles/_colors";
+@use "@/styles/_mixins";
+@use "@/styles/_variables";
+@use "@/styles/typography";
+@use "@/styles/ui";
 
 .dialog-window {
-    @include overlay();
-    @include noSelect();
-    @include boxSize();
+    @include ui.overlay();
+    @include mixins.noSelect();
+    @include mixins.boxSize();
 
     width: auto;
     height: auto;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    background-image: $color-window-bg;
-    padding: $spacing-small $spacing-large $spacing-large;
-    border-radius: $spacing-small;
+    background-image: colors.$color-window-bg;
+    padding: variables.$spacing-small variables.$spacing-large variables.$spacing-large;
+    border-radius: variables.$spacing-small;
     box-shadow: 0 0 25px rgba(0,0,0,.5);
 
     &:focus {
@@ -135,9 +137,9 @@ export default {
     }
 
     &__title {
-        @include customFont();
-        margin: $spacing-medium 0;
-        color: $color-4;
+        @include typography.customFont();
+        margin: variables.$spacing-medium 0;
+        color: colors.$color-4;
         font-weight: bold;
         font-size: 115%;
     }
@@ -150,20 +152,20 @@ export default {
 
     &__link {
         display: block;
-        margin-bottom: $spacing-medium;
+        margin-bottom: variables.$spacing-medium;
     }
 
     button {
         display: inline-block;
         width: 45%;
-        margin-right: $spacing-medium;
+        margin-right: variables.$spacing-medium;
     }
 
-    @include large() {
+    @include mixins.large() {
         max-width: 480px;
     }
 
-    @include mobile() {
+    @include mixins.mobile() {
         border-radius: 0;
         width: 100%;
         height: 100%;
@@ -175,7 +177,7 @@ export default {
     }
 
     &__actions {
-        margin: $spacing-small 0;
+        margin: variables.$spacing-small 0;
         display: flex;
         justify-content: space-between;
 

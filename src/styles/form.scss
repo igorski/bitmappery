@@ -1,17 +1,18 @@
-@import "_mixins";
-@import "typography";
+@use "_mixins";
+@use "_variables";
+@use "typography";
 
 $labelWidth: 35%;
 $inputWidth: 65%;
 
 .form {
     .wrapper {
-        margin: $spacing-small 0;
+        margin: variables.$spacing-small 0;
 
         // use where there is no <label> element
         &.full {
             width: 200%;
-            margin-left: $spacing-xsmall;
+            margin-left: variables.$spacing-xsmall;
 
             &.slider .slider-input {
                 width: 48% !important;
@@ -36,11 +37,11 @@ $inputWidth: 65%;
         .input-field,
         .input-textarea {
             box-sizing: border-box;
-            border-radius: $spacing-small;
+            border-radius: variables.$spacing-small;
             border: none;
-            padding: #{$spacing-small + $spacing-xsmall} $spacing-medium;
+            padding: #{variables.$spacing-small + variables.$spacing-xsmall} variables.$spacing-medium;
             font-size: 95%;
-            @include bodyFont();
+            @include typography.bodyFont();
         }
 
         .full {

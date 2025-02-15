@@ -202,9 +202,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/ui";
+@use "@/styles/ui";
 
 .resize-canvas {
-    @include modalBase( 480px, 220px );
+    @include ui.modalBase( 480px, 220px );
 }
 </style>

@@ -147,9 +147,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/ui";
+@use "@/styles/ui";
 
 .resize-document {
-    @include modalBase( 480px, 310px );
+    @include ui.modalBase( 480px, 310px );
 }
 </style>

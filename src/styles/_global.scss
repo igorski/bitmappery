@@ -1,8 +1,10 @@
-@import "_colors";
-@import "@/styles/ui";
-@import "@/styles/form";
-@import "@/styles/typography";
-@import "@/styles/tooltip";
+@use "_colors";
+@use "_mixins";
+@use "_variables";
+@use "@/styles/ui";
+@use "@/styles/form";
+@use "@/styles/typography";
+@use "@/styles/tooltip";
 
 html, body {
     margin: 0;
@@ -13,7 +15,7 @@ html, body {
 
 .divider {
     border: none;
-    border-bottom: 1px dashed $color-lines;
+    border-bottom: 1px dashed colors.$color-lines;
 }
 
 // typography
@@ -32,17 +34,17 @@ html, body {
 
 .vue-js-switch {
     width: auto !important;
-    margin-right: $spacing-small;
+    margin-right: variables.$spacing-small;
 
     .v-switch-core {
-        background-color: $color-bg !important;
+        background-color: colors.$color-bg !important;
     }
     .v-switch-button {
         background-color: #FFF !important;
     }
     &.toggled {
         .v-switch-core {
-            background-color: $color-1 !important;
+            background-color: colors.$color-1 !important;
         }
         .v-switch-button {
             background-color: #FFF !important;
@@ -52,24 +54,24 @@ html, body {
 
 // scrollbars
 
-@include large() {
+@include mixins.large() {
     ::-webkit-scrollbar {
         width: 12px;
     }
 
     ::-webkit-scrollbar-corner {
-        background-color: $color-bg;
+        background-color: colors.$color-bg;
     }
 
     ::-webkit-scrollbar-track {
         -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-        border-radius: $spacing-medium;
-        background-color: $color-bg;
+        border-radius: variables.$spacing-medium;
+        background-color: colors.$color-bg;
     }
 
     ::-webkit-scrollbar-thumb {
-        border-radius: $spacing-medium;
+        border-radius: variables.$spacing-medium;
         -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
-        background-color: $color-1;
+        background-color: colors.$color-1;
     }
 }

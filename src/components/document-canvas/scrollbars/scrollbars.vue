@@ -202,20 +202,22 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/_mixins";
+@use "@/styles/_colors";
+@use "@/styles/_mixins";
+@use "@/styles/_variables";
 
-$size: $spacing-medium;
+$size: variables.$spacing-medium;
 
 .scroll {
     position: absolute;
-    background-color: $color-2;
+    background-color: colors.$color-2;
     cursor: pointer;
 
     &__handle {
         position: absolute;
-        background-color: $color-bg;
-        border-radius: $spacing-small;
-        @include noEvents(); /* the background captures the events */
+        background-color: colors.$color-bg;
+        border-radius: variables.$spacing-small;
+        @include mixins.noEvents(); /* the background captures the events */
     }
 
     &--vertical {

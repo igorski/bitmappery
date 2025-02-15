@@ -65,5 +65,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/third-party";
+@use "@/styles/third-party";
 </style>

@@ -121,17 +121,17 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/_variables";
-@import "@/styles/ui";
+@use "@/styles/_variables";
+@use "@/styles/ui";
 
 .stroke-selection {
-    @include modalBase( 480px, 200px );
+    @include ui.modalBase( 480px, 200px );
 }
 
 .color-picker {
     width: 50%;
     display: inline-block;
-    transform: translateY(-$spacing-xsmall);
+    transform: translateY(-(variables.$spacing-xsmall));
 }
 
 .size-input {

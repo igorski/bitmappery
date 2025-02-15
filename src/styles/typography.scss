@@ -1,6 +1,6 @@
-@import "_variables";
-@import "_mixins";
-@import "colors";
+@use "_variables";
+@use "_mixins";
+@use "colors";
 
 @mixin customFont() {
     font-family: "Nunito", sans-serif;
@@ -12,27 +12,27 @@
 
 body {
     color: #b7babe;
-    font-size: $spacing-medium;
+    font-size: variables.$spacing-medium;
     line-height: 1.5;
     @include bodyFont();
 }
 
 h1, h2, h3, h4, h5, h6 {
     font-weight: normal;
-    color: $color-1;
+    color: colors.$color-1;
 }
 
 h2 {
     font-size: 100%;
     font-weight: bold;
     color: #b6babe;
-    padding: $spacing-small $spacing-large;
+    padding: variables.$spacing-small variables.$spacing-large;
     display: inline;
 }
 
 h3 {
     font-size: 110%;
-    margin: $spacing-small 0;
+    margin: variables.$spacing-small 0;
 }
 
 p {
@@ -40,19 +40,19 @@ p {
 }
 
 a, a:visited {
-    color: $color-1;
+    color: colors.$color-1;
     text-decoration: underline;
 
     &:hover {
-        color: $color-1;
+        color: colors.$color-1;
         text-decoration: none;
     }
 }
 
 @mixin smallText() {
     font-size: 85%;
-    padding: $spacing-medium;
-    @include boxSize();
-    border: 1px solid $color-lines;
-    border-radius: $spacing-medium;
+    padding: variables.$spacing-medium;
+    @include mixins.boxSize();
+    border: 1px solid colors.$color-lines;
+    border-radius: variables.$spacing-medium;
 }

@@ -1,4 +1,4 @@
-@import "_mixins";
+@use "@/styles/_variables";
 
 .tool-option {
     margin: 0;
@@ -13,12 +13,12 @@
     }
 
     .actions {
-        margin: $spacing-small 0;
+        margin: variables.$spacing-small 0;
         display: flex;
 
         button {
             flex: 1;
-            margin: 0 $spacing-small 0 0;
+            margin: 0 variables.$spacing-small 0 0;
         }
     }
 }

@@ -77,10 +77,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/tool-option";
-@import "@/styles/typography";
+@use "@/styles/tool-option";
+@use "@/styles/typography";
 
 .expl {
-    @include smallText();
+    @include typography.smallText();
 }
 </style>

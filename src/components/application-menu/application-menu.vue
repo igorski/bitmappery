@@ -705,17 +705,19 @@ export default {
 <style lang="scss" scoped>
 @use "sass:math";
 
-@import "@/styles/_mixins";
-@import "@/styles/typography";
+@use "@/styles/_colors";
+@use "@/styles/_mixins";
+@use "@/styles/_variables";
+@use "@/styles/typography";
 
 $toggle-width: 50px;
 
 .heading {
-    @include customFont();
-    letter-spacing: $spacing-xxsmall;
+    @include typography.customFont();
+    letter-spacing: variables.$spacing-xxsmall;
 
     .emphasis {
-        letter-spacing: math.div( $spacing-xxsmall, 4 );
+        letter-spacing: math.div( variables.$spacing-xxsmall, 4 );
     }
 }
 
@@ -725,20 +727,20 @@ $toggle-width: 50px;
     justify-content: space-between;
     align-items: center;
     margin: 0 auto;
-    padding: $spacing-small $spacing-medium;
+    padding: variables.$spacing-small variables.$spacing-medium;
     width: 100%;
-    height: $menu-height;
-    background-image: $color-window-bg;
-    @include boxSize();
+    height: variables.$menu-height;
+    background-image: colors.$color-window-bg;
+    @include mixins.boxSize();
 
-    @include large() {
+    @include mixins.large() {
         min-width: 100%;
-        max-width: $ideal-width;
+        max-width: variables.$ideal-width;
         margin: 0 auto;
-        padding-left: $spacing-large;
+        padding-left: variables.$spacing-large;
     }
 
-    @include mobile() {
+    @include mixins.mobile() {
         position: fixed;
         z-index: 5;
         overflow: hidden;
@@ -789,13 +791,13 @@ $toggle-width: 50px;
 
             li {
                 .submenu li {
-                    padding: $spacing-small 0;
+                    padding: variables.$spacing-small 0;
                 }
 
                 a {
                     display: block;
                     width: 100%;
-                    padding: $spacing-medium $spacing-large;
+                    padding: variables.$spacing-medium variables.$spacing-large;
                     color: #000;
 
                     &:hover {
@@ -808,7 +810,7 @@ $toggle-width: 50px;
                     color: #FFF;
                     font-weight: bold;
                     font-style: italic;
-                    background-color: $color-1;
+                    background-color: colors.$color-1;
                 }
             }
         }
@@ -826,7 +828,7 @@ $toggle-width: 50px;
     top: 0;
     left: 0;
     width: $toggle-width;
-    height: $menu-height;
+    height: variables.$menu-height;
 
     span {
         position: absolute;
@@ -840,7 +842,7 @@ h1 {
     display: inline;
     margin: 0;
     padding: 0;
-    padding-right: $spacing-medium;
+    padding-right: variables.$spacing-medium;
     font-size: 110%;
     font-weight: bold;
 
@@ -854,11 +856,11 @@ h1 {
     list-style-type: none;
     padding: 0;
     margin: 0;
-    @include boxSize();
+    @include mixins.boxSize();
 
     li {
         display: inline-block;
-        padding: 0 $spacing-medium 0 0;
+        padding: 0 variables.$spacing-medium 0 0;
         margin: 0;
         font-family: Montserrat, Helvetica, Verdana;
         cursor: pointer;
@@ -866,12 +868,12 @@ h1 {
         a {
             color: #b6b6b6;
             text-decoration: none;
-            padding-bottom: $spacing-large;
+            padding-bottom: variables.$spacing-large;
         }
 
         &:hover,
         &:hover a {
-            color: $color-1;
+            color: colors.$color-1;
             border-bottom: none;
             text-decoration: none;
         }
@@ -892,16 +894,16 @@ h1 {
             font-size: 95%;
 
             &:disabled {
-                color: $color-bg !important;
+                color: colors.$color-bg !important;
             }
 
             &.checked::before {
                 content: "\2713";
-                margin-right: $spacing-small;
+                margin-right: variables.$spacing-small;
             }
 
             &:hover {
-                color: $color-4;
+                color: colors.$color-4;
             }
         }
 
@@ -909,10 +911,10 @@ h1 {
             list-style: none;
         }
 
-        @include large() {
+        @include mixins.large() {
             &:hover, &:focus {
                 a {
-                    color: $color-1;
+                    color: colors.$color-1;
                 }
                 ul {
                     display: block;
@@ -923,23 +925,23 @@ h1 {
                 display: none;
                 position: absolute;
                 box-shadow: 0 0 5px rgba(0,0,0,.5);
-                padding: $spacing-medium;
-                background-image: $color-window-bg;
+                padding: variables.$spacing-medium;
+                background-image: colors.$color-window-bg;
                 background-repeat: repeat-x;
-                @include boxSize();
+                @include mixins.boxSize();
             }
         }
     }
 
-    @include mobile() {
+    @include mixins.mobile() {
         position: absolute;
-        top: $menu-height;
+        top: variables.$menu-height;
         background-image: linear-gradient(to bottom,#fff 35%,#eee 90%);
         background-repeat: repeat-x;
         display: none;
 
         .title {
-            padding: $spacing-small $spacing-medium;
+            padding: variables.$spacing-small variables.$spacing-medium;
         }
 
         .submenu {
@@ -947,19 +949,19 @@ h1 {
 
             &.opened {
                 display: block;
-                padding-left: $spacing-medium;
-                background-image: $color-window-bg;
+                padding-left: variables.$spacing-medium;
+                background-image: colors.$color-window-bg;
             }
         }
     }
 }
 
 .submenu {
-    @include large() {
+    @include mixins.large() {
         li {
             display: block;
             color: #b6b6b6;
-            padding: $spacing-xsmall $spacing-medium;
+            padding: variables.$spacing-xsmall variables.$spacing-medium;
 
             &:hover {
                 color: #FFF;
@@ -973,7 +975,7 @@ h1 {
 }
 
 .fullscreen-button {
-    height: math.div( $menu-height, 2 );
+    height: math.div( variables.$menu-height, 2 );
     cursor: pointer;
     background: transparent;
     border: none;
@@ -982,10 +984,10 @@ h1 {
         filter: brightness(0) invert(1);
     }
 
-    @include mobile() {
+    @include mixins.mobile() {
         position: absolute;
-        top: #{math.div( $menu-height, 2 ) - 10px};
-        right: $spacing-medium;
+        top: #{math.div( variables.$menu-height, 2 ) - 10px};
+        right: variables.$spacing-medium;
     }
 }
 </style>

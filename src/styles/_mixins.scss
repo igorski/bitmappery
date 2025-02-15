@@ -1,18 +1,18 @@
-@import "_variables";
-@import "_colors";
+@use "_variables";
+@use "_colors";
 
 /* responsiveness mixins */
 
 // phones
 @mixin mobile {
-    @media (max-width: #{$mobile-width}) {
+    @media (max-width: #{variables.$mobile-width}) {
         @content;
     }
 }
 
 // anything above phone resolution (e.g. tablet/laptop/desktop)
 @mixin large {
-    @media (min-width: #{$mobile-width}) {
+    @media (min-width: #{variables.$mobile-width}) {
         @content;
     }
 }

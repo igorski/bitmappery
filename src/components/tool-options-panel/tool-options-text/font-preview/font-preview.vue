@@ -43,7 +43,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/font-previews";
+@use "@/styles/font-previews";
 
 .font-preview__wrapper {
     padding-top: 4px;

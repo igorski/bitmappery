@@ -170,14 +170,14 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/typography";
-@import "@/styles/ui";
+@use "@/styles/typography";
+@use "@/styles/ui";
 
 .grid-to-layers {
-    @include modalBase( 480px, 470px );
+    @include ui.modalBase( 480px, 470px );
 }
 
 .expl {
-    @include smallText();
+    @include typography.smallText();
 }
 </style>

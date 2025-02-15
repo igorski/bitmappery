@@ -392,67 +392,72 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/_mixins";
-@import "@/styles/panel";
-@import "@/styles/typography";
+@use "@/styles/_colors";
+@use "@/styles/_mixins";
+@use "@/styles/_variables";
+@use "@/styles/panel";
+@use "@/styles/typography";
 
 .layer-panel-wrapper {
-    @include panel();
-    display: flex;
-    flex-direction: column;
+    @include panel.panel();
 
-    &:focus {
-        outline: none;
-    }
+    & {
+        display: flex;
+        flex-direction: column;
 
-    .component__content.form {
-        padding: 0;
-    }
+        &:focus {
+            outline: none;
+        }
 
-    @include mobile() {
-        &.collapsed {
-            position: fixed;
-            bottom: 0;
-            height: $collapsed-panel-height;
+        .component__content.form {
+            padding: 0;
+        }
+
+        @include mixins.mobile() {
+            &.collapsed {
+                position: fixed;
+                bottom: 0;
+                height: panel.$collapsed-panel-height;
+            }
         }
     }
 }
 
 .layer-list {
     padding: 0;
-    @include boxSize();
-    @include truncate();
+    @include mixins.boxSize();
+    @include mixins.truncate();
 }
 
 .no-layers-text {
-    padding: 0 $spacing-medium;
+    padding: 0 variables.$spacing-medium;
 }
 
 .layer {
     cursor: pointer;
-    border-bottom: 1px dotted $color-lines;
-    padding: 0 $spacing-xsmall;
-    @include boxSize();
-    @include customFont();
+    border-bottom: 1px dotted colors.$color-lines;
+    padding: 0 variables.$spacing-xsmall;
+    @include mixins.boxSize();
+    @include typography.customFont();
     display: flex;
     color: #FFF;
 
     &:hover {
-        background-color: $color-4;
+        background-color: colors.$color-4;
         color: #000;
     }
 
     &__name,
     &__name-input {
         flex: 3;
-        @include truncate();
+        @include mixins.truncate();
         font-size: 90%;
-        padding: $spacing-small $spacing-small 0;
-        margin-left: $spacing-small;
+        padding: variables.$spacing-small variables.$spacing-small 0;
+        margin-left: variables.$spacing-small;
     }
 
     &__actions {
-        margin-right: $spacing-small;
+        margin-right: variables.$spacing-small;
 
         &-button {
             cursor: pointer;
@@ -473,7 +478,7 @@ export default {
     }
 
     &--active {
-        background-color: $color-1;
+        background-color: colors.$color-1;
         border: none;
     }
 
