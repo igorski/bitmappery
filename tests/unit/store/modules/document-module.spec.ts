@@ -1,24 +1,26 @@
 import { it, describe, expect, vi, beforeEach, afterAll } from "vitest";
-import { mockZCanvas } from "../../__mocks";
+import { mockZCanvas, createMockCanvasElement } from "../../mocks";
+import { type Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
-import LayerFactory from "@/factories/layer-factory";
-import DocumentModule from "@/store/modules/document-module";
+import DocumentFactory from "@/factories/document-factory";
+import LayerFactory, { type LayerProps } from "@/factories/layer-factory";
+import DocumentModule, { createDocumentState, type DocumentState } from "@/store/modules/document-module";
+
 const { getters, mutations } = DocumentModule;
 
 mockZCanvas();
 
-let mockUpdateFn;
+let mockUpdateFn: ( fnName: string, ...args: any[]) => void;
 vi.mock( "@/factories/sprite-factory", () => ({
-    flushLayerSprites: (...args) => mockUpdateFn?.( "flushLayerSprites", ...args ),
-    runSpriteFn: (...args) => mockUpdateFn?.( "runSpriteFn", ...args ),
-    getSpriteForLayer: (...args) => mockUpdateFn?.( "getSpriteForLayer", ...args ),
-    getCanvasInstance: (...args) => mockUpdateFn?.( "getCanvasInstance", ...args ),
+    flushLayerSprites: (...args: any[]) => mockUpdateFn?.( "flushLayerSprites", ...args ),
+    runSpriteFn: (...args: any[]) => mockUpdateFn?.( "runSpriteFn", ...args ),
+    getSpriteForLayer: (...args: any[]) => mockUpdateFn?.( "getSpriteForLayer", ...args ),
+    getCanvasInstance: (...args: any[]) => mockUpdateFn?.( "getCanvasInstance", ...args ),
 }));
 vi.mock( "@/utils/render-util", () => ({
-    resizeLayerContent: (...args) => mockUpdateFn?.( "resizeLayerContent", ...args ),
-    cropLayerContent: (...args) => mockUpdateFn?.( "cropLayerContent", ...args ),
+    resizeLayerContent: (...args: any[]) => mockUpdateFn?.( "resizeLayerContent", ...args ),
+    cropLayerContent: (...args: any[]) => mockUpdateFn?.( "cropLayerContent", ...args ),
 }));
-const layerCreateMock = vi.spyOn( LayerFactory, "create" ).mockImplementation( args => args );
 
 describe( "Vuex document module", () => {
     afterAll(() => {
@@ -27,105 +29,130 @@ describe( "Vuex document module", () => {
 
     describe( "getters", () => {
         it( "should be able to retrieve all open Documents", () => {
-            const state = { documents: [ { name: "foo" }, { name: "bar" } ] };
-            expect( getters.documents( state )).toEqual( state.documents );
+            const state = createDocumentState({
+                documents: [
+                    DocumentFactory.create({ name: "foo" }),
+                    DocumentFactory.create({ name: "bar" })
+                ]
+            });
+            expect( getters.documents( state, getters, {}, {} )).toEqual( state.documents );
         });
 
         it( "should be able to retrieve the active Document", () => {
-            const state = {
-                documents: [ { name: "foo" }, { name: "bar" } ],
+            const state = createDocumentState({
+                documents: [
+                    DocumentFactory.create({ name: "foo" }),
+                    DocumentFactory.create({ name: "bar" })
+                ],
                 activeIndex: 0
-            };
-            expect( getters.activeDocument( state )).toEqual( state.documents[ 0 ]);
+            });
+            expect( getters.activeDocument( state, getters, {}, {} )).toEqual( state.documents[ 0 ]);
             state.activeIndex = 1;
-            expect( getters.activeDocument( state )).toEqual( state.documents[ 1 ]);
+            expect( getters.activeDocument( state, getters, {}, {} )).toEqual( state.documents[ 1 ]);
         });
 
         it( "should be able to retrieve the Layers for the active Document", () => {
-            const state = {
-                documents: [ { name: "foo", layers: [ { name: "foo" }, { name: "bar" } ] } ],
+            const state = createDocumentState({
+                documents: [
+                    DocumentFactory.create({
+                        name: "foo",
+                        layers: [
+                            LayerFactory.create({ name: "foo" }),
+                            LayerFactory.create({ name: "bar" })
+                        ]
+                    })
+                ],
                 activeIndex: 0
-            };
-            expect( getters.layers( state )).toEqual( state.documents[ 0 ].layers );
+            });
+            expect( getters.layers( state, getters, {}, {} )).toEqual( state.documents[ 0 ].layers );
         });
 
         it( "should be able to retrieve the active Layer index", () => {
-            const state = { activeLayerIndex: 2 };
-            expect( getters.activeLayerIndex( state )).toEqual( 2 );
+            const state = createDocumentState({ activeLayerIndex: 2 });
+            expect( getters.activeLayerIndex( state, getters, {}, {} )).toEqual( 2 );
         });
 
         it( "should be able to retrieve the active Layer for the active Document", () => {
-            const state = { activeLayerIndex: 1 };
+            const state = createDocumentState({ activeLayerIndex: 1 });
             const mockedGetters = {
-                layers: [ { name: "layer1" }, { name: "layer2" }, { name: "layer3" } ]
+                layers: [
+                    LayerFactory.create({ name: "layer1" }),
+                    LayerFactory.create({ name: "layer2" }),
+                    LayerFactory.create({ name: "layer3" })
+                ]
             };
-            expect( getters.activeLayer( state, mockedGetters )).toEqual( mockedGetters.layers[ 1 ]);
+            expect( getters.activeLayer( state, mockedGetters, {}, {} )).toEqual( mockedGetters.layers[ 1 ]);
         });
 
         it( "should be able to retrieve the active Layer mask, when set", () => {
-            const state = { maskActive: false };
-            const mockedGetters = { activeLayer: { name: "layer1" } };
+            const state = createDocumentState({ maskActive: false });
+            const mockedGetters = {
+                activeLayer: LayerFactory.create({ name: "layer1" }),
+            };
             // null because mask is not active
-            expect( getters.activeLayerMask( state, mockedGetters )).toBeNull();
+            expect( getters.activeLayerMask( state, mockedGetters, {}, {} )).toBeNull();
             state.maskActive = true;
             // null because layer has no mask drawable
-            expect( getters.activeLayerMask( state, mockedGetters )).toBeNull();
-            mockedGetters.activeLayer.mask = { src: "mask" };
-            expect( getters.activeLayerMask( state, mockedGetters )).toEqual( mockedGetters.activeLayer.mask );
+            expect( getters.activeLayerMask( state, mockedGetters, {}, {} )).toBeNull();
+            mockedGetters.activeLayer.mask = createMockCanvasElement();
+            expect( getters.activeLayerMask( state, mockedGetters, {}, {} )).toEqual( mockedGetters.activeLayer.mask );
         });
 
         it( "should be able to retrieve the active Layer effects", () => {
             const mockedGetters = { activeLayer: { name: "layer1", effects: [{ rotation: 1 }] } };
-            expect( getters.activeLayerEffects( {}, mockedGetters )).toEqual( mockedGetters.activeLayer.effects );
+            expect( getters.activeLayerEffects( createDocumentState(), mockedGetters, {}, {} )).toEqual( mockedGetters.activeLayer.effects );
         });
 
         it( "should know whether the current Document has an active selection", () => {
-            const mockedGetters = { activeDocument: { activeSelection: [] } };
-            expect( getters.hasSelection( {}, mockedGetters )).toBe( false );
+            const mockedGetters = { activeDocument: DocumentFactory.create({ activeSelection: [] }) };
+            expect( getters.hasSelection( createDocumentState(), mockedGetters, {}, {} )).toBe( false );
 
             mockedGetters.activeDocument.activeSelection = [ [] ];
-            expect( getters.hasSelection( {}, mockedGetters )).toBe( false );
+            expect( getters.hasSelection( createDocumentState(), mockedGetters, {}, {} )).toBe( false );
 
             mockedGetters.activeDocument.activeSelection = [[ { x: 0, y: 0 }] ];
-            expect( getters.hasSelection( {}, mockedGetters )).toBe( true );
+            expect( getters.hasSelection( createDocumentState(), mockedGetters, {}, {} )).toBe( true );
         });
     });
 
     describe( "mutations", () => {
         describe( "when setting the active Document", () => {
             it( "should be able to set the active Document index", () => {
-                const state = {
+                const state = createDocumentState({
                     documents: [
-                        { name: "foo", layers: [ {}, {} ] },
-                        { name: "bar", layers: [ {}, {}, {} ] }
+                        DocumentFactory.create({ name: "foo", layers: [ LayerFactory.create(), LayerFactory.create() ] }),
+                        DocumentFactory.create({ name: "bar", layers: [ LayerFactory.create(), LayerFactory.create(), LayerFactory.create()] })
                     ],
                     activeIndex: 0,
                     activeLayerIndex: 1,
-                };
+                });
                 mutations.setActiveDocument( state, 1 );
                 expect( state.activeIndex ).toEqual( 1 );
                 expect( state.activeLayerIndex ).toEqual( 1 );
             });
 
             it( "when switching to a Document with less layers than the currently active one, it should select the top layer", () => {
-                const state = {
+                const state = createDocumentState({
                     documents: [
-                        { name: "foo", layers: [ {}, {} ] },
-                        { name: "bar", layers: [ {}, {}, {} ] }
+                        DocumentFactory.create({ name: "foo", layers: [ LayerFactory.create(), LayerFactory.create() ] }),
+                        DocumentFactory.create({ name: "bar", layers: [ LayerFactory.create(), LayerFactory.create(), LayerFactory.create() ] })
                     ],
                     activeIndex: 1,
                     activeLayerIndex: 2,
-                };
+                });
                 mutations.setActiveDocument( state, 0 );
                 expect( state.activeIndex ).toEqual( 0 );
                 expect( state.activeLayerIndex ).toEqual( 1 );
             });
 
             it( "should request the invalidate() method on each Sprite for the given Document", () => {
-                const state = {
-                    documents: [{ name: "foo" }, { name: "bar" }],
+                const state = createDocumentState({
+                    documents: [
+                        DocumentFactory.create({ name: "foo" }),
+                        DocumentFactory.create({ name: "bar" })
+                    ],
                     activeIndex: 0
-                };
+                });
                 mockUpdateFn = vi.fn();
                 mutations.setActiveDocument( state, 1 );
                 expect( mockUpdateFn ).toHaveBeenCalledWith( "runSpriteFn", expect.any( Function ), state.documents[ 1 ]);
@@ -133,41 +160,53 @@ describe( "Vuex document module", () => {
         });
 
         it( "should be able to update the active Document name", () => {
-            const state = {
-                documents: [ { name: "foo", width: 5, height: 5 }, { name: "bar", width: 10, height: 10 }],
+            const state = createDocumentState({
+                documents: [
+                    DocumentFactory.create({ name: "foo", width: 5, height: 5 }),
+                    DocumentFactory.create({ name: "bar", width: 10, height: 10 })
+                ],
                 activeIndex: 1,
-            };
+            });
+            const [ document1, document2 ] = state.documents;
+
             mutations.setActiveDocumentName( state, "baz" );
+
             expect( state.documents ).toEqual([
-                { name: "foo", width: 5, height: 5 }, { name: "baz", width: 10, height: 10 },
+                document1, {
+                    ...document2,
+                    name: "baz",
+                }
             ]);
         });
 
         describe( "when setting the active Document size", () => {
             it( "should be able to update the active Document size", () => {
-                const state = {
+                const state = createDocumentState({
                     documents: [
-                        { name: "foo", width: 30, height: 30 },
-                        { name: "bar", width: 50, height: 50 }
+                        DocumentFactory.create({ name: "foo", width: 30, height: 30 }),
+                        DocumentFactory.create({ name: "bar", width: 50, height: 50 }),
                     ],
                     activeIndex : 1,
-                };
+                });
+                const [ document1, document2 ] = state.documents;
+
                 const size = { width: 75, height: 40 };
                 mutations.setActiveDocumentSize( state, size );
+
                 expect( state.documents ).toEqual([
-                    { name: "foo", width: 30, height: 30 },
-                    { name: "bar", width: size.width, height: size.height },
+                    document1,
+                    { ...document2, width: size.width, height: size.height },
                 ]);
             });
 
             it( "should update the existing zCanvas dimensions and trigger its associated rescale handler", () => {
-                const state = {
+                const state = createDocumentState({
                     documents: [
-                        { name: "foo", width: 30, height: 30, layers: [ { name: "layer1", width: 30, height: 30 } ] },
-                        { name: "bar", width: 50, height: 50, layers: [ { name: "layer2", width: 20, height: 10 }, { name: "layer3", width: 15, height: 15 } ] }
+                        DocumentFactory.create({ name: "foo", width: 30, height: 30, layers: [ LayerFactory.create({ name: "layer1", width: 30, height: 30 }) ] }),
+                        DocumentFactory.create({ name: "bar", width: 50, height: 50, layers: [ LayerFactory.create({ name: "layer2", width: 20, height: 10 }), LayerFactory.create({ name: "layer3", width: 15, height: 15 }) ] }),
                     ],
                     activeIndex : 1,
-                };
+                });
                 const size = { width: 75, height: 40 };
                 const mockCanvas = {
                     setDimensions: vi.fn(),
@@ -190,10 +229,13 @@ describe( "Vuex document module", () => {
         it( "should be able to set the active selection for the currently active document", () => {
             const selection = [{ x: 0, y: 0 }, { x: 10, y: 10 }];
 
-            const state = {
-                documents: [ { name: "foo", activeSelection: [] }, { name: "bar", activeSelection: [] } ],
+            const state = createDocumentState({
+                documents: [
+                    DocumentFactory.create({ name: "foo", activeSelection: [] }),
+                    DocumentFactory.create({ name: "bar", activeSelection: [] })
+                ],
                 activeIndex: 1
-            };
+            });
             mutations.setActiveSelection( state, selection );
 
             expect( state.documents[ 0 ].activeSelection ).toHaveLength( 0 );
@@ -201,11 +243,11 @@ describe( "Vuex document module", () => {
         });
 
         it( "should be able to add a new Document to the list", () => {
-            const state = {
-                documents: [ { name: "foo" } ],
+            const state = createDocumentState({
+                documents: [ DocumentFactory.create({ name: "foo" }) ],
                 activeIndex: 0,
                 activeLayerIndex: 2,
-            };
+            });
             mutations.addNewDocument( state, "bar" );
             expect( state.documents ).toHaveLength( 2 );
             expect( state.documents[ 1 ].name ).toEqual( "bar" );
@@ -214,87 +256,109 @@ describe( "Vuex document module", () => {
         });
 
         it( "should be able to close the active Document", () => {
-            const layer1 = { name: "layer1" };
-            const layer2 = { name: "layer2" };
-            const layer3 = { name: "layer3" };
-            const state = {
+            const layer1 = LayerFactory.create({ name: "layer1" });
+            const layer2 = LayerFactory.create({ name: "layer2" });
+            const layer3 = LayerFactory.create({ name: "layer3" });
+
+            const state = createDocumentState({
                 documents: [
-                    { name: "foo", layers: [ layer1 ] },
-                    { name: "bar", layers: [ layer2, layer3 ] }
+                    DocumentFactory.create({ name: "foo", layers: [ layer1 ] }),
+                    DocumentFactory.create({ name: "bar", layers: [ layer2, layer3 ] }),
                 ],
                 activeIndex: 1
-            };
+            });
+            const [ document1 ] = state.documents;
+
             mockUpdateFn = vi.fn();
             mutations.closeActiveDocument( state );
-            expect( state.documents ).toEqual([ { name: "foo", layers: [ layer1 ] }]);
+
+            expect( state.documents ).toEqual([ document1 ]);
             expect( state.activeIndex ).toEqual( 0 );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushLayerSprites", layer2 );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "flushLayerSprites", layer3 );
         });
 
         describe( "when adding layers", () => {
-            const layerCreateMock = vi.spyOn( LayerFactory, "create" ).mockImplementation( args => args );
+            const layerCreateMock = vi.spyOn( LayerFactory, "create" ).mockImplementation(( args: LayerProps ) => args as Layer );
 
             it( "should be able to add a Layer to the active Document", () => {
-                const state = {
-                    documents: [ { name: "foo", width: 1000, height: 1000, layers: [] } ],
+                const state = createDocumentState({
+                    documents: [ DocumentFactory.create({ name: "foo", width: 1000, height: 1000 }) ],
                     activeIndex: 0
-                };
+                });
 
-                const opts = { name: "layer1", width: 50, height: 100 };
-                mutations.addLayer( state, opts );
+                const layerOpts = { name: "layer1", width: 50, height: 100 };
+                mutations.addLayer( state, layerOpts );
 
                 // assert LayerFactory is invoked with provided opts when calling addLayer()
-                expect( layerCreateMock ).toHaveBeenCalledWith( opts );
-                expect( state.documents[ 0 ].layers ).toEqual([{
-                    name: "layer1",
-                    width: 50,
-                    height: 100
-                } ]);
+                expect( layerCreateMock ).toHaveBeenCalledWith( layerOpts );
+                expect( state.documents[ 0 ].layers[ 1 ] ).toEqual( LayerFactory.create( layerOpts ));
             });
 
             it( "when adding a Layer without specified dimensions, these should default to the Document dimensions", () => {
-                const state = {
-                    documents: [ { name: "foo", width: 1000, height: 1000, layers: [] } ],
+                const state = createDocumentState({
+                    documents: [
+                        DocumentFactory.create({ name: "foo", width: 1000, height: 1000 })
+                    ],
                     activeIndex: 0
-                };
-                mockUpdateFn = vi.fn((fn, data) => data );
-                const opts = { name: "layer1" };
-                mutations.addLayer( state, opts );
-                expect( state.documents[ 0 ].layers ).toEqual([{
-                    name: "layer1",
+                });
+                mockUpdateFn = vi.fn((_fn, data) => data );
+                
+                const layerOpts = { name: "layer1" };
+                mutations.addLayer( state, layerOpts );
+
+                expect( state.documents[ 0 ].layers[ 1 ] ).toEqual({
+                    name: layerOpts.name,
                     width: state.documents[ 0 ].width,
                     height: state.documents[ 0 ].height
-                }]);
+                });
             });
 
             it( "should update the active layer index to the last added layers index", () => {
-                const state = {
-                    documents: [ { name: "foo", layers: [ { name: "layer1" }, { name: "layer2" } ] } ],
+                const state = createDocumentState({
+                    documents: [
+                        DocumentFactory.create({
+                            name: "foo",
+                            layers: [
+                                LayerFactory.create({ name: "layer1" }),
+                                LayerFactory.create({ name: "layer2" })
+                            ]
+                        })
+                    ],
                     activeIndex: 0,
                     activeLayerIndex: 1
-                };
+                });
                 mutations.addLayer( state );
                 expect( state.activeLayerIndex ).toEqual( 2 );
             });
 
             it( "should add new layers at the end of the list (to have them appear on top)", () => {
-                const state = {
-                    documents: [ { name: "foo", layers: [{ name: "layer1" }] }],
+                const layer1 = LayerFactory.create({ name: "layer1" });
+                const layer2 = LayerFactory.create({ name: "layer2" });
+
+                const state = createDocumentState({
+                    documents: [ DocumentFactory.create({ name: "foo", layers: [ layer1 ] }) ],
                     activeIndex: 0
-                };
-                mutations.addLayer( state, { name: "layer2" });
-                expect( state.documents[ 0 ].layers ).toEqual([
-                    { name: "layer1" }, expect.any( Object )
-                ]);
+                });
+                mutations.addLayer( state, layer2 );
+
+                expect( state.documents[ 0 ].layers ).toEqual([ layer1, layer2 ]);
             });
 
             it( "should be able to add layers at specific indices in the layer list", () => {
-                const state = {
-                    documents: [ { name: "foo", layers: [{ name: "layer1" }, { name: "layer2" }] }],
+                const state = createDocumentState({
+                    documents: [
+                        DocumentFactory.create({
+                            name: "foo",
+                            layers: [
+                                LayerFactory.create({ name: "layer1" }),
+                                LayerFactory.create({ name: "layer2" })
+                            ]
+                        })
+                    ],
                     activeIndex: 0,
                     activeLayerIndex: 0,
-                };
+                });
                 const layer = { name: "layer3" };
                 mutations.insertLayerAtIndex( state, { index: 1, layer });
                 expect( state.documents[ 0 ].layers ).toEqual([
@@ -306,71 +370,88 @@ describe( "Vuex document module", () => {
 
         describe( "when removing layers", () => {
             it( "should be able to remove a layer by reference", () => {
-                const state = {
-                    documents: [{
+                const state = createDocumentState({
+                    documents: [ DocumentFactory.create({
                         name: "foo",
-                        layers: [ { name: "layer1" }, { name: "layer2" }, { name: "layer3" } ]
-                    }],
+                        layers: [
+                            LayerFactory.create({ name: "layer1" }),
+                            LayerFactory.create({ name: "layer2" }),
+                            LayerFactory.create({ name: "layer3" })
+                        ]
+                    })],
                     activeIndex: 0,
                     activeLayerIndex: 1,
-                };
+                });
+                const [ layer1, layer2, layer3 ] = state.documents[ 0 ].layers;
                 mockUpdateFn = vi.fn();
-                const layer = state.documents[ 0 ].layers[ 1 ];
+
                 mutations.removeLayer( state, 1 );
-                expect( state.documents[ 0 ].layers ).toEqual([
-                    { name: "layer1" }, { name: "layer3" }
-                ]);
+
+                expect( state.documents[ 0 ].layers ).toEqual([ layer1, layer3 ]);
                 expect( state.activeLayerIndex ).toEqual( 0 );
-                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushLayerSprites", layer );
+                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushLayerSprites", layer2 );
             });
         });
 
         it( "should be able to replace all layers in a single operation", () => {
-            const state = {
-                documents: [{
+            const state = createDocumentState({
+                documents: [ DocumentFactory.create({
                     name: "foo",
-                    layers: [ { name: "layer1" }, { name: "layer2" }, { name: "layer3" } ]
-                }],
+                    layers: [
+                        LayerFactory.create({ name: "layer1" }),
+                        LayerFactory.create({ name: "layer2" }),
+                        LayerFactory.create({ name: "layer3" })
+                    ]
+                })],
                 activeIndex: 0,
                 activeLayerIndex: 1,
-            };
-            const newLayers = [ { name: "layer4" }, { name: "layer5" }];
+            });
+            const newLayers = [
+                LayerFactory.create({ name: "layer4" }),
+                LayerFactory.create({ name: "layer5" }),
+            ];
 
             mutations.replaceLayers( state, newLayers );
 
-            expect( state.documents[ 0 ].layers ).toEqual([
-                { name: "layer4" }, { name: "layer5" }
-            ]);
+            expect( state.documents[ 0 ].layers ).toEqual( newLayers );
         });
 
         it( "should be able to swap the layers in the currently active Document", () => {
-            const state = {
-                documents: [
-                    { name: "foo", layers: [{ name: "fooLayer1" }, { name: "fooLayer2" }] },
-                    { name: "bar", layers: [{ name: "barLayer1" }, { name: "barLayer2" }, { name: "barLayer3" }, { name: "barLayer4" }] }
-                ],
+            const fooLayer1 = LayerFactory.create({ name: "fooLayer1" });
+            const fooLayer2 = LayerFactory.create({ name: "fooLayer2" });
+            const barLayer1 = LayerFactory.create({ name: "barLayer1" });
+            const barLayer2 = LayerFactory.create({ name: "barLayer2" });
+            const barLayer3 = LayerFactory.create({ name: "barLayer3" });
+            const barLayer4 = LayerFactory.create({ name: "barLayer4" });
+
+            const document1 = DocumentFactory.create({ name: "foo", layers: [ fooLayer1, fooLayer2 ] });
+            const document2 = DocumentFactory.create({ name: "bar", layers: [ barLayer1, barLayer2, barLayer3, barLayer4 ] });
+
+            const state = createDocumentState({
+                documents: [ document1, document2 ],
                 activeIndex: 1
-            };
-            const layers = [{ name: "barLayerNew1" } , { name: "barLayerNew2" }];
+            });
+
             mutations.swapLayers( state, { index1: 1, index2: 3 });
+            
             expect( state.documents ).toEqual([
-                { name: "foo", layers: [{ name: "fooLayer1" }, { name: "fooLayer2" }] },
-                { name: "bar", layers: [{ name: "barLayer1" }, { name: "barLayer4" }, { name: "barLayer3" }, { name: "barLayer2" }] }
+                { ...document1, layers: [ fooLayer1, fooLayer2 ] },
+                { ...document2, layers: [ barLayer1, barLayer4, barLayer3, barLayer2 ]},
             ]);
         });
 
         it( "should be able to reorder all layers in the currently active Document", () => {
             const layers = [
-                { id: "A", name: "layer1" },
-                { id: "B", name: "layer2" },
-                { id: "C", name: "layer3" },
-                { id: "D", name: "layer4" }
+                LayerFactory.create({ id: "A", name: "layer1" }),
+                LayerFactory.create({ id: "B", name: "layer2" }),
+                LayerFactory.create({ id: "C", name: "layer3" }),
+                LayerFactory.create({ id: "D", name: "layer4" }),
             ];
             const orgLayers = [ ...layers ];
-            const state = {
-                documents: [{ name: "foo", layers }],
+            const state = createDocumentState({
+                documents: [ DocumentFactory.create({ name: "foo", layers })],
                 activeIndex: 0
-            };
+            });
             mutations.reorderLayers( state, { document: state.documents[ 0 ], layerIds: [ "B", "C", "A", "D" ] });
             // note we check by reference to ensure all bindings remain
             expect( state.documents[ 0 ].layers ).toEqual([
@@ -380,45 +461,70 @@ describe( "Vuex document module", () => {
 
         describe( "when setting the active layer content", () => {
             it( "should be able to set the active layer by index", () => {
-                const state = {
-                    documents: [ { name: "foo", layers: [{ name: "layer1" }, { name: "layer2" }] }],
+                const state = createDocumentState({
+                    documents: [
+                        DocumentFactory.create({
+                            name: "foo",
+                            layers: [
+                                LayerFactory.create({ name: "layer1" }),
+                                LayerFactory.create({ name: "layer2" })
+                            ]
+                        })
+                    ],
                     activeIndex: 0,
                     activeLayerIndex: 0
-                };
+                });
                 mutations.setActiveLayerIndex( state, 1 );
                 expect( state.activeLayerIndex ).toEqual( 1 );
             });
 
             it( "should be able to set the active layer by reference", () => {
-                const state = {
-                    documents: [ { name: "foo", layers: [{ name: "layer1" }, { name: "layer2" }] }],
+                const state = createDocumentState({
+                    documents: [ DocumentFactory.create({
+                        name: "foo",
+                        layers: [
+                            LayerFactory.create({ name: "layer1" }),
+                            LayerFactory.create({ name: "layer2" })
+                        ]
+                    })],
                     activeIndex: 0,
                     activeLayerIndex: 0
-                };
+                });
                 mutations.setActiveLayer( state, state.documents[ 0 ].layers[ 1 ] );
                 expect( state.activeLayerIndex ).toEqual( 1 );
             });
 
             it( "should unset the active layer mask when setting the active layer index", () => {
-                const state = {
-                    documents: [ { name: "foo", layers: [{ name: "layer1" }, { name: "layer2" }] }],
+                const state = createDocumentState({
+                    documents: [
+                        DocumentFactory.create({
+                            name: "foo",
+                            layers: [
+                                LayerFactory.create({ name: "layer1" }),
+                                LayerFactory.create({ name: "layer2" })
+                            ]
+                        })
+                    ],
                     activeLayerIndex: 0,
                     maskActive: true,
-                };
+                });
                 mutations.setActiveLayerIndex( state, 1 );
                 expect( state.maskActive ).toBe( false );
             });
 
             it( "should be able to set the active layer mask", () => {
-                const state = {
-                    documents: [{
+                const state = createDocumentState({
+                    documents: [ DocumentFactory.create({
                         name: "foo",
-                        layers: [ { name: "layer1" }, { name: "layer2", mask: { src: "mask" } } ]
-                    }],
+                        layers: [
+                            LayerFactory.create({ name: "layer1" }),
+                            LayerFactory.create({ name: "layer2", mask: createMockCanvasElement()})
+                        ]
+                    })],
                     activeIndex: 0,
                     activeLayerIndex: 0,
                     maskActive: false,
-                };
+                });
                 mutations.setActiveLayerMask( state, 1 );
                 expect( state.activeLayerIndex ).toEqual( 1 );
                 expect( state.maskActive ).toBe( true );
@@ -426,17 +532,20 @@ describe( "Vuex document module", () => {
         });
 
         describe( "when updating layer properties", () => {
-            let layer1, layer2, state;
+            let layer1: Layer;
+            let layer2: Layer;
+            let state: DocumentState;
+
             beforeEach(() => {
-                layer1 = { name: "layer1", effects: { rotation: 0 } };
-                layer2 = { name: "layer2", effects: { rotation: 0 } };
-                state = {
-                    documents: [{
+                layer1 = LayerFactory.create({ name: "layer1", effects: { rotation: 0 } });
+                layer2 = LayerFactory.create({ name: "layer2", effects: { rotation: 0 } });
+                state = createDocumentState({
+                    documents: [ DocumentFactory.create({
                         name: "foo",
                         layers: [ { ...layer1 }, { ...layer2 } ]
-                    }],
+                    })],
                     activeIndex: 0
-                };
+                });
             });
 
             it( "should be able to update the options of a specific layer within the active Document", () => {
@@ -498,14 +607,14 @@ describe( "Vuex document module", () => {
         });
 
         it( "should be able to resize active Document content by calling the render util upon each Layer", async () => {
-            const layer1 = { name: "layer1" };
-            const layer2 = { name: "layer2" };
-            const state = {
+            const layer1 = LayerFactory.create({ name: "layer1" });
+            const layer2 = LayerFactory.create({ name: "layer2" });
+            const state = createDocumentState({
                 documents: [
-                    { layers: [ layer1, layer2 ]}
+                    DocumentFactory.create({ layers: [ layer1, layer2 ]}),
                 ],
                 activeIndex: 0,
-            };
+            });
             mockUpdateFn = vi.fn();
             const scaleX = 1.1;
             const scaleY = 1.2;
@@ -515,14 +624,14 @@ describe( "Vuex document module", () => {
         });
 
         it( "should be able to crop active Document content by calling the render util upon each Layer", async () => {
-            const layer1 = { name: "layer1" };
-            const layer2 = { name: "layer2" };
-            const state = {
+            const layer1 = LayerFactory.create({ name: "layer1" });
+            const layer2 = LayerFactory.create({ name: "layer2" });
+            const state = createDocumentState({
                 documents: [
-                    { layers: [ layer1, layer2 ]}
+                    DocumentFactory.create({ layers: [ layer1, layer2 ]}),
                 ],
                 activeIndex: 0,
-            };
+            });
             mockUpdateFn = vi.fn();
             const left = 10;
             const top  = 15;

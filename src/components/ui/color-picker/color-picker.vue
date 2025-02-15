@@ -52,7 +52,7 @@ export default {
             el: this.$refs.picker,
             theme: "nano",
             default: this.modelValue,
-            defaultRepresentation: "HEX",
+            defaultRepresentation: "HEXA",
             components: {
                 preview: true,
                 opacity: true,
@@ -81,7 +81,7 @@ export default {
         }
     },
     methods: {
-        saveColor( value: string ): void {
+        saveColor( value: { toRGBA: () => number[] } ): void {
             const rgba  = value.toRGBA();
 
             const red   = rgba[ 0 ].toFixed( FRAC_VALUE );

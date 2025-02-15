@@ -1,26 +1,31 @@
 import { it, describe, expect, vi } from "vitest";
+import type { Effects, Filters, Text } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
-import EffectsFactory from "@/factories/effects-factory";
-import FiltersFactory from "@/factories/filters-factory";
+import EffectsFactory, { type EffectsProps } from "@/factories/effects-factory";
+import FiltersFactory, { type FiltersProps } from "@/factories/filters-factory";
 import LayerFactory, { layerToRect } from "@/factories/layer-factory";
-import TextFactory from "@/factories/text-factory";
+import TextFactory, { type TextProps } from "@/factories/text-factory";
+import { createMockCanvasElement } from "../mocks";
 
-let mockUpdateFn;
+let mockUpdateFn: ( fnName: string, ...args: any[] ) => void;
 vi.mock( "@/utils/canvas-util", () => ({
-    imageToBase64: (...args) => mockUpdateFn?.( "imageToBase64", ...args ),
-    base64toCanvas: (...args) => mockUpdateFn?.( "base64toCanvas", ...args ),
+    createCanvas: () => ({
+        cvs: {},
+    }),
+    imageToBase64: (...args: any[]) => mockUpdateFn?.( "imageToBase64", ...args ),
+    base64toCanvas: (...args: any[]) => mockUpdateFn?.( "base64toCanvas", ...args ),
 }));
 
 describe( "Layer factory", () => {
     describe( "when creating a new layer", () => {
         it( "should create a default Layer structure when no arguments are passed", () => {
-            const mockEffects = { foo: "bar" };
-            const mockFilters = { baz: "qux" };
-            const mockText    = { value: "lorem ipsum dolor sit amet" };
+            const mockEffects = EffectsFactory.create({ scale: 0.5 });
+            const mockFilters = FiltersFactory.create({ enabled: true });
+            const mockText    = TextFactory.create({ value: "lorem ipsum dolor sit amet" });
 
-            const createTextMock = vi.spyOn( TextFactory, "create" ).mockImplementation( () => mockText );
-            const createEffectsMock = vi.spyOn( EffectsFactory, "create" ).mockImplementation( () => mockEffects );
-            const createFiltersMock = vi.spyOn( FiltersFactory, "create" ).mockImplementation( () => mockFilters );
+            vi.spyOn( TextFactory, "create" ).mockImplementation( () => mockText );
+            vi.spyOn( EffectsFactory, "create" ).mockImplementation( () => mockEffects );
+            vi.spyOn( FiltersFactory, "create" ).mockImplementation( () => mockFilters );
 
             mockUpdateFn = fn => {
                 switch( fn ) {
@@ -56,17 +61,17 @@ describe( "Layer factory", () => {
         });
 
         it( "should be able to create a layer from given arguments", () => {
-            const createTextMock = vi.spyOn( TextFactory, "create" ).mockImplementation( args => args );
-            const createEffectsMock = vi.spyOn( EffectsFactory, "create" ).mockImplementation( args => args );
-            const createFiltersMock = vi.spyOn( FiltersFactory, "create" ).mockImplementation( args => args );
+            vi.spyOn( TextFactory, "create" ).mockImplementation(( args: TextProps ) => args as Text );
+            vi.spyOn( EffectsFactory, "create" ).mockImplementation(( args: EffectsProps ) => args as Effects );
+            vi.spyOn( FiltersFactory, "create" ).mockImplementation(( args: FiltersProps ) => args as Filters );
 
-            mockUpdateFn = ( fn, data ) => data;
+            mockUpdateFn = ( _fn, data ) => data;
             const layer = LayerFactory.create({
                 name: "foo",
                 type: LayerTypes.LAYER_IMAGE,
                 transparent: false,
-                source: { src: "bitmap" },
-                mask: { src: "mask" },
+                source: createMockCanvasElement(),
+                mask: createMockCanvasElement(),
                 left: 100,
                 top: 50,
                 maskX: 50,
@@ -83,8 +88,8 @@ describe( "Layer factory", () => {
                 name: "foo",
                 type: LayerTypes.LAYER_IMAGE,
                 transparent: false,
-                source: { src: "bitmap" },
-                mask: { src: "mask" },
+                source: createMockCanvasElement(),
+                mask: createMockCanvasElement(),
                 left: 100,
                 top: 50,
                 maskX: 50,
@@ -105,8 +110,8 @@ describe( "Layer factory", () => {
                 name: "foo",
                 type: LayerTypes.LAYER_IMAGE,
                 transparent: false,
-                source: { src: "bitmap" },
-                mask: { src: "mask" },
+                source: createMockCanvasElement(),
+                mask: createMockCanvasElement(),
                 left: 100,
                 top: 50,
                 width: 16,
@@ -125,7 +130,7 @@ describe( "Layer factory", () => {
             const serializeFiltersSpy = vi.spyOn( FiltersFactory, "serialize" ).mockImplementation( args => args );
             const deserializeFiltersSpy = vi.spyOn( FiltersFactory, "deserialize" ).mockImplementation( args => args );
 
-            mockUpdateFn = vi.fn(( fn, data ) => data );
+            mockUpdateFn = vi.fn(( _fn, data ) => data );
 
             const serialized = LayerFactory.serialize( layer );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "imageToBase64", layer.source, layer.width, layer.height, layer.transparent );
@@ -134,7 +139,7 @@ describe( "Layer factory", () => {
             expect( serializeEffectsSpy ).toHaveBeenCalledWith( layer.effects );
             expect( serializeFiltersSpy ).toHaveBeenCalledWith( layer.filters );
 
-            mockUpdateFn = vi.fn(( fn, data ) => data );
+            mockUpdateFn = vi.fn(( _fn, data ) => data );
             const deserialized = await LayerFactory.deserialize( serialized );
 
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "base64toCanvas", expect.any( Object ), layer.width, layer.height );

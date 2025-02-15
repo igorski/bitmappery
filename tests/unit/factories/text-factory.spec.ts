@@ -2,9 +2,9 @@ import { it, describe, expect, vi } from "vitest";
 import TextFactory, { isEqual } from "@/factories/text-factory";
 import { googleFonts } from "@/definitions/font-types";
 
-let mockUpdateFn;
+let mockUpdateFn: ( fnName: string, ...args: any[] ) => void;
 vi.mock( "@/services/font-service", () => ({
-    loadGoogleFont: (...args) => mockUpdateFn?.( "loadGoogleFont", ...args ),
+    loadGoogleFont: (...args: any[]) => mockUpdateFn?.( "loadGoogleFont", ...args ),
 }));
 
 describe( "Text factory", () => {

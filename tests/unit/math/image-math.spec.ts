@@ -1,4 +1,4 @@
-import { mockZCanvas } from "../__mocks";
+import { mockZCanvas } from "../mocks";
 
 mockZCanvas();
 

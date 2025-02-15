@@ -25,7 +25,7 @@ import type { Document } from "@/definitions/document";
 import { disposeResource } from "@/utils/resource-manager";
 
 type FileTarget = "document" | "layer";
-type WrappedImage = {
+export type WrappedImage = {
     file: File | Blob;
     size: number;
     source: string; // (Blob) URL

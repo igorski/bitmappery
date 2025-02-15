@@ -1,5 +1,6 @@
 import { it, describe, expect, afterAll, vi } from "vitest";
-import { mockZCanvas } from "../__mocks";
+import { mockZCanvas } from "../mocks";
+import type { Layer, Selection } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 
@@ -15,14 +16,14 @@ describe( "Document factory", () => {
 
     describe( "when creating a new Document", () => {
         it( "should create a default Document structure with one default layer when no arguments are passed", () => {
-            vi.spyOn( LayerFactory, "create" ).mockImplementation(() => ({ layer: "1" }));
+            vi.spyOn( LayerFactory, "create" ).mockImplementation(() => ({ name: "layer1" } as unknown as Layer ));
             const document = DocumentFactory.create();
             expect( document ).toEqual({
                 id: expect.any( String ),
                 name: "New document",
                 width: 1000,
                 height: 1000,
-                layers: [ { layer: "1" } ],
+                layers: [ { name: "layer1" } ],
                 selections: {},
                 activeSelection: [],
                 invertSelection: false,
@@ -30,13 +31,16 @@ describe( "Document factory", () => {
         });
 
         it( "should be able to create a Document from given arguments", () => {
-            const layers = [ { layer: "1", layer: "2" } ];
+            const layers = [
+                LayerFactory.create({ name: "layer1" }),
+                LayerFactory.create({ name: "layer2" })
+            ];
             const document = DocumentFactory.create({
                 name: "foo",
                 width: 1200,
                 height: 900,
                 layers,
-                selections: { foo: [{ x: 0, y: 0 }] }
+                selections: { foo: [[ { x: 0, y: 0 } ]] }
             });
             expect( document ).toEqual({
                 id: expect.any( String ),
@@ -44,7 +48,7 @@ describe( "Document factory", () => {
                 width: 1200,
                 height: 900,
                 layers,
-                selections: { foo: [{ x: 0, y: 0 }] },
+                selections: { foo: [[ { x: 0, y: 0 } ]] },
                 activeSelection: [],
                 invertSelection: false,
             });
@@ -53,10 +57,13 @@ describe( "Document factory", () => {
 
     describe( "when serializing and deserializing a Document", () => {
         it( "should do so without data loss", async () => {
-            const layers = [ { layer: "1" }, { layer: "2" } ];
+            const layers = [
+                LayerFactory.create({ name: "layer1" }),
+                LayerFactory.create({ name: "layer2" })
+            ];
             const selections = {
-                foo: [{ x: 0, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }, { x: 0, y: 0 }],
-                bar: []
+                foo: [ [ { x: 0, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }, { x: 0, y: 0 } ] ],
+                bar: [] as Selection
             };
             const document = DocumentFactory.create({
                 name: "foo",

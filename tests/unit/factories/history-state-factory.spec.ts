@@ -1,15 +1,17 @@
-import { it, describe, expect, beforeEach, afterEach, vi } from "vitest";
+import { it, describe, expect, beforeEach, afterEach, vi, type MockInstance } from "vitest";
+import type { Store } from "vuex";
+import type { BitMapperyState } from "@/store";
 import { initHistory, hasQueue, queueLength, flushQueue, enqueueState } from "@/factories/history-state-factory";
 
 describe( "History state factory", () => {
-    let setTimeoutSpy;
-    let clearTimeoutSpy;
-    let store;
+    let setTimeoutSpy: MockInstance<typeof setTimeout>;
+    let clearTimeoutSpy: MockInstance<typeof clearTimeout>;
+    let store: Store<BitMapperyState>;
 
     beforeEach(() => {
         store = {
             commit: vi.fn(),
-        };
+        } as unknown as Store<BitMapperyState>;
         initHistory( store );
 
         vi.useFakeTimers();
@@ -24,18 +26,20 @@ describe( "History state factory", () => {
     });
 
     describe( "when enqueue-ing history states", () => {
+        const mockUndoRedoState = { undo: vi.fn(), redo: vi.fn() };
+
         it( "should know when there is a state object queued", () => {
             expect( hasQueue() ).toBe( false );
             expect( queueLength() ).toBe( 0 );
 
-            enqueueState( "foo", { undo: vi.fn(), redo: vi.fn() });
+            enqueueState( "foo", mockUndoRedoState );
 
             expect( hasQueue() ).toBe( true );
             expect( queueLength() ).toBe( 1 );
         });
 
         it( "should start a timeout before adding an enqueued state to the history module", () => {
-            enqueueState( "foo", { undo: vi.fn(), redo: vi.fn() });
+            enqueueState( "foo", mockUndoRedoState );
             expect( setTimeoutSpy ).toHaveBeenCalledTimes( 1 );
             expect( setTimeoutSpy ).toHaveBeenLastCalledWith( expect.any( Function ), 1000 );
         });
@@ -89,7 +93,7 @@ describe( "History state factory", () => {
     });
 
     it( "should be able to flush the queue and cancel pending timeouts", () => {
-        enqueueState({ undo: vi.fn(), redo: vi.fn() });
+        enqueueState( "bar", { undo: vi.fn(), redo: vi.fn() });
         flushQueue();
         expect( clearTimeoutSpy ).toHaveBeenCalledTimes( 1 );
         expect( hasQueue() ).toBe( false );

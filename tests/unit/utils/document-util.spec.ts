@@ -1,14 +1,17 @@
 import { it, describe, expect, beforeEach, vi } from "vitest";
-import { mockZCanvas } from "../__mocks";
-import { getAlignableObjects } from "@/utils/document-util";
+import { mockZCanvas } from "../mocks";
+import { type Document } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
+import { getAlignableObjects } from "@/utils/document-util";
 
 mockZCanvas();
 
 describe( "Document utilities", () => {
     describe( "When calculating the alignable objects within a document", () => {
-        let document, width, height;
+        let document: Document;
+        let width: number;
+        let height: number;
 
         beforeEach(() => {
             document = DocumentFactory.create();
