@@ -58,7 +58,6 @@ export default {
 @use "sass:math";
 
 @use "@/styles/_colors";
-@use "@/styles/_mixins";
 @use "@/styles/_variables";
 
 $loaderSize: 200px;
