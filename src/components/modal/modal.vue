@@ -66,48 +66,53 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-@import "@/styles/component";
-@import "@/styles/typography";
-@import "@/styles/ui";
+@use "@/styles/_colors";
+@use "@/styles/_variables";
+@use "@/styles/component";
+@use "@/styles/typography";
+@use "@/styles/ui";
 
 .modal {
-    @include overlay();
-    @include component();
-    @include modalBase( 480px, 320px );
-    background-image: $color-window-bg;
-    $headerHeight: 48px;
+    @include ui.overlay();
+    @include component.component();
+    @include ui.modalBase( 480px, 320px );
 
-    .component__header {
-        height: $headerHeight;
-        padding: #{$spacing-xsmall + $spacing-small} $spacing-medium 0 #{$spacing-medium + $spacing-small};
-        border: none;
-    }
+    & {
+        background-image: colors.$color-window-bg;
+        $headerHeight: 48px;
 
-    .component__title {
-        @include customFont();
-        color: #FFF;
-    }
+        .component__header {
+            height: $headerHeight;
+            padding: #{variables.$spacing-xsmall + variables.$spacing-small} variables.$spacing-medium 0 #{variables.$spacing-medium + variables.$spacing-small};
+            border: none;
+        }
 
-    .component__header-button {
-        @include closeButton();
-        top: #{$spacing-xsmall + $spacing-small};
-        right: #{$spacing-medium + $spacing-small};
-    }
+        .component__title {
+            @include typography.customFont();
+            color: #FFF;
+        }
 
-    .component__content {
-        position: relative;
-        height: calc(100% - #{$headerHeight});
-        padding: $spacing-medium #{$spacing-medium + $spacing-small};
-    }
+        .component__header-button {
+            @include ui.closeButton();
+            top: #{variables.$spacing-xsmall + variables.$spacing-small};
+            right: #{variables.$spacing-medium + variables.$spacing-small};
+        }
 
-    .component__content-wrapper {
-        overflow-x: hidden;
-        overflow-y: auto;
-        height: inherit;
-    }
+        .component__content {
+            position: relative;
+            height: calc(100% - #{$headerHeight});
+            padding: variables.$spacing-medium #{variables.$spacing-medium + variables.$spacing-small};
+        }
 
-    .component__actions {
-        @include actionsFooter();
+        .component__content-wrapper {
+            overflow-x: hidden;
+            overflow-y: auto;
+            height: inherit;
+        }
+
+        .component__actions {
+            @include ui.actionsFooter();
+        }
     }
 }
 </style>

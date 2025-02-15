@@ -91,10 +91,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/_mixins";
+@use "@/styles/_variables";
 
 .image-preview {
-    background: url("../../../assets-inline/images/icon-bpy.svg") no-repeat 50% $spacing-xlarge;
+    background: url("../../../assets-inline/images/icon-bpy.svg") no-repeat 50% variables.$spacing-xlarge;
     background-size: 50%;
 
     img {

@@ -323,23 +323,28 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/panel";
-@import "@/styles/_mixins";
+@use "@/styles/_colors";
+@use "@/styles/_mixins";
+@use "@/styles/_variables";
+@use "@/styles/panel";
 
 .layer-filters {
-    @include panel();
-    display: flex;
-    flex-direction: column;
-}
+    @include panel.panel();
 
-.component__content {
-    padding: $spacing-small 0;
-    @include boxSize();
-    @include truncate();
-    border-bottom: 1px solid $color-lines;
-}
+    & {
+        display: flex;
+        flex-direction: column;
 
-.component__actions {
-    margin-top: $spacing-medium;
+        .component__content {
+            padding: variables.$spacing-small 0;
+            @include mixins.boxSize();
+            @include mixins.truncate();
+            border-bottom: 1px solid colors.$color-lines;
+        }
+
+        .component__actions {
+            margin-top: variables.$spacing-medium;
+        }
+    }
 }
 </style>

@@ -161,11 +161,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/_variables";
+@use "@/styles/_variables";
 
 .title {
     color: #FFF;
-    margin: $spacing-medium 0 $spacing-medium 50%;
+    margin: variables.$spacing-medium 0 variables.$spacing-medium 50%;
 }
 
 .select-combo {
@@ -174,6 +174,6 @@ export default {
 }
 
 .first {
-    margin-right: $spacing-small;
+    margin-right: variables.$spacing-small;
 }
 </style>

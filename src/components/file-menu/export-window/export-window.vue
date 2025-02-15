@@ -413,22 +413,24 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/component";
-@import "@/styles/typography";
-@import "@/styles/ui";
+@use "@/styles/_mixins";
+@use "@/styles/_variables";
+@use "@/styles/component";
+@use "@/styles/typography";
+@use "@/styles/ui";
 
 .export-modal {
     $idealWidth: 990px;
     $idealHeight: 500px;
     $maxPreviewHeight: 445px;
 
-    @include modalBase( $idealWidth, $idealHeight );
+    @include ui.modalBase( $idealWidth, $idealHeight );
 
     .export-actions {
         display: flex;
     }
 
-    @include componentIdeal( $idealWidth, $idealHeight ) {
+    @include mixins.componentIdeal( $idealWidth, $idealHeight ) {
         position: relative;
 
         .export-ui {
@@ -439,7 +441,7 @@ export default {
         .export-form,
         .export-actions {
             flex: 0.4;
-            margin-right: $spacing-xlarge;
+            margin-right: variables.$spacing-xlarge;
         }
 
         .preview-wrapper {
@@ -457,20 +459,20 @@ export default {
 
         .actual-size-button {
             margin-left: auto;
-            margin-top: $spacing-medium;
+            margin-top: variables.$spacing-medium;
 
             label {
-                margin-right: $spacing-small;
+                margin-right: variables.$spacing-small;
             }
         }
     }
 
-    @include componentFallback( $idealWidth, $idealHeight ) {
+    @include mixins.componentFallback( $idealWidth, $idealHeight ) {
         .preview-container {
             height: $maxPreviewHeight !important;
         }
         .preview-image {
-            margin: $spacing-medium 0;
+            margin: variables.$spacing-medium 0;
         }
         .export-actions {
             width: 100%;
@@ -512,6 +514,6 @@ export default {
 }
 
 .expl {
-    @include smallText();
+    @include typography.smallText();
 }
 </style>

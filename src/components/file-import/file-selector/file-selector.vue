@@ -48,8 +48,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/_mixins";
-@import "@/styles/typography";
+@use "@/styles/_mixins";
+@use "@/styles/typography";
 
 #file {
     /* hide this ugly thing, use the label as interaction */

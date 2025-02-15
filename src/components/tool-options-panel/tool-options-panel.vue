@@ -137,23 +137,25 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/panel";
+@use "@/styles/_mixins";
+@use "@/styles/_variables";
+@use "@/styles/panel";
 
 .options-panel-wrapper {
-    @include panel();
+    @include panel.panel();
 
-    @include mobile() {
+    @include mixins.mobile() {
         position: fixed;
-        bottom: $collapsed-panel-height;
+        bottom: panel.$collapsed-panel-height;
         height: 40%;
 
         &.collapsed {
-            height: $collapsed-panel-height;
+            height: panel.$collapsed-panel-height;
         }
     }
 }
 
 .no-tools-text {
-    margin-top: $spacing-small;
+    margin-top: variables.$spacing-small;
 }
 </style>

@@ -271,29 +271,32 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/component";
-@import "@/styles/typography";
+@use "@/styles/_colors";
+@use "@/styles/_mixins";
+@use "@/styles/_variables";
+@use "@/styles/component";
+@use "@/styles/typography";
 
-$toolButtonWidth: $spacing-large;
+$toolButtonWidth: variables.$spacing-large;
 
 .toolbox-wrapper {
-    @include component();
+    @include component.component();
 
-    @include large() {
+    @include mixins.large() {
         .component__content {
-            margin-right: -$spacing-small;
-            padding: $spacing-small + $spacing-xsmall;
+            margin-right: -(variables.$spacing-small);
+            padding: variables.$spacing-small + variables.$spacing-xsmall;
         }
 
         .component__header-button {
-            top: $spacing-small - $spacing-xxsmall;
-            right: $spacing-xxsmall;
+            top: variables.$spacing-small - variables.$spacing-xxsmall;
+            right: variables.$spacing-xxsmall;
             width: 36px;
             height: 29px;
 
             img {
-                width: $spacing-medium + $spacing-small;
-                height: $spacing-medium + $spacing-small;
+                width: variables.$spacing-medium + variables.$spacing-small;
+                height: variables.$spacing-medium + variables.$spacing-small;
             }
         }
 
@@ -302,14 +305,14 @@ $toolButtonWidth: $spacing-large;
         }
     }
 
-    @include mobile() {
+    @include mixins.mobile() {
         // always expanded in mobile view (is small horizontal strip)
         overflow-y: hidden;
         overflow-x: auto;
         // the mobile view supports --docked buttons. these have a fixed position whereas
         // the remainder of the tools can scroll out of view. most-used buttons can be
         // docked to remain accessible at all times
-        $dockedOffset: #{(($spacing-medium + $toolButtonWidth) * 3) + $spacing-small};
+        $dockedOffset: #{((variables.$spacing-medium + $toolButtonWidth) * 3) + variables.$spacing-small};
         margin-left: $dockedOffset;
         padding: 0 $dockedOffset 0 0;
         box-sizing: border-box;
@@ -322,14 +325,14 @@ $toolButtonWidth: $spacing-large;
             position: fixed;
             left: 0;
             width: $dockedOffset;
-            height: $menu-height;
-            padding-right: $spacing-xsmall;
-            background-image: $color-window-bg;
+            height: variables.$menu-height;
+            padding-right: variables.$spacing-xsmall;
+            background-image: colors.$color-window-bg;
         }
 
         .component__content {
             width: max-content;
-            padding: $spacing-xsmall 0 $spacing-xxsmall $spacing-xsmall;
+            padding: variables.$spacing-xsmall 0 variables.$spacing-xxsmall variables.$spacing-xsmall;
         }
 
         .component__header,
@@ -349,8 +352,8 @@ $toolButtonWidth: $spacing-large;
         }
 
         .component__header-button {
-            top: $spacing-small;
-            right: #{$spacing-medium - $spacing-xsmall};
+            top: variables.$spacing-small;
+            right: #{variables.$spacing-medium - variables.$spacing-xsmall};
         }
 
         .color-panel {
@@ -358,7 +361,7 @@ $toolButtonWidth: $spacing-large;
                 display: none;
             }
             .color-picker {
-                text-indent: $spacing-xsmall;
+                text-indent: variables.$spacing-xsmall;
             }
         }
     }
@@ -366,18 +369,18 @@ $toolButtonWidth: $spacing-large;
 
 .tool-button {
     cursor: pointer;
-    border-radius: $spacing-xsmall;
+    border-radius: variables.$spacing-xsmall;
     border: none;
-    padding: $spacing-xxsmall $spacing-xsmall;
+    padding: variables.$spacing-xxsmall variables.$spacing-xsmall;
     font-weight: bold;
-    background-color: $color-bg;
-    @include customFont();
+    background-color: colors.$color-bg;
+    @include typography.customFont();
 
     img {
         width: $toolButtonWidth;
         height: $toolButtonWidth;
         vertical-align: middle;
-        padding: $spacing-xxsmall 0;
+        padding: variables.$spacing-xxsmall 0;
 
         &.mirrored {
             transform: scale(-1, 1);
@@ -387,38 +390,38 @@ $toolButtonWidth: $spacing-large;
 
     &:hover,
     &.active {
-        background-color: $color-1;
+        background-color: colors.$color-1;
         color: #FFF;
     }
 
     &:disabled {
         background-color: #333;
-        color: $color-bg;
+        color: colors.$color-bg;
         cursor: default;
     }
 
-    @include large() {
-        margin: 0 $spacing-small $spacing-small 0;
+    @include mixins.large() {
+        margin: 0 variables.$spacing-small variables.$spacing-small 0;
         display: inline-block;
     }
 
-    @include mobile() {
-        margin: 0 $spacing-small 0 0;
+    @include mixins.mobile() {
+        margin: 0 variables.$spacing-small 0 0;
         display: inline;
 
         &--docked {
             position: fixed;
-            left: $spacing-small;
+            left: variables.$spacing-small;
 
             &-second {
-                left: #{($spacing-small + $toolButtonWidth) + $spacing-medium};
+                left: #{(variables.$spacing-small + $toolButtonWidth) + variables.$spacing-medium};
             }
 
             &-color {
-                left: #{(($spacing-small + $toolButtonWidth) * 2 ) + $spacing-large};
+                left: #{((variables.$spacing-small + $toolButtonWidth) * 2 ) + variables.$spacing-large};
 
                 :first-child {
-                    margin-top: -#{$spacing-small + $spacing-xsmall};
+                    margin-top: -#{variables.$spacing-small + variables.$spacing-xsmall};
                 }
             }
         }
@@ -429,20 +432,20 @@ $toolButtonWidth: $spacing-large;
     vertical-align: middle;
     display: inline-flex;
 
-    @include large() {
+    @include mixins.large() {
         border-top: 1px solid #444;
-        margin-top: $spacing-small;
-        padding-top: $spacing-medium - $spacing-xsmall;
+        margin-top: variables.$spacing-small;
+        padding-top: variables.$spacing-medium - variables.$spacing-xsmall;
     }
 
     &__label {
-        margin: $spacing-xxsmall $spacing-small 0 $spacing-xxsmall;
-        @include customFont();
+        margin: variables.$spacing-xxsmall variables.$spacing-small 0 variables.$spacing-xxsmall;
+        @include typography.customFont();
         color: #FFF;
     }
 
     .color-picker {
-        margin-top: -$spacing-xsmall;
+        margin-top: -(variables.$spacing-xsmall);
     }
 }
 

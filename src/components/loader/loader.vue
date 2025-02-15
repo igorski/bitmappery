@@ -39,12 +39,12 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 export default {
     data: () => ({
         visible: false,
     }),
-    created() {
+    created(): void {
         // slightly delay the showing of the component, this prevents
         // flicker when the loading state completes quickly.
         window.setTimeout(() => {
@@ -57,13 +57,14 @@ export default {
 <style lang="scss" scoped>
 @use "sass:math";
 
-@import "@/styles/_mixins";
+@use "@/styles/_colors";
+@use "@/styles/_variables";
 
 $loaderSize: 200px;
 
 .loader {
     position: fixed;
-    background-image: $color-window-bg;
+    background-image: colors.$color-window-bg;
     top: 50%;
     left: 50%;
     width: $loaderSize;
@@ -71,7 +72,7 @@ $loaderSize: 200px;
     margin-left: -( math.div( $loaderSize, 2 ));
     margin-top: -( math.div( $loaderSize, 2 ));
     border-radius: 24px;
-    border-bottom: #{$spacing-medium - $spacing-xsmall} solid #000;
+    border-bottom: #{variables.$spacing-medium - variables.$spacing-xsmall} solid #000;
     transform: scale( 0.33 );
     z-index: 500;
 }
@@ -80,8 +81,8 @@ $loaderSize: 200px;
     position:absolute;
     top: 80px;
     left: 93px;
-    width: $spacing-medium;
-    border-radius: $spacing-medium;
+    width: variables.$spacing-medium;
+    border-radius: variables.$spacing-medium;
     height: 40px;
     background: #FFF;
 }

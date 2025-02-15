@@ -42,11 +42,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/_mixins";
+@use "@/styles/_variables";
 
 .image-preview {
     display: inline-block;
-    margin: 0 $spacing-xxsmall;
+    margin: 0 variables.$spacing-xxsmall;
     overflow: hidden;
     cursor: pointer;
     vertical-align: middle;
@@ -57,8 +57,8 @@ export default {
 
     &__image {
         object-fit: cover;
-        width: calc(100% - #{$spacing-small});
-        height: calc(100% - #{$spacing-small});
+        width: calc(100% - #{variables.$spacing-small});
+        height: calc(100% - #{variables.$spacing-small});
     }
 }
 </style>

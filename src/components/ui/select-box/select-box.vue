@@ -75,17 +75,18 @@ export default {
 </script>
 
 <style lang="scss">
-@import "@/styles/_variables";
-@import "@/styles/_mixins";
-@import "@/styles/form";
+@use "@/styles/_colors";
+@use "@/styles/_variables";
+@use "@/styles/_mixins";
+@use "@/styles/form";
 
 .select-box-wrapper {
     display: inline-block;
-    width: $inputWidth;
+    width: form.$inputWidth;
 }
 
 .vs__dropdown-toggle {
-    border-radius: $spacing-small;
+    border-radius: variables.$spacing-small;
     background-color: #FFF;
     border-color: #FFF;
     padding: 0;
@@ -93,8 +94,8 @@ export default {
 
 .vs--disabled {
     .vs__dropdown-toggle {
-        background-color: $color-bg;
-        border-color: $color-bg;
+        background-color: colors.$color-bg;
+        border-color: colors.$color-bg;
     }
     input,
     .vs__actions {
@@ -103,12 +104,12 @@ export default {
 }
 
 .vs__selected {
-    margin: $spacing-small $spacing-small;
+    margin: variables.$spacing-small variables.$spacing-small;
     font-size: 95%;
 }
 
 .vs__selected-options {
     height: 38px;
-    @include truncate();
+    @include mixins.truncate();
 }
 </style>

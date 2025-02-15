@@ -127,9 +127,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/tool-option";
+@use "@/styles/_variables";
+@use "@/styles/tool-option";
 
 .actions button {
-    margin: 0 $spacing-xxsmall;
+    margin: 0 variables.$spacing-xxsmall;
 }
 </style>

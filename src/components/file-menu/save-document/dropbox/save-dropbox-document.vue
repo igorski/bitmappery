@@ -88,9 +88,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/typography";
+@use "@/styles/typography";
 
 .expl {
-    @include smallText();
+    @include typography.smallText();
 }
 </style>

@@ -1,5 +1,7 @@
-@import "_mixins";
-@import "typography";
+@use "_colors";
+@use "_mixins";
+@use "_variables";
+@use "typography";
 
 @mixin overlay() {
     // mobile first, override in custom inheriting classes
@@ -26,15 +28,15 @@
 
         .help-button {
             position: absolute;
-            top: $spacing-medium;
-            right: ($spacing-xlarge + $spacing-medium);
+            top: variables.$spacing-medium;
+            right: (variables.$spacing-xlarge + variables.$spacing-medium);
         }
     }
 
     .close-button {
         position: absolute;
-        top: $spacing-medium;
-        right: $spacing-large;
+        top: variables.$spacing-medium;
+        right: variables.$spacing-large;
         @include closeButton();
     }
 }
@@ -49,28 +51,28 @@
  * both $width and $height thresholds can't be met, the modal becomes fullscreen (as defined by overlay())
  */
 @mixin modalBase( $width, $height ) {
-    @include minWidth( $width ) {
+    @include mixins.minWidth( $width ) {
         width: $width;
 
         .component__content {
-            padding: $spacing-medium $spacing-large;
+            padding: variables.$spacing-medium variables.$spacing-large;
         }
     }
 
-    @include minWidthFallback( $width ) {
+    @include mixins.minWidthFallback( $width ) {
         .component__content {
-            padding: $spacing-small $spacing-medium;
+            padding: variables.$spacing-small variables.$spacing-medium;
         }
     }
 
     $actionsHeight: 74px;
     $heightPlusActions: $height + $actionsHeight;
 
-    @include minHeight( $heightPlusActions ) {
+    @include mixins.minHeight( $heightPlusActions ) {
         height: $heightPlusActions;
     }
 
-    @include minHeightFallback( $heightPlusActions ) {
+    @include mixins.minHeightFallback( $heightPlusActions ) {
         .component__actions {
             position: fixed;
         }
@@ -78,8 +80,8 @@
 
     /* when on mobile, if one of the given dimensions doesn't match, force fullscreen overlay */
 
-    @include mobile() {
-        @include componentFallback( $width, $heightPlusActions ) {
+    @include mixins.mobile() {
+        @include mixins.componentFallback( $width, $heightPlusActions ) {
             width: 100% !important;
             height: 100% !important;
         }
@@ -89,40 +91,40 @@
 @mixin closeButton() {
     cursor: pointer;
     background: none;
-    color: $color-lines;
-    border: 2px solid $color-lines;
+    color: colors.$color-lines;
+    border: 2px solid colors.$color-lines;
     border-radius: 5px;
-    padding: $spacing-xxsmall #{$spacing-xsmall + $spacing-xxsmall};
+    padding: variables.$spacing-xxsmall #{variables.$spacing-xsmall + variables.$spacing-xxsmall};
 
     &:hover {
-        color: $color-4;
-        border-color: $color-4;
+        color: colors.$color-4;
+        border-color: colors.$color-4;
     }
 }
 
 .button {
-    $buttonColor: $color-2;
+    $buttonColor: colors.$color-2;
     cursor: pointer;
-    padding: #{$spacing-xsmall + $spacing-small} $spacing-medium;
+    padding: #{variables.$spacing-xsmall + variables.$spacing-small} variables.$spacing-medium;
     border: none;// 2px solid #FFF;
-    @include customFont();
-    border-radius: $spacing-large;
+    @include typography.customFont();
+    border-radius: variables.$spacing-large;
     font-weight: bold;
     font-size: 100%;
     background-color: $buttonColor;
-    color: $color-text;
+    color: colors.$color-text;
 
     &:hover {
-        background-color: $color-4;
-        border-color: $color-4;
+        background-color: colors.$color-4;
+        border-color: colors.$color-4;
         color: #FFF;
     }
 
     &:disabled {
         cursor: default;
-        background-color: $color-bg-dark !important;
-        color: $color-bg !important;
-        border-color: $color-bg !important;
+        background-color: colors.$color-bg-dark !important;
+        color: colors.$color-bg !important;
+        border-color: colors.$color-bg !important;
     }
 
     &--block {
@@ -132,9 +134,9 @@
 
     &--small {
         font-size: 75%;
-        padding: $spacing-xsmall $spacing-small;
-        border-radius: $spacing-medium;
-        border: 2px solid $color-bg;
+        padding: variables.$spacing-xsmall variables.$spacing-small;
+        border-radius: variables.$spacing-medium;
+        border: 2px solid colors.$color-bg;
     }
 
     &--ghost {
@@ -143,12 +145,12 @@
     }
 
     &--primary {
-        border: 2px solid $color-1;
+        border: 2px solid colors.$color-1;
         background: transparent;
     }
 
     &--secondary {
-        border: 2px solid $color-4;
+        border: 2px solid colors.$color-4;
         background: transparent;
     }
 }
@@ -160,11 +162,11 @@
     width: 100%;
     text-align: center;
     display: flex;
-    padding: $spacing-small $spacing-medium;
+    padding: variables.$spacing-small variables.$spacing-medium;
     box-sizing: border-box;
 
     button {
         flex: 1;
-        margin: $spacing-small;
+        margin: variables.$spacing-small;
     }
 }

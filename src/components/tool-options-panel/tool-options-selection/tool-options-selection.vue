@@ -248,12 +248,13 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/tool-option";
+@use "@/styles/_variables";
+@use "@/styles/tool-option";
 
 .half {
     width: 30% !important;
     &:first-of-type {
-        margin-right: $spacing-small;
+        margin-right: variables.$spacing-small;
     }
 }
 </style>

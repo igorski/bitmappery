@@ -193,5 +193,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/tool-option";
+@use "@/styles/tool-option";
 </style>

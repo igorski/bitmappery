@@ -86,25 +86,25 @@ export default {
 <style lang="scss" scoped>
 @use "sass:math";
 
-@import "@/styles/_mixins";
+@use "@/styles/_variables";
 
 .image-preview {
     display: inline-block;
-    margin: 0 $spacing-xxsmall;
+    margin: 0 variables.$spacing-xxsmall;
     overflow: hidden;
     cursor: pointer;
     vertical-align: middle;
 
     &__loader {
-        width: $spacing-xxlarge;
-        height: $spacing-xxlarge;
-        margin: math.div(128px - $spacing-xxlarge, 2);
+        width: variables.$spacing-xxlarge;
+        height: variables.$spacing-xxlarge;
+        margin: math.div(128px - variables.$spacing-xxlarge, 2);
     }
 
     &__image {
         object-fit: cover;
-        width: calc(100% - #{$spacing-small});
-        height: calc(100% - #{$spacing-small});
+        width: calc(100% - #{variables.$spacing-small});
+        height: calc(100% - #{variables.$spacing-small});
 
         &:hover {
             transform: scale(1.05);

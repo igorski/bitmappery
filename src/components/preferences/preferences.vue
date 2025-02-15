@@ -118,15 +118,15 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/_variables";
-@import "@/styles/typography";
-@import "@/styles/ui";
+@use "@/styles/_variables";
+@use "@/styles/typography";
+@use "@/styles/ui";
 
 .preferences {
-    @include modalBase( 480px, 370px );
+    @include ui.modalBase( 480px, 370px );
 }
 
 .expl {
-    @include smallText();
+    @include typography.smallText();
 }
 </style>

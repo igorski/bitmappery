@@ -102,8 +102,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/_mixins";
-@import "@/styles/typography";
+@use "@/styles/_colors";
+@use "@/styles/_mixins";
+@use "@/styles/_variables";
+@use "@/styles/typography";
 
 .notifications {
     position: fixed;
@@ -113,7 +115,7 @@ export default {
     width: 33%;
     max-width: 300px;
 
-    @include mobile() {
+    @include mixins.mobile() {
         width: 100%;
         max-width: 100%;
         left: 0;
@@ -122,12 +124,12 @@ export default {
 }
 
 .notification {
-    @include boxSize();
-    @include truncate();
+    @include mixins.boxSize();
+    @include mixins.truncate();
     display: block;
     position: relative;
-    padding: $spacing-small $spacing-medium;
-    margin-bottom: $spacing-small;
+    padding: variables.$spacing-small variables.$spacing-medium;
+    margin-bottom: variables.$spacing-small;
     right: -500px;
     background-color: #393b40;
     border: 3px solid #28292d;
@@ -141,32 +143,32 @@ export default {
     }
 
     &--active {
-        right: $spacing-medium;
-        box-shadow: 0 0 $spacing-small rgba(0,255,255,.35);
+        right: variables.$spacing-medium;
+        box-shadow: 0 0 variables.$spacing-small rgba(0,255,255,.35);
     }
 
     &__title {
-        @include customFont();
-        color: $color-1;
+        @include typography.customFont();
+        color: colors.$color-1;
         margin: 0;
     }
 
     &__message {
-        @include truncate();
+        @include mixins.truncate();
         white-space: break-spaces;
-        margin: 0 0 $spacing-xsmall 0;
+        margin: 0 0 variables.$spacing-xsmall 0;
     }
 
-    @include large() {
-        border-radius: $spacing-small;
+    @include mixins.large() {
+        border-radius: variables.$spacing-small;
     }
 
-    @include mobile() {
+    @include mixins.mobile() {
         width: 100%;
         left: 0;
         right: auto;
         top: -500px;
-        padding: $spacing-medium;
+        padding: variables.$spacing-medium;
         margin: 0;
 
         &--active {

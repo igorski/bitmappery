@@ -106,9 +106,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/ui";
+@use "@/styles/ui";
 
 .create-document {
-    @include modalBase( 480px, 325px );
+    @include ui.modalBase( 480px, 325px );
 }
 </style>

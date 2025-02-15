@@ -1,10 +1,10 @@
-@import "_mixins";
+@use "_variables";
 
 @mixin thirdPartyButton( $color, $optHoverColor: #FFF ) {
     width: 100%;
     border: 2px solid $color;
     color: #FFF;
-    margin: $spacing-small 0 0;
+    margin: variables.$spacing-small 0 0;
     background: transparent;
 
     &:hover {
