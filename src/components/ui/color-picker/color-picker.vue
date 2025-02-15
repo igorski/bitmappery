@@ -81,7 +81,7 @@ export default {
         }
     },
     methods: {
-        saveColor( value: { toRGBA: () => number[] } ): void {
+        saveColor( value: { toHEXA: () => number[], toRGBA: () => number[] } ): void {
             const rgba  = value.toRGBA();
 
             const red   = rgba[ 0 ].toFixed( FRAC_VALUE );
@@ -89,7 +89,11 @@ export default {
             const blue  = rgba[ 2 ].toFixed( FRAC_VALUE );
             const alpha = rgba[ 3 ];
 
-            this.$emit( "update:modelValue", `rgba(${red},${green},${blue},${alpha})` );
+            const parsedValue = `rgba(${red},${green},${blue},${alpha})`;
+
+            if ( this.modelValue !== parsedValue ) {
+                this.$emit( "update:modelValue", parsedValue );
+            }
         },
     },
 };
