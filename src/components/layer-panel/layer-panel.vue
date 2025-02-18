@@ -409,7 +409,7 @@ export default {
             outline: none;
         }
 
-        .component__content.form {
+        :deep(.component__content) {
             padding: 0;
         }
 

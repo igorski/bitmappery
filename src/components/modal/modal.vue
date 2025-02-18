@@ -81,36 +81,37 @@ export default {
         background-image: colors.$color-window-bg;
         $headerHeight: 48px;
 
-        .component__header {
+        :deep(.component__header) {
             height: $headerHeight;
             padding: #{variables.$spacing-xsmall + variables.$spacing-small} variables.$spacing-medium 0 #{variables.$spacing-medium + variables.$spacing-small};
             border: none;
         }
 
-        .component__title {
+        :deep(.component__title) {
             @include typography.customFont();
             color: #FFF;
+            padding-left: 0;
         }
 
-        .component__header-button {
+        :deep(.component__header-button) {
             @include ui.closeButton();
             top: #{variables.$spacing-xsmall + variables.$spacing-small};
             right: #{variables.$spacing-medium + variables.$spacing-small};
         }
 
-        .component__content {
+        :deep(.component__content) {
             position: relative;
             height: calc(100% - #{$headerHeight});
             padding: variables.$spacing-medium #{variables.$spacing-medium + variables.$spacing-small};
         }
 
-        .component__content-wrapper {
+        :deep(.component__content-wrapper) {
             overflow-x: hidden;
             overflow-y: auto;
             height: inherit;
         }
 
-        .component__actions {
+        :deep(.component__actions) {
             @include ui.actionsFooter();
         }
     }

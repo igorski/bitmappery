@@ -335,8 +335,7 @@ export default {
         display: flex;
         flex-direction: column;
 
-        .component__content {
-            padding: variables.$spacing-small 0;
+        :deep(.component__content) {
             @include mixins.boxSize();
             @include mixins.truncate();
             border-bottom: 1px solid colors.$color-lines;
