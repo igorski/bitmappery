@@ -77,30 +77,6 @@ export const isShapeClosed = ( shape: Shape ): boolean => {
     return firstPoint.x === lastPoint.x && firstPoint.y === lastPoint.y;
 };
 
-/**
- * Verifies whether given shapes overlap and thus can be merged.
- * Note: this assumes each shape is not self-intersecting and has no holes.
- */
-export const canBeMerged = ( shapeA: Shape, shapeB: Shape ): boolean => {
-    // Combine the coordinates of both polygons into a single array
-    let combinedCoords = [ ...shapeA.flat(), ...shapeB.flat() ];
-
-    // Sort the coordinates in counterclockwise order
-    combinedCoords.sort(( a, b ) => {
-        return ( a.x - combinedCoords[ 0 ].x ) * ( b.y - combinedCoords[ 0 ].y ) -
-               ( b.x - combinedCoords[ 0 ].x ) * ( a.y - combinedCoords[ 0 ].y );
-    });
-
-    // Check if any coordinate is the same as the previous coordinate
-    for ( let i = 1; i < combinedCoords.length; i++ ) {
-        if ( combinedCoords[ i ].x === combinedCoords[ i - 1 ].x &&
-             combinedCoords[ i ].y === combinedCoords[ i - 1 ].y ) {
-            return true;
-        }
-    }
-    return false;
-};
-
 export const mergeShapes = ( shapeA: Shape, shapeB: Shape ): Shape => {
     let combinedCoords = [ ...shapeA, ...shapeB ];
 

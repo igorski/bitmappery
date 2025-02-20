@@ -35,7 +35,7 @@ import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import KeyboardService from "@/services/keyboard-service";
 import { isInsideTransparentArea } from "@/utils/canvas-util";
 import { createDocumentSnapshot, createLayerSnapshot } from "@/utils/document-util";
-import { getLastShape } from "@/utils/selection-util";
+import { getLastShape, testSelectionOverlap, mergeSelections, subtractSelections } from "@/utils/selection-util";
 import { rectangleToShape, mergeShapes, isShapeClosed } from "@/utils/shape-util";
 
 export enum InteractionModes {
@@ -298,6 +298,13 @@ class InteractionPane extends sprite {
                             x = firstPoint.x;
                             y = firstPoint.y;
                             completeSelection = true;
+
+                            if ( activeSelection.length > 1 && testSelectionOverlap( selectionShape, activeSelection[ 0 ]) ) {
+                                console.warn('merging');
+                                activeSelection = [ mergeSelections( selectionShape, activeSelection[ 0 ] ) ];
+                            } else {
+                                console.warn('no mergy mergy');
+                            }
                         }
                     }
                     selectionShape.push({ x, y });
