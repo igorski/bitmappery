@@ -76,7 +76,7 @@ class LayerSprite extends ZoomableSprite {
     protected _pointerY: number;
     protected _brush: Brush;
     protected _lastBrushIndex: number;
-    protected _drawableCanvas: CanvasContextPairing;
+    protected _drawableCanvas: CanvasContextPairing; // temporary canvas used during drawing
     protected _isPaintMode: boolean;
     protected _isDragMode: boolean;
     protected _isColorPicker: boolean;
@@ -139,6 +139,10 @@ class LayerSprite extends ZoomableSprite {
 
     isScaled(): boolean {
         return this.layer.effects.scale !== 1;
+    }
+
+    isDrawing(): boolean {
+        return this._brush.down;
     }
 
     /**
@@ -297,7 +301,6 @@ class LayerSprite extends ZoomableSprite {
             this.preparePendingPaintState();
         }
         const drawOnMask   = this.isMaskable();
-        const isEraser     = this._toolType === ToolTypes.ERASER;
         const isCloneStamp = this._toolType === ToolTypes.CLONE;
         const isFillMode   = this._toolType === ToolTypes.FILL;
 
@@ -307,19 +310,17 @@ class LayerSprite extends ZoomableSprite {
 
         ctx.save(); // 1. preparation save()
 
-        // as long as the brush is held down, render paint in low res preview mode
-        // unless we are erasing contents on a layer mask
-        // @todo rename
-        // @todo check masking and erasing
-        const isLowResPreview = this._brush.down && !( drawOnMask && isEraser );
+        const isDrawing = this.isDrawing();
 
         // if there is an active selection, painting will be constrained within
         let selection: Selection = optAction?.selection || this._selection;
         if ( selection ) {
             let { left, top } = this.layer;
-            if ( this.isRotated() && !isLowResPreview ) {
+            if ( this.isRotated() && !isDrawing ) {
                 selection = selection.map(( shape: Shape ) => rotatePointers( shape as Point[], this.layer, width, height ));
-                left = top = 0; // pointers have been rotated within clipping context
+                // pointers have been rotated within clipping context, unset layer coords
+                left = 0;
+                top  = 0;
             }
             ctx.save(); // 2. clipping save()
             clipContextToSelection( ctx, selection, left, top, this._invertSelection );
@@ -328,7 +329,7 @@ class LayerSprite extends ZoomableSprite {
         if ( optAction ) {
             if ( optAction.type === "stroke" ) {
                 ctx.strokeStyle = optAction.color;
-                ctx.lineWidth   = ( optAction.size || 1 ) / this.canvas.documentScale;
+                ctx.lineWidth   = ( optAction.size ?? 1 ) / this.canvas.documentScale;
                 ctx.stroke();
             }
         } else if ( isFillMode ) {
@@ -352,7 +353,7 @@ class LayerSprite extends ZoomableSprite {
             const pointers = sliceBrushPointers( this._brush );
 
             if ( isCloneStamp ) {
-                if ( isLowResPreview ) {
+                if ( isDrawing ) {
                     renderClonedStroke( ctx, this._brush, this, this.toolOptions.sourceLayerId,
                         rotatePointers( pointers, this.layer, width, height )
                     );
@@ -366,44 +367,21 @@ class LayerSprite extends ZoomableSprite {
                 // where each individual brush stroke is rendered in successive iterations.
                 // upon release, the full stroke is rendered on the Layer source (see handleRelease())
                 let overrides = null;
-                if ( isLowResPreview ) {
+                if ( isDrawing ) {
                     // live update on lower resolution canvas
-                    // @todo should it be full size instead of viewport size? (we can pan viewport while brushing, you see...)
                     this._drawableCanvas = this._drawableCanvas || getDrawableCanvas( this.canvas );
                     overrides = createOverrideConfig( this.canvas, pointers );
                     ctx = this._drawableCanvas.ctx;
 
                     if ( selection && this._drawableCanvas ) {
-                        ctx.save(); // 3. tempCanvas clipping save()
+                        ctx.save(); // 3. drawableCanvas clipping save()
                         clipContextToSelection( ctx, selection, 0, 0, this._invertSelection, overrides );
                     }
-                } else {
-                    // @todo this will cease to exist
-                    // render full brush stroke path directly onto the Layer source
-                //     ctx = orgContext;
-                //     // take optional layer scaling into account
-                //     const scale = 1 / this.layer.effects.scale;
-                //     ctx.translate(
-                //         ( this.layer.width  / 2 ) - ( this.layer.width  * scale ) / 2,
-                //         ( this.layer.height / 2 ) - ( this.layer.height * scale ) / 2
-                //     );
-                //     // transform destination context in case the current layer is rotated or mirrored
-                //     ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
-                //     this._brush.pointers = rotatePointers( this._brush.pointers, this.layer, width, height ).map(({ x, y }) => ({ x: x * scale, y: y * scale }));
                 }
                 this._lastBrushIndex = renderBrushStroke( ctx, this._brush, overrides, this._lastBrushIndex );
 
-                if ( !isLowResPreview ) {
-                    // draw the temp context with the fully rendered brush path
-                    // onto the destination Layer source, at the given opacity (prevents overdraw)
-                    // orgContext.globalAlpha = this._brush.options.opacity;
-                    // if ( isEraser ) {
-                    //     orgContext.globalCompositeOperation = "destination-out";
-                    // }
-                    // orgContext.drawImage( ctx.canvas, 0, 0 );
-                    // ctx = orgContext;
-                } else if ( selection && this._drawableCanvas ) {
-                    orgContext.restore(); // 3. tempCanvas clipping restore()
+                if ( isDrawing && selection ) {
+                    orgContext.restore(); // 3. drawableCanvas clipping restore()
                 }
             }
         }
@@ -412,8 +390,8 @@ class LayerSprite extends ZoomableSprite {
         }
         ctx.restore(); // 1. preparation restore()
 
-        // during low res preview brushing, defer recache of filters to handleRelease()
-        if ( !isLowResPreview ) {
+        // while user is drawing, defer recache of filters to handleRelease()
+        if ( !isDrawing ) {
             this.resetFilterAndRecache();
         }
     }
@@ -440,7 +418,7 @@ class LayerSprite extends ZoomableSprite {
             return true;
         }
         window.clearTimeout( this._pendingPaintState );
-        if ( this._brush.down ) {
+        if ( this.isDrawing() ) {
             // still painting, debounce again (layer.source only updated on handleRelease())
             this.debouncePaintStore( 1000 );
             return false;
@@ -513,7 +491,7 @@ class LayerSprite extends ZoomableSprite {
 
     /**
      * override that takes rotation into account
-     * TODO : port to zCanvas
+     * @todo: when migrating to zCanvas 6+ this is handled by zCanvas.sprite#insideBounds
      */
     insideBounds( x: number, y: number ): boolean {
         const { left, top, width, height } = this.getActualBounds();
@@ -596,7 +574,7 @@ class LayerSprite extends ZoomableSprite {
         }
 
         // brush mode and brushing is active
-        if ( this._brush.down ) {
+        if ( this.isDrawing() ) {
             // enqueue current pointer position, painting of all enqueued pointers will be deferred
             // to the update()-hook, this prevents multiple renders on each move event
             this.storeBrushPointer( x, y );
@@ -606,9 +584,7 @@ class LayerSprite extends ZoomableSprite {
     handleRelease( _x: number, _y: number ): void {
         const { getters } = this.getStore();
 
-        if ( this._brush.down ) {
-            // @todo remove to lowres.ts (and remove the exports necessary for this magic)
-            
+        if ( this.isDrawing() ) {
             const compositeOperation = this._toolType === ToolTypes.ERASER ? "destination-out" : undefined;
             commitDrawingToLayer(
                 this.layer, this.isMaskable(), this.canvas.getViewport(), this.canvas.documentScale,
@@ -640,7 +616,7 @@ class LayerSprite extends ZoomableSprite {
     }
 
     update(): void {
-        if ( this._brush.down ) {
+        if ( this.isDrawing() ) {
             this.paint();
             this._brush.last = this._brush.pointers.length;
         }
@@ -703,15 +679,15 @@ class LayerSprite extends ZoomableSprite {
         drawContext.restore(); // 1. transformation restore()
 
         // @todo rename all instance of low res naming
-        // sprite is currently brushing, render low resolution temp contents onto screen
+        // user is currently drawing on this layer, render contents of drawableCanvas onto screen
         if ( this._drawableCanvas ) {
-            documentContext.save(); // 2. low res render save()
+            documentContext.save(); // 2. drawable render save()
             documentContext.globalAlpha = this._brush.options.opacity;
             if ( this._toolType === ToolTypes.ERASER || this.isMaskable() ) {
                 documentContext.globalCompositeOperation = "destination-out";
             }
             renderDrawableCanvas( documentContext, this.canvas.documentScale );
-            documentContext.restore(); // 2. low res render restore()
+            documentContext.restore(); // 2. drawable render restore()
         }
 
         if ( altOpacity ) {
@@ -733,7 +709,7 @@ class LayerSprite extends ZoomableSprite {
                 const cx = coords ? ( coords.x - viewport.left ) + ( this._pointerX - relSource.x ) : tx;
                 const cy = coords ? ( coords.y - viewport.top  ) + ( this._pointerY - relSource.y ) : ty;
                 // when no source coordinate is set, or when applying the clone stamp, we show a cross to mark the origin
-                if ( !coords || this._brush.down ) {
+                if ( !coords || this.isDrawing() ) {
                     renderCross( documentContext, cx, cy, this._brush.radius / zoomFactor );
                 }
             }

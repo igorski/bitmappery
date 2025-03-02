@@ -129,12 +129,6 @@ export const sliceBrushPointers = ( brush: Brush ): Point[] => {
  * Create override configuration for a render operation, adapting its
  * source input (e.g. pointers list) to scaling and coordinate space
  * of low res preview.
- *
- * @param {ZoomableCanvas} zoomableCanvas
- * @param {Number} x layer X offset
- * @param {Number} y layer Y offset
- * @param {Array<{ x: Number, y:Number }>} pointers
- * @return {Object}
  */
 export const createOverrideConfig = ( zoomableCanvas: ZoomableCanvas, pointers: Point[] ): OverrideConfig => ({
     scale : 1 / zoomableCanvas.documentScale,
@@ -153,7 +147,7 @@ export const createOverrideConfig = ( zoomableCanvas: ZoomableCanvas, pointers: 
  * @param {Point[]} pointers coordinates to transform
  */
 export const applyOverrideConfig = ( overrideConfig: OverrideConfig, pointers: Point[] ): void => {
-    let { vpX, vpY, scale } = overrideConfig;
+    const { vpX, vpY, scale } = overrideConfig;
     let i = pointers.length;
     while ( i-- )
     {
