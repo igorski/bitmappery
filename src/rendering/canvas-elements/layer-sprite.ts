@@ -43,7 +43,7 @@ import { renderClonedStroke } from "@/rendering/cloning";
 import { renderBrushStroke } from "@/rendering/drawing";
 import { floodFill } from "@/rendering/fill";
 import { snapSpriteToGuide } from "@/rendering/snapping";
-import { applyTransformation } from "@/rendering/transforming";
+import { applyTransformation, reverseTransformation } from "@/rendering/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
 import {
     getTempCanvas, renderTempCanvas, disposeTempCanvas, slicePointers, createOverrideConfig
@@ -76,6 +76,7 @@ class LayerSprite extends ZoomableSprite {
     protected _pointerX: number;
     protected _pointerY: number;
     protected _brush: Brush;
+    protected _lastBrushIndex: number;
     protected _isPaintMode: boolean;
     protected _isDragMode: boolean;
     protected _isColorPicker: boolean;
@@ -188,6 +189,7 @@ class LayerSprite extends ZoomableSprite {
     storeBrushPointer( x: number, y: number ): void {
         this._brush.down = true;
         this._brush.pointers.push({ x, y });
+        this._lastBrushIndex = 1;
     }
 
     cacheEffects(): void {
@@ -309,6 +311,7 @@ class LayerSprite extends ZoomableSprite {
 
         // as long as the brush is held down, render paint in low res preview mode
         // unless we are erasing contents on a layer mask
+        // @todo rename
         const isLowResPreview = this._brush.down && !( drawOnMask && isEraser );
 
         // if there is an active selection, painting will be constrained within
@@ -366,6 +369,7 @@ class LayerSprite extends ZoomableSprite {
                 let overrides = null;
                 if ( isLowResPreview ) {
                     // live update on lower resolution canvas
+                    // @todo should it be full size instead of viewport size? (we can pan viewport while brushing, you see...)
                     this.tempCanvas = this.tempCanvas || getTempCanvas( this.canvas );
                     overrides = createOverrideConfig( this.canvas, pointers );
                     ctx = this.tempCanvas.ctx;
@@ -375,29 +379,30 @@ class LayerSprite extends ZoomableSprite {
                         clipContextToSelection( ctx, selection, 0, 0, this._invertSelection, overrides );
                     }
                 } else {
+                    // @todo this will cease to exist
                     // render full brush stroke path directly onto the Layer source
-                    ctx = createCanvas( orgContext.canvas.width, orgContext.canvas.height ).ctx;
-                    // take optional layer scaling into account
-                    const scale = 1 / this.layer.effects.scale;
-                    ctx.translate(
-                        ( this.layer.width  / 2 ) - ( this.layer.width  * scale ) / 2,
-                        ( this.layer.height / 2 ) - ( this.layer.height * scale ) / 2
-                    );
-                    // transform destination context in case the current layer is rotated or mirrored
-                    ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
-                    this._brush.pointers = rotatePointers( this._brush.pointers, this.layer, width, height ).map(({ x, y }) => ({ x: x * scale, y: y * scale }));
+                //     ctx = orgContext;//createCanvas( orgContext.canvas.width, orgContext.canvas.height ).ctx;
+                //     // take optional layer scaling into account
+                //     const scale = 1 / this.layer.effects.scale;
+                //     ctx.translate(
+                //         ( this.layer.width  / 2 ) - ( this.layer.width  * scale ) / 2,
+                //         ( this.layer.height / 2 ) - ( this.layer.height * scale ) / 2
+                //     );
+                //     // transform destination context in case the current layer is rotated or mirrored
+                //     ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
+                //     this._brush.pointers = rotatePointers( this._brush.pointers, this.layer, width, height ).map(({ x, y }) => ({ x: x * scale, y: y * scale }));
                 }
-                renderBrushStroke( ctx, this._brush, overrides );
+                this._lastBrushIndex = renderBrushStroke( ctx, this._brush, overrides, this._lastBrushIndex );
 
                 if ( !isLowResPreview ) {
                     // draw the temp context with the fully rendered brush path
                     // onto the destination Layer source, at the given opacity (prevents overdraw)
-                    orgContext.globalAlpha = this._brush.options.opacity;
-                    if ( isEraser ) {
-                        orgContext.globalCompositeOperation = "destination-out";
-                    }
-                    orgContext.drawImage( ctx.canvas, 0, 0 );
-                    ctx = orgContext;
+                    // orgContext.globalAlpha = this._brush.options.opacity;
+                    // if ( isEraser ) {
+                    //     orgContext.globalCompositeOperation = "destination-out";
+                    // }
+                    // orgContext.drawImage( ctx.canvas, 0, 0 );
+                    // ctx = orgContext;
                 } else if ( selection && this.tempCanvas ) {
                     orgContext.restore(); // 3. tempCanvas clipping restore()
                 }
@@ -599,17 +604,37 @@ class LayerSprite extends ZoomableSprite {
         }
     }
 
-    handleRelease( /*x: number, y: number*/ ): void {
+    handleRelease( _x: number, _y: number ): void {
         const { getters } = this.getStore();
         if ( this._brush.down ) {
             // brushing was active, deactivate brushing and render the
             // high resolution version of the brushed path onto the Layer source
+            // todo stamp onto layer source
+            let drawOnMask = false;// @TODO what if drawing on mask or erasing??
+            const destCvs = drawOnMask ? this.layer.mask : this.layer.source 
+            const destCtx = destCvs.getContext( "2d" ) as CanvasRenderingContext2D;
+            // destCtx.globalAlpha = this._brush.options.opacity;
+                    // if ( isEraser ) {
+                    //     destCtx.globalCompositeOperation = "destination-out";
+                    // }
+                    
+            destCtx.save();
+            reverseTransformation( destCtx, this.layer );
+           
+            const { width, height } = this.layer;
+            const dx = ( width * this.layer.effects.scale / 2 ) - ( width / 2 );
+            const dy = ( height * this.layer.effects.scale / 2 ) - ( height / 2 );
+
+            renderTempCanvas( this.canvas, destCtx, this.canvas.getViewport(), { x: dx, y: dy } );
+            destCtx.restore();
             disposeTempCanvas();
+            this.resetFilterAndRecache();
+            
             this.tempCanvas  = null;
             this._brush.down = false;
             this._brush.last = 0;
-            this.paint();
             this._brush.pointers = []; // pointers have been rendered, reset
+            
             // immediately store pending history state when not running in lowMemory mode
             if ( !getters.getPreference( "lowMemory" )) {
                 this.storePaintState();
@@ -675,7 +700,7 @@ class LayerSprite extends ZoomableSprite {
         drawContext.save(); // 1. transformation save()
 
         const transformedBounds = applyTransformation( drawContext, this.layer, viewport );
-        const transformCanvas   = transformedBounds !== null;
+        const transformCanvas   = !!transformedBounds;
 
         if ( transformCanvas ) {
             drawBounds = transformedBounds;

@@ -238,10 +238,10 @@ const renderMask = async ( layer: Layer, ctx: CanvasRenderingContext2D, sourceBi
     ctx.restore();
 };
 
-function getJobFromQueue( jobId: number ): RenderJob {
+function getJobFromQueue( jobId: number ): RenderJob | undefined {
     const jobQueueObj = jobQueue.find(({ id }) => id === jobId );
     if ( !jobQueueObj ) {
-        return null;
+        return undefined;
     }
     jobQueue.splice( jobQueue.indexOf( jobQueueObj ), 1 );
     return jobQueueObj;

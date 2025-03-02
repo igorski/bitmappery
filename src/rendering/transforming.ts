@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Rectangle, Viewport } from "zcanvas";
-import type { Document, Layer } from "@/definitions/document";
+import type { Layer } from "@/definitions/document";
 import { layerToRect } from "@/factories/layer-factory";
 import { scaleRectangle, getRotationCenter } from "@/math/rectangle-math";
 
@@ -42,10 +42,10 @@ let bounds: Rectangle;
  * @param {CanvasRenderingContext2D} ctx
  * @param {Layer} layer to be rendering the contents of
  * @param {Object=} viewport optional ZoomableCanvas viewport (when using within a sprite)
- * @return {Rectangle|null} null when no transformation took place, updated bounds Object when
+ * @return {Rectangle|undefined} undefined when no transformation took place, updated bounds Object when
  *                       transformation did take place.
  */
-export const applyTransformation = ( ctx: CanvasRenderingContext2D, layer: Layer, viewport: Partial<Viewport> = { left: 0, top: 0 }): Rectangle => {
+export const applyTransformation = ( ctx: CanvasRenderingContext2D, layer: Layer, viewport: Partial<Viewport> = { left: 0, top: 0 }): Rectangle | undefined => {
     const { mirrorX, mirrorY, scale, rotation } = layer.effects;
 
     const isMirrored = mirrorX || mirrorY;
@@ -53,7 +53,7 @@ export const applyTransformation = ( ctx: CanvasRenderingContext2D, layer: Layer
     const isRotated  = rotation % 360 !== 0;
 
     if ( !isMirrored && !isRotated && !isScaled ) {
-        return null; // nothing to transform
+        return; // nothing to transform
     }
 
     bounds = layerToRect( layer );
@@ -122,10 +122,10 @@ export const applyTransformation = ( ctx: CanvasRenderingContext2D, layer: Layer
  *
  * @param {CanvasRenderingContext2D} ctx
  * @param {Layer} layer to be rendering the contents of
- * @return {Rectangle|null} null when no transformation took place, updated bounds Object when
+ * @return {Rectangle|undefined} undefined when no transformation took place, updated bounds Object when
  *                       transformation did take place.
  */
-export const reverseTransformation = ( ctx: CanvasRenderingContext2D, layer: Layer ): Rectangle => {
+export const reverseTransformation = ( ctx: CanvasRenderingContext2D, layer: Layer ): Rectangle | undefined => {
     const { mirrorX, mirrorY, scale, rotation } = layer.effects;
 
     const isMirrored = mirrorX || mirrorY;
@@ -133,7 +133,7 @@ export const reverseTransformation = ( ctx: CanvasRenderingContext2D, layer: Lay
     const isRotated  = rotation % 360 !== 0;
 
     if ( !isMirrored && !isRotated && !isScaled ) {
-        return null; // nothing to transform
+        return; // nothing to transform
     }
 
     bounds = layerToRect( layer );
@@ -167,8 +167,8 @@ export const reverseTransformation = ( ctx: CanvasRenderingContext2D, layer: Lay
 
         // offset the returned bounds by the delta between the scaled and unscaled bounds
 
-        bounds.left -= ( scaled.width  - bounds.width )  * 0.5;
-        bounds.top  -= ( scaled.height - bounds.height ) * 0.5;
+        bounds.left += ( scaled.width  - bounds.width )  * 0.5;
+        bounds.top  += ( scaled.height - bounds.height ) * 0.5;
     }
     return bounds;
 };

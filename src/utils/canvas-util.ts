@@ -209,7 +209,7 @@ export const canvasToBlob = ( cvs: HTMLCanvasElement, type = PNG.mime, quality =
     return new Promise(( resolve, reject ) => {
         try {
             cvs.toBlob(( blob ) => {
-                resolve( blob );
+                resolve( blob! );
             }, type, quality );
         } catch ( error ) {
             reject( error );

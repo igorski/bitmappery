@@ -217,7 +217,7 @@ export const deleteSelectionContent = ( activeDocument: Document, activeLayer: L
     ctx.globalCompositeOperation = "destination-out";
 
     const transformedBounds = reverseTransformation( ctx, activeLayer );
-    if ( transformedBounds ) {
+    if ( !!transformedBounds ) {
        ({ left, top, width, height } = transformedBounds );
     }
 

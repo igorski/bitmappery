@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Point } from "zcanvas";
+import type { Point, Viewport } from "zcanvas";
 import type { CanvasContextPairing, Brush } from "@/definitions/editor";
 import { hasSteppedLiveRender } from "@/definitions/brush-types";
 import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
@@ -36,13 +36,17 @@ export type OverrideConfig = {
 
 let tempCanvas: CanvasContextPairing;
 
+// @todo rename this file and stuff like getTempCanvas() to make more sense 4 years down the line =)
+
 /**
  * Lazily create / retrieve a low resolution canvas which can be used to render
  * low resolution content as a quick live preview measure.
  * The canvas will match the unzoomed viewport size.
  */
 export const getTempCanvas = ( zoomableCanvas: ZoomableCanvas ): CanvasContextPairing => {
-    const { width, height } = zoomableCanvas.getViewport();
+    // const { width, height } = zoomableCanvas.getViewport();
+    const width = zoomableCanvas.getWidth();
+    const height = zoomableCanvas.getHeight();
     if ( !tempCanvas ) {
         tempCanvas = createCanvas();
     }
@@ -54,12 +58,14 @@ export const getTempCanvas = ( zoomableCanvas: ZoomableCanvas ): CanvasContextPa
  * Render the contents of the tempCanvas onto given destinationContext
  * using the scaling properties corresponding to given zoomableCanvas
  */
-export const renderTempCanvas = ( zoomableCanvas: ZoomableCanvas, destinationContext: CanvasRenderingContext2D ): void => {
+export const renderTempCanvas = ( zoomableCanvas: ZoomableCanvas, destinationContext: CanvasRenderingContext2D, viewport?: Viewport, offset?: Point ): void => {
     const { cvs } = tempCanvas;
     const scale   = zoomableCanvas.documentScale;
+
     destinationContext.drawImage(
         cvs, 0, 0, cvs.width, cvs.height,
-        0, 0, cvs.width * scale, cvs.height * scale
+        (( viewport?.left ?? 0 ) * scale ) + ( offset?.x ?? 0 ),
+        (( viewport?.top ?? 0 ) * scale ) + ( offset?.y ?? 0 ), cvs.width * scale, cvs.height * scale
     );
 };
 
