@@ -21,8 +21,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Point, Viewport } from "zcanvas";
+import type { Layer } from "@/definitions/document";
 import type { CanvasContextPairing, Brush } from "@/definitions/editor";
 import { hasSteppedLiveRender } from "@/definitions/brush-types";
+import { reverseTransformation } from "@/rendering/transforming";
 import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import { createCanvas, setCanvasDimensions } from "@/utils/canvas-util";
 
@@ -53,18 +55,51 @@ export const getDrawableCanvas = ( zoomableCanvas: ZoomableCanvas ): CanvasConte
 };
 
 /**
- * Render the contents of the drawableCanvas onto given destinationContext
- * using the scaling properties corresponding to given zoomableCanvas
+ * Render the contents of the drawableCanvas onto given destinationContext using the scaling properties
+ * corresponding to provided documentScale. This can be used to render the contents of the drawable canvas
+ * while drawing is still taking place for live preview purposes.
  */
-export const renderDrawableCanvas = ( zoomableCanvas: ZoomableCanvas, destinationContext: CanvasRenderingContext2D, viewport?: Viewport, offset?: Point ): void => {
+export const renderDrawableCanvas = ( destinationContext: CanvasRenderingContext2D, documentScale: number, viewport?: Viewport, offset?: Point ): void => {
     const { cvs } = drawableCanvas;
-    const scale   = zoomableCanvas.documentScale;
+    const scale   = documentScale;
 
     destinationContext.drawImage(
-        cvs, 0, 0, cvs.width, cvs.height,
+        cvs,
+        0, 0, cvs.width, cvs.height,
         (( viewport?.left ?? 0 ) * scale ) + ( offset?.x ?? 0 ),
-        (( viewport?.top ?? 0 ) * scale ) + ( offset?.y ?? 0 ), cvs.width * scale, cvs.height * scale
+        (( viewport?.top ?? 0 )  * scale ) + ( offset?.y ?? 0 ),
+        cvs.width * scale, cvs.height * scale
     );
+};
+
+/**
+ * Commit the contents of the drawableCanvas onto provided Layers source Canvas, to be invoked when drawing has completed.
+ * This takes the associated destination Layer properties into account, ensuring that the visual location of the drawableCanvas
+ * is correctly inserted into the destination Canvas, relative to the optional transformation effects of the Layer.
+ */
+export const commitDrawingToLayer = (
+    layer: Layer, commitToMask: boolean, viewport: Viewport, documentScale: number,
+    alpha = 1, compositeOperation?: GlobalCompositeOperation
+) => {
+    const destinationCanvas  = commitToMask ? layer.mask : layer.source;
+    const destinationContext = destinationCanvas.getContext( "2d" ) as CanvasRenderingContext2D;
+
+    destinationContext.save();
+    destinationContext.globalAlpha = alpha;
+    
+    if ( compositeOperation !== undefined ) {
+        destinationContext.globalCompositeOperation = compositeOperation;
+    }
+    reverseTransformation( destinationContext, layer );
+    
+    const { width, height } = layer;
+    const { scale } = layer.effects;
+    const dx = ( width  * scale / 2 ) - ( width / 2 );
+    const dy = ( height * scale / 2 ) - ( height / 2 );
+
+    renderDrawableCanvas( destinationContext, documentScale, viewport, { x: Math.ceil( dx ), y: Math.ceil( dy ) } );
+
+    destinationContext.restore();
 };
 
 /**
@@ -118,7 +153,7 @@ export const createOverrideConfig = ( zoomableCanvas: ZoomableCanvas, pointers: 
  * @param {Point[]} pointers coordinates to transform
  */
 export const applyOverrideConfig = ( overrideConfig: OverrideConfig, pointers: Point[] ): void => {
-    const { vpX, vpY, scale } = overrideConfig;
+    let { vpX, vpY, scale } = overrideConfig;
     let i = pointers.length;
     while ( i-- )
     {

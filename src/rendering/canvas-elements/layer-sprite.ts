@@ -43,10 +43,10 @@ import { renderClonedStroke } from "@/rendering/cloning";
 import { renderBrushStroke } from "@/rendering/drawing";
 import { floodFill } from "@/rendering/fill";
 import { snapSpriteToGuide } from "@/rendering/snapping";
-import { applyTransformation, reverseTransformation } from "@/rendering/transforming";
+import { applyTransformation } from "@/rendering/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
 import {
-    getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, sliceBrushPointers, createOverrideConfig
+    getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, commitDrawingToLayer, sliceBrushPointers, createOverrideConfig
 } from "@/rendering/lowres";
 import BrushFactory from "@/factories/brush-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
@@ -296,8 +296,6 @@ class LayerSprite extends ZoomableSprite {
         if ( !this._pendingPaintState ) {
             this.preparePendingPaintState();
         }
-        const { mirrorX, mirrorY } = this.layer.effects;
-
         const drawOnMask   = this.isMaskable();
         const isEraser     = this._toolType === ToolTypes.ERASER;
         const isCloneStamp = this._toolType === ToolTypes.CLONE;
@@ -312,6 +310,7 @@ class LayerSprite extends ZoomableSprite {
         // as long as the brush is held down, render paint in low res preview mode
         // unless we are erasing contents on a layer mask
         // @todo rename
+        // @todo check masking and erasing
         const isLowResPreview = this._brush.down && !( drawOnMask && isEraser );
 
         // if there is an active selection, painting will be constrained within
@@ -381,7 +380,7 @@ class LayerSprite extends ZoomableSprite {
                 } else {
                     // @todo this will cease to exist
                     // render full brush stroke path directly onto the Layer source
-                //     ctx = orgContext;//createCanvas( orgContext.canvas.width, orgContext.canvas.height ).ctx;
+                //     ctx = orgContext;
                 //     // take optional layer scaling into account
                 //     const scale = 1 / this.layer.effects.scale;
                 //     ctx.translate(
@@ -530,7 +529,7 @@ class LayerSprite extends ZoomableSprite {
         if ( this._isColorPicker ) {
             // color picker mode, get the color below the clicked point
             const local = globalToLocal( this.canvas, x, y );
-            const p = this.canvas.getElement().getContext( "2d" ).getImageData(
+            const p = ( this.canvas.getElement().getContext( "2d" ) as CanvasRenderingContext2D ).getImageData(
                 local.x - this.canvas.getViewport().left,
                 local.y - this.canvas.getViewport().top,
                 1, 1
@@ -606,34 +605,22 @@ class LayerSprite extends ZoomableSprite {
 
     handleRelease( _x: number, _y: number ): void {
         const { getters } = this.getStore();
-        if ( this._brush.down ) {
-            // brushing was active, deactivate brushing and render the
-            // high resolution version of the brushed path onto the Layer source
-            // todo stamp onto layer source
-            let drawOnMask = false;// @TODO what if drawing on mask or erasing??
-            const destCvs = drawOnMask ? this.layer.mask : this.layer.source 
-            const destCtx = destCvs.getContext( "2d" ) as CanvasRenderingContext2D;
-            // destCtx.globalAlpha = this._brush.options.opacity;
-                    // if ( isEraser ) {
-                    //     destCtx.globalCompositeOperation = "destination-out";
-                    // }
-                    
-            destCtx.save();
-            reverseTransformation( destCtx, this.layer );
-           
-            const { width, height } = this.layer;
-            const dx = ( width * this.layer.effects.scale  / 2 ) - ( width / 2 );
-            const dy = ( height * this.layer.effects.scale / 2 ) - ( height / 2 );
 
-            renderDrawableCanvas( this.canvas, destCtx, this.canvas.getViewport(), { x: Math.ceil( dx ), y: Math.ceil( dy ) } );
-            destCtx.restore();
+        if ( this._brush.down ) {
+            // @todo remove to lowres.ts (and remove the exports necessary for this magic)
+            
+            const compositeOperation = this._toolType === ToolTypes.ERASER ? "destination-out" : undefined;
+            commitDrawingToLayer(
+                this.layer, this.isMaskable(), this.canvas.getViewport(), this.canvas.documentScale,
+                this._brush.options.opacity, compositeOperation
+            );
             disposeDrawableCanvas();
             this.resetFilterAndRecache();
             
             this._drawableCanvas  = null;
             this._brush.down = false;
             this._brush.last = 0;
-            this._brush.pointers = []; // pointers have been rendered, reset
+            this._brush.pointers.length = 0;
 
             // immediately store pending history state when not running in lowMemory mode
             if ( !getters.getPreference( "lowMemory" )) {
@@ -723,7 +710,7 @@ class LayerSprite extends ZoomableSprite {
             if ( this._toolType === ToolTypes.ERASER || this.isMaskable() ) {
                 documentContext.globalCompositeOperation = "destination-out";
             }
-            renderDrawableCanvas( this.canvas, documentContext );
+            renderDrawableCanvas( documentContext, this.canvas.documentScale );
             documentContext.restore(); // 2. low res render restore()
         }
 
