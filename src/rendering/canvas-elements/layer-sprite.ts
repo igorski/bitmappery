@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -46,7 +46,7 @@ import { snapSpriteToGuide } from "@/rendering/snapping";
 import { applyTransformation, reverseTransformation } from "@/rendering/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
 import {
-    getTempCanvas, renderTempCanvas, disposeTempCanvas, slicePointers, createOverrideConfig
+    getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, sliceBrushPointers, createOverrideConfig
 } from "@/rendering/lowres";
 import BrushFactory from "@/factories/brush-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
@@ -69,7 +69,6 @@ class LayerSprite extends ZoomableSprite {
     public layer: Layer;
     public actionTarget: "source" | "mask";
     public canvas: ZoomableCanvas; // set through inherited addChild() method
-    public tempCanvas: CanvasContextPairing;
     public cloneStartCoords: Point;
     public toolOptions: any;
 
@@ -77,6 +76,7 @@ class LayerSprite extends ZoomableSprite {
     protected _pointerY: number;
     protected _brush: Brush;
     protected _lastBrushIndex: number;
+    protected _drawableCanvas: CanvasContextPairing;
     protected _isPaintMode: boolean;
     protected _isDragMode: boolean;
     protected _isColorPicker: boolean;
@@ -350,7 +350,7 @@ class LayerSprite extends ZoomableSprite {
             }
         } else {
             // get the enqueued pointers which are to be rendered in this paint cycle
-            const pointers = slicePointers( this._brush );
+            const pointers = sliceBrushPointers( this._brush );
 
             if ( isCloneStamp ) {
                 if ( isLowResPreview ) {
@@ -370,11 +370,11 @@ class LayerSprite extends ZoomableSprite {
                 if ( isLowResPreview ) {
                     // live update on lower resolution canvas
                     // @todo should it be full size instead of viewport size? (we can pan viewport while brushing, you see...)
-                    this.tempCanvas = this.tempCanvas || getTempCanvas( this.canvas );
+                    this._drawableCanvas = this._drawableCanvas || getDrawableCanvas( this.canvas );
                     overrides = createOverrideConfig( this.canvas, pointers );
-                    ctx = this.tempCanvas.ctx;
+                    ctx = this._drawableCanvas.ctx;
 
-                    if ( selection && this.tempCanvas ) {
+                    if ( selection && this._drawableCanvas ) {
                         ctx.save(); // 3. tempCanvas clipping save()
                         clipContextToSelection( ctx, selection, 0, 0, this._invertSelection, overrides );
                     }
@@ -403,7 +403,7 @@ class LayerSprite extends ZoomableSprite {
                     // }
                     // orgContext.drawImage( ctx.canvas, 0, 0 );
                     // ctx = orgContext;
-                } else if ( selection && this.tempCanvas ) {
+                } else if ( selection && this._drawableCanvas ) {
                     orgContext.restore(); // 3. tempCanvas clipping restore()
                 }
             }
@@ -622,19 +622,19 @@ class LayerSprite extends ZoomableSprite {
             reverseTransformation( destCtx, this.layer );
            
             const { width, height } = this.layer;
-            const dx = ( width * this.layer.effects.scale / 2 ) - ( width / 2 );
+            const dx = ( width * this.layer.effects.scale  / 2 ) - ( width / 2 );
             const dy = ( height * this.layer.effects.scale / 2 ) - ( height / 2 );
 
-            renderTempCanvas( this.canvas, destCtx, this.canvas.getViewport(), { x: dx, y: dy } );
+            renderDrawableCanvas( this.canvas, destCtx, this.canvas.getViewport(), { x: Math.ceil( dx ), y: Math.ceil( dy ) } );
             destCtx.restore();
-            disposeTempCanvas();
+            disposeDrawableCanvas();
             this.resetFilterAndRecache();
             
-            this.tempCanvas  = null;
+            this._drawableCanvas  = null;
             this._brush.down = false;
             this._brush.last = 0;
             this._brush.pointers = []; // pointers have been rendered, reset
-            
+
             // immediately store pending history state when not running in lowMemory mode
             if ( !getters.getPreference( "lowMemory" )) {
                 this.storePaintState();
@@ -715,14 +715,15 @@ class LayerSprite extends ZoomableSprite {
 
         drawContext.restore(); // 1. transformation restore()
 
+        // @todo rename all instance of low res naming
         // sprite is currently brushing, render low resolution temp contents onto screen
-        if ( this.tempCanvas ) {
+        if ( this._drawableCanvas ) {
             documentContext.save(); // 2. low res render save()
             documentContext.globalAlpha = this._brush.options.opacity;
             if ( this._toolType === ToolTypes.ERASER || this.isMaskable() ) {
                 documentContext.globalCompositeOperation = "destination-out";
             }
-            renderTempCanvas( this.canvas, documentContext );
+            renderDrawableCanvas( this.canvas, documentContext );
             documentContext.restore(); // 2. low res render restore()
         }
 

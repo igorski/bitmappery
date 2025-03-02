@@ -167,8 +167,8 @@ export const reverseTransformation = ( ctx: CanvasRenderingContext2D, layer: Lay
 
         // offset the returned bounds by the delta between the scaled and unscaled bounds
 
-        bounds.left += ( scaled.width  - bounds.width )  * 0.5;
-        bounds.top  += ( scaled.height - bounds.height ) * 0.5;
+        bounds.left -= ( scaled.width  - bounds.width )  * 0.5;
+        bounds.top  -= ( scaled.height - bounds.height ) * 0.5;
     }
     return bounds;
 };

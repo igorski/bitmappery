@@ -133,7 +133,6 @@ export const renderBrushStroke = ( ctx: CanvasRenderingContext2D, brush: Brush, 
                 ctx.lineTo( point.x + offset, point.y + offset );
             });
             ctx.stroke();
-           
             continue;
         }
 

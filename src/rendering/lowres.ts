@@ -34,32 +34,30 @@ export type OverrideConfig = {
     pointers: Point[]
 };
 
-let tempCanvas: CanvasContextPairing;
-
-// @todo rename this file and stuff like getTempCanvas() to make more sense 4 years down the line =)
+// a pooled Canvas instance used for drawing (only one in use at a time)
+let drawableCanvas: CanvasContextPairing;
 
 /**
- * Lazily create / retrieve a low resolution canvas which can be used to render
- * low resolution content as a quick live preview measure.
- * The canvas will match the unzoomed viewport size.
+ * Lazily create / retrieve a canvas which can be used to render
+ * drawable content as a quick live preview measure.
+ * The canvas will match the destination canvas size.
  */
-export const getTempCanvas = ( zoomableCanvas: ZoomableCanvas ): CanvasContextPairing => {
-    // const { width, height } = zoomableCanvas.getViewport();
-    const width = zoomableCanvas.getWidth();
+export const getDrawableCanvas = ( zoomableCanvas: ZoomableCanvas ): CanvasContextPairing => {
+    const width  = zoomableCanvas.getWidth();
     const height = zoomableCanvas.getHeight();
-    if ( !tempCanvas ) {
-        tempCanvas = createCanvas();
+    if ( !drawableCanvas ) {
+        drawableCanvas = createCanvas();
     }
-    setCanvasDimensions( tempCanvas, width, height );
-    return tempCanvas;
+    setCanvasDimensions( drawableCanvas, width, height );
+    return drawableCanvas;
 };
 
 /**
- * Render the contents of the tempCanvas onto given destinationContext
+ * Render the contents of the drawableCanvas onto given destinationContext
  * using the scaling properties corresponding to given zoomableCanvas
  */
-export const renderTempCanvas = ( zoomableCanvas: ZoomableCanvas, destinationContext: CanvasRenderingContext2D, viewport?: Viewport, offset?: Point ): void => {
-    const { cvs } = tempCanvas;
+export const renderDrawableCanvas = ( zoomableCanvas: ZoomableCanvas, destinationContext: CanvasRenderingContext2D, viewport?: Viewport, offset?: Point ): void => {
+    const { cvs } = drawableCanvas;
     const scale   = zoomableCanvas.documentScale;
 
     destinationContext.drawImage(
@@ -70,13 +68,13 @@ export const renderTempCanvas = ( zoomableCanvas: ZoomableCanvas, destinationCon
 };
 
 /**
- * Dispose the current tempCanvas instance. It won't actually be removed, but
+ * Dispose the current drawableCanvas instance. It won't actually be removed, but
  * remains pooled for further use. It's size will however be reduced to
  * shrink its memory footprint.
  */
-export const disposeTempCanvas = (): void => {
-    if ( tempCanvas ) {
-        setCanvasDimensions( tempCanvas, 1, 1 );
+export const disposeDrawableCanvas = (): void => {
+    if ( drawableCanvas ) {
+        setCanvasDimensions( drawableCanvas, 1, 1 );
     }
 };
 
@@ -86,7 +84,7 @@ export const disposeTempCanvas = (): void => {
  * This can be called in rendering iterations by supplying a positive value for
  * last (which indicates the offset of the last rendered pointer).
  */
-export const slicePointers = ( brush: Brush ): Point[] => {
+export const sliceBrushPointers = ( brush: Brush ): Point[] => {
     const { pointers } = brush;
     const last = hasSteppedLiveRender( brush ) ? brush.last : undefined;
     return JSON.parse( JSON.stringify( pointers.slice( pointers.length - ( pointers.length - last ) - 1 )));
