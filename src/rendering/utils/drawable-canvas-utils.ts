@@ -123,10 +123,9 @@ export const disposeDrawableCanvas = (): void => {
 };
 
 /**
- * Slice a selection of pointers within a brush stroke for low res preview rendering.
- * This creates a deep copy of the pointers, leaving the original list unchanged.
- * This can be called in rendering iterations by supplying a positive value for
- * last (which indicates the offset of the last rendered pointer).
+ * Slice a selection of pointers within a brush stroke for rendering previews of the drawableCanvas while drawing.
+ * This creates a deep copy of the pointers, leaving the original list unchanged. This can be called in rendering
+ * iterations by supplying a positive value for last (which indicates the offset of the last rendered pointer).
  */
 export const sliceBrushPointers = ( brush: Brush ): Point[] => {
     const { pointers } = brush;
@@ -135,9 +134,8 @@ export const sliceBrushPointers = ( brush: Brush ): Point[] => {
 };
 
 /**
- * Create override configuration for a render operation, adapting its
- * source input (e.g. pointers list) to scaling and coordinate space
- * of low res preview.
+ * Create override configuration for a render operation, adapting its source input (e.g. pointers list) to scaling
+ * and coordinate space of the drawableCanvas.
  */
 export const createOverrideConfig = ( zoomableCanvas: ZoomableCanvas, pointers: Point[] ): OverrideConfig => ({
     scale : 1 / zoomableCanvas.documentScale,
@@ -148,9 +146,8 @@ export const createOverrideConfig = ( zoomableCanvas: ZoomableCanvas, pointers: 
 });
 
 /**
- * Apply a low res override configuration onto given point.
- * NOTE: This will mutate the original instance. Only use on entries
- * of translatePointers()
+ * Apply a override configuration to use given pointers on a drawableCanvas. NOTE: This will mutate the original
+ * instance. Only use on entries of translatePointers()
  *
  * @param {OverrideConfig} overrideConfig
  * @param {Point[]} pointers coordinates to transform
@@ -162,7 +159,7 @@ export const applyOverrideConfig = ( overrideConfig: OverrideConfig, pointers: P
     {
         const point = pointers[ i ];
 
-        // correct for low res scaling
+        // correct for scaling
 
         point.x = point.x * scale;
         point.y = point.y * scale;
