@@ -193,7 +193,6 @@ class LayerSprite extends ZoomableSprite {
     storeBrushPointer( x: number, y: number ): void {
         this._brush.down = true;
         this._brush.pointers.push({ x, y });
-        this._lastBrushIndex = 1;
     }
 
     cacheEffects(): void {
@@ -533,6 +532,7 @@ class LayerSprite extends ZoomableSprite {
             }
             // for any other brush mode state, set the brush application to true (will be applied in handleMove())
             this.storeBrushPointer( x, y );
+            this._lastBrushIndex = 1;
         } else if ( this._isDragMode ) {
             this.canvas.draggingSprite = this;
         }
