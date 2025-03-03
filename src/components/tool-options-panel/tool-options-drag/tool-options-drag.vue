@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2022 - https://www.igorski.nl
+ * Igor Zinken 2022-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -46,10 +46,26 @@
                 :disabled="!activeLayer"
             />
         </div>
+        <div class="actions">
+            <button
+                v-t="'reset'"
+                type="button"
+                class="button button--small"
+                :disabled="!hasCustomOffset"
+                @click="reset()"
+            ></button>
+            <button
+                v-t="'center'"
+                type="button"
+                class="button button--small"
+                :disabled="!canCenter"
+                @click="center()"
+            ></button>
+        </div>
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters } from "vuex";
 import KeyboardService from "@/services/keyboard-service";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
@@ -65,13 +81,14 @@ export default {
     }),
     computed: {
         ...mapGetters([
+            "activeDocument",
             "activeLayer",
         ]),
         left: {
-            get() {
-                return Math.round( this.activeLayer?.left || 0 );
+            get(): number {
+                return Math.round( this.activeLayer?.left ?? 0 );
             },
-            set( value ) {
+            set( value: number ): void {
                 if ( isNaN( value )) {
                     return;
                 }
@@ -79,32 +96,47 @@ export default {
             }
         },
         top: {
-            get() {
-                return Math.round( this.activeLayer?.top || 0 );
+            get(): number {
+                return Math.round( this.activeLayer?.top ?? 0 );
             },
-            set( value ) {
+            set( value: number ): void {
                 if ( isNaN( value )) {
                     return;
                 }
                 this.setLayerPosition( this.left, value );
             }
         },
-        maxWidth() {
-            return this.activeLayer?.width || 0;
+        maxWidth(): number {
+            return this.activeLayer?.width ?? 0;
         },
-        maxHeight() {
-            return this.activeLayer?.height || 0;
-        }
+        maxHeight(): number {
+            return this.activeLayer?.height ?? 0;
+        },
+        hasCustomOffset(): boolean {
+            return this.left !== 0 || this.top !== 0;
+        },
+        canCenter(): boolean {
+            return this.activeLayer?.width !== this.activeDocument?.width && this.activeLayer?.height !== this.activeDocument?.height;
+        },
     },
     methods: {
-        handleFocus() {
+        handleFocus(): void {
             KeyboardService.setSuspended( true );
         },
-        handleBlur() {
+        handleBlur(): void {
             KeyboardService.setSuspended( false );
         },
-        setLayerPosition( x = this.top, y = this.left ) {
+        setLayerPosition( x = this.top, y = this.left ): void {
             getSpriteForLayer( this.activeLayer )?.setBounds( x, y );
+        },
+        reset(): void {
+            this.setLayerPosition( 0, 0 );
+        },
+        center(): void {
+            this.setLayerPosition(
+                this.activeDocument.width  / 2 - this.activeLayer.width  / 2,
+                this.activeDocument.height / 2 - this.activeLayer.height / 2
+            );
         },
     }
 };
