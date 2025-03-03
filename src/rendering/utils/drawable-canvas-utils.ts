@@ -87,15 +87,15 @@ export const commitDrawingToLayer = (
 
     destinationContext.save();
 
-    // apply the alpha and compositing (this is not applied during drawing as semi-transparent
-    // brushing will show unevenness when over drawing)
+    // apply the alpha and compositing (this is not applied directly while drawing as
+    // semi-transparent brushing will show uneven blotches when overdrawing)
 
     destinationContext.globalAlpha = alpha;
     if ( compositeOperation !== undefined ) {
         destinationContext.globalCompositeOperation = compositeOperation;
     }
 
-    // correct for the optional layer transofmration effects
+    // correct for the optional layer transformation effects
 
     reverseTransformation( destinationContext, layer );
     
