@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Store } from "vuex";
-import type { Point, Rectangle } from "zcanvas";
+import type { Point, Rectangle, Size } from "zcanvas";
 import type ZoomableCanvas from "./zoomable-canvas";
 import ZoomableSprite from "./zoomable-sprite";
 import type { Viewport, TransformedDrawBounds } from "zcanvas";
@@ -30,12 +30,13 @@ import { renderCross } from "@/utils/render-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { BlendModes } from "@/definitions/blend-modes";
 import { getSizeForBrush } from "@/definitions/brush-types";
-import type { Document, Layer, Shape, Selection } from "@/definitions/document";
+import type { Document, Layer, Selection } from "@/definitions/document";
 import type { CanvasContextPairing, CanvasDrawable, Brush, BrushToolOptions, BrushAction } from "@/definitions/editor";
 import { LayerTypes } from "@/definitions/layer-types";
 import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation } from "@/math/point-math";
+import { fastRound } from "@/math/unit-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { getBlendContext, blendLayer } from "@/rendering/blending";
 import { clipContextToSelection } from "@/rendering/clipping";
@@ -46,8 +47,8 @@ import { snapSpriteToGuide } from "@/rendering/snapping";
 import { applyTransformation } from "@/rendering/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
 import {
-    getTempCanvas, renderTempCanvas, disposeTempCanvas, slicePointers, createOverrideConfig
-} from "@/rendering/lowres";
+    getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, commitDrawingToLayer, sliceBrushPointers, createOverrideConfig
+} from "@/rendering/utils/drawable-canvas-utils";
 import BrushFactory from "@/factories/brush-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
@@ -69,13 +70,14 @@ class LayerSprite extends ZoomableSprite {
     public layer: Layer;
     public actionTarget: "source" | "mask";
     public canvas: ZoomableCanvas; // set through inherited addChild() method
-    public tempCanvas: CanvasContextPairing;
     public cloneStartCoords: Point;
     public toolOptions: any;
 
     protected _pointerX: number;
     protected _pointerY: number;
     protected _brush: Brush;
+    protected _lastBrushIndex: number;
+    protected _paintCanvas: CanvasContextPairing; // temporary canvas used during drawing
     protected _isPaintMode: boolean;
     protected _isDragMode: boolean;
     protected _isColorPicker: boolean;
@@ -138,6 +140,10 @@ class LayerSprite extends ZoomableSprite {
 
     isScaled(): boolean {
         return this.layer.effects.scale !== 1;
+    }
+
+    isDrawing(): boolean {
+        return this._brush.down;
     }
 
     /**
@@ -294,39 +300,28 @@ class LayerSprite extends ZoomableSprite {
         if ( !this._pendingPaintState ) {
             this.preparePendingPaintState();
         }
-        const { mirrorX, mirrorY } = this.layer.effects;
-
-        const drawOnMask   = this.isMaskable();
-        const isEraser     = this._toolType === ToolTypes.ERASER;
         const isCloneStamp = this._toolType === ToolTypes.CLONE;
         const isFillMode   = this._toolType === ToolTypes.FILL;
 
         // get the drawing context
-        let ctx = ( drawOnMask ? this.layer.mask : this.layer.source ).getContext( "2d" );
+        let ctx = this.getPaintSource().getContext( "2d" ) as CanvasRenderingContext2D;
         const { width, height } = ctx.canvas;
 
         ctx.save(); // 1. preparation save()
 
-        // as long as the brush is held down, render paint in low res preview mode
-        // unless we are erasing contents on a layer mask
-        const isLowResPreview = this._brush.down && !( drawOnMask && isEraser );
+        const isDrawing = this.isDrawing();
 
         // if there is an active selection, painting will be constrained within
         let selection: Selection = optAction?.selection || this._selection;
         if ( selection ) {
-            let { left, top } = this.layer;
-            if ( this.isRotated() && !isLowResPreview ) {
-                selection = selection.map(( shape: Shape ) => rotatePointers( shape as Point[], this.layer, width, height ));
-                left = top = 0; // pointers have been rotated within clipping context
-            }
             ctx.save(); // 2. clipping save()
-            clipContextToSelection( ctx, selection, left, top, this._invertSelection );
+            clipContextToSelection( ctx, selection, this.layer.left, this.layer.top, this._invertSelection );
         }
 
         if ( optAction ) {
             if ( optAction.type === "stroke" ) {
                 ctx.strokeStyle = optAction.color;
-                ctx.lineWidth   = ( optAction.size || 1 ) / this.canvas.documentScale;
+                ctx.lineWidth   = ( optAction.size ?? 1 ) / this.canvas.documentScale;
                 ctx.stroke();
             }
         } else if ( isFillMode ) {
@@ -345,18 +340,15 @@ class LayerSprite extends ZoomableSprite {
             if ( this._selection ) {
                 ctx.closePath(); // is this necessary ?
             }
-        } else {
+        } else if ( isDrawing ) {
             // get the enqueued pointers which are to be rendered in this paint cycle
-            const pointers = slicePointers( this._brush );
+            const pointers = sliceBrushPointers( this._brush );
 
             if ( isCloneStamp ) {
-                if ( isLowResPreview ) {
-                    renderClonedStroke( ctx, this._brush, this, this.toolOptions.sourceLayerId,
-                        rotatePointers( pointers, this.layer, width, height )
-                    );
-                    // clone operation is direct-to-Layer-source
-                    this.setBitmap( ctx.canvas );
-                }
+                renderClonedStroke( ctx, this._brush, this, this.toolOptions.sourceLayerId,
+                    rotatePointers( pointers, this.layer, width, height )
+                );
+                this.setBitmap( ctx.canvas );
             } else {
                 const orgContext = ctx;
 
@@ -364,42 +356,20 @@ class LayerSprite extends ZoomableSprite {
                 // where each individual brush stroke is rendered in successive iterations.
                 // upon release, the full stroke is rendered on the Layer source (see handleRelease())
                 let overrides = null;
-                if ( isLowResPreview ) {
-                    // live update on lower resolution canvas
-                    this.tempCanvas = this.tempCanvas || getTempCanvas( this.canvas );
-                    overrides = createOverrideConfig( this.canvas, pointers );
-                    ctx = this.tempCanvas.ctx;
+                // drawing is handled on a temporary, drawable Canvas
+                this._paintCanvas = this._paintCanvas || getDrawableCanvas( this.getPaintSize() );
+                overrides = createOverrideConfig( this.canvas, pointers );
+                ctx = this._paintCanvas.ctx;
 
-                    if ( selection && this.tempCanvas ) {
-                        ctx.save(); // 3. tempCanvas clipping save()
-                        clipContextToSelection( ctx, selection, 0, 0, this._invertSelection, overrides );
-                    }
-                } else {
-                    // render full brush stroke path directly onto the Layer source
-                    ctx = createCanvas( orgContext.canvas.width, orgContext.canvas.height ).ctx;
-                    // take optional layer scaling into account
-                    const scale = 1 / this.layer.effects.scale;
-                    ctx.translate(
-                        ( this.layer.width  / 2 ) - ( this.layer.width  * scale ) / 2,
-                        ( this.layer.height / 2 ) - ( this.layer.height * scale ) / 2
-                    );
-                    // transform destination context in case the current layer is rotated or mirrored
-                    ctx.scale( mirrorX ? -1 : 1, mirrorY ? -1 : 1 );
-                    this._brush.pointers = rotatePointers( this._brush.pointers, this.layer, width, height ).map(({ x, y }) => ({ x: x * scale, y: y * scale }));
+                if ( selection && this._paintCanvas ) {
+                    ctx.save(); // 3. drawableCanvas clipping save()
+                    // note no offset is required as we are drawing on the full-size _paintCanvas
+                    clipContextToSelection( ctx, selection, 0, 0, this._invertSelection, overrides );
                 }
-                renderBrushStroke( ctx, this._brush, overrides );
+                this._lastBrushIndex = renderBrushStroke( ctx, this._brush, overrides, this._lastBrushIndex );
 
-                if ( !isLowResPreview ) {
-                    // draw the temp context with the fully rendered brush path
-                    // onto the destination Layer source, at the given opacity (prevents overdraw)
-                    orgContext.globalAlpha = this._brush.options.opacity;
-                    if ( isEraser ) {
-                        orgContext.globalCompositeOperation = "destination-out";
-                    }
-                    orgContext.drawImage( ctx.canvas, 0, 0 );
-                    ctx = orgContext;
-                } else if ( selection && this.tempCanvas ) {
-                    orgContext.restore(); // 3. tempCanvas clipping restore()
+                if ( selection ) {
+                    orgContext.restore(); // 3. drawableCanvas clipping restore()
                 }
             }
         }
@@ -408,8 +378,8 @@ class LayerSprite extends ZoomableSprite {
         }
         ctx.restore(); // 1. preparation restore()
 
-        // during low res preview brushing, defer recache of filters to handleRelease()
-        if ( !isLowResPreview ) {
+        // while user is drawing, defer recache of filters to handleRelease()
+        if ( !isDrawing ) {
             this.resetFilterAndRecache();
         }
     }
@@ -431,12 +401,25 @@ class LayerSprite extends ZoomableSprite {
         this._pendingPaintState = window.setTimeout( this.storePaintState.bind( this ), timeout ) as unknown as number;
     }
 
+    getPaintSource(): HTMLCanvasElement {
+        return this.isMaskable() ? this.layer.mask : this.layer.source;
+    }
+
+    getPaintSize(): Size {
+        const source = this.getPaintSource();
+        const { documentScale } = this.canvas;
+        return {
+            width  : fastRound( source.width  * documentScale ),
+            height : fastRound( source.height * documentScale ),
+        };
+    };
+
     async storePaintState(): Promise<boolean> {
         if ( !this._pendingPaintState ) {
             return true;
         }
         window.clearTimeout( this._pendingPaintState );
-        if ( this._brush.down ) {
+        if ( this.isDrawing() ) {
             // still painting, debounce again (layer.source only updated on handleRelease())
             this.debouncePaintStore( 1000 );
             return false;
@@ -509,7 +492,7 @@ class LayerSprite extends ZoomableSprite {
 
     /**
      * override that takes rotation into account
-     * TODO : port to zCanvas
+     * @todo: when migrating to zCanvas 6+ this is handled by zCanvas.sprite#insideBounds
      */
     insideBounds( x: number, y: number ): boolean {
         const { left, top, width, height } = this.getActualBounds();
@@ -525,7 +508,7 @@ class LayerSprite extends ZoomableSprite {
         if ( this._isColorPicker ) {
             // color picker mode, get the color below the clicked point
             const local = globalToLocal( this.canvas, x, y );
-            const p = this.canvas.getElement().getContext( "2d" ).getImageData(
+            const p = ( this.canvas.getElement().getContext( "2d" ) as CanvasRenderingContext2D ).getImageData(
                 local.x - this.canvas.getViewport().left,
                 local.y - this.canvas.getViewport().top,
                 1, 1
@@ -551,6 +534,7 @@ class LayerSprite extends ZoomableSprite {
             }
             // for any other brush mode state, set the brush application to true (will be applied in handleMove())
             this.storeBrushPointer( x, y );
+            this._lastBrushIndex = 1;
         } else if ( this._isDragMode ) {
             this.canvas.draggingSprite = this;
         }
@@ -592,24 +576,29 @@ class LayerSprite extends ZoomableSprite {
         }
 
         // brush mode and brushing is active
-        if ( this._brush.down ) {
+        if ( this.isDrawing() ) {
             // enqueue current pointer position, painting of all enqueued pointers will be deferred
             // to the update()-hook, this prevents multiple renders on each move event
             this.storeBrushPointer( x, y );
         }
     }
 
-    handleRelease( /*x: number, y: number*/ ): void {
+    handleRelease( _x: number, _y: number ): void {
         const { getters } = this.getStore();
-        if ( this._brush.down ) {
-            // brushing was active, deactivate brushing and render the
-            // high resolution version of the brushed path onto the Layer source
-            disposeTempCanvas();
-            this.tempCanvas  = null;
+
+        if ( this.isDrawing() ) {
+            const compositeOperation = this._toolType === ToolTypes.ERASER ? "destination-out" : undefined;
+            commitDrawingToLayer(
+                this.layer, this.getPaintSource(), this.getPaintSize(), this.canvas, this._brush.options.opacity, compositeOperation
+            );
+            disposeDrawableCanvas();
+            this.resetFilterAndRecache();
+            
+            this._paintCanvas  = null;
             this._brush.down = false;
             this._brush.last = 0;
-            this.paint();
-            this._brush.pointers = []; // pointers have been rendered, reset
+            this._brush.pointers.length = 0;
+
             // immediately store pending history state when not running in lowMemory mode
             if ( !getters.getPreference( "lowMemory" )) {
                 this.storePaintState();
@@ -628,7 +617,7 @@ class LayerSprite extends ZoomableSprite {
     }
 
     update(): void {
-        if ( this._brush.down ) {
+        if ( this.isDrawing() ) {
             this.paint();
             this._brush.last = this._brush.pointers.length;
         }
@@ -675,7 +664,7 @@ class LayerSprite extends ZoomableSprite {
         drawContext.save(); // 1. transformation save()
 
         const transformedBounds = applyTransformation( drawContext, this.layer, viewport );
-        const transformCanvas   = transformedBounds !== null;
+        const transformCanvas   = !!transformedBounds;
 
         if ( transformCanvas ) {
             drawBounds = transformedBounds;
@@ -690,15 +679,15 @@ class LayerSprite extends ZoomableSprite {
 
         drawContext.restore(); // 1. transformation restore()
 
-        // sprite is currently brushing, render low resolution temp contents onto screen
-        if ( this.tempCanvas ) {
-            documentContext.save(); // 2. low res render save()
+        // user is currently drawing on this layer, render contents of drawableCanvas onto screen
+        if ( this._paintCanvas ) {
+            documentContext.save(); // 2. pending painting render save()
             documentContext.globalAlpha = this._brush.options.opacity;
             if ( this._toolType === ToolTypes.ERASER || this.isMaskable() ) {
                 documentContext.globalCompositeOperation = "destination-out";
             }
-            renderTempCanvas( this.canvas, documentContext );
-            documentContext.restore(); // 2. low res render restore()
+            renderDrawableCanvas( documentContext, this.getPaintSize(), this.canvas );
+            documentContext.restore(); // 2. pending painting render restore()
         }
 
         if ( altOpacity ) {
@@ -720,7 +709,7 @@ class LayerSprite extends ZoomableSprite {
                 const cx = coords ? ( coords.x - viewport.left ) + ( this._pointerX - relSource.x ) : tx;
                 const cy = coords ? ( coords.y - viewport.top  ) + ( this._pointerY - relSource.y ) : ty;
                 // when no source coordinate is set, or when applying the clone stamp, we show a cross to mark the origin
-                if ( !coords || this._brush.down ) {
+                if ( !coords || this.isDrawing() ) {
                     renderCross( documentContext, cx, cy, this._brush.radius / zoomFactor );
                 }
             }

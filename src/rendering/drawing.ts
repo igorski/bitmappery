@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,8 +24,7 @@ import BrushTypes, { getSizeForBrush } from "@/definitions/brush-types";
 import type { Brush } from "@/definitions/editor";
 import { createDrawable } from "@/factories/brush-factory";
 import { randomInRange } from "@/math/unit-math";
-import { applyOverrideConfig } from "@/rendering/lowres";
-import type { OverrideConfig } from "@/rendering/lowres";
+import { applyOverrideConfig, type OverrideConfig } from "@/rendering/utils/drawable-canvas-utils";
 import { distanceBetween, angleBetween, pointBetween } from "@/math/point-math";
 
 const { cos, sin } = Math;
@@ -37,24 +36,28 @@ const TWO_PI = Math.PI * 2;
  *
  * @param {CanvasRenderingContext2D} ctx to render on
  * @param {Object} brush properties
- * @param {Object=} overrideConfig optional override to use (defines alternate pointers and coordinate scaling)
+ * @param {OverrideConfig=} overrideConfig optional override to use (defines alternate pointers and coordinate scaling)
+ * @param {number=} lastIndex index in the pointer list that was rendered, can be used to spread a single stroke over several iterations
+ * @return {number} index of the last rendered pointer in the pointers list
  */
-export const renderBrushStroke = ( ctx: CanvasRenderingContext2D, brush: Brush, overrideConfig: OverrideConfig ): void => {
+export const renderBrushStroke = ( ctx: CanvasRenderingContext2D, brush: Brush, overrideConfig: OverrideConfig, lastIndex = 1 ): number => {
     let { pointers, radius, doubleRadius, options } = brush;
     let scale = 1;
     const { type } = options;
 
     if ( overrideConfig ) {
         pointers      = overrideConfig.pointers;
+        // no, this way we keep line size equal across zoom levels
+        /*
         scale         = overrideConfig.zoom;
         radius       *= scale;
         doubleRadius *= scale;
-
+        */
         applyOverrideConfig( overrideConfig, pointers );
     }
 
     if ( pointers.length < 2 ) {
-        return;
+        return lastIndex;
     }
 
     const lineWidth = getSizeForBrush( brush ) * scale;
@@ -62,8 +65,9 @@ export const renderBrushStroke = ( ctx: CanvasRenderingContext2D, brush: Brush, 
     ctx.save();
     ctx.lineJoin = ctx.lineCap = "round";
 
-    for ( let i = 1; i < pointers.length; ++i ) {
-        const isFirst   = i === 1;
+    let i = lastIndex;
+    for ( i; i < pointers.length; ++i ) {
+        const isFirst   = i === lastIndex;
         const prevPoint = pointers[ i - 1 ];
         const point     = pointers[ i ];
 
@@ -128,13 +132,10 @@ export const renderBrushStroke = ( ctx: CanvasRenderingContext2D, brush: Brush, 
             [ -max, -min, 0, min, max ].forEach( offset => {
                 ctx.moveTo( prevPoint.x + offset, prevPoint.y + offset );
                 ctx.lineTo( point.x + offset, point.y + offset );
-                ctx.stroke();
             });
+            ctx.stroke();
             continue;
         }
-
-        // this one benefits from working with a large point queue
-        // as such when supplying overrideConfig for live rendering, regular line is drawn instead
 
         if ( type === BrushTypes.CONNECTED ) {
             if ( isFirst ) {
@@ -215,4 +216,6 @@ export const renderBrushStroke = ( ctx: CanvasRenderingContext2D, brush: Brush, 
         }
     }
     ctx.restore();
+
+    return i; // is new last index
 };

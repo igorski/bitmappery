@@ -33,17 +33,6 @@ enum BrushTypes {
 };
 export default BrushTypes;
 
-const NON_STEPPABLE_TYPES = [ BrushTypes.CONNECTED, BrushTypes.NEAREST ];
-
-/**
- * For low-res live rendering purposes, brushes can be rendered
- * in iterations. However some require their full path to be present
- * in a single render iteration.
- *
- * @param {Object} brush @see brush-factory
- */
-export const hasSteppedLiveRender = ({ options }: Brush ) => !NON_STEPPABLE_TYPES.includes( options.type );
-
 export const getSizeForBrush = ({ options, radius, halfRadius }: Brush): number => {
     switch ( options.type ) {
         default:

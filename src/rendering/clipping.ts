@@ -22,7 +22,7 @@
  */
 import type { Point } from "zcanvas";
 import type { Shape, Selection } from "@/definitions/document";
-import type { OverrideConfig } from "@/rendering/lowres";
+import type { OverrideConfig } from "@/rendering/utils/drawable-canvas-utils";
 import { isShapeRectangular } from "@/utils/shape-util";
 
 /**
@@ -34,7 +34,7 @@ import { isShapeRectangular } from "@/utils/shape-util";
  * @param {Number} offsetX destination offset to shift selection by (bounds relative to viewport)
  * @param {Number} offsetY destination offset to shift selection by (bounds relative to viewport)
  * @param {Boolean=} invert optional whether to invert the selection
- * @param {OverrideConfig=} overrideConfig optional override Object when working in lowres preview mode
+ * @param {OverrideConfig=} overrideConfig optional override configuration when clipping a drawableCanvas while drawing.
  */
 export const clipContextToSelection = ( ctx: CanvasRenderingContext2D, selection: Selection,
     offsetX: number, offsetY: number, invert = false, overrideConfig: OverrideConfig = null ): void => {
@@ -45,10 +45,15 @@ export const clipContextToSelection = ( ctx: CanvasRenderingContext2D, selection
         ({ scale, vpX, vpY } = overrideConfig );
     }
 
+    // correct for scaling and viewport offset
+
+    const deltaX = vpX / scale;
+    const deltaY = vpY / scale;
+
     ctx.beginPath();
     for ( const shape of selection ) {
         shape.forEach(( point: Point, index: number ) => {
-            ctx[ index === 0 ? "moveTo" : "lineTo" ]( (( point.x - offsetX ) * scale ) - vpX, (( point.y - offsetY ) * scale ) - vpY );
+            ctx[ index === 0 ? "moveTo" : "lineTo" ]( ( point.x - offsetX ) - deltaX, ( point.y - offsetY ) - deltaY );
         });
         // when the selection is inverted, we can reverse the clipping operation
         // by drawing the rectangular outline over the clipping path

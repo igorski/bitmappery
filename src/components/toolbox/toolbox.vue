@@ -102,7 +102,7 @@ import { LayerTypes } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS } from "@/definitions/panel-types";
 import { isMobile } from "@/utils/environment-util";
 import { addTextLayer } from "@/utils/layer-util";
-import ToolTypes, { canDraw } from "@/definitions/tool-types";
+import ToolTypes, { canDraw, canDrawOnSelection } from "@/definitions/tool-types";
 import messages  from "./messages.json";
 
 export default {
@@ -120,6 +120,7 @@ export default {
             "activeToolOptions",
             "canUndo",
             "canRedo",
+            "hasSelection",
         ]),
         colorPicker() {
             // load async as this adds to the bundle size
@@ -136,8 +137,9 @@ export default {
             }
         },
         tools() {
-            const drawable = canDraw( this.activeDocument, this.activeLayer );
-            const clonable = canDraw( this.activeDocument, this.activeLayer );
+            const canDrawOnContent = !!this.activeLayer && (!this.hasSelection || canDrawOnSelection( this.activeLayer ));
+            const drawable = canDraw( this.activeDocument, this.activeLayer ) && canDrawOnContent;
+            
             return [
                 {
                     type: ToolTypes.MOVE,
@@ -182,7 +184,7 @@ export default {
                 {
                     type: ToolTypes.CLONE,
                     i18n: "cloneStamp", icon: "stamp", key: "S",
-                    disabled: !clonable, hasOptions: true
+                    disabled: !drawable, hasOptions: true
                 },
                 {
                     type: ToolTypes.SCALE,

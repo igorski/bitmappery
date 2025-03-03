@@ -27,7 +27,7 @@
  */
 export const inverseMask = ( bitmap: HTMLCanvasElement ): void => {
     const { width, height } = bitmap;
-    const ctx = bitmap.getContext( "2d" );
+    const ctx = bitmap.getContext( "2d" ) as CanvasRenderingContext2D;
 
     const orgCompositeOperation = ctx.globalCompositeOperation;
 
