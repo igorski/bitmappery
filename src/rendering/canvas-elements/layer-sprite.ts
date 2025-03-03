@@ -409,8 +409,8 @@ class LayerSprite extends ZoomableSprite {
         const source = this.getPaintSource();
         const { documentScale } = this.canvas;
         return {
-            width  : fastRound( source.width  * documentScale ),
-            height : fastRound( source.height * documentScale ),
+            width  : Math.max( source.width,  fastRound( source.width  * documentScale )),
+            height : Math.max( source.height, fastRound( source.height * documentScale )),
         };
     };
 
