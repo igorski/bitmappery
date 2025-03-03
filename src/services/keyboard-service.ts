@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2016-2023 - https://www.igorski.nl
+ * Igor Zinken 2016-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -43,7 +43,7 @@ let getters: any;
 let commit: Commit;
 let dispatch: Dispatch;
 let listener: ListenerRef;
-let suspended = false, blockDefaults = true, optionDown = false, shiftDown = false, listenerCapturesAll = true;
+let suspended = false, blockDefaults = true, optionDown = false, altDown = false, shiftDown = false, listenerCapturesAll = true;
 let lastKeyDown = 0;
 let lastKeyCode = -1;
 
@@ -123,7 +123,8 @@ function handleKeyDown( event: KeyboardEvent ): void {
         return;
     }
     const keyCode = event.keyCode; // the current step position and channel within the pattern
-    shiftDown     = !!event.shiftKey;
+    shiftDown = !!event.shiftKey;
+    altDown   = event.altKey;
 
     // prevent defaults when using the arrows, space (prevents page jumps) and backspace (navigate back in history)
 
@@ -344,7 +345,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
 
         case 78: // N
             // new document
-            if ( hasOption ) {
+            if ( altDown ) {
                 preventDefault( event ); // new browser window
                 openModal( CREATE_DOCUMENT );
             }
@@ -404,7 +405,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
 
         case 87: // W
             // close document
-            if ( hasOption ) {
+            if ( altDown ) {
                 dispatch( "requestDocumentClose" );
                 preventDefault( event );
             } else {
