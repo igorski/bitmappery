@@ -24,8 +24,7 @@ import BrushTypes, { getSizeForBrush } from "@/definitions/brush-types";
 import type { Brush } from "@/definitions/editor";
 import { createDrawable } from "@/factories/brush-factory";
 import { randomInRange } from "@/math/unit-math";
-import { applyOverrideConfig } from "@/rendering/lowres";
-import type { OverrideConfig } from "@/rendering/lowres";
+import { applyOverrideConfig, type OverrideConfig } from "@/rendering/utils/drawable-canvas-utils";
 import { distanceBetween, angleBetween, pointBetween } from "@/math/point-math";
 
 const { cos, sin } = Math;

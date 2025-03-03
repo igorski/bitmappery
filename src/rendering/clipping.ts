@@ -22,7 +22,7 @@
  */
 import type { Point } from "zcanvas";
 import type { Shape, Selection } from "@/definitions/document";
-import type { OverrideConfig } from "@/rendering/lowres";
+import type { OverrideConfig } from "@/rendering/utils/drawable-canvas-utils";
 import { isShapeRectangular } from "@/utils/shape-util";
 
 /**

@@ -47,7 +47,7 @@ import { applyTransformation } from "@/rendering/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
 import {
     getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, commitDrawingToLayer, sliceBrushPointers, createOverrideConfig
-} from "@/rendering/lowres";
+} from "@/rendering/utils/drawable-canvas-utils";
 import BrushFactory from "@/factories/brush-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
@@ -678,7 +678,6 @@ class LayerSprite extends ZoomableSprite {
 
         drawContext.restore(); // 1. transformation restore()
 
-        // @todo rename all instance of low res naming
         // user is currently drawing on this layer, render contents of drawableCanvas onto screen
         if ( this._drawableCanvas ) {
             documentContext.save(); // 2. drawable render save()

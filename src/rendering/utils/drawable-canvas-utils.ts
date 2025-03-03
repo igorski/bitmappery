@@ -26,6 +26,7 @@ import type { CanvasContextPairing, Brush } from "@/definitions/editor";
 import { hasSteppedLiveRender } from "@/definitions/brush-types";
 import { reverseTransformation } from "@/rendering/transforming";
 import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
+import { fastRound } from "@/math/unit-math";
 import { createCanvas, setCanvasDimensions } from "@/utils/canvas-util";
 
 export type OverrideConfig = {
@@ -85,11 +86,17 @@ export const commitDrawingToLayer = (
     const destinationContext = destinationCanvas.getContext( "2d" ) as CanvasRenderingContext2D;
 
     destinationContext.save();
+
+    // apply the alpha and compositing (this is not applied during drawing as semi-transparent
+    // brushing will show unevenness when over drawing)
+
     destinationContext.globalAlpha = alpha;
-    
     if ( compositeOperation !== undefined ) {
         destinationContext.globalCompositeOperation = compositeOperation;
     }
+
+    // correct for the optional layer transofmration effects
+
     reverseTransformation( destinationContext, layer );
     
     const { width, height } = layer;
@@ -97,7 +104,9 @@ export const commitDrawingToLayer = (
     const dx = ( width  * scale / 2 ) - ( width / 2 );
     const dy = ( height * scale / 2 ) - ( height / 2 );
 
-    renderDrawableCanvas( destinationContext, documentScale, viewport, { x: Math.ceil( dx ), y: Math.ceil( dy ) } );
+    // render
+
+    renderDrawableCanvas( destinationContext, documentScale, viewport, { x: fastRound( dx ), y: fastRound( dy ) } );
 
     destinationContext.restore();
 };
