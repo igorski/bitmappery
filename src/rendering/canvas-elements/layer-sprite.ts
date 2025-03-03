@@ -340,18 +340,15 @@ class LayerSprite extends ZoomableSprite {
             if ( this._selection ) {
                 ctx.closePath(); // is this necessary ?
             }
-        } else {
+        } else if ( isDrawing ) {
             // get the enqueued pointers which are to be rendered in this paint cycle
             const pointers = sliceBrushPointers( this._brush );
 
             if ( isCloneStamp ) {
-                if ( isDrawing ) {
-                    renderClonedStroke( ctx, this._brush, this, this.toolOptions.sourceLayerId,
-                        rotatePointers( pointers, this.layer, width, height )
-                    );
-                    // clone operation is direct-to-Layer-source
-                    this.setBitmap( ctx.canvas );
-                }
+                renderClonedStroke( ctx, this._brush, this, this.toolOptions.sourceLayerId,
+                    rotatePointers( pointers, this.layer, width, height )
+                );
+                this.setBitmap( ctx.canvas );
             } else {
                 const orgContext = ctx;
 
@@ -359,21 +356,19 @@ class LayerSprite extends ZoomableSprite {
                 // where each individual brush stroke is rendered in successive iterations.
                 // upon release, the full stroke is rendered on the Layer source (see handleRelease())
                 let overrides = null;
-                if ( isDrawing ) {
-                    // drawing is handled on a temporary, drawable Canvas
-                    this._paintCanvas = this._paintCanvas || getDrawableCanvas( this.getPaintSize() );
-                    overrides = createOverrideConfig( this.canvas, pointers );
-                    ctx = this._paintCanvas.ctx;
+                // drawing is handled on a temporary, drawable Canvas
+                this._paintCanvas = this._paintCanvas || getDrawableCanvas( this.getPaintSize() );
+                overrides = createOverrideConfig( this.canvas, pointers );
+                ctx = this._paintCanvas.ctx;
 
-                    if ( selection && this._paintCanvas ) {
-                        ctx.save(); // 3. drawableCanvas clipping save()
-                        // note no offset is required as we are drawing on the full-size _paintCanvas
-                        clipContextToSelection( ctx, selection, 0, 0, this._invertSelection, overrides );
-                    }
+                if ( selection && this._paintCanvas ) {
+                    ctx.save(); // 3. drawableCanvas clipping save()
+                    // note no offset is required as we are drawing on the full-size _paintCanvas
+                    clipContextToSelection( ctx, selection, 0, 0, this._invertSelection, overrides );
                 }
                 this._lastBrushIndex = renderBrushStroke( ctx, this._brush, overrides, this._lastBrushIndex );
 
-                if ( isDrawing && selection ) {
+                if ( selection ) {
                     orgContext.restore(); // 3. drawableCanvas clipping restore()
                 }
             }
