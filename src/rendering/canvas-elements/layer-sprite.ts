@@ -368,8 +368,8 @@ class LayerSprite extends ZoomableSprite {
                 // upon release, the full stroke is rendered on the Layer source (see handleRelease())
                 let overrides = null;
                 if ( isDrawing ) {
-                    // live update on lower resolution canvas
-                    this._drawableCanvas = this._drawableCanvas || getDrawableCanvas( this.canvas );
+                    // drawing is handled on a temporary, drawable Canvas
+                    this._drawableCanvas = this._drawableCanvas || getDrawableCanvas( orgContext.canvas.width, orgContext.canvas.height );
                     overrides = createOverrideConfig( this.canvas, pointers );
                     ctx = this._drawableCanvas.ctx;
 
