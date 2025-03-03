@@ -140,11 +140,11 @@ function handleKeyDown( event: KeyboardEvent ): void {
     }
     const hasOption = KeyboardService.hasOption( event );
 
-    // we'd like to support native shortcuts (like ctrl + S on Windows or command + S on Mac to save), but some
-    // are not allowed to override native browser behaviour (like ctrl + N in Windows will always open a new browser
-    // window and ctrl + W will unapologetically close it). For safe shortcuts (e.g. have no blocking default behaviour)
+    // we'd like to support native shortcuts (like ctrl + S on Windows or command + S on Mac to save), but some of these
+    // are not allowed to override native browser behaviour (like ctrl + N on Windows will always open a new browser
+    // window while ctrl + W will unapologetically close it!). For safe shortcuts (e.g. with no blocking default behaviour)
     // we allow using the native expectation of ctrl or command where applicable. We however communicate (and always support)
-    // to alt key to be consistent with all shortcuts (including those that cannot be overridden)
+    // the alt key to be consistent with all shortcuts (including those that cannot be overridden)
     const nativeModifier = hasOption || altDown;
     
     const now = Date.now();
@@ -169,9 +169,12 @@ function handleKeyDown( event: KeyboardEvent ): void {
 
         case 17: // Ctrl
             optionDown = true;
-            commit( "setLayerSelectMode", true );
             // prevent context menu from opening in this mode
             document.addEventListener( "contextmenu", defaultBlock );
+            break;
+
+        case 18: // Alt
+            commit( "setLayerSelectMode", true );
             break;
 
         case 27: // escape
@@ -482,8 +485,10 @@ function handleKeyUp( event: KeyboardEvent ): void {
         default:
             break;
         case 17: // Ctrl
-            commit( "setLayerSelectMode", false );
             document.removeEventListener( "contextmenu", defaultBlock );
+            break;
+        case 18: // Alt 
+            commit( "setLayerSelectMode", false );
             break;
         case 32: // spacebar
             if ( getters.activeTool !== ToolTypes.TEXT && getters.activeTool !== ToolTypes.MOVE ) {
