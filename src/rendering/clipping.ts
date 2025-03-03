@@ -45,10 +45,15 @@ export const clipContextToSelection = ( ctx: CanvasRenderingContext2D, selection
         ({ scale, vpX, vpY } = overrideConfig );
     }
 
+    // correct for scaling and viewport offset
+
+    const deltaX = vpX / scale;
+    const deltaY = vpY / scale;
+
     ctx.beginPath();
     for ( const shape of selection ) {
         shape.forEach(( point: Point, index: number ) => {
-            ctx[ index === 0 ? "moveTo" : "lineTo" ]( (( point.x - offsetX ) * scale ) - vpX, (( point.y - offsetY ) * scale ) - vpY );
+            ctx[ index === 0 ? "moveTo" : "lineTo" ]( ( point.x - offsetX ) - deltaX, ( point.y - offsetY ) - deltaY );
         });
         // when the selection is inverted, we can reverse the clipping operation
         // by drawing the rectangular outline over the clipping path

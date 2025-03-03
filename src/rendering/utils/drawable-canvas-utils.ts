@@ -20,12 +20,11 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Point, Viewport } from "zcanvas";
+import type { Point, Size } from "zcanvas";
 import type { Layer } from "@/definitions/document";
 import type { CanvasContextPairing, Brush } from "@/definitions/editor";
 import { reverseTransformation } from "@/rendering/transforming";
 import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
-import { fastRound } from "@/math/unit-math";
 import { createCanvas, setCanvasDimensions } from "@/utils/canvas-util";
 import { clone } from "@/utils/object-util";
 
@@ -44,11 +43,11 @@ let drawableCanvas: CanvasContextPairing;
  * Lazily create / retrieve a canvas which can be used to render drawable content on.
  * This content can be previewed live while drawing and committed to the source canvas when done.
  */
-export const getDrawableCanvas = ( width: number, height: number ): CanvasContextPairing => {
+export const getDrawableCanvas = ( size: Size ): CanvasContextPairing => {
     if ( !drawableCanvas ) {
         drawableCanvas = createCanvas();
     }
-    setCanvasDimensions( drawableCanvas, width, height );
+    setCanvasDimensions( drawableCanvas, size.width, size.height );
     return drawableCanvas;
 };
 
@@ -57,16 +56,18 @@ export const getDrawableCanvas = ( width: number, height: number ): CanvasContex
  * corresponding to provided documentScale. This can be used to render the contents of the drawable canvas
  * while drawing is still taking place for live preview purposes.
  */
-export const renderDrawableCanvas = ( destinationContext: CanvasRenderingContext2D, documentScale: number, viewport?: Viewport, offset?: Point ): void => {
+export const renderDrawableCanvas = ( destinationContext: CanvasRenderingContext2D, destinationSize: Size, zoomableCanvas: ZoomableCanvas, offset?: Point ): void => {
     const source = drawableCanvas.cvs;
-    const scale  = documentScale;
+    const { documentScale } = zoomableCanvas;
+
+    const viewport = offset ? zoomableCanvas.getViewport() : undefined;
 
     destinationContext.drawImage(
         source,
         0, 0, source.width, source.height,
-        (( viewport?.left ?? 0 ) * scale ) + ( offset?.x ?? 0 ),
-        (( viewport?.top ?? 0 )  * scale ) + ( offset?.y ?? 0 ),
-        source.width * scale, source.height * scale
+        (( viewport?.left ?? 0 ) * documentScale ) + ( offset?.x ?? 0 ),
+        (( viewport?.top ?? 0 )  * documentScale ) + ( offset?.y ?? 0 ),
+        destinationSize.width, destinationSize.height
     );
 };
 
@@ -76,10 +77,9 @@ export const renderDrawableCanvas = ( destinationContext: CanvasRenderingContext
  * is correctly inserted into the destination Canvas, relative to the optional transformation effects of the Layer.
  */
 export const commitDrawingToLayer = (
-    layer: Layer, commitToMask: boolean, viewport: Viewport, documentScale: number,
+    layer: Layer, destinationCanvas: HTMLCanvasElement, destinationSize: Size, zoomableCanvas: ZoomableCanvas,
     alpha = 1, compositeOperation?: GlobalCompositeOperation
 ) => {
-    const destinationCanvas  = commitToMask ? layer.mask : layer.source;
     const destinationContext = destinationCanvas.getContext( "2d" ) as CanvasRenderingContext2D;
 
     destinationContext.save();
@@ -98,12 +98,12 @@ export const commitDrawingToLayer = (
     
     const { width, height } = layer;
     const { scale } = layer.effects;
-    const dx = ( width  * scale / 2 ) - ( width / 2 );
-    const dy = ( height * scale / 2 ) - ( height / 2 );
+    const x = ( width  * scale / 2 ) - ( width  / 2 ) - layer.left;
+    const y = ( height * scale / 2 ) - ( height / 2 ) - layer.top;
 
     // render
 
-    renderDrawableCanvas( destinationContext, documentScale, viewport, { x: fastRound( dx ), y: fastRound( dy ) } );
+    renderDrawableCanvas( destinationContext, destinationSize, zoomableCanvas, { x, y });
 
     destinationContext.restore();
 };
@@ -149,14 +149,18 @@ export const createOverrideConfig = ( zoomableCanvas: ZoomableCanvas, pointers: 
  */
 export const applyOverrideConfig = ( overrideConfig: OverrideConfig, pointers: Point[] ): void => {
     const { vpX, vpY, scale } = overrideConfig;
+    
+    // correct for scaling and viewport offset
+
+    const offsetX = vpX / scale;
+    const offsetY = vpY / scale;
+
     let i = pointers.length;
     while ( i-- )
     {
         const point = pointers[ i ];
 
-        // correct for scaling and viewport offset
-
-        point.x = ( point.x * scale ) - vpX;
-        point.y = ( point.y * scale ) - vpY;
+        point.x -= offsetX;
+        point.y -= offsetY;
     }
 };

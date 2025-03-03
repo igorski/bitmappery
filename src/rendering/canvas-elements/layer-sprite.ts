@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Store } from "vuex";
-import type { Point, Rectangle } from "zcanvas";
+import type { Point, Rectangle, Size } from "zcanvas";
 import type ZoomableCanvas from "./zoomable-canvas";
 import ZoomableSprite from "./zoomable-sprite";
 import type { Viewport, TransformedDrawBounds } from "zcanvas";
@@ -30,12 +30,13 @@ import { renderCross } from "@/utils/render-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { BlendModes } from "@/definitions/blend-modes";
 import { getSizeForBrush } from "@/definitions/brush-types";
-import type { Document, Layer, Shape, Selection } from "@/definitions/document";
+import type { Document, Layer, Selection } from "@/definitions/document";
 import type { CanvasContextPairing, CanvasDrawable, Brush, BrushToolOptions, BrushAction } from "@/definitions/editor";
 import { LayerTypes } from "@/definitions/layer-types";
 import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation } from "@/math/point-math";
+import { fastRound } from "@/math/unit-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { getBlendContext, blendLayer } from "@/rendering/blending";
 import { clipContextToSelection } from "@/rendering/clipping";
@@ -76,7 +77,7 @@ class LayerSprite extends ZoomableSprite {
     protected _pointerY: number;
     protected _brush: Brush;
     protected _lastBrushIndex: number;
-    protected _drawableCanvas: CanvasContextPairing; // temporary canvas used during drawing
+    protected _paintCanvas: CanvasContextPairing; // temporary canvas used during drawing
     protected _isPaintMode: boolean;
     protected _isDragMode: boolean;
     protected _isColorPicker: boolean;
@@ -299,12 +300,11 @@ class LayerSprite extends ZoomableSprite {
         if ( !this._pendingPaintState ) {
             this.preparePendingPaintState();
         }
-        const drawOnMask   = this.isMaskable();
         const isCloneStamp = this._toolType === ToolTypes.CLONE;
         const isFillMode   = this._toolType === ToolTypes.FILL;
 
         // get the drawing context
-        let ctx = ( drawOnMask ? this.layer.mask : this.layer.source ).getContext( "2d" );
+        let ctx = this.getPaintSource().getContext( "2d" ) as CanvasRenderingContext2D;
         const { width, height } = ctx.canvas;
 
         ctx.save(); // 1. preparation save()
@@ -314,15 +314,8 @@ class LayerSprite extends ZoomableSprite {
         // if there is an active selection, painting will be constrained within
         let selection: Selection = optAction?.selection || this._selection;
         if ( selection ) {
-            let { left, top } = this.layer;
-            if ( this.isRotated() && !isDrawing ) {
-                selection = selection.map(( shape: Shape ) => rotatePointers( shape as Point[], this.layer, width, height ));
-                // pointers have been rotated within clipping context, unset layer coords
-                left = 0;
-                top  = 0;
-            }
             ctx.save(); // 2. clipping save()
-            clipContextToSelection( ctx, selection, left, top, this._invertSelection );
+            clipContextToSelection( ctx, selection, this.layer.left, this.layer.top, this._invertSelection );
         }
 
         if ( optAction ) {
@@ -368,12 +361,13 @@ class LayerSprite extends ZoomableSprite {
                 let overrides = null;
                 if ( isDrawing ) {
                     // drawing is handled on a temporary, drawable Canvas
-                    this._drawableCanvas = this._drawableCanvas || getDrawableCanvas( orgContext.canvas.width, orgContext.canvas.height );
+                    this._paintCanvas = this._paintCanvas || getDrawableCanvas( this.getPaintSize() );
                     overrides = createOverrideConfig( this.canvas, pointers );
-                    ctx = this._drawableCanvas.ctx;
+                    ctx = this._paintCanvas.ctx;
 
-                    if ( selection && this._drawableCanvas ) {
+                    if ( selection && this._paintCanvas ) {
                         ctx.save(); // 3. drawableCanvas clipping save()
+                        // note no offset is required as we are drawing on the full-size _paintCanvas
                         clipContextToSelection( ctx, selection, 0, 0, this._invertSelection, overrides );
                     }
                 }
@@ -411,6 +405,19 @@ class LayerSprite extends ZoomableSprite {
     debouncePaintStore( timeout: number = 5000 ): void {
         this._pendingPaintState = window.setTimeout( this.storePaintState.bind( this ), timeout ) as unknown as number;
     }
+
+    getPaintSource(): HTMLCanvasElement {
+        return this.isMaskable() ? this.layer.mask : this.layer.source;
+    }
+
+    getPaintSize(): Size {
+        const source = this.getPaintSource();
+        const { documentScale } = this.canvas;
+        return {
+            width  : fastRound( source.width  * documentScale ),
+            height : fastRound( source.height * documentScale ),
+        };
+    };
 
     async storePaintState(): Promise<boolean> {
         if ( !this._pendingPaintState ) {
@@ -587,13 +594,12 @@ class LayerSprite extends ZoomableSprite {
         if ( this.isDrawing() ) {
             const compositeOperation = this._toolType === ToolTypes.ERASER ? "destination-out" : undefined;
             commitDrawingToLayer(
-                this.layer, this.isMaskable(), this.canvas.getViewport(), this.canvas.documentScale,
-                this._brush.options.opacity, compositeOperation
+                this.layer, this.getPaintSource(), this.getPaintSize(), this.canvas, this._brush.options.opacity, compositeOperation
             );
             disposeDrawableCanvas();
             this.resetFilterAndRecache();
             
-            this._drawableCanvas  = null;
+            this._paintCanvas  = null;
             this._brush.down = false;
             this._brush.last = 0;
             this._brush.pointers.length = 0;
@@ -679,14 +685,14 @@ class LayerSprite extends ZoomableSprite {
         drawContext.restore(); // 1. transformation restore()
 
         // user is currently drawing on this layer, render contents of drawableCanvas onto screen
-        if ( this._drawableCanvas ) {
-            documentContext.save(); // 2. drawable render save()
+        if ( this._paintCanvas ) {
+            documentContext.save(); // 2. pending painting render save()
             documentContext.globalAlpha = this._brush.options.opacity;
             if ( this._toolType === ToolTypes.ERASER || this.isMaskable() ) {
                 documentContext.globalCompositeOperation = "destination-out";
             }
-            renderDrawableCanvas( documentContext, this.canvas.documentScale );
-            documentContext.restore(); // 2. drawable render restore()
+            renderDrawableCanvas( documentContext, this.getPaintSize(), this.canvas );
+            documentContext.restore(); // 2. pending painting render restore()
         }
 
         if ( altOpacity ) {

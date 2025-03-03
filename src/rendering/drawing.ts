@@ -47,10 +47,12 @@ export const renderBrushStroke = ( ctx: CanvasRenderingContext2D, brush: Brush, 
 
     if ( overrideConfig ) {
         pointers      = overrideConfig.pointers;
+        // no, this way we keep line size equal across zoom levels
+        /*
         scale         = overrideConfig.zoom;
         radius       *= scale;
         doubleRadius *= scale;
-
+        */
         applyOverrideConfig( overrideConfig, pointers );
     }
 
