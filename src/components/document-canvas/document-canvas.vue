@@ -140,6 +140,7 @@ export default {
             "activeToolOptions",
             "antiAlias",
             "canvasDimensions",
+            "hasSelection",
             "snapAlign",
             "pixelGrid",
             "zoomOptions",
@@ -223,6 +224,9 @@ export default {
                 getCanvasInstance()?.interactionPane?.handleActiveTool( tool, false );
             }
             this.handleGuides();
+        },
+        hasSelection( value: boolean ): void {
+            getCanvasInstance()?.setAnimatable( value ); // show animated selection outline
         },
         zoomOptions: {
             deep: true,

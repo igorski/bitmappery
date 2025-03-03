@@ -44,6 +44,9 @@ export enum InteractionModes {
     MODE_SELECTION,
 };
 
+const DASH_SIZE  = 10;
+const DASH_SPEED = 1; // per frame
+
 /**
  * InteractionPane is a top-level canvas-sized Sprite that captures all Canvas
  * interaction events. This is used to:
@@ -56,7 +59,7 @@ class InteractionPane extends sprite {
     public mode: InteractionModes;
     private _toolOptions: any;
     private _pointerDown: boolean;
-    private _hasSelection: boolean;
+    private _dashOffset: number;
     private _selectionClosed: boolean;
     private _isAddingToExistingSelection: boolean;
     private _isRectangleSelect: boolean;
@@ -78,6 +81,7 @@ class InteractionPane extends sprite {
         this._vpStartY = 0;
 
         this._lastRelease = 0;
+        this._dashOffset  = 0;
     }
 
     setState( enabled: boolean, mode: InteractionModes, activeTool: ToolTypes, active_toolOptions: any ): void {
@@ -112,7 +116,6 @@ class InteractionPane extends sprite {
             } else if ( this._activeTool !== activeTool ) {
                 this.resetSelection();
             }
-            this._hasSelection = document.activeSelection.length > 0;
             this._selectionClosed = isShapeClosed( getLastShape( document.activeSelection ));
             // we distinguish between the rectangular and lasso selection tool
             this._isRectangleSelect = activeTool === ToolTypes.SELECTION;
@@ -176,6 +179,7 @@ class InteractionPane extends sprite {
             storeSelectionHistory( document, currentSelection );
         }
         this._selectionClosed = isShapeClosed( getLastShape( value ));
+        this._dashOffset = 0;
         this.invalidate();
     }
 
@@ -378,6 +382,12 @@ class InteractionPane extends sprite {
         }
     }
 
+    update( _now: DOMHighResTimeStamp, framesSinceLastUpdate: number ): void {
+        if ( this.getActiveDocument().activeSelection?.length > 0 ) {
+            this._dashOffset -= ( DASH_SPEED * framesSinceLastUpdate ); // advance the outline animation
+        }
+    }
+
     draw( ctx: CanvasRenderingContext2D, viewport: Viewport ): void {
         // render selection outline
         let { invertSelection, width, height } = this.getActiveDocument();
@@ -397,7 +407,7 @@ class InteractionPane extends sprite {
                     shape = rectToCoordinateList( firstPoint.x, firstPoint.y, width, height );
                 }
                 // for unclosed lasso selections, draw line to current cursor position
-                let currentPosition = null;
+                let currentPosition: Point | undefined;
                 if ( connectToPointer && !this._isRectangleSelect && hasUnclosedSelection ) {
                     currentPosition = KeyboardService.hasShift() ?
                         snapToAngle( localPointerX, localPointerY, shape.at( -1 ), viewport )
@@ -405,9 +415,9 @@ class InteractionPane extends sprite {
                 }
 
                 // draw each point in the selection
-                drawSelectionShape( ctx, this.canvas, viewport, shape, currentPosition );
+                drawSelectionShape( ctx, this.canvas, viewport, shape, currentPosition, this._dashOffset );
                 if ( invertSelection && !hasUnclosedSelection ) {
-                    drawSelectionShape( ctx, this.canvas, viewport, rectangleToShape( width, height ), currentPosition );
+                    drawSelectionShape( ctx, this.canvas, viewport, rectangleToShape( width, height ), currentPosition, this._dashOffset );
                 }
 
                 // highlight current cursor position for unclosed selections
@@ -455,20 +465,21 @@ export default InteractionPane;
 
 /* internal methods */
 
-function drawSelectionShape( ctx: CanvasRenderingContext2D, zCanvas: ZoomableCanvas, viewport: Viewport,
-                             shape: Shape, currentPosition: Point ): void {
+function drawSelectionShape( ctx: CanvasRenderingContext2D, zoomableCanvas: ZoomableCanvas, viewport: Viewport,
+                             shape: Shape, currentPosition?: Point, dashOffset = 0 ): void {
     ctx.save();
-    drawShapeOutline( ctx, zCanvas, viewport, shape, "#000", currentPosition );
+    drawShapeOutline( ctx, zoomableCanvas, viewport, shape, "#000", currentPosition );
     ctx.restore();
 
     ctx.save();
-    ctx.setLineDash([ 10 / zCanvas.zoomFactor ]);
-    drawShapeOutline( ctx, zCanvas, viewport, shape, "#FFF", currentPosition );
+    ctx.setLineDash([ DASH_SIZE ]);
+    ctx.lineDashOffset = DASH_SIZE + dashOffset;    
+    drawShapeOutline( ctx, zoomableCanvas, viewport, shape, "#FFF", currentPosition );
     ctx.restore();
 }
 
 function drawShapeOutline( ctx: CanvasRenderingContext2D, zCanvas: ZoomableCanvas, viewport: Viewport,
-                           shape: Shape, color: string, currentPosition: Point = null ): void {
+                           shape: Shape, color: string, currentPosition?: Point ): void {
     ctx.lineWidth = 2 / zCanvas.zoomFactor;
     ctx.beginPath();
     ctx.strokeStyle = color;

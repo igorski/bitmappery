@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -43,6 +43,7 @@ class ZoomableCanvas extends canvas {
 
     private _bounds: DOMRect;
     private _interactionBlocked: boolean;
+    private _frMul: number;
 
     constructor( opts: any, store: Store<BitMapperyState>, rescaleFn: () => void, refreshFn: () => void ) {
         super( opts );
@@ -54,9 +55,11 @@ class ZoomableCanvas extends canvas {
         this.documentScale = 1;
         this.setZoomFactor( 1 );
         this.interactionPane = new InteractionPane();
-        this._bounds = null; // TODO : can be removed after update to zCanvas 5.1.5 (requires Webpack 5 migration)
+        this._bounds = null; // TODO : can be removed after update to zCanvas 5.1.5+
 
         this.draggingSprite = null;
+
+        this._frMul = 1 / ( 1000 / this.getFrameRate() ); // TODO: can be removed after update to zCanvas 6+
     }
 
     setDocumentScale( targetWidth: number, targetHeight: number, scale: number, zoom: number, activeDocument: Document = null ): void {
@@ -164,6 +167,8 @@ class ZoomableCanvas extends canvas {
         const ctx = this._canvasContext;
         let theSprite;
 
+        const framesSinceLastRender = delta * this._frMul;
+
         if ( ctx ) {
 
             // QQQ zoomFactor must be taken into account
@@ -194,7 +199,7 @@ class ZoomableCanvas extends canvas {
             const useExternalUpdateHandler = typeof this._updateHandler === "function";
 
             if ( useExternalUpdateHandler ) {
-                this._updateHandler( now );
+                this._updateHandler( now, framesSinceLastRender );
             }
 
             // draw the children onto the canvas
@@ -203,7 +208,7 @@ class ZoomableCanvas extends canvas {
 
             while ( theSprite ) {
                 if ( !useExternalUpdateHandler ) {
-                    theSprite.update( now );
+                    theSprite.update( now, framesSinceLastRender );
                 }
                 theSprite.draw( ctx, viewport );
                 theSprite = theSprite.next;
