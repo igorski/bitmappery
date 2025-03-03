@@ -135,9 +135,6 @@ export const renderBrushStroke = ( ctx: CanvasRenderingContext2D, brush: Brush, 
             continue;
         }
 
-        // this one benefits from working with a large point queue
-        // as such when supplying overrideConfig for live rendering, regular line is drawn instead
-
         if ( type === BrushTypes.CONNECTED ) {
             if ( isFirst ) {
                 ctx.lineWidth = lineWidth;

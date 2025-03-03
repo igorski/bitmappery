@@ -23,11 +23,11 @@
 import type { Point, Viewport } from "zcanvas";
 import type { Layer } from "@/definitions/document";
 import type { CanvasContextPairing, Brush } from "@/definitions/editor";
-import { hasSteppedLiveRender } from "@/definitions/brush-types";
 import { reverseTransformation } from "@/rendering/transforming";
 import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import { fastRound } from "@/math/unit-math";
 import { createCanvas, setCanvasDimensions } from "@/utils/canvas-util";
+import { clone } from "@/utils/object-util";
 
 export type OverrideConfig = {
     scale: number;
@@ -125,9 +125,7 @@ export const disposeDrawableCanvas = (): void => {
  * iterations by supplying a positive value for last (which indicates the offset of the last rendered pointer).
  */
 export const sliceBrushPointers = ( brush: Brush ): Point[] => {
-    const { pointers } = brush;
-    const last = hasSteppedLiveRender( brush ) ? brush.last : undefined;
-    return JSON.parse( JSON.stringify( pointers.slice( pointers.length - ( pointers.length - last ) - 1 )));
+    return clone( brush.pointers );
 };
 
 /**

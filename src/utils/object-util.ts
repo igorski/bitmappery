@@ -21,5 +21,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 export function clone<T>( object: T ): T {
+    // this is still faster than using structuredClone...
     return JSON.parse( JSON.stringify( object ));
 };
