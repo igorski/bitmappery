@@ -61,15 +61,15 @@ export const getDrawableCanvas = ( zoomableCanvas: ZoomableCanvas ): CanvasConte
  * while drawing is still taking place for live preview purposes.
  */
 export const renderDrawableCanvas = ( destinationContext: CanvasRenderingContext2D, documentScale: number, viewport?: Viewport, offset?: Point ): void => {
-    const { cvs } = drawableCanvas;
-    const scale   = documentScale;
+    const source = drawableCanvas.cvs;
+    const scale  = documentScale;
 
     destinationContext.drawImage(
-        cvs,
-        0, 0, cvs.width, cvs.height,
+        source,
+        0, 0, source.width, source.height,
         (( viewport?.left ?? 0 ) * scale ) + ( offset?.x ?? 0 ),
         (( viewport?.top ?? 0 )  * scale ) + ( offset?.y ?? 0 ),
-        cvs.width * scale, cvs.height * scale
+        source.width * scale, source.height * scale
     );
 };
 
