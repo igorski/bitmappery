@@ -34,7 +34,7 @@ import { isShapeRectangular } from "@/utils/shape-util";
  * @param {Number} offsetX destination offset to shift selection by (bounds relative to viewport)
  * @param {Number} offsetY destination offset to shift selection by (bounds relative to viewport)
  * @param {Boolean=} invert optional whether to invert the selection
- * @param {OverrideConfig=} overrideConfig optional override Object when working in lowres preview mode
+ * @param {OverrideConfig=} overrideConfig optional override configuration when clipping a drawableCanvas while drawing.
  */
 export const clipContextToSelection = ( ctx: CanvasRenderingContext2D, selection: Selection,
     offsetX: number, offsetY: number, invert = false, overrideConfig: OverrideConfig = null ): void => {
