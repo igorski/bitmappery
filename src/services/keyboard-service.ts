@@ -139,10 +139,15 @@ function handleKeyDown( event: KeyboardEvent ): void {
         }
     }
     const hasOption = KeyboardService.hasOption( event );
-    const now       = Date.now();
 
-    //if ( !hasOption && !shiftDown )
-    //    handleInputForMode( keyCode );
+    // we'd like to support native shortcuts (like ctrl + S on Windows or command + S on Mac to save), but some
+    // are not allowed to override native browser behaviour (like ctrl + N in Windows will always open a new browser
+    // window and ctrl + W will unapologetically close it). For safe shortcuts (e.g. have no blocking default behaviour)
+    // we allow using the native expectation of ctrl or command where applicable. We however communicate (and always support)
+    // to alt key to be consistent with all shortcuts (including those that cannot be overridden)
+    const nativeModifier = hasOption || altDown;
+    
+    const now = Date.now();
 
     switch ( keyCode )
     {
@@ -242,7 +247,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
 
         case 65: // A
             // select all
-            if ( hasOption && getters.activeLayer ) {
+            if ( nativeModifier && getters.activeLayer ) {
                 getCanvasInstance()?.interactionPane.selectAll( getters.activeLayer );
             }
             break;
@@ -255,7 +260,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
 
         case 67: // C
             // copy current selection
-            if ( hasOption ) {
+            if ( nativeModifier ) {
                 if ( getters.activeDocument?.activeSelection?.length > 0 ) {
                     dispatch( "requestSelectionCopy", shiftDown );
                     preventDefault( event );
@@ -268,7 +273,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
 
         case 68: // D
             // deselect all
-            if ( hasOption ) {
+            if ( nativeModifier ) {
                 dispatch( "clearSelection" );
                 preventDefault( event ); // bookmark
             } else if ( getters.activeLayer ) {
@@ -277,7 +282,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
             break;
 
         case 69: // E
-            if ( hasOption ) {
+            if ( altDown ) {
                 openModal( SAVE_DOCUMENT );
             } else if ( canDraw( getters.activeDocument, getters.activeLayer )) {
                 setActiveTool( ToolTypes.ERASER );
@@ -291,7 +296,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
                 }
             }
             else if ( getters.activeLayer ) {
-                if ( optionDown ) {
+                if ( altDown ) {
                     const filters = getters.activeLayer.filters;
                     commit( "updateLayer", {
                         index: getters.activeLayerIndex,
@@ -310,7 +315,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
             break;
 
         case 73: // I
-            if ( hasOption ) {
+            if ( altDown ) {
                 if ( shiftDown ) { // invert selection
                     if ( getters.activeDocument?.activeSelection ) {
                         dispatch( "invertSelection" );
@@ -325,7 +330,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
             break;
 
         case 76: // L
-            if ( hasOption ) {
+            if ( altDown ) {
                 if ( shiftDown && getters.activeDocument ) {
                     openModal( ADD_LAYER );
                 } else {
@@ -352,7 +357,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
             break;
 
         case 79: // O
-            if ( hasOption ) {
+            if ( altDown ) {
                 if ( state.dropboxConnected ) {
                     openModal( DROPBOX_FILE_SELECTOR );
                 }
@@ -371,7 +376,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
             break;
 
         case 83: // S
-            if ( hasOption ) {
+            if ( nativeModifier ) {
                 if ( getters.activeDocument ) {
                     openModal( SAVE_DOCUMENT );
                 }
@@ -393,7 +398,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
 
         case 86: // V
             // paste current selection
-            if ( hasOption ) {
+            if ( nativeModifier ) {
                 if ( state.selectionContent ) {
                     dispatch( "pasteSelection" );
                     preventDefault( event ); // override browser paste
@@ -415,7 +420,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
 
         case 88: // X
             // cut current selection
-            if ( hasOption ) {
+            if ( nativeModifier ) {
                 if ( getters.activeDocument?.activeSelection?.length ) {
                     dispatch( "requestSelectionCut" );
                     preventDefault( event ); // override browser cut
@@ -425,7 +430,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
 
         case 90: // Z
             // undo
-            if ( hasOption ) {
+            if ( nativeModifier ) {
                 dispatch( shiftDown ? "redo" : "undo" );
                 preventDefault( event ); // override browser undo
             } else if ( getters.activeDocument ) {

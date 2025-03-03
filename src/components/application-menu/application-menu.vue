@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -39,14 +39,18 @@
                     @click="close()"
                 >
                     <li>
-                        <button v-t="'new'"
-                                @click="requestNewDocument()"
+                        <button
+                            v-t="'new'"
+                            type="button"
+                            v-tooltip.right="$t('newDocumentTooltip')"
+                            @click="requestNewDocument()"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'open'"
-                                type="button"
-                                @click="openFileSelector()"
+                        <button
+                            v-t="'open'"
+                            type="button"
+                            @click="openFileSelector()"
                         ></button>
                     </li>
                     <li v-if="hasDropbox">
@@ -71,23 +75,30 @@
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'close'"
-                                :disabled="noDocumentsAvailable"
-                                @click="requestDocumentClose()"
+                        <button
+                            v-t="'close'"
+                            v-tooltip.right="$t('closeDocumentTooltip')"
+                            type="button"
+                            :disabled="noDocumentsAvailable"
+                            @click="requestDocumentClose()"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'save'"
-                                type="button"
-                                :disabled="noDocumentsAvailable"
-                                @click="requestDocumentExport()"
+                        <button
+                            v-t="'save'"
+                            v-tooltip.right="$t('saveDocumentTooltip')"
+                            type="button"
+                            :disabled="noDocumentsAvailable"
+                            @click="requestDocumentExport()"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'exportImage'"
-                                type="button"
-                                :disabled="noDocumentsAvailable"
-                                @click="requestImageExport()"
+                        <button
+                            v-t="'exportImage'"
+                            v-tooltip.right="$t('exportImageTooltip')"
+                            type="button"
+                            :disabled="noDocumentsAvailable"
+                            @click="requestImageExport()"
                         ></button>
                     </li>
                     <input
@@ -110,6 +121,7 @@
                     <li>
                         <button
                             v-t="'undo'"
+                            v-tooltip.right="$t('undoTooltip')"
                             type="button"
                             :disabled="!canUndo"
                             @click="navigateHistory('undo')"
@@ -118,6 +130,7 @@
                     <li>
                         <button
                             v-t="'redo'"
+                            v-tooltip.right="$t('redoTooltip')"
                             type="button"
                             :disabled="!canRedo"
                             @click="navigateHistory('redo')"
@@ -126,6 +139,7 @@
                     <li>
                         <button
                             v-t="'cut'"
+                            v-tooltip.right="$t('cutTooltip')"
                             type="button"
                             :disabled="!hasSelection"
                             @click="requestSelectionCut()"
@@ -134,6 +148,7 @@
                     <li>
                         <button
                             v-t="'copy'"
+                            v-tooltip.right="$t('copyTooltip')"
                             type="button"
                             :disabled="!hasSelection"
                             @click="requestSelectionCopy( false )"
@@ -279,24 +294,30 @@
                     @click="close()"
                 >
                     <li>
-                        <button v-t="'selectAll'"
-                                type="button"
-                                :disabled="!activeLayer"
-                                @click="selectAll()"
+                        <button
+                            v-t="'selectAll'"
+                            v-tooltip.right="$t('selectAllTooltip')"
+                            type="button"
+                            :disabled="!activeLayer"
+                            @click="selectAll()"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'deselectAll'"
-                                type="button"
-                                :disabled="!hasSelection"
-                                @click="clearSelection()"
+                        <button
+                            v-t="'deselectAll'"
+                            v-tooltip.right="$t('deselectAllTooltip')"
+                            type="button"
+                            :disabled="!hasSelection"
+                            @click="clearSelection()"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'invertSelection'"
-                                type="button"
-                                :disabled="!hasSelection"
-                                @click="invertSelection()"
+                        <button
+                            v-t="'invertSelection'"
+                            v-tooltip.right="$t('invertSelectionTooltip')"
+                            type="button"
+                            :disabled="!hasSelection"
+                            @click="invertSelection()"
                         ></button>
                     </li>
                     <li>
