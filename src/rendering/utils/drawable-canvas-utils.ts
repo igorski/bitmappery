@@ -41,13 +41,10 @@ export type OverrideConfig = {
 let drawableCanvas: CanvasContextPairing;
 
 /**
- * Lazily create / retrieve a canvas which can be used to render
- * drawable content as a quick live preview measure.
- * The canvas will match the destination canvas size.
+ * Lazily create / retrieve a canvas which can be used to render drawable content on.
+ * This content can be previewed live while drawing and committed to the source canvas when done.
  */
-export const getDrawableCanvas = ( zoomableCanvas: ZoomableCanvas ): CanvasContextPairing => {
-    const width  = zoomableCanvas.getWidth();
-    const height = zoomableCanvas.getHeight();
+export const getDrawableCanvas = ( width: number, height: number ): CanvasContextPairing => {
     if ( !drawableCanvas ) {
         drawableCanvas = createCanvas();
     }
@@ -159,14 +156,9 @@ export const applyOverrideConfig = ( overrideConfig: OverrideConfig, pointers: P
     {
         const point = pointers[ i ];
 
-        // correct for scaling
+        // correct for scaling and viewport offset
 
-        point.x = point.x * scale;
-        point.y = point.y * scale;
-
-        // correct for viewport offset
-
-        point.x -= vpX;
-        point.y -= vpY;
+        point.x = ( point.x * scale ) - vpX;
+        point.y = ( point.y * scale ) - vpY;
     }
 };
