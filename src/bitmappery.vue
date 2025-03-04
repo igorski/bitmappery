@@ -241,7 +241,7 @@ export default {
         }
     },
     mounted(): void {
-        if ( import.meta.env.PROD ) {
+        if ( import.meta.env.MODE === "production" ) {
             window.onbeforeunload = e => {
                 if ( this.activeDocument ) {
                     e.preventDefault();
