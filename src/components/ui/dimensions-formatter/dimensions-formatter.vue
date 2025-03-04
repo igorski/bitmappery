@@ -162,10 +162,11 @@ export default {
 
 <style lang="scss" scoped>
 @use "@/styles/_variables";
+@use "@/styles/form";
 
 .title {
     color: #FFF;
-    margin: variables.$spacing-medium 0 variables.$spacing-medium 50%;
+    margin: variables.$spacing-medium 0 variables.$spacing-medium form.$labelWidth;
 }
 
 .select-combo {
