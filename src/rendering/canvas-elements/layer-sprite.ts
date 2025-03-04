@@ -36,7 +36,6 @@ import { LayerTypes } from "@/definitions/layer-types";
 import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation } from "@/math/point-math";
-import { fastRound } from "@/math/unit-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { getBlendContext, blendLayer } from "@/rendering/blending";
 import { clipContextToSelection } from "@/rendering/clipping";
@@ -143,7 +142,7 @@ class LayerSprite extends ZoomableSprite {
     }
 
     isDrawing(): boolean {
-        return this._brush.down;
+        return this._isPaintMode && this._brush.down;
     }
 
     /**
@@ -407,11 +406,16 @@ class LayerSprite extends ZoomableSprite {
 
     getPaintSize(): Size {
         const source = this.getPaintSource();
+        return { width: source.width, height: source.height };
+        /*
+        // depending on zoom level, the interpolation when committing the drawableCanvas content onto the source
+        // may benefit from a higher resolution when drawing on a zoomed in canvas. But maybe negligible and not worth memory overhead
         const { documentScale } = this.canvas;
-        return {
-            width  : Math.max( source.width,  fastRound( source.width  * documentScale )),
-            height : Math.max( source.height, fastRound( source.height * documentScale )),
-        };
+        return constrain(
+            fastRound( source.width  * documentScale ),
+            fastRound( source.height * documentScale ),
+            MAX_MEGAPIXEL
+        );*/
     };
 
     async storePaintState(): Promise<boolean> {
@@ -588,9 +592,9 @@ class LayerSprite extends ZoomableSprite {
         const { getters } = this.getStore();
 
         if ( this.isDrawing() ) {
-            const compositeOperation = this._toolType === ToolTypes.ERASER ? "destination-out" : undefined;
             commitDrawingToLayer(
-                this.layer, this.getPaintSource(), this.getPaintSize(), this.canvas, this._brush.options.opacity, compositeOperation
+                this.layer, this.getPaintSource(), this.getPaintSize(), this.canvas, this._brush.options.opacity,
+                this._toolType === ToolTypes.ERASER ? "destination-out" : undefined
             );
             disposeDrawableCanvas();
             this.resetFilterAndRecache();
@@ -681,14 +685,12 @@ class LayerSprite extends ZoomableSprite {
         drawContext.restore(); // 1. transformation restore()
 
         // user is currently drawing on this layer, render contents of drawableCanvas onto screen
+        // @todo replace this._paintCanvas check with isDrawing() once there is no conditional behaviour inside paint()
         if ( this._paintCanvas ) {
-            documentContext.save(); // 2. pending painting render save()
-            documentContext.globalAlpha = this._brush.options.opacity;
-            if ( this._toolType === ToolTypes.ERASER || this.isMaskable() ) {
-                documentContext.globalCompositeOperation = "destination-out";
-            }
-            renderDrawableCanvas( documentContext, this.getPaintSize(), this.canvas );
-            documentContext.restore(); // 2. pending painting render restore()
+            renderDrawableCanvas(
+                documentContext, this.getPaintSize(), this.canvas, this._brush.options.opacity,
+                this._toolType === ToolTypes.ERASER || this.isMaskable() ? "destination-out" : undefined,
+            );
         }
 
         if ( altOpacity ) {

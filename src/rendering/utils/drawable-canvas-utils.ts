@@ -56,11 +56,21 @@ export const getDrawableCanvas = ( size: Size ): CanvasContextPairing => {
  * corresponding to provided documentScale. This can be used to render the contents of the drawable canvas
  * while drawing is still taking place for live preview purposes.
  */
-export const renderDrawableCanvas = ( destinationContext: CanvasRenderingContext2D, destinationSize: Size, zoomableCanvas: ZoomableCanvas, offset?: Point ): void => {
+export const renderDrawableCanvas = (
+    destinationContext: CanvasRenderingContext2D, destinationSize: Size, zoomableCanvas: ZoomableCanvas,
+    alpha = 1, compositeOperation?: GlobalCompositeOperation, offset?: Point
+): void => {
     const source = drawableCanvas.cvs;
     const { documentScale } = zoomableCanvas;
 
     const viewport = offset ? zoomableCanvas.getViewport() : undefined;
+
+    destinationContext.save();
+
+    destinationContext.globalAlpha = alpha;
+    if ( compositeOperation !== undefined ) {
+        destinationContext.globalCompositeOperation = compositeOperation;
+    }
 
     destinationContext.drawImage(
         source,
@@ -69,6 +79,8 @@ export const renderDrawableCanvas = ( destinationContext: CanvasRenderingContext
         (( viewport?.top ?? 0 )  * documentScale ) + ( offset?.y ?? 0 ),
         destinationSize.width, destinationSize.height
     );
+
+    destinationContext.restore();
 };
 
 /**
@@ -84,14 +96,6 @@ export const commitDrawingToLayer = (
 
     destinationContext.save();
 
-    // apply the alpha and compositing (this is not applied directly while drawing as
-    // semi-transparent brushing will show uneven blotches when overdrawing)
-
-    destinationContext.globalAlpha = alpha;
-    if ( compositeOperation !== undefined ) {
-        destinationContext.globalCompositeOperation = compositeOperation;
-    }
-
     // correct for the optional layer transformation effects
 
     reverseTransformation( destinationContext, layer );
@@ -103,7 +107,7 @@ export const commitDrawingToLayer = (
 
     // render
 
-    renderDrawableCanvas( destinationContext, destinationSize, zoomableCanvas, { x, y });
+    renderDrawableCanvas( destinationContext, destinationSize, zoomableCanvas, alpha, compositeOperation, { x, y });
 
     destinationContext.restore();
 };
