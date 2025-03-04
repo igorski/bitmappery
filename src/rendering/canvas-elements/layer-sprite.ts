@@ -85,7 +85,7 @@ class LayerSprite extends ZoomableSprite {
     protected _invertSelection: boolean;
     protected _toolType: ToolTypes;
     protected _orgSourceToStore: string;
-    protected _pendingPaintState: number;
+    protected _pendingPaintState: number; // ReturnType<typeof setTimeout>;
     protected _rafFx: boolean;
 
     constructor( layer: Layer ) {
@@ -391,14 +391,14 @@ class LayerSprite extends ZoomableSprite {
      * not delay to history state UI from updating more than necessary.
      */
     preparePendingPaintState(): void {
-        canvasToBlob( this.layer.source ).then( blob => {
+        canvasToBlob( this.getPaintSource() ).then( blob => {
             this._orgSourceToStore = blobToResource( blob );
         });
         this.debouncePaintStore();
     }
 
     debouncePaintStore( timeout: number = 5000 ): void {
-        this._pendingPaintState = window.setTimeout( this.storePaintState.bind( this ), timeout ) as unknown as number;
+        this._pendingPaintState = window.setTimeout( this.storePaintState.bind( this ), timeout );
     }
 
     getPaintSource(): HTMLCanvasElement {
@@ -430,14 +430,15 @@ class LayerSprite extends ZoomableSprite {
 
         this._orgSourceToStore = null;
 
-        const blob = await canvasToBlob( layer.source );
+        const isMask = this.isMaskable();
+        const blob   = await canvasToBlob( this.getPaintSource() );
         const newState = blobToResource( blob );
         enqueueState( `spritePaint_${layer.id}`, {
             undo(): void {
-                restorePaintFromHistory( layer, orgState );
+                restorePaintFromHistory( layer, orgState, isMask );
             },
             redo(): void {
-                restorePaintFromHistory( layer, newState);
+                restorePaintFromHistory( layer, newState, isMask );
             },
             resources: [ orgState, newState ],
         });
@@ -781,9 +782,10 @@ function positionSpriteFromHistory( layer: Layer, x: number, y: number ): void {
     }
 }
 
-function restorePaintFromHistory( layer: Layer, state: string ): void {
-    const ctx = layer.source.getContext( "2d" );
-    ctx.clearRect( 0, 0, layer.source.width, layer.source.height );
+function restorePaintFromHistory( layer: Layer, state: string, isMask: boolean ): void {
+    const source = isMask ? layer.mask : layer.source;
+    const ctx = source.getContext( "2d" ) as CanvasRenderingContext2D;
+    ctx.clearRect( 0, 0, source.width, source.height );
     const image  = new Image();
     image.onload = () => {
         ctx.drawImage( image, 0, 0 );

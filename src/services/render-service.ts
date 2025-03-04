@@ -31,6 +31,7 @@ import { replaceLayerSource } from "@/utils/layer-util";
 import { clone } from "@/utils/object-util";
 import { getLayerCache, setLayerCache } from "@/rendering/cache/bitmap-cache";
 import type { RenderCache } from "@/rendering/cache/bitmap-cache";
+import { maskImage } from "@/rendering/masking";
 import { renderMultiLineText } from "@/rendering/text";
 import { loadGoogleFont } from "@/services/font-service";
 import FilterWorker from "@/workers/filter.worker?worker";
@@ -132,7 +133,7 @@ export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): 
 
     if ( applyMask ) {
         //console.info( "apply mask" );
-        await renderMask( layer, ctx, applyFilter ? cloneCanvas( cvs ) : layer.source, width, height );
+        renderMask( layer, ctx, applyFilter ? cloneCanvas( cvs ) : layer.source, width, height );
     }
 
     // step 4. update cache and on-screen canvas contents
@@ -222,20 +223,11 @@ const renderText = async ( layer: Layer ): Promise<HTMLCanvasElement> => {
     return cvs;
 };
 
-const renderMask = async ( layer: Layer, ctx: CanvasRenderingContext2D, sourceBitmap: HTMLCanvasElement,
-    width: number, height: number ): Promise<void> => {
+const renderMask = ( layer: Layer, ctx: CanvasRenderingContext2D, sourceBitmap: HTMLCanvasElement, width: number, height: number ): void => {
     if ( !layer.mask ) {
         return;
     }
-    ctx.clearRect( 0, 0, width, height );
-    ctx.drawImage( sourceBitmap, 0, 0 );
-
-    ctx.save();
-
-    // commenting out the next line allows you to debug by seeing the mask
-    ctx.globalCompositeOperation = "destination-out";
-    ctx.drawImage( layer.mask, layer.maskX, layer.maskY );
-    ctx.restore();
+    maskImage( ctx, sourceBitmap, layer.mask, width, height, layer.maskX, layer.maskY );
 };
 
 function getJobFromQueue( jobId: number ): RenderJob | undefined {
