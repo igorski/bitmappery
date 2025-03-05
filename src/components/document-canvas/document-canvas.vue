@@ -396,6 +396,10 @@ export default {
                 case ToolTypes.DRAG:
                     canvasClasses.add( "cursor-drag" );
                     break;
+                case ToolTypes.SELECTION:
+                case ToolTypes.LASSO:
+                    canvasClasses.add( "cursor-crosshair" );
+                    break;
                 case ToolTypes.BRUSH:
                 case ToolTypes.CLONE:
                 case ToolTypes.ERASER:
@@ -429,7 +433,7 @@ export default {
                 } else if ( this.layerSelectMode ) {
                     mode = InteractionModes.MODE_LAYER_SELECT;
                 } else if ( this.selectMode ) {
-                    mode =InteractionModes.MODE_SELECTION;
+                    mode = InteractionModes.MODE_SELECTION;
                 }
                 zCanvas.interactionPane.setState( enabled, mode, this.activeTool, this.activeToolOptions );
                 if ( enabled ) {

@@ -383,8 +383,8 @@ class InteractionPane extends sprite {
     }
 
     update( _now: DOMHighResTimeStamp, framesSinceLastUpdate: number ): void {
-        if ( this.getActiveDocument().activeSelection?.length > 0 ) {
-            this._dashOffset -= ( DASH_SPEED * framesSinceLastUpdate ); // advance the outline animation
+        if ( this._selectionClosed && this.getActiveDocument().activeSelection?.length ) {
+            this._dashOffset -= ( DASH_SPEED * framesSinceLastUpdate ); // advance the selection outline animation
         }
     }
 
