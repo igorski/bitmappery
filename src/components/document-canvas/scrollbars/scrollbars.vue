@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -49,7 +49,7 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { mapState } from "vuex";
 
 const MOVE_EVENTS = [ "mousemove", "touchmove", "wheel" ];
@@ -93,31 +93,31 @@ export default {
         ...mapState([
             "windowSize",
         ]),
-        horHandleStyle() {
+        horHandleStyle(): { left: string, top: string } {
             return {
                 left: `${this.horHandlePos}px`,
                 width: `${this.horHandleSize}px`
             };
         },
-        verHandleStyle() {
+        verHandleStyle(): { top: string, height: string } {
             return {
                 top: `${this.verHandlePos}px`,
                 height: `${this.verHandleSize}px`
             };
         },
-        canScrollHorizontally() {
+        canScrollHorizontally(): boolean {
             return this.scrollWidth > 0;
         },
-        canScrollVertically() {
+        canScrollVertically(): boolean {
             return this.scrollHeight > 0;
         }
     },
     watch: {
-        windowSize() {
+        windowSize(): void {
             this.calcDimensions();
         },
     },
-    mounted() {
+    mounted(): void {
         this.upHandler   = this.handlePointerUp.bind( this );
         this.moveHandler = this.handleScroll.bind( this );
 
@@ -127,7 +127,7 @@ export default {
         this.calcDimensions();
     },
     methods: {
-        calcDimensions() {
+        calcDimensions(): void {
             this.trackWidth  = this.$refs.horScroll.offsetWidth;
             this.trackHeight = this.$refs.verScroll.offsetHeight;
 
@@ -137,7 +137,7 @@ export default {
             this.horHandleSize = ( this.viewportWidth  / this.contentWidth )  * this.trackWidth;
             this.verHandleSize = ( this.viewportHeight / this.contentHeight ) * this.trackHeight;
         },
-        handlePointerDown( e ) {
+        handlePointerDown( e: PointerEvent ): void {
             this.hasHorizontalScroll = e.target === this.$refs.horScroll;
             this.hasVerticalScroll   = e.target === this.$refs.verScroll;
 
@@ -148,7 +148,7 @@ export default {
                 window.addEventListener( type, this.moveHandler, { passive: false });
             });
         },
-        handlePointerUp() {
+        handlePointerUp(): void {
             this.hasHorizontalScroll = false;
             this.hasVerticalScroll   = false;
 
@@ -159,7 +159,7 @@ export default {
                 window.removeEventListener( type, this.moveHandler );
             });
         },
-        handleScroll( e ) {
+        handleScroll( e: PointerEvent | TouchEvent ): void {
             if ( e.target !== this.$refs.horScroll && e.target !== this.$refs.verScroll ) {
                 return;
             }
@@ -184,17 +184,17 @@ export default {
             }
             this.$emit( "input", { left: this.x, top: this.y });
         },
-        update( left, top ) {
+        update( left: number, top: number ): void {
             this.x = isNaN( left ) ? 0 : left;
             this.y = isNaN( top )  ? 0 : top;
 
             this.positionHorizontalHandle();
             this.positionVerticalHandle();
         },
-        positionHorizontalHandle() {
+        positionHorizontalHandle(): void {
             this.horHandlePos = ( this.trackWidth - this.horHandleSize ) * this.x;
         },
-        positionVerticalHandle() {
+        positionVerticalHandle(): void {
             this.verHandlePos = ( this.trackHeight - this.verHandleSize ) * this.y;
         },
     }

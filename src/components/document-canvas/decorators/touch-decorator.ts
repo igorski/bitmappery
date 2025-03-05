@@ -1,3 +1,4 @@
+import type { GestureEvent, Pan, Pinch, PointerListener, Tap, TwoFingerPan } from "contactjs";
 import { mapGetters, mapMutations } from "vuex";
 import ToolTypes, { MAX_ZOOM } from "@/definitions/tool-types";
 import { getCanvasInstance } from "@/factories/sprite-factory";
@@ -5,7 +6,13 @@ import { scale } from "@/math/unit-math";
 import { cancelableCallback } from "@/utils/debounce-util";
 import { fitInWindow } from "@/utils/zoom-util";
 
-let Contact;
+let Contact: {
+    ["Pan"]: typeof Pan,
+    ["Pinch"]: typeof Pinch,
+    ["PointerListener"]: typeof PointerListener,
+    ["Tap"]: typeof Tap,
+    ["TwoFingerPan"]: typeof TwoFingerPan,
+};
 
 export default {
     computed: {
@@ -18,7 +25,7 @@ export default {
         ...mapMutations([
             "updateLayerEffects",
         ]),
-        detectTouch() {
+        detectTouch(): void {
             this.usesTouch = false;
             const handler = () => {
                 document.body.removeEventListener( "touchstart", handler );
@@ -26,7 +33,7 @@ export default {
             };
             document.body.addEventListener( "touchstart", handler );
         },
-        async addTouchListeners( element ) {
+        async addTouchListeners( element: HTMLElement ): Promise<void> {
             if ( !this.usesTouch || !element ) {
                 return;
             }
@@ -65,7 +72,7 @@ export default {
 
             // 1. zoom on pinch
 
-            this.listener.on( "pinch", event => {
+            this.listener.on( "pinch", ( event: GestureEvent ) => {
                 if ( !this.pinchActive ) {
                     this.pinchActive = true;
                     handleGestureStart();
@@ -74,15 +81,17 @@ export default {
                 const value = scale( event.detail.global.scale, 10, MAX_ZOOM );
                 this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value });
             });
+
             this.listener.on( "pinchend", () => {
                 this.pinchActive = false;
                 handleGestureEnd();
             });
+            // @ts-expect-error Element implicitly has an 'any' type because index expression is not of type 'number'.
             element.style[ "touch-action" ] = "none"; // disable default behaviour
 
             // 2. pan on twofingerpan
 
-            this.listener.on( "twofingerpan", () => {
+            this.listener.on( "twofingerpan", ( event: GestureEvent ) => {
                 if ( !this.panOrigin ) {
                     handleGestureStart();
                     this.panOrigin = { ...zCanvas.getViewport() };
@@ -112,12 +121,12 @@ export default {
                 lastTap = now;
             });
         },
-        removeTouchListeners() {
+        removeTouchListeners(): void {
             this.listener?.destroy();
             this.listener = null;
         },
         /*
-        handleRotateGesture( event ) {
+        handleRotateGesture( event ) : void{
             // TODO: this should go into history
             this.updateLayerEffects({
                 index: this.activeLayerIndex,

@@ -15,7 +15,7 @@
   "dependencies": {
     "@simonwep/pickr": "^1.8.0",
     "buffer": "^6.0.3",
-    "contactjs": "^1.4.0",
+    "contactjs": "^2.1.7",
     "dropbox": "^10.26.0",
     "floating-vue": "^5.2.2",
     "gifshot": "^0.4.5",

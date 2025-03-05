@@ -327,7 +327,7 @@ $toolButtonWidth: variables.$spacing-large;
             position: fixed;
             left: 0;
             width: $dockedOffset;
-            height: variables.$menu-height;
+            height: variables.$menu-height - variables.$spacing-xsmall;
             padding-right: variables.$spacing-xsmall;
             background-image: colors.$color-window-bg;
         }
@@ -423,7 +423,7 @@ $toolButtonWidth: variables.$spacing-large;
                 left: #{((variables.$spacing-small + $toolButtonWidth) * 2 ) + variables.$spacing-large};
 
                 :first-child {
-                    margin-top: -#{variables.$spacing-small + variables.$spacing-xsmall};
+                    margin-top: -#{variables.$spacing-small + variables.$spacing-xxsmall};
                 }
             }
         }
@@ -444,10 +444,6 @@ $toolButtonWidth: variables.$spacing-large;
         margin: variables.$spacing-xxsmall variables.$spacing-small 0 variables.$spacing-xxsmall;
         @include typography.customFont();
         color: #FFF;
-    }
-
-    .color-picker {
-        margin-top: -(variables.$spacing-xsmall);
     }
 }
 
