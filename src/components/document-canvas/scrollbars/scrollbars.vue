@@ -93,7 +93,7 @@ export default {
         ...mapState([
             "windowSize",
         ]),
-        horHandleStyle(): { left: string, top: string } {
+        horHandleStyle(): { left: string, width: string } {
             return {
                 left: `${this.horHandlePos}px`,
                 width: `${this.horHandleSize}px`

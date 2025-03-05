@@ -243,11 +243,10 @@ export default {
     mounted(): void {
         if ( import.meta.env.MODE === "production" ) {
             window.onbeforeunload = e => {
-                if ( this.activeDocument ) {
+                if ( !!this.activeDocument ) {
                     e.preventDefault();
                     return this.$t( "warningUnload" );
                 }
-                return true;
             };
         }
 
