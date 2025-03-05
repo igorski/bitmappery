@@ -24,7 +24,7 @@ import type { Store, Commit, Dispatch } from "vuex";
 import type { Shape } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import { ALL_PANELS } from "@/definitions/panel-types";
-import ToolTypes, { MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM, canDraw } from "@/definitions/tool-types";
+import ToolTypes, { canDraw, MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import {
     CREATE_DOCUMENT, ADD_LAYER, SAVE_DOCUMENT, DROPBOX_FILE_SELECTOR,
 } from "@/definitions/modal-windows";

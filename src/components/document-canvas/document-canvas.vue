@@ -213,17 +213,7 @@ export default {
             this.handleActiveLayer();
         },
         activeTool( tool: ToolTypes ): void {
-            const isSelectionTool = SELECTION_TOOLS.includes( tool );
-            this.setSelectMode( isSelectionTool );
-
-            if ( usesInteractionPane( tool )) {
-                this.setPanMode( tool === ToolTypes.MOVE );
-                this.updateInteractionPane( isSelectionTool && tool !== ToolTypes.WAND ? "cursor-crosshair" : undefined );
-            } else {
-                this.handleCursor();
-                getCanvasInstance()?.interactionPane?.handleActiveTool( tool, false );
-            }
-            this.handleGuides();
+            this.handleActiveTool( tool );
         },
         hasSelection( value: boolean ): void {
             getCanvasInstance()?.setAnimatable( value ); // show animated selection outline
@@ -413,6 +403,19 @@ export default {
         updateGuideModes(): void {
             guideRenderer?.setModes( this.snapAlign, this.pixelGrid );
         },
+        handleActiveTool( tool: ToolTypes ): void {
+            const isSelectionTool = SELECTION_TOOLS.includes( tool );
+            this.setSelectMode( isSelectionTool );
+
+            if ( usesInteractionPane( tool )) {
+                this.setPanMode( tool === ToolTypes.MOVE );
+                this.updateInteractionPane( isSelectionTool && tool !== ToolTypes.WAND ? "cursor-crosshair" : undefined );
+            } else {
+                this.handleCursor();
+                getCanvasInstance()?.interactionPane?.handleActiveTool( tool, false );
+            }
+            this.handleGuides();
+        },
         handleGuides(): void {
             if ( !this.snapAlign ) {
                 return;
@@ -425,24 +428,27 @@ export default {
         },
         updateInteractionPane( pointerStyle = "cursor-pointer" ): void {
             const zCanvas = getCanvasInstance();
-            if ( zCanvas ) {
-                const enabled = true; // always enabled (shows active layer outline)//this.panMode || this.layerSelectMode || this.selectMode;
-                let mode;
-                if ( this.panMode ) {
-                    mode = InteractionModes.MODE_PAN;
-                } else if ( this.layerSelectMode ) {
-                    mode = InteractionModes.MODE_LAYER_SELECT;
-                } else if ( this.selectMode ) {
-                    mode = InteractionModes.MODE_SELECTION;
-                }
-                zCanvas.interactionPane.setState( enabled, mode, this.activeTool, this.activeToolOptions );
-                if ( enabled ) {
-                    const classList = zCanvas.getElement().classList;
-                    classList.remove( ...classList );
-                    classList.add( pointerStyle );
-                } else {
-                    this.handleCursor(); // restore cursor to value appropriate to current tool
-                }
+            if ( !zCanvas ) {
+                return;
+            }
+            const enabled = true; // always enabled (shows active layer outline)//this.panMode || this.layerSelectMode || this.selectMode;
+            let mode: InteractionModes;
+            if ( this.panMode ) {
+                mode = InteractionModes.MODE_PAN;
+            } else if ( this.layerSelectMode ) {
+                mode = InteractionModes.MODE_LAYER_SELECT;
+            } else if ( this.selectMode ) {
+                mode = InteractionModes.MODE_SELECTION;
+            } else {
+                return this.handleActiveTool( this.activeTool ); // likely unsetting mode through keyboard shortcut (e.g. space-pan/(de)select all)
+            }
+            zCanvas.interactionPane.setState( enabled, mode, this.activeTool, this.activeToolOptions );
+            if ( enabled ) {
+                const classList = zCanvas.getElement().classList;
+                classList.remove( ...classList );
+                classList.add( pointerStyle );
+            } else {
+                this.handleCursor(); // restore cursor to value appropriate to current tool
             }
         },
         /**
