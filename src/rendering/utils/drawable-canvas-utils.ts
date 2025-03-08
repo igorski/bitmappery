@@ -76,7 +76,7 @@ export const renderDrawableCanvas = (
         source,
         0, 0, source.width, source.height,
         (( viewport?.left ?? 0 ) * documentScale ) + ( offset?.x ?? 0 ),
-        (( viewport?.top ?? 0 )  * documentScale ) + ( offset?.y ?? 0 ),
+        (( viewport?.top  ?? 0 ) * documentScale ) + ( offset?.y ?? 0 ),
         destinationSize.width, destinationSize.height
     );
 

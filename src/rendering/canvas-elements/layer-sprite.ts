@@ -318,29 +318,29 @@ class LayerSprite extends ZoomableSprite {
         const usePaintCanvas = this.usePaintCanvas();
         const doTransform    = isFillMode && this.toolOptions.smartFill;
 
-        let orgContext = ctx;
         if ( usePaintCanvas ) {
             // drawing is handled on a temporary, drawable Canvas
             this._paintCanvas = this._paintCanvas || getDrawableCanvas( this.getPaintSize() );
-            orgContext = ctx;
             ctx = this._paintCanvas.ctx;
 
             if ( selection ) {
                 ctx.save(); // 1. drawableCanvas clipping save()
-                // note no offset is required as we are drawing on the full-size _paintCanvas
+                // note no offset is required when drawing on the full-size _paintCanvas
                 clipContextToSelection( ctx, selection, 0, 0, this._invertSelection, transformedPointers );
             }
         } else if ( selection ) {
             ctx.save(); // 1. clipping save()
             if ( doTransform ) {
                 console.info('transform');
-                reverseTransformation( ctx, this.layer, this.canvas.getViewport());
+                reverseTransformation( ctx, this.layer );
             }
+            console.info('hiiieaaa');
             clipContextToSelection( ctx, selection, this.layer.left, this.layer.top, this._invertSelection );
         }
 
         if ( optAction ) {
             if ( optAction.type === "stroke" ) {
+                console.info('is stroke. use paint canvas? (it SHOULD) : ',usePaintCanvas)
                 ctx.strokeStyle = optAction.color;
                 ctx.lineWidth   = ( optAction.size ?? 1 ) / this.canvas.documentScale;
                 ctx.stroke();
@@ -351,19 +351,14 @@ class LayerSprite extends ZoomableSprite {
             if ( this.toolOptions.smartFill ) {
                 // smart fill doesn't work on transformed layers just yet
                 const point = rotatePointer( this._pointerX, this._pointerY, this.layer, width, height );
-                floodFill( ctx, point.x, point.y, color );
+                floodFill( ctx, point.x * this.layer.scale, point.y, color );
             } else {
                 ctx.fillStyle = this.getStore().getters.activeColor;
-
                 if ( selection ) {
                     ctx.fill();
                 } else {
-                    // @todo doesn't actually fill full layer but viewport
                     ctx.fillRect( 0, 0, width, height );
                 }
-            }
-            if ( selection ) {
-                ctx.closePath(); // is this actually necessary ?
             }
         } else if ( isDrawing ) {
             if ( isCloneStamp ) {
@@ -383,7 +378,7 @@ class LayerSprite extends ZoomableSprite {
             ctx.restore(); // 1. clipping restore()
         }
 
-        // while user is drawing, defer recache of filters to handleRelease()
+        // while user is drawing, recache of filters is deferred to the handleRelease() handler
         if ( !isDrawing ) {
             this.resetFilterAndRecache();
         }
@@ -408,11 +403,11 @@ class LayerSprite extends ZoomableSprite {
 
     usePaintCanvas(): boolean {
         // all drawing actions happen on a temporary canvas with the expection of cloned
-        // brushing and the smart fill mode as they operate directly on the source layer
-        // @todo no reason for cloning to work on the source directly!
+        // brushing, fills without selection and smart fill mode as these operate directly on the source layer
+        // @todo there is no reason for cloning to work on the source directly!
         const isCloneStamp = this._toolType === ToolTypes.CLONE;
         const isFillMode   = this._toolType === ToolTypes.FILL;
-        return ( isFillMode && !this.toolOptions.smartFill ) || ( this.isDrawing() && !isCloneStamp );
+        return ( isFillMode && this._selection && !this.toolOptions.smartFill ) || ( this.isDrawing() && !isCloneStamp );
     }
 
     getPaintSource(): HTMLCanvasElement {
