@@ -43,7 +43,7 @@ import { renderClonedStroke } from "@/rendering/cloning";
 import { renderBrushStroke } from "@/rendering/drawing";
 import { floodFill } from "@/rendering/fill";
 import { snapSpriteToGuide } from "@/rendering/snapping";
-import { applyTransformation } from "@/rendering/transforming";
+import { applyTransformation, reverseTransformation } from "@/rendering/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
 import {
     getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, commitDrawingToLayer, sliceBrushPointers, createOverrideConfig
@@ -301,19 +301,41 @@ class LayerSprite extends ZoomableSprite {
         }
         const isCloneStamp = this._toolType === ToolTypes.CLONE;
         const isFillMode   = this._toolType === ToolTypes.FILL;
-
+        const isDrawing    = this.isDrawing();
+        
         // get the drawing context
         let ctx = this.getPaintSource().getContext( "2d" ) as CanvasRenderingContext2D;
         const { width, height } = ctx.canvas;
 
-        ctx.save(); // 1. preparation save()
-
-        const isDrawing = this.isDrawing();
-
         // if there is an active selection, painting will be constrained within
         let selection: Selection = optAction?.selection || this._selection;
-        if ( selection ) {
-            ctx.save(); // 2. clipping save()
+
+        // get the enqueued pointers which are to be rendered in this paint cycle
+        const pointers = isDrawing ? sliceBrushPointers( this._brush ) : undefined;
+        const transformedPointers = createOverrideConfig( this.canvas, pointers );
+        
+        // smart fill mode operates directly on source, all other drawing operations on a temporary Canvas
+        const usePaintCanvas = this.usePaintCanvas();
+        const doTransform    = isFillMode && this.toolOptions.smartFill;
+
+        let orgContext = ctx;
+        if ( usePaintCanvas ) {
+            // drawing is handled on a temporary, drawable Canvas
+            this._paintCanvas = this._paintCanvas || getDrawableCanvas( this.getPaintSize() );
+            orgContext = ctx;
+            ctx = this._paintCanvas.ctx;
+
+            if ( selection ) {
+                ctx.save(); // 1. drawableCanvas clipping save()
+                // note no offset is required as we are drawing on the full-size _paintCanvas
+                clipContextToSelection( ctx, selection, 0, 0, this._invertSelection, transformedPointers );
+            }
+        } else if ( selection ) {
+            ctx.save(); // 1. clipping save()
+            if ( doTransform ) {
+                console.info('transform');
+                reverseTransformation( ctx, this.layer, this.canvas.getViewport());
+            }
             clipContextToSelection( ctx, selection, this.layer.left, this.layer.top, this._invertSelection );
         }
 
@@ -325,57 +347,41 @@ class LayerSprite extends ZoomableSprite {
             }
         } else if ( isFillMode ) {
             const color = this.getStore().getters.activeColor;
+   
             if ( this.toolOptions.smartFill ) {
+                // smart fill doesn't work on transformed layers just yet
                 const point = rotatePointer( this._pointerX, this._pointerY, this.layer, width, height );
                 floodFill( ctx, point.x, point.y, color );
             } else {
                 ctx.fillStyle = this.getStore().getters.activeColor;
-                if ( this._selection ) {
+
+                if ( selection ) {
                     ctx.fill();
                 } else {
+                    // @todo doesn't actually fill full layer but viewport
                     ctx.fillRect( 0, 0, width, height );
                 }
             }
-            if ( this._selection ) {
-                ctx.closePath(); // is this necessary ?
+            if ( selection ) {
+                ctx.closePath(); // is this actually necessary ?
             }
         } else if ( isDrawing ) {
-            // get the enqueued pointers which are to be rendered in this paint cycle
-            const pointers = sliceBrushPointers( this._brush );
-
             if ( isCloneStamp ) {
                 renderClonedStroke( ctx, this._brush, this, this.toolOptions.sourceLayerId,
                     rotatePointers( pointers, this.layer, width, height )
                 );
                 this.setBitmap( ctx.canvas );
             } else {
-                const orgContext = ctx;
-
-                // brush operations are done on a lower resolution canvas during live update
+                // brush operations are done on the temporary canvas while drawing
                 // where each individual brush stroke is rendered in successive iterations.
-                // upon release, the full stroke is rendered on the Layer source (see handleRelease())
-                let overrides = null;
-                // drawing is handled on a temporary, drawable Canvas
-                this._paintCanvas = this._paintCanvas || getDrawableCanvas( this.getPaintSize() );
-                overrides = createOverrideConfig( this.canvas, pointers );
-                ctx = this._paintCanvas.ctx;
-
-                if ( selection && this._paintCanvas ) {
-                    ctx.save(); // 3. drawableCanvas clipping save()
-                    // note no offset is required as we are drawing on the full-size _paintCanvas
-                    clipContextToSelection( ctx, selection, 0, 0, this._invertSelection, overrides );
-                }
-                this._lastBrushIndex = renderBrushStroke( ctx, this._brush, overrides, this._lastBrushIndex );
-
-                if ( selection ) {
-                    orgContext.restore(); // 3. drawableCanvas clipping restore()
-                }
+                // upon release, the result is rendered on the Layer source (see handleRelease())
+                this._lastBrushIndex = renderBrushStroke( ctx, this._brush, transformedPointers, this._lastBrushIndex );
             }
         }
+        
         if ( selection ) {
-            ctx.restore(); // 2. clipping restore()
+            ctx.restore(); // 1. clipping restore()
         }
-        ctx.restore(); // 1. preparation restore()
 
         // while user is drawing, defer recache of filters to handleRelease()
         if ( !isDrawing ) {
@@ -398,6 +404,15 @@ class LayerSprite extends ZoomableSprite {
 
     debouncePaintStore( timeout: number = 5000 ): void {
         this._pendingPaintState = window.setTimeout( this.storePaintState.bind( this ), timeout );
+    }
+
+    usePaintCanvas(): boolean {
+        // all drawing actions happen on a temporary canvas with the expection of cloned
+        // brushing and the smart fill mode as they operate directly on the source layer
+        // @todo no reason for cloning to work on the source directly!
+        const isCloneStamp = this._toolType === ToolTypes.CLONE;
+        const isFillMode   = this._toolType === ToolTypes.FILL;
+        return ( isFillMode && !this.toolOptions.smartFill ) || ( this.isDrawing() && !isCloneStamp );
     }
 
     getPaintSource(): HTMLCanvasElement {
@@ -591,7 +606,7 @@ class LayerSprite extends ZoomableSprite {
     handleRelease( _x: number, _y: number ): void {
         const { getters } = this.getStore();
 
-        if ( this.isDrawing() ) {
+        if ( this.usePaintCanvas() ) {
             commitDrawingToLayer(
                 this.layer, this.getPaintSource(), this.getPaintSize(), this.canvas, this._brush.options.opacity,
                 this._toolType === ToolTypes.ERASER ? "destination-out" : undefined
@@ -685,8 +700,7 @@ class LayerSprite extends ZoomableSprite {
         drawContext.restore(); // 1. transformation restore()
 
         // user is currently drawing on this layer, render contents of drawableCanvas onto screen
-        // @todo replace this._paintCanvas check with isDrawing() once there is no conditional behaviour inside paint()
-        if ( this._paintCanvas ) {
+        if ( this.isDrawing()) {
             renderDrawableCanvas(
                 documentContext, this.getPaintSize(), this.canvas, this._brush.options.opacity,
                 this._toolType === ToolTypes.ERASER || this.isMaskable() ? "destination-out" : undefined,
@@ -746,7 +760,7 @@ function rotatePointers( pointers: Point[], layer: Layer, sourceWidth: number, s
     // we take layer.left instead of bounds.left as it provides the unrotated Layer offset
     const { left, top } = layer;
     // translate pointer to translated space, when layer is rotated or mirrored
-    const { mirrorX, mirrorY, rotation } = layer.effects;
+    const { mirrorX, mirrorY, scale, rotation } = layer.effects;
     return pointers.map( point => {
         // translate recorded pointer towards rotated point
         // and against layer position
@@ -763,6 +777,9 @@ function rotatePointers( pointers: Point[], layer: Layer, sourceWidth: number, s
         if ( mirrorY ) {
             p.y -= sourceHeight;
         }
+        p.x *= scale;
+        p.y *= scale;
+
         return p;
     });
 }
