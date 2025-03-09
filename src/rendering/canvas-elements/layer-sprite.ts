@@ -435,14 +435,13 @@ class LayerSprite extends ZoomableSprite {
         this._pendingPaintState = undefined;
 
         const original = this._orgSourceToStore; // grab reference to avoid race conditions while creating Blobs during continued painting
+        this._orgSourceToStore = undefined;
 
         const newBlob  = await canvasToBlob( this.getPaintSource() );
         const newState = blobToResource( newBlob );
         const orgBlob  = await canvasToBlob( original );
         const orgState = blobToResource( orgBlob );
         
-        this._orgSourceToStore = undefined;
-
         const layer  = this.layer;
         const isMask = this.isMaskable();
 
