@@ -312,6 +312,7 @@ class LayerSprite extends ZoomableSprite {
 
         // get the enqueued pointers which are to be rendered in this paint cycle
         const pointers = isDrawing ? sliceBrushPointers( this._brush ) : undefined;
+        // @todo these are not pointers...
         const transformedPointers = createOverrideConfig( this.canvas, pointers );
         
         // most drawing operations operate directly onto a temporary Canvas
@@ -357,10 +358,7 @@ class LayerSprite extends ZoomableSprite {
             }
         } else if ( isDrawing ) {
             if ( isCloneStamp ) {
-                renderClonedStroke( ctx, this._brush, this, this.toolOptions.sourceLayerId,
-                    rotatePointers( pointers, this.layer, width, height )
-                );
-                this.setBitmap( ctx.canvas );
+                this._lastBrushIndex = renderClonedStroke( ctx, this._brush, this, this.toolOptions.sourceLayerId, pointers, transformedPointers, this._lastBrushIndex );
             } else {
                 this._lastBrushIndex = renderBrushStroke( ctx, this._brush, transformedPointers, this._lastBrushIndex );
             }
@@ -394,10 +392,8 @@ class LayerSprite extends ZoomableSprite {
     usePaintCanvas(): boolean {
         // all drawing actions happen on a temporary canvas with the exception of cloned
         // brushing and selection-less fills as these operate directly on the source layer
-        // @todo there is no reason for cloning to work on the source directly!
-        const isCloneStamp = this._toolType === ToolTypes.CLONE;
-        const isFillMode   = this._toolType === ToolTypes.FILL;
-        return ( isFillMode && !!this._selection ) || ( this.isDrawing() && !isCloneStamp );
+       const isFillMode = this._toolType === ToolTypes.FILL;
+        return ( isFillMode && !!this._selection ) || this.isDrawing();
     }
     
     isPainting(): boolean {
