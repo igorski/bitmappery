@@ -391,7 +391,7 @@ class LayerSprite extends ZoomableSprite {
     usePaintCanvas(): boolean {
         // all drawing actions happen on a temporary canvas with the exception of cloned
         // brushing and selection-less fills as these operate directly on the source layer
-       const isFillMode = this._toolType === ToolTypes.FILL;
+        const isFillMode = this._toolType === ToolTypes.FILL;
         return ( isFillMode && !!this._selection ) || this.isDrawing();
     }
     
