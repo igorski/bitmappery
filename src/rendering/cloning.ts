@@ -82,7 +82,8 @@ export const renderClonedStroke = (
     const overrides = clone( pointers );
     applyOverrideConfig( overrideConfig, overrides );
 
-    const gradientFill = createDrawable( brush, ctx, radius, radius );
+    ctx.globalAlpha = opacity;
+    ctx.fillStyle   = createDrawable( brush, ctx, radius, radius );
 
     let i = lastIndex;
     for ( i; i < pointers.length; ++i ) {
@@ -94,7 +95,6 @@ export const renderClonedStroke = (
 
         // draw source bitmap data onto temporary canvas
         ctx.globalCompositeOperation = "source-over";
-        ctx.globalAlpha = opacity;
 
         ctx.clearRect( 0, 0, cvs.width, cvs.height );
 
@@ -114,8 +114,6 @@ export const renderClonedStroke = (
     
         // draw the brush above the bitmap, keeping only the overlapping area
         ctx.globalCompositeOperation = "destination-in";
-
-        ctx.fillStyle = gradientFill;
         ctx.fillRect( 0, 0, doubleRadius, doubleRadius );
 
         // draw the masked result onto the destination canvas
