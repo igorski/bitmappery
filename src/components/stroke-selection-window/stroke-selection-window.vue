@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2022 - https://www.igorski.nl
+ * Igor Zinken 2022-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -65,7 +65,7 @@
     </modal>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import ColorPicker from "@/components/ui/color-picker/color-picker.vue";
 import Modal from "@/components/modal/modal.vue";
@@ -90,25 +90,25 @@ export default {
             "activeLayer",
             "activeColor",
         ]),
-        isValid() {
+        isValid(): boolean {
             return this.size > 0 && this.color;
         },
     },
-    created() {
+    created(): void {
         this.color = this.activeColor;
     },
-    mounted() {
+    mounted(): void {
         focus( this.$refs.sizeInput );
     },
     methods: {
         ...mapMutations([
             "closeModal",
         ]),
-        stroke() {
+        stroke(): void {
             if ( !this.isValid ) {
                 return;
             }
-            getSpriteForLayer( this.activeLayer ).paint({
+            getSpriteForLayer( this.activeLayer )?.paint({
                 type      : "stroke",
                 size      : this.size,
                 color     : this.color,
@@ -131,7 +131,7 @@ export default {
 .color-picker {
     width: 50%;
     display: inline-block;
-    transform: translateY(-(variables.$spacing-xsmall));
+    transform: translateY(variables.$spacing-xxsmall);
 }
 
 .size-input {

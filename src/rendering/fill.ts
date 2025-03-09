@@ -20,6 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { type Point } from "zcanvas";
 import { selectByColor } from "@/math/selection-math";
 
 const TWO_PI = Math.PI * 2;
@@ -45,7 +46,8 @@ export const floodFill = ( ctx: CanvasRenderingContext2D, sourceX: number, sourc
     ctx.lineJoin    = "round";
     ctx.lineCap     = "round";
 
-    let point, nextPoint;
+    let point: Point;
+    let nextPoint: Point;
 
     if ( path.length < 3 ) {
         point = path[ 0 ];
