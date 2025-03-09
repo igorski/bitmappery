@@ -2,15 +2,14 @@
 
 ## So you are rebuilding Photoshop in the browser ?
 
-No, I'm building a tool that does the bare minimum what I require and what I don't
-find in other open source tools. That doesn't mean of course that contributions
-related to Photoshop-esque features aren't welcomed.
+No, I'm building a tool that does the bare minimum of what I require and what I don't
+find in other open source tools (or rather: _not entirely to my preference_). That doesn't mean of course
+that contributions related to Photoshop-esque features aren't welcomed ;-)
 
 ### All hand-written ?
 
-Yep, though it helps having worked in the photo software industry for five years, having
-tackled the problems before. Also, BitMappery is reusing [zCanvas](https://github.com/igorski/zCanvas)
-under the hood for rendering and bitmap blitting. BitMappery is written on top of [Vue](https://github.com/vuejs/vue) using [Vuex](https://github.com/vuejs/vuex) and [VueI18n](https://github.com/kazupon/vue-i18n).
+Yep, though having worked in the photo software industry, I had a head start by having tackled the problems before. Also, BitMappery
+is reusing igorski's [zCanvas](https://github.com/igorski/zCanvas) under the hood for rendering and bitmap blitting. The application is written on top of [Vue](https://github.com/vuejs/vue) using [Vuex](https://github.com/vuejs/vuex) for state management.
 
 ## The [Issue Tracker](https://github.com/igorski/bitmappery/issues) is your point of contact
 
