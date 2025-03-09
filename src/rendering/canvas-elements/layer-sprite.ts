@@ -436,15 +436,16 @@ class LayerSprite extends ZoomableSprite {
         }
         this._pendingPaintState = undefined;
 
-        const layer    = this.layer;
         const orgBlob  = await canvasToBlob( this._orgSourceToStore );
         const orgState = blobToResource( orgBlob );
-
+        const newBlob  = await canvasToBlob( this.getPaintSource() );
+        const newState = blobToResource( newBlob );
+        
         this._orgSourceToStore = undefined;
 
+        const layer  = this.layer;
         const isMask = this.isMaskable();
-        const blob   = await canvasToBlob( this.getPaintSource() );
-        const newState = blobToResource( blob );
+
         enqueueState( `spritePaint_${layer.id}`, {
             undo(): void {
                 restorePaintFromHistory( layer, orgState, isMask );
