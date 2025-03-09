@@ -318,20 +318,18 @@ class LayerSprite extends ZoomableSprite {
         const usePaintCanvas = this.usePaintCanvas() || ( optAction?.type === "stroke" );
         const doSaveRestore  = !!selection; // selections will apply context clipping which needs to be restored
 
-        if ( doSaveRestore ) {
-            ctx.save();
-        }
-
         if ( usePaintCanvas ) {
             // drawing is handled on a temporary, drawable Canvas
             this._paintCanvas = this._paintCanvas || getDrawableCanvas( this.getPaintSize() );
             ({ ctx } = this._paintCanvas );
 
             if ( selection ) {
+                ctx.save();
                 // note no offset is required when drawing on the full-size _paintCanvas
                 clipContextToSelection( ctx, selection, 0, 0, this._invertSelection, transformedPointers );
             }
         } else if ( selection ) {
+            ctx.save();
             clipContextToSelection( ctx, selection, this.layer.left, this.layer.top, this._invertSelection );
         }
 
@@ -436,10 +434,12 @@ class LayerSprite extends ZoomableSprite {
         }
         this._pendingPaintState = undefined;
 
-        const orgBlob  = await canvasToBlob( this._orgSourceToStore );
-        const orgState = blobToResource( orgBlob );
+        const original = this._orgSourceToStore; // grab reference to avoid race conditions while creating Blobs during continued painting
+
         const newBlob  = await canvasToBlob( this.getPaintSource() );
         const newState = blobToResource( newBlob );
+        const orgBlob  = await canvasToBlob( original );
+        const orgState = blobToResource( orgBlob );
         
         this._orgSourceToStore = undefined;
 
