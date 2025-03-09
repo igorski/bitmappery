@@ -133,7 +133,7 @@ export const sliceBrushPointers = ( brush: Brush ): Point[] => {
 };
 
 /**
- * Create override configuration for a render operation, adapting its source input (e.g. pointers list) to scaling
+ * Create override configuration for a render operation, wrapping its source input (e.g. pointers list) with scaling
  * and coordinate space of the drawableCanvas.
  */
 export const createOverrideConfig = ( zoomableCanvas: ZoomableCanvas, pointers: Point[] ): OverrideConfig => ({

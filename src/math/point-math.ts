@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Point, Rectangle } from "zcanvas";
+import type { Layer } from "@/definitions/document";
 import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 
 const { pow, sqrt, atan2, round, cos, sin, PI } = Math;
@@ -159,4 +160,37 @@ export const pointerToCanvasCoordinates = ( pointerX: number, pointerY: number, 
         x : offsetX + zoomableCanvas.getViewport().left,
         y : offsetY + zoomableCanvas.getViewport().top
     };
+};
+
+/**
+ * Utility to rotate a list of pointers (touch/mouse coordinates performed when drawing on a LayerSprite) relative
+ * to the sprite's associated Layers transformations
+ */
+export const rotatePointers = ( pointers: Point[], layer: Layer, sourceWidth: number, sourceHeight: number ): Point[] => {
+    // we take layer.left instead of bounds.left as it provides the unrotated Layer offset
+    const { left, top } = layer;
+    // translate pointer to translated space, when layer is rotated or mirrored
+    const { mirrorX, mirrorY, rotation } = layer.effects;
+    return pointers.map( point => {
+        // translate recorded pointer towards rotated point
+        // and against layer position
+        const p = translatePointerRotation(
+            point.x - left,
+            point.y - top,
+            sourceWidth  * 0.5,
+            sourceHeight * 0.5,
+            mirrorY ? -rotation : rotation
+        );
+        if ( mirrorX ) {
+            p.x -= sourceWidth;
+        }
+        if ( mirrorY ) {
+            p.y -= sourceHeight;
+        }
+        return p;
+    });
+};
+
+export const rotatePointer = ( x: number, y: number, layer: Layer, sourceWidth: number, sourceHeight: number ): Point => {
+    return rotatePointers([{ x, y }], layer, sourceWidth, sourceHeight )[ 0 ];
 };

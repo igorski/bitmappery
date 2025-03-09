@@ -35,7 +35,7 @@ import type { CanvasContextPairing, CanvasDrawable, Brush, BrushToolOptions, Bru
 import { LayerTypes } from "@/definitions/layer-types";
 import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
-import { translatePointerRotation } from "@/math/point-math";
+import { translatePointerRotation, rotatePointer } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { getBlendContext, blendLayer } from "@/rendering/blending";
 import { clipContextToSelection } from "@/rendering/clipping";
@@ -311,8 +311,8 @@ class LayerSprite extends ZoomableSprite {
         let selection: Selection = optAction?.selection || this._selection;
 
         // get the enqueued pointers which are to be rendered in this paint cycle
-        const pointers = isDrawing ? sliceBrushPointers( this._brush ) : undefined;
-        const transformedPointers = createOverrideConfig( this.canvas, pointers );
+        const pointers  = isDrawing ? sliceBrushPointers( this._brush ) : undefined;
+        const overrides = createOverrideConfig( this.canvas, pointers );
         
         // most drawing operations operate directly onto a temporary Canvas
         const usePaintCanvas = this.usePaintCanvas() || ( optAction?.type === "stroke" );
@@ -326,7 +326,7 @@ class LayerSprite extends ZoomableSprite {
             if ( selection ) {
                 ctx.save();
                 // note no offset is required when drawing on the full-size _paintCanvas
-                clipContextToSelection( ctx, selection, 0, 0, this._invertSelection, transformedPointers );
+                clipContextToSelection( ctx, selection, 0, 0, this._invertSelection, overrides );
             }
         } else if ( selection ) {
             ctx.save();
@@ -357,12 +357,9 @@ class LayerSprite extends ZoomableSprite {
             }
         } else if ( isDrawing ) {
             if ( isCloneStamp ) {
-                renderClonedStroke( ctx, this._brush, this, this.toolOptions.sourceLayerId,
-                    rotatePointers( pointers, this.layer, width, height )
-                );
-                this.setBitmap( ctx.canvas );
+                this._lastBrushIndex = renderClonedStroke( ctx, this._brush, this, this.toolOptions.sourceLayerId, pointers, overrides, this._lastBrushIndex );
             } else {
-                this._lastBrushIndex = renderBrushStroke( ctx, this._brush, transformedPointers, this._lastBrushIndex );
+                this._lastBrushIndex = renderBrushStroke( ctx, this._brush, overrides, this._lastBrushIndex );
             }
         }
         
@@ -392,12 +389,10 @@ class LayerSprite extends ZoomableSprite {
     }
 
     usePaintCanvas(): boolean {
-        // all drawing actions happen on a temporary canvas with the exception of cloned
-        // brushing and selection-less fills as these operate directly on the source layer
-        // @todo there is no reason for cloning to work on the source directly!
-        const isCloneStamp = this._toolType === ToolTypes.CLONE;
-        const isFillMode   = this._toolType === ToolTypes.FILL;
-        return ( isFillMode && !!this._selection ) || ( this.isDrawing() && !isCloneStamp );
+        // all drawing actions happen on a temporary canvas with the exception of selection-less
+        // fill operations as these operate directly on the source layer
+        const isFillMode = this._toolType === ToolTypes.FILL;
+        return ( isFillMode && !!this._selection ) || this.isDrawing();
     }
     
     isPainting(): boolean {
@@ -747,35 +742,6 @@ class LayerSprite extends ZoomableSprite {
 export default LayerSprite;
 
 /* internal non-instance methods */
-
-function rotatePointers( pointers: Point[], layer: Layer, sourceWidth: number, sourceHeight: number ): Point[] {
-    // we take layer.left instead of bounds.left as it provides the unrotated Layer offset
-    const { left, top } = layer;
-    // translate pointer to translated space, when layer is rotated or mirrored
-    const { mirrorX, mirrorY, rotation } = layer.effects;
-    return pointers.map( point => {
-        // translate recorded pointer towards rotated point
-        // and against layer position
-        const p = translatePointerRotation(
-            point.x - left,
-            point.y - top,
-            sourceWidth  * HALF,
-            sourceHeight * HALF,
-            mirrorY ? -rotation : rotation
-        );
-        if ( mirrorX ) {
-            p.x -= sourceWidth;
-        }
-        if ( mirrorY ) {
-            p.y -= sourceHeight;
-        }
-        return p;
-    });
-}
-
-function rotatePointer( x: number, y: number, layer: Layer, sourceWidth: number, sourceHeight: number ): Point {
-    return rotatePointers([{ x, y }], layer, sourceWidth, sourceHeight )[ 0 ];
-}
 
 // NOTE we use getSpriteForLayer() instead of passing the Sprite by reference
 // as it is possible the Sprite originally rendering the Layer has been disposed
