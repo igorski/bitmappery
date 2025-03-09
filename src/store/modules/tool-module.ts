@@ -54,7 +54,7 @@ export const createToolState = ( props?: Partial<ToolState> ): ToolState => ({
         [ ToolTypes.ZOOM ]  : { level: 1 },
         [ ToolTypes.BRUSH ] : { size: 10, type: BrushTypes.LINE, opacity: 1, strokes: 1, thickness: .5 },
         [ ToolTypes.ERASER ]: { size: 10, type: BrushTypes.PAINT_BRUSH, opacity: 1, thickness: .5 },
-        [ ToolTypes.CLONE ] : { size: 10, type: BrushTypes.PAINT_BRUSH, opacity: .5, thickness: .5, sourceLayerId: TOOL_SRC_MERGED, coords: null },
+        [ ToolTypes.CLONE ] : { size: 10, type: BrushTypes.PAINT_BRUSH, opacity: .75, thickness: .5, sourceLayerId: TOOL_SRC_MERGED, coords: null },
         [ ToolTypes.SELECTION ] : { lockRatio: false, xRatio: 1, yRatio: 1 },
         [ ToolTypes.FILL ] : { smartFill: true },
         [ ToolTypes.WAND ] : { threshold: 5, sampleMerged: false },

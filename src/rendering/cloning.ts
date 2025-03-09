@@ -29,6 +29,7 @@ import { createCanvas, getPixelRatio, setCanvasDimensions } from "@/utils/canvas
 import { createSyncSnapshot } from "@/utils/document-util";
 import type LayerSprite from "@/rendering/canvas-elements/layer-sprite";
 import { applyOverrideConfig, type OverrideConfig } from "@/rendering/utils/drawable-canvas-utils";
+import { clone } from "@/utils/object-util";
 
 const tempCanvas = createCanvas();
 
@@ -39,16 +40,18 @@ const tempCanvas = createCanvas();
  * @param {CanvasRenderingContext2D} destContext context to render on
  * @param {Object} brush operation to use
  * @param {LayerSprite} sprite containg the relative (on-screen) Layer coordinates
- * @param {String|Number} sourceLayerId identifier of the Layer to use as source, can also be TOOL_SRC_MERGED
- * @param {Point[]} sourcePoints Array of coordinates specifying the source points in the clone source
- * @param {Point} destination todo
+ * @param {string|number} sourceLayerId identifier of the Layer to use as source, can also be TOOL_SRC_MERGED
+ * @param {Point[]} pointers Array of coordinates specifying the points within the clone source
+ * @param {OverrideConfig} overrideConfig alternate pointers and coordinate scaling relative to Layer transformations
  * @param {number=} lastIndex index in the pointer list that was rendered, can be used to spread a single stroke over several iterations
  * @return {number} index of the last rendered pointer in the pointers list
  */
-export const renderClonedStroke = ( destContext: CanvasRenderingContext2D, brush: Brush,
-    sprite: LayerSprite, sourceLayerId: string, sourcePoints: Point[], overrideConfig: OverrideConfig, lastIndex = 0 ): number => {
-    const left = 0;
-    const top  = 0;
+export const renderClonedStroke = (
+    destContext: CanvasRenderingContext2D, brush: Brush, sprite: LayerSprite,
+    sourceLayerId: string, pointers: Point[], overrideConfig: OverrideConfig, lastIndex = 0
+): number => {
+    const { left, top } = sprite.layer;
+
     let source: HTMLCanvasElement | undefined;
 
     const activeDocument = getCanvasInstance().getActiveDocument();
@@ -66,7 +69,7 @@ export const renderClonedStroke = ( destContext: CanvasRenderingContext2D, brush
     const { radius, doubleRadius } = brush;
 
     const sourceX = ( coords.x - left ) - radius;
-    const sourceY = ( coords.y - top ) - radius;
+    const sourceY = ( coords.y - top )  - radius;
 
     const relSource = sprite.cloneStartCoords || sprite.getDragStartEventCoordinates();
 
@@ -76,9 +79,15 @@ export const renderClonedStroke = ( destContext: CanvasRenderingContext2D, brush
 
     const dragStartOffset = sprite.getDragStartOffset();
 
+    const overrides = clone( pointers );
+    applyOverrideConfig( overrideConfig, overrides );
+
+    const gradientFill = createDrawable( brush, ctx, radius, radius );
+
     let i = lastIndex;
-    for ( i; i < sourcePoints.length; ++i ) {
-        const sourcePoint = sourcePoints[ i ];
+    for ( i; i < pointers.length; ++i ) {
+        const sourcePoint = pointers[ i ];
+        const destPoint   = overrides[ i ];
 
         const xDelta  = dragStartOffset.x + ( sourcePoint.x - relSource.x );
         const yDelta  = dragStartOffset.y + ( sourcePoint.y - relSource.y );
@@ -106,13 +115,13 @@ export const renderClonedStroke = ( destContext: CanvasRenderingContext2D, brush
         // draw the brush above the bitmap, keeping only the overlapping area
         ctx.globalCompositeOperation = "destination-in";
 
-        ctx.fillStyle = createDrawable( brush, ctx, radius, radius );
+        ctx.fillStyle = gradientFill;
         ctx.fillRect( 0, 0, doubleRadius, doubleRadius );
 
         // draw the masked result onto the destination canvas
         destContext.drawImage(
             cvs, 0, 0, doubleRadius, doubleRadius,
-            ( sourcePoint.x ) - radius, ( sourcePoint.y  ) - radius, doubleRadius, doubleRadius
+            destPoint.x - radius, destPoint.y - radius, doubleRadius, doubleRadius
         );
     }
     setCanvasDimensions( tempCanvas, 1, 1 ); // conserve memory allocated to Canvas instances
