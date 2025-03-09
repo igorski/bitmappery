@@ -43,7 +43,7 @@ import { renderClonedStroke } from "@/rendering/cloning";
 import { renderBrushStroke } from "@/rendering/drawing";
 import { floodFill } from "@/rendering/fill";
 import { snapSpriteToGuide } from "@/rendering/snapping";
-import { applyTransformation, reverseTransformation } from "@/rendering/transforming";
+import { applyTransformation } from "@/rendering/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
 import {
     getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, commitDrawingToLayer, sliceBrushPointers, createOverrideConfig
@@ -316,7 +316,11 @@ class LayerSprite extends ZoomableSprite {
         
         // smart fill mode operates directly on source, all other drawing operations on a temporary Canvas
         const usePaintCanvas = this.usePaintCanvas();
-        const doTransform    = isFillMode && this.toolOptions.smartFill;
+        const doSaveRestore  = !!selection; // selections will apply context clipping which needs to be restored
+
+        if ( doSaveRestore ) {
+            ctx.save();
+        }
 
         if ( usePaintCanvas ) {
             // drawing is handled on a temporary, drawable Canvas
@@ -324,17 +328,10 @@ class LayerSprite extends ZoomableSprite {
             ctx = this._paintCanvas.ctx;
 
             if ( selection ) {
-                ctx.save(); // 1. drawableCanvas clipping save()
                 // note no offset is required when drawing on the full-size _paintCanvas
                 clipContextToSelection( ctx, selection, 0, 0, this._invertSelection, transformedPointers );
             }
         } else if ( selection ) {
-            ctx.save(); // 1. clipping save()
-            if ( doTransform ) {
-                console.info('transform');
-                reverseTransformation( ctx, this.layer );
-            }
-            console.info('hiiieaaa');
             clipContextToSelection( ctx, selection, this.layer.left, this.layer.top, this._invertSelection );
         }
 
@@ -349,9 +346,9 @@ class LayerSprite extends ZoomableSprite {
             const color = this.getStore().getters.activeColor;
    
             if ( this.toolOptions.smartFill ) {
-                // smart fill doesn't work on transformed layers just yet
+                // we need to translate pointer offset to match the relative, untransformed source layer content
                 const point = rotatePointer( this._pointerX, this._pointerY, this.layer, width, height );
-                floodFill( ctx, point.x * this.layer.scale, point.y, color );
+                floodFill( ctx, point.x, point.y, color );
             } else {
                 ctx.fillStyle = this.getStore().getters.activeColor;
                 if ( selection ) {
@@ -367,18 +364,15 @@ class LayerSprite extends ZoomableSprite {
                 );
                 this.setBitmap( ctx.canvas );
             } else {
-                // brush operations are done on the temporary canvas while drawing
-                // where each individual brush stroke is rendered in successive iterations.
-                // upon release, the result is rendered on the Layer source (see handleRelease())
                 this._lastBrushIndex = renderBrushStroke( ctx, this._brush, transformedPointers, this._lastBrushIndex );
             }
         }
         
-        if ( selection ) {
-            ctx.restore(); // 1. clipping restore()
+        if ( doSaveRestore ) {
+            ctx.restore();
         }
 
-        // while user is drawing, recache of filters is deferred to the handleRelease() handler
+        // while user is drawing, the recache of filters is deferred to the handleRelease() handler
         if ( !isDrawing ) {
             this.resetFilterAndRecache();
         }
@@ -402,12 +396,12 @@ class LayerSprite extends ZoomableSprite {
     }
 
     usePaintCanvas(): boolean {
-        // all drawing actions happen on a temporary canvas with the expection of cloned
-        // brushing, fills without selection and smart fill mode as these operate directly on the source layer
+        // all drawing actions happen on a temporary canvas with the exception of cloned
+        // brushing and selection-less fills as these operate directly on the source layer
         // @todo there is no reason for cloning to work on the source directly!
         const isCloneStamp = this._toolType === ToolTypes.CLONE;
         const isFillMode   = this._toolType === ToolTypes.FILL;
-        return ( isFillMode && this._selection && !this.toolOptions.smartFill ) || ( this.isDrawing() && !isCloneStamp );
+        return ( isFillMode && !!this._selection ) || ( this.isDrawing() && !isCloneStamp );
     }
 
     getPaintSource(): HTMLCanvasElement {

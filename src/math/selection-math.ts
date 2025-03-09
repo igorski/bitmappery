@@ -37,10 +37,10 @@ const RIGHT  = 3;
 export const selectByColor = ( cvs: HTMLCanvasElement, sourceX: number, sourceY: number, threshold = 0 ): Shape => {
     const { width, height } = cvs;
 
-    const ctx = cvs.getContext( "2d" );
+    const ctx = cvs.getContext( "2d" ) as CanvasRenderingContext2D;
 
-    sourceX = Math.min( width  - 1, Math.round( sourceX ));
-    sourceY = Math.min( height - 1, Math.round( sourceY ));
+    sourceX = Math.max( 0, Math.min( width  - 1, Math.round( sourceX )));
+    sourceY = Math.max( 0, Math.min( height - 1, Math.round( sourceY )));
 
     // the source color
     const [ r, g, b, a ] = ctx.getImageData( sourceX, sourceY, 1, 1 ).data;
