@@ -33,7 +33,7 @@ import { fastRound } from "@/math/unit-math";
 import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
 import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import KeyboardService from "@/services/keyboard-service";
-import { isInsideTransparentArea } from "@/utils/canvas-util";
+import { getPixelRatio, isInsideTransparentArea } from "@/utils/canvas-util";
 import { createDocumentSnapshot, createLayerSnapshot } from "@/utils/document-util";
 import { getLastShape } from "@/utils/selection-util";
 import { rectangleToShape, mergeShapes, isShapeClosed } from "@/utils/shape-util";
@@ -270,7 +270,14 @@ class InteractionPane extends sprite {
 
                 if ( this._activeTool === ToolTypes.WAND ) {
                     const cvs = await ( this._toolOptions.sampleMerged ? createDocumentSnapshot( this.getActiveDocument() ) : createLayerSnapshot( this.getActiveLayer() ));
-                    const selectedShape: Shape = selectByColor( cvs, x, y, this._toolOptions.threshold );
+                    const pixelRatio = getPixelRatio();
+                    const selectedShape: Shape = selectByColor(
+                        cvs, fastRound( x * pixelRatio ), fastRound( y * pixelRatio ), this._toolOptions.threshold
+                    ).map(({ x, y }) => ({
+                        x: fastRound( x / pixelRatio ),
+                        y: fastRound( y / pixelRatio ),
+                    }));
+
                     if ( isShiftKeyDown ) {
                         // TODO check if mergable first in above condition
                         activeSelection = [ mergeShapes( selectedShape, getLastShape( activeSelection ) ?? [] ) ];

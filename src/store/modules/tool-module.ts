@@ -57,7 +57,7 @@ export const createToolState = ( props?: Partial<ToolState> ): ToolState => ({
         [ ToolTypes.CLONE ] : { size: 10, type: BrushTypes.PAINT_BRUSH, opacity: .75, thickness: .5, sourceLayerId: TOOL_SRC_MERGED, coords: null },
         [ ToolTypes.SELECTION ] : { lockRatio: false, xRatio: 1, yRatio: 1 },
         [ ToolTypes.FILL ] : { smartFill: true },
-        [ ToolTypes.WAND ] : { threshold: 5, sampleMerged: false },
+        [ ToolTypes.WAND ] : { threshold: 50, sampleMerged: true },
     },
     snapAlign : true,
     antiAlias : true,
