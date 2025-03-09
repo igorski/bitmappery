@@ -314,8 +314,8 @@ class LayerSprite extends ZoomableSprite {
         const pointers = isDrawing ? sliceBrushPointers( this._brush ) : undefined;
         const transformedPointers = createOverrideConfig( this.canvas, pointers );
         
-        // smart fill mode operates directly on source, all other drawing operations on a temporary Canvas
-        const usePaintCanvas = this.usePaintCanvas();
+        // most drawing operations operate directly onto a temporary Canvas
+        const usePaintCanvas = this.usePaintCanvas() || ( optAction?.type === "stroke" );
         const doSaveRestore  = !!selection; // selections will apply context clipping which needs to be restored
 
         if ( doSaveRestore ) {
@@ -337,11 +337,11 @@ class LayerSprite extends ZoomableSprite {
 
         if ( optAction ) {
             if ( optAction.type === "stroke" ) {
-                console.info('is stroke. use paint canvas? (it SHOULD) : ',usePaintCanvas)
                 ctx.strokeStyle = optAction.color;
                 ctx.lineWidth   = ( optAction.size ?? 1 ) / this.canvas.documentScale;
                 ctx.stroke();
             }
+            this.handleRelease( 0, 0 ); // supplied outside actions are instantly completed actions
         } else if ( isFillMode ) {
             const color = this.getStore().getters.activeColor;
    
@@ -605,10 +605,10 @@ class LayerSprite extends ZoomableSprite {
             );
             disposeDrawableCanvas();
             this.resetFilterAndRecache();
-            
+
             this._paintCanvas = null;
-            this._brush.down = false;
-            this._brush.last = 0;
+            this._brush.down  = false;
+            this._brush.last  = 0;
             this._brush.pointers.length = 0;
 
             // immediately store pending history state when not running in lowMemory mode
