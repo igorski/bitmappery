@@ -22,11 +22,8 @@
  */
 import type { Point } from "zcanvas";
 import type { Brush, CloneToolOptions } from "@/definitions/editor";
-import { TOOL_SRC_MERGED } from "@/definitions/tool-types";
 import { createDrawable } from "@/factories/brush-factory";
-import { getCanvasInstance } from "@/factories/sprite-factory";
 import { createCanvas, getPixelRatio, setCanvasDimensions } from "@/utils/canvas-util";
-import { createSyncSnapshot } from "@/utils/document-util";
 import type LayerSprite from "@/rendering/canvas-elements/layer-sprite";
 import { applyOverrideConfig, type OverrideConfig } from "@/rendering/utils/drawable-canvas-utils";
 import { clone } from "@/utils/object-util";
@@ -40,7 +37,7 @@ const tempCanvas = createCanvas();
  * @param {CanvasRenderingContext2D} destContext context to render on
  * @param {Object} brush operation to use
  * @param {LayerSprite} sprite containg the relative (on-screen) Layer coordinates
- * @param {string|number} sourceLayerId identifier of the Layer to use as source, can also be TOOL_SRC_MERGED
+ * @param {HTMLCanvasElement} source the source bitmap from which painting will be cloned
  * @param {Point[]} pointers Array of coordinates specifying the points within the clone source
  * @param {OverrideConfig} overrideConfig alternate pointers and coordinate scaling relative to Layer transformations
  * @param {number=} lastIndex index in the pointer list that was rendered, can be used to spread a single stroke over several iterations
@@ -48,23 +45,10 @@ const tempCanvas = createCanvas();
  */
 export const renderClonedStroke = (
     destContext: CanvasRenderingContext2D, brush: Brush, sprite: LayerSprite,
-    sourceLayerId: string, pointers: Point[], overrideConfig: OverrideConfig, lastIndex = 0
+    source: HTMLCanvasElement, pointers: Point[], overrideConfig: OverrideConfig, lastIndex = 0
 ): number => {
     const { left, top } = sprite.layer;
 
-    let source: HTMLCanvasElement | undefined;
-
-    const activeDocument = getCanvasInstance().getActiveDocument();
-
-    if ( sourceLayerId === TOOL_SRC_MERGED ) {
-        source = createSyncSnapshot( activeDocument );
-    } else {
-        source = createSyncSnapshot( activeDocument, [ activeDocument.layers.findIndex(({ id }) => id === sourceLayerId )]);
-    }
-
-    if ( source === undefined ) {
-        return lastIndex;
-    }
     const { coords, opacity } = sprite.toolOptions as CloneToolOptions;
     const { radius, doubleRadius } = brush;
 

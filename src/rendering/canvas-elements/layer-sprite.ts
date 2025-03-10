@@ -33,7 +33,7 @@ import { getSizeForBrush } from "@/definitions/brush-types";
 import type { Document, Layer, Selection } from "@/definitions/document";
 import type { CanvasContextPairing, CanvasDrawable, Brush, BrushToolOptions, BrushAction } from "@/definitions/editor";
 import { LayerTypes } from "@/definitions/layer-types";
-import ToolTypes, { canDrawOnSelection } from "@/definitions/tool-types";
+import ToolTypes, { canDrawOnSelection, TOOL_SRC_MERGED } from "@/definitions/tool-types";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation, rotatePointer } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
@@ -51,6 +51,7 @@ import {
 import BrushFactory from "@/factories/brush-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
+import { createSyncSnapshot } from "@/utils/document-util";
 import { getLastShape } from "@/utils/selection-util";
 import { isShapeClosed } from "@/utils/shape-util";
 import type { BitMapperyState } from "@/store";
@@ -58,7 +59,8 @@ import type { BitMapperyState } from "@/store";
 const HALF   = 0.5;
 const TWO_PI = 2 * Math.PI;
 
-let drawBounds; // see draw()
+let cloneSource: HTMLCanvasElement | undefined;
+let drawBounds: Rectangle; // see draw()
 
 /**
  * A LayerSprite is the renderer for a Documents Layer.
@@ -357,7 +359,7 @@ class LayerSprite extends ZoomableSprite {
             }
         } else if ( isDrawing ) {
             if ( isCloneStamp ) {
-                this._lastBrushIndex = renderClonedStroke( ctx, this._brush, this, this.toolOptions.sourceLayerId, pointers, overrides, this._lastBrushIndex );
+                this._lastBrushIndex = renderClonedStroke( ctx, this._brush, this, cloneSource, pointers, overrides, this._lastBrushIndex );
             } else {
                 this._lastBrushIndex = renderBrushStroke( ctx, this._brush, overrides, this._lastBrushIndex );
             }
@@ -536,6 +538,13 @@ class LayerSprite extends ZoomableSprite {
                     // set the start coordinates (of this target Layer) relative to the source Layers coords
                     this.cloneStartCoords = { x, y };
                 }
+                const { sourceLayerId } = this.toolOptions;
+                const activeDocument = this.canvas.getActiveDocument();
+                if ( sourceLayerId === TOOL_SRC_MERGED ) {
+                    cloneSource = createSyncSnapshot( activeDocument );
+                } else {
+                    cloneSource = createSyncSnapshot( activeDocument, [ activeDocument.layers.findIndex(({ id }) => id === sourceLayerId )]);
+                }
             } else if ( this._toolType === ToolTypes.FILL ) {
                 this.paint();
                 return;
@@ -605,7 +614,8 @@ class LayerSprite extends ZoomableSprite {
             this._brush.down  = false;
             this._brush.last  = 0;
             this._brush.pointers.length = 0;
-
+            cloneSource = undefined;
+            
             // immediately store pending history state when not running in lowMemory mode
             if ( !getters.getPreference( "lowMemory" )) {
                 this.storePaintState();
