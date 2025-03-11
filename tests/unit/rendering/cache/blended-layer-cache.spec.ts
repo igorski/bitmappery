@@ -1,6 +1,6 @@
 import { it, afterEach, describe, expect } from "vitest";
 import {
-    isBlendCached, getBlendCache, cacheBlendedLayer, flushBlendedLayerCache,
+    isBlendCached, getBlendCache, cacheBlendedLayer, flushBlendedLayerCache, getShouldBlendCache, setShouldBlendCache,
 } from "@/rendering/cache/blended-layer-cache";
 import { createMockCanvasElement } from "../../mocks";
 
@@ -9,6 +9,7 @@ describe( "Blended layer cache", () => {
 
     afterEach(() => {
         flushBlendedLayerCache();
+        setShouldBlendCache( false );
     });
 
     describe( "when determining whether a layer is considered cached within the layer cache", () => {
@@ -74,6 +75,37 @@ describe( "Blended layer cache", () => {
 
             expect( getBlendCache( 2 )).toBeUndefined();
             expect( getBlendCache( 3 )).toEqual( cachedBitmap );
+        });
+    });
+
+    describe( "when toggling the enabled state of the cache", () => {
+        it( "should by default not cache the Document", () => {
+            expect( getShouldBlendCache() ).toBe( false );
+        });
+
+        it( "should cache the document when enabled", () => {
+            setShouldBlendCache( true );
+
+            expect( getShouldBlendCache() ).toBe( true );
+        });
+
+        it( "should unset the existing cache when disabled a previously enabled cache for a Document", () => {
+            setShouldBlendCache( true );
+
+            cacheBlendedLayer( 1, cachedBitmap );
+
+            setShouldBlendCache( false );
+
+            expect( isBlendCached( 0 )).toBe( false );
+        });
+
+        it( "should not unset the cache state when flushing the existing cache", () => {
+            setShouldBlendCache( true );
+
+            cacheBlendedLayer( 1, cachedBitmap );
+            flushBlendedLayerCache();
+
+            expect( getShouldBlendCache() ).toBe( true );
         });
     });
 });

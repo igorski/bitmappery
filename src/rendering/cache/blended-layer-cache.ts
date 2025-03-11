@@ -21,13 +21,24 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 interface BlendedLayerCache {
-    index: number; // index of layer containing the blended content
+    enabled: boolean;   // whether blend caching is enabled for the current Document
+    index: number;      // index of layer containing the blended content
     bitmap?: HTMLCanvasElement; // cached Bitmap
 };
 
 const blendCache: BlendedLayerCache = {
+    enabled: false,
     index: -1,
     bitmap: undefined,
+};
+
+export const getShouldBlendCache = (): boolean => blendCache.enabled;
+
+export const setShouldBlendCache = ( value: boolean ): void => {
+    blendCache.enabled = value;
+    if ( !value ) {
+        blendCache.index = -1;
+    }
 };
 
 /**
@@ -62,9 +73,9 @@ export const cacheBlendedLayer = ( index: number, bitmap: HTMLCanvasElement ): v
 
 /**
  * Clear the existing blend cache.
+ * Note this does not unset the enabled state so sprites can take appropriate action upon next render.
  */
 export const flushBlendedLayerCache = (): void => {
-    console.info('clearBlendCache')
     blendCache.index  = -1;
     blendCache.bitmap = undefined;
 };
