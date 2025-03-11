@@ -65,7 +65,7 @@ describe( "Blended layer cache", () => {
         });
     });
 
-    describe( "when handle the cache for a document with multiple layers containing blend filters", () => {
+    describe( "when handling the cache for a document with multiple layers containing blend filters", () => {
         it( "should be able to store a cached bitmap for a layer at a higher index than the previously cached one", () => {
             cacheBlendedLayer( 2, cachedBitmap );
             cacheBlendedLayer( 3, cachedBitmap );
@@ -89,7 +89,7 @@ describe( "Blended layer cache", () => {
             expect( getShouldBlendCache() ).toBe( true );
         });
 
-        it( "should unset the existing cache when disabled a previously enabled cache for a Document", () => {
+        it( "should unset the existing cache when disabling a previously enabled cache for a Document", () => {
             setShouldBlendCache( true );
 
             cacheBlendedLayer( 1, cachedBitmap );
