@@ -1,15 +1,18 @@
 import { it, afterEach, describe, expect } from "vitest";
+import { createMockCanvasElement, mockZCanvas } from "../../mocks";
+mockZCanvas();
+
+import LayerFactory from "@/factories/layer-factory";
 import {
-    isBlendCached, getBlendCache, cacheBlendedLayer, flushBlendedLayerCache, getShouldBlendCache, setShouldBlendCache,
+    isBlendCached, getBlendCache, getBlendableLayers, cacheBlendedLayer, flushBlendedLayerCache, useBlendCaching, setBlendCaching,
 } from "@/rendering/cache/blended-layer-cache";
-import { createMockCanvasElement } from "../../mocks";
 
 describe( "Blended layer cache", () => {
     const cachedBitmap = createMockCanvasElement();
 
     afterEach(() => {
         flushBlendedLayerCache();
-        setShouldBlendCache( false );
+        setBlendCaching( false );
     });
 
     describe( "when determining whether a layer is considered cached within the layer cache", () => {
@@ -78,34 +81,43 @@ describe( "Blended layer cache", () => {
         });
     });
 
-    describe( "when toggling the enabled state of the cache", () => {
+    describe( "when toggling the state of the cache", () => {
         it( "should by default not cache the Document", () => {
-            expect( getShouldBlendCache() ).toBe( false );
+            expect( useBlendCaching() ).toBe( false );
         });
 
         it( "should cache the document when enabled", () => {
-            setShouldBlendCache( true );
+            setBlendCaching( true );
 
-            expect( getShouldBlendCache() ).toBe( true );
+            expect( useBlendCaching() ).toBe( true );
+        });
+
+        it( "should store the provided list of blendable layers by their indices", () => {
+            const layer1 = LayerFactory.create();
+            const layer2 = LayerFactory.create();
+
+            setBlendCaching( true, [ layer1, layer2 ]);
+
+            expect( getBlendableLayers() ).toEqual([ 0, 1 ]);
         });
 
         it( "should unset the existing cache when disabling a previously enabled cache for a Document", () => {
-            setShouldBlendCache( true );
+            setBlendCaching( true );
 
             cacheBlendedLayer( 1, cachedBitmap );
 
-            setShouldBlendCache( false );
+            setBlendCaching( false );
 
             expect( isBlendCached( 0 )).toBe( false );
         });
 
         it( "should not unset the cache state when flushing the existing cache", () => {
-            setShouldBlendCache( true );
+            setBlendCaching( true );
 
             cacheBlendedLayer( 1, cachedBitmap );
             flushBlendedLayerCache();
 
-            expect( getShouldBlendCache() ).toBe( true );
+            expect( useBlendCaching() ).toBe( true );
         });
     });
 });

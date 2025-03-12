@@ -46,7 +46,7 @@ import { floodFill } from "@/rendering/fill";
 import { snapSpriteToGuide } from "@/rendering/snapping";
 import { applyTransformation } from "@/rendering/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
-import { cacheBlendedLayer, flushBlendedLayerCache, getBlendCache, getShouldBlendCache, isBlendCached } from "@/rendering/cache/blended-layer-cache";
+import { cacheBlendedLayer, flushBlendedLayerCache, getBlendCache, useBlendCaching, getBlendableLayers, isBlendCached } from "@/rendering/cache/blended-layer-cache";
 import {
     getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, commitDrawingToLayer, sliceBrushPointers, createOverrideConfig
 } from "@/rendering/utils/drawable-canvas-utils";
@@ -210,8 +210,12 @@ export default class LayerSprite extends ZoomableSprite {
         this.canvas?.setLock( true );
         requestAnimationFrame( async () => {
             await renderEffectsForLayer( this.layer );
+            console.info("-- effects rendered for " + this.layer.name)
             this._rafFx = false;
             this.canvas?.setLock( false );
+            if ( hasBlend( this.layer ) || isBlendCached( this.layerIndex )) {
+                flushBlendedLayerCache();
+            }
         });
     }
 
@@ -676,19 +680,16 @@ export default class LayerSprite extends ZoomableSprite {
     // @ts-expect-error incompatible override
     override draw( documentContext: CanvasRenderingContext2D, viewport: Viewport, isSnapshotMode = false ): void {
         let renderedFromCache = false;
-        if ( !isSnapshotMode && getShouldBlendCache() ) {
+        if ( !isSnapshotMode && useBlendCaching() ) {
             const { layerIndex } = this;
-            if ( isBlendCached( layerIndex )) {
+            if ( isBlendCached( layerIndex ) && !this._rafFx ) {
                 return; // render will be executed by higher order layer
             }
-            if ( hasBlend( this.layer )) {
+            if ( hasBlend( this.layer ) && !this._rafFx ) {
                 let bitmap = getBlendCache( layerIndex );
                 if ( !bitmap ) {
-                    bitmap = createSyncSnapshot(
-                        this.canvas.getActiveDocument(),
-                        // @todo store this in the cache upfront
-                        this.canvas.getActiveDocument().layers.filter(( _layer, idx ) => idx <= layerIndex ).map(( _layer, idx ) => idx )
-                    );
+                    console.info('createSyncSnapshot for ' + this.layer.name);
+                    bitmap = createSyncSnapshot( this.canvas.getActiveDocument(), getBlendableLayers());
                     cacheBlendedLayer( layerIndex, bitmap );
                 }
                 const pixelRatio = getPixelRatio();

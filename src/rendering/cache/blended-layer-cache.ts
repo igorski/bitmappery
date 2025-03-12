@@ -20,25 +20,34 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { type Layer } from "@/definitions/document";
+
 interface BlendedLayerCache {
     enabled: boolean;   // whether blend caching is enabled for the current Document
     index: number;      // index of layer containing the blended content
     bitmap?: HTMLCanvasElement; // cached Bitmap
+    blendableLayers?: number[]; // indices of all layers to render in the blend (up to and including the layer defined at the cache index)
 };
 
 const blendCache: BlendedLayerCache = {
     enabled: false,
     index: -1,
     bitmap: undefined,
+    blendableLayers: undefined,
 };
 
-export const getShouldBlendCache = (): boolean => blendCache.enabled;
+export const useBlendCaching = (): boolean => blendCache.enabled;
 
-export const setShouldBlendCache = ( value: boolean ): void => {
+export const setBlendCaching = ( value: boolean, blendableLayers?: Layer[] ): void => {
     blendCache.enabled = value;
     if ( !value ) {
         blendCache.index = -1;
     }
+    blendCache.blendableLayers = blendableLayers?.map(( _layer, index ) => index );
+};
+
+export const getBlendableLayers = (): number[] | undefined => {
+    return blendCache.blendableLayers;
 };
 
 /**
@@ -77,6 +86,7 @@ export const cacheBlendedLayer = ( index: number, bitmap: HTMLCanvasElement ): v
  * Note this does not unset the enabled state so sprites can take appropriate action upon next render.
  */
 export const flushBlendedLayerCache = (): void => {
+    console.info('flush cache')
     blendCache.index  = -1;
     blendCache.bitmap = undefined;
 };

@@ -87,7 +87,7 @@ import {
     createSpriteForLayer, getSpriteForLayer, flushLayerSprites, flushCache as flushSpriteCache,
 } from "@/factories/sprite-factory";
 import { flushCache as flushBitmapCache } from "@/rendering/cache/bitmap-cache";
-import { flushBlendedLayerCache, setShouldBlendCache } from "@/rendering/cache/blended-layer-cache";
+import { flushBlendedLayerCache, setBlendCaching } from "@/rendering/cache/blended-layer-cache";
 import { renderState } from "@/services/render-service";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 
@@ -463,7 +463,7 @@ export default {
         createLayerRenderers(): void {
             const seen: string[] = [];
             const zCanvas = getCanvasInstance();
-            this.layers?.forEach(( layer, index ) => {
+            this.layers?.forEach( layer => {
                 if ( !layer.visible ) {
                     flushLayerSprites( layer );
                     return;
@@ -478,9 +478,13 @@ export default {
                 flushLayerSprites( layerPool.get( id ));
                 layerPool.delete( id );
             });
-            // ensure the visible layers are at right position in display list
+            // ensure the visible layers are at the right position in display list
+            // @todo can we do this in the loop above?
             let blendLayer = -1;
-            this.layers?.filter(({ visible }) => visible ).forEach(( layer, index ) => {
+            this.layers?.forEach(( layer, index ) => {
+                if ( !layer.visible ) {
+                    return;
+                }
                 const sprite = getSpriteForLayer( layer );
                 sprite.layerIndex = index;
                 if ( hasBlend( layer )) {
@@ -489,7 +493,8 @@ export default {
                 zCanvas.removeChild( sprite );
                 zCanvas.addChild( sprite );
             });
-            setShouldBlendCache( blendLayer > -1 );
+            const hasBlendedLayer = blendLayer > -1;
+            setBlendCaching( hasBlendedLayer, hasBlendedLayer ? this.layers?.filter(( _layer, index ) => index <= blendLayer ) : undefined );
             zCanvas?.interactionPane.stayOnTop();
             this.hasGuideRenderer && guideRenderer.stayOnTop();
             this.handleActiveLayer();
