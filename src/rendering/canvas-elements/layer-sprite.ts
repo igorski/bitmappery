@@ -50,13 +50,13 @@ import { cacheBlendedLayer, flushBlendedLayerCache, getBlendCache, getShouldBlen
 import {
     getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, commitDrawingToLayer, sliceBrushPointers, createOverrideConfig
 } from "@/rendering/utils/drawable-canvas-utils";
-import { positionSpriteFromHistory, restorePaintFromHistory } from "@/rendering/utils/sprite-history-utils";
 import BrushFactory from "@/factories/brush-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import { createSyncSnapshot } from "@/utils/document-util";
 import { getLastShape } from "@/utils/selection-util";
 import { isShapeClosed } from "@/utils/shape-util";
+import { positionSpriteFromHistory, restorePaintFromHistory } from "@/utils/sprite-history-util";
 import type { BitMapperyState } from "@/store";
 
 const HALF   = 0.5;
@@ -105,8 +105,9 @@ export default class LayerSprite extends ZoomableSprite {
             layer.source = cvs;
         }
 
-        this._pointerX = 0;
-        this._pointerY = 0;
+        this._pointerX  = 0;
+        this._pointerY  = 0;
+        this.layerIndex = 0; // managed by document-canvas
 
         // brush properties (used for both drawing on LAYER_GRAPHIC types and to create layer masks)
         this._brush = BrushFactory.create();
@@ -691,7 +692,6 @@ export default class LayerSprite extends ZoomableSprite {
                     cacheBlendedLayer( layerIndex, bitmap );
                 }
                 const pixelRatio = getPixelRatio();
-                
                 documentContext.drawImage(
                     bitmap,
                     fastRound( viewport.left  * pixelRatio) , fastRound( viewport.top    * pixelRatio ),
