@@ -12,8 +12,11 @@ import { createToolState } from "@/store/modules/tool-module";
 // zCanvas mocks
 
 export function sprite() {
+    this._bounds   = { left: 0, top: 0, width: 10, height: 10 };
+    this.getBounds = vi.fn().mockReturnValue( this._bounds );
     this.setDraggable = vi.fn();
     this.setInteractive = vi.fn();
+    this.invalidate = vi.fn();
     this.dispose = vi.fn();
 }
 
@@ -43,10 +46,16 @@ export function createMockImageElement(): HTMLImageElement {
     } as unknown as HTMLImageElement;
 }
 
+const mockCanvasRenderingContext2D = {
+    clearRect: vi.fn(),
+    drawImage: vi.fn(),
+} as unknown as CanvasRenderingContext2D;
+
 export function createMockCanvasElement(): HTMLCanvasElement {
     return {
         width: 300,
         height: 200,
+        getContext: vi.fn(() => mockCanvasRenderingContext2D ),
     } as unknown as HTMLCanvasElement;
 }
 

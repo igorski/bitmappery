@@ -24,6 +24,7 @@ import { type Layer } from "@/definitions/document";
 
 interface BlendedLayerCache {
     enabled: boolean;   // whether blend caching is enabled for the current Document
+    paused: boolean;    // whether blend caching is paused (for instance during mutations of layers inside the blended content)
     index: number;      // index of layer containing the blended content
     bitmap?: HTMLCanvasElement; // cached Bitmap
     blendableLayers?: number[]; // indices of all layers to render in the blend (up to and including the layer defined at the cache index)
@@ -31,12 +32,13 @@ interface BlendedLayerCache {
 
 const blendCache: BlendedLayerCache = {
     enabled: false,
+    paused: false,
     index: -1,
     bitmap: undefined,
     blendableLayers: undefined,
 };
 
-export const useBlendCaching = (): boolean => blendCache.enabled;
+export const useBlendCaching = (): boolean => !blendCache.paused && blendCache.enabled;
 
 export const setBlendCaching = ( value: boolean, blendableLayers?: Layer[] ): void => {
     blendCache.enabled = value;
@@ -56,6 +58,19 @@ export const getBlendableLayers = (): number[] | undefined => {
  */
 export const isBlendCached = ( index: number ): boolean => {
     return index < blendCache.index;
+};
+
+export const pauseBlendCaching = ( index: number, paused: boolean ): void => {
+    const isCached = blendCache.index === index || isBlendCached( index );
+    if ( !isCached ) {
+        return;
+    }
+    const wasPaused = blendCache.paused;
+    blendCache.paused = paused;
+
+    if ( wasPaused && !paused ) {
+        flushBlendedLayerCache();
+    }
 };
 
 /**

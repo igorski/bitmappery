@@ -22,6 +22,7 @@
  */
 import { type Layer } from "@/definitions/document";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { flushBlendedLayerCache, useBlendCaching } from "../rendering/cache/blended-layer-cache";
 
 // NOTE we use getSpriteForLayer() instead of passing the Sprite by reference
 // as it is possible the Sprite originally rendering the Layer has been disposed
@@ -32,11 +33,14 @@ export function positionSpriteFromHistory( layer: Layer, x: number, y: number ):
     if ( sprite ) {
         sprite.getBounds().left = x;
         sprite.getBounds().top  = y;
+        if ( useBlendCaching() ) {
+            flushBlendedLayerCache();
+        }
         sprite.invalidate();
     }
 }
 
-export function restorePaintFromHistory( layer: Layer, state: string, isMask: boolean ): void {
+export function restorePaintFromHistory( layer: Layer, sourceToRestore: string, isMask: boolean ): void {
     const source = isMask ? layer.mask : layer.source;
     const ctx = source.getContext( "2d" ) as CanvasRenderingContext2D;
     ctx.clearRect( 0, 0, source.width, source.height );
@@ -45,5 +49,5 @@ export function restorePaintFromHistory( layer: Layer, state: string, isMask: bo
         ctx.drawImage( image, 0, 0 );
         getSpriteForLayer( layer )?.resetFilterAndRecache();
     };
-    image.src = state;
+    image.src = sourceToRestore;
 }

@@ -4,13 +4,15 @@ mockZCanvas();
 
 import LayerFactory from "@/factories/layer-factory";
 import {
-    isBlendCached, getBlendCache, getBlendableLayers, cacheBlendedLayer, flushBlendedLayerCache, useBlendCaching, setBlendCaching,
+    cacheBlendedLayer, flushBlendedLayerCache, getBlendCache, getBlendableLayers,
+    isBlendCached, pauseBlendCaching, setBlendCaching, useBlendCaching,
 } from "@/rendering/cache/blended-layer-cache";
 
 describe( "Blended layer cache", () => {
     const cachedBitmap = createMockCanvasElement();
 
     afterEach(() => {
+        pauseBlendCaching( 0, false );
         flushBlendedLayerCache();
         setBlendCaching( false );
     });
@@ -118,6 +120,70 @@ describe( "Blended layer cache", () => {
             flushBlendedLayerCache();
 
             expect( useBlendCaching() ).toBe( true );
+        });
+    });
+
+    describe( "when pausing the cache status", () => {
+        it( "should not cache the document when it is enabled, but paused", () => {
+            setBlendCaching( true );
+
+            cacheBlendedLayer( 2, cachedBitmap );
+            
+            pauseBlendCaching( 0, true );
+
+            expect( useBlendCaching() ).toBe( false );
+        });
+
+        it( "should allow pausing the cache when the request is made by a layer below the blend index", () => {
+            setBlendCaching( true );
+
+            cacheBlendedLayer( 1, cachedBitmap );
+            
+            pauseBlendCaching( 0, true );
+
+            expect( useBlendCaching() ).toBe( false );
+        });
+
+        it( "should allow pausing the cache when the request is made by the layer equal to the blend index", () => {
+            setBlendCaching( true );
+
+            cacheBlendedLayer( 1, cachedBitmap );
+            
+            pauseBlendCaching( 1, true );
+
+            expect( useBlendCaching() ).toBe( false );
+        });
+
+        it( "should not allow pausing the cache when the request is made by a layer above the blend index", () => {
+            setBlendCaching( true );
+
+            cacheBlendedLayer( 1, cachedBitmap );
+            
+            pauseBlendCaching( 2, true );
+
+            expect( useBlendCaching() ).toBe( true );
+        });
+
+        it( "should allow caching again when unpausing a previously paused cache", () => {
+            setBlendCaching( true );
+
+            cacheBlendedLayer( 1, cachedBitmap );
+            
+            pauseBlendCaching( 1, true );
+            pauseBlendCaching( 1, false );
+
+            expect( useBlendCaching() ).toBe( true );
+        });
+
+        it( "should flush the cache when unpausing a previously paused cache", () => {
+            setBlendCaching( true );
+
+            cacheBlendedLayer( 1, cachedBitmap );
+            
+            pauseBlendCaching( 1, true );
+            pauseBlendCaching( 1, false );
+
+            expect( getBlendCache( 1 )).toBeUndefined();
         });
     });
 });
