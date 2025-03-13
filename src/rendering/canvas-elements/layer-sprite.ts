@@ -694,7 +694,6 @@ export default class LayerSprite extends ZoomableSprite {
             if ( hasBlend( this.layer ) && !this._pendingEffectsRender ) {
                 let bitmap = getBlendCache( layerIndex );
                 if ( !bitmap ) {
-                    console.info('createSyncSnapshot for ' + this.layer.name);
                     bitmap = createSyncSnapshot( this.canvas.getActiveDocument(), getBlendableLayers());
                     cacheBlendedLayer( layerIndex, bitmap );
                 }

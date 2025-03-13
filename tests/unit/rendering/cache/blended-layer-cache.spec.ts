@@ -127,9 +127,9 @@ describe( "Blended layer cache", () => {
         it( "should not cache the document when it is enabled, but paused", () => {
             setBlendCaching( true );
 
-            cacheBlendedLayer( 2, cachedBitmap );
+            cacheBlendedLayer( 1, cachedBitmap );
             
-            pauseBlendCaching( 2, true );
+            pauseBlendCaching( 1, true );
 
             expect( useBlendCaching() ).toBe( false );
         });
@@ -147,9 +147,9 @@ describe( "Blended layer cache", () => {
         it( "should allow pausing the cache when the request is made by the layer equal to the blend index", () => {
             setBlendCaching( true );
 
-            cacheBlendedLayer( 1, cachedBitmap );
+            cacheBlendedLayer( 4, cachedBitmap );
             
-            pauseBlendCaching( 1, true );
+            pauseBlendCaching( 4, true );
 
             expect( useBlendCaching() ).toBe( false );
         });

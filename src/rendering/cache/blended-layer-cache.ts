@@ -53,8 +53,12 @@ export const getBlendableLayers = (): number[] | undefined => {
 };
 
 /**
- * Whether the layer at provided index is part of the blended layer cache.
- * In other words: is a layer below the highest layer that has a blend mode applied.
+ * Whether the layer at provided index is part of the blended layer cache. Note that
+ * excludes the index of the layer that initiated the cache (see layer-sprite#draw)
+ * for easy diffing and cache generation.
+ * 
+ * In other words, this function determines whether provided index is of a layer below
+ * the highest layer that has a cached blend mode applied.
  */
 export const isBlendCached = ( index: number ): boolean => {
     return index < blendCache.index;
@@ -101,7 +105,6 @@ export const cacheBlendedLayer = ( index: number, bitmap: HTMLCanvasElement ): v
  * Note this does not unset the enabled state so sprites can take appropriate action upon next render.
  */
 export const flushBlendedLayerCache = (): void => {
-    console.info('flush cache')
     blendCache.index  = -1;
     blendCache.bitmap = undefined;
 };
