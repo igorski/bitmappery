@@ -210,7 +210,6 @@ export default {
             deep: true, // allows tracking visibility changes
             handler(): void {
                 this.createLayerRenderers();
-                flushBlendedLayerCache();
             },
         },
         activeLayer( _layer: Layer ): void {

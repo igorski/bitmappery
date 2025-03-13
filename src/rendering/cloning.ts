@@ -29,6 +29,15 @@ import { applyOverrideConfig, type OverrideConfig } from "@/rendering/utils/draw
 import { clone } from "@/utils/object-util";
 
 const tempCanvas = createCanvas();
+let cloneSource: HTMLCanvasElement | undefined;
+
+/**
+ * Store a reference to the source canvas to clone content from.
+ * To be set when drawing starts and unset on release.
+ */
+export const setCloneSource = ( source?: HTMLCanvasElement ): void => {
+    cloneSource = source;
+};
 
 /**
  * Masks the contents of given source using given brushCvs, and renders the result onto given destContext.
@@ -45,7 +54,7 @@ const tempCanvas = createCanvas();
  */
 export const renderClonedStroke = (
     destContext: CanvasRenderingContext2D, brush: Brush, sprite: LayerSprite,
-    source: HTMLCanvasElement, pointers: Point[], overrideConfig: OverrideConfig, lastIndex = 0
+    pointers: Point[], overrideConfig: OverrideConfig, lastIndex = 0
 ): number => {
     const { left, top } = sprite.layer;
 
@@ -86,7 +95,7 @@ export const renderClonedStroke = (
         const multiplier = getPixelRatio();
 
         ctx.drawImage(
-            source,
+            cloneSource,
             // source props
             ( sourceX + xDelta ) * multiplier,
             ( sourceY + yDelta ) * multiplier,

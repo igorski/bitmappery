@@ -34,7 +34,7 @@ describe( "Sprite history utilities", () => {
     });
 
     afterEach(() => {
-        vi.restoreAllMocks();
+        vi.resetAllMocks();
     });
 
     describe( "When adjusting a Sprite's position from a history state", () => {

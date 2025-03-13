@@ -40,13 +40,13 @@ import { fastRound } from "@/math/unit-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { getBlendContext, blendLayer, hasBlend } from "@/rendering/blending";
 import { clipContextToSelection } from "@/rendering/clipping";
-import { renderClonedStroke } from "@/rendering/cloning";
+import { renderClonedStroke, setCloneSource } from "@/rendering/cloning";
 import { renderBrushStroke } from "@/rendering/drawing";
 import { floodFill } from "@/rendering/fill";
 import { snapSpriteToGuide } from "@/rendering/snapping";
 import { applyTransformation } from "@/rendering/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
-import { cacheBlendedLayer, flushBlendedLayerCache, getBlendCache, useBlendCaching, getBlendableLayers, isBlendCached } from "@/rendering/cache/blended-layer-cache";
+import { cacheBlendedLayer, flushBlendedLayerCache, getBlendCache, getBlendableLayers, isBlendCached, pauseBlendCaching, useBlendCaching } from "@/rendering/cache/blended-layer-cache";
 import {
     getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, commitDrawingToLayer, sliceBrushPointers, createOverrideConfig
 } from "@/rendering/utils/drawable-canvas-utils";
@@ -62,7 +62,6 @@ import type { BitMapperyState } from "@/store";
 const HALF   = 0.5;
 const TWO_PI = 2 * Math.PI;
 
-let cloneSource: HTMLCanvasElement | undefined; // @todo : move to cloning.ts
 let drawBounds: Rectangle; // see draw()
 
 /**
@@ -91,7 +90,7 @@ export default class LayerSprite extends ZoomableSprite {
     protected _toolType: ToolTypes;
     protected _orgSourceToStore: HTMLCanvasElement | undefined;
     protected _pendingPaintState: number | undefined; // ReturnType<typeof setTimeout>;
-    protected _rafFx: boolean;
+    protected _pendingEffectsRender: boolean;
 
     constructor( layer: Layer ) {
         const { left, top, width, height } = layer;
@@ -105,9 +104,10 @@ export default class LayerSprite extends ZoomableSprite {
             layer.source = cvs;
         }
 
-        this._pointerX  = 0;
-        this._pointerY  = 0;
-        this.layerIndex = 0; // managed by document-canvas
+        this._pointerX    = 0;
+        this._pointerY    = 0;
+        this.layerIndex   = 0; // managed by document-canvas
+        this._isPaintMode = false;
 
         // brush properties (used for both drawing on LAYER_GRAPHIC types and to create layer masks)
         this._brush = BrushFactory.create();
@@ -203,15 +203,14 @@ export default class LayerSprite extends ZoomableSprite {
     }
 
     cacheEffects(): void {
-        if ( this._rafFx ) {
+        if ( this._pendingEffectsRender ) {
             return; // debounced to only occur once before next render cycle
         }
-        this._rafFx = true;
+        this._pendingEffectsRender = true;
         this.canvas?.setLock( true );
         requestAnimationFrame( async () => {
             await renderEffectsForLayer( this.layer );
-            console.info("-- effects rendered for " + this.layer.name)
-            this._rafFx = false;
+            this._pendingEffectsRender = false;
             this.canvas?.setLock( false );
             if ( hasBlend( this.layer ) || isBlendCached( this.layerIndex )) {
                 flushBlendedLayerCache();
@@ -368,7 +367,7 @@ export default class LayerSprite extends ZoomableSprite {
             }
         } else if ( isDrawing ) {
             if ( isCloneStamp ) {
-                this._lastBrushIndex = renderClonedStroke( ctx, this._brush, this, cloneSource, pointers, overrides, this._lastBrushIndex );
+                this._lastBrushIndex = renderClonedStroke( ctx, this._brush, this, pointers, overrides, this._lastBrushIndex );
             } else {
                 this._lastBrushIndex = renderBrushStroke( ctx, this._brush, overrides, this._lastBrushIndex );
             }
@@ -524,6 +523,9 @@ export default class LayerSprite extends ZoomableSprite {
             this._pointerX = x;
             this._pointerY = y;
         }
+
+        pauseBlendCaching( this.layerIndex, true );
+
         if ( this._isColorPicker ) {
             // color picker mode, get the color below the clicked point
             const local = globalToLocal( this.canvas, x, y );
@@ -550,9 +552,9 @@ export default class LayerSprite extends ZoomableSprite {
                 const { sourceLayerId } = this.toolOptions;
                 const activeDocument = this.canvas.getActiveDocument();
                 if ( sourceLayerId === TOOL_SRC_MERGED ) {
-                    cloneSource = createSyncSnapshot( activeDocument );
+                    setCloneSource( createSyncSnapshot( activeDocument ));
                 } else {
-                    cloneSource = createSyncSnapshot( activeDocument, [ activeDocument.layers.findIndex(({ id }) => id === sourceLayerId )]);
+                    setCloneSource( createSyncSnapshot( activeDocument, [ activeDocument.layers.findIndex(({ id }) => id === sourceLayerId )]));
                 }
             } else if ( this._toolType === ToolTypes.FILL ) {
                 this.paint();
@@ -616,7 +618,10 @@ export default class LayerSprite extends ZoomableSprite {
     }
 
     override handleRelease( _x: number, _y: number ): void {
+        pauseBlendCaching( this.layerIndex, false );
+
         const { getters } = this.getStore();
+
         if ( this.isPainting() ) {
             commitDrawingToLayer(
                 this.layer, this.getPaintSource(), this.getPaintSize(), this.canvas, this._brush.options.opacity,
@@ -629,7 +634,7 @@ export default class LayerSprite extends ZoomableSprite {
             this._brush.down  = false;
             this._brush.last  = 0;
             this._brush.pointers.length = 0;
-            cloneSource = undefined;
+            setCloneSource( undefined );
             
             if ( hasBlend( this.layer )) {
                 flushBlendedLayerCache();
@@ -680,12 +685,13 @@ export default class LayerSprite extends ZoomableSprite {
     // @ts-expect-error incompatible override
     override draw( documentContext: CanvasRenderingContext2D, viewport: Viewport, isSnapshotMode = false ): void {
         let renderedFromCache = false;
+        // @todo pendingeffectsrender check in below conditional?
         if ( !isSnapshotMode && useBlendCaching() ) {
             const { layerIndex } = this;
-            if ( isBlendCached( layerIndex ) && !this._rafFx ) {
+            if ( isBlendCached( layerIndex ) && !this._pendingEffectsRender ) {
                 return; // render will be executed by higher order layer
             }
-            if ( hasBlend( this.layer ) && !this._rafFx ) {
+            if ( hasBlend( this.layer ) && !this._pendingEffectsRender ) {
                 let bitmap = getBlendCache( layerIndex );
                 if ( !bitmap ) {
                     console.info('createSyncSnapshot for ' + this.layer.name);

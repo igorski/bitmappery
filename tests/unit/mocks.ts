@@ -1,4 +1,5 @@
 import { vi } from "vitest";
+import { type Store } from "vuex";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
 import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import { type BitMapperyState } from "@/store";
@@ -10,12 +11,20 @@ import { createPreferencesState } from "@/store/modules/preferences-module";
 import { createToolState } from "@/store/modules/tool-module";
 
 // zCanvas mocks
+// @todo should not be necessary when updating to zCanvas 6+
 
 export function sprite() {
-    this._bounds   = { left: 0, top: 0, width: 10, height: 10 };
+    this._bounds      = { left: 0, top: 0, width: 10, height: 10 };
+    this._interactive = false;
     this.getBounds = vi.fn().mockReturnValue( this._bounds );
+    this.setBounds = vi.fn(( x, y, w, h ) => this._bounds = { left: x, top: y, width: w, height: h });
     this.setDraggable = vi.fn();
-    this.setInteractive = vi.fn();
+    this.getInteractive = vi.fn(() => this._interactive );
+    this.setInteractive = vi.fn( value => this._interactive = value );
+    this.getX = vi.fn();
+    this.setX = vi.fn();
+    this.getY = vi.fn();
+    this.setY = vi.fn();
     this.invalidate = vi.fn();
     this.dispose = vi.fn();
 }
@@ -35,6 +44,8 @@ export function createMockZoomableCanvas(): ZoomableCanvas {
         fps: 60,
         addChild: vi.fn(),
         removeChild: vi.fn(),
+        setLock: vi.fn(),
+        store: createState() as unknown as Store<BitMapperyState>,
     } as unknown as ZoomableCanvas;
 }
 
