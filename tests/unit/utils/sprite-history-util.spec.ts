@@ -1,10 +1,10 @@
 import { it, afterEach, beforeEach, describe, expect, vi } from "vitest";
-import { createMockCanvasElement, sprite, mockZCanvas } from "../mocks";
+import { createMockCanvasElement, mockZCanvas } from "../mocks";
 
 mockZCanvas();
 
 import LayerFactory from "@/factories/layer-factory";
-import type LayerSprite from "@/rendering/canvas-elements/layer-sprite";
+import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
 import { positionSpriteFromHistory, restorePaintFromHistory } from "@/utils/sprite-history-util";
 
 const mockGetSpriteForLayer = vi.fn();
@@ -27,9 +27,7 @@ describe( "Sprite history utilities", () => {
     let layerSprite: LayerSprite;
 
     beforeEach(() => {
-        // @ts-expect-error Sprite mock not typed to LayerSprite
-        layerSprite = new sprite();
-        layerSprite.resetFilterAndRecache = vi.fn();
+        layerSprite = new LayerSprite( layer );
         mockGetSpriteForLayer.mockReturnValue( layerSprite );
     });
 
