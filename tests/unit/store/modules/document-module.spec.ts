@@ -1,10 +1,11 @@
-import { it, describe, expect, vi, beforeEach, afterAll } from "vitest";
+import { it, afterEach, beforeEach, describe, expect, vi, afterAll } from "vitest";
 import { mockZCanvas, createMockCanvasElement } from "../../mocks";
 import { type Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import DocumentFactory from "@/factories/document-factory";
-import LayerFactory, { type LayerProps } from "@/factories/layer-factory";
+import LayerFactory from "@/factories/layer-factory";
 import DocumentModule, { createDocumentState, type DocumentState } from "@/store/modules/document-module";
+import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
 
 const { getters, mutations } = DocumentModule;
 
@@ -279,8 +280,12 @@ describe( "Vuex document module", () => {
         });
 
         describe( "when adding layers", () => {
-            const layerCreateMock = vi.spyOn( LayerFactory, "create" ).mockImplementation(( args: LayerProps ) => args as Layer );
+            const layerCreateSpy = vi.spyOn( LayerFactory, "create" );
 
+            afterEach(() => {
+                layerCreateSpy.mockClear();
+            });
+            
             it( "should be able to add a Layer to the active Document", () => {
                 const state = createDocumentState({
                     documents: [ DocumentFactory.create({ name: "foo", width: 1000, height: 1000 }) ],
@@ -291,8 +296,12 @@ describe( "Vuex document module", () => {
                 mutations.addLayer( state, layerOpts );
 
                 // assert LayerFactory is invoked with provided opts when calling addLayer()
-                expect( layerCreateMock ).toHaveBeenCalledWith( layerOpts );
-                expect( state.documents[ 0 ].layers[ 1 ] ).toEqual( LayerFactory.create( layerOpts ));
+                expect( layerCreateSpy ).toHaveBeenCalledWith( layerOpts );
+
+                const addedLayer = state.documents[ 0 ].layers[ 1 ];
+                expect( addedLayer.name ).toEqual( "layer1" );
+                expect( addedLayer.width ).toEqual( 50 );
+                expect( addedLayer.height ).toEqual( 100 );
             });
 
             it( "when adding a Layer without specified dimensions, these should default to the Document dimensions", () => {
@@ -307,11 +316,11 @@ describe( "Vuex document module", () => {
                 const layerOpts = { name: "layer1" };
                 mutations.addLayer( state, layerOpts );
 
-                expect( state.documents[ 0 ].layers[ 1 ] ).toEqual({
-                    name: layerOpts.name,
-                    width: state.documents[ 0 ].width,
-                    height: state.documents[ 0 ].height
-                });
+                const mutatedLayer = state.documents[ 0 ].layers[ 1 ];
+
+                expect( mutatedLayer.name ).toEqual( layerOpts.name );
+                expect( mutatedLayer.width ).toEqual( state.documents[ 0 ].width );
+                expect( mutatedLayer.height ).toEqual( state.documents[ 0 ].height );
             });
 
             it( "should update the active layer index to the last added layers index", () => {
@@ -346,24 +355,23 @@ describe( "Vuex document module", () => {
             });
 
             it( "should be able to add layers at specific indices in the layer list", () => {
+                const layer1 = LayerFactory.create({ name: "layer1" });
+                const layer2 = LayerFactory.create({ name: "layer2" });
+
                 const state = createDocumentState({
                     documents: [
                         DocumentFactory.create({
                             name: "foo",
-                            layers: [
-                                LayerFactory.create({ name: "layer1" }),
-                                LayerFactory.create({ name: "layer2" })
-                            ]
+                            layers: [ layer1, layer2 ],
                         })
                     ],
                     activeIndex: 0,
                     activeLayerIndex: 0,
                 });
-                const layer = { name: "layer3" };
-                mutations.insertLayerAtIndex( state, { index: 1, layer });
-                expect( state.documents[ 0 ].layers ).toEqual([
-                    { name: "layer1" }, layer, { name: "layer2" }
-                ]);
+                const layerToInsert = LayerFactory.create({ name: "layer3" });
+                mutations.insertLayerAtIndex( state, { index: 1, layer: layerToInsert });
+
+                expect( state.documents[ 0 ].layers ).toEqual([ layer1, layerToInsert, layer2 ]);
                 expect( state.activeLayerIndex ).toEqual( 1 );
             });
         });
@@ -442,17 +450,19 @@ describe( "Vuex document module", () => {
 
         it( "should be able to reorder all layers in the currently active Document", () => {
             const layers = [
-                LayerFactory.create({ id: "A", name: "layer1" }),
-                LayerFactory.create({ id: "B", name: "layer2" }),
-                LayerFactory.create({ id: "C", name: "layer3" }),
-                LayerFactory.create({ id: "D", name: "layer4" }),
+                LayerFactory.create({ name: "layer1" }),
+                LayerFactory.create({ name: "layer2" }),
+                LayerFactory.create({ name: "layer3" }),
+                LayerFactory.create({ name: "layer4" }),
             ];
             const orgLayers = [ ...layers ];
             const state = createDocumentState({
                 documents: [ DocumentFactory.create({ name: "foo", layers })],
                 activeIndex: 0
             });
-            mutations.reorderLayers( state, { document: state.documents[ 0 ], layerIds: [ "B", "C", "A", "D" ] });
+            mutations.reorderLayers( state, { document: state.documents[ 0 ], layerIds: [
+                layers[ 1 ].id, layers[ 2 ].id, layers[ 0 ].id, layers[ 3 ].id 
+            ] });
             // note we check by reference to ensure all bindings remain
             expect( state.documents[ 0 ].layers ).toEqual([
                 orgLayers[ 1 ], orgLayers[ 2 ], orgLayers[ 0 ], orgLayers[ 3 ]
@@ -539,10 +549,11 @@ describe( "Vuex document module", () => {
             beforeEach(() => {
                 layer1 = LayerFactory.create({ name: "layer1", effects: { rotation: 0 } });
                 layer2 = LayerFactory.create({ name: "layer2", effects: { rotation: 0 } });
+                
                 state = createDocumentState({
                     documents: [ DocumentFactory.create({
                         name: "foo",
-                        layers: [ { ...layer1 }, { ...layer2 } ]
+                        layers: [ layer1, layer2 ]
                     })],
                     activeIndex: 0
                 });
@@ -558,9 +569,11 @@ describe( "Vuex document module", () => {
                     height: 150,
                     type: LayerTypes.LAYER_IMAGE
                 };
-                const mockSprite = { src: "bitmap", cacheEffects: vi.fn() };
+                const layerSprite = new LayerSprite( layer2 );
+                const cacheEffectsSpy = vi.spyOn( layerSprite, "cacheEffects" );
+
                 mockUpdateFn = vi.fn( fn => {
-                    if ( fn === "getSpriteForLayer" ) return mockSprite;
+                    if ( fn === "getSpriteForLayer" ) return layerSprite;
                     return true;
                 });
                 mutations.updateLayer( state, { index, opts });
@@ -569,7 +582,7 @@ describe( "Vuex document module", () => {
                     ...opts
                 });
                 expect( mockUpdateFn ).toHaveBeenCalledWith( "getSpriteForLayer", state.documents[ 0 ].layers[ index ] );
-                expect( mockSprite.cacheEffects ).toHaveBeenCalled();
+                expect( cacheEffectsSpy ).toHaveBeenCalled();
             });
 
             it( "should be able to update the source image of a specific layer within the active Document, invoking a filter recache on the sprite", () => {
@@ -579,30 +592,37 @@ describe( "Vuex document module", () => {
                     source: new Image(),
                     type: LayerTypes.LAYER_IMAGE
                 };
-                const mockSprite = { src: "bitmap", resetFilterAndRecache: vi.fn() };
+                const layerSprite = new LayerSprite( layer2 );
+                const resetAndRecacheSpy = vi.spyOn( layerSprite, "resetFilterAndRecache" );
+
                 mockUpdateFn = vi.fn( fn => {
-                    if ( fn === "getSpriteForLayer" ) return mockSprite;
+                    if ( fn === "getSpriteForLayer" ) return layerSprite;
                     return true;
                 });
                 mutations.updateLayer( state, { index, opts });
-                expect( mockSprite.resetFilterAndRecache ).toHaveBeenCalled();
+                expect( resetAndRecacheSpy ).toHaveBeenCalled();
             });
 
             it( "should be able to update the effects of a specific layer within the active Document", () => {
                 const index   = 0;
                 const effects = { rotation: 1.6 };
-                const mockSprite = { src: "bitmap", invalidate: vi.fn() };
+                const layerSprite = new LayerSprite( layer1 );
+                const invalidateBlendCacheSpy = vi.spyOn( layerSprite, "invalidateBlendCache" );
+
                 mockUpdateFn = vi.fn( fn => {
-                    if ( fn === "getSpriteForLayer" ) return mockSprite;
+                    if ( fn === "getSpriteForLayer" ) return layerSprite;
                     return true;
                 });
                 mutations.updateLayerEffects( state, { index, effects });
                 expect( state.documents[ 0 ].layers[ index ] ).toEqual({
                     ...layer1,
-                    effects,
+                    effects: {
+                        ...layer1.effects,
+                        ...effects,
+                    }
                 });
                 expect( mockUpdateFn ).toHaveBeenCalledWith( "getSpriteForLayer", state.documents[ 0 ].layers[ index ] );
-                expect( mockSprite.invalidate ).toHaveBeenCalled();
+                expect( invalidateBlendCacheSpy ).toHaveBeenCalled();
             });
         });
 

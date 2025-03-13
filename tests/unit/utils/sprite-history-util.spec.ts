@@ -17,6 +17,7 @@ let mockUseBlendCaching = false;
 vi.mock( "@/rendering/cache/blended-layer-cache", () => ({
     flushBlendedLayerCache: vi.fn(() => mockFlushBlendedLayerCache()),
     useBlendCaching: vi.fn(() => mockUseBlendCaching ),
+    isBlendCached: vi.fn(),
 }));
 
 describe( "Sprite history utilities", () => {
