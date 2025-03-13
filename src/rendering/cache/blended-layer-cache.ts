@@ -81,7 +81,7 @@ export const pauseBlendCaching = ( index: number, paused: boolean ): void => {
  * Retrieve the cached bitmap corresponding to the layer at provided index.
  * When existing, the bitmap will return the contents of the layer as well as that
  * of all underlying layers. Note: if the Layer at provided index has a blend mode filter
- * but no cached bitmap, it means a Layer w/blend mode filter at a higher index holds the cache.
+ * but no cached bitmap, it means a Layer w/blend mode filter at a higher index owns the cache.
  */
 export const getBlendCache = ( index: number ): HTMLCanvasElement | undefined => {
     if ( blendCache.index !== index ) {
@@ -91,7 +91,7 @@ export const getBlendCache = ( index: number ): HTMLCanvasElement | undefined =>
 };
 
 /**
- * Cache provided bitmap and associated it with the layer at the provided index.
+ * Cache provided bitmap and associate its ownership with the layer at the provided index.
  * If a subsequent invocation for a layer at a higher index is provided, this is fine
  * as an underlying layer with its own blended context would be cached within the higher layers bitmap.
  */
