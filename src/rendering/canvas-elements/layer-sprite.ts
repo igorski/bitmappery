@@ -601,9 +601,6 @@ export default class LayerSprite extends ZoomableSprite {
             } else if ( this._isDragMode ) {
                 super.handleMove( x, y, event );
             }
-            if ( hasBlend( this.layer )) {
-                flushBlendedLayerCache();
-            }
             if ( this._isDragMode ) {
                 return;
             }
@@ -636,9 +633,6 @@ export default class LayerSprite extends ZoomableSprite {
             this._brush.pointers.length = 0;
             setCloneSource( undefined );
             
-            if ( hasBlend( this.layer )) {
-                flushBlendedLayerCache();
-            }
             // immediately store pending history state when not running in lowMemory mode
             if ( !getters.getPreference( "lowMemory" )) {
                 this.storePaintState();
