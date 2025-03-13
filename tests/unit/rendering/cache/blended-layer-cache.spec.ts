@@ -17,6 +17,46 @@ describe( "Blended layer cache", () => {
         setBlendCaching( false );
     });
 
+    describe( "when toggling the state of the cache", () => {
+        it( "should by default not cache the Document", () => {
+            expect( useBlendCaching() ).toBe( false );
+        });
+
+        it( "should cache the document when enabled", () => {
+            setBlendCaching( true );
+
+            expect( useBlendCaching() ).toBe( true );
+        });
+
+        it( "should store the provided list of blendable layers by their indices", () => {
+            const layer1 = LayerFactory.create();
+            const layer2 = LayerFactory.create();
+
+            setBlendCaching( true, [ layer1, layer2 ]);
+
+            expect( getBlendableLayers() ).toEqual([ 0, 1 ]);
+        });
+
+        it( "should unset the existing cache when disabling a previously enabled cache for a Document", () => {
+            setBlendCaching( true );
+
+            cacheBlendedLayer( 1, cachedBitmap );
+
+            setBlendCaching( false );
+
+            expect( isBlendCached( 0 )).toBe( false );
+        });
+
+        it( "should not unset the cache state when flushing the existing cache", () => {
+            setBlendCaching( true );
+
+            cacheBlendedLayer( 1, cachedBitmap );
+            flushBlendedLayerCache();
+
+            expect( useBlendCaching() ).toBe( true );
+        });
+    });
+
     describe( "when determining whether a layer is considered cached within the layer cache", () => {
         it( "should by default return false when there is no cache", () => {
             expect( isBlendCached( 0 )).toBe( false );
@@ -80,46 +120,6 @@ describe( "Blended layer cache", () => {
 
             expect( getBlendCache( 2 )).toBeUndefined();
             expect( getBlendCache( 3 )).toEqual( cachedBitmap );
-        });
-    });
-
-    describe( "when toggling the state of the cache", () => {
-        it( "should by default not cache the Document", () => {
-            expect( useBlendCaching() ).toBe( false );
-        });
-
-        it( "should cache the document when enabled", () => {
-            setBlendCaching( true );
-
-            expect( useBlendCaching() ).toBe( true );
-        });
-
-        it( "should store the provided list of blendable layers by their indices", () => {
-            const layer1 = LayerFactory.create();
-            const layer2 = LayerFactory.create();
-
-            setBlendCaching( true, [ layer1, layer2 ]);
-
-            expect( getBlendableLayers() ).toEqual([ 0, 1 ]);
-        });
-
-        it( "should unset the existing cache when disabling a previously enabled cache for a Document", () => {
-            setBlendCaching( true );
-
-            cacheBlendedLayer( 1, cachedBitmap );
-
-            setBlendCaching( false );
-
-            expect( isBlendCached( 0 )).toBe( false );
-        });
-
-        it( "should not unset the cache state when flushing the existing cache", () => {
-            setBlendCaching( true );
-
-            cacheBlendedLayer( 1, cachedBitmap );
-            flushBlendedLayerCache();
-
-            expect( useBlendCaching() ).toBe( true );
         });
     });
 
