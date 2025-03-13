@@ -321,7 +321,7 @@ describe( "LayerSprite", () => {
             expect( canvas.setLock ).toHaveBeenCalledTimes( 3 );
         });
 
-        it( "should request to invalidate the blend cache upon render completion", async () => {
+        it( "should request a full invalidation of the the blend cache upon render completion", async () => {
             const layerSprite = new LayerSprite( LayerFactory.create({
                 filters: FiltersFactory.create({ blendMode: BlendModes.DARKEN })
             }));
@@ -329,7 +329,7 @@ describe( "LayerSprite", () => {
 
             await mockAsyncRender();
 
-            expect( invalidateSpy ).toHaveBeenCalled();
+            expect( invalidateSpy ).toHaveBeenCalledWith( true );
         });
     });
 

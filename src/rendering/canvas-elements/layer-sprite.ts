@@ -212,7 +212,7 @@ export default class LayerSprite extends ZoomableSprite {
             await renderEffectsForLayer( this.layer );
             this._pendingEffectsRender = false;
             this.canvas?.setLock( false );
-            this.invalidateBlendCache(); // now layer effects are cached, invalidate any existing blend cache
+            this.invalidateBlendCache( true ); // now layer effects are cached, invalidate any existing blend cache
         });
     }
 
@@ -221,9 +221,9 @@ export default class LayerSprite extends ZoomableSprite {
         this.cacheEffects(); // sync mask and source changes with sprite Bitmap
     }
 
-    invalidateBlendCache(): void {
+    invalidateBlendCache( full = false ): void {
         if ( hasBlend( this.layer ) || isBlendCached( this.layerIndex )) {
-            flushBlendedLayerCache();
+            flushBlendedLayerCache( full );
         }
     }
 
@@ -509,7 +509,7 @@ export default class LayerSprite extends ZoomableSprite {
                 layer.top  = newLayerY;
             }
         });
-        this.invalidate();
+        this.invalidateBlendCache();
     }
 
     /**

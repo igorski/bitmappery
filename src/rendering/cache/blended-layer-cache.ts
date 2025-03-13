@@ -101,10 +101,13 @@ export const cacheBlendedLayer = ( index: number, bitmap: HTMLCanvasElement ): v
 };
 
 /**
- * Clear the existing blend cache.
- * Note this does not unset the enabled state so sprites can take appropriate action upon next render.
+ * Clear the existing blend cache bitmap so it can be regenerated on next render.
+ * When requesting a full flush, the blend layer index is also unset.
+ * Note this does not unset the enabled state so LayerSprites can take appropriate action upon next render.
  */
-export const flushBlendedLayerCache = (): void => {
-    blendCache.index  = -1;
+export const flushBlendedLayerCache = ( full = false ): void => {
+    if ( full ) {
+        blendCache.index = -1;
+    }
     blendCache.bitmap = undefined;
 };

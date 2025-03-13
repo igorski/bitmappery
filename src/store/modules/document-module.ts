@@ -146,7 +146,7 @@ const DocumentModule: Module<DocumentState, any> = {
             const layers = [ ...document.layers ];
             layers.splice( 0, oldLayers.length );
             layerIds.forEach( id => {
-                layers.push( oldLayers.find( layer => layer.id === id));
+                layers.push( oldLayers.find( layer => layer.id === id ));
             });
             document.layers = layers;
         },
@@ -214,7 +214,7 @@ const DocumentModule: Module<DocumentState, any> = {
             const sprite = getSpriteForLayer( layer );
             if ( sprite ) {
                 sprite.layer = layer;
-                sprite.invalidate();
+                sprite.invalidateBlendCache();
             }
         },
         async resizeActiveDocumentContent( state: DocumentState, { scaleX, scaleY }: { scaleX: number, scaleY: number }): Promise<void> {

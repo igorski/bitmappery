@@ -13,7 +13,7 @@ describe( "Blended layer cache", () => {
 
     afterEach(() => {
         pauseBlendCaching( 0, false );
-        flushBlendedLayerCache();
+        flushBlendedLayerCache( true );
         setBlendCaching( false );
     });
 
@@ -51,7 +51,7 @@ describe( "Blended layer cache", () => {
             setBlendCaching( true );
 
             cacheBlendedLayer( 1, cachedBitmap );
-            flushBlendedLayerCache();
+            flushBlendedLayerCache( true );
 
             expect( useBlendCaching() ).toBe( true );
         });
@@ -101,12 +101,22 @@ describe( "Blended layer cache", () => {
             expect( getBlendCache( 3 )).toBeUndefined();
         });
 
-        it( "should be able to flush the existing cached bitmap", () => {
-            cacheBlendedLayer( 2, cachedBitmap );
+        it( "should be able to flush the existing cached bitmap while keeping the blend layer index", () => {
+            cacheBlendedLayer( 1, cachedBitmap );
 
             flushBlendedLayerCache();
 
-            expect( getBlendCache( 2 )).toBeUndefined();
+            expect( getBlendCache( 1 )).toBeUndefined();
+            expect( isBlendCached( 0 )).toBe( true );
+        });
+
+        it( "should be able to flush the existing cached bitmap and reset the blend layer index on a full flush", () => {
+            cacheBlendedLayer( 1, cachedBitmap );
+
+            flushBlendedLayerCache( true );
+
+            expect( getBlendCache( 1 )).toBeUndefined();
+            expect( isBlendCached( 0 )).toBe( false );
         });
     });
 
