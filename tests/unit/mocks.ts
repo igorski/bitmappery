@@ -17,7 +17,12 @@ export function sprite() {
     this._bounds      = { left: 0, top: 0, width: 10, height: 10 };
     this._interactive = false;
     this.getBounds = vi.fn().mockReturnValue( this._bounds );
-    this.setBounds = vi.fn(( x, y, w, h ) => this._bounds = { left: x, top: y, width: w, height: h });
+    this.setBounds = vi.fn(( x, y, w, h ) => {
+        this._bounds.left   = x;
+        this._bounds.top    = y;
+        this._bounds.width  = w;
+        this._bounds.height = h;
+    });
     this.setDraggable = vi.fn();
     this.getInteractive = vi.fn(() => this._interactive );
     this.setInteractive = vi.fn( value => this._interactive = value );
