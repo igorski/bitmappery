@@ -685,13 +685,12 @@ export default class LayerSprite extends ZoomableSprite {
     // @ts-expect-error incompatible override
     override draw( documentContext: CanvasRenderingContext2D, viewport: Viewport, isSnapshotMode = false ): void {
         let renderedFromCache = false;
-        // @todo pendingeffectsrender check in below conditional?
-        if ( !isSnapshotMode && useBlendCaching() ) {
+        if ( !isSnapshotMode && useBlendCaching() && !this._pendingEffectsRender ) {
             const { layerIndex } = this;
-            if ( isBlendCached( layerIndex ) && !this._pendingEffectsRender ) {
+            if ( isBlendCached( layerIndex )) {
                 return; // render will be executed by higher order layer
             }
-            if ( hasBlend( this.layer ) && !this._pendingEffectsRender ) {
+            if ( hasBlend( this.layer )) {
                 let bitmap = getBlendCache( layerIndex );
                 if ( !bitmap ) {
                     bitmap = createSyncSnapshot( this.canvas.getActiveDocument(), getBlendableLayers());
