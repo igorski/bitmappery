@@ -54,10 +54,10 @@ export const getBlendableLayers = (): number[] | undefined => {
 
 /**
  * Whether the layer at provided index is part of the blended layer cache. Note that
- * excludes the index of the layer that initiated the cache (see layer-sprite#draw)
- * for easy diffing and cache generation.
+ * excludes the index of the layer that has the cached blend. This is for easy diffing
+ * and cache generation purposes (see LayerSprite#draw())
  * 
- * In other words, this function determines whether provided index is of a layer below
+ * In other words, this function determines whether the provided index is of a layer below
  * the highest layer that has a cached blend mode applied.
  */
 export const isBlendCached = ( index: number ): boolean => {
