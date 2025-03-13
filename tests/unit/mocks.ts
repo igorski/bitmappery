@@ -75,6 +75,28 @@ export function createMockCanvasElement(): HTMLCanvasElement {
     } as unknown as HTMLCanvasElement;
 }
 
+/**
+ * Execute calls debounced by requestAnimationFrame() to use timeouts, which allows
+ * us to throttle these with vi.useFakeTimers();
+ * 
+ * Run each RAF callback by invoking vi.runAllTimers();
+ * Don't forget to use vi.useRealTimers() and vi.restoreAllMocks() to clean up.
+ */
+export function mockRequestAnimationFrame( now = window.performance.now(), fps = 60 ) {
+    vi.spyOn( window, "cancelAnimationFrame" ).mockImplementation( rafId => {
+        clearTimeout( rafId );
+    });
+
+    vi.spyOn( window, "requestAnimationFrame" ).mockImplementation( cb => {
+        const interval = 1000 / fps;
+        const id = setTimeout(() => {
+            now += interval;
+            cb( now );
+        }, interval );
+        return id as unknown as number;
+    });
+}
+
 export function createMockFile( name: string, type = "" ): File {
     const out = new Blob([], { type }) as File;
     // @ts-expect-error name is readonly

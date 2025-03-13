@@ -4,11 +4,13 @@ import { createMockCanvasElement, createMockZoomableCanvas, mockZCanvas } from "
 mockZCanvas();
 
 import { type Store } from "vuex";
+import { BlendModes } from "@/definitions/blend-modes";
 import { type Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import ToolTypes from "@/definitions/tool-types";
 import DocumentFactory from "@/factories/document-factory";
 import EffectsFactory from "@/factories/effects-factory";
+import FiltersFactory from "@/factories/filters-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { degreesToRadians } from "@/math/unit-math";
 import { type BitMapperyState } from "@/store";
@@ -17,9 +19,16 @@ import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 
 let mockIsBlendCached = false;
 const mockPauseBlendCaching = vi.fn();
+const mockFlushBlendedLayerCache = vi.fn();
 vi.mock( "@/rendering/cache/blended-layer-cache", () => ({
     isBlendCached: vi.fn(() => mockIsBlendCached ),
     pauseBlendCaching: vi.fn(( ...args ) => mockPauseBlendCaching( ...args )),
+    flushBlendedLayerCache: vi.fn(() => mockFlushBlendedLayerCache() ),
+}));
+
+const mockRenderEffectsForLayer = vi.fn();
+vi.mock( "@/services/render-service", () => ({
+    renderEffectsForLayer: vi.fn(( ...args ) => mockRenderEffectsForLayer( ...args )),
 }));
 
 describe( "LayerSprite", () => {
@@ -39,6 +48,8 @@ describe( "LayerSprite", () => {
     }
 
     beforeEach(() => {
+        vi.useFakeTimers();
+
         layer = LayerFactory.create();
 
         canvas = createMockZoomableCanvas();
@@ -54,6 +65,7 @@ describe( "LayerSprite", () => {
 
     afterEach(() => {
         vi.resetAllMocks();
+        vi.useRealTimers();
         mockIsBlendCached = false;
     });
 
@@ -235,6 +247,112 @@ describe( "LayerSprite", () => {
             mockStore.getters.activeLayerMask = layer.mask;
 
             expect( sprite.getPaintSource() ).toEqual( layer.mask );
+        });
+    });
+
+    describe( "when caching the Layers effects into a prerendered source image", () => {
+        async function mockAsyncRender(): Promise<void> {
+            vi.runAllTimers();
+            await mockRenderEffectsForLayer.mockResolvedValue( true );
+        }
+
+        beforeEach( async () => {
+            // completes first automatic cache invocation in LayerSprite constructor
+            await mockAsyncRender();
+            // @ts-expect-error setLock is not typed as a vi Spy function
+            canvas.setLock.mockClear();
+            mockRenderEffectsForLayer.mockClear();
+        });
+        
+        it( "should call the render directly on construction", () => {
+            const cacheSpy = vi.spyOn( LayerSprite.prototype, "cacheEffects" );
+
+            new LayerSprite( layer );
+            
+            expect( cacheSpy ).toHaveBeenCalled();
+        });
+
+        it( "should lock the canvas rendering state, freezing the current image while the effects cache is being rendered", () => {
+            sprite.cacheEffects();
+
+            expect( canvas.setLock ).toHaveBeenCalledWith( true );
+        });
+
+        it( "should request a render of the effects for the sprites related Layer", async () => {
+            sprite.cacheEffects();
+            
+            await mockAsyncRender();
+
+            expect( mockRenderEffectsForLayer ).toHaveBeenCalledWith( sprite.layer );
+        });
+
+        it( "should defer the render request until the next animation frame", async () => {
+            sprite.cacheEffects();
+
+            expect( mockRenderEffectsForLayer ).not.toHaveBeenCalled();
+
+            vi.runAllTimers(); // runs RAF
+
+            expect( mockRenderEffectsForLayer ).toHaveBeenCalled();
+        });
+
+        it( "should unlock the canvas rendering state when rendering has completed", async () => {
+            sprite.cacheEffects();
+
+            await mockAsyncRender();
+
+            expect( canvas.setLock ).toHaveBeenCalledWith( false );
+        });
+
+        it( "should not execute subsequent calls when a render is still pending", () => {
+            sprite.cacheEffects();
+            sprite.cacheEffects();
+
+            expect( canvas.setLock ).toHaveBeenCalledTimes( 1 );
+        });
+
+        it( "should allow requesting a new render after the previous one has finished", async () => {
+            sprite.cacheEffects(); // 1st call : setLock( true )
+
+            await mockAsyncRender(); // 2nd call : setLock( false )
+
+            sprite.cacheEffects(); // 3rd call: setLock( true )
+
+            expect( canvas.setLock ).toHaveBeenCalledTimes( 3 );
+        });
+
+        describe( "upon render completion", () => {
+            it( "should not flush the blended layer cache when the layer does not have a blend filter", async () => {
+                new LayerSprite( LayerFactory.create({
+                    filters: FiltersFactory.create({ blendMode: BlendModes.NORMAL })
+                }));
+
+                await mockAsyncRender();
+
+                expect( mockFlushBlendedLayerCache ).not.toHaveBeenCalled();
+            });
+
+            it( "should flush the blended layer cache when the layer has a blend filter", async () => {
+                new LayerSprite( LayerFactory.create({
+                    filters: FiltersFactory.create({ blendMode: BlendModes.DARKEN })
+                }));
+
+                await mockAsyncRender();
+
+                expect( mockFlushBlendedLayerCache ).toHaveBeenCalled();
+            });
+
+            it( "should flush the blended layer cache when the layer does not have a blend filter, but is part of the blended layer cache", async () => {
+                mockIsBlendCached = true;
+
+                new LayerSprite( LayerFactory.create({
+                    filters: FiltersFactory.create({ blendMode: BlendModes.NORMAL })
+                }));
+
+                await mockAsyncRender();
+
+                expect( mockFlushBlendedLayerCache ).toHaveBeenCalled();
+            });
         });
     });
 });
