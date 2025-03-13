@@ -129,7 +129,7 @@ describe( "Blended layer cache", () => {
 
             cacheBlendedLayer( 2, cachedBitmap );
             
-            pauseBlendCaching( 0, true );
+            pauseBlendCaching( 2, true );
 
             expect( useBlendCaching() ).toBe( false );
         });
