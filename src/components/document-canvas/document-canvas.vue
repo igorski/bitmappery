@@ -552,6 +552,7 @@ export default {
 <style lang="scss">
 @use "@/styles/_colors";
 @use "@/styles/_mixins";
+@use "@/styles/_variables";
 @use "@/styles/component";
 @use "@/styles/ui";
 
@@ -573,6 +574,8 @@ export default {
         padding: 0;
         overflow: hidden;
         display: block;
+        background-image: linear-gradient( to bottom, transparent 98%, #000 100% ), linear-gradient( to right, #444 98%, #000 );
+        background-size: variables.$spacing-xlarge variables.$spacing-xlarge;
 
         canvas {
             background: url( "../../assets-inline/images/document_transparent_bg.png" ) repeat;

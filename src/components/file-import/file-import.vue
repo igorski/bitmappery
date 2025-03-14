@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -25,61 +25,63 @@
         <div class="component__header">
             <h2 v-t="'letsGetStarted'" class="component__title component__title--no-action"></h2>
         </div>
-        <div class="form import-form">
-            <p v-t="'chooseContentCreationMethod'"></p>
-            <button
-                v-t="'createNewDocument'"
-                type="button"
-                class="button button--primary button--block new-document-button"
-                @click="requestNewDocument()"
-            ></button>
-            <div class="file-fieldset">
-                <p v-t="'orImportFile'"></p>
-                <!-- Local -->
-                <file-selector />
-                <!-- Dropbox -->
-                <template v-if="hasDropbox">
-                    <button
-                        v-if="!dropbox"
-                        v-t="'importFromDropbox'"
-                        type="button"
-                        class="button button--block button--third-party dropbox"
-                        @click="dropbox = true"
-                    ></button>
-                    <component :is="dropboxImportType" />
-                </template>
-                <!-- Google Drive -->
-                <template v-if="hasDrive">
-                    <button
-                        v-if="!drive"
-                        v-t="'importFromGoogleDrive'"
-                        type="button"
-                        class="button button--block button--third-party drive"
-                        @click="drive = true"
-                    ></button>
-                    <component :is="driveImportType" />
-                </template>
-                <!-- AWS S3 -->
-                <template v-if="hasS3">
-                    <button
-                        v-if="!s3"
-                        v-t="'importFromAwsS3'"
-                        type="button"
-                        class="button button--block button--third-party s3"
-                        @click="s3 = true"
-                    ></button>
-                    <component :is="s3ImportType" />
-                </template>
-                <div class="wrapper input">
-                    <label v-t="'openImageAsNew'" class="file-target-label"></label>
-                    <select-box
-                        :options="fileTargetOptions"
-                        v-model="importTarget"
-                        class="file-target-select"
-                    />
+        <div class="file-import__body">
+            <div class="form import-form">
+                <p v-t="'chooseContentCreationMethod'"></p>
+                <button
+                    v-t="'createNewDocument'"
+                    type="button"
+                    class="button button--primary button--block new-document-button"
+                    @click="requestNewDocument()"
+                ></button>
+                <div class="file-fieldset">
+                    <p v-t="'orImportFile'"></p>
+                    <!-- Local -->
+                    <file-selector />
+                    <!-- Dropbox -->
+                    <template v-if="hasDropbox">
+                        <button
+                            v-if="!dropbox"
+                            v-t="'importFromDropbox'"
+                            type="button"
+                            class="button button--block button--third-party dropbox"
+                            @click="dropbox = true"
+                        ></button>
+                        <component :is="dropboxImportType" />
+                    </template>
+                    <!-- Google Drive -->
+                    <template v-if="hasDrive">
+                        <button
+                            v-if="!drive"
+                            v-t="'importFromGoogleDrive'"
+                            type="button"
+                            class="button button--block button--third-party drive"
+                            @click="drive = true"
+                        ></button>
+                        <component :is="driveImportType" />
+                    </template>
+                    <!-- (AWS) S3 -->
+                    <template v-if="hasS3">
+                        <button
+                            v-if="!s3"
+                            v-t="'importFromAwsS3'"
+                            type="button"
+                            class="button button--block button--third-party s3"
+                            @click="s3 = true"
+                        ></button>
+                        <component :is="s3ImportType" />
+                    </template>
+                    <div class="wrapper input">
+                        <label v-t="'openImageAsNew'" class="file-target-label"></label>
+                        <select-box
+                            :options="fileTargetOptions"
+                            v-model="importTarget"
+                            class="file-target-select"
+                        />
+                    </div>
                 </div>
+                <p v-t="'fileAndHelpExpl'"></p>
             </div>
-            <p v-t="'fileAndHelpExpl'"></p>
         </div>
     </div>
 </template>
@@ -174,6 +176,17 @@ export default {
     overflow-y: auto;
     text-align: center;
     background-color: #292929;
+
+    @include mixins.large() {
+        display: flex;
+        flex-direction: column;
+
+        &__body {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+    }
 }
 
 .file-fieldset {

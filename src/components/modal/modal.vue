@@ -83,7 +83,7 @@ export default {
 
         :deep(.component__header) {
             height: $headerHeight;
-            padding: #{variables.$spacing-xsmall + variables.$spacing-small} variables.$spacing-medium 0 #{variables.$spacing-medium + variables.$spacing-small};
+            padding: 0 variables.$spacing-medium 0 #{variables.$spacing-medium + variables.$spacing-small};
             border: none;
         }
 

@@ -9,8 +9,10 @@
     background-image: colors.$color-window-bg;
 
     .component__header {
+        display: flex;
+        align-items: center;
         margin: 0;
-        padding: variables.$spacing-small variables.$spacing-medium;
+        padding: 0 variables.$spacing-medium;
         @include mixins.boxSize();
         @include mixins.truncate();
         @include typography.customFont();

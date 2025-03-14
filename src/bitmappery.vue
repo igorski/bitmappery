@@ -352,7 +352,7 @@ export default {
     -moz-osx-font-smoothing: grayscale;
     background-image: linear-gradient(to bottom, colors.$color-bg-dark 35%, colors.$color-bg-light 90%);
     height: 100%;
-    font-size: 15px;
+    font-size: 14px;
     @include mixins.noSelect();
 
     .main {

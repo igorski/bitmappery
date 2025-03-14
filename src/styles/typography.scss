@@ -11,10 +11,10 @@
 }
 
 body {
+    @include bodyFont();
     color: #b7babe;
     font-size: variables.$spacing-medium;
     line-height: 1.5;
-    @include bodyFont();
 }
 
 h1, h2, h3, h4, h5, h6 {
