@@ -201,7 +201,7 @@ const DocumentModule: Module<DocumentState, any> = {
                 sprite.layer = layer;
                 const flushBlendCache = !!opts.filters;
                 if ( flushBlendCache ) {
-                    flushBlendedLayerCache( true );
+                    flushBlendedLayerCache( true ); // direct to prevent rendering errors on undo
                 }
                 opts.source ? sprite.resetFilterAndRecache() : sprite.cacheEffects();
             }

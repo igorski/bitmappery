@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -32,6 +32,8 @@
             :step="step"
             :disabled="disabled"
             @dblclick="toggleTextInput( true )"
+            @pointerdown="handleDragStart()"
+            @pointerup="handleDragEnd()"
         />
         <input
             v-else
@@ -49,11 +51,11 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import KeyboardService from "@/services/keyboard-service";
 
 export default {
-    emits: [ "update:modelValue" ],
+    emits: [ "update:modelValue", "dragStart", "dragEnd" ],
     props: {
         modelValue: {
             type: Number,
@@ -81,10 +83,10 @@ export default {
     }),
     computed: {
         internalValue: {
-            get() {
+            get(): number {
                 return this.modelValue;
             },
-            set( value ) {
+            set( value: string ): void {
                 const numericalValue = parseFloat( value );
                 if ( isNaN( numericalValue )) {
                     return;
@@ -94,16 +96,22 @@ export default {
         },
     },
     methods: {
-        toggleTextInput( enabled ) {
+        toggleTextInput( enabled: boolean ): void {
             this.textInput = enabled;
         },
-        handleTextFocus() {
+        handleTextFocus(): void {
             this.wasSuspended = KeyboardService.getSuspended();
             KeyboardService.setSuspended( true );
         },
-        handleTextBlur() {
+        handleTextBlur(): void {
             KeyboardService.setSuspended( this.wasSuspended );
             this.toggleTextInput( false );
+        },
+        handleDragStart(): void {
+            this.$emit( "dragStart" );
+        },
+        handleDragEnd(): void {
+            this.$emit( "dragEnd" );
         },
     }
 };

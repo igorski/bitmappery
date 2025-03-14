@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2023 - https://www.igorski.nl
+ * Igor Zinken 2021-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -30,6 +30,8 @@
                 :max="max"
                 :disabled="!activeLayer"
                 :tooltip="'none'"
+                @dragStart="pauseCache( true )"
+                @dragEnd="pauseCache( false )"
             />
         </div>
         <div class="actions">
@@ -52,7 +54,7 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters } from "vuex";
 import { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import { LayerTypes } from "@/definitions/layer-types";
@@ -60,6 +62,7 @@ import Slider from "@/components/ui/slider/slider.vue";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { scale } from "@/math/unit-math";
+import { pauseBlendCaching } from "@/rendering/cache/blended-layer-cache";
 import { cloneCanvas, resizeImage } from "@/utils/canvas-util";
 import messages  from "./messages.json";
 
@@ -81,22 +84,22 @@ export default {
             "activeLayerEffects",
         ]),
         scale: {
-            get() {
+            get(): number {
                 return ( this.activeLayerEffects.scale - 1 ) * MAX_ZOOM;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.update( scale( value, MAX_ZOOM, 1 ) + 1 );
             }
         },
-        isScaled() {
+        isScaled(): boolean {
             return this.activeLayerEffects.scale !== 1;
         },
-        isSaveable() {
+        isSaveable(): boolean {
             return SAVEABLE_TYPES.includes( this.activeLayer?.type );
         },
     },
     methods: {
-        update( scale ) {
+        update( scale: number ): void {
             const oldScale = this.activeLayerEffects.scale;
             const index  = this.activeLayerIndex;
             const store  = this.$store;
@@ -111,7 +114,7 @@ export default {
                 redo: commit
             });
         },
-        async save() {
+        async save(): Promise<void> {
             const { activeLayer } = this;
             const { left, top, width, height } = activeLayer;
             const { scale } = activeLayer.effects;
@@ -149,8 +152,11 @@ export default {
                 redo: commit,
             })
         },
-        reset() {
+        reset(): void {
             this.scale = 0;
+        },
+        pauseCache( paused: boolean ): void {
+            pauseBlendCaching( this.activeLayerIndex, paused );
         },
     },
 };

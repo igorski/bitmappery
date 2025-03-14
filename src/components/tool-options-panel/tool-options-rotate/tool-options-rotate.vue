@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -30,6 +30,8 @@
                 :max="max"
                 :disabled="!activeLayer"
                 :tooltip="'none'"
+                @dragStart="pauseCache( true )"
+                @dragEnd="pauseCache( false )"
             />
         </div>
         <div class="actions">
@@ -65,10 +67,11 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import Slider from "@/components/ui/slider/slider.vue";
 import { enqueueState } from "@/factories/history-state-factory";
+import { pauseBlendCaching } from "@/rendering/cache/blended-layer-cache";
 import messages from "./messages.json";
 import { degreesToRadians, radiansToDegrees } from "@/math/unit-math";
 
@@ -89,10 +92,10 @@ export default {
         ]),
         // note rotation is stored in radians but represented visually as degrees
         rotation: {
-            get() {
+            get(): number {
                 return radiansToDegrees( this.activeLayerEffects.rotation );
             },
-            set( value ) {
+            set( value: number ): void {
                 this.update( degreesToRadians( value % 360 ));
             }
         }
@@ -101,7 +104,7 @@ export default {
         ...mapMutations([
             "updateLayerEffects",
         ]),
-        update( rotation ) {
+        update( rotation: number ): void {
             const oldRotation = this.activeLayerEffects.rotation;
             const index  = this.activeLayerIndex;
             const store  = this.$store;
@@ -116,12 +119,15 @@ export default {
                 },
             });
         },
-        reset() {
+        reset(): void {
             this.rotation = 0;
         },
-        rotate( amountInDegrees ) {
+        rotate( amountInDegrees: number ): void {
             this.rotation = amountInDegrees;
-        }
+        },
+        pauseCache( paused: boolean ): void {
+            pauseBlendCaching( this.activeLayerIndex, paused );
+        },
     },
 };
 </script>
