@@ -26,6 +26,7 @@ import type { Document, Layer, Effects, Selection } from "@/definitions/document
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { flushLayerSprites, runSpriteFn, getSpriteForLayer, getCanvasInstance } from "@/factories/sprite-factory";
+import { flushBlendedLayerCache } from "@/rendering/cache/blended-layer-cache";
 import { resizeLayerContent, cropLayerContent } from "@/utils/render-util";
 
 export interface DocumentState {
@@ -146,7 +147,7 @@ const DocumentModule: Module<DocumentState, any> = {
             const layers = [ ...document.layers ];
             layers.splice( 0, oldLayers.length );
             layerIds.forEach( id => {
-                layers.push( oldLayers.find( layer => layer.id === id));
+                layers.push( oldLayers.find( layer => layer.id === id ));
             });
             document.layers = layers;
         },
@@ -198,6 +199,10 @@ const DocumentModule: Module<DocumentState, any> = {
             const sprite = getSpriteForLayer( layer );
             if ( sprite ) {
                 sprite.layer = layer;
+                const flushBlendCache = !!opts.filters;
+                if ( flushBlendCache ) {
+                    flushBlendedLayerCache( true ); // direct to prevent rendering errors on undo
+                }
                 opts.source ? sprite.resetFilterAndRecache() : sprite.cacheEffects();
             }
         },
@@ -214,7 +219,7 @@ const DocumentModule: Module<DocumentState, any> = {
             const sprite = getSpriteForLayer( layer );
             if ( sprite ) {
                 sprite.layer = layer;
-                sprite.invalidate();
+                sprite.invalidateBlendCache();
             }
         },
         async resizeActiveDocumentContent( state: DocumentState, { scaleX, scaleY }: { scaleX: number, scaleY: number }): Promise<void> {

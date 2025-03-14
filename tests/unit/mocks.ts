@@ -1,4 +1,5 @@
 import { vi } from "vitest";
+import { type Store } from "vuex";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
 import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import { type BitMapperyState } from "@/store";
@@ -10,10 +11,26 @@ import { createPreferencesState } from "@/store/modules/preferences-module";
 import { createToolState } from "@/store/modules/tool-module";
 
 // zCanvas mocks
+// @todo should not be necessary when updating to zCanvas 6+
 
 export function sprite() {
+    this._bounds      = { left: 0, top: 0, width: 10, height: 10 };
+    this._interactive = false;
+    this.getBounds = vi.fn().mockReturnValue( this._bounds );
+    this.setBounds = vi.fn(( x, y, w, h ) => {
+        this._bounds.left   = x;
+        this._bounds.top    = y;
+        this._bounds.width  = w;
+        this._bounds.height = h;
+    });
     this.setDraggable = vi.fn();
-    this.setInteractive = vi.fn();
+    this.getInteractive = vi.fn(() => this._interactive );
+    this.setInteractive = vi.fn( value => this._interactive = value );
+    this.getX = vi.fn();
+    this.setX = vi.fn();
+    this.getY = vi.fn();
+    this.setY = vi.fn();
+    this.invalidate = vi.fn();
     this.dispose = vi.fn();
 }
 
@@ -32,6 +49,8 @@ export function createMockZoomableCanvas(): ZoomableCanvas {
         fps: 60,
         addChild: vi.fn(),
         removeChild: vi.fn(),
+        setLock: vi.fn(),
+        store: createState() as unknown as Store<BitMapperyState>,
     } as unknown as ZoomableCanvas;
 }
 
@@ -43,11 +62,39 @@ export function createMockImageElement(): HTMLImageElement {
     } as unknown as HTMLImageElement;
 }
 
+const mockCanvasRenderingContext2D = {
+    clearRect: vi.fn(),
+    drawImage: vi.fn(),
+} as unknown as CanvasRenderingContext2D;
+
 export function createMockCanvasElement(): HTMLCanvasElement {
     return {
         width: 300,
         height: 200,
+        getContext: vi.fn(() => mockCanvasRenderingContext2D ),
     } as unknown as HTMLCanvasElement;
+}
+
+/**
+ * Execute calls debounced by requestAnimationFrame() to use timeouts, which allows
+ * us to throttle these with vi.useFakeTimers();
+ * 
+ * Run each RAF callback by invoking vi.runAllTimers();
+ * Don't forget to use vi.useRealTimers() and vi.restoreAllMocks() to clean up.
+ */
+export function mockRequestAnimationFrame( now = window.performance.now(), fps = 60 ) {
+    vi.spyOn( window, "cancelAnimationFrame" ).mockImplementation( rafId => {
+        clearTimeout( rafId );
+    });
+
+    vi.spyOn( window, "requestAnimationFrame" ).mockImplementation( cb => {
+        const interval = 1000 / fps;
+        const id = setTimeout(() => {
+            now += interval;
+            cb( now );
+        }, interval );
+        return id as unknown as number;
+    });
 }
 
 export function createMockFile( name: string, type = "" ): File {

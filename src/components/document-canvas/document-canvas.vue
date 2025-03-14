@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -67,6 +67,7 @@ import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { type Viewport } from "zcanvas";
 import ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import GuideRenderer from "@/rendering/canvas-elements/guide-renderer";
+import { hasBlend } from "@/rendering/blending";
 import FileImport from "@/components/file-import/file-import.vue";
 import type { Document, Layer } from "@/definitions/types/document";
 import { HEADER_HEIGHT } from "@/definitions/editor-properties";
@@ -86,6 +87,7 @@ import {
     createSpriteForLayer, getSpriteForLayer, flushLayerSprites, flushCache as flushSpriteCache,
 } from "@/factories/sprite-factory";
 import { flushCache as flushBitmapCache } from "@/rendering/cache/bitmap-cache";
+import { flushBlendedLayerCache, setBlendCaching } from "@/rendering/cache/blended-layer-cache";
 import { renderState } from "@/services/render-service";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 
@@ -185,6 +187,7 @@ export default {
                     lastDocument = id;
                     flushSpriteCache();
                     flushBitmapCache();
+                    flushBlendedLayerCache();
                     renderState.reset();
                     layerPool.clear();
                     this.calcIdealDimensions( true );
@@ -457,7 +460,7 @@ export default {
          * only affect the appropriate layers.
          */
         createLayerRenderers(): void {
-            const seen    = [];
+            const seen: string[] = [];
             const zCanvas = getCanvasInstance();
             this.layers?.forEach( layer => {
                 if ( !layer.visible ) {
@@ -474,12 +477,23 @@ export default {
                 flushLayerSprites( layerPool.get( id ));
                 layerPool.delete( id );
             });
-            // ensure the visible layers are at right position in display list
-            this.layers?.filter(({ visible }) => visible ).forEach( layer => {
+            // ensure the visible layers are at the right position in display list
+            // @todo can we do this in the loop above?
+            let blendLayer = -1;
+            this.layers?.forEach(( layer, index ) => {
+                if ( !layer.visible ) {
+                    return;
+                }
                 const sprite = getSpriteForLayer( layer );
+                sprite.layerIndex = index;
+                if ( hasBlend( layer )) {
+                    blendLayer = index;
+                }
                 zCanvas.removeChild( sprite );
                 zCanvas.addChild( sprite );
             });
+            const hasBlendedLayer = blendLayer > -1;
+            setBlendCaching( hasBlendedLayer, hasBlendedLayer ? this.layers?.filter(( _layer, index ) => index <= blendLayer ) : undefined );
             zCanvas?.interactionPane.stayOnTop();
             this.hasGuideRenderer && guideRenderer.stayOnTop();
             this.handleActiveLayer();
@@ -503,6 +517,7 @@ export default {
         async refreshRenderers(): Promise<void> {
             flushSpriteCache();
             flushBitmapCache();
+            flushBlendedLayerCache();
             renderState.reset();
             layerPool.clear();
             await unblockedWait();

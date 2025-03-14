@@ -66,12 +66,16 @@ describe( "Layer factory", () => {
             vi.spyOn( FiltersFactory, "create" ).mockImplementation(( args: FiltersProps ) => args as Filters );
 
             mockUpdateFn = ( _fn, data ) => data;
+
+            const source = createMockCanvasElement();
+            const mask = createMockCanvasElement();
+
             const layer = LayerFactory.create({
                 name: "foo",
                 type: LayerTypes.LAYER_IMAGE,
                 transparent: false,
-                source: createMockCanvasElement(),
-                mask: createMockCanvasElement(),
+                source,
+                mask,
                 left: 100,
                 top: 50,
                 maskX: 50,
@@ -88,8 +92,8 @@ describe( "Layer factory", () => {
                 name: "foo",
                 type: LayerTypes.LAYER_IMAGE,
                 transparent: false,
-                source: createMockCanvasElement(),
-                mask: createMockCanvasElement(),
+                source,
+                mask,
                 left: 100,
                 top: 50,
                 maskX: 50,

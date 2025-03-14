@@ -55,7 +55,6 @@ class ZoomableCanvas extends canvas {
         this.documentScale = 1;
         this.setZoomFactor( 1 );
         this.interactionPane = new InteractionPane();
-        this._bounds = null; // TODO : can be removed after update to zCanvas 5.1.5+
 
         this.draggingSprite = null;
 

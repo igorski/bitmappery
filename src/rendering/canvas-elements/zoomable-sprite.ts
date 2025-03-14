@@ -53,7 +53,7 @@ class ZoomableSprite extends sprite {
     // a custom bounds object here to override the internal reference. This is done when
     // multiple transformations take place on the source (see layer-sprite.draw())
 
-    draw( canvasContext: CanvasRenderingContext2D, viewport: Viewport = null, bounds: Rectangle = this._bounds ): void {
+    draw( canvasContext: CanvasRenderingContext2D, viewport?: Viewport, bounds: Rectangle = this._bounds ): void {
         let render = this._bitmapReady;
         if ( render && viewport ) {
             render = isInsideViewport( bounds, viewport );

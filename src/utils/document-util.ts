@@ -83,7 +83,7 @@ export const createLayerSnapshot = async ( layer: Layer, optActiveDocument?: Doc
  * NOTE 1: this assumes all effects are currently cached (!).
  * NOTE 2: THIS MULTIPLIES FOR THE DEVICE PIXEL RATIO
  * optLayerIndices is optional whitelist of layers to render, defaults
- * to render all layers unless specified
+ * to render all visible layers unless specified
  */
 export const createSyncSnapshot = ( activeDocument: Document, optLayerIndices: number[] = [] ): HTMLCanvasElement => {
     const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
@@ -91,6 +91,9 @@ export const createSyncSnapshot = ( activeDocument: Document, optLayerIndices: n
     // draw existing layers onto temporary canvas at full document scale
     const { layers } = activeDocument;
     layers.forEach(( layer, index ) => {
+        if ( !layer.visible ) {
+            return;
+        }
         // if a whitelist of layers has been provided, apply filter here
         if ( optLayerIndices.length && !optLayerIndices.includes( index )) {
             return;

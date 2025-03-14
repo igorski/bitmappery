@@ -37,14 +37,15 @@ import ToolTypes, { canDrawOnSelection, TOOL_SRC_MERGED } from "@/definitions/to
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation, rotatePointer } from "@/math/point-math";
 import { renderEffectsForLayer } from "@/services/render-service";
-import { getBlendContext, blendLayer } from "@/rendering/blending";
+import { getBlendContext, blendLayer, hasBlend } from "@/rendering/blending";
 import { clipContextToSelection } from "@/rendering/clipping";
-import { renderClonedStroke } from "@/rendering/cloning";
+import { renderClonedStroke, setCloneSource } from "@/rendering/cloning";
 import { renderBrushStroke } from "@/rendering/drawing";
 import { floodFill } from "@/rendering/fill";
 import { snapSpriteToGuide } from "@/rendering/snapping";
 import { applyTransformation } from "@/rendering/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
+import { cacheBlendedLayer, flushBlendedLayerCache, getBlendCache, getBlendableLayers, isBlendCached, pauseBlendCaching, useBlendCaching } from "@/rendering/cache/blended-layer-cache";
 import {
     getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, commitDrawingToLayer, sliceBrushPointers, createOverrideConfig
 } from "@/rendering/utils/drawable-canvas-utils";
@@ -54,12 +55,12 @@ import { enqueueState } from "@/factories/history-state-factory";
 import { createSyncSnapshot } from "@/utils/document-util";
 import { getLastShape } from "@/utils/selection-util";
 import { isShapeClosed } from "@/utils/shape-util";
+import { positionSpriteFromHistory, restorePaintFromHistory } from "@/utils/sprite-history-util";
 import type { BitMapperyState } from "@/store";
 
 const HALF   = 0.5;
 const TWO_PI = 2 * Math.PI;
 
-let cloneSource: HTMLCanvasElement | undefined;
 let drawBounds: Rectangle; // see draw()
 
 /**
@@ -67,8 +68,9 @@ let drawBounds: Rectangle; // see draw()
  * It handles all tool interactions with the layer and also provides interaction with the Layers Mask.
  * It inherits from the zCanvas Sprite to be an interactive Canvas drawable.
  */
-class LayerSprite extends ZoomableSprite {
+export default class LayerSprite extends ZoomableSprite {
     public layer: Layer;
+    public layerIndex: number;
     public actionTarget: "source" | "mask";
     public canvas: ZoomableCanvas; // set through inherited addChild() method
     public cloneStartCoords: Point | undefined;
@@ -87,7 +89,7 @@ class LayerSprite extends ZoomableSprite {
     protected _toolType: ToolTypes;
     protected _orgSourceToStore: HTMLCanvasElement | undefined;
     protected _pendingPaintState: number | undefined; // ReturnType<typeof setTimeout>;
-    protected _rafFx: boolean;
+    protected _pendingEffectsRender: boolean;
 
     constructor( layer: Layer ) {
         const { left, top, width, height } = layer;
@@ -101,8 +103,10 @@ class LayerSprite extends ZoomableSprite {
             layer.source = cvs;
         }
 
-        this._pointerX = 0;
-        this._pointerY = 0;
+        this._pointerX    = 0;
+        this._pointerY    = 0;
+        this.layerIndex   = 0; // managed by document-canvas
+        this._isPaintMode = false;
 
         // brush properties (used for both drawing on LAYER_GRAPHIC types and to create layer masks)
         this._brush = BrushFactory.create();
@@ -198,21 +202,28 @@ class LayerSprite extends ZoomableSprite {
     }
 
     cacheEffects(): void {
-        if ( this._rafFx ) {
+        if ( this._pendingEffectsRender ) {
             return; // debounced to only occur once before next render cycle
         }
-        this._rafFx = true;
+        this._pendingEffectsRender = true;
         this.canvas?.setLock( true );
         requestAnimationFrame( async () => {
             await renderEffectsForLayer( this.layer );
-            this._rafFx = false;
+            this._pendingEffectsRender = false;
             this.canvas?.setLock( false );
+            this.invalidateBlendCache( true ); // now layer effects are cached, invalidate any existing blend cache
         });
     }
 
     resetFilterAndRecache(): void {
         clearCacheProperty( this.layer, "filterData" ); // filter must be applied to new contents
         this.cacheEffects(); // sync mask and source changes with sprite Bitmap
+    }
+
+    invalidateBlendCache( full = false ): void {
+        if ( hasBlend( this.layer ) || isBlendCached( this.layerIndex )) {
+            flushBlendedLayerCache( full );
+        }
     }
 
     getBitmap(): CanvasDrawable {
@@ -359,7 +370,7 @@ class LayerSprite extends ZoomableSprite {
             }
         } else if ( isDrawing ) {
             if ( isCloneStamp ) {
-                this._lastBrushIndex = renderClonedStroke( ctx, this._brush, this, cloneSource, pointers, overrides, this._lastBrushIndex );
+                this._lastBrushIndex = renderClonedStroke( ctx, this._brush, this, pointers, overrides, this._lastBrushIndex );
             } else {
                 this._lastBrushIndex = renderBrushStroke( ctx, this._brush, overrides, this._lastBrushIndex );
             }
@@ -417,7 +428,7 @@ class LayerSprite extends ZoomableSprite {
             fastRound( source.height * documentScale ),
             MAX_MEGAPIXEL
         );*/
-    };
+    }
 
     async storePaintState(): Promise<boolean> {
         if ( !this._pendingPaintState ) {
@@ -497,7 +508,7 @@ class LayerSprite extends ZoomableSprite {
                 layer.top  = newLayerY;
             }
         });
-        this.invalidate();
+        this.invalidateBlendCache();
     }
 
     /**
@@ -515,6 +526,9 @@ class LayerSprite extends ZoomableSprite {
             this._pointerX = x;
             this._pointerY = y;
         }
+
+        pauseBlendCaching( this.layerIndex, true );
+
         if ( this._isColorPicker ) {
             // color picker mode, get the color below the clicked point
             const local = globalToLocal( this.canvas, x, y );
@@ -541,9 +555,9 @@ class LayerSprite extends ZoomableSprite {
                 const { sourceLayerId } = this.toolOptions;
                 const activeDocument = this.canvas.getActiveDocument();
                 if ( sourceLayerId === TOOL_SRC_MERGED ) {
-                    cloneSource = createSyncSnapshot( activeDocument );
+                    setCloneSource( createSyncSnapshot( activeDocument ));
                 } else {
-                    cloneSource = createSyncSnapshot( activeDocument, [ activeDocument.layers.findIndex(({ id }) => id === sourceLayerId )]);
+                    setCloneSource( createSyncSnapshot( activeDocument, [ activeDocument.layers.findIndex(({ id }) => id === sourceLayerId )]));
                 }
             } else if ( this._toolType === ToolTypes.FILL ) {
                 this.paint();
@@ -565,8 +579,9 @@ class LayerSprite extends ZoomableSprite {
             this._pointerY = y;
         }
 
-        if ( !this._isPaintMode ) {
-            // not drawable, perform default behaviour (drag)
+        const isDragging = !this._isPaintMode; // not drawable ? perform default behaviour (drag)
+
+        if ( isDragging ) {
             if ( this.actionTarget === "mask" ) {
                 const layer = this.layer;
                 const { maskX, maskY } = layer;
@@ -601,7 +616,10 @@ class LayerSprite extends ZoomableSprite {
     }
 
     override handleRelease( _x: number, _y: number ): void {
+        pauseBlendCaching( this.layerIndex, false );
+
         const { getters } = this.getStore();
+
         if ( this.isPainting() ) {
             commitDrawingToLayer(
                 this.layer, this.getPaintSource(), this.getPaintSize(), this.canvas, this._brush.options.opacity,
@@ -614,7 +632,7 @@ class LayerSprite extends ZoomableSprite {
             this._brush.down  = false;
             this._brush.last  = 0;
             this._brush.pointers.length = 0;
-            cloneSource = undefined;
+            setCloneSource( undefined );
             
             // immediately store pending history state when not running in lowMemory mode
             if ( !getters.getPreference( "lowMemory" )) {
@@ -648,10 +666,10 @@ class LayerSprite extends ZoomableSprite {
         const { src, dest } = transformedBounds;
         canvasContext.drawImage(
             this._bitmap,
-            ( HALF + src.left * scale )    << 0,
-            ( HALF + src.top * scale )     << 0,
-            ( HALF + src.width * scale )   << 0,
-            ( HALF + src.height * scale )  << 0,
+            ( HALF + src.left   * scale ) << 0,
+            ( HALF + src.top    * scale ) << 0,
+            ( HALF + src.width  * scale ) << 0,
+            ( HALF + src.height * scale ) << 0,
             ( HALF + dest.left )   << 0,
             ( HALF + dest.top )    << 0,
             ( HALF + dest.width )  << 0,
@@ -660,57 +678,77 @@ class LayerSprite extends ZoomableSprite {
     }
 
     // @ts-expect-error incompatible override
-    override draw( documentContext: CanvasRenderingContext2D, viewport: Viewport, isHighresExport = false ): void {
-        drawBounds = this._bounds;
-
-        const { enabled, blendMode, opacity } = this.layer.filters;
-        const altOpacity = enabled && opacity !== 1;
-        if ( altOpacity ) {
-            documentContext.globalAlpha = opacity;
+    override draw( documentContext: CanvasRenderingContext2D, viewport: Viewport, isSnapshotMode = false ): void {
+        let renderedFromCache = false;
+        if ( !isSnapshotMode && useBlendCaching() && !this._pendingEffectsRender ) {
+            const { layerIndex } = this;
+            if ( isBlendCached( layerIndex )) {
+                return; // render will be executed by higher order layer
+            }
+            if ( hasBlend( this.layer )) {
+                let bitmap = getBlendCache( layerIndex );
+                const document = this.canvas.getActiveDocument();
+                if ( !bitmap ) {
+                    bitmap = createSyncSnapshot( document, getBlendableLayers());
+                    cacheBlendedLayer( layerIndex, bitmap );
+                }
+                documentContext.drawImage( bitmap, -viewport.left, -viewport.top, document.width, document.height );
+                renderedFromCache = true;
+            }
         }
 
-        let drawContext: CanvasRenderingContext2D = documentContext;
-        const applyBlending = enabled && blendMode !== BlendModes.NORMAL;
+        if ( !renderedFromCache ) {
+            drawBounds = this._bounds;
 
-        if ( applyBlending ) {
-            drawContext = getBlendContext( documentContext.canvas );
-            const scaleFactor = isHighresExport ? getPixelRatio() : getPixelRatio() * this.canvas.zoomFactor;
-            drawContext.scale( scaleFactor, scaleFactor );
-        }
+            const { enabled, blendMode, opacity } = this.layer.filters;
+            const altOpacity = enabled && opacity !== 1;
+            if ( altOpacity ) {
+                documentContext.globalAlpha = opacity;
+            }
 
-        drawContext.save(); // 1. transformation save()
+            let drawContext: CanvasRenderingContext2D = documentContext;
+            const applyBlending = enabled && blendMode !== BlendModes.NORMAL;
 
-        const transformedBounds = applyTransformation( drawContext, this.layer, viewport );
-        const transformCanvas   = !!transformedBounds;
+            if ( applyBlending ) {
+                drawContext = getBlendContext( documentContext.canvas );
+                const scaleFactor = isSnapshotMode ? getPixelRatio() : getPixelRatio() * this.canvas.zoomFactor;
+                drawContext.scale( scaleFactor, scaleFactor );
+            }
 
-        if ( transformCanvas ) {
-            drawBounds = transformedBounds;
-        }
+            drawContext.save(); // transformation save()
 
-        // invoke base class behaviour to render bitmap
-        super.draw( drawContext, transformCanvas ? undefined : viewport, drawBounds );
+            const transformedBounds = applyTransformation( drawContext, this.layer, viewport );
+            const transformCanvas   = !!transformedBounds;
 
-        if ( applyBlending ) {
-            blendLayer( documentContext, drawContext, blendMode );
-        }
+            if ( transformCanvas ) {
+                drawBounds = transformedBounds;
+            }
 
-        drawContext.restore(); // 1. transformation restore()
+            // invoke base class behaviour to render bitmap
+            super.draw( drawContext, transformCanvas ? undefined : viewport, drawBounds );
 
-        // user is currently drawing on this layer, render contents of drawableCanvas onto screen
-        if ( this.isPainting()) {
-            renderDrawableCanvas(
-                documentContext, this.getPaintSize(), this.canvas, this._brush.options.opacity,
-                this._toolType === ToolTypes.ERASER || this.isMaskable() ? "destination-out" : undefined,
-            );
-        }
+            if ( applyBlending ) {
+                blendLayer( documentContext, drawContext, blendMode );
+            }
 
-        if ( altOpacity ) {
-            documentContext.globalAlpha = 1; // restore document opacity
+            drawContext.restore(); // transformation restore()
+
+            // user is currently drawing on this layer, render contents of drawableCanvas onto screen
+            if ( this.isPainting()) {
+                renderDrawableCanvas(
+                    documentContext, this.getPaintSize(), this.canvas, this._brush.options.opacity,
+                    this._toolType === ToolTypes.ERASER || this.isMaskable() ? "destination-out" : undefined,
+                );
+            }
+
+            if ( altOpacity ) {
+                documentContext.globalAlpha = 1; // restore document opacity
+            }
         }
 
         // render brush outline at pointer position
 
-        if ( !isHighresExport && this._isPaintMode ) {
+        if ( !isSnapshotMode && this._isPaintMode ) {
             const { zoomFactor } = this.canvas;
             const tx = this._pointerX - viewport.left;
             const ty = this._pointerY - viewport.top;
@@ -722,12 +760,12 @@ class LayerSprite extends ZoomableSprite {
                 const relSource = this.cloneStartCoords ?? this._dragStartEventCoordinates;
                 const cx = coords ? ( coords.x - viewport.left ) + ( this._pointerX - relSource.x ) : tx;
                 const cy = coords ? ( coords.y - viewport.top  ) + ( this._pointerY - relSource.y ) : ty;
-                // when no source coordinate is set, or when applying the clone stamp, we show a cross to mark the origin
+                // when no source coordinate is set, or when applying the clone stamp, we show a cross to mark the cloning origin
                 if ( !coords || this.isDrawing() ) {
                     renderCross( documentContext, cx, cy, this._brush.radius / zoomFactor );
                 }
             }
-            documentContext.save(); // 4. brush outline save()
+            documentContext.save(); // brush outline save()
             documentContext.beginPath();
 
             if ( drawBrushOutline ) {
@@ -736,7 +774,7 @@ class LayerSprite extends ZoomableSprite {
                 documentContext.strokeStyle = "#999";
             }
             documentContext.stroke();
-            documentContext.restore(); // 4. brush outline restore()
+            documentContext.restore(); // brush outline restore()
         }
     }
 
@@ -748,32 +786,4 @@ class LayerSprite extends ZoomableSprite {
         this._bitmap      = null;
         this._bitmapReady = false;
     }
-}
-export default LayerSprite;
-
-/* internal non-instance methods */
-
-// NOTE we use getSpriteForLayer() instead of passing the Sprite by reference
-// as it is possible the Sprite originally rendering the Layer has been disposed
-// and a new one has been created while traversing the change history
-
-function positionSpriteFromHistory( layer: Layer, x: number, y: number ): void {
-    const sprite = getSpriteForLayer( layer );
-    if ( sprite ) {
-        sprite.getBounds().left = x;
-        sprite.getBounds().top  = y;
-        sprite.invalidate();
-    }
-}
-
-function restorePaintFromHistory( layer: Layer, state: string, isMask: boolean ): void {
-    const source = isMask ? layer.mask : layer.source;
-    const ctx = source.getContext( "2d" ) as CanvasRenderingContext2D;
-    ctx.clearRect( 0, 0, source.width, source.height );
-    const image  = new Image();
-    image.onload = () => {
-        ctx.drawImage( image, 0, 0 );
-        getSpriteForLayer( layer )?.resetFilterAndRecache();
-    };
-    image.src = state;
-}
+};
