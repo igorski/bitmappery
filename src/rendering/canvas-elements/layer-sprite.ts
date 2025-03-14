@@ -603,8 +603,6 @@ export default class LayerSprite extends ZoomableSprite {
                 });
             } else if ( this._isDragMode ) {
                 super.handleMove( x, y, event );
-            }
-            if ( this._isDragMode ) {
                 return;
             }
         }
