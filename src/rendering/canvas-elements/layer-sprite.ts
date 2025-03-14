@@ -36,7 +36,6 @@ import { LayerTypes } from "@/definitions/layer-types";
 import ToolTypes, { canDrawOnSelection, TOOL_SRC_MERGED } from "@/definitions/tool-types";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation, rotatePointer } from "@/math/point-math";
-import { fastRound } from "@/math/unit-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { getBlendContext, blendLayer, hasBlend } from "@/rendering/blending";
 import { clipContextToSelection } from "@/rendering/clipping";
@@ -690,17 +689,12 @@ export default class LayerSprite extends ZoomableSprite {
             }
             if ( hasBlend( this.layer )) {
                 let bitmap = getBlendCache( layerIndex );
+                const document = this.canvas.getActiveDocument();
                 if ( !bitmap ) {
-                    bitmap = createSyncSnapshot( this.canvas.getActiveDocument(), getBlendableLayers());
+                    bitmap = createSyncSnapshot( document, getBlendableLayers());
                     cacheBlendedLayer( layerIndex, bitmap );
                 }
-                const pixelRatio = getPixelRatio();
-                documentContext.drawImage(
-                    bitmap,
-                    fastRound( viewport.left  * pixelRatio ), fastRound( viewport.top    * pixelRatio ),
-                    fastRound( viewport.width * pixelRatio ), fastRound( viewport.height * pixelRatio ),
-                    0, 0, viewport.width, viewport.height
-                );
+                documentContext.drawImage( bitmap, -viewport.left, -viewport.top, document.width, document.height );
                 renderedFromCache = true;
             }
         }
