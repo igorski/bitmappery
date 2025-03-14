@@ -697,7 +697,7 @@ export default class LayerSprite extends ZoomableSprite {
                 const pixelRatio = getPixelRatio();
                 documentContext.drawImage(
                     bitmap,
-                    fastRound( viewport.left  * pixelRatio) , fastRound( viewport.top    * pixelRatio ),
+                    fastRound( viewport.left  * pixelRatio ), fastRound( viewport.top    * pixelRatio ),
                     fastRound( viewport.width * pixelRatio ), fastRound( viewport.height * pixelRatio ),
                     0, 0, viewport.width, viewport.height
                 );
