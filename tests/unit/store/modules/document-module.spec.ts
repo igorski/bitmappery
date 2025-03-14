@@ -18,6 +18,13 @@ vi.mock( "@/factories/sprite-factory", () => ({
     getSpriteForLayer: (...args: any[]) => mockUpdateFn?.( "getSpriteForLayer", ...args ),
     getCanvasInstance: (...args: any[]) => mockUpdateFn?.( "getCanvasInstance", ...args ),
 }));
+const mockFlushBlendedLayerCache = vi.fn();
+vi.mock( "@/rendering/cache/blended-layer-cache", async ( importOriginal ) => {
+    return {
+        ...await importOriginal(),
+        flushBlendedLayerCache: ( ...args: any[] ) => mockFlushBlendedLayerCache( ...args ),
+    }
+});
 vi.mock( "@/utils/render-util", () => ({
     resizeLayerContent: (...args: any[]) => mockUpdateFn?.( "resizeLayerContent", ...args ),
     cropLayerContent: (...args: any[]) => mockUpdateFn?.( "cropLayerContent", ...args ),
@@ -601,6 +608,34 @@ describe( "Vuex document module", () => {
                 });
                 mutations.updateLayer( state, { index, opts });
                 expect( resetAndRecacheSpy ).toHaveBeenCalled();
+            });
+
+            it( "should not flush the blended layer cache when no filter properties were updated", () => {
+                const index = 0;
+                const opts  = { name: "layer1 updated" };
+                const layerSprite = new LayerSprite( layer1 );
+
+                mockUpdateFn = vi.fn( fn => {
+                    if ( fn === "getSpriteForLayer" ) return layerSprite;
+                    return true;
+                });
+                mutations.updateLayer( state, { index, opts });
+  
+                expect( mockFlushBlendedLayerCache ).not.toHaveBeenCalled();
+            });
+
+            it( "should flush the blended layer cache fully when filter properties are updated to ensure correct rendering on history state changes", () => {
+                const index = 0;
+                const opts  = { filters: { gamma: 1 } };
+                const layerSprite = new LayerSprite( layer1 );
+
+                mockUpdateFn = vi.fn( fn => {
+                    if ( fn === "getSpriteForLayer" ) return layerSprite;
+                    return true;
+                });
+                mutations.updateLayer( state, { index, opts });
+  
+                expect( mockFlushBlendedLayerCache ).toHaveBeenCalledWith( true );
             });
 
             it( "should be able to update the effects of a specific layer within the active Document", () => {

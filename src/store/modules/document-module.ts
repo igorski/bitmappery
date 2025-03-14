@@ -26,6 +26,7 @@ import type { Document, Layer, Effects, Selection } from "@/definitions/document
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { flushLayerSprites, runSpriteFn, getSpriteForLayer, getCanvasInstance } from "@/factories/sprite-factory";
+import { flushBlendedLayerCache } from "@/rendering/cache/blended-layer-cache";
 import { resizeLayerContent, cropLayerContent } from "@/utils/render-util";
 
 export interface DocumentState {
@@ -198,6 +199,10 @@ const DocumentModule: Module<DocumentState, any> = {
             const sprite = getSpriteForLayer( layer );
             if ( sprite ) {
                 sprite.layer = layer;
+                const flushBlendCache = !!opts.filters;
+                if ( flushBlendCache ) {
+                    flushBlendedLayerCache( true );
+                }
                 opts.source ? sprite.resetFilterAndRecache() : sprite.cacheEffects();
             }
         },
