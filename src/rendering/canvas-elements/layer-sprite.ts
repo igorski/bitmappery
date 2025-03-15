@@ -43,6 +43,7 @@ import { clipContextToSelection } from "@/rendering/clipping";
 import { renderClonedStroke, setCloneSource } from "@/rendering/cloning";
 import { renderBrushStroke } from "@/rendering/drawing";
 import { floodFill } from "@/rendering/fill";
+import { getMaskComposite, disposeMaskComposite } from "@/rendering/masking";
 import { snapSpriteToGuide } from "@/rendering/snapping";
 import { applyTransformation } from "@/rendering/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
@@ -625,6 +626,7 @@ export default class LayerSprite extends ZoomableSprite {
                 this.layer, this.getPaintSource(), this.getPaintSize(), this.canvas, this._brush.options.opacity,
                 this._toolType === ToolTypes.ERASER ? "destination-out" : undefined
             );
+            disposeMaskComposite();
             disposeDrawableCanvas();
             this.resetFilterAndRecache();
 
@@ -711,12 +713,21 @@ export default class LayerSprite extends ZoomableSprite {
             }
 
             let drawContext: CanvasRenderingContext2D = documentContext;
-            const applyBlending = enabled && blendMode !== BlendModes.NORMAL;
+
+            const isPainting      = this.isPainting();
+            const isDrawingOnMask = isPainting && this.isMaskable() && this._toolType !== ToolTypes.ERASER; // erasing from mask needs some work ;-)
+            const applyBlending   = enabled && blendMode !== BlendModes.NORMAL && !isDrawingOnMask;
 
             if ( applyBlending ) {
                 drawContext = getBlendContext( documentContext.canvas );
                 const scaleFactor = isSnapshotMode ? getPixelRatio() : getPixelRatio() * this.canvas.zoomFactor;
                 drawContext.scale( scaleFactor, scaleFactor );
+            }
+
+            let maskComposite: CanvasContextPairing | undefined;
+            if ( isDrawingOnMask ) {
+                maskComposite = getMaskComposite( this.getPaintSize() ); // temporary canvas to combine paintCanvas with source
+                drawContext   = maskComposite.ctx;
             }
 
             drawContext.save(); // transformation save()
@@ -730,7 +741,7 @@ export default class LayerSprite extends ZoomableSprite {
 
             // invoke base class behaviour to render bitmap
             super.draw( drawContext, transformCanvas ? undefined : viewport, drawBounds );
-
+            
             if ( applyBlending ) {
                 blendLayer( documentContext, drawContext, blendMode );
             }
@@ -738,11 +749,14 @@ export default class LayerSprite extends ZoomableSprite {
             drawContext.restore(); // transformation restore()
 
             // user is currently drawing on this layer, render contents of drawableCanvas onto screen
-            if ( this.isPainting()) {
+            if ( isPainting ) {
                 renderDrawableCanvas(
-                    documentContext, this.getPaintSize(), this.canvas, this._brush.options.opacity,
+                    isDrawingOnMask ? drawContext : documentContext, this.getPaintSize(), this.canvas, this._brush.options.opacity,
                     this._toolType === ToolTypes.ERASER || this.isMaskable() ? "destination-out" : undefined,
                 );
+                if ( isDrawingOnMask ) {
+                    documentContext.drawImage( maskComposite.cvs, 0, 0 ); // draw temporary masked canvas onto underlying document
+                }
             }
 
             if ( altOpacity ) {

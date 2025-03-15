@@ -20,6 +20,40 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { type Size } from "zcanvas";
+import type { CanvasContextPairing } from "@/definitions/editor";
+import { createCanvas, setCanvasDimensions } from "@/utils/canvas-util";
+
+let tempCanvas: CanvasContextPairing;
+
+/**
+ * Get a reference to a temporary Canvas used to make a composite of the
+ * source layer and the mask layer while drawing (to be rendered above
+ * the background for instant previewing purposes).
+ */
+export const getMaskComposite = ( size: Size ): CanvasContextPairing => {
+    if ( !tempCanvas ) {
+        tempCanvas = createCanvas( size.width, size.height );
+    } else {
+        setCanvasDimensions( tempCanvas, size.width, size.height );
+    }
+    return tempCanvas;
+};
+
+/**
+ * Free memory allocated to the temporary Canvas. The Canvas will
+ * remained pooled but by shrinking its size it will reduce memory usage.
+ */
+export const disposeMaskComposite = (): void => {
+    if ( tempCanvas ) {
+        setCanvasDimensions( tempCanvas, 1, 1 );
+    }
+};
+
+/**
+ * Apply a mask defined in provided mask property onto provided image source where
+ * the output is drawn onto provided destinationContext.
+ */
 export const maskImage = (
     destinationContext: CanvasRenderingContext2D, image: HTMLCanvasElement, mask: HTMLCanvasElement,
     width: number, height: number, maskOffsetX = 0, maskOffsetY = 0
