@@ -205,9 +205,9 @@ class InteractionPane extends sprite {
 
     selectAll( targetLayer: Layer = null ): void {
         if ( targetLayer ) {
-            const { scale, rotation } = targetLayer.effects;
+            const { scale, rotation, mirrorY } = targetLayer.effects;
             const bounds = scaleRectangle( getSpriteForLayer( targetLayer ).getBounds(), scale );
-            this.setSelection( [ rotateRectangleToCoordinates( bounds, rotation ) ]);
+            this.setSelection( [ rotateRectangleToCoordinates( bounds, mirrorY ? -rotation : rotation ) ]);
             return;
         }
         this.setSelection(
