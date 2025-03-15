@@ -21,8 +21,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { ActionContext } from "vuex";
-import type { Size, SizedImage } from "zcanvas";
-import type { Notification, Dialog } from "@/definitions/editor";
+import type { Size } from "zcanvas";
+import type { Notification, Dialog, CopiedSelection } from "@/definitions/editor";
 import KeyboardService from "@/services/keyboard-service";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
@@ -49,7 +49,7 @@ export interface BitMapperyState {
     menuOpened: boolean;
     toolboxOpened: boolean;
     openedPanels: string[];
-    selectionContent: SizedImage | null; // clipboard content of copied images ({ image, size })
+    selectionContent: CopiedSelection | null; // clipboard content of copied images
     blindActive: boolean;
     panMode: boolean;         // whether drag interactions with the document will pan its viewport
     selectMode: boolean;      // whether the currently active tool is a selection type (works across layers)
@@ -133,7 +133,7 @@ export default {
         closeOpenedPanels( state: BitMapperyState ): void {
             state.openedPanels = [];
         },
-        setSelectionContent( state: BitMapperyState, image: SizedImage ): void {
+        setSelectionContent( state: BitMapperyState, image: CopiedSelection ): void {
             state.selectionContent = image;
         },
         setBlindActive( state: BitMapperyState, active: boolean ): void {
@@ -281,9 +281,9 @@ export default {
         },
         pasteSelection({ commit, getters, dispatch, state }: ActionContext<BitMapperyState, any> ): void {
             const selection = state.selectionContent;
-            const { image, size } = selection;
+            const { image, size, type } = selection;
             const layer = LayerFactory.create({
-                type: LayerTypes.LAYER_GRAPHIC,
+                type: ( !type || type === LayerTypes.LAYER_TEXT ) ? LayerTypes.LAYER_GRAPHIC : type,
                 source: imageToCanvas( image, size.width, size.height ),
                 ...size,
                 left: getters.activeDocument.width  / 2 - size.width  / 2,

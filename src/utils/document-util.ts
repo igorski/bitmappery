@@ -21,9 +21,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { canvas, loader } from "zcanvas";
-import type { Rectangle, SizedImage } from "zcanvas";
+import type { Rectangle } from "zcanvas";
 import { PNG } from "@/definitions/image-types";
 import type { Document, Shape, Layer } from "@/definitions/document";
+import type { CopiedSelection } from "@/definitions/editor";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { createSpriteForLayer, getSpriteForLayer } from "@/factories/sprite-factory";
 import { rotateRectangle, areEqual } from "@/math/rectangle-math";
@@ -162,7 +163,7 @@ export const tilesToSingle = ( tiles: HTMLCanvasElement[], tileWidth: number, ti
 /**
  * Copy the selection defined in activeLayer into a separate Image
  */
-export const copySelection = async ( activeDocument: Document, activeLayer: Layer, copyMerged = false ): Promise<SizedImage> => {
+export const copySelection = async ( activeDocument: Document, activeLayer: Layer, copyMerged = false ): Promise<CopiedSelection> => {
     const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
 
     ctx.save();
@@ -200,7 +201,13 @@ export const copySelection = async ( activeDocument: Document, activeLayer: Laye
         0, 0, selectionRectangle.width, selectionRectangle.height
     );
     zcvs.dispose();
-    return await loader.loadImage( selectionCanvas.cvs.toDataURL( PNG.mime ));
+
+    const output = await loader.loadImage( selectionCanvas.cvs.toDataURL( PNG.mime ));
+
+    return {
+        ...output,
+        type: activeLayer.type,
+    };
 };
 
 /**

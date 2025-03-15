@@ -22,14 +22,14 @@ describe( "tool types", () => {
             LayerTypes.LAYER_IMAGE, LayerTypes.LAYER_TEXT,
         ])( `should not consider a "%s"-layer to be drawable`, ( type: LayerTypes ) => {
             const layer = LayerFactory.create({ type });
-            expect( canDraw( document, layer )).toBe( false );
+            expect( canDraw( document, layer, null )).toBe( false );
         });
 
         it.each([
             LayerTypes.LAYER_IMAGE, LayerTypes.LAYER_TEXT,
         ])( `should not consider a "%s"-layer with an unselected mask to be drawable`, ( type: LayerTypes ) => {
             const layer = LayerFactory.create({ type, mask: createMockCanvasElement() });
-            expect( canDraw( document, layer )).toBe( false );
+            expect( canDraw( document, layer, null )).toBe( false );
         });
 
         it.each([
@@ -41,7 +41,7 @@ describe( "tool types", () => {
 
         it( `should consider a "${LayerTypes.LAYER_GRAPHIC}"-layer to be drawable`, () => {
             const layer = LayerFactory.create({ type: LayerTypes.LAYER_GRAPHIC });
-            expect( canDraw( document, layer )).toBe( true );
+            expect( canDraw( document, layer, null )).toBe( true );
         });
     });
 });

@@ -463,6 +463,10 @@ export default {
         padding: variables.$spacing-small variables.$spacing-small 0;
         margin-left: variables.$spacing-small;
     }
+    
+    &__name-input {
+        padding-top: 0;
+    }
 
     &__actions {
         margin-right: variables.$spacing-small;
