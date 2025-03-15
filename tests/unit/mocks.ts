@@ -81,13 +81,21 @@ export function createMockCanvasElement(): HTMLCanvasElement {
     const cvs = {
         width: 300,
         height: 200,
-        getContext: vi.fn().mockImplementation(() => ctx ),
+        getContext: () => ctx,
     } as unknown as HTMLCanvasElement;
-    
+
     // @ts-expect-error cannot assign to read only property
     ctx.canvas = cvs;
 
     return cvs;
+}
+
+export function mockCanvasConstructor(): void {
+    vi.spyOn( document, "createElement" ).mockImplementation( type => {
+        if ( type === "canvas" ) {
+            return createMockCanvasElement() as HTMLElement;
+        }
+    });
 }
 
 /**

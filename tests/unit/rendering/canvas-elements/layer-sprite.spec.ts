@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createMockCanvasElement, createMockZoomableCanvas, mockZCanvas } from "../../mocks";
+import { createMockCanvasElement, createMockZoomableCanvas, mockCanvasConstructor, mockZCanvas } from "../../mocks";
 mockZCanvas();
 
 import { type Store } from "vuex";
@@ -49,11 +49,7 @@ describe( "LayerSprite", () => {
 
     beforeEach(() => {
         vi.useFakeTimers();
-        vi.spyOn( document, "createElement" ).mockImplementation( type => {
-            if ( type === "canvas" ) {
-                return createMockCanvasElement() as HTMLElement;
-            }
-        });
+        mockCanvasConstructor();
 
         layer = LayerFactory.create();
 
