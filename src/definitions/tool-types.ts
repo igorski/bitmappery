@@ -57,12 +57,6 @@ export const canDraw = ( activeDocument: Document, activeLayer: Layer, activeLay
     (( !!activeLayer?.mask && activeLayer.mask === activeLayerMask ) || activeLayer?.type === LayerTypes.LAYER_GRAPHIC );
 };
 
-// we cannot draw in selection if a layer is mirrored (see https://github.com/igorski/bitmappery/issues/5)
-export const canDrawOnSelection = ( activeLayer: Layer ): boolean => {
-    const { effects } = activeLayer;
-    return !effects.mirrorX && !effects.mirrorY;
-};
-
 export const TOOL_SRC_MERGED = "Merged"; // constant to define that a tools source context are all layers merged
 
 // UI variables

@@ -33,7 +33,7 @@ import { getSizeForBrush } from "@/definitions/brush-types";
 import type { Document, Layer, Selection } from "@/definitions/document";
 import type { CanvasContextPairing, CanvasDrawable, Brush, BrushToolOptions, BrushAction } from "@/definitions/editor";
 import { LayerTypes } from "@/definitions/layer-types";
-import ToolTypes, { canDrawOnSelection, TOOL_SRC_MERGED } from "@/definitions/tool-types";
+import ToolTypes, { TOOL_SRC_MERGED } from "@/definitions/tool-types";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation, rotatePointer } from "@/math/point-math";
 import { fastRound } from "@/math/unit-math";
@@ -237,7 +237,7 @@ export default class LayerSprite extends ZoomableSprite {
 
     setSelection( document: Document, onlyWhenClosed = false ): void {
         const { activeSelection } = document;
-        if ( !onlyWhenClosed || ( isShapeClosed( getLastShape( activeSelection )) && canDrawOnSelection( this.layer ))) {
+        if ( !onlyWhenClosed || ( isShapeClosed( getLastShape( activeSelection )))) {
             this._selection = activeSelection?.length > 0 ? activeSelection : null;
         } else {
             this._selection = undefined;
