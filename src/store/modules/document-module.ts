@@ -62,8 +62,8 @@ const DocumentModule: Module<DocumentState, any> = {
         activeLayer: ( state: DocumentState, getters: any ): Layer => {
             return getters.layers?.[ state.activeLayerIndex ];
         },
-        activeLayerMask: ( state: DocumentState, getters: any ): HTMLCanvasElement | null => {
-            return ( state.maskActive && getters.activeLayer.mask ) || null;
+        activeLayerMask: ( state: DocumentState, getters: any ): HTMLCanvasElement | undefined => {
+            return ( state.maskActive && getters.activeLayer?.mask ) || undefined;
         },
         activeLayerEffects: ( _: DocumentState, getters: any ): Effects => {
             return getters.activeLayer?.effects || {};

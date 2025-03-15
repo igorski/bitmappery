@@ -418,8 +418,7 @@ export default class LayerSprite extends ZoomableSprite {
     }
 
     getPaintSize(): Size {
-        const source = this.getPaintSource();
-        return { width: source.width, height: source.height };
+        return this.canvas.getActiveDocument(); // always use the Document size to allow drawing on offset, cropped Layers
         /*
         // depending on zoom level, the interpolation when committing the drawableCanvas content onto the source
         // may benefit from a higher resolution when drawing on a zoomed in canvas. But maybe negligible and not worth memory overhead

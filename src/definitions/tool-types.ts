@@ -52,9 +52,9 @@ export const usesInteractionPane = ( tool: ToolTypes ): boolean => PANE_TYPES.in
 
 export const SELECTION_TOOLS = [ ToolTypes.SELECTION, ToolTypes.LASSO, ToolTypes.WAND ];
 
-export const canDraw = ( activeDocument: Document, activeLayer: Layer, activeLayerMask: HTMLCanvasElement | null ): boolean => {
+export const canDraw = ( activeDocument: Document, activeLayer: Layer, activeLayerMask?: HTMLCanvasElement ): boolean => {
     return activeDocument &&
-    (( activeLayer?.mask !== null && activeLayer.mask === activeLayerMask ) || activeLayer?.type === LayerTypes.LAYER_GRAPHIC );
+    (( !!activeLayer?.mask && activeLayer.mask === activeLayerMask ) || activeLayer?.type === LayerTypes.LAYER_GRAPHIC );
 };
 
 // we cannot draw in selection if a layer is mirrored (see https://github.com/igorski/bitmappery/issues/5)

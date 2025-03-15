@@ -396,9 +396,12 @@ class InteractionPane extends sprite {
     }
 
     draw( ctx: CanvasRenderingContext2D, viewport: Viewport ): void {
+        const document = this.getActiveDocument();
+        if ( !document ) {
+            return; // pane was active prior to Document closing
+        }
+        let { activeSelection, invertSelection, width, height } = document;
         // render selection outline
-        let { invertSelection, width, height } = this.getActiveDocument();
-        const { activeSelection } = this.getActiveDocument();
         if ( /*this.mode === InteractionModes.MODE_SELECTION && */ activeSelection?.length > 0 ) {
             for ( let shape of activeSelection ) {
                 const connectToPointer = shape === activeSelection.at( -1 );
@@ -523,7 +526,9 @@ function calculateSelectionSize( firstPoint: Point, destX: number, destY: number
 
 function syncSelection(): void {
     const { getters } = getCanvasInstance().store;
-    getSpriteForLayer( getters.activeLayer )?.setSelection( getters.activeDocument );
+    if ( getters.activeLayer ) {
+        getSpriteForLayer( getters.activeLayer )?.setSelection( getters.activeDocument );
+    }
 }
 
 function storeSelectionHistory( document: Document, optPreviousSelection: Selection = [], optType = "" ): void {

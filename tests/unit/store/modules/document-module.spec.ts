@@ -98,10 +98,10 @@ describe( "Vuex document module", () => {
                 activeLayer: LayerFactory.create({ name: "layer1" }),
             };
             // null because mask is not active
-            expect( getters.activeLayerMask( state, mockedGetters, {}, {} )).toBeNull();
+            expect( getters.activeLayerMask( state, mockedGetters, {}, {} )).toBeUndefined();
             state.maskActive = true;
             // null because layer has no mask drawable
-            expect( getters.activeLayerMask( state, mockedGetters, {}, {} )).toBeNull();
+            expect( getters.activeLayerMask( state, mockedGetters, {}, {} )).toBeUndefined();
             mockedGetters.activeLayer.mask = createMockCanvasElement();
             expect( getters.activeLayerMask( state, mockedGetters, {}, {} )).toEqual( mockedGetters.activeLayer.mask );
         });
