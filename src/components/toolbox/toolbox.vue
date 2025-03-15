@@ -95,15 +95,25 @@
     </div>
 </template>
 
-<script>
-import { defineAsyncComponent } from "vue";
+<script lang="ts">
+import { type Component, defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
+import { type Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS } from "@/definitions/panel-types";
 import { isMobile } from "@/utils/environment-util";
 import { addTextLayer } from "@/utils/layer-util";
 import ToolTypes, { canDraw, canDrawOnSelection } from "@/definitions/tool-types";
 import messages  from "./messages.json";
+
+type ToolDef = {
+    type: ToolTypes;
+    i18n: string;
+    icon: string;
+    key: string;
+    disabled: boolean;
+    hasOptions: boolean;
+};
 
 export default {
     i18n: { messages },
@@ -116,29 +126,30 @@ export default {
             "activeTool",
             "activeDocument",
             "activeLayer",
+            "activeLayerMask",
             "activeColor",
             "activeToolOptions",
             "canUndo",
             "canRedo",
             "hasSelection",
         ]),
-        colorPicker() {
+        colorPicker(): Promise<Component> {
             // load async as this adds to the bundle size
             return defineAsyncComponent({
                 loader: () => import( "@/components/ui/color-picker/color-picker.vue" )
             });
         },
         collapsed: {
-            get() {
+            get(): boolean {
                 return !this.toolboxOpened;
             },
-            set( value ) {
+            set( value: boolean ): void {
                 this.setToolboxOpened( !value );
             }
         },
-        tools() {
-            const canDrawOnContent = !!this.activeLayer && (!this.hasSelection || canDrawOnSelection( this.activeLayer ));
-            const drawable = canDraw( this.activeDocument, this.activeLayer ) && canDrawOnContent;
+        tools(): ToolDef[] {
+            const canDrawOnContent = !!this.activeLayer && ( !this.hasSelection || canDrawOnSelection( this.activeLayer ));
+            const drawable = canDraw( this.activeDocument, this.activeLayer, this.activeLayerMask ) && canDrawOnContent;
             
             return [
                 {
@@ -219,16 +230,16 @@ export default {
             ]
         },
         color: {
-            get() {
+            get(): string {
                 return this.activeColor;
             },
-            set( value ) {
+            set( value: string ): void {
                 this.setActiveColor( value );
             },
         },
     },
     watch: {
-        activeLayer( layer ) {
+        activeLayer( layer: Layer ): void {
             if ( !layer ) {
                 return;
             }
@@ -255,14 +266,14 @@ export default {
             "undo",
             "redo",
         ]),
-        handleToolClick({ type, hasOptions }) {
+        handleToolClick({ type, hasOptions }: { type: ToolTypes, hasOptions: boolean }): void {
             this.setTool( type );
             // ensure that the tool options panel opens in case it was collapsed
             if ( isMobile() && hasOptions && !this.openedPanels.includes( PANEL_TOOL_OPTIONS )) {
                 this.setOpenedPanel( PANEL_TOOL_OPTIONS );
             }
         },
-        setTool( tool ) {
+        setTool( tool: ToolTypes ): void {
             if ( tool === ToolTypes.TEXT && this.activeLayer?.type !== LayerTypes.LAYER_TEXT ) {
                 addTextLayer( this.$store );
             }

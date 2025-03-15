@@ -53,7 +53,7 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters, mapMutations }  from "vuex";
 import ToolTypes, { MAX_BRUSH_SIZE, canDraw } from "@/definitions/tool-types";
 import Slider from "@/components/ui/slider/slider.vue";
@@ -71,32 +71,33 @@ export default {
         ...mapGetters([
             "activeDocument",
             "activeLayer",
+            "activeLayerMask",
             "eraserOptions",
         ]),
-        disabled() {
-            return !canDraw( this.activeDocument, this.activeLayer );
+        disabled(): boolean {
+            return !canDraw( this.activeDocument, this.activeLayer, this.activeLayerMask );
         },
         thickness: {
-            get() {
+            get(): number {
                 return this.eraserOptions.thickness * 100;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.updateValue( "thickness", value / 100 );
             }
         },
         opacity: {
-            get() {
+            get(): number {
                 return this.eraserOptions.opacity * 100;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.updateValue( "opacity", value / 100 );
             },
         },
         eraserSize: {
-            get() {
+            get(): number {
                 return this.eraserOptions.size;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.updateValue( "size", value );
             },
         },
@@ -105,9 +106,9 @@ export default {
         ...mapMutations([
             "setToolOptionValue",
         ]),
-        updateValue( option, value ) {
+        updateValue( option: string, value: any ): void {
             this.setToolOptionValue({ tool: ToolTypes.ERASER, option, value });
-        }
+        },
     },
 };
 </script>

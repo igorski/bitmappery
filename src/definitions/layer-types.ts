@@ -23,7 +23,6 @@
 export enum LayerTypes {
     LAYER_GRAPHIC = "graphic",
     LAYER_IMAGE   = "image",
-    LAYER_MASK    = "mask",
     LAYER_TEXT    = "text",
 };
 export const DEFAULT_LAYER_NAME = "New Layer"; // TODO i18n

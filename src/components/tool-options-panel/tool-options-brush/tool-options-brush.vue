@@ -83,7 +83,7 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters, mapMutations }  from "vuex";
 import ToolTypes, { MAX_BRUSH_SIZE, canDraw } from "@/definitions/tool-types";
 import BrushTypes from "@/definitions/brush-types";
@@ -106,18 +106,19 @@ export default {
         ...mapGetters([
             "activeDocument",
             "activeLayer",
+            "activeLayerMask",
             "brushOptions",
         ]),
-        disabled() {
-            return !canDraw( this.activeDocument, this.activeLayer );
+        disabled(): boolean {
+            return !canDraw( this.activeDocument, this.activeLayer, this.activeLayerMask );
         },
-        hasThickness() {
+        hasThickness(): boolean {
             return this.brushType === BrushTypes.PAINT_BRUSH;
         },
-        canStroke() {
+        canStroke(): boolean {
             return this.brushType === BrushTypes.PEN;
         },
-        brushTypes() {
+        brushTypes(): { label: string, value: BrushTypes }[] {
             return [
                 { label: this.$t( "line" ),             value: BrushTypes.LINE },
                 { label: this.$t( "paintBrush" ),       value: BrushTypes.PAINT_BRUSH },
@@ -129,50 +130,50 @@ export default {
             ];
         },
         brushType: {
-            get() {
+            get(): BrushTypes {
                 return this.brushOptions.type;
             },
-            set( value ) {
+            set( value: BrushTypes ): void {
                 this.update( "type", value );
             }
         },
         brushSize: {
-            get() {
+            get(): number {
                 return this.brushOptions.size;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.update( "size", value );
             }
         },
         strokes: {
-            get() {
+            get(): number {
                 return this.brushOptions.strokes;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.update( "strokes", value );
             }
         },
         smooth: {
-            get() {
+            get(): boolean {
                 return this.brushOptions.smooth;
             },
-            set( value ) {
+            set( value: boolean ): void {
                 this.update( "smooth", value );
             }
         },
         thickness: {
-            get() {
+            get(): number {
                 return this.brushOptions.thickness * 100;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.update( "thickness", value / 100 );
             }
         },
         opacity: {
-            get() {
+            get(): number {
                 return this.brushOptions.opacity * 100;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.update( "opacity", value / 100 );
             },
         },
@@ -181,7 +182,7 @@ export default {
         ...mapMutations([
             "setToolOptionValue",
         ]),
-        update( option, value ) {
+        update( option: string, value: any ): void {
             this.setToolOptionValue({
                 tool: ToolTypes.BRUSH,
                 option,

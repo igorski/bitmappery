@@ -71,7 +71,7 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import ToolTypes, { MAX_BRUSH_SIZE, TOOL_SRC_MERGED, canDraw } from "@/definitions/tool-types";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
@@ -93,13 +93,14 @@ export default {
         ...mapGetters([
             "activeDocument",
             "activeLayer",
+            "activeLayerMask",
             "layers",
             "cloneOptions",
         ]),
-        disabled() {
-            return !canDraw( this.activeDocument, this.activeLayer );
+        disabled(): boolean {
+            return !canDraw( this.activeDocument, this.activeLayer, this.activeLayerMask );
         },
-        selectableLayers() {
+        selectableLayers(): { label: string, value: string }[] {
             return [
                 ...( this.layers || [] ).filter(({ visible }) => visible ),
                 { name: this.$t( "merged" ), id: TOOL_SRC_MERGED }
@@ -108,40 +109,40 @@ export default {
             .reverse();
         },
         sourceLayer: {
-            get() {
+            get(): string {
                 return this.cloneOptions.sourceLayerId;
             },
-            set( value ) {
+            set( value: string ): void {
                 this.updateValue( "sourceLayerId", value );
             },
         },
         brushSize: {
-            get() {
+            get(): number {
                 return this.cloneOptions.size;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.updateValue( "size", value );
             },
         },
         /*
         thickness: {
-            get() {
+            get(): number {
                 return this.cloneOptions.thickness * 100;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.updateValue( "thickness", value / 100 );
             }
         },*/
         opacity: {
-            get() {
+            get(): number {
                 return this.cloneOptions.opacity * 100;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.updateValue( "opacity", value / 100 );
             },
         },
     },
-    created() {
+    created(): void {
         if ( !this.sourceLayer && this.activeLayer ) {
             this.sourceLayer = this.activeLayer.id;
         }
@@ -149,7 +150,7 @@ export default {
         window.addEventListener( "keydown", this._handler );
         window.addEventListener( "keyup",  this._handler );
     },
-    unmounted() {
+    unmounted(): void {
         window.removeEventListener( "keydown", this._handler );
         window.removeEventListener( "keyup",   this._handler );
     },
@@ -157,13 +158,13 @@ export default {
         ...mapMutations([
             "setToolOptionValue",
         ]),
-        resetSourceCoordinate() {
+        resetSourceCoordinate(): void {
             this.updateValue( "coords", null );
         },
-        updateValue( option, value ) {
+        updateValue( option: string, value: any ): void {
             this.setToolOptionValue({ tool: ToolTypes.CLONE, option, value });
         },
-        handleKeyDown({ type, keyCode }) {
+        handleKeyDown({ type, keyCode }: KeyboardEvent ): void {
             if ( keyCode === 18 ) { // alt key
                 switch ( type ) {
                     default:
@@ -183,7 +184,7 @@ export default {
                         break;
                 }
             }
-        }
+        },
     }
 };
 </script>

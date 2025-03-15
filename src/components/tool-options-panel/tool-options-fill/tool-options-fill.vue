@@ -35,7 +35,7 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import ToolTypes, { canDraw } from "@/definitions/tool-types";
@@ -50,16 +50,17 @@ export default {
         ...mapGetters([
             "activeDocument",
             "activeLayer",
+            "activeLayerMask",
             "fillOptions",
         ]),
-        disabled() {
-            return !canDraw( this.activeDocument, this.activeLayer );
+        disabled(): boolean {
+            return !canDraw( this.activeDocument, this.activeLayer, this.activeLayerMask );
         },
         smartFill: {
-            get() {
+            get(): boolean {
                 return this.fillOptions.smartFill;
             },
-            set( value ) {
+            set( value: boolean ): void {
                 this.setToolOptionValue({
                     tool: ToolTypes.FILL,
                     option: "smartFill",

@@ -53,6 +53,8 @@ const BRUSH_TOOL_TYPES   = [ ToolTypes.BRUSH, ToolTypes.ERASER, ToolTypes.CLONE 
 
 const defaultBlock = ( e: KeyboardEvent ): void => e.preventDefault();
 
+const canDrawOnActiveLayer = (): boolean => canDraw( getters.activeDocument, getters.activeLayer, getters.activeLayerMask );
+
 /**
  * KeyboardService is a dedicated controller that listens to keyboard
  * input events, allowing combinations of keypresses to toggle application
@@ -256,7 +258,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
             break;
 
         case 66: // B
-            if ( canDraw( getters.activeDocument, getters.activeLayer )) {
+            if ( canDrawOnActiveLayer()) {
                 setActiveTool( ToolTypes.BRUSH );
             }
             break;
@@ -287,7 +289,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
         case 69: // E
             if ( altDown ) {
                 openModal( SAVE_DOCUMENT );
-            } else if ( canDraw( getters.activeDocument, getters.activeLayer )) {
+            } else if ( canDrawOnActiveLayer() ) {
                 setActiveTool( ToolTypes.ERASER );
             }
             break;
@@ -312,7 +314,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
             break;
 
         case 71: // G
-            if ( canDraw( getters.activeDocument, getters.activeLayer )) {
+            if ( canDrawOnActiveLayer() ) {
                 setActiveTool( ToolTypes.FILL );
             }
             break;
@@ -384,7 +386,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
                     openModal( SAVE_DOCUMENT );
                 }
                 preventDefault( event ); // page save
-            } else if ( canDraw( getters.activeDocument, getters.activeLayer )) {
+            } else if ( canDrawOnActiveLayer() ) {
                 setActiveTool( ToolTypes.CLONE );
             }
             break;

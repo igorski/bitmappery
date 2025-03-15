@@ -491,7 +491,7 @@ export default {
 
     &--active {
         background-color: colors.$color-1;
-        border: none;
+        border-bottom-color: transparent;
         color: colors.$color-2;
     }
 

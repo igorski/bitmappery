@@ -47,14 +47,14 @@ export default ToolTypes;
 
 // certain tools are handled by the top layer interaction pane, not individual layer sprites
 
-const PANE_TYPES = [ ToolTypes.MOVE, ToolTypes.LASSO, ToolTypes.SELECTION, ToolTypes.WAND ];
+export const PANE_TYPES = [ ToolTypes.MOVE, ToolTypes.LASSO, ToolTypes.SELECTION, ToolTypes.WAND ];
 export const usesInteractionPane = ( tool: ToolTypes ): boolean => PANE_TYPES.includes( tool );
 
 export const SELECTION_TOOLS = [ ToolTypes.SELECTION, ToolTypes.LASSO, ToolTypes.WAND ];
 
-export const canDraw = ( activeDocument: Document, activeLayer: Layer ): boolean => {
+export const canDraw = ( activeDocument: Document, activeLayer: Layer, activeLayerMask: HTMLCanvasElement | null ): boolean => {
     return activeDocument &&
-    ( activeLayer?.mask !== null || activeLayer?.type === LayerTypes.LAYER_GRAPHIC );
+    (( activeLayer?.mask !== null && activeLayer.mask === activeLayerMask ) || activeLayer?.type === LayerTypes.LAYER_GRAPHIC );
 };
 
 // we cannot draw in selection if a layer is mirrored (see https://github.com/igorski/bitmappery/issues/5)
