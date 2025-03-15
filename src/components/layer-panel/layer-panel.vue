@@ -77,7 +77,7 @@
                                     v-tooltip.left="$t( element.maskSelected ? 'clickToEditLayer' : 'dblClickToRename')"
                                     class="layer__name"
                                     :class="{
-                                        'layer--highlight': element.index === activeLayerIndex && !activeLayerMask
+                                        'layer--selected': element.index === activeLayerIndex && !element.maskSelected
                                     }"
                                     @dblclick="handleLayerDoubleClick( element )"
                                     @click="handleLayerClick( element )"
@@ -448,7 +448,7 @@ export default {
     @include mixins.boxSize();
     @include typography.customFont();
     display: flex;
-    color: #FFF;
+    color: colors.$color-lines;
 
     &:hover {
         background-color: colors.$color-4;
@@ -492,6 +492,7 @@ export default {
     &--active {
         background-color: colors.$color-1;
         border: none;
+        color: colors.$color-2;
     }
 
     &--active,
@@ -501,8 +502,8 @@ export default {
         }
     }
 
-    &--highlight {
-        color: #000;
+    &--selected {
+        color: #FFF;
     }
 }
 </style>

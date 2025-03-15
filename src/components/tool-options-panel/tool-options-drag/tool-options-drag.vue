@@ -23,10 +23,10 @@
 <template>
     <div
         class="tool-option"
-        @focusin="handleFocus"
-        @focusout="handleBlur"
+        @focusin="handleFocus()"
+        @focusout="handleBlur()"
     >
-        <h3 v-t="'layerPosition'"></h3>
+        <h3 v-t="isMask ? 'maskPosition' : 'layerPosition'"></h3>
         <div class="wrapper input">
             <label v-t="'coordinates'"></label>
             <input
@@ -67,6 +67,7 @@
 
 <script lang="ts">
 import { mapGetters } from "vuex";
+import { enqueueState } from "@/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 
@@ -83,10 +84,20 @@ export default {
         ...mapGetters([
             "activeDocument",
             "activeLayer",
+            "activeLayerMask",
         ]),
+        isMask(): boolean {
+            if ( !this.activeLayer ) {
+                return false;
+            }
+            return !!this.activeLayer.mask && this.activeLayer.mask === this.activeLayerMask;
+        },
         left: {
             get(): number {
-                return Math.round( this.activeLayer?.left ?? 0 );
+                if ( !this.activeLayer ) {
+                    return 0;
+                }
+                return Math.round( this.isMask ? this.activeLayer.maskX : this.activeLayer.left );
             },
             set( value: number ): void {
                 if ( isNaN( value )) {
@@ -97,7 +108,10 @@ export default {
         },
         top: {
             get(): number {
-                return Math.round( this.activeLayer?.top ?? 0 );
+                if ( !this.activeLayer ) {
+                    return 0;
+                }
+                return Math.round( this.isMask ? this.activeLayer.maskY : this.activeLayer.top );
             },
             set( value: number ): void {
                 if ( isNaN( value )) {
@@ -127,7 +141,27 @@ export default {
             KeyboardService.setSuspended( false );
         },
         setLayerPosition( x = this.top, y = this.left ): void {
-            getSpriteForLayer( this.activeLayer )?.setBounds( x, y );
+            if ( this.isMask ) {
+                const layer = this.activeLayer;
+                const orgX = layer.maskX;
+                const orgY = layer.maskY;
+                const commit = () => {
+                    layer.maskX = x;
+                    layer.maskY = y;
+                    getSpriteForLayer( layer )?.resetFilterAndRecache();
+                };
+                commit();
+                enqueueState( `maskPos_${layer.id}`, {
+                    undo() {
+                        layer.maskX = orgX;
+                        layer.maskY = orgY;
+                        getSpriteForLayer( layer )?.resetFilterAndRecache();
+                    },
+                    redo: commit
+                }); 
+            } else {
+                getSpriteForLayer( this.activeLayer )?.setBounds( x, y );
+            }
         },
         reset(): void {
             this.setLayerPosition( 0, 0 );

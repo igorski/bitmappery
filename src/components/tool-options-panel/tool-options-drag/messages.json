@@ -1,6 +1,7 @@
 {
     "en-US": {
         "layerPosition": "Layer position",
+        "maskPosition": "Mask position",
         "coordinates": "Coordinates",
         "reset": "Reset",
         "center": "Center"
