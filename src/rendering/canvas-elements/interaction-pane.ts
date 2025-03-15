@@ -396,7 +396,7 @@ class InteractionPane extends sprite {
 
     update( _now: DOMHighResTimeStamp, framesSinceLastUpdate: number ): void {
         if ( this._selectionClosed && this.getActiveDocument().activeSelection?.length ) {
-            this._dashOffset -= ( DASH_SPEED * framesSinceLastUpdate ); // advance the selection outline animation
+            this._dashOffset -= (( DASH_SPEED * this.canvas.zoomFactor ) * framesSinceLastUpdate ); // advance the selection outline animation
         }
     }
 
@@ -482,13 +482,14 @@ export default InteractionPane;
 
 function drawSelectionShape( ctx: CanvasRenderingContext2D, zoomableCanvas: ZoomableCanvas, viewport: Viewport,
                              shape: Shape, currentPosition?: Point, dashOffset = 0 ): void {
+    const { zoomFactor } = zoomableCanvas;
     ctx.save();
     drawShapeOutline( ctx, zoomableCanvas, viewport, shape, "#000", currentPosition );
     ctx.restore();
 
     ctx.save();
-    ctx.setLineDash([ DASH_SIZE ]);
-    ctx.lineDashOffset = DASH_SIZE + dashOffset;    
+    ctx.setLineDash([ DASH_SIZE / zoomFactor ]);
+    ctx.lineDashOffset = ( DASH_SIZE + dashOffset ) / zoomFactor;   
     drawShapeOutline( ctx, zoomableCanvas, viewport, shape, "#FFF", currentPosition );
     ctx.restore();
 }

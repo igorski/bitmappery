@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2022 - https://www.igorski.nl
+ * Igor Zinken 2021-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -51,7 +51,7 @@ class GuideRenderer extends sprite  {
         this.drawPixelGrid = drawPixelGrid;
     }
 
-    draw( ctx: CanvasRenderingContext2D, viewport: Viewport = null ): void {
+    draw( ctx: CanvasRenderingContext2D, viewport?: Viewport ): void {
 
         /* grid */
 
@@ -85,6 +85,7 @@ class GuideRenderer extends sprite  {
 
         // we can snap the currently draggingSprite against its edge and center
         const guides: Rectangle[] = getClosestSnappingPoints( this.canvas.draggingSprite, this.canvas.guides );
+        ctx.lineWidth   = 1 / this.canvas.zoomFactor;
         ctx.strokeStyle = "red";
 
         for ( const { left, top, width, height } of guides ) {
