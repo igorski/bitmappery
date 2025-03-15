@@ -74,7 +74,7 @@
                                 />
                                 <span
                                     v-else
-                                    v-tooltip.left="$t( element.mask && element.mask === activeLayerMask ? 'clickToEditLayer' : 'dblClickToRename')"
+                                    v-tooltip.left="$t( element.maskSelected ? 'clickToEditLayer' : 'dblClickToRename')"
                                     class="layer__name"
                                     :class="{
                                         'layer--highlight': element.index === activeLayerIndex && !activeLayerMask
@@ -86,10 +86,10 @@
                                     <!-- optional layer mask -->
                                     <button
                                         v-if="element.mask"
-                                        v-tooltip="$t('clickToEditMask')"
+                                        v-tooltip="$t( element.maskSelected ? 'clickToEditLayer' : 'clickToEditMask' )"
                                         class="layer__actions-button button--ghost"
                                         :class="{
-                                            'layer--highlight': element.mask === activeLayerMask
+                                            'layer__actions-button--highlight': element.maskSelected
                                         }"
                                         @click="handleLayerMaskClick( element )"
                                     ><img src="@/assets-inline/images/icon-mask.svg" /></button>
@@ -160,7 +160,7 @@ import messages from "./messages.json";
 
 const NON_OVERRIDABLE_TOOLS = [ ToolTypes.MOVE, ToolTypes.DRAG ];
 
-type IndexedLayer = Layer & { index: number };
+type IndexedLayer = Layer & { index: number, maskSelected: boolean };
 
 export default {
     i18n: { messages },
@@ -196,7 +196,11 @@ export default {
         reverseLayers: {
             get(): IndexedLayer[] {
                 // we like to see the highest layer on top, so reverse order for v-for templating
-                return this.layers?.slice().map(( layer, index ) => ({ ...layer, index })).reverse() ?? [];
+                return this.layers?.slice().map(( layer, index ) => ({
+                    ...layer,
+                    index,
+                    maskSelected: layer.mask ? layer.mask === this.activeLayerMask : false,
+                })).reverse() ?? [];
             },
             set( value: Layer[] ): void {
                 // when updating the Vuex store, we reverse the layers again
@@ -336,6 +340,10 @@ export default {
             */
         },
         handleLayerMaskClick( layer: IndexedLayer ): void {
+            if ( layer.maskSelected ) {
+                this.handleLayerClick( layer ); // unsetting of mask
+                return;
+            }
             this.setActiveLayerMask( layer.index );
             getSpriteForLayer( layer )?.setActionTarget( "mask" );
         },
@@ -468,6 +476,10 @@ export default {
 
             &--disabled {
                 opacity: .5;
+            }
+
+            &--highlight {
+                filter: brightness(0) invert(1) !important;
             }
 
             img {
