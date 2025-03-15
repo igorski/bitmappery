@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -146,8 +146,7 @@ export const resizeToBase64 = async ( image: CanvasDrawable | string, targetWidt
  * transformed from global canvas coordinate space to local screen space.
  */
 export const globalToLocal = ( zCanvas: ZoomableCanvas, x: number, y: number ): Point => {
-    // @ts-expect-error _HDPIscaleRatio has protected access
-    const factor = zCanvas.zoomFactor * zCanvas._HDPIscaleRatio;
+    const factor = zCanvas.zoomFactor * getPixelRatio();
     return {
         x: x * factor,
         y: y * factor

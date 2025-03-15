@@ -49,6 +49,7 @@ export function createMockZoomableCanvas(): ZoomableCanvas {
         fps: 60,
         addChild: vi.fn(),
         removeChild: vi.fn(),
+        getViewport: vi.fn(() => ({ left: 0, top: 0, width: 300, height: 300 })),
         setLock: vi.fn(),
         store: createState() as unknown as Store<BitMapperyState>,
     } as unknown as ZoomableCanvas;
@@ -62,17 +63,31 @@ export function createMockImageElement(): HTMLImageElement {
     } as unknown as HTMLImageElement;
 }
 
-const mockCanvasRenderingContext2D = {
-    clearRect: vi.fn(),
-    drawImage: vi.fn(),
-} as unknown as CanvasRenderingContext2D;
+function createMockCanvasRenderingContext2D() {
+    return {
+        clearRect: vi.fn(),
+        fill: vi.fn(),
+        fillRect: vi.fn(),
+        drawImage: vi.fn(),
+        canvas: {
+            width: 300,
+            height: 200,
+        },
+    } as unknown as CanvasRenderingContext2D;
+}
 
 export function createMockCanvasElement(): HTMLCanvasElement {
-    return {
+    const ctx = createMockCanvasRenderingContext2D();
+    const cvs = {
         width: 300,
         height: 200,
-        getContext: vi.fn(() => mockCanvasRenderingContext2D ),
+        getContext: vi.fn().mockImplementation(() => ctx ),
     } as unknown as HTMLCanvasElement;
+    
+    // @ts-expect-error cannot assign to read only property
+    ctx.canvas = cvs;
+
+    return cvs;
 }
 
 /**

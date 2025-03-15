@@ -49,6 +49,11 @@ describe( "LayerSprite", () => {
 
     beforeEach(() => {
         vi.useFakeTimers();
+        vi.spyOn( document, "createElement" ).mockImplementation( type => {
+            if ( type === "canvas" ) {
+                return createMockCanvasElement() as HTMLElement;
+            }
+        });
 
         layer = LayerFactory.create();
 
@@ -234,6 +239,16 @@ describe( "LayerSprite", () => {
             sprite.handleRelease( 0, 0 );
 
             expect( mockPauseBlendCaching ).toHaveBeenCalledWith( layerIndex, false );
+        });
+
+        it( `should immediately invoke the paint function when pressing down with the "${ToolTypes.FILL}"-tool active`, () => {
+            const paintSpy = vi.spyOn( sprite, "paint" );
+
+            sprite.handleActiveLayer( sprite.layer ); // make interactive
+            sprite.handleActiveTool( ToolTypes.FILL, {}, activeDocument ); // set tool
+            sprite.handlePress( 0, 0, new MouseEvent( "mousedown" ));
+
+            expect( paintSpy ).toHaveBeenCalled();
         });
     });
 

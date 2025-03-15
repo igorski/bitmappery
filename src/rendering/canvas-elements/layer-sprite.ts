@@ -534,8 +534,8 @@ export default class LayerSprite extends ZoomableSprite {
             // color picker mode, get the color below the clicked point
             const local = globalToLocal( this.canvas, x, y );
             const p = ( this.canvas.getElement().getContext( "2d" ) as CanvasRenderingContext2D ).getImageData(
-                local.x - this.canvas.getViewport().left,
-                local.y - this.canvas.getViewport().top,
+                local.x - ( this.canvas.getViewport().left * getPixelRatio() ),
+                local.y - ( this.canvas.getViewport().top  * getPixelRatio() ),
                 1, 1
             ).data;
             this.getStore().commit( "setActiveColor", `rgba(${p[0]},${p[1]},${p[2]},${(p[3]/255)})` );
