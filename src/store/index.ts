@@ -262,14 +262,14 @@ export default {
                 message: translate( "savedFileSuccessfully" , { file: truncate( name, 35 ) })
             });
         },
-        async requestSelectionCopy({ commit, getters }: ActionContext<BitMapperyState, any>, copyMerged = false ): Promise<void> {
-            const selectionImage = await copySelection( getters.activeDocument, getters.activeLayer, copyMerged );
+        async requestSelectionCopy({ commit, getters }: ActionContext<BitMapperyState, any>, { merged = false, isCut = false }): Promise<void> {
+            const selectionImage = await copySelection( getters.activeDocument, getters.activeLayer, merged );
             commit( "setSelectionContent", selectionImage );
             commit( "setActiveTool", { tool: null, activeLayer: getters.activeLayer });
-            commit( "showNotification", { message: translate( "selectionCopied" ) });
+            commit( "showNotification", { message: translate( isCut ? "selectionCut" : "selectionCopied" ) });
         },
         async requestSelectionCut({ dispatch }: ActionContext<BitMapperyState, any> ): Promise<void> {
-            dispatch( "requestSelectionCopy" );
+            dispatch( "requestSelectionCopy", { merged: false, isCut: true });
             dispatch( "deleteInSelection" );
         },
         clearSelection(): void {

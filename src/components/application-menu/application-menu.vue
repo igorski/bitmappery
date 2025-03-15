@@ -151,7 +151,7 @@
                             v-tooltip.right="$t('copyTooltip')"
                             type="button"
                             :disabled="!hasSelection"
-                            @click="requestSelectionCopy( false )"
+                            @click="requestSelectionCopy({ merged: false })"
                         ></button>
                     </li>
                     <li>
@@ -159,7 +159,7 @@
                             v-t="'copyMerged'"
                             type="button"
                             :disabled="!hasSelection"
-                            @click="requestSelectionCopy( true )"
+                            @click="requestSelectionCopy({ merged: true })"
                         ></button>
                     </li>
                     <li>
@@ -414,9 +414,10 @@
     </nav>
 </template>
 
-<script>
+<script lang="ts">
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import cloneDeep from "lodash.clonedeep";
+import { type Layer } from "@/definitions/document";
 import { MAX_SPRITESHEET_WIDTH } from "@/definitions/editor-properties";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_WINDOW, LOAD_SELECTION, SAVE_SELECTION,
@@ -466,66 +467,66 @@ export default {
             "pixelGrid",
         ]),
         supportsFullscreen,
-        noDocumentsAvailable() {
+        noDocumentsAvailable(): boolean {
             return !this.activeDocument;
         },
-        hasSavedSelections() {
+        hasSavedSelections(): boolean {
             return Object.keys( this.activeDocument?.selections || {} ).length > 0;
         },
-        hasClipboard() {
+        hasClipboard(): boolean {
             return !!this.selectionContent;
         },
-        activeLayerHasFilters() {
+        activeLayerHasFilters(): boolean {
             return this.activeLayer?.filters?.enabled;
         },
         canSnapAndAlign: {
-            get() {
+            get(): boolean {
                 return this.snapAlign;
             },
-            async set( value ) {
+            async set( value: boolean ): Promise<void> {
                 this.setSnapAlign( value );
                 this.setPreferences({ snapAlign: value });
                 await this.storePreferences();
             }
         },
         useAntiAlias: {
-            get() {
+            get(): boolean {
                 return this.antiAlias;
             },
-            async set( value ) {
+            async set( value: boolean ): Promise<void> {
                 this.setAntiAlias( value );
                 this.setPreferences({ antiAlias: value });
                 await this.storePreferences();
             }
         },
         usePixelGrid: {
-            get() {
+            get(): boolean {
                 return this.pixelGrid;
             },
-            set( value ) {
+            set( value: boolean ): void {
                 this.setPixelGrid( value );
             },
         },
-        fullscreenTooltip() {
+        fullscreenTooltip(): string {
             return `${this.isFullscreen ? this.$t( "minimize" ) : this.$t( "maximize" )} (Shift + F)`;
         },
-        canUsePixelGrid() {
+        canUsePixelGrid(): boolean {
             return this.activeDocument?.width <= MAX_SPRITESHEET_WIDTH;
         },
     },
     watch: {
-        blindActive( isOpen, wasOpen ) {
+        blindActive( isOpen: boolean, wasOpen?: boolean ): void {
             if ( !isOpen && wasOpen === true ) {
                 this.setMenuOpened( false );
             }
         },
-        canUsePixelGrid( value ) {
+        canUsePixelGrid( value: boolean ): void {
             if ( !value && this.usePixelGrid ) {
                 this.usePixelGrid = false;
             }
         },
     },
-    mounted() {
+    mounted(): void {
         if ( this.$refs.fullscreenBtn ) {
             setToggleButton( this.$refs.fullscreenBtn, isFullscreen => {
                 this.isFullscreen = isFullscreen;
@@ -562,43 +563,43 @@ export default {
             "loadDocument",
             "storePreferences",
         ]),
-        openSubMenu( name ) {
+        openSubMenu( name: string ): void {
             this.activeSubMenu = this.activeSubMenu === name ? null : name;
         },
-        requestNewDocument() {
+        requestNewDocument(): void {
             this.openModal( CREATE_DOCUMENT );
         },
-        openFileSelector() {
+        openFileSelector(): void {
             this.$refs.fileSelector?.click();
         },
-        requestImageExport() {
+        requestImageExport(): void {
             this.openModal( EXPORT_WINDOW );
         },
-        requestDocumentResize() {
+        requestDocumentResize(): void {
             this.openModal( RESIZE_DOCUMENT );
         },
-        requestCanvasResize() {
+        requestCanvasResize(): void {
             this.openModal( RESIZE_CANVAS );
         },
-        requestGridToLayers() {
+        requestGridToLayers(): void {
             this.openModal( GRID_TO_LAYERS );
         },
-        requestDocumentExport() {
+        requestDocumentExport(): void {
             this.openModal( SAVE_DOCUMENT );
         },
-        requestSelectionLoad() {
+        requestSelectionLoad(): void {
             this.openModal( LOAD_SELECTION );
         },
-        requestSelectionSave() {
+        requestSelectionSave(): void {
             this.openModal( SAVE_SELECTION );
         },
-        openPreferences() {
+        openPreferences(): void {
             this.openModal( PREFERENCES );
         },
-        strokeSelection() {
+        strokeSelection(): void {
             this.openModal( STROKE_SELECTION );
         },
-        requestCropToSelection() {
+        requestCropToSelection(): void {
             const store = this.$store;
             const currentSize = {
                 width  : this.activeDocument.width,
@@ -624,10 +625,10 @@ export default {
                 redo: commit
             });
         },
-        navigateHistory( action = "undo" ) {
+        navigateHistory( action = "undo" ): void {
             this.$store.dispatch( action );
         },
-        duplicateLayer() {
+        duplicateLayer(): void {
             const indexToAdd = this.activeLayerIndex + 1;
             let layer = {
                 ...cloneDeep( this.activeLayer ),
@@ -648,9 +649,9 @@ export default {
                 redo: commit,
             });
         },
-        async mergeLayerDown( allLayers = false ) {
-            let layers = [];
-            let layerIndices = [];
+        async mergeLayerDown( allLayers = false ): Promise<void> {
+            let layers: Layer[] = [];
+            let layerIndices: number[] = [];
             // collect the layers in ascending order
             if ( allLayers ) {
                 this.activeDocument.layers.forEach(( layer, index ) => {
@@ -686,11 +687,11 @@ export default {
                 redo: commit,
             });
         },
-        copyLayerFilters() {
+        copyLayerFilters(): void {
             this.clonedFilters = { ...this.activeLayer.filters };
             this.showNotification({ message: this.$t( "filtersCopied" ) });
         },
-        pasteLayerFilters() {
+        pasteLayerFilters(): void {
             const orgFilters = { ...this.activeLayer.filters };
             const filters    = { ...this.clonedFilters };
             const index      = this.activeLayerIndex;
@@ -704,7 +705,7 @@ export default {
                 redo: commit,
             });
         },
-        toggleLayerFilters() {
+        toggleLayerFilters(): void {
             const enabled = this.activeLayerHasFilters;
             const filters = this.activeLayer.filters;
             this.updateLayer({
@@ -712,13 +713,13 @@ export default {
                 opts: { filters: { ...filters, enabled: !enabled} }
             });
         },
-        selectAll() {
-            getCanvasInstance()?.interactionPane.selectAll( this.activeLayer );
+        selectAll(): void {
+            getCanvasInstance()?.interactionPane.selectAll();
         },
-        close() {
+        close(): void {
             this.setMenuOpened( false );
             this.activeSubMenu = null;
-        }
+        },
     }
 };
 </script>

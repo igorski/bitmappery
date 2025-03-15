@@ -74,16 +74,22 @@ const KeyboardService =
     },
     /**
      * whether the Apple option or a control key is
-     * currently held down for the given event
+     * currently held down for either the given event or a still held key
      */
-    hasOption( aEvent: KeyboardEvent ): boolean {
-        return ( optionDown === true ) || aEvent.metaKey || aEvent.ctrlKey;
+    hasOption( event?: KeyboardEvent ): boolean {
+        return optionDown || !!event?.metaKey || !!event?.ctrlKey;
+    },
+    /**
+     * whether the alt key is currently held down
+     */
+    hasAlt(): boolean {
+        return altDown;
     },
     /**
      * whether the shift key is currently held down
      */
     hasShift(): boolean {
-        return ( shiftDown === true );
+        return shiftDown;
     },
     /**
      * attach a listener to receive updates whenever a key
@@ -252,8 +258,8 @@ function handleKeyDown( event: KeyboardEvent ): void {
 
         case 65: // A
             // select all
-            if ( nativeModifier && getters.activeLayer ) {
-                getCanvasInstance()?.interactionPane.selectAll( getters.activeLayer );
+            if ( nativeModifier && getters.activeDocument ) {
+                getCanvasInstance()?.interactionPane.selectAll();
             }
             break;
 
@@ -267,7 +273,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
             // copy current selection
             if ( nativeModifier ) {
                 if ( getters.activeDocument?.activeSelection?.length > 0 ) {
-                    dispatch( "requestSelectionCopy", shiftDown );
+                    dispatch( "requestSelectionCopy", { merged: shiftDown });
                     preventDefault( event );
                 }
             } else {
@@ -482,6 +488,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
 
 function handleKeyUp( event: KeyboardEvent ): void {
     shiftDown = false;
+    altDown   = false;
 
     switch ( event.keyCode ) {
         default:

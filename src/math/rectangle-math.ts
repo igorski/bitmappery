@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2023 - https://www.igorski.nl
+ * Igor Zinken 2021-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Point, Rectangle } from "zcanvas";
+import { rotatePoint } from "@/math/point-math";
 import { fastRound } from "@/math/unit-math";
 
 const HALF = 0.5;
@@ -34,6 +35,10 @@ export const getRotationCenter = ({ left, top, width, height }: Rectangle, round
     };
 };
 
+/**
+ * Rotate a Rectangle using provided angle. This returns a BOUNDING BOX of the area occupied by the
+ * rotated Rectangle.
+ */
 export const rotateRectangle = ( rectangle: Rectangle, angleInRadians = 0, rounded = false ): Rectangle => {
     if ( angleInRadians === 0 ) {
         return rectangle;
@@ -81,6 +86,24 @@ export const rotateRectangle = ( rectangle: Rectangle, angleInRadians = 0, round
         out.height = fastRound( out.height );
     }
     return out;
+};
+
+/**
+ * Rotate a Rectangle using provided angle. This returns a list of coordinates of the corners of the Rectangle.
+ */
+export const rotateRectangleToCoordinates = ( rect: Rectangle, angleInRadians: number ): Point[] => {
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    
+    const corners: Point[] = [
+        { x: rect.left, y: rect.top },
+        { x: rect.left + rect.width, y: rect.top },
+        { x: rect.left + rect.width, y: rect.top + rect.height },
+        { x: rect.left, y: rect.top + rect.height },
+    ];
+    const rotatedCorners = corners.map( point => rotatePoint( point, angleInRadians, cx, cy ));
+    rotatedCorners.push( rotatedCorners[ 0 ]); // close path
+    return rotatedCorners;
 };
 
 export const scaleRectangle = ({ left, top, width, height }: Rectangle, scale = 1, rounded = false ): Rectangle => {

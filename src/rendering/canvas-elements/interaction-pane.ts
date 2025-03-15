@@ -27,7 +27,7 @@ import ToolTypes from "@/definitions/tool-types";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
 import { isPointInRange, translatePoints, snapToAngle, rectToCoordinateList } from "@/math/point-math";
-import { scaleRectangle } from "@/math/rectangle-math";
+import { rotateRectangleToCoordinates, scaleRectangle } from "@/math/rectangle-math";
 import { selectByColor } from "@/math/selection-math";
 import { fastRound } from "@/math/unit-math";
 import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
@@ -204,9 +204,14 @@ class InteractionPane extends sprite {
     }
 
     selectAll( targetLayer: Layer = null ): void {
-        const bounds = targetLayer ? getSpriteForLayer( targetLayer ).getBounds() : this._bounds;
+        if ( targetLayer ) {
+            const { scale, rotation } = targetLayer.effects;
+            const bounds = scaleRectangle( getSpriteForLayer( targetLayer ).getBounds(), scale );
+            this.setSelection( [ rotateRectangleToCoordinates( bounds, rotation ) ]);
+            return;
+        }
         this.setSelection(
-            [ rectToCoordinateList( bounds.left, bounds.top, bounds.width, bounds.height )]
+            [ rectToCoordinateList( this._bounds.left, this._bounds.top, this._bounds.width, this._bounds.height )]
         );
     }
 

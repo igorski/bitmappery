@@ -162,6 +162,21 @@ export const pointerToCanvasCoordinates = ( pointerX: number, pointerY: number, 
     };
 };
 
+export const rotatePoint = ( point: Point, angleInRadians: number, cx: number, cy: number ): Point => {
+    if ( angleInRadians === 0 ) {
+        return point;
+    }
+    const cosA = Math.cos( angleInRadians );
+    const sinA = Math.sin( angleInRadians );
+    const dx = point.x - cx;
+    const dy = point.y - cy;
+    
+    return {
+        x: cx + dx * cosA - dy * sinA,
+        y: cy + dx * sinA + dy * cosA,
+    };
+};
+
 /**
  * Utility to rotate a list of pointers (touch/mouse coordinates performed when drawing on a LayerSprite) relative
  * to the sprite's associated Layers transformations
