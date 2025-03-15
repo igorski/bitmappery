@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2022 - https://www.igorski.nl
+ * Igor Zinken 2021-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -35,12 +35,13 @@ type SnappableAreas = {
 // pool the Arrays that describe the currently dragging Sprites snappable areas
 // we only allow dragging one Sprite at a time so this can be cached between
 // guide rendering and drag release operations
+
 const horizontal: number[] = new Array( 3 );
 const vertical: number[] = new Array( 3 );
 const snappableAreas: SnappableAreas = { horizontal, vertical };
 
 function cacheSnappableAreas( sprite: LayerSprite ): SnappableAreas {
-    const bounds = sprite.getActualBounds();
+    const bounds = sprite.getActualBounds(); // take Layer transformations into account
 
     horizontal[ 0 ] = bounds.left;
     horizontal[ 1 ] = bounds.left + bounds.width / 2;
@@ -60,7 +61,7 @@ function cacheSnappableAreas( sprite: LayerSprite ): SnappableAreas {
  * This caches the snappable areas for given Sprite
  *
  * @param {LayerSprite} sprite to determine snapping points for
- * @param {Array<Rectangle>} guides all available snapping points
+ * @param {Rectangle[]} guides all available snapping points
  */
 export const getClosestSnappingPoints = ( sprite: LayerSprite, guides: Rectangle[] ): Rectangle[] => {
     cacheSnappableAreas( sprite );
@@ -99,13 +100,7 @@ export const getClosestSnappingPoints = ( sprite: LayerSprite, guides: Rectangle
  */
 export const snapSpriteToGuide = ( sprite: LayerSprite, guides: Rectangle[] ): void => {
     const filteredGuides = getClosestSnappingPoints( sprite, guides );
-    const { left, top, width, height } = sprite.getActualBounds();
-
-    // if a sprite is rotated / scaled we need to know the delta between
-    // the original, untransformed bounding box and the transformed bouding box
-
-    const deltaX = Math.abs( left - sprite.getX() );
-    const deltaY = Math.abs( top  - sprite.getY() );
+    const { left, top, width, height } = sprite.getBounds();
 
     let horSnap = false;
     let verSnap = false;
@@ -124,7 +119,7 @@ export const snapSpriteToGuide = ( sprite: LayerSprite, guides: Rectangle[] ): v
                     } else if ( cX > rightHalf ) {
                         destX = guide.left - width; // snap sprite right to given left
                     }
-                    sprite.setBounds( destX + deltaX, sprite.getY() );
+                    sprite.setBounds( destX, sprite.getY() );
                     horSnap = true;
                 }
 
@@ -139,7 +134,7 @@ export const snapSpriteToGuide = ( sprite: LayerSprite, guides: Rectangle[] ): v
                     } else if ( cY > bottomHalf ) {
                         destY = guide.top - height; // snap sprite bottom to given top
                     }
-                    sprite.setBounds( sprite.getX(), destY + deltaY );
+                    sprite.setBounds( sprite.getX(), destY );
                     verSnap = true;
                 }
                 if ( horSnap && verSnap ) {
