@@ -184,7 +184,7 @@ export const copySelection = async ( activeDocument: Document, activeLayer: Laye
         ctx.drawImage( mergedSnapshot, 0, 0, activeDocument.width, activeDocument.height );
     } else {
         // draw active layer onto temporary canvas
-        ctx.drawImage( await createLayerSnapshot( activeLayer ), 0, 0, activeDocument.width, activeDocument.height );
+        ctx.drawImage( await createLayerSnapshot( activeLayer, activeDocument ), 0, 0, activeDocument.width, activeDocument.height );
     }
     ctx.restore();
 
