@@ -1,5 +1,5 @@
 import { it, beforeEach, describe, expect, afterAll, vi } from "vitest";
-import { mockZCanvas } from "../mocks";
+import { createMockCanvasElement, createState, mockZCanvas } from "../mocks";
 import { type Layer } from "@/definitions/document";
 import { type Dialog } from "@/definitions/editor";
 import { SAVE_DOCUMENT } from "@/definitions/modal-windows";
@@ -10,7 +10,6 @@ import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import KeyboardService from "@/services/keyboard-service";
 import store, { type BitMapperyState } from "@/store";
-import { createState, createMockImageElement } from "../mocks";
 
 const { getters, mutations, actions } = store;
 
@@ -28,6 +27,7 @@ vi.mock( "@/utils/file-util", () => ({
 }));
 vi.mock("@/utils/canvas-util", () => ({
     createCanvas: vi.fn(() => ({ cvs: {}, ctx: {} })),
+    cloneCanvas: vi.fn( cvs => cvs ),
     imageToBase64: vi.fn(),
     imageToCanvas: vi.fn(),
     base64ToLayerImage: vi.fn()
@@ -83,7 +83,7 @@ describe( "Vuex store", () => {
 
         it( "should be able to set the current selection content", () => {
             const state = createState({ selectionContent: null });
-            const selection = { image: createMockImageElement(), size: { width: 100, height: 50 }, type: LayerTypes.LAYER_GRAPHIC };
+            const selection = { bitmap: createMockCanvasElement(), type: LayerTypes.LAYER_GRAPHIC };
             mutations.setSelectionContent( state, selection );
             expect( state.selectionContent ).toEqual( selection );
         });
@@ -392,11 +392,7 @@ describe( "Vuex store", () => {
             beforeEach(() => {
                 state = createState({
                     selectionContent: {
-                        image: createMockImageElement(),
-                        size: {
-                            width: 40,
-                            height: 30
-                        },
+                        bitmap: createMockCanvasElement(),
                         type: LayerTypes.LAYER_GRAPHIC,
                     },
                 });

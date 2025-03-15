@@ -20,8 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Store } from "vuex";
-import type { BitMapperyState } from "@/store";
+import { type Store } from "vuex";
+import { type BitMapperyState } from "@/store";
 
 /**
  * a history state should provide undo and redo functions and an optional
@@ -38,7 +38,7 @@ const stateQueue      = new Map();
 const ENQUEUE_TIMEOUT = 1000;
 
 let timeout = 0;
-let store: Store<BitMapperyState>;
+let store: Store<BitMapperyState> | undefined;
 
 export const initHistory = ( storeReference: Store<BitMapperyState> ): void => {
     store = storeReference;
@@ -87,6 +87,6 @@ export const enqueueState = ( key: string, undoRedoState: UndoRedoState ): void 
 
 function processQueue(): void {
     window.clearTimeout( timeout );
-    stateQueue.forEach( undoRedoState => store.commit( "saveState", undoRedoState ));
+    stateQueue.forEach( undoRedoState => store?.commit( "saveState", undoRedoState ));
     stateQueue.clear();
 }

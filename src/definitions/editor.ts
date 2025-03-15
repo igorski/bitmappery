@@ -142,4 +142,7 @@ export type WandToolOptions = {
     sampleMerged: boolean;
 };
 
-export type CopiedSelection = SizedImage & { type: LayerTypes };
+export type CopiedSelection = {
+    bitmap: HTMLCanvasElement;
+    type: LayerTypes;
+};

@@ -20,9 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { canvas, loader } from "zcanvas";
-import type { Rectangle } from "zcanvas";
-import { PNG } from "@/definitions/image-types";
+import { canvas, type Rectangle } from "zcanvas";
 import type { Document, Shape, Layer } from "@/definitions/document";
 import type { CopiedSelection } from "@/definitions/editor";
 import { renderEffectsForLayer } from "@/services/render-service";
@@ -202,10 +200,8 @@ export const copySelection = async ( activeDocument: Document, activeLayer: Laye
     );
     zcvs.dispose();
 
-    const output = await loader.loadImage( selectionCanvas.cvs.toDataURL( PNG.mime ));
-
     return {
-        ...output,
+        bitmap: selectionCanvas.cvs,
         type: activeLayer.type,
     };
 };

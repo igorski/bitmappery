@@ -39,7 +39,7 @@ import history, { HistoryState } from "./modules/history-module";
 import image, { ImageState } from "./modules/image-module";
 import preferences, { PreferencesState } from "./modules/preferences-module";
 import tool, { ToolState } from "./modules/tool-module";
-import { cloneCanvas, imageToCanvas } from "@/utils/canvas-util";
+import { cloneCanvas } from "@/utils/canvas-util";
 import { copySelection, deleteSelectionContent } from "@/utils/document-util";
 import { saveBlobAsFile, selectFile } from "@/utils/file-util";
 import { replaceLayerSource } from "@/utils/layer-util";
@@ -281,13 +281,14 @@ export default {
         },
         pasteSelection({ commit, getters, dispatch, state }: ActionContext<BitMapperyState, any> ): void {
             const selection = state.selectionContent;
-            const { image, size, type } = selection;
+            const { bitmap, type } = selection;
             const layer = LayerFactory.create({
                 type: ( !type || type === LayerTypes.LAYER_TEXT ) ? LayerTypes.LAYER_GRAPHIC : type,
-                source: imageToCanvas( image, size.width, size.height ),
-                ...size,
-                left: getters.activeDocument.width  / 2 - size.width  / 2,
-                top : getters.activeDocument.height / 2 - size.height / 2,
+                source: cloneCanvas( bitmap ),
+                width: bitmap.width,
+                height: bitmap.height,
+                left: getters.activeDocument.width  / 2 - bitmap.width  / 2,
+                top : getters.activeDocument.height / 2 - bitmap.height / 2,
             });
             const index = getters.activeDocument.layers.length;
             const paste = () => {
@@ -295,7 +296,7 @@ export default {
                 dispatch( "clearSelection" );
             };
             paste();
-            enqueueState( `paste_${selection.size.width}_${selection.size.height}`, {
+            enqueueState( `paste_${type}_${bitmap.width}_${bitmap.height}`, {
                 undo() {
                     commit( "setSelectionContent", selection );
                     commit( "removeLayer", index );
