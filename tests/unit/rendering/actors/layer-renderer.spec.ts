@@ -366,7 +366,7 @@ describe( "LayerRenderer", () => {
                 renderer.draw( ctx, viewport );
 
                 expect( mockRenderOperation ).toHaveBeenCalledWith(
-                    "clipLayer", ctx, renderer.layer, renderer.getBounds(), viewport, undefined
+                    "clipLayer", ctx, renderer.layer, renderer.getBounds(), viewport, false
                 );
             });
 
@@ -376,7 +376,7 @@ describe( "LayerRenderer", () => {
                 renderer.draw( ctx, viewport );
 
                 expect( mockRenderOperation ).toHaveBeenCalledWith(
-                    "clipLayer", ctx, renderer.layer, renderer.getBounds(), viewport, undefined
+                    "clipLayer", ctx, renderer.layer, renderer.getBounds(), viewport, false
                 );
             });
         });

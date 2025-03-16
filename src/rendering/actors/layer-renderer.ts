@@ -728,7 +728,7 @@ export default class LayerRenderer extends ZoomableSprite {
                 if ( clipContext ) {
                     // when the layer if offset/transformed and there is no active selection, clip the out of bounds content
                     documentContext.save();
-                    clipLayer( documentContext, this.layer, this._bounds, viewport, this._invertSelection );
+                    clipLayer( documentContext, this.layer, this._bounds, viewport, false );
                 }
                 renderDrawableCanvas(
                     isDrawingOnMask ? drawContext : documentContext, this.getPaintSize(), this.canvas, this._brush.options.opacity,

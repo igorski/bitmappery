@@ -80,8 +80,9 @@ export const createInverseClipping = ( ctx: CanvasRenderingContext2D, shape: Sha
 
 /**
  * Clip the output of a LayerRenderer to not exceed the Layers bounds (in case it is offset or transformed).
- * This is not necessary as zCanvas will automatically crop the bitmaps, however during live preview while
- * drawing on the Layer, it helps to clip the contents of the overlaid drawable Canvas.
+ * This is not necessary as zCanvas will automatically crop the bitmaps on render, however during live preview while
+ * drawing on the Layer, we should clip the contents of the overlaid drawable Canvas to hide content that will
+ * be clipped after committing the drawing.
  */
 export const clipLayer = ( ctx: CanvasRenderingContext2D, layer: Layer, rendererBounds: Rectangle, viewport: Viewport, invert = false ): void => {
     const { scale, rotation, mirrorY } = layer.effects;
