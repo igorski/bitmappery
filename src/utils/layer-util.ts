@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,11 +20,12 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Store } from "vuex";
-import type { Layer } from "@/definitions/document";
+import { type Store } from "vuex";
+import { BlendModes } from "@/definitions/blend-modes";
+import { type Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import { enqueueState } from "@/factories/history-state-factory";
-import type { BitMapperyState } from "@/store";
+import { type BitMapperyState } from "@/store";
 
 /**
  * Replace the source / mask contents of given layer, updating its
@@ -65,4 +66,24 @@ export const addTextLayer = ({ getters, commit }: Store<BitMapperyState> ): void
         },
         redo: fn,
     });
+};
+
+export const isRotated = ( layer: Layer ): boolean => ( layer.effects.rotation % 360 ) !== 0;
+
+export const isScaled = ( layer: Layer ): boolean => layer.effects.scale !== 1;
+
+/**
+ * Whether provided layer has a blending filter
+ */
+export const hasBlend = ( layer: Layer ): boolean => {
+    const { enabled, blendMode } = layer.filters;
+    return enabled && blendMode !== BlendModes.NORMAL;
+};
+
+export const isDrawable = ( layer: Layer, store: Store<BitMapperyState> ): boolean => {
+    return layer.type === LayerTypes.LAYER_GRAPHIC || isMaskable( layer, store );
+};
+
+export const isMaskable = ( layer: Layer, store: Store<BitMapperyState> ): boolean => {
+    return !!layer.mask && store.getters.activeLayerMask === layer.mask;
 };

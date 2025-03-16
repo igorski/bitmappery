@@ -24,7 +24,6 @@
  */
 import type { Rectangle } from "zcanvas";
 import { BlendModes } from "@/definitions/blend-modes";
-import { type Layer } from "@/definitions/document";
 import type { RGB, HSV } from "@/definitions/colors";
 import { createCanvas } from "@/utils/canvas-util";
 import { rgb2YCbCr, YCbCr2rgb, rgb2hsv, hsv2rgb } from "@/utils/color-util";
@@ -240,14 +239,6 @@ export const blendLayer = ( dest: CanvasRenderingContext2D, layer: CanvasRenderi
 
     // free allocated memory of temp context
     layer.canvas.width = layer.canvas.height = 1;
-};
-
-/**
- * Whether provided layer has a blending filter
- */
-export const hasBlend = ( layer: Layer ): boolean => {
-    const { enabled, blendMode } = layer.filters;
-    return enabled && blendMode !== BlendModes.NORMAL;
 };
 
 /* internal methods */

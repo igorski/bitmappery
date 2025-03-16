@@ -1,6 +1,6 @@
 import { it, describe, expect } from "vitest";
 import { mockZCanvas } from "../../mocks";
-import storeModule, { createToolState, type ToolState } from "@/store/modules/tool-module";
+import storeModule, { createToolState } from "@/store/modules/tool-module";
 import BrushTypes from "@/definitions/brush-types";
 import ToolTypes, { TOOL_SRC_MERGED } from "@/definitions/tool-types";
 

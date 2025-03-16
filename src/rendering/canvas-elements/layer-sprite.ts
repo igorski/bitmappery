@@ -25,9 +25,6 @@ import type { Point, Rectangle, Size } from "zcanvas";
 import type ZoomableCanvas from "./zoomable-canvas";
 import ZoomableSprite from "./zoomable-sprite";
 import type { Viewport, TransformedDrawBounds } from "zcanvas";
-import { createCanvas, canvasToBlob, cloneCanvas, globalToLocal, getPixelRatio } from "@/utils/canvas-util";
-import { renderCross } from "@/utils/render-util";
-import { blobToResource } from "@/utils/resource-manager";
 import { BlendModes } from "@/definitions/blend-modes";
 import { getSizeForBrush } from "@/definitions/brush-types";
 import type { Document, Layer, Selection } from "@/definitions/document";
@@ -38,7 +35,7 @@ import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation, rotatePointer } from "@/math/point-math";
 import { fastRound } from "@/math/unit-math";
 import { renderEffectsForLayer } from "@/services/render-service";
-import { getBlendContext, blendLayer, hasBlend } from "@/rendering/blending";
+import { getBlendContext, blendLayer } from "@/rendering/blending";
 import { clipContextToSelection } from "@/rendering/clipping";
 import { renderClonedStroke, setCloneSource } from "@/rendering/cloning";
 import { renderBrushStroke } from "@/rendering/drawing";
@@ -54,7 +51,11 @@ import {
 import BrushFactory from "@/factories/brush-factory";
 import { getSpriteForLayer } from "@/factories/sprite-factory";
 import { enqueueState } from "@/factories/history-state-factory";
+import { createCanvas, canvasToBlob, cloneCanvas, globalToLocal, getPixelRatio } from "@/utils/canvas-util";
 import { createSyncSnapshot } from "@/utils/document-util";
+import { hasBlend, isDrawable, isMaskable, isRotated, isScaled } from "@/utils/layer-util";
+import { renderCross } from "@/utils/render-util";
+import { blobToResource } from "@/utils/resource-manager";
 import { getLastShape } from "@/utils/selection-util";
 import { isShapeClosed } from "@/utils/shape-util";
 import { positionSpriteFromHistory, restorePaintFromHistory } from "@/utils/sprite-history-util";
@@ -74,9 +75,9 @@ export default class LayerSprite extends ZoomableSprite {
     public layer: Layer;
     public layerIndex: number;
     public actionTarget: "source" | "mask";
-    public canvas: ZoomableCanvas; // set through inherited addChild() method
     public cloneStartCoords: Point | undefined;
     public toolOptions: any;
+    public canvas: ZoomableCanvas;
 
     protected _pointerX: number;
     protected _pointerY: number;
@@ -114,14 +115,6 @@ export default class LayerSprite extends ZoomableSprite {
         this._brush = BrushFactory.create();
 
         this.setActionTarget();
-
-        if ( layer.source instanceof Image ) {
-            const handler = () => {
-                this.cacheEffects();
-                layer.source.removeEventListener( "load", handler );
-            }
-            layer.source.addEventListener( "load", handler );
-        }
         this.cacheEffects();
     }
 
@@ -129,24 +122,8 @@ export default class LayerSprite extends ZoomableSprite {
         this.actionTarget = target;
     }
 
-    isDrawable(): boolean {
-        return this.layer.type === LayerTypes.LAYER_GRAPHIC || this.isMaskable();
-    }
-
     getStore(): Store<BitMapperyState> {
         return this.canvas?.store;
-    }
-
-    isMaskable(): boolean {
-        return !!this.layer.mask && this.getStore().getters.activeLayerMask === this.layer.mask;
-    }
-
-    isRotated(): boolean {
-        return ( this.layer.effects.rotation % 360 ) !== 0;
-    }
-
-    isScaled(): boolean {
-        return this.layer.effects.scale !== 1;
     }
 
     isDrawing(): boolean {
@@ -158,7 +135,7 @@ export default class LayerSprite extends ZoomableSprite {
      * scale and rotation affect the original bounds)
      */
     getActualBounds(): Rectangle {
-        if ( !this.isRotated() && !this.isScaled() ) {
+        if ( !isRotated( this.layer ) && !isScaled( this.layer ) ) {
             return this._bounds;
         }
         // TODO can we cache this value ?
@@ -182,7 +159,7 @@ export default class LayerSprite extends ZoomableSprite {
 
     syncPosition(): void {
         let { left: x, top: y, width, height, effects } = this.layer;
-        if ( this.isRotated() ) {
+        if ( isRotated( this.layer ) ) {
             ({ x, y } = translatePointerRotation( x, y, width / 2, height / 2, effects.rotation ));
         }
         this.setX( x );
@@ -190,6 +167,9 @@ export default class LayerSprite extends ZoomableSprite {
     }
 
     cacheBrush( color: string = "rgba(255,0,0,1)", toolOptions: Partial<BrushToolOptions> = { size: 5, strokes: 1 } ): void {
+        if ( !isDrawable( this.layer, this.getStore() )) {
+            return;
+        }
         this._brush = BrushFactory.create({
             color,
             radius   : toolOptions.size,
@@ -289,7 +269,7 @@ export default class LayerSprite extends ZoomableSprite {
                 this.forceMoveListener();
                 this.setDraggable( true );
                 this._isPaintMode = true;
-                this.cacheBrush( this.canvas.store.getters.activeColor, toolOptions );
+                this.cacheBrush( this.getStore().getters.activeColor, toolOptions );
 
                 // drawable tools can work alongside an existing selection
                 this.setSelection( activeDocument, true );
@@ -415,7 +395,7 @@ export default class LayerSprite extends ZoomableSprite {
     }
 
     getPaintSource(): HTMLCanvasElement {
-        return this.isMaskable() ? this.layer.mask : this.layer.source;
+        return isMaskable( this.layer, this.getStore() ) ? this.layer.mask : this.layer.source;
     }
 
     getPaintSize(): Size {
@@ -452,7 +432,7 @@ export default class LayerSprite extends ZoomableSprite {
         const orgState = blobToResource( orgBlob );
         
         const layer  = this.layer;
-        const isMask = this.isMaskable();
+        const isMask = isMaskable( layer, this.getStore() );
 
         enqueueState( `spritePaint_${layer.id}`, {
             undo(): void {
@@ -661,7 +641,7 @@ export default class LayerSprite extends ZoomableSprite {
     }
 
     override drawCropped( canvasContext: CanvasRenderingContext2D, transformedBounds: TransformedDrawBounds ): void {
-        if ( !this.isScaled() ) {
+        if ( !isScaled( this.layer ) ) {
             return super.drawCropped( canvasContext, transformedBounds );
         }
         const scale = 1 / this.layer.effects.scale;
@@ -715,7 +695,7 @@ export default class LayerSprite extends ZoomableSprite {
             let drawContext: CanvasRenderingContext2D = documentContext;
 
             const isPainting      = this.isPainting();
-            const isDrawingOnMask = isPainting && this.isMaskable() && this._toolType !== ToolTypes.ERASER; // erasing from mask needs some work ;-)
+            const isDrawingOnMask = isPainting && isMaskable( this.layer, this.getStore() ) && this._toolType !== ToolTypes.ERASER; // erasing from mask needs some work ;-)
             const applyBlending   = enabled && blendMode !== BlendModes.NORMAL && !isDrawingOnMask;
 
             if ( applyBlending ) {
@@ -752,7 +732,7 @@ export default class LayerSprite extends ZoomableSprite {
             if ( isPainting ) {
                 renderDrawableCanvas(
                     isDrawingOnMask ? drawContext : documentContext, this.getPaintSize(), this.canvas, this._brush.options.opacity,
-                    this._toolType === ToolTypes.ERASER || this.isMaskable() ? "destination-out" : undefined,
+                    this._toolType === ToolTypes.ERASER || isMaskable( this.layer, this.getStore() ) ? "destination-out" : undefined,
                 );
                 if ( isDrawingOnMask ) {
                     documentContext.drawImage( maskComposite.cvs, 0, 0 ); // draw temporary masked canvas onto underlying document

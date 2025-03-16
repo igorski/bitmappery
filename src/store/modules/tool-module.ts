@@ -128,8 +128,6 @@ export default ToolModule;
 
 function updateLayerSprites( color: string, toolOptions: BrushToolOptions ): void {
     runSpriteFn( sprite => {
-        if ( sprite.isDrawable() ) {
-            sprite.cacheBrush( color, toolOptions );
-        }
+        sprite.cacheBrush( color, toolOptions );
     });
 }

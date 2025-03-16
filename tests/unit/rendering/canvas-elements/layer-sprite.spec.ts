@@ -6,7 +6,6 @@ mockZCanvas();
 import { type Store } from "vuex";
 import { BlendModes } from "@/definitions/blend-modes";
 import { type Layer } from "@/definitions/document";
-import { LayerTypes } from "@/definitions/layer-types";
 import ToolTypes from "@/definitions/tool-types";
 import DocumentFactory from "@/factories/document-factory";
 import EffectsFactory from "@/factories/effects-factory";
@@ -87,36 +86,6 @@ describe( "LayerSprite", () => {
         expect( setYspy ).toHaveBeenCalledWith( 100 );
     });
 
-    it( "should know it is maskable when it has a mask and it is currently active in the store", () => {
-        expect( sprite.isMaskable() ).toBe( false );
-        
-        layer.mask = createMockCanvasElement();
-
-        expect( sprite.isMaskable() ).toBe( false );
-
-        mockStore.getters.activeLayerMask = layer.mask;
-
-        expect( sprite.isMaskable() ).toBe( true );
-    });
-
-    it( "should consider itself drawable when its of the GRAPHIC type or has a mask", () => {
-        const graphicSprite = createLayerSprite( LayerFactory.create({ type: LayerTypes.LAYER_GRAPHIC } ));
-        const imageSprite   = createLayerSprite( LayerFactory.create({ type: LayerTypes.LAYER_IMAGE, mask: createMockCanvasElement() } ));
-        const textSprite    = createLayerSprite( LayerFactory.create({ type: LayerTypes.LAYER_TEXT,  mask: createMockCanvasElement() } ));
-
-        expect( graphicSprite.isDrawable() ).toBe( true );
-        expect( imageSprite.isDrawable() ).toBe( false );
-        expect( textSprite.isDrawable() ).toBe( false );
-        
-        mockStore.getters.activeLayerMask = imageSprite.layer.mask;
-
-        expect( imageSprite.isDrawable() ).toBe( true );
-
-        mockStore.getters.activeLayerMask = textSprite.layer.mask;
-        
-        expect( textSprite.isDrawable() ).toBe( true );
-    });
-
     it( "should know when the Layer is currently in drawing mode", () => {
         sprite.setInteractive( true );
         expect( sprite.isDrawing() ).toBe( false );
@@ -128,28 +97,6 @@ describe( "LayerSprite", () => {
         sprite.handlePress( 0, 0, new MouseEvent( "mousedown" ));
 
         expect( sprite.isDrawing() ).toBe( true );
-    });
-
-    describe( "when determining the Layers transformations", () => {
-        it( "should know when it is rotated", () => {
-            expect( sprite.isRotated() ).toBe( false );
-
-            const rotatedSprite = createLayerSprite( LayerFactory.create({
-                effects: EffectsFactory.create({ rotation: 90 })
-            }));
-
-            expect( rotatedSprite.isRotated() ).toBe( true );
-        });
-
-        it( "should know when it is scaled", () => {
-            expect( sprite.isScaled() ).toBe( false );
-
-            const rotatedSprite = createLayerSprite( LayerFactory.create({
-                effects: EffectsFactory.create({ scale: 0.9 })
-            }));
-
-            expect( rotatedSprite.isScaled() ).toBe( true );
-        });
     });
 
     it( "should mark itself as interactive when its corresponding layer is the active one", () => {

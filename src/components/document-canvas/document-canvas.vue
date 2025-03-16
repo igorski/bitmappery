@@ -67,29 +67,29 @@ import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { type Viewport } from "zcanvas";
 import ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
 import GuideRenderer from "@/rendering/canvas-elements/guide-renderer";
-import { hasBlend } from "@/rendering/blending";
 import FileImport from "@/components/file-import/file-import.vue";
-import type { Document, Layer } from "@/definitions/types/document";
+import type { Document, Layer } from "@/definitions/document";
 import { HEADER_HEIGHT } from "@/definitions/editor-properties";
+import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import ToolTypes, { SELECTION_TOOLS, MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@/definitions/tool-types";
+import {
+    getCanvasInstance, setCanvasInstance,
+    createSpriteForLayer, getSpriteForLayer, flushLayerSprites, flushCache as flushSpriteCache,
+} from "@/factories/sprite-factory";
 import { InteractionModes } from "@/rendering/canvas-elements/interaction-pane";
-import Scrollbars from "./scrollbars/scrollbars.vue";
-import TouchDecorator from "./decorators/touch-decorator";
+import { flushCache as flushBitmapCache } from "@/rendering/cache/bitmap-cache";
+import { flushBlendedLayerCache, setBlendCaching } from "@/rendering/cache/blended-layer-cache";
+import { renderState } from "@/services/render-service";
 import { scaleToRatio } from "@/math/image-math";
 import { pointerToCanvasCoordinates } from "@/math/point-math";
 import { scale } from "@/math/unit-math";
 import { unblockedWait, rafCallback } from "@/utils/debounce-util";
 import { getAlignableObjects } from "@/utils/document-util";
 import { isMobile } from "@/utils/environment-util";
+import { hasBlend } from "@/utils/layer-util";
 import { fitInWindow } from "@/utils/zoom-util";
-import {
-    getCanvasInstance, setCanvasInstance,
-    createSpriteForLayer, getSpriteForLayer, flushLayerSprites, flushCache as flushSpriteCache,
-} from "@/factories/sprite-factory";
-import { flushCache as flushBitmapCache } from "@/rendering/cache/bitmap-cache";
-import { flushBlendedLayerCache, setBlendCaching } from "@/rendering/cache/blended-layer-cache";
-import { renderState } from "@/services/render-service";
-import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
+import Scrollbars from "./scrollbars/scrollbars.vue";
+import TouchDecorator from "./decorators/touch-decorator";
 
 /* internal non-reactive properties */
 
