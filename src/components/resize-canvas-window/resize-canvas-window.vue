@@ -74,7 +74,7 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import { enqueueState } from "@/factories/history-state-factory";
-import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { getRendererForLayer } from "@/factories/renderer-factory";
 import { focus } from "@/utils/environment-util";
 import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
@@ -172,10 +172,10 @@ export default {
             const commit = () => {
                 updateOffsets( activeDocument.layers, newLayerOffsets );
                 activeDocument.layers.forEach( layer => {
-                    const sprite = getSpriteForLayer( layer );
-                    if ( sprite ) {
-                        sprite._bounds.left += deltaX;
-                        sprite._bounds.top  += deltaY;
+                    const renderer = getRendererForLayer( layer );
+                    if ( renderer ) {
+                        renderer._bounds.left += deltaX;
+                        renderer._bounds.top  += deltaY;
                     }
                 });
                 store.commit( "setActiveDocumentSize", { width, height });
@@ -185,10 +185,10 @@ export default {
                 undo() {
                     updateOffsets( activeDocument.layers, orgLayerOffsets );
                     activeDocument.layers.forEach( layer => {
-                        const sprite = getSpriteForLayer( layer );
-                        if ( sprite ) {
-                            sprite._bounds.left -= deltaX;
-                            sprite._bounds.top  -= deltaY;
+                        const renderer = getRendererForLayer( layer );
+                        if ( renderer ) {
+                            renderer._bounds.left -= deltaX;
+                            renderer._bounds.top  -= deltaY;
                         }
                     });
                     store.commit( "setActiveDocumentSize", { width: orgDocWidth, height: orgDocHeight });

@@ -25,13 +25,13 @@ import type { Point, Size, Viewport } from "zcanvas";
 import type { Document, Layer, Shape, Selection } from "@/definitions/document";
 import ToolTypes from "@/definitions/tool-types";
 import { enqueueState } from "@/factories/history-state-factory";
-import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
+import { getCanvasInstance, getRendererForLayer } from "@/factories/renderer-factory";
 import { isPointInRange, translatePoints, snapToAngle, rectToCoordinateList } from "@/math/point-math";
 import { rotateRectangleToCoordinates, scaleRectangle } from "@/math/rectangle-math";
 import { selectByColor } from "@/math/selection-math";
 import { fastRound } from "@/math/unit-math";
-import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
-import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
+import LayerRenderer from "@/rendering/actors/layer-renderer";
+import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import KeyboardService from "@/services/keyboard-service";
 import { getPixelRatio, isInsideTransparentArea } from "@/utils/canvas-util";
 import { createDocumentSnapshot, createLayerSnapshot } from "@/utils/document-util";
@@ -55,7 +55,7 @@ const DASH_SPEED = 1; // per frame
  * 2. select the active layer by finding non-transparent pixels at the pointer position
  * 3. create selection outlines that can be used across layers
  */
-class InteractionPane extends sprite {
+export default class InteractionPane extends sprite {
     public mode: InteractionModes;
     private _toolOptions: any;
     private _pointerDown: boolean;
@@ -64,10 +64,8 @@ class InteractionPane extends sprite {
     private _isAddingToExistingSelection: boolean;
     private _isRectangleSelect: boolean;
     private _activeTool: ToolTypes;
-    private _pointerX: number;
-    private _pointerY: number;
-    private _vpStartX: number;
-    private _vpStartY: number;
+    private _pointer: Point;
+    private _vpStart: Point;
     private _lastRelease: number;
     private _enabled: boolean;
 
@@ -75,10 +73,8 @@ class InteractionPane extends sprite {
         // dimensions will be synced when canvas on setState()
         super({ width : 10, height: 10 });
 
-        this._pointerX = 0;
-        this._pointerY = 0;
-        this._vpStartX = 0;
-        this._vpStartY = 0;
+        this._pointer = { x: 0, y: 0 };
+        this._vpStart = { x: 0, y: 0 };
 
         this._lastRelease = 0;
         this._dashOffset  = 0;
@@ -206,7 +202,7 @@ class InteractionPane extends sprite {
     selectAll( targetLayer: Layer = null ): void {
         if ( targetLayer ) {
             const { scale, rotation, mirrorY } = targetLayer.effects;
-            const bounds = scaleRectangle( getSpriteForLayer( targetLayer ).getBounds(), scale );
+            const bounds = scaleRectangle( getRendererForLayer( targetLayer ).getBounds(), scale );
             this.setSelection( [ rotateRectangleToCoordinates( bounds, mirrorY ? -rotation : rotation ) ]);
             return;
         }
@@ -219,7 +215,7 @@ class InteractionPane extends sprite {
     forceMoveListener(): void {
         this.isDragging = true;
         this._dragStartOffset = { x: this.getX(), y: this.getY() };
-        this._dragStartEventCoordinates = { x: this._pointerX, y: this._pointerY };
+        this._dragStartEventCoordinates = { ...this._pointer };
     }
 
     startOutsideSelection( x: number, y: number ): void {
@@ -231,7 +227,7 @@ class InteractionPane extends sprite {
     }
 
     stopOutsideSelection(): void {
-        this.mode === InteractionModes.MODE_SELECTION && this.handleRelease( this._pointerX, this._pointerY );
+        this.mode === InteractionModes.MODE_SELECTION && this.handleRelease( this._pointer.x, this._pointer.y );
     }
 
     closeSelection(): void {
@@ -249,20 +245,20 @@ class InteractionPane extends sprite {
                 if ( this.isDragging ) {
                     // implies press has start drag mode
                     const viewport = this.canvas.getViewport();
-                    this._vpStartX = viewport.left;
-                    this._vpStartY = viewport.top;
+                    this._vpStart.x = viewport.left;
+                    this._vpStart.y = viewport.top;
                 }
                 break;
 
             case InteractionModes.MODE_LAYER_SELECT:
-                const sprites: LayerSprite[] = this.canvas.getChildren().filter(( sprite: sprite ) => sprite instanceof LayerSprite );
-                // loop over all layer sprites in reverse (top of display list to bottom) order
-                let i = sprites.length;
+                const layerRenderers: LayerRenderer[] = this.canvas.getChildren().filter(( s: sprite ) => s instanceof LayerRenderer );
+                // loop over all layer renderers in reverse (top of display list to bottom) order
+                let i = layerRenderers.length;
                 while ( i-- ) {
-                    const sprite = sprites[ i ];
-                    // if the sprites Bitmap contents are non-transparent at the given coordinate, make it the active layer
-                    if ( !isInsideTransparentArea( sprite.getBitmap() as HTMLCanvasElement, x - sprite.getX(), y - sprite.getY() )) {
-                        this.canvas.store.commit( "setActiveLayer", sprite.layer );
+                    const renderer = layerRenderers[ i ];
+                    // if the renderers Bitmap contents are non-transparent at the given coordinate, make it the active layer
+                    if ( !isInsideTransparentArea( renderer.getBitmap() as HTMLCanvasElement, x - renderer.getX(), y - renderer.getY() )) {
+                        this.canvas.store.commit( "setActiveLayer", renderer.layer );
                         break;
                     }
                 }
@@ -330,8 +326,8 @@ class InteractionPane extends sprite {
         // store reference to current pointer position (relative to canvas)
         // note that for touch events this is handled in handlePress() instead
         if ( !type.startsWith( "touch" )) {
-            this._pointerX = x;
-            this._pointerY = y;
+            this._pointer.x = x;
+            this._pointer.y = y;
         }
         switch ( this.mode ) {
             default:
@@ -349,13 +345,13 @@ class InteractionPane extends sprite {
             case InteractionModes.MODE_PAN:
                 const viewport = this.canvas.getViewport();
 
-                const distX = viewport.left - this._vpStartX;
-                const distY = viewport.top  - this._vpStartY;
+                const distX = viewport.left - this._vpStart.x;
+                const distY = viewport.top  - this._vpStart.y;
 
                 const deltaX = (( x - this._dragStartEventCoordinates.x ) * this.canvas.zoomFactor ) - distX;
                 const deltaY = (( y - this._dragStartEventCoordinates.y ) * this.canvas.zoomFactor ) - distY;
 
-                this.canvas.panViewport( this._vpStartX - deltaX, this._vpStartY - deltaY, true );
+                this.canvas.panViewport( this._vpStart.x - deltaX, this._vpStart.y - deltaY, true );
                 break;
         }
     }
@@ -379,7 +375,10 @@ class InteractionPane extends sprite {
                     // when releasing in rectangular select mode, set the selection to
                     // the bounding box of the down press coordinate and this release coordinate
                     const firstPoint = getLastShape( document.activeSelection )[ 0 ];
-                    const { width, height } = calculateSelectionSize( firstPoint, Math.max( 0, Math.min( document.width, x )), Math.max( 0, Math.min( document.height, y )), this._toolOptions );
+                    const { width, height } = calculateSelectionSize( firstPoint, {
+                        x: Math.max( 0, Math.min( document.width, x )),
+                        y: Math.max( 0, Math.min( document.height, y ))
+                    }, this._toolOptions );
                     document.activeSelection[ document.activeSelection.length - 1 ] = rectToCoordinateList( firstPoint.x, firstPoint.y, width, height );
                     this.closeSelection();
                     storeSelectionHistory( document );
@@ -411,14 +410,14 @@ class InteractionPane extends sprite {
             for ( let shape of activeSelection ) {
                 const connectToPointer = shape === activeSelection.at( -1 );
                 const firstPoint    = shape[ 0 ];
-                const localPointerX = this._pointerX - viewport.left; // local to viewport
-                const localPointerY = this._pointerY - viewport.top;
+                const localPointerX = this._pointer.x - viewport.left; // local to viewport
+                const localPointerY = this._pointer.y - viewport.top;
                 const hasUnclosedSelection = shape.length && !this._selectionClosed;
 
                 // when in rectangular select mode, the outline will draw from the first coordinate
                 // (defined in handlePress()) to the current pointer coordinate
                 if ( connectToPointer && this._isRectangleSelect && hasUnclosedSelection ) {
-                    const { width, height } = calculateSelectionSize( firstPoint, this._pointerX, this._pointerY, this._toolOptions );
+                    const { width, height } = calculateSelectionSize( firstPoint, this._pointer, this._toolOptions );
                     shape = rectToCoordinateList( firstPoint.x, firstPoint.y, width, height );
                 }
                 // for unclosed lasso selections, draw line to current cursor position
@@ -442,7 +441,7 @@ class InteractionPane extends sprite {
                     ctx.beginPath();
                     ctx.lineWidth   = ctx.lineWidth * ( 2 / zoomFactor );
                     ctx.strokeStyle = "#0db0bc";
-                    const size = firstPoint && isPointInRange( this._pointerX, this._pointerY, firstPoint.x, firstPoint.y, 5 / zoomFactor ) ? 15 : 5;
+                    const size = firstPoint && isPointInRange( this._pointer.x, this._pointer.y, firstPoint.x, firstPoint.y, 5 / zoomFactor ) ? 15 : 5;
                     ctx.arc( localPointerX, localPointerY, size / zoomFactor, 0, 2 * Math.PI );
                     ctx.stroke();
                 }
@@ -470,13 +469,8 @@ class InteractionPane extends sprite {
                 ctx.restore();
             }
         }
-
-        // DEBUG only
-        //ctx.fillStyle = "rgba(255,0,128,.5)";
-        //ctx.fillRect( 0, 0, this._bounds.width, this._bounds.height );
     }
 }
-export default InteractionPane;
 
 /* internal methods */
 
@@ -512,28 +506,28 @@ function drawShapeOutline( ctx: CanvasRenderingContext2D, zCanvas: ZoomableCanva
     ctx.stroke();
 }
 
-function calculateSelectionSize( firstPoint: Point, destX: number, destY: number,
+function calculateSelectionSize( firstPoint: Point, destination: Point,
     { lockRatio, xRatio, yRatio }: { lockRatio: boolean, xRatio: number, yRatio: number }): Size {
     if ( !lockRatio && !KeyboardService.hasShift() ) {
         return {
-            width  : destX - firstPoint.x,
-            height : destY - firstPoint.y
+            width  : destination.x - firstPoint.x,
+            height : destination.y - firstPoint.y
         };
     }
-    const width = destX - firstPoint.x;
+    const width = destination.x - firstPoint.x;
     return {
         width,
         height: width * ( yRatio / xRatio )
     };
 }
 
-// synchronizes the selection with the layer Sprite representing the
+// synchronizes the selection with the layer renderer representing the
 // currently active layer (e.g. for draw operations)
 
 function syncSelection(): void {
     const { getters } = getCanvasInstance().store;
     if ( getters.activeLayer ) {
-        getSpriteForLayer( getters.activeLayer )?.setSelection( getters.activeDocument );
+        getRendererForLayer( getters.activeLayer )?.setSelection( getters.activeDocument );
     }
 }
 

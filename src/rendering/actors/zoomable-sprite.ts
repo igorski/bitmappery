@@ -51,7 +51,7 @@ class ZoomableSprite extends sprite {
     // sheets and have no children
     // NOTE : we take some creative liberty here by changing the function arity, we can pass
     // a custom bounds object here to override the internal reference. This is done when
-    // multiple transformations take place on the source (see layer-sprite.draw())
+    // multiple transformations take place on the source (see LayerRenderer#draw())
 
     draw( canvasContext: CanvasRenderingContext2D, viewport?: Viewport, bounds: Rectangle = this._bounds ): void {
         let render = this._bitmapReady;

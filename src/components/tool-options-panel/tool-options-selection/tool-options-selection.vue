@@ -102,7 +102,7 @@ import { mapGetters, mapMutations } from "vuex";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import ToolTypes from "@/definitions/tool-types";
 import type { Rectangle } from "@/definitions/document";
-import { getCanvasInstance } from "@/factories/sprite-factory";
+import { getCanvasInstance } from "@/factories/renderer-factory";
 import { translatePoints } from "@/math/point-math";
 import KeyboardService from "@/services/keyboard-service";
 import { selectionToRectangle } from "@/utils/selection-util";

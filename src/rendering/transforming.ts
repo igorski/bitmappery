@@ -41,7 +41,7 @@ let bounds: Rectangle;
  *
  * @param {CanvasRenderingContext2D} ctx
  * @param {Layer} layer to be rendering the contents of
- * @param {Object=} viewport optional ZoomableCanvas viewport (when using within a sprite)
+ * @param {Object=} viewport optional ZoomableCanvas viewport (when used within a renderer)
  * @return {Rectangle|undefined} undefined when no transformation took place, updated bounds Object when
  *                       transformation did take place.
  */
@@ -112,7 +112,7 @@ export const applyTransformation = ( ctx: CanvasRenderingContext2D, layer: Layer
  * and subsequently restored after drawing.
  *
  * The use case here is to make changes to the source when performing them within
- * the editor UI (e.g. relative to the renderer output of a LayerSprites content
+ * the editor UI (e.g. relative to the renderer output of a LayerRenderers content
  * that has been transformed using applyTransformation()).
  * In this case, the coordinates of the on-screen manipulations need to be translated
  * in reverse in order to be applied to the appropriate origin.

@@ -60,7 +60,7 @@ import { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import { LayerTypes } from "@/definitions/layer-types";
 import Slider from "@/components/ui/slider/slider.vue";
 import { enqueueState } from "@/factories/history-state-factory";
-import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { getRendererForLayer } from "@/factories/renderer-factory";
 import { scale } from "@/math/unit-math";
 import { pauseBlendCaching } from "@/rendering/cache/blended-layer-cache";
 import { cloneCanvas, resizeImage } from "@/utils/canvas-util";
@@ -140,14 +140,14 @@ export default {
                 store.commit( "updateLayer", { index, opts: { source: scaledImage, left: 0, top: 0, width: targetWidth, height: targetHeight } });
                 // unset layer scale (the resized image should display at a reset scale)
                 store.commit( "updateLayerEffects", { index, effects: { scale: 1 } });
-                getSpriteForLayer( activeLayer )?.syncPosition();
+                getRendererForLayer( activeLayer )?.syncPosition();
             };
             commit();
             enqueueState( `saveScale_${scale}`, {
                 undo() {
                     store.commit( "updateLayer", { index, opts: { source: orgImage, left, top, width, height } });
                     store.commit( "updateLayerEffects", { index, effects: { scale } });
-                    getSpriteForLayer( activeLayer )?.syncPosition();
+                    getRendererForLayer( activeLayer )?.syncPosition();
                 },
                 redo: commit,
             })

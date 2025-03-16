@@ -21,8 +21,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Document, Layer } from "@/definitions/document";
-import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
-import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
+import LayerRenderer from "@/rendering/actors/layer-renderer";
+import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 
 let zCanvasInstance: ZoomableCanvas = null; // a non-Vue observable zCanvas instance
 
@@ -32,72 +32,72 @@ export const setCanvasInstance = ( zCanvas: ZoomableCanvas ): void => {
 };
 
 /**
- * Sprites are used to represent layer content. These are mapped
+ * Renderers are used to represent layer content. These are mapped
  * to the layer ids (see layer-factory.js)
  */
-const spriteCache = new Map();
+const rendererCache = new Map();
 
 /**
- * Runs given fn on each Sprite in the cache
+ * Runs given fn on each renderer in the cache
  * You can also pass in the active document to only run operations on
- * sprites rendering the layers of the current document
+ * renderers of the layers of the current document
  */
-export const runSpriteFn = ( fn: ( sprite: LayerSprite ) => void, optDocument?: Document ): void => {
-    spriteCache.forEach(( sprite ) => {
-        if ( !optDocument || optDocument.layers.includes( sprite.layer )) {
-            fn( sprite );
+export const runRendererFn = ( fn: ( renderer: LayerRenderer ) => void, optDocument?: Document ): void => {
+    rendererCache.forEach(( renderer ) => {
+        if ( !optDocument || optDocument.layers.includes( renderer.layer )) {
+            fn( renderer );
         }
     });
 };
 
 /**
  * If a layer were to be removed / set to invisible, we
- * flush all its cached Sprites.
+ * flush all its cached renderers.
  */
-export const flushLayerSprites = ( layer: Layer ): void => {
-    //console.info( `flushing sprite for "${layer.id}"` );
-    if ( hasSpriteForLayer( layer )) {
-        disposeSprite( spriteCache.get( layer.id ));
-        spriteCache.delete( layer.id );
+export const flushLayerRenderers = ( layer: Layer ): void => {
+    //console.info( `flushing renderer for "${layer.id}"` );
+    if ( hasRendererForLayer( layer )) {
+        disposeRenderer( rendererCache.get( layer.id ));
+        rendererCache.delete( layer.id );
     }
 };
 
-export const hasSpriteForLayer = ({ id }: Partial<Layer> ): boolean => spriteCache.has( id );
+export const hasRendererForLayer = ({ id }: Partial<Layer> ): boolean => rendererCache.has( id );
 
-export const getSpriteForLayer = ({ id }: Partial<Layer> ): LayerSprite | null => spriteCache.get( id ) || null;
+export const getRendererForLayer = ({ id }: Partial<Layer> ): LayerRenderer | null => rendererCache.get( id ) || null;
 
 /**
- * Clears the entire cache and disposes all Sprites.
+ * Clears the entire cache and disposes all renderers.
  */
 export const flushCache = (): void => {
-    //console.info( "flushing sprite cache" );
-    spriteCache.forEach( disposeSprite );
-    spriteCache.clear();
+    //console.info( "flushing renderer cache" );
+    rendererCache.forEach( disposeRenderer );
+    rendererCache.clear();
 };
 
 /**
- * Lazily retrieve / create a cached sprite to represent given
+ * Lazily retrieve / create a cached renderer to represent given
  * layer content on given zCanvas instance
  */
-export const createSpriteForLayer = ( zCanvasInstance: ZoomableCanvas, layer: Layer, isInteractive = false ): LayerSprite => {
+export const createRendererForLayer = ( zCanvasInstance: ZoomableCanvas, layer: Layer, isInteractive = false ): LayerRenderer => {
     const { id } = layer;
     let output;
-    if ( hasSpriteForLayer( layer )) {
-        output = spriteCache.get( id );
+    if ( hasRendererForLayer( layer )) {
+        output = rendererCache.get( id );
     }
-    // lazily create sprite
+    // lazily create renderer
     if ( !output ) {
-        output = new LayerSprite( layer );
+        output = new LayerRenderer( layer );
         output.setDraggable( true );
         output.setInteractive( isInteractive );
         zCanvasInstance.addChild( output );
-        spriteCache.set( id, output );
+        rendererCache.set( id, output );
     }
     return output;
 };
 
 /* internal methods */
 
-function disposeSprite( sprite: LayerSprite ): void {
-    sprite?.dispose();
+function disposeRenderer( renderer: LayerRenderer ): void {
+    renderer?.dispose();
 }

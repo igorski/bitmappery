@@ -24,7 +24,7 @@ import type { Point, Viewport } from "zcanvas";
 import { getSizeForBrush } from "@/definitions/brush-types";
 import { type Brush } from "@/definitions/editor";
 import ToolTypes from "@/definitions/tool-types";
-import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
+import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import { renderCross } from "@/rendering/cursors/cross";
 
 const TWO_PI = 2 * Math.PI;

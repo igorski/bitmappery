@@ -1,7 +1,7 @@
 import type { GestureEvent, Pan, Pinch, PointerListener, Tap, TwoFingerPan } from "contactjs";
 import { mapGetters, mapMutations } from "vuex";
 import ToolTypes, { MAX_ZOOM } from "@/definitions/tool-types";
-import { getCanvasInstance } from "@/factories/sprite-factory";
+import { getCanvasInstance } from "@/factories/renderer-factory";
 import { scale } from "@/math/unit-math";
 import { cancelableCallback } from "@/utils/debounce-util";
 import { fitInWindow } from "@/utils/zoom-util";

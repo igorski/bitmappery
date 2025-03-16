@@ -65,8 +65,8 @@
 <script lang="ts">
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { type Viewport } from "zcanvas";
-import ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
-import GuideRenderer from "@/rendering/canvas-elements/guide-renderer";
+import ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
+import GuideRenderer from "@/rendering/actors/guide-renderer";
 import FileImport from "@/components/file-import/file-import.vue";
 import type { Document, Layer } from "@/definitions/document";
 import { HEADER_HEIGHT } from "@/definitions/editor-properties";
@@ -74,9 +74,9 @@ import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import ToolTypes, { SELECTION_TOOLS, MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@/definitions/tool-types";
 import {
     getCanvasInstance, setCanvasInstance,
-    createSpriteForLayer, getSpriteForLayer, flushLayerSprites, flushCache as flushSpriteCache,
-} from "@/factories/sprite-factory";
-import { InteractionModes } from "@/rendering/canvas-elements/interaction-pane";
+    createRendererForLayer, getRendererForLayer, flushLayerRenderers, flushCache as flushRendererCache,
+} from "@/factories/renderer-factory";
+import { InteractionModes } from "@/rendering/actors/interaction-pane";
 import { flushCache as flushBitmapCache } from "@/rendering/cache/bitmap-cache";
 import { flushBlendedLayerCache, setBlendCaching } from "@/rendering/cache/blended-layer-cache";
 import { renderState } from "@/services/render-service";
@@ -95,8 +95,8 @@ import TouchDecorator from "./decorators/touch-decorator";
 
 const mobileView = isMobile();
 let lastDocument, containerSize, canvasBoundingBox, guideRenderer;
-// maintain a pool of sprites representing the layers within the active document
-// the sprites themselves are cached within the sprite-factory, this is merely
+// maintain a pool of renderers representing the layers within the active document
+// the renderers themselves are cached within the renderer-factory, this is merely
 // used for change detection in the current editing session (see watchers)
 const layerPool = new Map();
 // scale of the on-screen canvas relative to the document
@@ -185,7 +185,7 @@ export default {
                 // switching between documents
                 if ( id !== lastDocument ) {
                     lastDocument = id;
-                    flushSpriteCache();
+                    flushRendererCache();
                     flushBitmapCache();
                     flushBlendedLayerCache();
                     renderState.reset();
@@ -455,7 +455,7 @@ export default {
             }
         },
         /**
-         * Lazily create all renderers (layer sprites) for each layer. Renderers are pooled
+         * Lazily create all renderers for each layer. Renderers are pooled
          * so subsequent calls (for instance on addition / removal of individual layers)
          * only affect the appropriate layers.
          */
@@ -464,17 +464,17 @@ export default {
             const zCanvas = getCanvasInstance();
             this.layers?.forEach( layer => {
                 if ( !layer.visible ) {
-                    flushLayerSprites( layer );
+                    flushLayerRenderers( layer );
                     return;
                 }
                 if ( !layerPool.has( layer.id )) {
-                    const sprite = createSpriteForLayer( zCanvas, layer, layer === this.activeLayer );
-                    layerPool.set( layer.id, sprite );
+                    const renderer = createRendererForLayer( zCanvas, layer, layer === this.activeLayer );
+                    layerPool.set( layer.id, renderer );
                 }
                 seen.push( layer.id );
             });
             [ ...layerPool.keys() ].filter( id => !seen.includes( id )).forEach( id => {
-                flushLayerSprites( layerPool.get( id ));
+                flushLayerRenderers( layerPool.get( id ));
                 layerPool.delete( id );
             });
             // ensure the visible layers are at the right position in display list
@@ -484,13 +484,13 @@ export default {
                 if ( !layer.visible ) {
                     return;
                 }
-                const sprite = getSpriteForLayer( layer );
-                sprite.layerIndex = index;
+                const renderer = getRendererForLayer( layer );
+                renderer.layerIndex = index;
                 if ( hasBlend( layer )) {
                     blendLayer = index;
                 }
-                zCanvas.removeChild( sprite );
-                zCanvas.addChild( sprite );
+                zCanvas.removeChild( renderer );
+                zCanvas.addChild( renderer );
             });
             const hasBlendedLayer = blendLayer > -1;
             setBlendCaching( hasBlendedLayer, hasBlendedLayer ? this.layers?.filter(( _layer, index ) => index <= blendLayer ) : undefined );
@@ -503,19 +503,19 @@ export default {
             if ( !activeLayer ) {
                 return;
             }
-            [ ...layerPool.entries() ].forEach(([ , sprite ]) => {
-                sprite.handleActiveLayer( activeLayer );
-                sprite.handleActiveTool( this.activeTool, this.activeToolOptions, this.activeDocument );
+            [ ...layerPool.entries() ].forEach(([ , renderer ]) => {
+                renderer.handleActiveLayer( activeLayer );
+                renderer.handleActiveTool( this.activeTool, this.activeToolOptions, this.activeDocument );
             });
             this.handleGuides();
         },
         /**
-         * A hard "reset" of all layer sprites. This is only necessary when layer
-         * source content has changed (e.g. document resize), forcing all sprites
+         * A hard "reset" of all layer renderers. This is only necessary when layer
+         * source content has changed (e.g. document resize), forcing all renderers
          * to re-render their cached contents.
          */
         async refreshRenderers(): Promise<void> {
-            flushSpriteCache();
+            flushRendererCache();
             flushBitmapCache();
             flushBlendedLayerCache();
             renderState.reset();
@@ -531,7 +531,7 @@ export default {
             const { x, y } = pointerToCanvasCoordinates( event.pageX, event.pageY, zCanvas, canvasBoundingBox );
 
             if ( [ ToolTypes.BRUSH, ToolTypes.ERASER ].includes( this.activeTool )) {
-                getSpriteForLayer( this.activeLayer )?.handlePress( x, y, event );
+                getRendererForLayer( this.activeLayer )?.handlePress( x, y, event );
             } else if ( this.selectMode ) {
                 zCanvas.interactionPane.startOutsideSelection( x, y );
             } else {
@@ -555,7 +555,7 @@ export default {
             const { x, y } = pointerToCanvasCoordinates( event.pageX, event.pageY, zCanvas, canvasBoundingBox );
 
             if ( [ ToolTypes.BRUSH, ToolTypes.ERASER ].includes( this.activeTool )) {
-                getSpriteForLayer( this.activeLayer )?.handleRelease( x, y, event );
+                getRendererForLayer( this.activeLayer )?.handleRelease( x, y, event );
             } else if ( this.selectMode ) {
                 getCanvasInstance()?.interactionPane.stopOutsideSelection();
             }

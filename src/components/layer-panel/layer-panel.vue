@@ -152,7 +152,7 @@ import ToolTypes from "@/definitions/tool-types";
 import type { Layer } from "@/definitions/types/document";
 import { createCanvas } from "@/utils/canvas-util";
 import { toggleLayerVisibility } from "@/factories/action-factory";
-import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
+import { getCanvasInstance, getRendererForLayer } from "@/factories/renderer-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
 import { focus } from "@/utils/environment-util";
@@ -332,7 +332,7 @@ export default {
         },
         handleLayerClick( layer: IndexedLayer ): void {
             this.setActiveLayerIndex( layer.index );
-            getSpriteForLayer( layer )?.setActionTarget( "source" );
+            getRendererForLayer( layer )?.setActionTarget( "source" );
             if ( KeyboardService.hasAlt() ) {
                 this.$nextTick(() => {
                     getCanvasInstance()?.interactionPane.selectAll( this.activeLayer );
@@ -350,7 +350,7 @@ export default {
                 return;
             }
             this.setActiveLayerMask( layer.index );
-            getSpriteForLayer( layer )?.setActionTarget( "mask" );
+            getRendererForLayer( layer )?.setActionTarget( "mask" );
         },
         handleFocus(): void {
             KeyboardService.setListener( this.handleKeyboard.bind( this ), false );

@@ -29,7 +29,7 @@ import {
     CREATE_DOCUMENT, ADD_LAYER, SAVE_DOCUMENT, DROPBOX_FILE_SELECTOR,
 } from "@/definitions/modal-windows";
 import { toggleLayerVisibility } from "@/factories/action-factory";
-import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
+import { getCanvasInstance, getRendererForLayer } from "@/factories/renderer-factory";
 import { translatePoints } from "@/math/point-math";
 import type { BitMapperyState } from "@/store";
 import { supportsFullscreen, toggleFullscreen } from "@/utils/environment-util";
@@ -551,18 +551,18 @@ function moveObject( axis = 0, dir = 0, activeTool: ToolTypes ): void {
     const speed = shiftDown ? 10 : 1;
     switch ( activeTool ) {
         case ToolTypes.DRAG:
-            const sprite = getSpriteForLayer( getters.activeLayer );
-            if ( !sprite ) {
+            const renderer = getRendererForLayer( getters.activeLayer );
+            if ( !renderer ) {
                 return;
             }
-            let x = sprite.getX();
-            let y = sprite.getY();
+            let x = renderer.getX();
+            let y = renderer.getY();
             if ( axis === 0 ) {
                 x = dir === 0 ? x - speed : x + speed;
             } else {
                 y = dir === 0 ? y - speed : y + speed;
             }
-            sprite.setBounds( x, y );
+            renderer.setBounds( x, y );
             break;
         case ToolTypes.SELECTION:
         case ToolTypes.LASSO:

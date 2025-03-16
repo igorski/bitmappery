@@ -27,7 +27,7 @@ import KeyboardService from "@/services/keyboard-service";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { initHistory, enqueueState } from "@/factories/history-state-factory";
-import { getCanvasInstance, getSpriteForLayer } from "@/factories/sprite-factory";
+import { getCanvasInstance, getRendererForLayer } from "@/factories/renderer-factory";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { LayerTypes } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS, PANEL_LAYERS } from "@/definitions/panel-types";
@@ -314,7 +314,7 @@ export default {
             const updatedBitmap = deleteSelectionContent( getters.activeDocument, activeLayer );
             const replaceSource = ( newSource: HTMLCanvasElement ) => {
                 replaceLayerSource( activeLayer, newSource, hasMask );
-                getSpriteForLayer( activeLayer )?.resetFilterAndRecache();
+                getRendererForLayer( activeLayer )?.resetFilterAndRecache();
             };
             replaceSource( updatedBitmap );
             enqueueState( `deleteFromSelection_${activeLayer.id}`, {

@@ -21,12 +21,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 export const renderCross = ( ctx: CanvasRenderingContext2D, x: number, y: number, size: number ): void => {
-    ctx.save();
+    // ctx.save();
     ctx.beginPath();
     ctx.moveTo( x - size, y - size );
     ctx.lineTo( x + size, y + size );
     ctx.moveTo( x + size, y - size );
     ctx.lineTo( x - size, y + size );
     ctx.stroke();
-    ctx.restore();
+    // ctx.restore();
 };

@@ -69,7 +69,7 @@
 import { mapGetters, mapMutations } from "vuex";
 import ColorPicker from "@/components/ui/color-picker/color-picker.vue";
 import Modal from "@/components/modal/modal.vue";
-import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { getRendererForLayer } from "@/factories/renderer-factory";
 import { focus } from "@/utils/environment-util";
 
 import messages from "./messages.json";
@@ -108,7 +108,7 @@ export default {
             if ( !this.isValid ) {
                 return;
             }
-            getSpriteForLayer( this.activeLayer )?.paint({
+            getRendererForLayer( this.activeLayer )?.paint({
                 type      : "stroke",
                 size      : this.size,
                 color     : this.color,

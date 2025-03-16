@@ -21,22 +21,22 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { type Layer } from "@/definitions/document";
-import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { getRendererForLayer } from "@/factories/renderer-factory";
 import { flushBlendedLayerCache, useBlendCaching } from "../rendering/cache/blended-layer-cache";
 
-// NOTE we use getSpriteForLayer() instead of passing the Sprite by reference
-// as it is possible the Sprite originally rendering the Layer has been disposed
+// NOTE we use getRendererForLayer() instead of passing the renderer by reference
+// as it is possible the renderer originally rendering the Layer has been disposed
 // and a new one has been created while traversing the change history
 
-export function positionSpriteFromHistory( layer: Layer, x: number, y: number ): void {
-    const sprite = getSpriteForLayer( layer );
-    if ( sprite ) {
-        sprite.getBounds().left = x;
-        sprite.getBounds().top  = y;
+export function positionRendererFromHistory( layer: Layer, x: number, y: number ): void {
+    const renderer = getRendererForLayer( layer );
+    if ( renderer ) {
+        renderer.getBounds().left = x;
+        renderer.getBounds().top  = y;
         if ( useBlendCaching() ) {
             flushBlendedLayerCache();
         }
-        sprite.invalidate();
+        renderer.invalidate();
     }
 }
 
@@ -47,7 +47,7 @@ export function restorePaintFromHistory( layer: Layer, sourceToRestore: string, 
     const image  = new Image();
     image.onload = () => {
         ctx.drawImage( image, 0, 0 );
-        getSpriteForLayer( layer )?.resetFilterAndRecache();
+        getRendererForLayer( layer )?.resetFilterAndRecache();
     };
     image.src = sourceToRestore;
 }

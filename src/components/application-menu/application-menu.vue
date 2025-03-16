@@ -425,7 +425,7 @@ import {
 } from "@/definitions/modal-windows";
 import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
-import { getCanvasInstance } from "@/factories/sprite-factory";
+import { getCanvasInstance } from "@/factories/renderer-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";

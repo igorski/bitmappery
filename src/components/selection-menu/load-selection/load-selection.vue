@@ -59,7 +59,7 @@ import { mapGetters, mapMutations } from "vuex";
 import ToolTypes from "@/definitions/tool-types";
 import SelectBox  from "@/components/ui/select-box/select-box.vue";
 import { mapSelectOptions }  from "@/utils/search-select-util";
-import { getCanvasInstance } from "@/factories/sprite-factory";
+import { getCanvasInstance } from "@/factories/renderer-factory";
 import Modal from "@/components/modal/modal.vue";
 
 import messages from "./messages.json";
