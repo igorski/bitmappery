@@ -23,7 +23,7 @@
 import { sprite } from "zcanvas";
 import type { Rectangle, Viewport } from "zcanvas";
 import { fastRound } from "@/math/unit-math";
-import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
+import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import { getClosestSnappingPoints } from "@/rendering/snapping";
 
 const AMOUNT_OF_PIXELS = 1; // currently only 1 pixel grid supported

@@ -24,8 +24,8 @@ import type { Store } from "vuex";
 import { canvas } from "zcanvas";
 import type { Rectangle, Viewport } from "zcanvas";
 import type { Document } from "@/definitions/document";
-import InteractionPane from "@/rendering/canvas-elements/interaction-pane";
-import type LayerSprite from "@/rendering/canvas-elements/layer-sprite";
+import InteractionPane from "@/rendering/actors/interaction-pane";
+import type LayerRenderer from "@/rendering/actors/layer-renderer";
 import { fastRound } from "@/math/unit-math";
 import { renderState } from "@/services/render-service";
 import type { BitMapperyState } from "@/store";
@@ -39,7 +39,7 @@ class ZoomableCanvas extends canvas {
     public interactionPane: InteractionPane;
     public guides: Rectangle[];
     public locked: boolean;
-    public draggingSprite: LayerSprite | null; // reference to Sprite that is being dragged (see LayerSprite)
+    public draggingSprite: LayerRenderer | null; // reference to Sprite that is being dragged (see LayerRenderer)
 
     private _bounds: DOMRect;
     private _interactionBlocked: boolean;

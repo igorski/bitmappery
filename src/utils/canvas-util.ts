@@ -26,7 +26,7 @@ import type { CanvasContextPairing, CanvasDrawable } from "@/definitions/editor"
 import { JPEG, PNG } from "@/definitions/image-types";
 import { isPointInsidePolygon } from "@/math/point-math";
 import { fastRound } from "@/math/unit-math";
-import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
+import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import { blobToResource, disposeResource } from "@/utils/resource-manager";
 
 /**

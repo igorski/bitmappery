@@ -178,7 +178,7 @@ export default {
                     case "keydown":
                         // when alt key is held down, we store a reference to the current
                         // source coordinates (when existing) and reset the coordinates
-                        // this will lead the layer-sprite to set new source coordinates on click
+                        // this will lead the layer-renderer to set new source coordinates on click
                         orgCoords = this.cloneOptions.coords;
                         this.resetSourceCoordinate();
                         break;

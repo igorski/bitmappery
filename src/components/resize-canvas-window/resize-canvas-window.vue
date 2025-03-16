@@ -71,10 +71,11 @@
     </modal>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
+import type { Layer } from "@/definitions/document";
 import { enqueueState } from "@/factories/history-state-factory";
-import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { getRendererForLayer } from "@/factories/renderer-factory";
 import { focus } from "@/utils/environment-util";
 import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
@@ -89,6 +90,12 @@ const CENTER_RIGHT  = "CR";
 const BOTTOM_LEFT   = "BL";
 const BOTTOM_CENTER = "BC";
 const BOTTOM_RIGHT  = "BR";
+
+type LayerOffsetDef = {
+    id: string;
+    left: number;
+    top: number;
+};
 
 export default {
     i18n: { messages },
@@ -105,7 +112,7 @@ export default {
         ...mapGetters([
             "activeDocument",
         ]),
-        alignmentOptions() {
+        alignmentOptions(): { label: string, value: string }[] {
             return [
                 { label: this.$t( "topLeft" ),      value: TOP_LEFT },
                 { label: this.$t( "topCenter" ),    value: TOP_CENTER },
@@ -119,7 +126,7 @@ export default {
             ];
         },
     },
-    mounted() {
+    mounted(): void {
         this.width  = this.activeDocument.width;
         this.height = this.activeDocument.height;
         focus( this.$refs.widthInput );
@@ -128,7 +135,7 @@ export default {
         ...mapMutations([
             "closeModal"
         ]),
-        resize() {
+        resize(): void {
             const store = this.$store;
             const { activeDocument, width, height, alignment } = this;
             const orgDocWidth  = activeDocument.width;
@@ -156,39 +163,40 @@ export default {
             }
 
             // store original and calculate new offsets for each Layer
-            const orgLayerOffsets = [];
-            const newLayerOffsets = [];
+            const orgLayerOffsets: LayerOffsetDef[] = [];
+            const newLayerOffsets: LayerOffsetDef[] = [];
+
             activeDocument.layers.forEach(({ id, left, top }) => {
                 orgLayerOffsets.push({ id, left, top });
                 newLayerOffsets.push({ id, left: left + deltaX, top: deltaY });
             });
-            const updateOffsets = ( layers, offsetList ) => {
+            const updateOffsets = ( layers: Layer[], offsetList: LayerOffsetDef[] ): void => {
                 layers.forEach( layer => {
-                    const { left, top } = offsetList.find(({ id }) => id === layer.id );
+                    const { left, top } = offsetList.find(({ id }) => id === layer.id )!;
                     layer.left = left;
                     layer.top  = top;
                 });
             };
-            const commit = () => {
+            const commit = (): void => {
                 updateOffsets( activeDocument.layers, newLayerOffsets );
                 activeDocument.layers.forEach( layer => {
-                    const sprite = getSpriteForLayer( layer );
-                    if ( sprite ) {
-                        sprite._bounds.left += deltaX;
-                        sprite._bounds.top  += deltaY;
+                    const renderer = getRendererForLayer( layer );
+                    if ( renderer ) {
+                        renderer.getBounds().left += deltaX;
+                        renderer.getBounds().top  += deltaY;
                     }
                 });
                 store.commit( "setActiveDocumentSize", { width, height });
             };
             commit();
             enqueueState( "resizeCanvas", {
-                undo() {
+                undo(): void {
                     updateOffsets( activeDocument.layers, orgLayerOffsets );
                     activeDocument.layers.forEach( layer => {
-                        const sprite = getSpriteForLayer( layer );
-                        if ( sprite ) {
-                            sprite._bounds.left -= deltaX;
-                            sprite._bounds.top  -= deltaY;
+                        const renderer = getRendererForLayer( layer );
+                        if ( renderer ) {
+                            renderer.getBounds().left -= deltaX;
+                            renderer.getBounds().top  -= deltaY;
                         }
                     });
                     store.commit( "setActiveDocumentSize", { width: orgDocWidth, height: orgDocHeight });

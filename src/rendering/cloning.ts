@@ -24,7 +24,7 @@ import type { Point } from "zcanvas";
 import type { Brush, CloneToolOptions } from "@/definitions/editor";
 import { createDrawable } from "@/factories/brush-factory";
 import { createCanvas, getPixelRatio, setCanvasDimensions } from "@/utils/canvas-util";
-import type LayerSprite from "@/rendering/canvas-elements/layer-sprite";
+import type LayerRenderer from "@/rendering/actors/layer-renderer";
 import { applyOverrideConfig, type OverrideConfig } from "@/rendering/utils/drawable-canvas-utils";
 import { clone } from "@/utils/object-util";
 
@@ -45,7 +45,7 @@ export const setCloneSource = ( source?: HTMLCanvasElement ): void => {
  *
  * @param {CanvasRenderingContext2D} destContext context to render on
  * @param {Object} brush operation to use
- * @param {LayerSprite} sprite containg the relative (on-screen) Layer coordinates
+ * @param {LayerRenderer} renderer containg the relative (on-screen) Layer coordinates
  * @param {HTMLCanvasElement} source the source bitmap from which painting will be cloned
  * @param {Point[]} pointers Array of coordinates specifying the points within the clone source
  * @param {OverrideConfig} overrideConfig alternate pointers and coordinate scaling relative to Layer transformations
@@ -53,24 +53,24 @@ export const setCloneSource = ( source?: HTMLCanvasElement ): void => {
  * @return {number} index of the last rendered pointer in the pointers list
  */
 export const renderClonedStroke = (
-    destContext: CanvasRenderingContext2D, brush: Brush, sprite: LayerSprite,
+    destContext: CanvasRenderingContext2D, brush: Brush, renderer: LayerRenderer,
     pointers: Point[], overrideConfig: OverrideConfig, lastIndex = 0
 ): number => {
-    const { left, top } = sprite.layer;
+    const { left, top } = renderer.layer;
 
-    const { coords, opacity } = sprite.toolOptions as CloneToolOptions;
+    const { coords, opacity } = renderer.toolOptions as CloneToolOptions;
     const { radius, doubleRadius } = brush;
 
     const sourceX = ( coords.x - left ) - radius;
     const sourceY = ( coords.y - top )  - radius;
 
-    const relSource = sprite.cloneStartCoords || sprite.getDragStartEventCoordinates();
+    const relSource = renderer.cloneStartCoords || renderer.getDragStartEventCoordinates();
 
     // prepare temporary canvas (match size with brush)
     const { cvs, ctx } = tempCanvas;
     setCanvasDimensions( tempCanvas, doubleRadius, doubleRadius );
 
-    const dragStartOffset = sprite.getDragStartOffset();
+    const dragStartOffset = renderer.getDragStartOffset();
 
     const overrides = clone( pointers );
     applyOverrideConfig( overrideConfig, overrides );

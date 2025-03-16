@@ -5,18 +5,17 @@ import { LayerTypes } from "@/definitions/layer-types";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import DocumentModule, { createDocumentState, type DocumentState } from "@/store/modules/document-module";
-import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
+import LayerRenderer from "@/rendering/actors/layer-renderer";
 
 const { getters, mutations } = DocumentModule;
 
 mockZCanvas();
 
 let mockUpdateFn: ( fnName: string, ...args: any[]) => void;
-vi.mock( "@/factories/sprite-factory", () => ({
-    flushLayerSprites: (...args: any[]) => mockUpdateFn?.( "flushLayerSprites", ...args ),
-    runSpriteFn: (...args: any[]) => mockUpdateFn?.( "runSpriteFn", ...args ),
-    getSpriteForLayer: (...args: any[]) => mockUpdateFn?.( "getSpriteForLayer", ...args ),
-    getCanvasInstance: (...args: any[]) => mockUpdateFn?.( "getCanvasInstance", ...args ),
+vi.mock( "@/factories/renderer-factory", () => ({
+    flushLayerRenderers: (...args: any[]) => mockUpdateFn?.( "flushLayerRenderers", ...args ),
+    runRendererFn: (...args: any[]) => mockUpdateFn?.( "runRendererFn", ...args ),
+    getRendererForLayer: (...args: any[]) => mockUpdateFn?.( "getRendererForLayer", ...args ),
 }));
 const mockFlushBlendedLayerCache = vi.fn();
 vi.mock( "@/rendering/cache/blended-layer-cache", async ( importOriginal ) => {
@@ -25,6 +24,9 @@ vi.mock( "@/rendering/cache/blended-layer-cache", async ( importOriginal ) => {
         flushBlendedLayerCache: ( ...args: any[] ) => mockFlushBlendedLayerCache( ...args ),
     }
 });
+vi.mock( "@/services/canvas-service", () => ({
+    getCanvasInstance: (...args: any[]) => mockUpdateFn?.( "getCanvasInstance", ...args ),
+}));
 vi.mock( "@/utils/render-util", () => ({
     resizeLayerContent: (...args: any[]) => mockUpdateFn?.( "resizeLayerContent", ...args ),
     cropLayerContent: (...args: any[]) => mockUpdateFn?.( "cropLayerContent", ...args ),
@@ -153,7 +155,7 @@ describe( "Vuex document module", () => {
                 expect( state.activeLayerIndex ).toEqual( 1 );
             });
 
-            it( "should request the invalidate() method on each Sprite for the given Document", () => {
+            it( "should request the invalidate() method on each renderer for the given Document", () => {
                 const state = createDocumentState({
                     documents: [
                         DocumentFactory.create({ name: "foo" }),
@@ -163,7 +165,7 @@ describe( "Vuex document module", () => {
                 });
                 mockUpdateFn = vi.fn();
                 mutations.setActiveDocument( state, 1 );
-                expect( mockUpdateFn ).toHaveBeenCalledWith( "runSpriteFn", expect.any( Function ), state.documents[ 1 ]);
+                expect( mockUpdateFn ).toHaveBeenCalledWith( "runRendererFn", expect.any( Function ), state.documents[ 1 ]);
             });
         });
 
@@ -282,8 +284,8 @@ describe( "Vuex document module", () => {
 
             expect( state.documents ).toEqual([ document1 ]);
             expect( state.activeIndex ).toEqual( 0 );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushLayerSprites", layer2 );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "flushLayerSprites", layer3 );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushLayerRenderers", layer2 );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "flushLayerRenderers", layer3 );
         });
 
         describe( "when adding layers", () => {
@@ -404,7 +406,7 @@ describe( "Vuex document module", () => {
 
                 expect( state.documents[ 0 ].layers ).toEqual([ layer1, layer3 ]);
                 expect( state.activeLayerIndex ).toEqual( 0 );
-                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushLayerSprites", layer2 );
+                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushLayerRenderers", layer2 );
             });
         });
 
@@ -576,11 +578,11 @@ describe( "Vuex document module", () => {
                     height: 150,
                     type: LayerTypes.LAYER_IMAGE
                 };
-                const layerSprite = new LayerSprite( layer2 );
-                const cacheEffectsSpy = vi.spyOn( layerSprite, "cacheEffects" );
+                const layerRenderer = new LayerRenderer( layer2 );
+                const cacheEffectsSpy = vi.spyOn( layerRenderer, "cacheEffects" );
 
                 mockUpdateFn = vi.fn( fn => {
-                    if ( fn === "getSpriteForLayer" ) return layerSprite;
+                    if ( fn === "getRendererForLayer" ) return layerRenderer;
                     return true;
                 });
                 mutations.updateLayer( state, { index, opts });
@@ -588,22 +590,22 @@ describe( "Vuex document module", () => {
                     ...layer2,
                     ...opts
                 });
-                expect( mockUpdateFn ).toHaveBeenCalledWith( "getSpriteForLayer", state.documents[ 0 ].layers[ index ] );
+                expect( mockUpdateFn ).toHaveBeenCalledWith( "getRendererForLayer", state.documents[ 0 ].layers[ index ] );
                 expect( cacheEffectsSpy ).toHaveBeenCalled();
             });
 
-            it( "should be able to update the source image of a specific layer within the active Document, invoking a filter recache on the sprite", () => {
+            it( "should be able to update the source image of a specific layer within the active Document, invoking a filter recache on the renderer", () => {
                 const index = 1;
                 const opts  = {
                     name: "layer2 updated",
                     source: new Image(),
                     type: LayerTypes.LAYER_IMAGE
                 };
-                const layerSprite = new LayerSprite( layer2 );
-                const resetAndRecacheSpy = vi.spyOn( layerSprite, "resetFilterAndRecache" );
+                const layerRenderer = new LayerRenderer( layer2 );
+                const resetAndRecacheSpy = vi.spyOn( layerRenderer, "resetFilterAndRecache" );
 
                 mockUpdateFn = vi.fn( fn => {
-                    if ( fn === "getSpriteForLayer" ) return layerSprite;
+                    if ( fn === "getRendererForLayer" ) return layerRenderer;
                     return true;
                 });
                 mutations.updateLayer( state, { index, opts });
@@ -613,10 +615,10 @@ describe( "Vuex document module", () => {
             it( "should not flush the blended layer cache when no filter properties were updated", () => {
                 const index = 0;
                 const opts  = { name: "layer1 updated" };
-                const layerSprite = new LayerSprite( layer1 );
+                const layerRenderer = new LayerRenderer( layer1 );
 
                 mockUpdateFn = vi.fn( fn => {
-                    if ( fn === "getSpriteForLayer" ) return layerSprite;
+                    if ( fn === "getRendererForLayer" ) return layerRenderer;
                     return true;
                 });
                 mutations.updateLayer( state, { index, opts });
@@ -627,10 +629,10 @@ describe( "Vuex document module", () => {
             it( "should flush the blended layer cache fully when filter properties are updated to ensure correct rendering on history state changes", () => {
                 const index = 0;
                 const opts  = { filters: { gamma: 1 } };
-                const layerSprite = new LayerSprite( layer1 );
+                const layerRenderer = new LayerRenderer( layer1 );
 
                 mockUpdateFn = vi.fn( fn => {
-                    if ( fn === "getSpriteForLayer" ) return layerSprite;
+                    if ( fn === "getRendererForLayer" ) return layerRenderer;
                     return true;
                 });
                 mutations.updateLayer( state, { index, opts });
@@ -641,11 +643,11 @@ describe( "Vuex document module", () => {
             it( "should be able to update the effects of a specific layer within the active Document", () => {
                 const index   = 0;
                 const effects = { rotation: 1.6 };
-                const layerSprite = new LayerSprite( layer1 );
-                const invalidateBlendCacheSpy = vi.spyOn( layerSprite, "invalidateBlendCache" );
+                const layerRenderer = new LayerRenderer( layer1 );
+                const invalidateBlendCacheSpy = vi.spyOn( layerRenderer, "invalidateBlendCache" );
 
                 mockUpdateFn = vi.fn( fn => {
-                    if ( fn === "getSpriteForLayer" ) return layerSprite;
+                    if ( fn === "getRendererForLayer" ) return layerRenderer;
                     return true;
                 });
                 mutations.updateLayerEffects( state, { index, effects });
@@ -656,7 +658,7 @@ describe( "Vuex document module", () => {
                         ...effects,
                     }
                 });
-                expect( mockUpdateFn ).toHaveBeenCalledWith( "getSpriteForLayer", state.documents[ 0 ].layers[ index ] );
+                expect( mockUpdateFn ).toHaveBeenCalledWith( "getRendererForLayer", state.documents[ 0 ].layers[ index ] );
                 expect( invalidateBlendCacheSpy ).toHaveBeenCalled();
             });
         });
@@ -692,9 +694,9 @@ describe( "Vuex document module", () => {
             const top  = 15;
             await mutations.cropActiveDocumentContent( state, { left, top });
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "cropLayerContent", layer1, left, top );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "getSpriteForLayer", layer1 );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "getRendererForLayer", layer1 );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "cropLayerContent", layer2, left, top );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 4, "getSpriteForLayer", layer2 );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 4, "getRendererForLayer", layer2 );
         });
     });
 });

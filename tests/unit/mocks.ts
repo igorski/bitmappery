@@ -1,7 +1,7 @@
 import { vi } from "vitest";
 import { type Store } from "vuex";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
-import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
+import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import { type BitMapperyState } from "@/store";
 import { createCanvasState } from "@/store/modules/canvas-module";
 import { createDocumentState } from "@/store/modules/document-module";

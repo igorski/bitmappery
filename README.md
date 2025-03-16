@@ -8,8 +8,9 @@ that contributions related to Photoshop-esque features aren't welcomed ;-)
 
 ### All hand-written ?
 
-Yep, though having worked in the photo software industry, BitMappery had a head start as certain problems had been tackled before.
-Also, BitMappery is reusing igorski's [zCanvas](https://github.com/igorski/zCanvas) under the hood for rendering and bitmap blitting. The application is written on top of [Vue](https://github.com/vuejs/vue) using [Vuex](https://github.com/vuejs/vuex) for state management.
+Yep, but as the author has worked in the photo software industry, BitMappery had a head start as certain challenges had
+been tackled before. Also, BitMappery is reusing igorski's [zCanvas](https://github.com/igorski/zCanvas) under the hood for rendering
+and bitmap blitting. The application is written on top of [Vue](https://github.com/vuejs/vue) using [Vuex](https://github.com/vuejs/vuex) for state management.
 
 ## The [Issue Tracker](https://github.com/igorski/bitmappery/issues) is your point of contact
 
@@ -27,24 +28,25 @@ The types for each of these are defined in `src/definitions/document.ts`.
 
 ## Document rendering and interactions
 
-The Document is rendered one layer at a time onto a Canvas element, using [zCanvas](https://github.com/igorski/zCanvas). Both the rendering and interaction handling is performed by dedicated "Sprite" classes.
+The Document is rendered one layer at a time onto a Canvas element, using [zCanvas](https://github.com/igorski/zCanvas). Both the rendering and interaction handling is performed by dedicated "Sprite" classes, which function as _renderers_ for the Documents _actors_.
+In other words: _renderers represent the Document visually and handle interactions modifying the Document state_.
 
-All layer rendering and layer interactions are handled by `src/rendering/canvas-elements/layer-sprite.ts`.
+All layer rendering and layer interactions are handled by `src/rendering/actors/layer-renderer.ts`.
 Note that the purpose of the renderer is solely to delegate interactions events to the Layer entity. The
 renderer should represent the properties of the Layer, the Layer should never reverse-engineer from the onscreen
 content (especially as different window size and scaling factor will greatly complicate these matters when
 performed two-way).
 
 All interactions that work across layers (viewport panning, layer selection by clicking on non-transparent
-pixels and drawing of selections) is handled by a single top level sprite that covers the entire zCanvas area.
-This sprite is `src/rendering/canvas-elements/interaction-pane.ts`.
+pixels and drawing of selections) is handled by a single top level Sprite that covers the entire zCanvas area.
+This Sprite is `src/rendering/actors/interaction-pane.ts`.
 
 Interactions that start/end from _outside the canvas_ (for instance the opening/closing of a selection or the
 drawing of a brush stroke outside of the canvas area) are handled by `document-canvas.vue` where the global DOM coordinates are translated to coordinates relative to the canvas document before being forwarded to the zCanvas
 event handler. See "Rendering concepts" below for more details on screen-to-document coordinates.
 
 Rendering of transformations, text and effects is an asynchronous operation handled by `src/services/render-service.ts`. The purpose of this service is to perform and cache repeated operations and eventually maintain
-the source bitmap represented by the LayerSprite. The LayerSprite invokes the rendering service whenever
+the source bitmap represented by the LayerRenderer. The LayerRenderer invokes the rendering service whenever
 Layer content changes and manages its own cache.
 
 All types related to the editor are either defined in `src/definitions/editor.ts` or the more specifically
@@ -63,7 +65,7 @@ DOM window allows. The BitMappery document displayed inside may however be large
 What determines the visible area of the zoomed document is the _viewport_. As such, interactions with the zCanvas
 element must be _translated_ from global DOM coordinates to a point relative to the BitMappery document, taking
 into account the current scaling factor and viewport offset. This is handled automatically by all event handlers
-delegated through zCanvas and the sprites, but needs care when performing rendering operations (such as drawing)
+delegated through zCanvas and the renderers, but needs care when performing rendering operations (such as drawing)
 and translating these to (non-zoomed and non-panned) source bitmaps.
 
 ## State history

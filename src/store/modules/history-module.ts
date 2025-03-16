@@ -25,7 +25,7 @@ import UndoManager from "undo-manager";
 import type { ActionContext, Module } from "vuex";
 import { forceProcess, flushQueue } from "@/factories/history-state-factory";
 import type { UndoRedoState } from "@/factories/history-state-factory";
-import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { getRendererForLayer } from "@/factories/renderer-factory";
 import { disposeResource } from "@/utils/resource-manager";
 
 export const STATES_TO_SAVE = 99;
@@ -115,10 +115,10 @@ const HistoryModule: Module<HistoryState, any> = {
          * apply the previously stored state
          */
         async undo({ state, getters, commit }: ActionContext<HistoryState, any> ): Promise<void> {
-            // first: if there was a painting sprite, store its deferred state immediately
-            const drawableSprite = getters.activeLayer && getSpriteForLayer( getters.activeLayer );
-            if ( drawableSprite ) {
-                await drawableSprite.storePaintState();
+            // first: if there was a renderer in the painting state, store its deferred state immediately
+            const drawableRenderer = getters.activeLayer && getRendererForLayer( getters.activeLayer );
+            if ( drawableRenderer ) {
+                await drawableRenderer.storePaintState();
             }
             forceProcess();
             return new Promise( resolve => {

@@ -25,8 +25,9 @@ import type { Size } from "zcanvas";
 import type { Document, Layer, Effects, Selection } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
-import { flushLayerSprites, runSpriteFn, getSpriteForLayer, getCanvasInstance } from "@/factories/sprite-factory";
+import { flushLayerRenderers, runRendererFn, getRendererForLayer } from "@/factories/renderer-factory";
 import { flushBlendedLayerCache } from "@/rendering/cache/blended-layer-cache";
+import { getCanvasInstance } from "@/services/canvas-service";
 import { resizeLayerContent, cropLayerContent } from "@/utils/render-util";
 
 export interface DocumentState {
@@ -82,7 +83,7 @@ const DocumentModule: Module<DocumentState, any> = {
             if ( state.activeLayerIndex >=  document?.layers?.length ) {
                 state.activeLayerIndex = document.layers.length - 1;
             }
-            runSpriteFn( sprite => sprite.invalidate(), document );
+            runRendererFn( renderer => renderer.invalidate(), document );
         },
         setActiveDocumentName( state: DocumentState, name: string ): void {
             state.documents[ state.activeIndex ].name = name;
@@ -110,7 +111,7 @@ const DocumentModule: Module<DocumentState, any> = {
                 return;
             }
             // free allocated resources
-            document.layers.forEach( layer => flushLayerSprites( layer ));
+            document.layers.forEach( layer => flushLayerRenderers( layer ));
             state.documents.splice( state.activeIndex, 1 );
             state.activeIndex = Math.min( state.documents.length - 1, state.activeIndex );
         },
@@ -156,7 +157,7 @@ const DocumentModule: Module<DocumentState, any> = {
             if ( !layer ) {
                 return;
             }
-            flushLayerSprites( layer );
+            flushLayerRenderers( layer );
             state.documents[ state.activeIndex ].layers.splice( index, 1 );
             if ( state.activeLayerIndex === index ) {
                 state.activeLayerIndex = Math.max( 0, index - 1 );
@@ -195,15 +196,15 @@ const DocumentModule: Module<DocumentState, any> = {
                 ...opts
             };
             state.documents[ state.activeIndex ].layers[ index ] = layer;
-            // update layer in sprite
-            const sprite = getSpriteForLayer( layer );
-            if ( sprite ) {
-                sprite.layer = layer;
+            // update layer in renderer
+            const renderer = getRendererForLayer( layer );
+            if ( renderer ) {
+                renderer.layer = layer;
                 const flushBlendCache = !!opts.filters;
                 if ( flushBlendCache ) {
                     flushBlendedLayerCache( true ); // direct to prevent rendering errors on undo
                 }
-                opts.source ? sprite.resetFilterAndRecache() : sprite.cacheEffects();
+                opts.source ? renderer.resetFilterAndRecache() : renderer.cacheEffects();
             }
         },
         updateLayerEffects( state: DocumentState, { index, effects = {} }: { index: number, effects: Partial<Effects> }): void {
@@ -216,10 +217,10 @@ const DocumentModule: Module<DocumentState, any> = {
                 ...effects
             };
             // update layer renderer
-            const sprite = getSpriteForLayer( layer );
-            if ( sprite ) {
-                sprite.layer = layer;
-                sprite.invalidateBlendCache();
+            const renderer = getRendererForLayer( layer );
+            if ( renderer ) {
+                renderer.layer = layer;
+                renderer.invalidateBlendCache();
             }
         },
         async resizeActiveDocumentContent( state: DocumentState, { scaleX, scaleY }: { scaleX: number, scaleY: number }): Promise<void> {
@@ -235,7 +236,7 @@ const DocumentModule: Module<DocumentState, any> = {
             }
             for ( const layer of document.layers ) {
                 await cropLayerContent( layer, left, top );
-                getSpriteForLayer( layer )?.syncPosition();
+                getRendererForLayer( layer )?.syncPosition();
             }
         },
         saveSelection( state: DocumentState, { name, selection }: { name: string, selection: Selection }): void {

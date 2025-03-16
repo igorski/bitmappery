@@ -54,7 +54,7 @@ export const flushLayerCache = ( layer: Layer ): void => {
     layerCache.delete( layer.id );
 };
 
-export const flushCache = (): void => {
+export const flushBitmapCache = (): void => {
     //console.info( "flushing bitmap cache" );
     layerCache.clear();
 };

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2023 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,13 +20,14 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-export const renderCross = ( ctx: CanvasRenderingContext2D, x: number, y: number, size: number ): void => {
-    // ctx.save();
-    ctx.beginPath();
-    ctx.moveTo( x - size, y - size );
-    ctx.lineTo( x + size, y + size );
-    ctx.moveTo( x + size, y - size );
-    ctx.lineTo( x - size, y + size );
-    ctx.stroke();
-    // ctx.restore();
+import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
+
+let zCanvasInstance: ZoomableCanvas = null; // a non-Vue observable zCanvas instance
+
+/**
+ * Manage a reference to the ZoomableCanvas instance (represented in document-canvas.vue)
+ */
+export const getCanvasInstance = (): ZoomableCanvas | null => zCanvasInstance;
+export const setCanvasInstance = ( zCanvas: ZoomableCanvas ): void => {
+    zCanvasInstance = zCanvas;
 };

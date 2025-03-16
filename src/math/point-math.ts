@@ -22,7 +22,7 @@
  */
 import type { Point, Rectangle } from "zcanvas";
 import type { Layer } from "@/definitions/document";
-import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
+import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 
 const { pow, sqrt, atan2, round, cos, sin, PI } = Math;
 
@@ -178,8 +178,8 @@ export const rotatePoint = ( point: Point, angleInRadians: number, cx: number, c
 };
 
 /**
- * Utility to rotate a list of pointers (touch/mouse coordinates performed when drawing on a LayerSprite) relative
- * to the sprite's associated Layers transformations
+ * Utility to rotate a list of pointers (touch/mouse coordinates performed when drawing on a LayerRenderer) relative
+ * to the renderers associated Layers transformations
  */
 export const rotatePointers = ( pointers: Point[], layer: Layer, sourceWidth: number, sourceHeight: number ): Point[] => {
     // we take layer.left instead of bounds.left as it provides the unrotated Layer offset

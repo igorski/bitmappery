@@ -40,7 +40,7 @@ import { renderClonedStroke, setCloneSource } from "@/rendering/cloning";
 import { renderBrushStroke } from "@/rendering/drawing";
 import { floodFill } from "@/rendering/fill";
 import { getMaskComposite, disposeMaskComposite } from "@/rendering/masking";
-import { snapSpriteToGuide } from "@/rendering/snapping";
+import { snapToGuide } from "@/rendering/snapping";
 import { applyTransformation } from "@/rendering/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
 import { cacheBlendedLayer, flushBlendedLayerCache, getBlendCache, getBlendableLayers, isBlendCached, pauseBlendCaching, useBlendCaching } from "@/rendering/cache/blended-layer-cache";
@@ -49,7 +49,7 @@ import {
     getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, commitDrawingToLayer, sliceBrushPointers, createOverrideConfig
 } from "@/rendering/utils/drawable-canvas-utils";
 import BrushFactory from "@/factories/brush-factory";
-import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { getRendererForLayer } from "@/factories/renderer-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import { createCanvas, canvasToBlob, cloneCanvas, globalToLocal, getPixelRatio } from "@/utils/canvas-util";
 import { createSyncSnapshot } from "@/utils/document-util";
@@ -57,18 +57,18 @@ import { hasBlend, isDrawable, isMaskable, isRotated, isScaled } from "@/utils/l
 import { blobToResource } from "@/utils/resource-manager";
 import { getLastShape } from "@/utils/selection-util";
 import { isShapeClosed } from "@/utils/shape-util";
-import { positionSpriteFromHistory, restorePaintFromHistory } from "@/utils/sprite-history-util";
+import { positionRendererFromHistory, restorePaintFromHistory } from "@/utils/layer-history-util";
 import type { BitMapperyState } from "@/store";
 
 const HALF = 0.5;
 let drawBounds: Rectangle; // see draw()
 
 /**
- * A LayerSprite is the renderer for a Documents Layer.
+ * A LayerRenderer is the renderer for a Documents Layer.
  * It handles all tool interactions with the layer and also provides interaction with the Layers Mask.
  * It inherits from the zCanvas Sprite to be an interactive Canvas drawable.
  */
-export default class LayerSprite extends ZoomableSprite {
+export default class LayerRenderer extends ZoomableSprite {
     public layer: Layer;
     public layerIndex: number;
     public actionTarget: "source" | "mask";
@@ -94,7 +94,7 @@ export default class LayerSprite extends ZoomableSprite {
         const { left, top, width, height } = layer;
         super({ x: left, y: top, width, height }); // zCanvas.sprite inheritance
 
-        this.layer = layer; // the Layer this Sprite will be rendering
+        this.layer = layer; // the Layer this renderer will be rendering
 
         if ([ LayerTypes.LAYER_GRAPHIC, LayerTypes.LAYER_TEXT ].includes( layer.type ) && !layer.source ) {
             // create a Canvas on which this layer will render its drawable content.
@@ -126,7 +126,7 @@ export default class LayerSprite extends ZoomableSprite {
     }
 
     /**
-     * Get the actual bounds of the sprite (as transformations like
+     * Get the actual bounds of the renderer (as transformations like
      * scale and rotation affect the original bounds)
      */
     getActualBounds(): Rectangle {
@@ -148,8 +148,8 @@ export default class LayerSprite extends ZoomableSprite {
         return this._dragStartEventCoordinates;
     }
 
-    // forces sychronizing this Sprites positions to the layer position
-    // to be called when outside factors have adjusted the Sprite source
+    // forces sychronizing this renderers positions to the layer position
+    // to be called when outside factors have adjusted the renderer source
     // otherwise use setBounds() for relative positioning with state history
 
     syncPosition(): void {
@@ -194,7 +194,7 @@ export default class LayerSprite extends ZoomableSprite {
 
     resetFilterAndRecache(): void {
         clearCacheProperty( this.layer, "filterData" ); // filter must be applied to new contents
-        this.cacheEffects(); // sync mask and source changes with sprite Bitmap
+        this.cacheEffects(); // sync mask and source changes with the renderers Bitmap
     }
 
     invalidateBlendCache( full = false ): void {
@@ -429,7 +429,7 @@ export default class LayerSprite extends ZoomableSprite {
         const layer  = this.layer;
         const isMask = isMaskable( layer, this.getStore() );
 
-        enqueueState( `spritePaint_${layer.id}`, {
+        enqueueState( `layerPaint_${layer.id}`, {
             undo(): void {
                 restorePaintFromHistory( layer, orgState, isMask );
             },
@@ -464,7 +464,7 @@ export default class LayerSprite extends ZoomableSprite {
         const newY = bounds.top;
 
         // update the Layer model by the relative offset
-        // (because the Sprite maintains an alternate position when the Layer is rotated)
+        // (because the renderer maintains an alternate position when the Layer is rotated)
 
         const newLayerX = layer.left + ( newX - left );
         const newLayerY = layer.top  + ( newY - top );
@@ -472,14 +472,14 @@ export default class LayerSprite extends ZoomableSprite {
         layer.left = newLayerX;
         layer.top  = newLayerY;
 
-        enqueueState( `spritePos_${layer.id}`, {
+        enqueueState( `layerPos_${layer.id}`, {
             undo() {
-                positionSpriteFromHistory( layer, left, top );
+                positionRendererFromHistory( layer, left, top );
                 layer.left = oldLayerX;
                 layer.top  = oldLayerY;
             },
             redo() {
-                positionSpriteFromHistory( layer, newX, newY );
+                positionRendererFromHistory( layer, newX, newY );
                 layer.left = newLayerX;
                 layer.top  = newLayerY;
             }
@@ -566,14 +566,14 @@ export default class LayerSprite extends ZoomableSprite {
                 const commit = () => {
                     layer.maskX = newMaskX;
                     layer.maskY = newMaskY;
-                    getSpriteForLayer( layer )?.resetFilterAndRecache();
+                    getRendererForLayer( layer )?.resetFilterAndRecache();
                 };
                 commit();
                 enqueueState( `maskPos_${layer.id}`, {
                     undo() {
                         layer.maskX = maskX;
                         layer.maskY = maskY;
-                        getSpriteForLayer( layer )?.resetFilterAndRecache();
+                        getRendererForLayer( layer )?.resetFilterAndRecache();
                     },
                     redo: commit
                 });
@@ -622,7 +622,7 @@ export default class LayerSprite extends ZoomableSprite {
         else if ( this._isDragMode ) {
             // check whether we need to snap to a guide
             if ( getters.snapAlign ) {
-                snapSpriteToGuide( this, this.canvas.guides );
+                snapToGuide( this, this.canvas.guides );
             }
             this.canvas.draggingSprite = null;
         }

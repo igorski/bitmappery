@@ -28,7 +28,7 @@ import type {
 } from "@/definitions/editor";
 import ToolTypes, { TOOL_SRC_MERGED } from "@/definitions/tool-types";
 import BrushTypes from "@/definitions/brush-types";
-import { runSpriteFn } from "@/factories/sprite-factory";
+import { runRendererFn } from "@/factories/renderer-factory";
 
 export interface ToolState {
     activeTool: ToolTypes;
@@ -86,14 +86,14 @@ const ToolModule: Module<ToolState, any> = {
     mutations: {
         setActiveTool( state: ToolState, { tool, document }: { tool: ToolTypes, document: Document }): void {
             state.activeTool = tool;
-            runSpriteFn( sprite => {
+            runRendererFn( renderer => {
                 // @ts-expect-error Element implicitly has an 'any' type because expression of type 'ToolTypes' can't be used to index type
-                sprite.handleActiveTool( tool, state.options[ state.activeTool ] as any, document );
+                renderer.handleActiveTool( tool, state.options[ state.activeTool ] as any, document );
             });
         },
         setActiveColor( state: ToolState, color: string ): void {
             state.activeColor = color;
-            updateLayerSprites( state.activeColor, state.options[ ToolTypes.BRUSH ] as BrushToolOptions );
+            updateLayerRenderers( state.activeColor, state.options[ ToolTypes.BRUSH ] as BrushToolOptions );
         },
         setToolOptionValue( state: ToolState, { tool, option, value }: { tool: ToolTypes, option: string, value: any }): void {
             // @ts-expect-error Element implicitly has an 'any' type because expression of type 'ToolTypes' can't be used to index type
@@ -104,10 +104,10 @@ const ToolModule: Module<ToolState, any> = {
                     break;
                 case ToolTypes.CLONE:
                 case ToolTypes.BRUSH:
-                    updateLayerSprites( state.activeColor, toolOptions );
+                    updateLayerRenderers( state.activeColor, toolOptions );
                     break;
                 case ToolTypes.ERASER:
-                    updateLayerSprites( `rgba(255,255,255,${( toolOptions as EraserToolOptions ).opacity})`, toolOptions );
+                    updateLayerRenderers( `rgba(255,255,255,${( toolOptions as EraserToolOptions ).opacity})`, toolOptions );
                     break;
             }
         },
@@ -126,8 +126,8 @@ export default ToolModule;
 
 /* internal methods */
 
-function updateLayerSprites( color: string, toolOptions: BrushToolOptions ): void {
-    runSpriteFn( sprite => {
-        sprite.cacheBrush( color, toolOptions );
+function updateLayerRenderers( color: string, toolOptions: BrushToolOptions ): void {
+    runRendererFn( renderer => {
+        renderer.cacheBrush( color, toolOptions );
     });
 }

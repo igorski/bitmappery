@@ -1,7 +1,7 @@
 import { it, describe, expect, vi } from "vitest";
 import {
     getLayerCache, setLayerCache, hasLayerCache, clearCacheProperty,
-    flushLayerCache, flushCache
+    flushLayerCache, flushBitmapCache
 } from "@/rendering/cache/bitmap-cache";
 import FiltersFactory from "@/factories/filters-factory";
 import LayerFactory from "@/factories/layer-factory";
@@ -84,7 +84,7 @@ describe( "Bitmap cache", () => {
             expect( hasLayerCache( layer1 )).toBe( true );
             expect( hasLayerCache( layer2 )).toBe( true );
 
-            flushCache();
+            flushBitmapCache();
 
             expect( hasLayerCache( layer1 )).toBe( false );
             expect( hasLayerCache( layer2 )).toBe( false );

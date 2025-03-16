@@ -4,12 +4,12 @@ import { createMockCanvasElement, mockZCanvas } from "../mocks";
 mockZCanvas();
 
 import LayerFactory from "@/factories/layer-factory";
-import LayerSprite from "@/rendering/canvas-elements/layer-sprite";
-import { positionSpriteFromHistory, restorePaintFromHistory } from "@/utils/sprite-history-util";
+import LayerRenderer from "@/rendering/actors/layer-renderer";
+import { positionRendererFromHistory, restorePaintFromHistory } from "@/utils/layer-history-util";
 
-const mockGetSpriteForLayer = vi.fn();
-vi.mock( "@/factories/sprite-factory", () => ({
-    getSpriteForLayer: vi.fn(( ...args ) => mockGetSpriteForLayer( ...args )),
+const mockGetRendererForLayer = vi.fn();
+vi.mock( "@/factories/renderer-factory", () => ({
+    getRendererForLayer: vi.fn(( ...args ) => mockGetRendererForLayer( ...args )),
 }));
 
 const mockFlushBlendedLayerCache = vi.fn();
@@ -20,28 +20,28 @@ vi.mock( "@/rendering/cache/blended-layer-cache", () => ({
     isBlendCached: vi.fn(),
 }));
 
-describe( "Sprite history utilities", () => {
+describe( "Layer history utilities", () => {
     const layer = LayerFactory.create({
         source: createMockCanvasElement(),
         mask: createMockCanvasElement(),
     });
-    let layerSprite: LayerSprite;
+    let layerRenderer: LayerRenderer;
 
     beforeEach(() => {
-        layerSprite = new LayerSprite( layer );
-        mockGetSpriteForLayer.mockReturnValue( layerSprite );
+        layerRenderer = new LayerRenderer( layer );
+        mockGetRendererForLayer.mockReturnValue( layerRenderer );
     });
 
     afterEach(() => {
         vi.resetAllMocks();
     });
 
-    describe( "When adjusting a Sprite's position from a history state", () => {
+    describe( "When adjusting a Layer renderers position from a history state", () => {
         it( "should update the existing bounds object directly without invoking the setter methods", () => {
-            const orgBounds = layerSprite.getBounds();
+            const orgBounds = layerRenderer.getBounds();
             const { width, height } = orgBounds;
        
-            positionSpriteFromHistory( layer, 5, 7 );
+            positionRendererFromHistory( layer, 5, 7 );
 
             expect( orgBounds ).toEqual({
                 left: 5,
@@ -51,10 +51,10 @@ describe( "Sprite history utilities", () => {
             });
         });
 
-        it( "should call the invalidate() method on the Sprite to trigger a render", () => {
-            const invalidateSpy = vi.spyOn( layerSprite, "invalidate" );
+        it( "should call the invalidate() method on the renderer to trigger a render", () => {
+            const invalidateSpy = vi.spyOn( layerRenderer, "invalidate" );
        
-            positionSpriteFromHistory( layer, 5, 7 );
+            positionRendererFromHistory( layer, 5, 7 );
 
             expect( invalidateSpy ).toHaveBeenCalled();
         });
@@ -62,7 +62,7 @@ describe( "Sprite history utilities", () => {
         it( "should not invalidate the blended layer cache when blend caching is disabled", () => {
             mockUseBlendCaching = false;
 
-            positionSpriteFromHistory( layer, 5, 7 );
+            positionRendererFromHistory( layer, 5, 7 );
             
             expect( mockFlushBlendedLayerCache ).not.toHaveBeenCalled();
         });
@@ -70,7 +70,7 @@ describe( "Sprite history utilities", () => {
         it( "should invalidate the blended layer cache when blend caching is enabled", () => {
             mockUseBlendCaching = true;
 
-            positionSpriteFromHistory( layer, 5, 7 );
+            positionRendererFromHistory( layer, 5, 7 );
             
             expect( mockFlushBlendedLayerCache ).toHaveBeenCalled();
         });
@@ -107,8 +107,8 @@ describe( "Sprite history utilities", () => {
             expect( layer.mask.getContext( "2d" ).drawImage ).toHaveBeenCalledWith( expect.any( global.Image ), 0, 0 );
         });
 
-        it( "should request a filter invalidation and recache from the Layer Sprite ", () => {
-            const recacheSpy = vi.spyOn( layerSprite, "resetFilterAndRecache" );
+        it( "should request a filter invalidation and recache from the Layers renderer ", () => {
+            const recacheSpy = vi.spyOn( layerRenderer, "resetFilterAndRecache" );
 
             restorePaintFromHistory( layer, MOCK_SOURCE, false );
 

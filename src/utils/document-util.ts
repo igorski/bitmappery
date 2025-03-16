@@ -24,11 +24,11 @@ import { canvas, type Rectangle } from "zcanvas";
 import type { Document, Shape, Layer } from "@/definitions/document";
 import type { CopiedSelection } from "@/definitions/editor";
 import { renderEffectsForLayer } from "@/services/render-service";
-import { createSpriteForLayer, getSpriteForLayer } from "@/factories/sprite-factory";
+import { createRendererForLayer, getRendererForLayer } from "@/factories/renderer-factory";
 import { rotateRectangle, areEqual } from "@/math/rectangle-math";
 import { fastRound } from "@/math/unit-math";
 import { reverseTransformation } from "@/rendering/transforming";
-import type ZoomableCanvas from "@/rendering/canvas-elements/zoomable-canvas";
+import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import { createCanvas, getPixelRatio } from "@/utils/canvas-util";
 import { SmartExecutor } from "@/utils/debounce-util";
 import { selectionToRectangle } from "@/utils/selection-util";
@@ -47,7 +47,7 @@ export const createDocumentSnapshot = async ( activeDocument: Document ): Promis
     }
     // draw existing layers onto temporary canvas at full document scale
     layers.forEach( layer => {
-        getSpriteForLayer( layer )?.draw( ctx, zcvs.getViewport(), true );
+        getRendererForLayer( layer )?.draw( ctx, zcvs.getViewport(), true );
     });
     zcvs.dispose();
 
@@ -64,14 +64,14 @@ export const createLayerSnapshot = async ( layer: Layer, optActiveDocument?: Doc
 
     const { zcvs, cvs, ctx } = createFullSizeZCanvas({ width, height });
 
-    // if the layer is currently invisible, it has no sprite, create it lazily here.
-    const sprite = !layer.visible ? createSpriteForLayer( zcvs as ZoomableCanvas, layer, false ) : getSpriteForLayer( layer );
+    // if the layer is currently invisible, it has no renderer, create it lazily here.
+    const renderer = !layer.visible ? createRendererForLayer( zcvs as ZoomableCanvas, layer, false ) : getRendererForLayer( layer );
 
     // ensure all layer effects are rendered, note we omit caching
     await renderEffectsForLayer( layer, false );
 
     // draw existing layers onto temporary canvas at full document scale
-    sprite?.draw( ctx, zcvs.getViewport(), true );
+    renderer?.draw( ctx, zcvs.getViewport(), true );
     zcvs.dispose();
 
     return cvs;
@@ -97,7 +97,7 @@ export const createSyncSnapshot = ( activeDocument: Document, optLayerIndices: n
         if ( optLayerIndices.length && !optLayerIndices.includes( index )) {
             return;
         }
-        getSpriteForLayer( layer )?.draw( ctx, zcvs.getViewport(), true );
+        getRendererForLayer( layer )?.draw( ctx, zcvs.getViewport(), true );
     });
     zcvs.dispose();
 

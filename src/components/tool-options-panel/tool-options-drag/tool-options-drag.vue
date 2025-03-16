@@ -69,7 +69,7 @@
 import { mapGetters } from "vuex";
 import { enqueueState } from "@/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
-import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { getRendererForLayer } from "@/factories/renderer-factory";
 
 import messages from "./messages.json";
 
@@ -148,19 +148,19 @@ export default {
                 const commit = () => {
                     layer.maskX = x;
                     layer.maskY = y;
-                    getSpriteForLayer( layer )?.resetFilterAndRecache();
+                    getRendererForLayer( layer )?.resetFilterAndRecache();
                 };
                 commit();
                 enqueueState( `maskPos_${layer.id}`, {
                     undo() {
                         layer.maskX = orgX;
                         layer.maskY = orgY;
-                        getSpriteForLayer( layer )?.resetFilterAndRecache();
+                        getRendererForLayer( layer )?.resetFilterAndRecache();
                     },
                     redo: commit
                 }); 
             } else {
-                getSpriteForLayer( this.activeLayer )?.setBounds( x, y );
+                getRendererForLayer( this.activeLayer )?.setBounds( x, y );
             }
         },
         reset(): void {

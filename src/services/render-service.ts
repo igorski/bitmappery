@@ -23,7 +23,7 @@
 import { reactive } from "vue";
 import type { Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
-import { getSpriteForLayer } from "@/factories/sprite-factory";
+import { getRendererForLayer } from "@/factories/renderer-factory";
 import { hasFilters, isEqual as isFiltersEqual } from "@/factories/filters-factory";
 import { isEqual as isTextEqual } from "@/factories/text-factory";
 import { createCanvas, cloneCanvas, matchDimensions } from "@/utils/canvas-util";
@@ -62,9 +62,9 @@ export const setWasmFilters = ( enabled: boolean ): void => {
 };
 
 export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): Promise<void> => {
-    const sprite = getSpriteForLayer( layer );
+    const renderer = getRendererForLayer( layer );
 
-    if ( !sprite || !layer.source ) {
+    if ( !renderer || !layer.source ) {
         return;
     }
 
@@ -144,11 +144,11 @@ export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): 
 
     renderState.pending = Math.max( 0, renderState.pending - 1 );
 
-    // note that updating the bitmap will also adjust the sprite bounds
+    // note that updating the bitmap will also adjust the renderer bounds
     // as appropriate (f.i. if rotation were handled by this service), the
     // Layer model remains unaffected by this
-    sprite.setBitmap( cvs, width, height );
-    sprite.invalidate();
+    renderer.setBitmap( cvs, width, height );
+    renderer.invalidate();
 };
 
 /* internal methods */
