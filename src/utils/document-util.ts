@@ -27,7 +27,7 @@ import { renderEffectsForLayer } from "@/services/render-service";
 import { createRendererForLayer, getRendererForLayer } from "@/factories/renderer-factory";
 import { rotateRectangle, areEqual } from "@/math/rectangle-math";
 import { fastRound } from "@/math/unit-math";
-import { reverseTransformation } from "@/rendering/transforming";
+import { reverseTransformation } from "@/rendering/operations/transforming";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import { createCanvas, getPixelRatio } from "@/utils/canvas-util";
 import { SmartExecutor } from "@/utils/debounce-util";

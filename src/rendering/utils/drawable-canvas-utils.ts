@@ -23,7 +23,7 @@
 import type { Point, Size } from "zcanvas";
 import type { Layer } from "@/definitions/document";
 import type { CanvasContextPairing, Brush } from "@/definitions/editor";
-import { reverseTransformation } from "@/rendering/transforming";
+import { reverseTransformation } from "@/rendering/operations/transforming";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import { createCanvas, setCanvasDimensions } from "@/utils/canvas-util";
 import { clone } from "@/utils/object-util";

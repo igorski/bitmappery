@@ -29,7 +29,7 @@ import DocumentFactory from "@/factories/document-factory";
 import FiltersFactory from "@/factories/filters-factory";
 import LayerFactory from "@/factories/layer-factory";
 import type { LayerProps } from "@/factories/layer-factory";
-import { inverseMask } from "@/rendering/compositing";
+import { inverseMask } from "@/rendering/operations/compositing";
 import { createCanvas, base64toCanvas } from "@/utils/canvas-util";
 import { unblockedWait } from "@/utils/debounce-util";
 
