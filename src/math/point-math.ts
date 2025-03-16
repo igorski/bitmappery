@@ -206,6 +206,6 @@ export const rotatePointers = ( pointers: Point[], layer: Layer, sourceWidth: nu
     });
 };
 
-export const rotatePointer = ( x: number, y: number, layer: Layer, sourceWidth: number, sourceHeight: number ): Point => {
-    return rotatePointers([{ x, y }], layer, sourceWidth, sourceHeight )[ 0 ];
+export const rotatePointer = ( point: Point, layer: Layer, sourceWidth: number, sourceHeight: number ): Point => {
+    return rotatePointers([ point ], layer, sourceWidth, sourceHeight )[ 0 ];
 };

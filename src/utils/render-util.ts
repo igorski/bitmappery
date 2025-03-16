@@ -24,17 +24,6 @@ import type { Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import { resizeImage } from "@/utils/canvas-util";
 
-export const renderCross = ( ctx: CanvasRenderingContext2D, x: number, y: number, size: number ): void => {
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo( x - size, y - size );
-    ctx.lineTo( x + size, y + size );
-    ctx.moveTo( x + size, y - size );
-    ctx.lineTo( x - size, y + size );
-    ctx.stroke();
-    ctx.restore();
-};
-
 export const resizeLayerContent = async ( layer: Layer, ratioX: number, ratioY: number ): Promise<void> => {
     const { source, mask } = layer;
 

@@ -26,7 +26,6 @@ import type ZoomableCanvas from "./zoomable-canvas";
 import ZoomableSprite from "./zoomable-sprite";
 import type { Viewport, TransformedDrawBounds } from "zcanvas";
 import { BlendModes } from "@/definitions/blend-modes";
-import { getSizeForBrush } from "@/definitions/brush-types";
 import type { Document, Layer, Selection } from "@/definitions/document";
 import type { CanvasContextPairing, CanvasDrawable, Brush, BrushToolOptions, BrushAction } from "@/definitions/editor";
 import { LayerTypes } from "@/definitions/layer-types";
@@ -45,6 +44,7 @@ import { snapSpriteToGuide } from "@/rendering/snapping";
 import { applyTransformation } from "@/rendering/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
 import { cacheBlendedLayer, flushBlendedLayerCache, getBlendCache, getBlendableLayers, isBlendCached, pauseBlendCaching, useBlendCaching } from "@/rendering/cache/blended-layer-cache";
+import { renderBrushOutline } from "@/rendering/cursors/brush";
 import {
     getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, commitDrawingToLayer, sliceBrushPointers, createOverrideConfig
 } from "@/rendering/utils/drawable-canvas-utils";
@@ -54,16 +54,13 @@ import { enqueueState } from "@/factories/history-state-factory";
 import { createCanvas, canvasToBlob, cloneCanvas, globalToLocal, getPixelRatio } from "@/utils/canvas-util";
 import { createSyncSnapshot } from "@/utils/document-util";
 import { hasBlend, isDrawable, isMaskable, isRotated, isScaled } from "@/utils/layer-util";
-import { renderCross } from "@/utils/render-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { getLastShape } from "@/utils/selection-util";
 import { isShapeClosed } from "@/utils/shape-util";
 import { positionSpriteFromHistory, restorePaintFromHistory } from "@/utils/sprite-history-util";
 import type { BitMapperyState } from "@/store";
 
-const HALF   = 0.5;
-const TWO_PI = 2 * Math.PI;
-
+const HALF = 0.5;
 let drawBounds: Rectangle; // see draw()
 
 /**
@@ -79,8 +76,7 @@ export default class LayerSprite extends ZoomableSprite {
     public toolOptions: any;
     public canvas: ZoomableCanvas;
 
-    protected _pointerX: number;
-    protected _pointerY: number;
+    protected _pointer: Point;
     protected _brush: Brush;
     protected _lastBrushIndex: number;
     protected _paintCanvas: CanvasContextPairing; // temporary canvas used during drawing
@@ -106,8 +102,7 @@ export default class LayerSprite extends ZoomableSprite {
             layer.source = cvs;
         }
 
-        this._pointerX    = 0;
-        this._pointerY    = 0;
+        this._pointer     = { x: 0, y: 0 };
         this.layerIndex   = 0; // managed by document-canvas
         this._isPaintMode = false;
 
@@ -285,7 +280,7 @@ export default class LayerSprite extends ZoomableSprite {
     forceMoveListener(): void {
         this.isDragging = true;
         this._dragStartOffset = { x: this.getX(), y: this.getY() };
-        this._dragStartEventCoordinates = { x: this._pointerX, y: this._pointerY };
+        this._dragStartEventCoordinates = { ...this._pointer };
     }
 
     // draw onto the source Bitmap (e.g. brushing / fill tool / eraser)
@@ -340,7 +335,7 @@ export default class LayerSprite extends ZoomableSprite {
    
             if ( this.toolOptions.smartFill ) {
                 // we need to translate pointer offset to match the relative, untransformed source layer content
-                const point = rotatePointer( this._pointerX, this._pointerY, this.layer, width, height );
+                const point = rotatePointer( this._pointer, this.layer, width, height );
                 floodFill( ctx, point.x, point.y, color );
             } else {
                 ctx.fillStyle = this.getStore().getters.activeColor;
@@ -504,8 +499,8 @@ export default class LayerSprite extends ZoomableSprite {
 
     override handlePress( x: number, y: number, { type }: Event ): void {
         if ( type.startsWith( "touch" )) {
-            this._pointerX = x;
-            this._pointerY = y;
+            this._pointer.x = x;
+            this._pointer.y = y;
         }
 
         pauseBlendCaching( this.layerIndex, true );
@@ -556,8 +551,8 @@ export default class LayerSprite extends ZoomableSprite {
         // store reference to current pointer position (relative to canvas)
         // note that for touch events this is handled in handlePress() instead
         if ( !event.type.startsWith( "touch" )) {
-            this._pointerX = x;
-            this._pointerY = y;
+            this._pointer.x = x;
+            this._pointer.y = y;
         }
 
         const isDragging = !this._isPaintMode; // not drawable ? perform default behaviour (drag)
@@ -747,32 +742,10 @@ export default class LayerSprite extends ZoomableSprite {
         // render brush outline at pointer position
 
         if ( !isSnapshotMode && this._isPaintMode ) {
-            const { zoomFactor } = this.canvas;
-            const tx = this._pointerX - viewport.left;
-            const ty = this._pointerY - viewport.top;
-
-            documentContext.lineWidth = 2 / zoomFactor;
-            const drawBrushOutline = this._toolType !== ToolTypes.CLONE || !!this.toolOptions.coords;
-            if ( this._toolType === ToolTypes.CLONE ) {
-                const { coords } = this.toolOptions;
-                const relSource = this.cloneStartCoords ?? this._dragStartEventCoordinates;
-                const cx = coords ? ( coords.x - viewport.left ) + ( this._pointerX - relSource.x ) : tx;
-                const cy = coords ? ( coords.y - viewport.top  ) + ( this._pointerY - relSource.y ) : ty;
-                // when no source coordinate is set, or when applying the clone stamp, we show a cross to mark the cloning origin
-                if ( !coords || this.isDrawing() ) {
-                    renderCross( documentContext, cx, cy, this._brush.radius / zoomFactor );
-                }
-            }
-            documentContext.save(); // brush outline save()
-            documentContext.beginPath();
-
-            if ( drawBrushOutline ) {
-                // any other brush mode state shows brush outline
-                documentContext.arc( tx, ty, getSizeForBrush( this._brush ), 0, TWO_PI );
-                documentContext.strokeStyle = "#999";
-            }
-            documentContext.stroke();
-            documentContext.restore(); // brush outline restore()
+            renderBrushOutline(
+                documentContext, this.canvas, viewport, this._toolType, this.toolOptions,
+                this._brush, this._pointer, this.cloneStartCoords ?? this._dragStartEventCoordinates
+            );
         }
     }
 
