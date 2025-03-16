@@ -74,10 +74,10 @@ import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import ToolTypes, { SELECTION_TOOLS, MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@/definitions/tool-types";
 import {
     getCanvasInstance, setCanvasInstance,
-    createRendererForLayer, getRendererForLayer, flushLayerRenderers, flushCache as flushRendererCache,
+    createRendererForLayer, getRendererForLayer, flushLayerRenderers, flushRendererCache,
 } from "@/factories/renderer-factory";
 import { InteractionModes } from "@/rendering/actors/interaction-pane";
-import { flushCache as flushBitmapCache } from "@/rendering/cache/bitmap-cache";
+import { flushBitmapCache } from "@/rendering/cache/bitmap-cache";
 import { flushBlendedLayerCache, setBlendCaching } from "@/rendering/cache/blended-layer-cache";
 import { renderState } from "@/services/render-service";
 import { scaleToRatio } from "@/math/image-math";

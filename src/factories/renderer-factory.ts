@@ -69,7 +69,7 @@ export const getRendererForLayer = ({ id }: Partial<Layer> ): LayerRenderer | nu
 /**
  * Clears the entire cache and disposes all renderers.
  */
-export const flushCache = (): void => {
+export const flushRendererCache = (): void => {
     //console.info( "flushing renderer cache" );
     rendererCache.forEach( disposeRenderer );
     rendererCache.clear();

@@ -8,8 +8,7 @@ mockZCanvas();
 
 import {
     getCanvasInstance, setCanvasInstance,
-    createRendererForLayer, hasRendererForLayer, getRendererForLayer, flushLayerRenderers,
-    flushCache
+    createRendererForLayer, hasRendererForLayer, getRendererForLayer, flushLayerRenderers, flushRendererCache
 } from "@/factories/renderer-factory";
 
 describe( "Renderer factory", () => {
@@ -83,7 +82,7 @@ describe( "Renderer factory", () => {
         vi.spyOn( layer1renderer, "dispose" );
         vi.spyOn( layer2renderer, "dispose" );
 
-        flushCache();
+        flushRendererCache();
 
         expect( hasRendererForLayer( layer1 )).toBe( false );
         expect( hasRendererForLayer( layer2 )).toBe( false );
