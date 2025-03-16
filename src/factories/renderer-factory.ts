@@ -24,13 +24,6 @@ import type { Document, Layer } from "@/definitions/document";
 import LayerRenderer from "@/rendering/actors/layer-renderer";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 
-let zCanvasInstance: ZoomableCanvas = null; // a non-Vue observable zCanvas instance
-
-export const getCanvasInstance = (): ZoomableCanvas | null => zCanvasInstance;
-export const setCanvasInstance = ( zCanvas: ZoomableCanvas ): void => {
-    zCanvasInstance = zCanvas;
-};
-
 /**
  * Renderers are used to represent layer content. These are mapped
  * to the layer ids (see layer-factory.js)

@@ -25,8 +25,9 @@ import type { Size } from "zcanvas";
 import type { Document, Layer, Effects, Selection } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
-import { flushLayerRenderers, runRendererFn, getRendererForLayer, getCanvasInstance } from "@/factories/renderer-factory";
+import { flushLayerRenderers, runRendererFn, getRendererForLayer } from "@/factories/renderer-factory";
 import { flushBlendedLayerCache } from "@/rendering/cache/blended-layer-cache";
+import { getCanvasInstance } from "@/services/canvas-service";
 import { resizeLayerContent, cropLayerContent } from "@/utils/render-util";
 
 export interface DocumentState {

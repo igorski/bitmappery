@@ -29,8 +29,9 @@ import {
     CREATE_DOCUMENT, ADD_LAYER, SAVE_DOCUMENT, DROPBOX_FILE_SELECTOR,
 } from "@/definitions/modal-windows";
 import { toggleLayerVisibility } from "@/factories/action-factory";
-import { getCanvasInstance, getRendererForLayer } from "@/factories/renderer-factory";
+import { getRendererForLayer } from "@/factories/renderer-factory";
 import { translatePoints } from "@/math/point-math";
+import { getCanvasInstance } from "@/services/canvas-service";
 import type { BitMapperyState } from "@/store";
 import { supportsFullscreen, toggleFullscreen } from "@/utils/environment-util";
 import { addTextLayer } from "@/utils/layer-util";

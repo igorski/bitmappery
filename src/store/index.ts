@@ -23,27 +23,28 @@
 import { ActionContext } from "vuex";
 import type { Size } from "zcanvas";
 import type { Notification, Dialog, CopiedSelection } from "@/definitions/editor";
-import KeyboardService from "@/services/keyboard-service";
-import DocumentFactory from "@/factories/document-factory";
-import LayerFactory from "@/factories/layer-factory";
-import { initHistory, enqueueState } from "@/factories/history-state-factory";
-import { getCanvasInstance, getRendererForLayer } from "@/factories/renderer-factory";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { LayerTypes } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS, PANEL_LAYERS } from "@/definitions/panel-types";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
+import DocumentFactory from "@/factories/document-factory";
+import LayerFactory from "@/factories/layer-factory";
+import { initHistory, enqueueState } from "@/factories/history-state-factory";
+import { getRendererForLayer } from "@/factories/renderer-factory";
+import { getCanvasInstance } from "@/services/canvas-service";
 import { fontsConsented, consentFonts, rejectFonts } from "@/services/font-service";
+import KeyboardService from "@/services/keyboard-service";
+import { cloneCanvas } from "@/utils/canvas-util";
+import { copySelection, deleteSelectionContent } from "@/utils/document-util";
+import { saveBlobAsFile, selectFile } from "@/utils/file-util";
+import { replaceLayerSource } from "@/utils/layer-util";
+import { truncate } from "@/utils/string-util";
 import canvas, { CanvasState } from "./modules/canvas-module";
 import document, { DocumentState } from "./modules/document-module";
 import history, { HistoryState } from "./modules/history-module";
 import image, { ImageState } from "./modules/image-module";
 import preferences, { PreferencesState } from "./modules/preferences-module";
 import tool, { ToolState } from "./modules/tool-module";
-import { cloneCanvas } from "@/utils/canvas-util";
-import { copySelection, deleteSelectionContent } from "@/utils/document-util";
-import { saveBlobAsFile, selectFile } from "@/utils/file-util";
-import { replaceLayerSource } from "@/utils/layer-util";
-import { truncate } from "@/utils/string-util";
 
 export interface BitMapperyState {
     menuOpened: boolean;

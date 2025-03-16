@@ -16,7 +16,6 @@ vi.mock( "@/factories/renderer-factory", () => ({
     flushLayerRenderers: (...args: any[]) => mockUpdateFn?.( "flushLayerRenderers", ...args ),
     runRendererFn: (...args: any[]) => mockUpdateFn?.( "runRendererFn", ...args ),
     getRendererForLayer: (...args: any[]) => mockUpdateFn?.( "getRendererForLayer", ...args ),
-    getCanvasInstance: (...args: any[]) => mockUpdateFn?.( "getCanvasInstance", ...args ),
 }));
 const mockFlushBlendedLayerCache = vi.fn();
 vi.mock( "@/rendering/cache/blended-layer-cache", async ( importOriginal ) => {
@@ -25,6 +24,9 @@ vi.mock( "@/rendering/cache/blended-layer-cache", async ( importOriginal ) => {
         flushBlendedLayerCache: ( ...args: any[] ) => mockFlushBlendedLayerCache( ...args ),
     }
 });
+vi.mock( "@/services/canvas-service", () => ({
+    getCanvasInstance: (...args: any[]) => mockUpdateFn?.( "getCanvasInstance", ...args ),
+}));
 vi.mock( "@/utils/render-util", () => ({
     resizeLayerContent: (...args: any[]) => mockUpdateFn?.( "resizeLayerContent", ...args ),
     cropLayerContent: (...args: any[]) => mockUpdateFn?.( "cropLayerContent", ...args ),

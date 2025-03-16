@@ -7,29 +7,10 @@ import LayerRenderer from "@/rendering/actors/layer-renderer";
 mockZCanvas();
 
 import {
-    getCanvasInstance, setCanvasInstance,
     createRendererForLayer, hasRendererForLayer, getRendererForLayer, flushLayerRenderers, flushRendererCache
 } from "@/factories/renderer-factory";
 
 describe( "Renderer factory", () => {
-    describe( "when maintaining the active zCanvas instance", () => {
-        it( "should not have an instance by default", () => {
-            expect( getCanvasInstance() ).toBeNull();
-        });
-
-        it( "should be able to set and retrieve the active zCanvas instance", () => {
-            const zCanvas = createMockZoomableCanvas();
-            setCanvasInstance( zCanvas );
-            expect( getCanvasInstance() ).toEqual( zCanvas );
-        });
-
-        it( "should be able to unset the active zCanvas instance", () => {
-            expect( getCanvasInstance() ).not.toBeNull(); // set in previous test
-            setCanvasInstance( null );
-            expect( getCanvasInstance() ).toBeNull();
-        });
-    });
-
     describe( "when lazily creating / caching renderers", () => {
         let zCanvas: ZoomableCanvas;
         let layer1renderer: LayerRenderer;
