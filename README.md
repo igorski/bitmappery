@@ -8,8 +8,9 @@ that contributions related to Photoshop-esque features aren't welcomed ;-)
 
 ### All hand-written ?
 
-Yep, but as this author worked in the photo software industry, BitMappery had a head start as certain challenges had been tackled before.
-Also, BitMappery is reusing igorski's [zCanvas](https://github.com/igorski/zCanvas) under the hood for rendering and bitmap blitting. The application is written on top of [Vue](https://github.com/vuejs/vue) using [Vuex](https://github.com/vuejs/vuex) for state management.
+Yep, but as the author has worked in the photo software industry, BitMappery had a head start as certain challenges had
+been tackled before. Also, BitMappery is reusing igorski's [zCanvas](https://github.com/igorski/zCanvas) under the hood for rendering
+and bitmap blitting. The application is written on top of [Vue](https://github.com/vuejs/vue) using [Vuex](https://github.com/vuejs/vuex) for state management.
 
 ## The [Issue Tracker](https://github.com/igorski/bitmappery/issues) is your point of contact
 
@@ -28,7 +29,7 @@ The types for each of these are defined in `src/definitions/document.ts`.
 ## Document rendering and interactions
 
 The Document is rendered one layer at a time onto a Canvas element, using [zCanvas](https://github.com/igorski/zCanvas). Both the rendering and interaction handling is performed by dedicated "Sprite" classes, which function as _renderers_ for the Documents _actors_.
-In other words: they represent the data visually.
+In other words: _renderers represent the Document visually and handle interactions modifying the Document state_.
 
 All layer rendering and layer interactions are handled by `src/rendering/actors/layer-renderer.ts`.
 Note that the purpose of the renderer is solely to delegate interactions events to the Layer entity. The
