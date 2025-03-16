@@ -1,5 +1,6 @@
 import { vi } from "vitest";
 import { type Store } from "vuex";
+import type { Shape, Selection } from "@/definitions/document";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import { type BitMapperyState } from "@/store";
@@ -49,6 +50,8 @@ export function createMockZoomableCanvas(): ZoomableCanvas {
         fps: 60,
         addChild: vi.fn(),
         removeChild: vi.fn(),
+        getActiveDocument: vi.fn(),
+        getStore: vi.fn(),
         getViewport: vi.fn(() => ({ left: 0, top: 0, width: 300, height: 300 })),
         setLock: vi.fn(),
         store: createState() as unknown as Store<BitMapperyState>,
@@ -65,10 +68,20 @@ export function createMockImageElement(): HTMLImageElement {
 
 function createMockCanvasRenderingContext2D() {
     return {
+        arc: vi.fn(),
+        beginPath: vi.fn(),
         clearRect: vi.fn(),
+        clip: vi.fn(),
+        closePath: vi.fn(),
+        drawImage: vi.fn(),
         fill: vi.fn(),
         fillRect: vi.fn(),
-        drawImage: vi.fn(),
+        rect: vi.fn(),
+        rotate: vi.fn(),
+        save: vi.fn(),
+        stroke: vi.fn(),
+        translate: vi.fn(),
+        restore: vi.fn(),
         canvas: {
             width: 300,
             height: 200,
@@ -157,4 +170,12 @@ export function createState( props?: Partial<BitMapperyState> ): BitMapperyState
         tool: createToolState(),
         ...props,
     };
+}
+
+export function createMockShape(): Shape {
+    return [ { x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 0 }];
+}
+
+export function createMockSelection(): Selection {
+    return [ createMockShape() ];
 }

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createMockCanvasElement, createMockZoomableCanvas, mockCanvasConstructor, mockZCanvas } from "../../mocks";
+import { createMockCanvasElement, createMockSelection, createMockZoomableCanvas, mockCanvasConstructor, mockZCanvas } from "../../mocks";
 mockZCanvas();
 
 import { type Store } from "vuex";
@@ -17,13 +17,20 @@ import LayerRenderer from "@/rendering/actors/layer-renderer";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 
 let mockIsBlendCached = false;
+let mockUseBlendCaching = false;
 const mockPauseBlendCaching = vi.fn();
 const mockFlushBlendedLayerCache = vi.fn();
 vi.mock( "@/rendering/cache/blended-layer-cache", () => ({
     isBlendCached: vi.fn(() => mockIsBlendCached ),
+    useBlendCaching: vi.fn(() => mockUseBlendCaching ),
     pauseBlendCaching: vi.fn(( ...args ) => mockPauseBlendCaching( ...args )),
     flushBlendedLayerCache: vi.fn(() => mockFlushBlendedLayerCache() ),
 }));
+
+const mockRenderOperation = vi.fn();
+vi.mock( "@/rendering/operations/clipping", () => ({
+    clipLayer: vi.fn(( ...args ) => mockRenderOperation( "clipLayer", ...args )),
+}))
 
 const mockRenderEffectsForLayer = vi.fn();
 vi.mock( "@/services/render-service", () => ({
@@ -61,6 +68,8 @@ describe( "LayerRenderer", () => {
             activeColor: "#FF0000",
             activeLayerMask: null,
         };
+        // @ts-expect-error mockZoomableCanvas is not typed w/Vitest mocks
+        canvas.getActiveDocument.mockReturnValue( activeDocument );
     });
 
     afterEach(() => {
@@ -322,6 +331,54 @@ describe( "LayerRenderer", () => {
             layerRenderer.invalidateBlendCache();
 
             expect( mockFlushBlendedLayerCache ).toHaveBeenCalled();
+        });
+    });
+
+    describe( "when drawing the Layers contents onto the ZoomableCanvas", () => {
+        const viewport = { left: 10, top: 20, width: 400, height: 300, right: 410, bottom: 320 };
+        const ctx = createMockCanvasElement().getContext( "2d" );
+
+        describe( "and the layer is in the paint state", () => {
+            beforeEach(() => {
+                renderer.setInteractive( true );
+                renderer.handleActiveTool( ToolTypes.BRUSH, undefined, activeDocument );
+                renderer.handlePress( 0, 0, new MouseEvent( "mousedown" ));
+                renderer.paint();
+            });
+
+            it( "should not clip the context to the Layers visible bounds by default", () => {
+                renderer.draw( ctx, viewport );
+
+                expect( mockRenderOperation ).not.toHaveBeenCalled();
+            });
+
+            it( "should not clip the context to the Layers visible bounds when drawing on a selection within an offset renderer", () => {
+                renderer.setSelection({ ...activeDocument, activeSelection: createMockSelection() } );
+
+                renderer.draw( ctx, viewport );
+
+                expect( mockRenderOperation ).not.toHaveBeenCalled();
+            });
+
+            it( "should clip the context to the Layers visible bounds when drawing on an offset renderer", () => {
+                renderer.getBounds().left = 5;
+
+                renderer.draw( ctx, viewport );
+
+                expect( mockRenderOperation ).toHaveBeenCalledWith(
+                    "clipLayer", ctx, renderer.layer, renderer.getBounds(), viewport, undefined
+                );
+            });
+
+            it( "should clip the context to the Layers visible bounds when drawing on a transformed renderer", () => {
+                renderer.layer.effects.rotation = 45;
+
+                renderer.draw( ctx, viewport );
+
+                expect( mockRenderOperation ).toHaveBeenCalledWith(
+                    "clipLayer", ctx, renderer.layer, renderer.getBounds(), viewport, undefined
+                );
+            });
         });
     });
 });

@@ -35,7 +35,7 @@ import { translatePointerRotation, rotatePointer } from "@/math/point-math";
 import { fastRound } from "@/math/unit-math";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { getBlendContext, blendLayer } from "@/rendering/operations/blending";
-import { clipContextToSelection } from "@/rendering/operations/clipping";
+import { clipContextToSelection, clipLayer } from "@/rendering/operations/clipping";
 import { renderClonedStroke, setCloneSource } from "@/rendering/operations/cloning";
 import { renderBrushStroke } from "@/rendering/operations/drawing";
 import { floodFill } from "@/rendering/operations/fill";
@@ -686,7 +686,6 @@ export default class LayerRenderer extends ZoomableSprite {
             if ( altOpacity ) {
                 documentContext.globalAlpha = opacity;
             }
-
             let drawContext: CanvasRenderingContext2D = documentContext;
 
             const isPainting      = this.isPainting();
@@ -720,17 +719,26 @@ export default class LayerRenderer extends ZoomableSprite {
             if ( applyBlending ) {
                 blendLayer( documentContext, drawContext, blendMode );
             }
-
+            
             drawContext.restore(); // transformation restore()
 
             // user is currently drawing on this layer, render contents of drawableCanvas onto screen
             if ( isPainting ) {
+                const clipContext = !this._selection && ( this._bounds.left !== 0 || this._bounds.top !== 0 || transformedBounds );
+                if ( clipContext ) {
+                    // when the layer if offset/transformed and there is no active selection, clip the out of bounds content
+                    documentContext.save();
+                    clipLayer( documentContext, this.layer, this._bounds, viewport, this._invertSelection );
+                }
                 renderDrawableCanvas(
                     isDrawingOnMask ? drawContext : documentContext, this.getPaintSize(), this.canvas, this._brush.options.opacity,
                     this._toolType === ToolTypes.ERASER || isMaskable( this.layer, this.getStore() ) ? "destination-out" : undefined,
                 );
                 if ( isDrawingOnMask ) {
                     documentContext.drawImage( maskComposite.cvs, 0, 0 ); // draw temporary masked canvas onto underlying document
+                }
+                if ( clipContext ) {
+                    documentContext.restore();
                 }
             }
 

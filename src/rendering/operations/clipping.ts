@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2023 - https://www.igorski.nl
+ * Igor Zinken 2021-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,8 +20,9 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Point } from "zcanvas";
-import type { Shape, Selection } from "@/definitions/document";
+import type { Point, Rectangle, Viewport } from "zcanvas";
+import type { Layer, Selection, Shape } from "@/definitions/document";
+import { rotateRectangleToCoordinates, scaleRectangle } from "@/math/rectangle-math";
 import type { OverrideConfig } from "@/rendering/utils/drawable-canvas-utils";
 import { isShapeRectangular } from "@/utils/shape-util";
 
@@ -75,4 +76,21 @@ export const createInverseClipping = ( ctx: CanvasRenderingContext2D, shape: Sha
     } else {
         ctx.rect( width - x, height - y, -width, -height );
     }
+};
+
+/**
+ * Clip the output of a LayerRenderer to not exceed the Layers bounds (in case it is offset or transformed).
+ * This is not necessary as zCanvas will automatically crop the bitmaps, however during live preview while
+ * drawing on the Layer, it helps to clip the contents of the overlaid drawable Canvas.
+ */
+export const clipLayer = ( ctx: CanvasRenderingContext2D, layer: Layer, rendererBounds: Rectangle, viewport: Viewport, invert = false ): void => {
+    const { scale, rotation, mirrorY } = layer.effects;
+
+    const bounds = scaleRectangle( rendererBounds, scale );
+    bounds.top  -= viewport.top;
+    bounds.left -= viewport.left;
+    
+    const selection = [ rotateRectangleToCoordinates( bounds, mirrorY ? -rotation : rotation )];
+    
+    clipContextToSelection( ctx, selection, 0, 0, invert );
 };
