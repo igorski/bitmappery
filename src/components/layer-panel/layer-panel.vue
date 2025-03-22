@@ -53,7 +53,11 @@
                     v-if="reverseLayers.length"
                     class="layer-list"
                 >
-                    <draggable v-model="reverseLayers" itemKey="id">
+                    <draggable
+                        v-model="reverseLayers"
+                        itemKey="id"
+                        @change="handleLayerDrag"
+                    >
                         <template #item="{element}">
                             <div
                                 class="layer"
@@ -352,6 +356,10 @@ export default {
             }
             this.setActiveLayerMask( layer.index );
             getRendererForLayer( layer )?.setActionTarget( "mask" );
+        },
+        handleLayerDrag( dragEvent: { moved: { element: Layer, newIndex: number, oldIndex: number }}): void {
+            const layer = dragEvent.moved.element;
+            this.setActiveLayerIndex( this.layers.findIndex(({ id }) => id === layer.id ));
         },
         handleFocus(): void {
             KeyboardService.setListener( this.handleKeyboard.bind( this ), false );
