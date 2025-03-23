@@ -27,10 +27,13 @@ vi.mock( "@/rendering/cache/blended-layer-cache", async ( importOriginal ) => {
 vi.mock( "@/services/canvas-service", () => ({
     getCanvasInstance: (...args: any[]) => mockUpdateFn?.( "getCanvasInstance", ...args ),
 }));
-vi.mock( "@/utils/render-util", () => ({
-    resizeLayerContent: (...args: any[]) => mockUpdateFn?.( "resizeLayerContent", ...args ),
-    cropLayerContent: (...args: any[]) => mockUpdateFn?.( "cropLayerContent", ...args ),
-}));
+vi.mock( "@/utils/layer-util", async ( importOriginal ) => {
+    return {
+        ...await importOriginal(),
+        resizeLayerContent: (...args: any[]) => mockUpdateFn?.( "resizeLayerContent", ...args ),
+        cropLayerContent: (...args: any[]) => mockUpdateFn?.( "cropLayerContent", ...args ),
+    }
+});
 
 describe( "Vuex document module", () => {
     afterAll(() => {
@@ -693,9 +696,9 @@ describe( "Vuex document module", () => {
             const left = 10;
             const top  = 15;
             await mutations.cropActiveDocumentContent( state, { left, top });
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "cropLayerContent", layer1, left, top );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "cropLayerContent", layer1, { left, top });
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "getRendererForLayer", layer1 );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "cropLayerContent", layer2, left, top );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "cropLayerContent", layer2, { left, top });
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 4, "getRendererForLayer", layer2 );
         });
     });

@@ -515,12 +515,12 @@ export default {
          * to re-render their cached contents.
          */
         async refreshRenderers(): Promise<void> {
-            flushRendererCache();
             flushBitmapCache();
             flushBlendedLayerCache();
             renderState.reset();
-            layerPool.clear();
             await unblockedWait();
+            flushRendererCache();
+            layerPool.clear();
             this.createLayerRenderers();
         },
         handleOutsideDown( event: Event ): void {

@@ -1,7 +1,7 @@
 /**
 * The MIT License (MIT)
 *
-* Igor Zinken 2020-2022 - https://www.igorski.nl
+* Igor Zinken 2020-2025 - https://www.igorski.nl
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 * this software and associated documentation files (the "Software"), to deal in
@@ -56,11 +56,13 @@
     </modal>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import Modal from "@/components/modal/modal.vue";
 import DimensionsFormatter from "@/components/ui/dimensions-formatter/dimensions-formatter.vue";
+import { enqueueState } from "@/factories/history-state-factory";
+import { cloneLayers, restoreFromClone } from "@/utils/document-util";
 import messages from "./messages.json";
 
 export default {
@@ -90,7 +92,7 @@ export default {
             return this.dimensions.height;
         },
     },
-    created() {
+    created(): void {
         this.dimensions.width  = this.activeDocument.width;
         this.dimensions.height = this.activeDocument.height;
         this.ratio = this.dimensions.width / this.dimensions.height;
@@ -114,33 +116,39 @@ export default {
     methods: {
         ...mapMutations([
             "closeModal",
-            "setActiveDocumentSize",
-            "resizeActiveDocumentContent",
-            "openDialog",
-            "resetHistory"
         ]),
-        async lockSync() {
+        async lockSync(): Promise<void> {
             this.syncLock = true;
             await this.$nextTick();
             this.syncLock = false;
         },
-        save() {
-            this.openDialog({
-                type: "confirm",
-                title: this.$t( "areYouSure" ),
-                message: this.$t( "resizeIsPermanent" ),
-                confirm: async () => {
-                    const { width, height } = this.dimensions;
-                    const scaleX = width  / this.activeDocument.width;
-                    const scaleY = height / this.activeDocument.height;
+        async save(): Promise<void> {
+            const { activeDocument } = this;
 
-                    await this.resizeActiveDocumentContent({ scaleX, scaleY });
-                    this.setActiveDocumentSize({ width: Math.round( width ), height: Math.round( height ) });
-                    this.resetHistory();
-                    this.closeModal();
+            const originalWidth  = activeDocument.width;
+            const originalHeight = activeDocument.height;
+
+            const { width, height } = this.dimensions;
+            const scaleX = width  / originalWidth;
+            const scaleY = height / originalHeight;
+
+            const { commit } = this.$store;
+            const orgContent = cloneLayers( activeDocument );
+
+            const fn = async (): Promise<void> => {
+                await commit( "resizeActiveDocumentContent", { scaleX, scaleY });
+                commit( "setActiveDocumentSize", { width: Math.round( width ), height: Math.round( height ) });
+            };
+
+            enqueueState( "resizeDocument", {
+                async undo(): Promise<void> {
+                    restoreFromClone( activeDocument, orgContent );
+                    commit( "setActiveDocumentSize", { width: originalWidth, height: originalHeight });
                 },
-                cancel: () => {},
+                redo: fn,
             });
+            await fn();
+            this.closeModal();
         },
     }
 };

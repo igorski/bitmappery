@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createMockCanvasElement, createState, mockZCanvas } from "../mocks";
 mockZCanvas();
@@ -10,7 +10,18 @@ import EffectsFactory from "@/factories/effects-factory";
 import FiltersFactory from "@/factories/filters-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
-import { hasBlend, isDrawable, isMaskable, isRotated, isScaled } from "@/utils/layer-util";
+import { cropLayerContent, hasBlend, hasTransform, isDrawable, isMaskable, isMirrored, isRotated, isScaled } from "@/utils/layer-util";
+
+const mockResizeImage = vi.fn();
+vi.mock( "@/utils/canvas-util", async ( importOriginal ) => {
+    return {
+        ...await importOriginal(),
+        resizeImage: ( ...args: any[] ) => {
+            mockResizeImage( ...args );
+            return Promise.resolve( createMockCanvasElement() );
+        },
+    }
+});
 
 describe( "Layer utilities", () => {
     let mockStore: Store<BitMapperyState>;
@@ -21,6 +32,10 @@ describe( "Layer utilities", () => {
         mockStore.getters = {
             activeLayerMask: null,
         };
+    });
+
+    afterEach(() => {
+        vi.resetAllMocks();
     });
 
     describe( "when determining the Layers transformations", () => {
@@ -46,8 +61,21 @@ describe( "Layer utilities", () => {
             const scaledLayer = LayerFactory.create({
                 effects: EffectsFactory.create({ scale: 0.9 })
             });
-
             expect( isScaled( scaledLayer )).toBe( true );
+        });
+
+        it( "should know when it is mirrored", () => {
+            expect( isMirrored( LayerFactory.create() )).toBe( false );
+            expect( isMirrored( LayerFactory.create({ effects: EffectsFactory.create({ mirrorX: true })}))).toBe( true );
+            expect( isMirrored( LayerFactory.create({ effects: EffectsFactory.create({ mirrorY: true })}))).toBe( true );
+        });
+        
+        it( "should know whether it has any kind of transformation", () => {
+            expect( hasTransform( LayerFactory.create() )).toBe( false );
+            expect( hasTransform( LayerFactory.create({ effects: EffectsFactory.create({ rotation: 90 })}))).toBe( true );
+            expect( hasTransform( LayerFactory.create({ effects: EffectsFactory.create({ scale: 2 })}))).toBe( true );
+            expect( hasTransform( LayerFactory.create({ effects: EffectsFactory.create({ mirrorX: true })}))).toBe( true );
+            expect( hasTransform( LayerFactory.create({ effects: EffectsFactory.create({ mirrorY: true })}))).toBe( true );
         });
     });
 
@@ -104,5 +132,85 @@ describe( "Layer utilities", () => {
         mockStore.getters.activeLayerMask = layer.mask;
 
         expect( isMaskable( layer, mockStore )).toBe( true );
+    });
+
+    describe( "when cropping a Layer", () => {
+        it( "should resize the source contents", () => {
+            const source = createMockCanvasElement();
+
+            const layer = LayerFactory.create({
+                left: 0,
+                top: 0,
+                width: 80,
+                height: 100,
+                source,
+            });
+            cropLayerContent( layer, { left: 10, top: 20, width: 40, height: 50 });
+
+            expect( mockResizeImage ).toHaveBeenCalledWith( source, 40, 50, 10, 20, 40, 50 );
+        });
+
+        it( "should not resize the source contents but offset the Layer when the Layer is of the TEXT type", () => {
+            const layer = LayerFactory.create({
+                type: LayerTypes.LAYER_TEXT,
+                left: 0,
+                top: 0,
+                width: 80,
+                height: 100,
+                source: createMockCanvasElement(),
+            });
+            cropLayerContent( layer, { left: 10, top: 20, width: 40, height: 50 });
+
+            expect( mockResizeImage ).not.toHaveBeenCalled();
+            expect( layer.left ).toEqual( -10 );
+            expect( layer.top ).toEqual( -20 );
+        });
+
+        it( "should not resize the source contents but offset the Layer when the Layer has transformations", () => {
+            const layer = LayerFactory.create({
+                left: 0,
+                top: 0,
+                width: 80,
+                height: 100,
+                source: createMockCanvasElement(),
+                effects: EffectsFactory.create({ rotation: 90 }),
+            });
+            cropLayerContent( layer, { left: 10, top: 20, width: 40, height: 50 });
+
+            expect( mockResizeImage ).not.toHaveBeenCalled();
+            expect( layer.left ).toEqual( -10 );
+            expect( layer.top ).toEqual( -20 );
+        });
+
+        it( "should not resize the source contents but offset the Layer when the Layer is offset", () => {
+            const layer = LayerFactory.create({
+                left: -10,
+                top: -5,
+                width: 80,
+                height: 100,
+                source: createMockCanvasElement(),
+                effects: EffectsFactory.create({ rotation: 90 }),
+            });
+            cropLayerContent( layer, { left: 10, top: 20, width: 40, height: 50 });
+
+            expect( mockResizeImage ).not.toHaveBeenCalled();
+            expect( layer.left ).toEqual( -20 );
+            expect( layer.top ).toEqual( -25 );
+        });
+
+        it( "should not resize the source contents but offset the Layer when the Layer size is smaller than the crop size", () => {
+            const layer = LayerFactory.create({
+                left: 0,
+                top: 0,
+                width: 30,
+                height: 40,
+                source: createMockCanvasElement(),
+            });
+            cropLayerContent( layer, { left: 10, top: 20, width: 40, height: 50 });
+
+            expect( mockResizeImage ).not.toHaveBeenCalled();
+            expect( layer.left ).toEqual( -10 );
+            expect( layer.top ).toEqual( -20 );
+        });
     });
 });

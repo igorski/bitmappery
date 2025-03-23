@@ -21,11 +21,13 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { type Store } from "vuex";
+import { type Rectangle } from "zcanvas";
 import { BlendModes } from "@/definitions/blend-modes";
 import { type Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import { enqueueState } from "@/factories/history-state-factory";
 import { type BitMapperyState } from "@/store";
+import { resizeImage } from "@/utils/canvas-util";
 
 /**
  * Replace the source / mask contents of given layer, updating its
@@ -52,6 +54,48 @@ export const replaceLayerSource = ( layer: Layer, newSource: HTMLCanvasElement, 
     }
 };
 
+export const resizeLayerContent = async ( layer: Layer, ratioX: number, ratioY: number ): Promise<void> => {
+    const { source, mask } = layer;
+
+    layer.source = await resizeImage( source, source.width * ratioX, source.height * ratioY );
+    if ( mask ) {
+        layer.mask = await resizeImage( mask, mask.width * ratioX, mask.height * ratioY );
+        layer.maskX *= ratioX;
+        layer.maskY *= ratioY;
+    }
+    layer.left   *= ratioX;
+    layer.top    *= ratioY;
+    layer.width  *= ratioX;
+    layer.height *= ratioY;
+
+    if ( layer.type === LayerTypes.LAYER_TEXT ) {
+        const { text } = layer;
+
+        text.size       *= ratioX;
+        text.spacing    *= ratioX;
+        text.lineHeight *= ratioY;
+    }
+};
+
+export const cropLayerContent = async ( layer: Layer, cropRectangle: Rectangle ): Promise<void> => {
+    const { left, top, width, height } = cropRectangle;
+   
+    // we crop non-text layers that are not offset nor transformed
+    const isOffset = layer.left !== 0 || layer.top !== 0;
+    const isLargerThanCrop = layer.width > width && layer.height > height;
+    const replaceSource = layer.type !== LayerTypes.LAYER_TEXT && !hasTransform( layer ) && !isOffset && isLargerThanCrop;
+
+    if ( replaceSource ) {
+        layer.source = await resizeImage( layer.source, width, height, left, top, width, height );
+        if ( layer.mask ) {
+            layer.mask = await resizeImage( layer.mask, width, height, left, top, width, height );
+        }
+    } else {
+        layer.left -= left;
+        layer.top  -= top;
+    }
+};
+
 /**
  * Text layer addition can be initiated directly from the toolbox
  * or keyboard shortcut. Here we define a resuable history enqueue
@@ -71,6 +115,10 @@ export const addTextLayer = ({ getters, commit }: Store<BitMapperyState> ): void
 export const isRotated = ( layer: Layer ): boolean => ( layer.effects.rotation % 360 ) !== 0;
 
 export const isScaled = ( layer: Layer ): boolean => layer.effects.scale !== 1;
+
+export const isMirrored = ( layer: Layer ): boolean => layer.effects.mirrorX || layer.effects.mirrorY;
+
+export const hasTransform = ( layer: Layer ): boolean => isRotated( layer ) || isScaled( layer ) || isMirrored( layer );
 
 /**
  * Whether provided layer has a blending filter

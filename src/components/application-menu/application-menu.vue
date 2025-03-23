@@ -431,7 +431,7 @@ import { getCanvasInstance } from "@/services/canvas-service";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { cloneCanvas, resizeImage } from "@/utils/canvas-util";
 import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
-import { createSyncSnapshot } from "@/utils/document-util";
+import { cloneLayers, createSyncSnapshot, restoreFromClone } from "@/utils/document-util";
 import { selectionToRectangle } from "@/utils/selection-util";
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
@@ -600,25 +600,27 @@ export default {
             this.openModal( STROKE_SELECTION );
         },
         requestCropToSelection(): void {
+            const { activeDocument } = this;
             const store = this.$store;
             const currentSize = {
                 width  : this.activeDocument.width,
                 height : this.activeDocument.height
             };
-            const selection = [ ...this.activeDocument.activeSelection ];
+            const orgContent = cloneLayers( activeDocument );
+            const selection  = [ ...activeDocument.activeSelection ];
             const { left, top, width, height } = selectionToRectangle( selection );
             const commit = async () => {
-                await store.commit( "cropActiveDocumentContent", { left, top });
+                await store.commit( "cropActiveDocumentContent", { left, top, width, height });
                 store.commit( "setActiveDocumentSize", {
                     width  : Math.min( currentSize.width  - left, width ),
                     height : Math.min( currentSize.height - top,  height )
                 });
-                getCanvasInstance()?.interactionPane.setSelection( null, false );
+                getCanvasInstance()?.interactionPane.setSelection( [], false );
             };
             commit();
             enqueueState( "crop", {
                 async undo() {
-                    await store.commit( "cropActiveDocumentContent", { left: -left, top: -top });
+                    restoreFromClone( activeDocument, orgContent );
                     store.commit( "setActiveDocumentSize", currentSize );
                     getCanvasInstance()?.interactionPane.setSelection( selection, false );
                 },

@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { canvas, type Rectangle } from "zcanvas";
-import type { Document, Shape, Layer } from "@/definitions/document";
+import type { Document, Shape, Text, Layer } from "@/definitions/document";
 import type { CopiedSelection } from "@/definitions/editor";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { createRendererForLayer, getRendererForLayer } from "@/factories/renderer-factory";
@@ -29,7 +29,7 @@ import { rotateRectangle, areEqual } from "@/math/rectangle-math";
 import { fastRound } from "@/math/unit-math";
 import { reverseTransformation } from "@/rendering/operations/transforming";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
-import { createCanvas, getPixelRatio } from "@/utils/canvas-util";
+import { createCanvas, cloneCanvas, getPixelRatio } from "@/utils/canvas-util";
 import { SmartExecutor } from "@/utils/debounce-util";
 import { selectionToRectangle } from "@/utils/selection-util";
 
@@ -290,6 +290,55 @@ export const getAlignableObjects = ( document: Document, excludeLayer?: Layer ):
         return acc;
     }, []);
 }
+
+type ClonedSource = {
+    source: HTMLCanvasElement;
+    mask?: HTMLCanvasElement;
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+    maskX: number;
+    maskY: number;
+    text: Text;
+};
+
+export const cloneLayers = ( document: Document ): Map<string, ClonedSource> => {
+    const orgContent: Map<string, ClonedSource> = new Map();
+
+    for ( const layer of document.layers ) {
+        orgContent.set( layer.id, {
+            source: cloneCanvas( layer.source ),
+            mask: layer.mask ? cloneCanvas( layer.mask ) : undefined,
+            left: layer.left,
+            top: layer.top,
+            width: layer.width,
+            height: layer.height,
+            maskX: layer.maskX,
+            maskY: layer.maskY,
+            text: { ...layer.text },
+        });
+    }
+    return orgContent;
+};
+
+export const restoreFromClone = ( document: Document, clone: Map<string, ClonedSource> ): void => {
+    for ( const layer of document.layers ) {
+        const orgLayer = clone.get( layer.id );
+        if ( !orgLayer ) {
+            return;
+        }
+        layer.source = orgLayer.source;
+        layer.mask   = orgLayer.mask;
+        layer.left   = orgLayer.left;
+        layer.top    = orgLayer.top;
+        layer.width  = orgLayer.width;
+        layer.height = orgLayer.height;
+        layer.maskX  = orgLayer.maskX;
+        layer.maskY  = orgLayer.maskY;
+        layer.text   = { ...orgLayer.text };
+    }
+};
 
 /* internal methods */
 

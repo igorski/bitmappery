@@ -21,14 +21,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { ActionContext, Module } from "vuex";
-import type { Size } from "zcanvas";
+import type { Rectangle, Size } from "zcanvas";
 import type { Document, Layer, Effects, Selection } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { flushLayerRenderers, runRendererFn, getRendererForLayer } from "@/factories/renderer-factory";
 import { flushBlendedLayerCache } from "@/rendering/cache/blended-layer-cache";
 import { getCanvasInstance } from "@/services/canvas-service";
-import { resizeLayerContent, cropLayerContent } from "@/utils/render-util";
+import { resizeLayerContent, cropLayerContent } from "@/utils/layer-util";
 
 export interface DocumentState {
     documents : Document[]; // opened documents
@@ -66,10 +66,10 @@ const DocumentModule: Module<DocumentState, any> = {
         activeLayerMask: ( state: DocumentState, getters: any ): HTMLCanvasElement | undefined => {
             return ( state.maskActive && getters.activeLayer?.mask ) || undefined;
         },
-        activeLayerEffects: ( _: DocumentState, getters: any ): Effects => {
+        activeLayerEffects: ( _state: DocumentState, getters: any ): Effects => {
             return getters.activeLayer?.effects || {};
         },
-        hasSelection: ( _: DocumentState, getters: any ): boolean => {
+        hasSelection: ( _state: DocumentState, getters: any ): boolean => {
             if ( !getters.activeDocument ) {
                 return false;
             }
@@ -229,13 +229,13 @@ const DocumentModule: Module<DocumentState, any> = {
                 await resizeLayerContent( layer, scaleX, scaleY );
             }
         },
-        async cropActiveDocumentContent( state: DocumentState, { left, top }: { left: number, top: number }): Promise<void> {
+        async cropActiveDocumentContent( state: DocumentState, cropRectangle: Rectangle ): Promise<void> {
             const document = state.documents[ state.activeIndex ];
             if ( !document ) {
                 return;
             }
             for ( const layer of document.layers ) {
-                await cropLayerContent( layer, left, top );
+                await cropLayerContent( layer, cropRectangle );
                 getRendererForLayer( layer )?.syncPosition();
             }
         },
