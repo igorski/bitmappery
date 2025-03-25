@@ -1,4 +1,4 @@
-import { it, afterEach, beforeEach, describe, expect, vi, afterAll } from "vitest";
+import { it, afterEach, beforeEach, describe, expect, vi } from "vitest";
 import { mockZCanvas, createMockCanvasElement } from "../../mocks";
 import { type Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
@@ -36,7 +36,7 @@ vi.mock( "@/utils/layer-util", async ( importOriginal ) => {
 });
 
 describe( "Vuex document module", () => {
-    afterAll(() => {
+    afterEach(() => {
         vi.resetAllMocks();
     });
 
@@ -389,8 +389,13 @@ describe( "Vuex document module", () => {
         });
 
         describe( "when removing layers", () => {
-            it( "should be able to remove a layer by reference", () => {
-                const state = createDocumentState({
+            let state: DocumentState;
+            let layer1: Layer;
+            let layer2: Layer;
+            let layer3: Layer;
+
+            beforeEach(() => {
+                state = createDocumentState({
                     documents: [ DocumentFactory.create({
                         name: "foo",
                         layers: [
@@ -402,14 +407,33 @@ describe( "Vuex document module", () => {
                     activeIndex: 0,
                     activeLayerIndex: 1,
                 });
-                const [ layer1, layer2, layer3 ] = state.documents[ 0 ].layers;
+                ([ layer1, layer2, layer3 ] = state.documents[ 0 ].layers );
+            });
+
+            it( "should be able to remove a layer by reference", () => {
+                mutations.removeLayer( state, 1 );
+
+                expect( state.documents[ 0 ].layers ).toEqual([ layer1, layer3 ]);
+            });
+
+            it( "should set the active layer index to the first Layer", () => {
+                mutations.removeLayer( state, 1 );
+
+                expect( state.activeLayerIndex ).toEqual( 0 );
+            });
+
+            it( "should flush the Layer renderers", () => {
                 mockUpdateFn = vi.fn();
 
                 mutations.removeLayer( state, 1 );
 
-                expect( state.documents[ 0 ].layers ).toEqual([ layer1, layer3 ]);
-                expect( state.activeLayerIndex ).toEqual( 0 );
                 expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "flushLayerRenderers", layer2 );
+            });
+
+            it( "should flush the blended layer cache fully", () => {
+                mutations.removeLayer( state, 1 );
+
+                expect( mockFlushBlendedLayerCache ).toHaveBeenCalledWith( true );
             });
         });
 
@@ -479,6 +503,7 @@ describe( "Vuex document module", () => {
             expect( state.documents[ 0 ].layers ).toEqual([
                 orgLayers[ 1 ], orgLayers[ 2 ], orgLayers[ 0 ], orgLayers[ 3 ]
             ]);
+            expect( mockFlushBlendedLayerCache ).toHaveBeenCalledWith( true );
         });
 
         describe( "when setting the active layer content", () => {

@@ -151,6 +151,7 @@ const DocumentModule: Module<DocumentState, any> = {
                 layers.push( oldLayers.find( layer => layer.id === id ));
             });
             document.layers = layers;
+            flushBlendedLayerCache( true );
         },
         removeLayer( state: DocumentState, index: number ): void {
             const layer = state.documents[ state.activeIndex ]?.layers[ index ];
@@ -158,6 +159,7 @@ const DocumentModule: Module<DocumentState, any> = {
                 return;
             }
             flushLayerRenderers( layer );
+            flushBlendedLayerCache( true );
             state.documents[ state.activeIndex ].layers.splice( index, 1 );
             if ( state.activeLayerIndex === index ) {
                 state.activeLayerIndex = Math.max( 0, index - 1 );
