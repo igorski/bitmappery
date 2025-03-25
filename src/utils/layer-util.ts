@@ -90,6 +90,11 @@ export const cropLayerContent = async ( layer: Layer, cropRectangle: Rectangle )
         if ( layer.mask ) {
             layer.mask = await resizeImage( layer.mask, width, height, left, top, width, height );
         }
+
+        if ( isLargerThanCrop ) {
+            layer.width  = width;
+            layer.height = height;
+        }
     } else {
         layer.left -= left;
         layer.top  -= top;

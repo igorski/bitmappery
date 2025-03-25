@@ -135,7 +135,7 @@ describe( "Layer utilities", () => {
     });
 
     describe( "when cropping a Layer", () => {
-        it( "should resize the source contents", () => {
+        it( "should resize the source contents", async () => {
             const source = createMockCanvasElement();
 
             const layer = LayerFactory.create({
@@ -145,7 +145,7 @@ describe( "Layer utilities", () => {
                 height: 100,
                 source,
             });
-            cropLayerContent( layer, { left: 10, top: 20, width: 40, height: 50 });
+            await cropLayerContent( layer, { left: 10, top: 20, width: 40, height: 50 });
 
             expect( mockResizeImage ).toHaveBeenCalledWith( source, 40, 50, 10, 20, 40, 50 );
         });
@@ -198,6 +198,20 @@ describe( "Layer utilities", () => {
             expect( layer.top ).toEqual( -25 );
         });
 
+        it( "should update the Layer dimensions when the Layer size is larger than the crop size", async () => {
+            const layer = LayerFactory.create({
+                left: 0,
+                top: 0,
+                width: 80,
+                height: 100,
+                source: createMockCanvasElement(),
+            });
+            await cropLayerContent( layer, { left: 10, top: 20, width: 40, height: 50 });
+
+            expect( layer.width ).toEqual( 40 );
+            expect( layer.height ).toEqual( 50 );
+        });
+
         it( "should not resize the source contents but offset the Layer when the Layer size is smaller than the crop size", () => {
             const layer = LayerFactory.create({
                 left: 0,
@@ -211,6 +225,20 @@ describe( "Layer utilities", () => {
             expect( mockResizeImage ).not.toHaveBeenCalled();
             expect( layer.left ).toEqual( -10 );
             expect( layer.top ).toEqual( -20 );
+        });
+
+        it( "should not update the Layer dimensions when the Layer size is smaller than the crop size", () => {
+            const layer = LayerFactory.create({
+                left: 0,
+                top: 0,
+                width: 30,
+                height: 40,
+                source: createMockCanvasElement(),
+            });
+            cropLayerContent( layer, { left: 10, top: 20, width: 40, height: 50 });
+
+            expect( layer.width ).toEqual( 30 );
+            expect( layer.height ).toEqual( 40 );
         });
     });
 });
