@@ -47,7 +47,7 @@ export default ToolTypes;
 
 // certain tools are handled by the top layer interaction pane, not individual layer renderers
 
-export const PANE_TYPES = [ ToolTypes.MOVE, ToolTypes.LASSO, ToolTypes.SELECTION, ToolTypes.WAND ];
+export const PANE_TYPES = [ ToolTypes.MOVE, ToolTypes.LASSO, ToolTypes.SELECTION, ToolTypes.WAND, ToolTypes.ZOOM ];
 export const usesInteractionPane = ( tool: ToolTypes ): boolean => PANE_TYPES.includes( tool );
 
 export const SELECTION_TOOLS = [ ToolTypes.SELECTION, ToolTypes.LASSO, ToolTypes.WAND ];

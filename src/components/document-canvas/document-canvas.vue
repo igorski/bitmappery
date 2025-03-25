@@ -434,6 +434,7 @@ export default {
             if ( !zCanvas ) {
                 return;
             }
+            console.info('update interaction pane')
             const enabled = true; // always enabled (shows active layer outline)//this.panMode || this.layerSelectMode || this.selectMode;
             let mode: InteractionModes;
             if ( this.panMode ) {
@@ -442,6 +443,9 @@ export default {
                 mode = InteractionModes.MODE_LAYER_SELECT;
             } else if ( this.selectMode ) {
                 mode = InteractionModes.MODE_SELECTION;
+            } else if ( this.activeTool === ToolTypes.ZOOM ) {
+                console.info('ohohoho, zoom zoom')
+                mode = InteractionModes.MODE_ZOOM;
             } else {
                 return this.handleActiveTool( this.activeTool ); // likely unsetting mode through keyboard shortcut (e.g. space-pan/(de)select all)
             }

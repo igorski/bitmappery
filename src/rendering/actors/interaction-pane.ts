@@ -43,6 +43,7 @@ export enum InteractionModes {
     MODE_PAN = 0,
     MODE_LAYER_SELECT,
     MODE_SELECTION,
+    MODE_ZOOM,
 };
 
 const DASH_SIZE  = 10;
@@ -105,7 +106,7 @@ export default class InteractionPane extends sprite {
 
         const document = this.getActiveDocument();
 
-        if ( document && mode === InteractionModes.MODE_SELECTION ) {
+        if ( document && [ InteractionModes.MODE_SELECTION, InteractionModes.MODE_ZOOM ].includes( mode )) {
             // create empty selection (or reset to empty selection when switching between
             // rectangle selection tool modes)
             if ( !document.activeSelection ) {
@@ -115,7 +116,7 @@ export default class InteractionPane extends sprite {
             }
             this._selectionClosed = isShapeClosed( getLastShape( document.activeSelection ));
             // we distinguish between the rectangular and lasso selection tool
-            this._isRectangleSelect = activeTool === ToolTypes.SELECTION;
+            this._isRectangleSelect = activeTool === ToolTypes.SELECTION || activeTool === ToolTypes.ZOOM;
             // selection mode has an always active move listener
             this.forceMoveListener();
         } else {
@@ -266,6 +267,7 @@ export default class InteractionPane extends sprite {
                 break;
 
             case InteractionModes.MODE_SELECTION:
+            case InteractionModes.MODE_ZOOM:
                 const isShiftKeyDown = KeyboardService.hasShift();
                 let { activeSelection } = this.getActiveDocument();
                 let completeSelection = false;
@@ -362,6 +364,46 @@ export default class InteractionPane extends sprite {
         const now           = Date.now();
         const isDoubleClick = ( now - this._lastRelease ) < 250;
         this._lastRelease   = now;
+
+        if ( this.mode === InteractionModes.MODE_ZOOM ) {
+            const { width, height } = calculateSelectionSize( this._dragStartEventCoordinates, this._pointer, this._toolOptions );
+            const selection = rectToCoordinateList( this._dragStartEventCoordinates.x, this._dragStartEventCoordinates.y, width, height );
+
+            console.info('complete die zoom, fucker!', width, height,selection);
+
+            const scaleX = this.canvas.getViewport().width / width;
+            const scaleY = this.canvas.getViewport().height / height;
+            const scale = Math.min(scaleX, scaleY); // Maintain aspect ratio
+
+            function calculateOffset(
+                selectionRect: Rectangle, 
+                viewportSize: Viewport, 
+                scale: number
+            ): { offsetX: number; offsetY: number } {
+                const centerX = selectionRect.x + selectionRect.width / 2;
+                const centerY = selectionRect.y + selectionRect.height / 2;
+                
+                const viewportCenterX = viewportSize.width / 2;
+                const viewportCenterY = viewportSize.height / 2;
+                
+                // Offset needs to center the selected area in the viewport
+                const offsetX = viewportCenterX - centerX * scale;
+                const offsetY = viewportCenterY - centerY * scale;
+            
+                return { offsetX, offsetY };
+            }
+            const left = Math.min( this._dragStartEventCoordinates.x, this._pointer.x );
+            const top = Math.min( this._dragStartEventCoordinates.y, this._pointer.y );
+            const { offsetX, offsetY } = calculateOffset({x:left, y:top, width, height}, this.canvas.getViewport(), scale);
+            console.info('offset:'+offsetX + ' x ' + offsetY);
+
+            this.canvas.store.commit( "setToolOptionValue", {
+                tool: ToolTypes.ZOOM,
+                option: "level",
+                value: scale,
+            });
+            this.canvas.panViewport( offsetX, offsetY );
+        }
 
         if ( this.mode === InteractionModes.MODE_SELECTION ) {
             this._isAddingToExistingSelection = false;
