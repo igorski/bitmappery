@@ -458,7 +458,7 @@ export default class InteractionPane extends sprite {
                 if ( !this._selectionClosed ) {
                     const { zoomFactor } = this.canvas;
                     ctx.beginPath();
-                    ctx.lineWidth   = ctx.lineWidth * ( 2 / zoomFactor );
+                    ctx.lineWidth   = 2 / zoomFactor;
                     ctx.strokeStyle = "#0db0bc";
                     const size = firstPoint && isPointInRange( this._pointer.x, this._pointer.y, firstPoint.x, firstPoint.y, SNAP_MARGIN / zoomFactor ) ? 15 : 5;
                     ctx.arc( localPointerX, localPointerY, size / zoomFactor, 0, 2 * Math.PI );

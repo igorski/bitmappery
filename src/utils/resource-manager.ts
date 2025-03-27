@@ -39,7 +39,7 @@ export const imageToResource = async ( imageElement: HTMLImageElement, type = "i
     cvs.width  = imageElement.naturalWidth  || imageElement.width;
     cvs.height = imageElement.naturalHeight || imageElement.height;
 
-    cvs.getContext( "2d" ).drawImage( imageElement, 0, 0 );
+    cvs.getContext( "2d" )!.drawImage( imageElement, 0, 0 );
 
     const blob = await canvasToBlob( cvs, type, optQuality );
     return blobToResource( blob );
