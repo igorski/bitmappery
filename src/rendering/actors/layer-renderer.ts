@@ -89,6 +89,7 @@ export default class LayerRenderer extends ZoomableSprite {
     protected _orgSourceToStore: HTMLCanvasElement | undefined;
     protected _pendingPaintState: number | undefined; // ReturnType<typeof setTimeout>;
     protected _pendingEffectsRender: boolean;
+    protected _unmaskedBitmap: HTMLCanvasElement | undefined;
 
     constructor( layer: Layer ) {
         const { left, top, width, height } = layer;
@@ -115,6 +116,10 @@ export default class LayerRenderer extends ZoomableSprite {
 
     setActionTarget( target: "source" | "mask" = "source" ): void {
         this.actionTarget = target;
+    }
+
+    setUnmaskedBitmap( unmaskedBitmap?: HTMLCanvasElement ): void {
+        this._unmaskedBitmap = unmaskedBitmap;
     }
 
     getStore(): Store<BitMapperyState> {
@@ -702,7 +707,9 @@ export default class LayerRenderer extends ZoomableSprite {
             let maskComposite: CanvasContextPairing | undefined;
             if ( isDrawingOnMask ) {
                 maskComposite = getMaskComposite( this.getPaintSize() ); // temporary canvas to combine paintCanvas with source
-                drawContext   = maskComposite.ctx;
+                if ( !isErasingOnMask ) {
+                    drawContext = maskComposite.ctx;
+                }
             }
 
             drawContext.save(); // transformation save()
@@ -714,25 +721,22 @@ export default class LayerRenderer extends ZoomableSprite {
                 drawBounds = transformedBounds;
             }
 
+            // invoke base class behaviour to render bitmap
+            super.draw( drawContext, transformCanvas ? undefined : viewport, drawBounds );
+
             if ( isErasingOnMask ) {
-                // problem 1: all filters are gone, can we draw on _bitmap ? -> cache unmasked image?
-                // problem 2: transformations all out of whack 
-                // render the drawable canvas onto the mask
-                const clonedMask = cloneCanvas( this.layer.mask );
+                const clonedMask = cloneCanvas( this._unmaskedBitmap );
+                
                 renderDrawableCanvas(
-                    clonedMask.getContext( "2d" ), this.getPaintSize(), this.canvas, this._brush.options.opacity, "destination-out"
+                    clonedMask.getContext( "2d" ), this.getPaintSize(), this.canvas, this._brush.options.opacity, "destination-out", this.layer
                 );
-console.info('bitmap size:'+this._bitmap.width+',mask size:'+this.layer.mask.width + ',source size:'+this.layer.source.width+',drawable size:'+this.getPaintSize().width)
                 // stamp the temporary mask onto a clone of the source
-                const erasedMaskBitmap = cloneCanvas( this.layer.source );
+                const erasedMaskBitmap = cloneCanvas( this._bitmap );
                 maskImage( erasedMaskBitmap.getContext( "2d" )!, this.layer.source, clonedMask, this.layer.source.width, this.layer.source.height, this.layer.maskX, this.layer.maskY );
 
                 // render result
 
                 this.drawBitmap( documentContext, erasedMaskBitmap, transformCanvas ? undefined : viewport, drawBounds );
-            } else {
-                // invoke base class behaviour to render bitmap
-                super.draw( drawContext, transformCanvas ? undefined : viewport, drawBounds );
             }
 
             if ( applyBlending ) {
@@ -781,7 +785,8 @@ console.info('bitmap size:'+this._bitmap.width+',mask size:'+this.layer.mask.wid
 
         flushLayerCache( this.layer );
 
-        this._bitmap      = null;
+        this._bitmap = null;
+        this._unmaskedBitmap = null;
         this._bitmapReady = false;
     }
 };

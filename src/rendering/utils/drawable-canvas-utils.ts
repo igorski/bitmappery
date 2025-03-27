@@ -58,14 +58,27 @@ export const getDrawableCanvas = ( size: Size ): CanvasContextPairing => {
  */
 export const renderDrawableCanvas = (
     destinationContext: CanvasRenderingContext2D, destinationSize: Size, zoomableCanvas: ZoomableCanvas,
-    alpha = 1, compositeOperation?: GlobalCompositeOperation, offset?: Point
+    alpha = 1, compositeOperation?: GlobalCompositeOperation, layer?: Layer
 ): void => {
     const source = drawableCanvas.cvs;
     const { documentScale } = zoomableCanvas;
 
-    const viewport = offset ? zoomableCanvas.getViewport() : undefined;
-
     destinationContext.save();
+
+    // correct for the optional layer transformation effects when Layer is provided
+    let offset: Point | undefined;
+
+    if ( layer ) {
+        const { width, height } = layer;
+        const { scale } = layer.effects;
+
+        offset = {
+            x: ( width  * scale / 2 ) - ( width  / 2 ) - layer.left,
+            y: ( height * scale / 2 ) - ( height / 2 ) - layer.top,
+        };
+        reverseTransformation( destinationContext, layer );
+    }
+    const viewport = offset ? zoomableCanvas.getViewport() : undefined;
 
     destinationContext.globalAlpha = alpha;
     if ( compositeOperation !== undefined ) {
@@ -79,10 +92,10 @@ export const renderDrawableCanvas = (
         (( viewport?.top  ?? 0 ) * documentScale ) + ( offset?.y ?? 0 ),
         destinationSize.width, destinationSize.height
     );
-
     destinationContext.restore();
 };
 
+// TODO can go
 /**
  * Commit the contents of the drawableCanvas onto provided Layers source Canvas, to be invoked when drawing has completed.
  * This takes the associated destination Layer properties into account, ensuring that the visual location of the drawableCanvas
@@ -94,22 +107,7 @@ export const commitDrawingToLayer = (
 ) => {
     const destinationContext = destinationCanvas.getContext( "2d" ) as CanvasRenderingContext2D;
 
-    destinationContext.save();
-
-    // correct for the optional layer transformation effects
-
-    reverseTransformation( destinationContext, layer );
-    
-    const { width, height } = layer;
-    const { scale } = layer.effects;
-    const x = ( width  * scale / 2 ) - ( width  / 2 ) - layer.left;
-    const y = ( height * scale / 2 ) - ( height / 2 ) - layer.top;
-
-    // render
-
-    renderDrawableCanvas( destinationContext, destinationSize, zoomableCanvas, alpha, compositeOperation, { x, y });
-
-    destinationContext.restore();
+    renderDrawableCanvas( destinationContext, destinationSize, zoomableCanvas, alpha, compositeOperation, layer );
 };
 
 /**
