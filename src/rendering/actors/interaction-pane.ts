@@ -48,6 +48,8 @@ export enum InteractionModes {
 const DASH_SIZE  = 10;
 const DASH_SPEED = 1; // per frame
 
+const SNAP_MARGIN = 5;
+
 /**
  * InteractionPane is a top-level canvas-sized Sprite that captures all Canvas
  * interaction events. This is used to:
@@ -233,8 +235,8 @@ export default class InteractionPane extends sprite {
 
     closeSelection(): void {
         this._selectionClosed = true;
-        // triggers reactivity (as activeSelection is a nested array)
         this.canvas.store.commit( "setActiveSelection", [ ...this.getActiveDocument().activeSelection ]);
+        storeSelectionHistory( this.getActiveDocument() );
     }
 
     /* zCanvas.sprite overrides */
@@ -281,7 +283,7 @@ export default class InteractionPane extends sprite {
                     }));
 
                     if ( isShiftKeyDown ) {
-                        // TODO check if mergable first in above condition
+                        // TODO check whether mergable first in above condition
                         activeSelection = [ mergeShapes( selectedShape, getLastShape( activeSelection ) ?? [] ) ];
                     } else {
                         activeSelection = [ ...activeSelection, selectedShape ];
@@ -306,7 +308,7 @@ export default class InteractionPane extends sprite {
                         if ( isShiftKeyDown ) {
                             ({ x, y } = snapToAngle( x, y, selectionShape.at( -1 ) ));
                         }
-                        else if ( isPointInRange( x, y, firstPoint.x, firstPoint.y, 5 / this.canvas.zoomFactor )) {
+                        else if ( isPointInRange( x, y, firstPoint.x, firstPoint.y, SNAP_MARGIN / this.canvas.zoomFactor )) {
                             // point was in range of start coordinate, snap and close selection
                             x = firstPoint.x;
                             y = firstPoint.y;
@@ -316,8 +318,7 @@ export default class InteractionPane extends sprite {
                     selectionShape.push({ x, y });
                 }
                 if ( completeSelection ) {
-                    storeSelectionHistory( this.getActiveDocument() );
-                    this._selectionClosed = true;
+                    this.closeSelection();
                 }
                 break;
         }
@@ -334,13 +335,32 @@ export default class InteractionPane extends sprite {
             default:
                 return;
             case InteractionModes.MODE_SELECTION:
-                // when mouse is down and selection is closed, drag the selection
-                if ( this._selectionClosed && this._pointerDown ) {
+                if ( this._pointerDown ) {
                     const document = this.getActiveDocument();
                     const currentSelection = document.activeSelection;
-                    document.activeSelection = currentSelection.map( s => translatePoints( s, x - this._dragStartEventCoordinates.x, y - this._dragStartEventCoordinates.y ));
-                    this._dragStartEventCoordinates = { x, y }; // update to current position so we can easily move the selection using relative deltas
-                    storeSelectionHistory( document, currentSelection, "drag" );
+
+                    if ( this._selectionClosed ) {
+                        // when mouse is down and selection is closed, drag the selection
+                        document.activeSelection = currentSelection.map( s => translatePoints( s, x - this._dragStartEventCoordinates.x, y - this._dragStartEventCoordinates.y ));
+                        this._dragStartEventCoordinates = { x, y }; // update to current position so we can easily move the selection using relative deltas
+                        storeSelectionHistory( document, currentSelection, "drag" );
+                    } else if ( !this._isRectangleSelect ) {
+                        // free-form drawing
+                        let closeSelection = false;
+                        let selectionShape: Shape = getLastShape( currentSelection );
+                        const firstPoint = selectionShape[ 0 ];
+                        if ( firstPoint && selectionShape.length > ( SNAP_MARGIN * 4 ) && isPointInRange( x, y, firstPoint.x, firstPoint.y, SNAP_MARGIN / this.canvas.zoomFactor )) {
+                            // point was in range of start coordinate, snap and close selection
+                            x = firstPoint.x;
+                            y = firstPoint.y;
+                            closeSelection = true;
+                        }
+                        selectionShape.push({ x, y });
+                        if ( closeSelection ) {
+                            this.closeSelection();
+                            this.handleRelease( x, y );
+                        }
+                    }
                 }
                 break;
             case InteractionModes.MODE_PAN:
@@ -382,14 +402,12 @@ export default class InteractionPane extends sprite {
                     }, this._toolOptions );
                     document.activeSelection[ document.activeSelection.length - 1 ] = rectToCoordinateList( firstPoint.x, firstPoint.y, width, height );
                     this.closeSelection();
-                    storeSelectionHistory( document );
                 }
             }
             else if ( isDoubleClick && !this._selectionClosed ) {
                 // double click on unclosed lasso tool selections auto-closes the selection
                 document.activeSelection.at( -1 ).push({ ...document.activeSelection.at( -1 )[ 0 ] });
                 this.closeSelection();
-                storeSelectionHistory( document );
             }
         }
     }
@@ -442,7 +460,7 @@ export default class InteractionPane extends sprite {
                     ctx.beginPath();
                     ctx.lineWidth   = ctx.lineWidth * ( 2 / zoomFactor );
                     ctx.strokeStyle = "#0db0bc";
-                    const size = firstPoint && isPointInRange( this._pointer.x, this._pointer.y, firstPoint.x, firstPoint.y, 5 / zoomFactor ) ? 15 : 5;
+                    const size = firstPoint && isPointInRange( this._pointer.x, this._pointer.y, firstPoint.x, firstPoint.y, SNAP_MARGIN / zoomFactor ) ? 15 : 5;
                     ctx.arc( localPointerX, localPointerY, size / zoomFactor, 0, 2 * Math.PI );
                     ctx.stroke();
                 }

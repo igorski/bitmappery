@@ -6,6 +6,7 @@
         "widthToHeight": "Width : height",
         "existingSelection": "Existing selection",
         "coordinates": "Coordinates",
-        "dimensions": "Dimensions"
+        "dimensions": "Dimensions",
+        "lassoExpl": "Create polygonal selections by pressing at each desired corner point or press down on the canvas while moving to create a free-form selection."
     }
 }

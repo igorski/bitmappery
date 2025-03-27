@@ -27,7 +27,8 @@
         @focusout="handleBlur"
     >
         <h3 v-t="'selection'"></h3>
-        <template v-if="!isLassoSelection">
+        <p v-if="isLassoSelection" v-t="'lassoExpl'"></p>
+        <template v-else>
             <div class="wrapper input">
                 <label v-t="'lockRatio'" v-tooltip="$t('shiftKey')"></label>
                 <toggle-button
