@@ -39,7 +39,7 @@ import { clipContextToSelection, clipLayer } from "@/rendering/operations/clippi
 import { renderClonedStroke, setCloneSource } from "@/rendering/operations/cloning";
 import { renderBrushStroke } from "@/rendering/operations/drawing";
 import { floodFill } from "@/rendering/operations/fill";
-import { getMaskComposite, disposeMaskComposite } from "@/rendering/operations/masking";
+import { getMaskComposite, disposeMaskComposite, maskImage } from "@/rendering/operations/masking";
 import { snapToGuide } from "@/rendering/operations/snapping";
 import { applyTransformation } from "@/rendering/operations/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
@@ -635,14 +635,14 @@ export default class LayerRenderer extends ZoomableSprite {
         }
     }
 
-    override drawCropped( canvasContext: CanvasRenderingContext2D, transformedBounds: TransformedDrawBounds ): void {
+    override drawCropped( canvasContext: CanvasRenderingContext2D, bitmap: HTMLCanvasElement, transformedBounds: TransformedDrawBounds ): void {
         if ( !isScaled( this.layer ) ) {
-            return super.drawCropped( canvasContext, transformedBounds );
+            return super.drawCropped( canvasContext, bitmap, transformedBounds );
         }
         const scale = 1 / this.layer.effects.scale;
         const { src, dest } = transformedBounds;
         canvasContext.drawImage(
-            this._bitmap,
+            bitmap,
             ( HALF + src.left   * scale ) << 0,
             ( HALF + src.top    * scale ) << 0,
             ( HALF + src.width  * scale ) << 0,
@@ -689,7 +689,8 @@ export default class LayerRenderer extends ZoomableSprite {
             let drawContext: CanvasRenderingContext2D = documentContext;
 
             const isPainting      = this.isPainting();
-            const isDrawingOnMask = isPainting && isMaskable( this.layer, this.getStore() ) && this._toolType !== ToolTypes.ERASER; // erasing from mask needs some work ;-)
+            const isDrawingOnMask = isPainting && isMaskable( this.layer, this.getStore() );
+            const isErasingOnMask = isDrawingOnMask && this._toolType === ToolTypes.ERASER;
             const applyBlending   = enabled && blendMode !== BlendModes.NORMAL && !isDrawingOnMask;
 
             if ( applyBlending ) {
@@ -713,9 +714,27 @@ export default class LayerRenderer extends ZoomableSprite {
                 drawBounds = transformedBounds;
             }
 
-            // invoke base class behaviour to render bitmap
-            super.draw( drawContext, transformCanvas ? undefined : viewport, drawBounds );
-            
+            if ( isErasingOnMask ) {
+                // problem 1: all filters are gone, can we draw on _bitmap ? -> cache unmasked image?
+                // problem 2: transformations all out of whack 
+                // render the drawable canvas onto the mask
+                const clonedMask = cloneCanvas( this.layer.mask );
+                renderDrawableCanvas(
+                    clonedMask.getContext( "2d" ), this.getPaintSize(), this.canvas, this._brush.options.opacity, "destination-out"
+                );
+console.info('bitmap size:'+this._bitmap.width+',mask size:'+this.layer.mask.width + ',source size:'+this.layer.source.width+',drawable size:'+this.getPaintSize().width)
+                // stamp the temporary mask onto a clone of the source
+                const erasedMaskBitmap = cloneCanvas( this.layer.source );
+                maskImage( erasedMaskBitmap.getContext( "2d" )!, this.layer.source, clonedMask, this.layer.source.width, this.layer.source.height, this.layer.maskX, this.layer.maskY );
+
+                // render result
+
+                this.drawBitmap( documentContext, erasedMaskBitmap, transformCanvas ? undefined : viewport, drawBounds );
+            } else {
+                // invoke base class behaviour to render bitmap
+                super.draw( drawContext, transformCanvas ? undefined : viewport, drawBounds );
+            }
+
             if ( applyBlending ) {
                 blendLayer( documentContext, drawContext, blendMode );
             }
@@ -723,7 +742,7 @@ export default class LayerRenderer extends ZoomableSprite {
             drawContext.restore(); // transformation restore()
 
             // user is currently drawing on this layer, render contents of drawableCanvas onto screen
-            if ( isPainting ) {
+            if ( isPainting && !isErasingOnMask ) {
                 const clipContext = !this._selection && ( this._bounds.left !== 0 || this._bounds.top !== 0 || transformedBounds );
                 if ( clipContext ) {
                     // when the layer if offset/transformed and there is no active selection, clip the out of bounds content
