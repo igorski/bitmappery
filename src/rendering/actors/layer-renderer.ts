@@ -89,7 +89,7 @@ export default class LayerRenderer extends ZoomableSprite {
     protected _orgSourceToStore: HTMLCanvasElement | undefined;
     protected _pendingPaintState: number | undefined; // ReturnType<typeof setTimeout>;
     protected _pendingEffectsRender: boolean;
-    protected _unmaskedBitmap: HTMLCanvasElement | undefined;
+    protected _unmaskedBitmap: HTMLCanvasElement | undefined; // a reference to the effected source w/out mask applied
 
     constructor( layer: Layer ) {
         const { left, top, width, height } = layer;
@@ -119,7 +119,7 @@ export default class LayerRenderer extends ZoomableSprite {
     }
 
     setUnmaskedBitmap( unmaskedBitmap?: HTMLCanvasElement ): void {
-        this._unmaskedBitmap = unmaskedBitmap;
+        this._unmaskedBitmap = unmaskedBitmap; // this bitmap will only be defined when the layer has a mask
     }
 
     getStore(): Store<BitMapperyState> {
@@ -707,11 +707,11 @@ export default class LayerRenderer extends ZoomableSprite {
             let maskComposite: CanvasContextPairing | undefined;
             if ( isDrawingOnMask ) {
                 maskComposite = getMaskComposite( this.getPaintSize() ); // temporary canvas to combine paintCanvas with source
+              
                 if ( !isErasingOnMask ) {
                     drawContext = maskComposite.ctx;
                 }
             }
-
             drawContext.save(); // transformation save()
 
             const transformedBounds = applyTransformation( drawContext, this.layer, viewport );
@@ -725,18 +725,15 @@ export default class LayerRenderer extends ZoomableSprite {
             super.draw( drawContext, transformCanvas ? undefined : viewport, drawBounds );
 
             if ( isErasingOnMask ) {
-                const clonedMask = cloneCanvas( this._unmaskedBitmap );
-                
+                const tempMask = cloneCanvas( this._unmaskedBitmap ); // will contain drawable canvas contents to be used as eraser
                 renderDrawableCanvas(
-                    clonedMask.getContext( "2d" ), this.getPaintSize(), this.canvas, this._brush.options.opacity, "destination-out", this.layer
+                    tempMask.getContext( "2d" )!, this.getPaintSize(), this.canvas,
+                    this._brush.options.opacity, "destination-out", this.layer
                 );
-                // stamp the temporary mask onto a clone of the source
-                const erasedMaskBitmap = cloneCanvas( this._bitmap );
-                maskImage( erasedMaskBitmap.getContext( "2d" )!, this.layer.source, clonedMask, this.layer.source.width, this.layer.source.height, this.layer.maskX, this.layer.maskY );
+                const tempSource = cloneCanvas( this._bitmap as HTMLCanvasElement ); // used to stamp the temporary mask on
+                maskImage( tempSource.getContext( "2d" )!, this._unmaskedBitmap, tempMask, this.layer.source.width, this.layer.source.height, this.layer.maskX, this.layer.maskY );
 
-                // render result
-
-                this.drawBitmap( documentContext, erasedMaskBitmap, transformCanvas ? undefined : viewport, drawBounds );
+                this.drawBitmap( documentContext, tempSource, transformCanvas ? undefined : viewport, drawBounds );
             }
 
             if ( applyBlending ) {
@@ -745,7 +742,7 @@ export default class LayerRenderer extends ZoomableSprite {
             
             drawContext.restore(); // transformation restore()
 
-            // user is currently drawing on this layer, render contents of drawableCanvas onto screen
+            // user is currently drawing on this layer, render contents of drawableCanvas onto screen for live preview
             if ( isPainting && !isErasingOnMask ) {
                 const clipContext = !this._selection && ( this._bounds.left !== 0 || this._bounds.top !== 0 || transformedBounds );
                 if ( clipContext ) {
@@ -787,6 +784,5 @@ export default class LayerRenderer extends ZoomableSprite {
 
         this._bitmap = null;
         this._unmaskedBitmap = null;
-        this._bitmapReady = false;
     }
 };
