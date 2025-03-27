@@ -109,7 +109,6 @@ export default {
             let lastTap = 0;
             this.listener.on( "tap", () => {
                 const now = window.performance.now();
-                handleGestureStart();
                 if ( now - lastTap < 300 ) {
                     this.setToolOptionValue({
                         tool   : ToolTypes.ZOOM,
