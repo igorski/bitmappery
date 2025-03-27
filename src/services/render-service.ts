@@ -133,7 +133,11 @@ export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): 
 
     if ( applyMask ) {
         //console.info( "apply mask" );
-        renderMask( layer, ctx, applyFilter ? cloneCanvas( cvs ) : layer.source, width, height );
+        const unmaskedBitmap = cloneCanvas( cvs );
+        renderer.setUnmaskedBitmap( unmaskedBitmap );
+        renderMask( layer, ctx, applyFilter ? unmaskedBitmap : layer.source, width, height );
+    } else {
+        renderer.setUnmaskedBitmap( undefined );
     }
 
     // step 4. update cache and on-screen canvas contents

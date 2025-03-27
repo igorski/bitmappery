@@ -55,11 +55,11 @@ export const disposeMaskComposite = (): void => {
  * the output is drawn onto provided destinationContext.
  */
 export const maskImage = (
-    destinationContext: CanvasRenderingContext2D, image: HTMLCanvasElement, mask: HTMLCanvasElement,
-    width: number, height: number, maskOffsetX = 0, maskOffsetY = 0
+    destinationContext: CanvasRenderingContext2D, source: HTMLCanvasElement, mask: HTMLCanvasElement,
+    sourceWidth: number, sourceHeight: number, maskOffsetX = 0, maskOffsetY = 0
 ): void => {
-    destinationContext.clearRect( 0, 0, width, height );
-    destinationContext.drawImage( image, 0, 0 );
+    destinationContext.clearRect( 0, 0, sourceWidth, sourceHeight );
+    destinationContext.drawImage( source, 0, 0 );
 
     destinationContext.save();
 

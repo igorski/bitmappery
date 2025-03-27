@@ -31,9 +31,9 @@ class ZoomableSprite extends sprite {
         super( opts );
     }
 
-    drawCropped( canvasContext: CanvasRenderingContext2D, { src, dest }: TransformedDrawBounds ): void {
+    drawCropped( canvasContext: CanvasRenderingContext2D, bitmap: HTMLCanvasElement, { src, dest }: TransformedDrawBounds ): void {
         canvasContext.drawImage(
-            this._bitmap,
+            bitmap,
             ( HALF + src.left )    << 0,
             ( HALF + src.top )     << 0,
             ( HALF + src.width )   << 0,
@@ -54,19 +54,21 @@ class ZoomableSprite extends sprite {
     // multiple transformations take place on the source (see LayerRenderer#draw())
 
     draw( canvasContext: CanvasRenderingContext2D, viewport?: Viewport, bounds: Rectangle = this._bounds ): void {
-        let render = this._bitmapReady;
-        if ( render && viewport ) {
-            render = isInsideViewport( bounds, viewport );
+        if ( this._bitmapReady ) {
+            this.drawBitmap( canvasContext, this._bitmap as HTMLCanvasElement, viewport, bounds );
         }
-        if ( !render ) {
+    }
+
+    drawBitmap( canvasContext: CanvasRenderingContext2D, bitmap: HTMLCanvasElement, viewport?: Viewport, bounds: Rectangle = this._bounds ): void {
+        if ( viewport && !isInsideViewport( bounds, viewport )) {
             return;
         }
         if ( viewport ) {
-            this.drawCropped( canvasContext, calculateDrawRectangle( bounds, viewport ));
+            this.drawCropped( canvasContext, bitmap, calculateDrawRectangle( bounds, viewport ));
         } else {
             const { left, top, width, height } = bounds;
             canvasContext.drawImage(
-                this._bitmap,
+                bitmap,
                 ( HALF + left )   << 0,
                 ( HALF + top )    << 0,
                 ( HALF + width )  << 0,

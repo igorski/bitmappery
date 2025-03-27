@@ -55,17 +55,34 @@ export const getDrawableCanvas = ( size: Size ): CanvasContextPairing => {
  * Render the contents of the drawableCanvas onto given destinationContext using the scaling properties
  * corresponding to provided documentScale. This can be used to render the contents of the drawable canvas
  * while drawing is still taking place for live preview purposes.
+ * 
+ * When Layer is provided, the associated transformation properties are taken into account, ensuring that the visual
+ * location of the drawableCanvas is correctly inserted into the destination context, relative to the optional transformation
+ * effects of the Layer, to be used when committing the effects permanently when drawing has completed.
  */
 export const renderDrawableCanvas = (
     destinationContext: CanvasRenderingContext2D, destinationSize: Size, zoomableCanvas: ZoomableCanvas,
-    alpha = 1, compositeOperation?: GlobalCompositeOperation, offset?: Point
+    alpha = 1, compositeOperation?: GlobalCompositeOperation, layer?: Layer
 ): void => {
     const source = drawableCanvas.cvs;
     const { documentScale } = zoomableCanvas;
 
-    const viewport = offset ? zoomableCanvas.getViewport() : undefined;
-
     destinationContext.save();
+
+    // correct for the optional layer transformation effects when Layer is provided
+    let offset: Point | undefined;
+
+    if ( layer ) {
+        const { width, height } = layer;
+        const { scale } = layer.effects;
+
+        offset = {
+            x: ( width  * scale / 2 ) - ( width  / 2 ) - layer.left,
+            y: ( height * scale / 2 ) - ( height / 2 ) - layer.top,
+        };
+        reverseTransformation( destinationContext, layer );
+    }
+    const viewport = offset ? zoomableCanvas.getViewport() : undefined;
 
     destinationContext.globalAlpha = alpha;
     if ( compositeOperation !== undefined ) {
@@ -79,36 +96,6 @@ export const renderDrawableCanvas = (
         (( viewport?.top  ?? 0 ) * documentScale ) + ( offset?.y ?? 0 ),
         destinationSize.width, destinationSize.height
     );
-
-    destinationContext.restore();
-};
-
-/**
- * Commit the contents of the drawableCanvas onto provided Layers source Canvas, to be invoked when drawing has completed.
- * This takes the associated destination Layer properties into account, ensuring that the visual location of the drawableCanvas
- * is correctly inserted into the destination Canvas, relative to the optional transformation effects of the Layer.
- */
-export const commitDrawingToLayer = (
-    layer: Layer, destinationCanvas: HTMLCanvasElement, destinationSize: Size, zoomableCanvas: ZoomableCanvas,
-    alpha = 1, compositeOperation?: GlobalCompositeOperation
-) => {
-    const destinationContext = destinationCanvas.getContext( "2d" ) as CanvasRenderingContext2D;
-
-    destinationContext.save();
-
-    // correct for the optional layer transformation effects
-
-    reverseTransformation( destinationContext, layer );
-    
-    const { width, height } = layer;
-    const { scale } = layer.effects;
-    const x = ( width  * scale / 2 ) - ( width  / 2 ) - layer.left;
-    const y = ( height * scale / 2 ) - ( height / 2 ) - layer.top;
-
-    // render
-
-    renderDrawableCanvas( destinationContext, destinationSize, zoomableCanvas, alpha, compositeOperation, { x, y });
-
     destinationContext.restore();
 };
 
