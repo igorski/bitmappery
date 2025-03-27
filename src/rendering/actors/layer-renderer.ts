@@ -46,7 +46,7 @@ import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-ca
 import { cacheBlendedLayer, flushBlendedLayerCache, getBlendCache, getBlendableLayers, isBlendCached, pauseBlendCaching, useBlendCaching } from "@/rendering/cache/blended-layer-cache";
 import { renderBrushOutline } from "@/rendering/cursors/brush";
 import {
-    getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, commitDrawingToLayer, sliceBrushPointers, createOverrideConfig
+    getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, sliceBrushPointers, createOverrideConfig
 } from "@/rendering/utils/drawable-canvas-utils";
 import BrushFactory from "@/factories/brush-factory";
 import { getRendererForLayer } from "@/factories/renderer-factory";
@@ -602,9 +602,10 @@ export default class LayerRenderer extends ZoomableSprite {
         const { getters } = this.getStore();
 
         if ( this.isPainting() ) {
-            commitDrawingToLayer(
-                this.layer, this.getPaintSource(), this.getPaintSize(), this.canvas, this._brush.options.opacity,
-                this._toolType === ToolTypes.ERASER ? "destination-out" : undefined
+            // commit the drawable canvas content onto the destination source
+            renderDrawableCanvas(
+                this.getPaintSource().getContext( "2d" ), this.getPaintSize(), this.canvas, this._brush.options.opacity,
+                this._toolType === ToolTypes.ERASER ? "destination-out" : undefined, this.layer
             );
             disposeMaskComposite();
             disposeDrawableCanvas();

@@ -55,6 +55,10 @@ export const getDrawableCanvas = ( size: Size ): CanvasContextPairing => {
  * Render the contents of the drawableCanvas onto given destinationContext using the scaling properties
  * corresponding to provided documentScale. This can be used to render the contents of the drawable canvas
  * while drawing is still taking place for live preview purposes.
+ * 
+ * When Layer is provided, the associated transformation properties are taken into account, ensuring that the visual
+ * location of the drawableCanvas is correctly inserted into the destination context, relative to the optional transformation
+ * effects of the Layer, to be used when committing the effects permanently when drawing has completed.
  */
 export const renderDrawableCanvas = (
     destinationContext: CanvasRenderingContext2D, destinationSize: Size, zoomableCanvas: ZoomableCanvas,
@@ -93,21 +97,6 @@ export const renderDrawableCanvas = (
         destinationSize.width, destinationSize.height
     );
     destinationContext.restore();
-};
-
-// TODO can go
-/**
- * Commit the contents of the drawableCanvas onto provided Layers source Canvas, to be invoked when drawing has completed.
- * This takes the associated destination Layer properties into account, ensuring that the visual location of the drawableCanvas
- * is correctly inserted into the destination Canvas, relative to the optional transformation effects of the Layer.
- */
-export const commitDrawingToLayer = (
-    layer: Layer, destinationCanvas: HTMLCanvasElement, destinationSize: Size, zoomableCanvas: ZoomableCanvas,
-    alpha = 1, compositeOperation?: GlobalCompositeOperation
-) => {
-    const destinationContext = destinationCanvas.getContext( "2d" ) as CanvasRenderingContext2D;
-
-    renderDrawableCanvas( destinationContext, destinationSize, zoomableCanvas, alpha, compositeOperation, layer );
 };
 
 /**
