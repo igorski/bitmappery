@@ -49,15 +49,13 @@ import {
     getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, sliceBrushPointers, createOverrideConfig
 } from "@/rendering/utils/drawable-canvas-utils";
 import BrushFactory from "@/factories/brush-factory";
-import { getRendererForLayer } from "@/factories/renderer-factory";
-import { enqueueState } from "@/factories/history-state-factory";
 import { createCanvas, canvasToBlob, cloneCanvas, globalToLocal, getPixelRatio } from "@/utils/canvas-util";
 import { createSyncSnapshot } from "@/utils/document-util";
 import { hasBlend, isDrawable, isMaskable, isRotated, isScaled } from "@/utils/layer-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { getLastShape } from "@/utils/selection-util";
 import { isShapeClosed } from "@/utils/shape-util";
-import { positionRendererFromHistory, restorePaintFromHistory } from "@/utils/layer-history-util";
+import { storeLayerPositionInHistory, storeMaskPositionInHistory, storePaintInHistory } from "@/utils/layer-history-util";
 import type { BitMapperyState } from "@/store";
 
 const HALF = 0.5;
@@ -431,18 +429,8 @@ export default class LayerRenderer extends ZoomableSprite {
         const orgBlob  = await canvasToBlob( original );
         const orgState = blobToResource( orgBlob );
         
-        const layer  = this.layer;
-        const isMask = isMaskable( layer, this.getStore() );
+        storePaintInHistory( this.layer, orgState, newState, isMaskable( this.layer, this.getStore() ));
 
-        enqueueState( `layerPaint_${layer.id}`, {
-            undo(): void {
-                restorePaintFromHistory( layer, orgState, isMask );
-            },
-            redo(): void {
-                restorePaintFromHistory( layer, newState, isMask );
-            },
-            resources: [ orgState, newState ],
-        });
         return true;
     }
 
@@ -465,30 +453,20 @@ export default class LayerRenderer extends ZoomableSprite {
         super.setBounds( x, y, width, height );
 
         // store new value (for redo)
-        const newX = bounds.left;
-        const newY = bounds.top;
+        const newLeft = bounds.left;
+        const newTop  = bounds.top;
 
         // update the Layer model by the relative offset
         // (because the renderer maintains an alternate position when the Layer is rotated)
 
-        const newLayerX = layer.left + ( newX - left );
-        const newLayerY = layer.top  + ( newY - top );
+        const newLayerX = layer.left + ( newLeft - left );
+        const newLayerY = layer.top  + ( newTop  - top );
 
         layer.left = newLayerX;
         layer.top  = newLayerY;
 
-        enqueueState( `layerPos_${layer.id}`, {
-            undo() {
-                positionRendererFromHistory( layer, left, top );
-                layer.left = oldLayerX;
-                layer.top  = oldLayerY;
-            },
-            redo() {
-                positionRendererFromHistory( layer, newX, newY );
-                layer.left = newLayerX;
-                layer.top  = newLayerY;
-            }
-        });
+        storeLayerPositionInHistory( this.layer, oldLayerX, oldLayerY, newLayerX, newLayerY, left, top, newLeft, newTop );
+
         this.invalidateBlendCache();
     }
 
@@ -574,20 +552,7 @@ export default class LayerRenderer extends ZoomableSprite {
                 if ( this.layer.effects.mirrorY ) {
                     newMaskY = -newMaskY;
                 }
-                const commit = () => {
-                    layer.maskX = newMaskX;
-                    layer.maskY = newMaskY;
-                    getRendererForLayer( layer )?.resetFilterAndRecache();
-                };
-                commit();
-                enqueueState( `maskPos_${layer.id}`, {
-                    undo() {
-                        layer.maskX = maskX;
-                        layer.maskY = maskY;
-                        getRendererForLayer( layer )?.resetFilterAndRecache();
-                    },
-                    redo: commit
-                });
+                storeMaskPositionInHistory( this.layer, maskX, maskY, newMaskX, newMaskY );
             } else if ( this._isDragMode ) {
                 super.handleMove( x, y, event );
                 return;
