@@ -35,7 +35,7 @@
                 class="input-field half"
                 :min="-maxWidth"
                 :max="maxWidth"
-                :disabled="!activeLayer"
+                :disabled="disabled"
             />
             <input
                 type="number"
@@ -43,7 +43,7 @@
                 class="input-field half"
                 :min="-maxHeight"
                 :max="maxHeight"
-                :disabled="!activeLayer"
+                :disabled="disabled"
             />
         </div>
         <div class="actions">
@@ -51,14 +51,14 @@
                 v-t="'reset'"
                 type="button"
                 class="button button--small"
-                :disabled="!hasCustomOffset"
+                :disabled="disabled || !hasCustomOffset"
                 @click="reset()"
             ></button>
             <button
                 v-t="'center'"
                 type="button"
                 class="button button--small"
-                :disabled="!canCenter"
+                :disabled="disabled || !canCenter"
                 @click="center()"
             ></button>
         </div>
@@ -67,6 +67,7 @@
 
 <script lang="ts">
 import { mapGetters } from "vuex";
+import { canDragMask } from "@/definitions/tool-types";
 import { enqueueState } from "@/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
 import { getRendererForLayer } from "@/factories/renderer-factory";
@@ -86,18 +87,33 @@ export default {
             "activeLayer",
             "activeLayerMask",
         ]),
+        disabled(): boolean {
+            if ( !this.activeLayer ) {
+                return true;
+            }
+            if ( !this.isMask ) {
+                return false;
+            }
+            return !this.canDragMask;
+        },
         isMask(): boolean {
             if ( !this.activeLayer ) {
                 return false;
             }
             return !!this.activeLayer.mask && this.activeLayer.mask === this.activeLayerMask;
         },
+        canDragMask(): boolean {
+            if ( !this.isMask ) {
+                return false;
+            }
+            return canDragMask( this.activeLayer, this.activeLayerMask );
+        },
         left: {
             get(): number {
                 if ( !this.activeLayer ) {
                     return 0;
                 }
-                return Math.round( this.isMask ? this.activeLayer.maskX : this.activeLayer.left );
+                return Math.round( this.canDragMask ? this.activeLayer.maskX : this.activeLayer.left );
             },
             set( value: number ): void {
                 if ( isNaN( value )) {
@@ -111,7 +127,7 @@ export default {
                 if ( !this.activeLayer ) {
                     return 0;
                 }
-                return Math.round( this.isMask ? this.activeLayer.maskY : this.activeLayer.top );
+                return Math.round( this.canDragMask ? this.activeLayer.maskY : this.activeLayer.top );
             },
             set( value: number ): void {
                 if ( isNaN( value )) {
@@ -141,7 +157,7 @@ export default {
             KeyboardService.setSuspended( false );
         },
         setLayerPosition( x = this.top, y = this.left ): void {
-            if ( this.isMask ) {
+            if ( this.canDragMask ) {
                 const layer = this.activeLayer;
                 const orgX = layer.maskX;
                 const orgY = layer.maskY;

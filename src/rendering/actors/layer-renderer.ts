@@ -29,7 +29,7 @@ import { BlendModes } from "@/definitions/blend-modes";
 import type { Document, Layer, Selection } from "@/definitions/document";
 import type { CanvasContextPairing, CanvasDrawable, Brush, BrushToolOptions, BrushAction } from "@/definitions/editor";
 import { LayerTypes } from "@/definitions/layer-types";
-import ToolTypes, { TOOL_SRC_MERGED } from "@/definitions/tool-types";
+import ToolTypes, { canDragMask, TOOL_SRC_MERGED } from "@/definitions/tool-types";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation, rotatePointer } from "@/math/point-math";
 import { fastRound } from "@/math/unit-math";
@@ -563,11 +563,17 @@ export default class LayerRenderer extends ZoomableSprite {
         const isDragging = !this._isPaintMode; // not drawable ? perform default behaviour (drag)
 
         if ( isDragging ) {
-            if ( this.actionTarget === "mask" ) {
+            if ( this.actionTarget === "mask" && canDragMask( this.layer, this.layer.mask )) {
                 const layer = this.layer;
                 const { maskX, maskY } = layer;
-                const newMaskX = this._dragStartOffset.x + (( x - this._bounds.left ) - this._dragStartEventCoordinates.x );
-                const newMaskY = this._dragStartOffset.y + (( y - this._bounds.top )  - this._dragStartEventCoordinates.y );
+                let newMaskX = this._dragStartOffset.x + (( x - this._bounds.left ) - this._dragStartEventCoordinates.x );
+                let newMaskY = this._dragStartOffset.y + (( y - this._bounds.top )  - this._dragStartEventCoordinates.y );
+                if ( this.layer.effects.mirrorX ) {
+                    newMaskX = -newMaskX;
+                }
+                if ( this.layer.effects.mirrorY ) {
+                    newMaskY = -newMaskY;
+                }
                 const commit = () => {
                     layer.maskX = newMaskX;
                     layer.maskY = newMaskY;
