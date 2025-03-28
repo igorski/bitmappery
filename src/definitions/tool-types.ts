@@ -57,6 +57,13 @@ export const canDraw = ( activeDocument: Document, activeLayer: Layer, activeLay
     (( !!activeLayer?.mask && activeLayer.mask === activeLayerMask ) || activeLayer?.type === LayerTypes.LAYER_GRAPHIC );
 };
 
+export const canDragMask = ( activeLayer?: Layer, activeLayerMask?: HTMLCanvasElement ): boolean => {
+    if ( !activeLayer || !activeLayer?.mask || ( activeLayer.mask !== activeLayerMask )) {
+        return false;
+    }
+    return activeLayer.effects.rotation === 0;
+};
+
 export const TOOL_SRC_MERGED = "Merged"; // constant to define that a tools source context are all layers merged
 
 // UI variables

@@ -1,11 +1,12 @@
-import { it, describe, expect, vi } from "vitest";
+import { it, describe, expect } from "vitest";
 import { createMockCanvasElement, mockZCanvas } from "../mocks";
 
 mockZCanvas();
 
 import { LayerTypes } from "@/definitions/layer-types";
-import ToolTypes, { canDraw, PANE_TYPES, usesInteractionPane } from "@/definitions/tool-types";
+import ToolTypes, { canDraw, canDragMask, PANE_TYPES, usesInteractionPane } from "@/definitions/tool-types";
 import DocumentFactory from "@/factories/document-factory";
+import EffectsFactory from "@/factories/effects-factory";
 import LayerFactory from "@/factories/layer-factory";
 
 describe( "tool types", () => {
@@ -42,6 +43,31 @@ describe( "tool types", () => {
         it( `should consider a "${LayerTypes.LAYER_GRAPHIC}"-layer to be drawable`, () => {
             const layer = LayerFactory.create({ type: LayerTypes.LAYER_GRAPHIC });
             expect( canDraw( document, layer, undefined )).toBe( true );
+        });
+    });
+
+    describe( "when determining whether the currently active mask is draggable", () => {
+        it( "should not consider a layer without a mask to have a draggable mask", () => {
+            const layer = LayerFactory.create();
+            expect( canDragMask( layer, undefined )).toBe( false );
+        });
+
+        it( "should not consider a layer with an unselected mask to have a draggable mask", () => {
+            const layer = LayerFactory.create({ mask: createMockCanvasElement() });
+            expect( canDragMask( layer, undefined )).toBe( false );
+        });
+
+        it( "should consider a layer with a selected mask to have a draggable mask", () => {
+            const layer = LayerFactory.create({ mask: createMockCanvasElement() });
+            expect( canDragMask( layer, layer.mask )).toBe( true );
+        });
+
+        it( "should not consider a layer with a selected mask to have a draggable mask when the layer is rotated because math is hard", () => {
+            const layer = LayerFactory.create({
+                mask: createMockCanvasElement(),
+                effects: EffectsFactory.create({ rotation: 1 })
+            });
+            expect( canDragMask( layer, layer.mask )).toBe( false );
         });
     });
 });

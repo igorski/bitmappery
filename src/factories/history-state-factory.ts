@@ -34,7 +34,7 @@ export type UndoRedoState = {
      resources?: string[];
 };
 
-const stateQueue      = new Map();
+const stateQueue      = new Map<string, UndoRedoState>();
 const ENQUEUE_TIMEOUT = 1000;
 
 let timeout = 0;
