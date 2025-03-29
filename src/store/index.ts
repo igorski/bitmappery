@@ -270,7 +270,7 @@ export default {
             commit( "showNotification", { message: translate( isCut ? "selectionCut" : "selectionCopied" ) });
         },
         async requestSelectionCut({ dispatch }: ActionContext<BitMapperyState, any> ): Promise<void> {
-            dispatch( "requestSelectionCopy", { merged: false, isCut: true });
+            await dispatch( "requestSelectionCopy", { merged: false, isCut: true });
             dispatch( "deleteInSelection" );
         },
         clearSelection(): void {
@@ -310,21 +310,22 @@ export default {
             if ( !activeLayer || !getters.activeDocument?.activeSelection.length ) {
                 return;
             }
-            const hasMask       = !!activeLayer.mask;
+            const hasMask       = !!activeLayer.mask && getters.activeLayerMask === activeLayer.mask;
             const orgContent    = cloneCanvas( hasMask ? activeLayer.mask : activeLayer.source );
             const updatedBitmap = deleteSelectionContent( getters.activeDocument, activeLayer );
+
             const replaceSource = ( newSource: HTMLCanvasElement ) => {
                 replaceLayerSource( activeLayer, newSource, hasMask );
                 getRendererForLayer( activeLayer )?.resetFilterAndRecache();
             };
             replaceSource( updatedBitmap );
             enqueueState( `deleteFromSelection_${activeLayer.id}`, {
-                undo() {
+                undo(): void {
                     replaceSource( orgContent );
                 },
-                redo() {
+                redo(): void {
                     replaceSource( updatedBitmap );
-                }
+                },
             });
         },
         /**
