@@ -165,7 +165,7 @@ describe( "Layer history utilities", () => {
             it.each([ "undo", "redo" ])
             ( `should restore the position of the mask for the "%s" action`, ( action: string ) => {
                 layer.maskX = 1000;
-                layer.maskY  = 1000;
+                layer.maskY = 1000;
 
                 ( action === "undo" ) ? undo() : redo();
 
@@ -188,7 +188,7 @@ describe( "Layer history utilities", () => {
         const MOCK_ORG_SOURCE = "blob:http://foo";
         const MOCK_NEW_SOURCE = "blob:http://bar";
 
-        it( "should enqueue the state in history with the resources list", () => {
+        it( "should enqueue the state in history including a resources list", () => {
             storePaintInHistory( layer, MOCK_ORG_SOURCE, MOCK_NEW_SOURCE, true );
             expect( mockEnqueueState ).toHaveBeenCalledWith(
                  `layerPaint_${layer.id}`, {
