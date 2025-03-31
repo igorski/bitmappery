@@ -65,11 +65,11 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import Modal     from "@/components/modal/modal.vue";
+import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
-import LayerFactory from "@/factories/layer-factory";
-import { enqueueState } from "@/factories/history-state-factory";
 import { LayerTypes } from "@/definitions/layer-types";
+import LayerFactory from "@/factories/layer-factory";
+import { addLayer } from "@/store/actions/layer-add";
 import { focus } from "@/utils/environment-util";
 
 import messages from "./messages.json";
@@ -122,17 +122,8 @@ export default {
                  width  : this.activeDocument.width,
                  height : this.activeDocument.height
             });
-            const index  = this.activeLayerIndex + 1;
-            const store  = this.$store;
-            const commit = () => store.commit( "insertLayerAtIndex", { index, layer });
-            commit();
+            addLayer( this.$store, layer, this.activeLayerIndex + 1 );
 
-            enqueueState( `layerAdd_${index}`, {
-                undo() {
-                    store.commit( "removeLayer", index );
-                },
-                redo: commit,
-            });
             this.closeModal();
         },
     },

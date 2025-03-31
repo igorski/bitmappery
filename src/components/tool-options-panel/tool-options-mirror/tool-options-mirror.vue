@@ -50,8 +50,9 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters } from "vuex";
+import type { Effects } from "@/definitions/document";
 import { enqueueState } from "@/factories/history-state-factory";
 import messages  from "./messages.json";
 
@@ -63,22 +64,22 @@ export default {
             "activeLayerIndex",
             "activeLayerEffects",
         ]),
-        canReset() {
+        canReset(): void {
             const { mirrorX, mirrorY } = this.activeLayer.effects;
             return mirrorX || mirrorY;
         },
     },
     methods: {
-        flipHorizontal() {
+        flipHorizontal(): void {
             this.update({ mirrorX: !this.activeLayerEffects.mirrorX }, "mirrorX" );
         },
-        flipVertical() {
+        flipVertical(): void {
             this.update({ mirrorY: !this.activeLayerEffects.mirrorY }, "mirrorY" );
         },
-        resetFlip() {
+        resetFlip(): void {
             this.update({ mirrorX: false, mirrorY: false }, "mirrorXY" );
         },
-        update( effect, propName = "mirror" ) {
+        update( effect: Partial<Effects>, propName = "mirror" ): void {
             const { mirrorX, mirrorY } = this.activeLayerEffects;
             const newEffects = {
                 mirrorX,
@@ -89,13 +90,12 @@ export default {
             const store  = this.$store;
             const commit = () => store.commit( "updateLayerEffects", { index, effects: newEffects });
             commit();
+
             enqueueState( `${propName}_${index}`, {
-                undo() {
+                undo(): void {
                     store.commit( "updateLayerEffects", { index, effects: { mirrorX, mirrorY } });
                 },
-                redo() {
-                    commit();
-                },
+                redo: commit,
             });
         }
     },

@@ -61,8 +61,7 @@ import { mapGetters, mapMutations } from "vuex";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import Modal from "@/components/modal/modal.vue";
 import DimensionsFormatter from "@/components/ui/dimensions-formatter/dimensions-formatter.vue";
-import { enqueueState } from "@/factories/history-state-factory";
-import { cloneLayers, restoreFromClone } from "@/utils/document-util";
+import { resizeDocument } from "@/store/actions/document-resize";
 import messages from "./messages.json";
 
 export default {
@@ -123,31 +122,7 @@ export default {
             this.syncLock = false;
         },
         async save(): Promise<void> {
-            const { activeDocument } = this;
-
-            const originalWidth  = activeDocument.width;
-            const originalHeight = activeDocument.height;
-
-            const { width, height } = this.dimensions;
-            const scaleX = width  / originalWidth;
-            const scaleY = height / originalHeight;
-
-            const { commit } = this.$store;
-            const orgContent = cloneLayers( activeDocument );
-
-            const fn = async (): Promise<void> => {
-                await commit( "resizeActiveDocumentContent", { scaleX, scaleY });
-                commit( "setActiveDocumentSize", { width: Math.round( width ), height: Math.round( height ) });
-            };
-
-            enqueueState( "resizeDocument", {
-                async undo(): Promise<void> {
-                    restoreFromClone( activeDocument, orgContent );
-                    commit( "setActiveDocumentSize", { width: originalWidth, height: originalHeight });
-                },
-                redo: fn,
-            });
-            await fn();
+            await resizeDocument( this.$store, this.activeDocument, this.dimensions );
             this.closeModal();
         },
     }
