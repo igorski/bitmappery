@@ -154,11 +154,13 @@ import { ADD_LAYER } from "@/definitions/modal-windows";
 import { PANEL_LAYERS } from "@/definitions/panel-types";
 import ToolTypes from "@/definitions/tool-types";
 import type { Layer } from "@/definitions/types/document";
-import { createCanvas } from "@/utils/canvas-util";
-import { toggleLayerVisibility } from "@/store/actions/layer-toggle-visibility";
 import { removeLayer } from "@/store/actions/layer-remove";
+import { renameLayer } from "@/store/actions/layer-rename";
+import { reorderLayers } from "@/store/actions/layer-reorder";
+import { addMask } from "@/store/actions/mask-add";
+import { removeMask } from "@/store/actions/mask-remove";
+import { toggleLayerVisibility } from "@/store/actions/layer-toggle-visibility";
 import { getRendererForLayer } from "@/factories/renderer-factory";
-import { enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance } from "@/services/canvas-service";
 import KeyboardService from "@/services/keyboard-service";
 import { focus } from "@/utils/environment-util";
@@ -213,18 +215,7 @@ export default {
                 const originalOrder = this.reverseLayers.map(({ id }) => id ).reverse();
                 const updatedOrder  = value.map(({ id }) => id ).reverse();
 
-                const document = this.activeDocument;
-                const store    = this.$store;
-                const commit = () => {
-                    store.commit( "reorderLayers", { document, layerIds: updatedOrder } );
-                }
-                commit();
-                enqueueState( `reorderLayers_${updatedOrder.join()}`, {
-                    undo() {
-                        store.commit( "reorderLayers", { document, layerIds: originalOrder });
-                    },
-                    redo: commit,
-                });
+                reorderLayers( this.$store, this.activeDocument, originalOrder, updatedOrder );
             }
         },
         currentLayerHasMask(): boolean {
@@ -248,18 +239,8 @@ export default {
             this.openModal( ADD_LAYER );
         },
         updateActiveLayerName({ target }): void {
-            const newName     = target.value;
-            const currentName = this.activeLayer.name;
-            const index       = this.activeLayerIndex;
-            const store  = this.$store;
-            const commit = () => store.commit( "updateLayer", { index, opts: { name: newName } });
-            commit();
-            enqueueState( `layerName_${index}`, {
-                undo() {
-                    store.commit( "updateLayer", { index, opts: { name: currentName } });
-                },
-                redo: commit,
-            });
+            const newName = target.value;
+            renameLayer( this.$store, this.activeLayer, this.activeLayerIndex, newName );
         },
         handleToggleLayerVisibility( index: number): void {
             toggleLayerVisibility( this.$store, index );
@@ -288,40 +269,16 @@ export default {
             });
         },
         requestMaskAdd(): void {
-            const index   = this.activeLayerIndex;
-            const mask    = createCanvas( this.activeLayer.width, this.activeLayer.height ).cvs;
-            const curMask = this.activeLayerMask;
-            const store   = this.$store;
-            const commit  = () => {
-                store.commit( "updateLayer", { index, opts: { mask } });
-                store.commit( "setActiveLayerMask", index );
-            };
-            commit();
-            enqueueState( `maskAdd_${index}`, {
-                undo() {
-                    store.commit( "updateLayer", { index, opts: { mask: null } });
-                    store.commit( "setActiveLayerMask", curMask );
-                },
-                redo: commit,
-            });
+            addMask( this.$store, this.activeLayer, this.activeLayerIndex );
         },
         requestMaskRemove( index: number ): void {
-            const mask = this.layers[ index ].mask;
             this.openDialog({
                 type: "confirm",
                 title: this.$t( "areYouSure" ),
                 message: this.$t( "doYouWantToRemoveMaskName", { name: this.layers[ index ]?.name }),
                 confirm: () => {
-                    const store  = this.$store;
-                    const commit = () => store.commit( "updateLayer", { index, opts: { mask: null } });
-                    commit();
-                    enqueueState( `maskRemove_${index}`, {
-                        undo() {
-                            store.commit( "updateLayer", { index, opts: { mask } });
-                        },
-                        redo: commit,
-                    });
-                }
+                    removeMask( this.$store, this.layers[ index ], index );
+                },
             });
         },
         handleLayerDoubleClick( layer: IndexedLayer ): void {
