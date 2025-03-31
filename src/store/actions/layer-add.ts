@@ -22,12 +22,21 @@
  */
 import { type Store } from "vuex";
 import { type Layer } from "@/definitions/document";
+import { LayerTypes } from "@/definitions/layer-types";
+import ToolTypes from "@/definitions/tool-types";
 import { enqueueState } from "@/factories/history-state-factory";
 import { type BitMapperyState } from "@/store";
 
 export const addLayer = ( store: Store<BitMapperyState>, layer: Layer, index: number ): void => {
-    const commit = () => store.commit( "insertLayerAtIndex", { index, layer });
+    const commit = (): void => {
+        store.commit( "insertLayerAtIndex", { index, layer });
+    };
     commit();
+    
+    // only on initial creation
+    if ( layer.type === LayerTypes.LAYER_TEXT ) {
+        store.commit( "setActiveTool", { tool: ToolTypes.TEXT });
+    }
 
     enqueueState( `layerAdd_${index}`, {
         undo(): void {

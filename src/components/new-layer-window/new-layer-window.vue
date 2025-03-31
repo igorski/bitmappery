@@ -63,7 +63,7 @@
     </modal>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
@@ -89,22 +89,22 @@ export default {
             "activeLayerIndex",
             "layers",
         ]),
-        layerTypes() {
+        layerTypes(): { label: string, value: LayerTypes }[] {
             return [
                 { label: this.$t( "graphic" ), value: LayerTypes.LAYER_GRAPHIC },
                 { label: this.$t( "text" ), value: LayerTypes.LAYER_TEXT },
             ];
         },
-        isValid() {
+        isValid(): boolean {
             return this.name.length > 0 && this.type;
         },
     },
-    created() {
+    created(): void {
         if ( !this.name ) {
             this.name = this.$t( "newLayerNum", { num: this.layers.length + 1 });
         }
     },
-    mounted() {
+    mounted(): void {
         focus( this.$refs.nameInput );
         this.$refs.nameInput.select();
     },
@@ -112,7 +112,7 @@ export default {
         ...mapMutations([
             "closeModal",
         ]),
-        requestLayerAdd() {
+        requestLayerAdd(): void {
             if ( !this.isValid ) {
                 return;
             }
