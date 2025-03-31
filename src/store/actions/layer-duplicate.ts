@@ -22,11 +22,11 @@
  */
 // @ts-expect-error TS7016 no type definitions for lodash.clonedeep
 import cloneDeep from "lodash.clonedeep";
-import type { Store } from "vuex";
+import { type Store } from "vuex";
 import { type Layer } from "@/definitions/document";
 import { enqueueState } from "@/factories/history-state-factory";
 import LayerFactory from "@/factories/layer-factory";
-import type { BitMapperyState } from "@/store";
+import { type BitMapperyState } from "@/store";
 import { cloneCanvas } from "@/utils/canvas-util";
 
 export const duplicateLayer = ( store: Store<BitMapperyState>, layerToClone: Layer, indexToAdd: number ): void => {

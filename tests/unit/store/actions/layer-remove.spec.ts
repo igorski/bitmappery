@@ -4,16 +4,17 @@ import { createStore, mockZCanvas } from "../../mocks";
 
 mockZCanvas();
 
-import { LayerTypes } from "@/definitions/layer-types";
+import LayerFactory from "@/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
-import { addTextLayer } from "@/store/actions/add-text-layer";
+import { removeLayer } from "@/store/actions/layer-remove";
 
 const mockEnqueueState = vi.fn();
 vi.mock( "@/factories/history-state-factory", () => ({
     enqueueState: ( ...args: any[] ) => mockEnqueueState( ...args ),
 }));
 
-describe( "add text Layer action", () => {
+describe( "remove Layer action", () => {
+    const layer = LayerFactory.create();
     let store: Store<BitMapperyState>;
     
     beforeEach(() => {
@@ -25,42 +26,42 @@ describe( "add text Layer action", () => {
         vi.resetAllMocks();
     });
 
-    it( "should be able to add new Text Layer into the Documents Layer list", () => {
-        addTextLayer( store );
+    it( "should be able to remove a Layer from the Documents Layer list", () => {
+        removeLayer( store, layer, 2 );
 
         expect( store.commit ).toHaveBeenCalledTimes( 1 );
-        expect( store.commit ).toHaveBeenCalledWith( "addLayer", { type: LayerTypes.LAYER_TEXT });
+        expect( store.commit ).toHaveBeenCalledWith( "removeLayer", 2 );
     });
 
     it( "should store the action in state history", () => {
-        addTextLayer( store );
+        removeLayer( store, layer, 2 );
 
         expect( mockEnqueueState ).toHaveBeenCalledWith( 
-            `layerAdd_${store.getters.activeLayerIndex}`, {
+            `layerRemove_2`, {
                 undo: expect.any( Function ),
                 redo: expect.any( Function )
             }
         );
     });
 
-    it( "should remove the added Text Layer when calling undo in state history", () => {
-        addTextLayer( store );
+    it( "should re-add the removed Layer when calling undo in state history", () => {
+        removeLayer( store, layer, 2 );
 
         const { undo } = mockEnqueueState.mock.calls[ 0 ][ 1 ];
         undo();
 
         expect( store.commit ).toHaveBeenCalledTimes( 2 );
-        expect( store.commit ).toHaveBeenNthCalledWith( 2, "removeLayer", store.getters.activeLayerIndex );
+        expect( store.commit ).toHaveBeenNthCalledWith( 2, "insertLayerAtIndex", { index: 2, layer });
     });
 
-    it( "should re-add a Text Layer when calling redo in state history", () => {
-        addTextLayer( store );
+    it( "should re-remove the Layer when calling redo in state history", () => {
+        removeLayer( store, layer, 2 );
 
         const { undo, redo } = mockEnqueueState.mock.calls[ 0 ][ 1 ];
         undo();
         redo();
 
         expect( store.commit ).toHaveBeenCalledTimes( 3 );
-        expect( store.commit ).toHaveBeenNthCalledWith( 3, "addLayer", { type: LayerTypes.LAYER_TEXT });
+        expect( store.commit ).toHaveBeenNthCalledWith( 3, "removeLayer", 2 );
     });
 });

@@ -101,7 +101,7 @@
                                         v-tooltip="$t('toggleVisibility')"
                                         type="button"
                                         class="layer__actions-button button--ghost"
-                                        @click="toggleLayerVisibility( element.index )"
+                                        @click="handleToggleLayerVisibility( element.index )"
                                         :class="{ 'layer__actions-button--disabled': !element.visible }"
                                     ><img src="@/assets-inline/images/icon-eye.svg" /></button>
                                     <button
@@ -155,7 +155,8 @@ import { PANEL_LAYERS } from "@/definitions/panel-types";
 import ToolTypes from "@/definitions/tool-types";
 import type { Layer } from "@/definitions/types/document";
 import { createCanvas } from "@/utils/canvas-util";
-import { toggleLayerVisibility } from "@/store/actions/toggle-layer-visibility";
+import { toggleLayerVisibility } from "@/store/actions/layer-toggle-visibility";
+import { removeLayer } from "@/store/actions/layer-remove";
 import { getRendererForLayer } from "@/factories/renderer-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance } from "@/services/canvas-service";
@@ -260,7 +261,7 @@ export default {
                 redo: commit,
             });
         },
-        toggleLayerVisibility( index: number): void {
+        handleToggleLayerVisibility( index: number): void {
             toggleLayerVisibility( this.$store, index );
         },
         handleFiltersClick( index: number ): void {
@@ -282,15 +283,7 @@ export default {
                 title: this.$t( "areYouSure" ),
                 message: this.$t( "doYouWantToRemoveLayerName", { name: layer.name }),
                 confirm: () => {
-                    const store  = this.$store;
-                    const commit = () => store.commit( "removeLayer", index );
-                    commit();
-                    enqueueState( `layerRemove_${index}`, {
-                        undo() {
-                            store.commit( "insertLayerAtIndex", { index, layer });
-                        },
-                        redo: commit,
-                    });
+                    removeLayer( this.$store, layer, index );
                 }
             });
         },
@@ -386,7 +379,7 @@ export default {
                     this.showFilters = false;
                     break;
                 case 32: // spacebar
-                    this.toggleLayerVisibility( this.activeLayerIndex );
+                    this.handleToggleLayerVisibility( this.activeLayerIndex );
                     break;
                 case 38: // up
                     this.setActiveLayerIndex( Math.min( this.layers.length - 1, this.activeLayerIndex + 1 ));

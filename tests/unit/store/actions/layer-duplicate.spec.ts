@@ -6,7 +6,7 @@ mockZCanvas();
 
 import LayerFactory from "@/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
-import { duplicateLayer } from "@/store/actions/duplicate-layer";
+import { duplicateLayer } from "@/store/actions/layer-duplicate";
 
 const mockEnqueueState = vi.fn();
 vi.mock( "@/factories/history-state-factory", () => ({

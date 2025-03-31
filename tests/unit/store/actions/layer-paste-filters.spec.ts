@@ -7,7 +7,7 @@ mockZCanvas();
 import FiltersFactory from "@/factories/filters-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
-import { pasteLayerFilters } from "@/store/actions/paste-layer-filters";
+import { pasteLayerFilters } from "@/store/actions/layer-paste-filters";
 
 const mockEnqueueState = vi.fn();
 vi.mock( "@/factories/history-state-factory", () => ({

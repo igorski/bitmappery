@@ -274,7 +274,7 @@
                             v-tooltip.right="$t('toggleLayerFiltersTooltip')"
                             type="button"
                             :disabled="!activeLayer"
-                            @click="toggleLayerFilters()"
+                            @click="requestToggleLayerFilters()"
                         ></button>
                     </li>
                     <li>
@@ -435,11 +435,12 @@ import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { hasFilters } from "@/factories/filters-factory";
 import { getCanvasInstance } from "@/services/canvas-service";
-import { commitLayerEffectsAndTransforms } from "@/store/actions/commit-layer-effects-and-transforms";
 import { cropToSelection } from "@/store/actions/crop-to-selection";
-import { duplicateLayer } from "@/store/actions/duplicate-layer";
-import { mergeLayerDown } from "@/store/actions/merge-layer-down";
-import { pasteLayerFilters } from "@/store/actions/paste-layer-filters";
+import { commitLayerEffectsAndTransforms } from "@/store/actions/layer-commit-effects-and-transforms";
+import { duplicateLayer } from "@/store/actions/layer-duplicate";
+import { mergeLayerDown } from "@/store/actions/layer-merge-down";
+import { pasteLayerFilters } from "@/store/actions/layer-paste-filters";
+import { toggleLayerFilters } from "@/store/actions/layer-toggle-filters";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
 import { hasTransform } from "@/utils/layer-util";
@@ -634,13 +635,8 @@ export default {
         requestPasteLayerFilters(): void {
             pasteLayerFilters( this.$store, this.clonedFilters, this.activeLayer, this.activeLayerIndex );
         },
-        toggleLayerFilters(): void {
-            const enabled = this.activeLayerHasFiltersEnabled;
-            const filters = this.activeLayer.filters;
-            this.updateLayer({
-                index: this.activeLayerIndex,
-                opts: { filters: { ...filters, enabled: !enabled} }
-            });
+        requestToggleLayerFilters(): void {
+            toggleLayerFilters( this.$store, this.activeLayer, this.activeLayerIndex );
         },
         selectAll(): void {
             getCanvasInstance()?.interactionPane.selectAll();

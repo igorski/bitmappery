@@ -11,7 +11,7 @@ import EffectsFactory from "@/factories/effects-factory";
 import FiltersFactory from "@/factories/filters-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
-import { commitLayerEffectsAndTransforms } from "@/store/actions/commit-layer-effects-and-transforms";
+import { commitLayerEffectsAndTransforms } from "@/store/actions/layer-commit-effects-and-transforms";
 
 const mockEnqueueState = vi.fn();
 vi.mock( "@/factories/history-state-factory", () => ({

@@ -28,8 +28,9 @@ import ToolTypes, { canDraw, MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM } from "@/defini
 import {
     CREATE_DOCUMENT, ADD_LAYER, SAVE_DOCUMENT, DROPBOX_FILE_SELECTOR,
 } from "@/definitions/modal-windows";
-import { addTextLayer } from "@/store/actions/add-text-layer";
-import { toggleLayerVisibility } from "@/store/actions/toggle-layer-visibility";
+import { addTextLayer } from "@/store/actions/layer-add-text-layer";
+import { toggleLayerFilters } from "@/store/actions/layer-toggle-filters";
+import { toggleLayerVisibility } from "@/store/actions/layer-toggle-visibility";
 import { getRendererForLayer } from "@/factories/renderer-factory";
 import { translatePoints } from "@/math/point-math";
 import { getCanvasInstance } from "@/services/canvas-service";
@@ -309,11 +310,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
             }
             else if ( getters.activeLayer ) {
                 if ( altDown ) {
-                    const filters = getters.activeLayer.filters;
-                    commit( "updateLayer", {
-                        index: getters.activeLayerIndex,
-                        opts: { filters: { ...filters, enabled: !filters.enabled} }
-                    });
+                    toggleLayerFilters( store, getters.activeLayer, getters.activeLayerIndex );
                 } else {
                     setActiveTool( ToolTypes.MIRROR );
                 }
