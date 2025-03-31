@@ -53,8 +53,11 @@ export function createMockZoomableCanvas(): ZoomableCanvas {
         getActiveDocument: vi.fn(),
         getStore: vi.fn(),
         getViewport: vi.fn(() => ({ left: 0, top: 0, width: 300, height: 300 })),
+        refreshFn: vi.fn(),
+        rescaleFn: vi.fn(),
+        setDimensions: vi.fn(),
         setLock: vi.fn(),
-        store: createState() as unknown as Store<BitMapperyState>,
+        store: createStore(),
     } as unknown as ZoomableCanvas;
 }
 
@@ -89,11 +92,11 @@ function createMockCanvasRenderingContext2D() {
     } as unknown as CanvasRenderingContext2D;
 }
 
-export function createMockCanvasElement(): HTMLCanvasElement {
+export function createMockCanvasElement( width = 300, height = 200 ): HTMLCanvasElement {
     const ctx = createMockCanvasRenderingContext2D();
     const cvs = {
-        width: 300,
-        height: 200,
+        width,
+        height,
         getContext: () => ctx,
     } as unknown as HTMLCanvasElement;
 
@@ -170,6 +173,17 @@ export function createState( props?: Partial<BitMapperyState> ): BitMapperyState
         tool: createToolState(),
         ...props,
     };
+}
+
+export function createStore(): Store<BitMapperyState> {
+    return {
+        state: createState(),
+        getters: {},
+        mutations: {},
+        actions: {},
+        commit: vi.fn(),
+        dispatch: vi.fn(),
+    }  as unknown as Store<BitMapperyState>;
 }
 
 export function createMockShape(): Shape {

@@ -58,7 +58,7 @@ export const createDocumentSnapshot = async ( activeDocument: Document ): Promis
  * Creates a snapshot of the provided layer. When an activeDocument is provided, it's boundary box
  * will crop the layer. THIS MULTIPLIES FOR THE DEVICE PIXEL RATIO (as it mimics the onscreen presentation of zCanvas)
  */
-export const createLayerSnapshot = async ( layer: Layer, optActiveDocument?: Document): Promise<HTMLCanvasElement> => {
+export const createLayerSnapshot = async ( layer: Layer, optActiveDocument?: Document ): Promise<HTMLCanvasElement> => {
     const width  = optActiveDocument ? optActiveDocument.width  : layer.width;
     const height = optActiveDocument ? optActiveDocument.height : layer.height;
 

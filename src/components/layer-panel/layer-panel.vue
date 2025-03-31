@@ -155,7 +155,7 @@ import { PANEL_LAYERS } from "@/definitions/panel-types";
 import ToolTypes from "@/definitions/tool-types";
 import type { Layer } from "@/definitions/types/document";
 import { createCanvas } from "@/utils/canvas-util";
-import { toggleLayerVisibility } from "@/factories/action-factory";
+import { toggleLayerVisibility } from "@/store/actions/toggle-layer-visibility";
 import { getRendererForLayer } from "@/factories/renderer-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getCanvasInstance } from "@/services/canvas-service";

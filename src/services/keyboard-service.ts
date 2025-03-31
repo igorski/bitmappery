@@ -28,7 +28,7 @@ import ToolTypes, { canDraw, MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM } from "@/defini
 import {
     CREATE_DOCUMENT, ADD_LAYER, SAVE_DOCUMENT, DROPBOX_FILE_SELECTOR,
 } from "@/definitions/modal-windows";
-import { toggleLayerVisibility } from "@/factories/action-factory";
+import { toggleLayerVisibility } from "@/store/actions/toggle-layer-visibility";
 import { getRendererForLayer } from "@/factories/renderer-factory";
 import { translatePoints } from "@/math/point-math";
 import { getCanvasInstance } from "@/services/canvas-service";

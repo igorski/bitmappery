@@ -112,7 +112,7 @@ update( propertyName: string, newValue: any ): void {
 
 Whenever an action (that requires an undo state) can be triggered in multiple locations (for instance
 inside a component and as a keyboard shortcut in `src/services/keyboard-service`), you can
-create a custom handler inside `src/factories/action-factory` to avoid code duplication.
+create a custom handler inside `src/store/actions` to avoid code duplication.
 
 ## Third party storage integration
 

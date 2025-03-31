@@ -1,5 +1,5 @@
 import { it, afterEach, beforeEach, describe, expect, vi } from "vitest";
-import { mockZCanvas, createMockCanvasElement } from "../../mocks";
+import { mockZCanvas, createMockCanvasElement, createMockZoomableCanvas } from "../../mocks";
 import { type Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import DocumentFactory from "@/factories/document-factory";
@@ -13,9 +13,10 @@ mockZCanvas();
 
 let mockUpdateFn: ( fnName: string, ...args: any[]) => void;
 vi.mock( "@/factories/renderer-factory", () => ({
-    flushLayerRenderers: (...args: any[]) => mockUpdateFn?.( "flushLayerRenderers", ...args ),
-    runRendererFn: (...args: any[]) => mockUpdateFn?.( "runRendererFn", ...args ),
-    getRendererForLayer: (...args: any[]) => mockUpdateFn?.( "getRendererForLayer", ...args ),
+    flushLayerRenderers: ( ...args: any[]) => mockUpdateFn?.( "flushLayerRenderers", ...args ),
+    runRendererFn: ( ...args: any[]) => mockUpdateFn?.( "runRendererFn", ...args ),
+    getRendererForLayer: ( ...args: any[]) => mockUpdateFn?.( "getRendererForLayer", ...args ),
+    createRendererForLayer: ( ...args: any[]) => mockUpdateFn?.( "createRendererForLayer", ...args ),
 }));
 const mockFlushBlendedLayerCache = vi.fn();
 vi.mock( "@/rendering/cache/blended-layer-cache", async ( importOriginal ) => {
@@ -24,8 +25,12 @@ vi.mock( "@/rendering/cache/blended-layer-cache", async ( importOriginal ) => {
         flushBlendedLayerCache: ( ...args: any[] ) => mockFlushBlendedLayerCache( ...args ),
     }
 });
+const mockCanvasInstance = createMockZoomableCanvas();
 vi.mock( "@/services/canvas-service", () => ({
-    getCanvasInstance: (...args: any[]) => mockUpdateFn?.( "getCanvasInstance", ...args ),
+    getCanvasInstance: ( ...args: any[]) => {
+        mockUpdateFn?.( "getCanvasInstance", ...args );
+        return mockCanvasInstance;
+    },
 }));
 vi.mock( "@/utils/layer-util", async ( importOriginal ) => {
     return {
@@ -221,21 +226,15 @@ describe( "Vuex document module", () => {
                     activeIndex : 1,
                 });
                 const size = { width: 75, height: 40 };
-                const mockCanvas = {
-                    setDimensions: vi.fn(),
-                    rescaleFn: vi.fn(),
-                    refreshFn: vi.fn(),
-                };
-                mockUpdateFn = vi.fn( fn => {
-                    return fn === "getCanvasInstance" ? mockCanvas : null
-                });
+                
                 mutations.setActiveDocumentSize( state, size );
+
                 expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "getCanvasInstance" );
-                expect( mockCanvas.setDimensions ).toHaveBeenCalledWith( size.width, size.height, true, true );
+                expect( mockCanvasInstance.setDimensions ).toHaveBeenCalledWith( size.width, size.height, true, true );
                 expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "getCanvasInstance" );
-                expect( mockCanvas.rescaleFn ).toHaveBeenCalled();
+                expect( mockCanvasInstance.rescaleFn ).toHaveBeenCalled();
                 expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "getCanvasInstance" );
-                expect( mockCanvas.refreshFn ).toHaveBeenCalled();
+                expect( mockCanvasInstance.refreshFn ).toHaveBeenCalled();
             });
         });
 
@@ -666,6 +665,34 @@ describe( "Vuex document module", () => {
                 mutations.updateLayer( state, { index, opts });
   
                 expect( mockFlushBlendedLayerCache ).toHaveBeenCalledWith( true );
+            });
+
+            describe( "when requesting to also recreate the renderer for the specific Layer", () => {
+                it( "should not do anything related to renderer lifecycle when the recreation request was false", () => {
+                    const index = 0;
+                    const opts  = { filters: { gamma: 1 } };
+    
+                    mutations.updateLayer( state, { index, opts, recreateRenderer: false });
+
+                    const layer = state.documents[ 0 ].layers[ index ]; // the layer after mutation
+      
+                    expect( mockCanvasInstance.setLock ).not.toHaveBeenCalled();
+                    expect( mockUpdateFn ).not.toHaveBeenCalledWith( "flushLayerRenderers", layer );
+                    expect( mockUpdateFn ).not.toHaveBeenCalledWith( "createRendererForLayer", mockCanvasInstance, layer, true );
+                });
+
+                it( "should lock the canvas, flush the Layers renderers and create a new renderer instance when the recreation requested was true", () => {
+                    const index = 0;
+                    const opts  = { filters: { gamma: 1 } };
+    
+                    mutations.updateLayer( state, { index, opts, recreateRenderer: true });
+
+                    const layer = state.documents[ 0 ].layers[ index ]; // the layer after mutation
+      
+                    expect( mockCanvasInstance.setLock ).toHaveBeenCalledWith( true );
+                    expect( mockUpdateFn ).toHaveBeenCalledWith( "flushLayerRenderers", layer );
+                    expect( mockUpdateFn ).toHaveBeenCalledWith( "createRendererForLayer", mockCanvasInstance, layer, true );
+                });
             });
 
             it( "should be able to update the effects of a specific layer within the active Document", () => {

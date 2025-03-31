@@ -44,6 +44,12 @@ export const createCanvas = ( optWidth = 0, optHeight = 0 ): CanvasContextPairin
     return { cvs, ctx };
 };
 
+export const cloneResized = ( source: HTMLCanvasElement, width: number, height: number ): HTMLCanvasElement => {
+    const { cvs, ctx } = createCanvas( width, height );
+    ctx.drawImage( source, 0, 0, source.width, source.height, 0, 0, width, height );
+    return cvs;
+};
+
 export const setCanvasDimensions = ( canvas: CanvasContextPairing, width: number, height: number ): void => {
     canvas.cvs.width  = width;
     canvas.cvs.height = height;

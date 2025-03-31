@@ -246,6 +246,14 @@
                     </li>
                     <li>
                         <button
+                            v-t="'commitEffects'"
+                            type="button"
+                            :disabled="!activeLayerCanBeCommitted"
+                            @click="commitLayerEffects()"
+                        ></button>
+                    </li>
+                    <li>
+                        <button
                             v-t="'copyLayerFilters'"
                             type="button"
                             :disabled="!activeLayer"
@@ -262,7 +270,8 @@
                     </li>
                     <li>
                         <button
-                            v-t="activeLayerHasFilters ? 'disableLayerFilters' : 'enableLayerFilters'"
+                            v-t="activeLayerHasFiltersEnabled ? 'disableLayerFilters' : 'enableLayerFilters'"
+                            v-tooltip.right="$t('toggleLayerFiltersTooltip')"
                             type="button"
                             :disabled="!activeLayer"
                             @click="toggleLayerFilters()"
@@ -418,6 +427,7 @@
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import cloneDeep from "lodash.clonedeep";
 import { type Layer } from "@/definitions/document";
+import { LayerTypes } from "@/definitions/layer-types";
 import { MAX_SPRITESHEET_WIDTH } from "@/definitions/editor-properties";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_WINDOW, LOAD_SELECTION, SAVE_SELECTION,
@@ -425,13 +435,16 @@ import {
 } from "@/definitions/modal-windows";
 import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
+import { hasFilters } from "@/factories/filters-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { getCanvasInstance } from "@/services/canvas-service";
+import { commitLayerEffectsAndTransforms } from "@/store/actions/commit-layer-effects-and-transforms";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { cloneCanvas, resizeImage } from "@/utils/canvas-util";
 import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
 import { cloneLayers, createSyncSnapshot, restoreFromClone } from "@/utils/document-util";
+import { hasTransform } from "@/utils/layer-util";
 import { selectionToRectangle } from "@/utils/selection-util";
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
@@ -476,8 +489,11 @@ export default {
         hasClipboard(): boolean {
             return !!this.selectionContent;
         },
-        activeLayerHasFilters(): boolean {
+        activeLayerHasFiltersEnabled(): boolean {
             return this.activeLayer?.filters?.enabled;
+        },
+        activeLayerCanBeCommitted(): boolean {
+            return !!this.activeLayer && ( hasTransform( this.activeLayer ) || hasFilters( this.activeLayer.filters )) && this.activeLayer.type !== LayerTypes.LAYER_TEXT;
         },
         canSnapAndAlign: {
             get(): boolean {
@@ -651,6 +667,9 @@ export default {
                 redo: commit,
             });
         },
+        commitLayerEffects(): void {
+            commitLayerEffectsAndTransforms( this.$store, this.activeDocument, this.activeLayer, this.activeLayerIndex );
+        },
         async mergeLayerDown( allLayers = false ): Promise<void> {
             let layers: Layer[] = [];
             let layerIndices: number[] = [];
@@ -708,7 +727,7 @@ export default {
             });
         },
         toggleLayerFilters(): void {
-            const enabled = this.activeLayerHasFilters;
+            const enabled = this.activeLayerHasFiltersEnabled;
             const filters = this.activeLayer.filters;
             this.updateLayer({
                 index: this.activeLayerIndex,
