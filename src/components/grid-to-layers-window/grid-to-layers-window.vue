@@ -80,10 +80,7 @@
 import { mapGetters, mapMutations } from "vuex";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import Modal from "@/components/modal/modal.vue";
-import { enqueueState } from "@/factories/history-state-factory";
-import LayerFactory from "@/factories/layer-factory";
-import { resizeImage } from "@/utils/canvas-util";
-import { createSyncSnapshot, sliceTiles } from "@/utils/document-util";
+import { sliceGridToLayers } from "@/store/actions/slice-grid-to-layers";
 import { focus } from "@/utils/environment-util";
 
 import messages from "./messages.json";
@@ -124,44 +121,7 @@ export default {
         ]),
         async requestSlice(): Promise<void> {
             this.setLoading( "slice" );
-
-            // collect existing layers
-            const originalLayers = [ ...this.activeDocument.layers ];
-            const originalWidth  = this.activeDocument.width;
-            const originalHeight = this.activeDocument.height;
-
-            // flatten document
-            // also keep in mind zCanvas magnifies content by the pixel ratio for a crisper result
-            // downscale to actual dimensions of the document
-            const flattenedLayer = await resizeImage( createSyncSnapshot( this.activeDocument ), originalWidth, originalHeight );
-
-            // create layers from slices created from the flattened document
-            const { width, height } = this;
-            const slicedTiles  = await sliceTiles( flattenedLayer, width, height );
-      
-            const slicedLayers = slicedTiles.map(( bitmap, index ) => {
-                return LayerFactory.create({
-                    name   : `${this.$t( "slice" )} #${index + 1}`,
-                    source : bitmap,
-                    visible : this.allVisible ? true : index === slicedTiles.length - 1,
-                    width,
-                    height
-                });
-            });
-            // commit changes, add to state history
-            const store = this.$store;
-            const commit = async (): Promise<void> => {
-                store.commit( "replaceLayers", slicedLayers );
-                store.commit( "setActiveDocumentSize", { width, height });
-            };
-            commit();
-            enqueueState( "slice-to-layers", {
-                undo(): void {
-                    store.commit( "replaceLayers", originalLayers );
-                    store.commit( "setActiveDocumentSize", { width: originalWidth, height: originalHeight });
-                },
-                redo: commit,
-            });
+            await sliceGridToLayers( this.$store, this.activeDocument, this.width, this.height, this.allVisible, this.$t( "slice" ));
             this.unsetLoading( "slice" );
             this.closeModal();
         },
