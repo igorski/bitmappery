@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,13 +20,21 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-export enum LayerTypes {
-    LAYER_GRAPHIC = "graphic",
-    LAYER_IMAGE   = "image",
-    LAYER_TEXT    = "text",
+import { type Store } from "vuex";
+import { LayerTypes } from "@/definitions/layer-types";
+import { enqueueState } from "@/factories/history-state-factory";
+import { type BitMapperyState } from "@/store";
+
+export const addTextLayer = ({ getters, commit }: Store<BitMapperyState> ): void => {
+    const fn = (): void => commit( "addLayer", { type: LayerTypes.LAYER_TEXT });
+
+    fn();
+    const addedLayerIndex = getters.activeLayerIndex;
+
+    enqueueState( `layerAdd_${addedLayerIndex}`, {
+        undo(): void {
+            commit( "removeLayer", addedLayerIndex );
+        },
+        redo: fn,
+    });
 };
-
- // TODO i18n
-
-export const DEFAULT_LAYER_NAME      = "New Layer";
-export const DEFAULT_TEXT_LAYER_NAME = "New Text Layer";

@@ -101,8 +101,8 @@ import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { type Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS } from "@/definitions/panel-types";
+import { addTextLayer } from "@/store/actions/add-text-layer";
 import { isMobile } from "@/utils/environment-util";
-import { addTextLayer } from "@/utils/layer-util";
 import ToolTypes, { canDraw } from "@/definitions/tool-types";
 import messages  from "./messages.json";
 

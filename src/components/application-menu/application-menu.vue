@@ -241,7 +241,7 @@
                             v-t="'duplicateLayer'"
                             type="button"
                             :disabled="!activeLayer"
-                            @click="duplicateLayer()"
+                            @click="requestDuplicateLayer()"
                         ></button>
                     </li>
                     <li>
@@ -265,7 +265,7 @@
                             v-t="'pasteLayerFilters'"
                             type="button"
                             :disabled="!activeLayer || !clonedFilters"
-                            @click="pasteLayerFilters()"
+                            @click="requestPasteLayerFilters()"
                         ></button>
                     </li>
                     <li>
@@ -282,7 +282,7 @@
                             v-t="'mergeDown'"
                             type="button"
                             :disabled="!activeLayer || activeLayerIndex === 0"
-                            @click="mergeLayerDown()"
+                            @click="requestMergeLayerDown()"
                         ></button>
                     </li>
                     <li>
@@ -290,7 +290,7 @@
                             v-t="'flattenImage'"
                             type="button"
                             :disabled="!activeLayer || activeDocument.layers.length < 2"
-                            @click="mergeLayerDown( true )"
+                            @click="requestMergeLayerDown( true )"
                         ></button>
                     </li>
                 </ul>
@@ -425,8 +425,6 @@
 
 <script lang="ts">
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
-import cloneDeep from "lodash.clonedeep";
-import { type Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import { MAX_SPRITESHEET_WIDTH } from "@/definitions/editor-properties";
 import {
@@ -436,16 +434,15 @@ import {
 import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { hasFilters } from "@/factories/filters-factory";
-import { enqueueState } from "@/factories/history-state-factory";
-import LayerFactory from "@/factories/layer-factory";
 import { getCanvasInstance } from "@/services/canvas-service";
 import { commitLayerEffectsAndTransforms } from "@/store/actions/commit-layer-effects-and-transforms";
+import { cropToSelection } from "@/store/actions/crop-to-selection";
+import { duplicateLayer } from "@/store/actions/duplicate-layer";
+import { mergeLayerDown } from "@/store/actions/merge-layer-down";
+import { pasteLayerFilters } from "@/store/actions/paste-layer-filters";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
-import { cloneCanvas, resizeImage } from "@/utils/canvas-util";
 import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
-import { cloneLayers, createSyncSnapshot, restoreFromClone } from "@/utils/document-util";
 import { hasTransform } from "@/utils/layer-util";
-import { selectionToRectangle } from "@/utils/selection-util";
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
 
@@ -616,115 +613,26 @@ export default {
             this.openModal( STROKE_SELECTION );
         },
         requestCropToSelection(): void {
-            const { activeDocument } = this;
-            const store = this.$store;
-            const currentSize = {
-                width  : this.activeDocument.width,
-                height : this.activeDocument.height
-            };
-            const orgContent = cloneLayers( activeDocument );
-            const selection  = [ ...activeDocument.activeSelection ];
-            const { left, top, width, height } = selectionToRectangle( selection );
-            const commit = async () => {
-                await store.commit( "cropActiveDocumentContent", { left, top, width, height });
-                store.commit( "setActiveDocumentSize", {
-                    width  : Math.min( currentSize.width  - left, width ),
-                    height : Math.min( currentSize.height - top,  height )
-                });
-                getCanvasInstance()?.interactionPane.setSelection( [], false );
-            };
-            commit();
-            enqueueState( "crop", {
-                async undo() {
-                    restoreFromClone( activeDocument, orgContent );
-                    store.commit( "setActiveDocumentSize", currentSize );
-                    getCanvasInstance()?.interactionPane.setSelection( selection, false );
-                },
-                redo: commit
-            });
+            cropToSelection( this.$store, this.activeDocument );
         },
         navigateHistory( action = "undo" ): void {
             this.$store.dispatch( action );
         },
-        duplicateLayer(): void {
-            const indexToAdd = this.activeLayerIndex + 1;
-            let layer = {
-                ...cloneDeep( this.activeLayer ),
-                id: undefined, // store will generate new one
-                name: `${this.activeLayer.name} #2`,
-                source: cloneCanvas( this.activeLayer.source ),
-                mask: this.activeLayer.mask ? cloneCanvas( this.activeLayer.mask ) : null
-            };
-            const store  = this.$store;
-            const commit = () => store.commit( "insertLayerAtIndex", { index: indexToAdd, layer });
-            commit();
-            const index = this.activeLayerIndex;
-            layer = this.activeLayer; // update layer ref with constructed Layer instance
-            enqueueState( `duplicate_${index}`, {
-                undo() {
-                    store.commit( "removeLayer", index );
-                },
-                redo: commit,
-            });
+        requestDuplicateLayer(): void {
+            duplicateLayer( this.$store, this.activeLayer, this.activeLayerIndex + 1 );
         },
         commitLayerEffects(): void {
             commitLayerEffectsAndTransforms( this.$store, this.activeDocument, this.activeLayer, this.activeLayerIndex );
         },
-        async mergeLayerDown( allLayers = false ): Promise<void> {
-            let layers: Layer[] = [];
-            let layerIndices: number[] = [];
-            // collect the layers in ascending order
-            if ( allLayers ) {
-                this.activeDocument.layers.forEach(( layer, index ) => {
-                    layers.push( layer );
-                    layerIndices.push( index );
-                });
-            } else {
-                layerIndices = [ this.activeLayerIndex - 1, this.activeLayerIndex ];
-                layers = [ this.activeDocument.layers[ layerIndices[ 0 ]], this.activeLayer ];
-            }
-            const { width, height } = this.activeDocument;
-            const mergeIndex = allLayers ? 0 : layerIndices[ 0 ];
-            const newLayer = LayerFactory.create({
-                name: this.$t( "mergedLayer" ),
-                source: await resizeImage( createSyncSnapshot( this.activeDocument, layerIndices ), width, height ),
-                width,
-                height,
-            });
-            const store = this.$store;
-            const commit = () => {
-                let i = layerIndices.length;
-                while ( i-- ) {
-                    store.commit( "removeLayer", layerIndices[ i ] );
-                }
-                store.commit( "insertLayerAtIndex", { index: mergeIndex, layer: newLayer });
-            };
-            commit();
-            enqueueState( `merge_${mergeIndex}_${layers.length}`, {
-                undo() {
-                    store.commit( "removeLayer", mergeIndex );
-                    layers.forEach(( layer, index ) => store.commit( "insertLayerAtIndex", { index: layerIndices[ index ], layer }));
-                },
-                redo: commit,
-            });
+        async requestMergeLayerDown( allLayers = false ): Promise<void> {
+            await mergeLayerDown( this.$store, this.activeDocument, this.activeLayer, this.activeLayerIndex, this.$t( "mergedLayer" ), allLayers );
         },
         copyLayerFilters(): void {
             this.clonedFilters = { ...this.activeLayer.filters };
             this.showNotification({ message: this.$t( "filtersCopied" ) });
         },
-        pasteLayerFilters(): void {
-            const orgFilters = { ...this.activeLayer.filters };
-            const filters    = { ...this.clonedFilters };
-            const index      = this.activeLayerIndex;
-            const store      = this.$store;
-            const commit     = () => store.commit( "updateLayer", { index, opts: { filters } });
-            commit();
-            enqueueState( `pasteFilters_${index}`, {
-                undo() {
-                    store.commit( "updateLayer", { index, opts: { filters: { ...orgFilters } }});
-                },
-                redo: commit,
-            });
+        requestPasteLayerFilters(): void {
+            pasteLayerFilters( this.$store, this.clonedFilters, this.activeLayer, this.activeLayerIndex );
         },
         toggleLayerFilters(): void {
             const enabled = this.activeLayerHasFiltersEnabled;

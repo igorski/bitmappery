@@ -25,7 +25,6 @@ import { type Rectangle } from "zcanvas";
 import { BlendModes } from "@/definitions/blend-modes";
 import { type Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
-import { enqueueState } from "@/factories/history-state-factory";
 import { type BitMapperyState } from "@/store";
 import { resizeImage } from "@/utils/canvas-util";
 
@@ -99,22 +98,6 @@ export const cropLayerContent = async ( layer: Layer, cropRectangle: Rectangle )
         layer.left -= left;
         layer.top  -= top;
     }
-};
-
-/**
- * Text layer addition can be initiated directly from the toolbox
- * or keyboard shortcut. Here we define a resuable history enqueue
- */
-export const addTextLayer = ({ getters, commit }: Store<BitMapperyState> ): void => {
-    const fn = () => commit( "addLayer", { type: LayerTypes.LAYER_TEXT });
-    fn();
-    const addedLayerIndex = getters.activeLayerIndex;
-    enqueueState( `layerAdd_${addedLayerIndex}`, {
-        undo() {
-            commit( "removeLayer", addedLayerIndex );
-        },
-        redo: fn,
-    });
 };
 
 export const isRotated = ( layer: Layer ): boolean => ( layer.effects.rotation % 360 ) !== 0;

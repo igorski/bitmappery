@@ -28,13 +28,13 @@ import ToolTypes, { canDraw, MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM } from "@/defini
 import {
     CREATE_DOCUMENT, ADD_LAYER, SAVE_DOCUMENT, DROPBOX_FILE_SELECTOR,
 } from "@/definitions/modal-windows";
+import { addTextLayer } from "@/store/actions/add-text-layer";
 import { toggleLayerVisibility } from "@/store/actions/toggle-layer-visibility";
 import { getRendererForLayer } from "@/factories/renderer-factory";
 import { translatePoints } from "@/math/point-math";
 import { getCanvasInstance } from "@/services/canvas-service";
 import type { BitMapperyState } from "@/store";
 import { supportsFullscreen, toggleFullscreen } from "@/utils/environment-util";
-import { addTextLayer } from "@/utils/layer-util";
 
 type ListenerRef = ( type: "up" | "down", keyCode: number, event: KeyboardEvent ) => void;
 
