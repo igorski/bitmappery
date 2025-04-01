@@ -256,7 +256,7 @@ class ZoomableCanvas extends canvas {
                             eventOffsetX = ( touch.pageX - x ) / this.zoomFactor; // QQQ
                             eventOffsetY = ( touch.pageY - y ) / this.zoomFactor; // QQQ
 
-                            switch ( event.type ) {
+                            switch ( aEvent.type ) {
                                 // on touchstart events, when we a Sprite handles the event, we
                                 // map the touch identifier to this Sprite
                                 case "touchstart":
@@ -275,7 +275,7 @@ class ZoomableCanvas extends canvas {
                                     theChild = this._activeTouches[ identifier ];
                                     if ( theChild?.handleInteraction( eventOffsetX, eventOffsetY, event )) {
                                         // all events other than touchmove should be treated as a release
-                                        if ( event.type !== "touchmove" ) {
+                                        if ( aEvent.type !== "touchmove" ) {
                                             this._activeTouches[ identifier ] = null;
                                         }
                                     }
@@ -293,7 +293,7 @@ class ZoomableCanvas extends canvas {
                     let { offsetX, offsetY } = ( aEvent as MouseEvent );
                     // QQQ in case move and up event are fired outside of the canvas element
                     // we must translate the event coordinates to be relative to the canvas
-                    if ( event.target !== this._element ) {
+                    if ( aEvent.target !== this._element ) {
                         const { x, y } = this.getCoordinate();
                         offsetX = ( aEvent as MouseEvent ).pageX - x;
                         offsetY = ( aEvent as MouseEvent ).pageY - y;
