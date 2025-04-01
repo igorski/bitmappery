@@ -36,7 +36,7 @@ describe( "duplicate layer action", () => {
         vi.resetAllMocks();
     });
 
-    it( "should be able to insert a duplicate of provided Layer at the provided index", () => {
+    it( "should be able to insert a duplicate of the provided Layer at the provided index", () => {
         duplicateLayer( store, layer, 2 );
 
         expect( store.commit ).toHaveBeenCalledTimes( 1 );

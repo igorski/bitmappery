@@ -56,7 +56,7 @@ describe( "commit layer effects and transforms action", () => {
         vi.resetAllMocks();
     });
 
-    it( "should replace the Layer sources, effects, filters and coordinates, requesting a full renderer creation", async () => {
+    it( "should replace the Layer sources, effects, filters and coordinates, requesting a full renderer recreation", async () => {
         await commitLayerEffectsAndTransforms( store, document, layer, 0 );
 
         expect( store.commit ).toHaveBeenCalledTimes( 1 );

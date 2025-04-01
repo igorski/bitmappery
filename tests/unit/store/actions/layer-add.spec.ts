@@ -41,7 +41,7 @@ describe( "add Layer action", () => {
         expect( store.commit ).not.toHaveBeenCalledWith( "setActiveTool", { tool: expect.any( String ) });
     });
 
-    it( "should not set the current tool type to TEXT when the Layer is of the text type", () => {
+    it( "should set the current tool type to TEXT when the Layer is of the text type to allow for instant typing", () => {
         addLayer( store, LayerFactory.create({ type: LayerTypes.LAYER_TEXT }), 2 );
 
         expect( store.commit ).toHaveBeenCalledTimes( 2 );

@@ -668,7 +668,7 @@ describe( "Vuex document module", () => {
             });
 
             describe( "when requesting to also recreate the renderer for the specific Layer", () => {
-                it( "should not do anything related to renderer lifecycle when the recreation request was false", () => {
+                it( "should not do anything related to renderer lifecycle when no recreation request was provided", () => {
                     const index = 0;
                     const opts  = { filters: { gamma: 1 } };
     
@@ -681,7 +681,7 @@ describe( "Vuex document module", () => {
                     expect( mockUpdateFn ).not.toHaveBeenCalledWith( "createRendererForLayer", mockCanvasInstance, layer, true );
                 });
 
-                it( "should lock the canvas, flush the Layers renderers and create a new renderer instance when the recreation requested was true", () => {
+                it( "should lock the canvas, flush the Layers renderer and create a new renderer instance when a recreation request was provided", () => {
                     const index = 0;
                     const opts  = { filters: { gamma: 1 } };
     

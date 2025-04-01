@@ -65,7 +65,7 @@ describe( "add mask action", () => {
         expect( store.commit ).toHaveBeenNthCalledWith( 4, "setActiveLayerMask", null );
     });
 
-    it( "should restore the toggled value when calling redo in state history", () => {
+    it( "should restore the previously added mask when calling redo in state history", () => {
         addMask( store, layer, 2 );
 
         const { undo, redo } = mockEnqueueState.mock.calls[ 0 ][ 1 ];

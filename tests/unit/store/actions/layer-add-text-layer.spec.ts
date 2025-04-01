@@ -25,7 +25,7 @@ describe( "add text Layer action", () => {
         vi.resetAllMocks();
     });
 
-    it( "should be able to add new Text Layer into the Documents Layer list", () => {
+    it( "should be able to add a new Text Layer into the Documents Layer list", () => {
         addTextLayer( store );
 
         expect( store.commit ).toHaveBeenCalledTimes( 1 );
