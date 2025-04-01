@@ -33,6 +33,7 @@ import LayerRenderer from "@/rendering/actors/layer-renderer";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import { getCanvasInstance } from "@/services/canvas-service";
 import KeyboardService from "@/services/keyboard-service";
+import { zoomIn, zoomOut } from "@/store/actions/canvas-zoom";
 import { invertSelection } from "@/store/actions/selection-invert";
 import { applySelection } from "@/store/actions/selection-apply";
 import { getPixelRatio, isInsideTransparentArea } from "@/utils/canvas-util";
@@ -44,6 +45,7 @@ export enum InteractionModes {
     MODE_PAN = 0,
     MODE_LAYER_SELECT,
     MODE_SELECTION,
+    MODE_ZOOM,
 };
 
 const DASH_SIZE  = 10;
@@ -84,7 +86,7 @@ export default class InteractionPane extends sprite {
         this._dashOffset  = 0;
     }
 
-    setState( enabled: boolean, mode: InteractionModes, activeTool: ToolTypes, active_toolOptions: any ): void {
+    setState( enabled: boolean, mode: InteractionModes, activeTool: ToolTypes, activeToolOptions: any ): void {
         this._enabled = enabled;
         this.setDraggable( enabled );
 
@@ -125,8 +127,8 @@ export default class InteractionPane extends sprite {
             // unsets move listener
             this.isDragging = false;
         }
-        this._toolOptions = active_toolOptions;
-        this._activeTool = activeTool;
+        this._toolOptions = activeToolOptions;
+        this._activeTool  = activeTool;
     }
 
     handleActiveTool( tool: ToolTypes, remainInteractive: boolean ): void {
@@ -397,6 +399,8 @@ export default class InteractionPane extends sprite {
                 document.activeSelection.at( -1 ).push({ ...document.activeSelection.at( -1 )[ 0 ] });
                 this.closeSelection();
             }
+        } else if ( this.mode === InteractionModes.MODE_ZOOM ) {
+            KeyboardService.hasAlt() ? zoomOut( getCanvasInstance().store ) : zoomIn( getCanvasInstance().store );
         }
     }
 

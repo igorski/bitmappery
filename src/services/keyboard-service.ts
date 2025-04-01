@@ -24,10 +24,11 @@ import type { Store, Commit, Dispatch } from "vuex";
 import type { Shape } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import { ALL_PANELS } from "@/definitions/panel-types";
-import ToolTypes, { canDraw, MAX_BRUSH_SIZE, MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
+import ToolTypes, { canDraw, MAX_BRUSH_SIZE } from "@/definitions/tool-types";
 import {
     CREATE_DOCUMENT, ADD_LAYER, SAVE_DOCUMENT, DROPBOX_FILE_SELECTOR,
 } from "@/definitions/modal-windows";
+import { zoomIn, zoomOut } from "@/store/actions/canvas-zoom";
 import { addTextLayer } from "@/store/actions/layer-add-text-layer";
 import { toggleLayerFilters } from "@/store/actions/layer-toggle-filters";
 import { toggleLayerVisibility } from "@/store/actions/layer-toggle-visibility";
@@ -184,7 +185,9 @@ function handleKeyDown( event: KeyboardEvent ): void {
             break;
 
         case 18: // Alt
-            commit( "setLayerSelectMode", true );
+            if ( getters.activeTool !== ToolTypes.ZOOM ) {
+                commit( "setLayerSelectMode", true );
+            }
             break;
 
         case 27: // escape
@@ -450,16 +453,12 @@ function handleKeyDown( event: KeyboardEvent ): void {
 
         case 107:
         case 187: // +
-            commit( "setToolOptionValue",
-                { tool: ToolTypes.ZOOM, option: "level", value: Math.min( MAX_ZOOM, getters.zoomOptions.level + ( MAX_ZOOM / 10 ))
-            });
+            zoomIn( store );
             break;
 
         case 109:
         case 189: // -
-            commit( "setToolOptionValue",
-                { tool: ToolTypes.ZOOM, option: "level", value: Math.max( MIN_ZOOM, getters.zoomOptions.level - ( MAX_ZOOM / 10 ))
-            });
+            zoomOut( store );
             break;
 
         case 219: // [
@@ -496,6 +495,7 @@ function handleKeyUp( event: KeyboardEvent ): void {
             break;
         case 18: // Alt 
             commit( "setLayerSelectMode", false );
+            altDown = false;
             break;
         case 32: // spacebar
             if ( getters.activeTool !== ToolTypes.TEXT && getters.activeTool !== ToolTypes.MOVE ) {

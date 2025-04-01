@@ -442,6 +442,8 @@ export default {
                 mode = InteractionModes.MODE_LAYER_SELECT;
             } else if ( this.selectMode ) {
                 mode = InteractionModes.MODE_SELECTION;
+            } else if ( this.activeTool === ToolTypes.ZOOM ) {
+                mode = InteractionModes.MODE_ZOOM;
             } else {
                 return this.handleActiveTool( this.activeTool ); // likely unsetting mode through keyboard shortcut (e.g. space-pan/(de)select all)
             }
