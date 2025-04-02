@@ -24,17 +24,20 @@ import { type Layer } from "@/definitions/document";
 import { getRendererForLayer } from "@/factories/renderer-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 
-export function positionMask( layer: Layer, oldMaskX: number, oldMaskY: number, newMaskX: number, newMaskY: number ): void {
+export function positionMask( layer: Layer, newMaskX: number, newMaskY: number ): void {
+    const { maskX, maskY } = layer;
+
     const commit = (): void => {
         layer.maskX = newMaskX;
         layer.maskY = newMaskY;
         getRendererForLayer( layer )?.resetFilterAndRecache();
     };
     commit();
+    
     enqueueState( `maskPos_${layer.id}`, {
         undo(): void {
-            layer.maskX = oldMaskX;
-            layer.maskY = oldMaskY;
+            layer.maskX = maskX;
+            layer.maskY = maskY;
             getRendererForLayer( layer )?.resetFilterAndRecache();
         },
         redo: commit

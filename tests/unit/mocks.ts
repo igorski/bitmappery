@@ -16,6 +16,8 @@ import { createToolState } from "@/store/modules/tool-module";
 
 export function sprite() {
     this._bounds      = { left: 0, top: 0, width: 10, height: 10 };
+    this._dragStartOffset = { x: 0, y: 0 };
+    this._dragStartEventCoordinates = { x: 0, y: 0 };
     this._interactive = false;
     this.getBounds = vi.fn().mockReturnValue( this._bounds );
     this.setBounds = vi.fn(( x, y, w, h ) => {
@@ -34,6 +36,12 @@ export function sprite() {
     this.invalidate = vi.fn();
     this.dispose = vi.fn();
 }
+sprite.prototype.handleMove = vi.fn();
+sprite.prototype.handlePress = vi.fn(( x, y ) => function() {
+    this._dragStartOffset = { x: this._bounds.left, y: this._bounds.top };
+    this._dragStartEventCoordinates = { x, y };
+})
+sprite.prototype.handleRelease = vi.fn();
 
 export function mockZCanvas() {
     vi.mock( "zcanvas", () => ({

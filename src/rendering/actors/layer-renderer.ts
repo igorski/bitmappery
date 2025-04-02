@@ -90,6 +90,7 @@ export default class LayerRenderer extends ZoomableSprite {
     protected _pendingPaintState: number | undefined; // ReturnType<typeof setTimeout>;
     protected _pendingEffectsRender: boolean;
     protected _unmaskedBitmap: HTMLCanvasElement | undefined; // a reference to the effected source w/out mask applied
+    protected _draggingMask: Point | undefined;
 
     constructor( layer: Layer ) {
         const { left, top, width, height } = layer;
@@ -529,6 +530,13 @@ export default class LayerRenderer extends ZoomableSprite {
             this._lastBrushIndex = 1;
         } else if ( this._isDragMode ) {
             this.canvas.draggingSprite = this;
+
+            if ( this.actionTarget === "mask" && canDragMask( this.layer, this.layer.mask )) {
+                this._draggingMask = {
+                    x: this._dragStartOffset.x + (( x - this._bounds.left ) - this._dragStartEventCoordinates.x ),
+                    y: this._dragStartOffset.y + (( y - this._bounds.top )  - this._dragStartEventCoordinates.y ),
+                };
+            }
         }
     }
 
@@ -540,29 +548,16 @@ export default class LayerRenderer extends ZoomableSprite {
             this._pointer.y = y;
         }
 
-        const isDragging = !this._isPaintMode; // not drawable ? perform default behaviour (drag)
-
-        if ( isDragging ) {
-            if ( this.actionTarget === "mask" && canDragMask( this.layer, this.layer.mask )) {
-                const layer = this.layer;
-                const { maskX, maskY } = layer;
+        if ( this._isDragMode ) {
+            if ( this._draggingMask ) {
                 let newMaskX = this._dragStartOffset.x + (( x - this._bounds.left ) - this._dragStartEventCoordinates.x );
                 let newMaskY = this._dragStartOffset.y + (( y - this._bounds.top )  - this._dragStartEventCoordinates.y );
-                if ( this.layer.effects.mirrorX ) {
-                    newMaskX = -newMaskX;
-                }
-                if ( this.layer.effects.mirrorY ) {
-                    newMaskY = -newMaskY;
-                }
-                positionMask( this.layer, maskX, maskY, newMaskX, newMaskY );
+                this._draggingMask.x = this.layer.effects.mirrorX ? -newMaskX : newMaskX;
+                this._draggingMask.y = this.layer.effects.mirrorY ? -newMaskY : newMaskY;
             } else if ( this._isDragMode ) {
                 super.handleMove( x, y, event );
-                return;
             }
-        }
-
-        // brush mode and brushing is active
-        if ( this.isDrawing() ) {
+        } else if ( this.isDrawing() ) {
             // enqueue current pointer position, painting of all enqueued pointers will be deferred
             // to the update()-hook, this prevents multiple renders on each move event
             this.storeBrushPointer( x, y );
@@ -595,13 +590,15 @@ export default class LayerRenderer extends ZoomableSprite {
                 this.storePaintState();
             }
         }
+
         if ( this._isPaintMode ) {
-            this.forceMoveListener(); // keeps the move listener active
-        }
-        else if ( this._isDragMode ) {
-            // check whether we need to snap to a guide
-            if ( getters.snapAlign ) {
-                snapToGuide( this, this.canvas.guides );
+            this.forceMoveListener(); // keeps the move listener active (to show brush outline while moving pointer)
+        } else if ( this._isDragMode ) {
+            if ( this._draggingMask ) {
+                positionMask( this.layer, this._draggingMask.x, this._draggingMask.y );
+                this._draggingMask = undefined;
+            } else if ( getters.snapAlign ) {
+                snapToGuide( this, this.canvas.guides ); // snap to guide
             }
             this.canvas.draggingSprite = null;
         }
@@ -695,8 +692,17 @@ export default class LayerRenderer extends ZoomableSprite {
                 drawBounds = transformedBounds;
             }
 
-            // invoke base class behaviour to render bitmap
-            super.draw( drawContext, transformCanvas ? undefined : viewport, drawBounds );
+            if ( this._draggingMask ) {
+                const composite = getMaskComposite({ width: this.layer.mask.width, height: this.layer.mask.height });
+                maskImage(
+                    composite.ctx, this._unmaskedBitmap!, this.layer.mask,
+                    this._unmaskedBitmap!.width, this._unmaskedBitmap!.height, this._draggingMask.x, this._draggingMask.y
+                );
+                this.drawBitmap( documentContext, composite.cvs, transformCanvas ? undefined : viewport, drawBounds );
+            } else {
+                // invoke base class behaviour to render bitmap
+                super.draw( drawContext, transformCanvas ? undefined : viewport, drawBounds );
+            }
 
             if ( isErasingOnMask ) {
                 const tempMask = cloneCanvas( this._unmaskedBitmap ); // will contain drawable canvas contents to be used as eraser

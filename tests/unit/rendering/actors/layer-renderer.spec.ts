@@ -29,13 +29,17 @@ vi.mock( "@/rendering/cache/blended-layer-cache", () => ({
 
 const mockRenderOperation = vi.fn();
 vi.mock( "@/rendering/operations/clipping", () => ({
-    clipLayer: vi.fn(( ...args ) => mockRenderOperation( "clipLayer", ...args )),
+    clipLayer: vi.fn(( ...args: any[] ) => mockRenderOperation( "clipLayer", ...args )),
 }))
 
 const mockRenderEffectsForLayer = vi.fn();
 vi.mock( "@/services/render-service", () => ({
-    renderEffectsForLayer: vi.fn(( ...args ) => mockRenderEffectsForLayer( ...args )),
+    renderEffectsForLayer: vi.fn(( ...args: any[] ) => mockRenderEffectsForLayer( ...args )),
 }));
+
+const mockAction = vi.fn();
+vi.mock( "@/store/actions/mask-position", () => ({ positionMask: vi.fn(( ...args: any[] ) => mockAction( "positionMask", ...args ))}));
+vi.mock( "@/rendering/operations/snapping", () => ({ snapToGuide: vi.fn(( ...args: any[] ) => mockAction( "snapToGuide", ...args ))}))
 
 describe( "LayerRenderer", () => {
     const activeDocument = DocumentFactory.create();
@@ -334,7 +338,51 @@ describe( "LayerRenderer", () => {
         });
     });
 
-    describe( "when drawing the Layers contents onto the ZoomableCanvas", () => {
+    describe( "when dragging the Layers contents over the canvas", () => {
+        beforeEach(() => {
+            renderer.setInteractive( true );
+            renderer.handleActiveTool( ToolTypes.DRAG, undefined, activeDocument );
+        });
+
+        it( "should invoke snapping when a releasing a Layer drag, when snapping is enabled", () => {
+            renderer.setInteractive( true );
+            mockStore.getters.snapAlign = true;
+            
+            renderer.handlePress( 5, 5, new MouseEvent( "mousedown" ));
+            renderer.handleMove( 5, 5, new MouseEvent( "mousemove" ));
+            renderer.handleRelease( 10, 10 );
+
+            expect( mockAction ).toHaveBeenCalledWith( "snapToGuide", renderer, renderer.canvas.guides );
+        });
+
+        it( "should not invoke snapping when a releasing a Layer drag, when snapping is disabled", () => {
+            renderer.setInteractive( true );
+            mockStore.getters.snapAlign = false;
+            
+            renderer.handlePress( 5, 5, new MouseEvent( "mousedown" ));
+            renderer.handleMove( 5, 5, new MouseEvent( "mousemove" ));
+            renderer.handleRelease( 10, 10 );
+
+            expect( mockAction ).not.toHaveBeenCalledWith( "snapToGuide", renderer, renderer.canvas.guides );
+        });
+
+        it( "should update a dragged Mask position on pointer release and not invoke snapping", () => {
+            layer.mask = createMockCanvasElement();
+            mockStore.getters.activeLayerMask = layer.mask;
+            mockStore.getters.snapAlign = true;
+
+            renderer.setActionTarget( "mask" );
+            
+            renderer.handlePress( 5, 5, new MouseEvent( "mousedown" ));
+            renderer.handleMove( 5, 5, new MouseEvent( "mousemove" ));
+            renderer.handleRelease( 10, 10 );
+
+            expect( mockAction ).toHaveBeenCalledWith( "positionMask", layer, 5, 5 );
+            expect( mockAction ).not.toHaveBeenCalledWith( "snapToGuide", renderer, renderer.canvas.guides );
+        });
+    });
+
+    describe( "when drawing the Layers contents onto the canvas", () => {
         const viewport = { left: 10, top: 20, width: 400, height: 300, right: 410, bottom: 320 };
         const ctx = createMockCanvasElement().getContext( "2d" );
 

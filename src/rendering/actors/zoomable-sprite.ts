@@ -31,6 +31,24 @@ class ZoomableSprite extends sprite {
         super( opts );
     }
 
+    drawBitmap( canvasContext: CanvasRenderingContext2D, bitmap: HTMLCanvasElement, viewport?: Viewport, bounds: Rectangle = this._bounds ): void {
+        if ( viewport && !isInsideViewport( bounds, viewport )) {
+            return;
+        }
+        if ( viewport ) {
+            this.drawCropped( canvasContext, bitmap, calculateDrawRectangle( bounds, viewport ));
+        } else {
+            const { left, top, width, height } = bounds;
+            canvasContext.drawImage(
+                bitmap,
+                ( HALF + left )   << 0,
+                ( HALF + top )    << 0,
+                ( HALF + width )  << 0,
+                ( HALF + height ) << 0
+            );
+        }
+    }
+
     drawCropped( canvasContext: CanvasRenderingContext2D, bitmap: HTMLCanvasElement, { src, dest }: TransformedDrawBounds ): void {
         canvasContext.drawImage(
             bitmap,
@@ -56,24 +74,6 @@ class ZoomableSprite extends sprite {
     draw( canvasContext: CanvasRenderingContext2D, viewport?: Viewport, bounds: Rectangle = this._bounds ): void {
         if ( this._bitmapReady ) {
             this.drawBitmap( canvasContext, this._bitmap as HTMLCanvasElement, viewport, bounds );
-        }
-    }
-
-    drawBitmap( canvasContext: CanvasRenderingContext2D, bitmap: HTMLCanvasElement, viewport?: Viewport, bounds: Rectangle = this._bounds ): void {
-        if ( viewport && !isInsideViewport( bounds, viewport )) {
-            return;
-        }
-        if ( viewport ) {
-            this.drawCropped( canvasContext, bitmap, calculateDrawRectangle( bounds, viewport ));
-        } else {
-            const { left, top, width, height } = bounds;
-            canvasContext.drawImage(
-                bitmap,
-                ( HALF + left )   << 0,
-                ( HALF + top )    << 0,
-                ( HALF + width )  << 0,
-                ( HALF + height ) << 0
-            );
         }
     }
 }
