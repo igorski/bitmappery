@@ -70,8 +70,8 @@
 <script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import Slider from "@/components/ui/slider/slider.vue";
-import { enqueueState } from "@/factories/history-state-factory";
 import { pauseBlendCaching } from "@/rendering/cache/blended-layer-cache";
+import { rotateLayer } from "@/store/actions/layer-rotate";
 import messages from "./messages.json";
 import { degreesToRadians, radiansToDegrees } from "@/math/unit-math";
 
@@ -105,19 +105,7 @@ export default {
             "updateLayerEffects",
         ]),
         update( rotation: number ): void {
-            const oldRotation = this.activeLayerEffects.rotation;
-            const index  = this.activeLayerIndex;
-            const store  = this.$store;
-            const commit = () => store.commit( "updateLayerEffects", { index, effects: { rotation } });
-            commit();
-            enqueueState( `rotation_${index}`, {
-                undo() {
-                    store.commit( "updateLayerEffects", { index, effects: { rotation: oldRotation } });
-                },
-                redo() {
-                    commit();
-                },
-            });
+            rotateLayer( this.$store, this.activeLayer, this.activeLayerIndex, rotation );
         },
         reset(): void {
             this.rotation = 0;

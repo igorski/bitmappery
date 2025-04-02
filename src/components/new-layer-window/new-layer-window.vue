@@ -63,13 +63,13 @@
     </modal>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
-import Modal     from "@/components/modal/modal.vue";
+import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
-import LayerFactory from "@/factories/layer-factory";
-import { enqueueState } from "@/factories/history-state-factory";
 import { LayerTypes } from "@/definitions/layer-types";
+import LayerFactory from "@/factories/layer-factory";
+import { addLayer } from "@/store/actions/layer-add";
 import { focus } from "@/utils/environment-util";
 
 import messages from "./messages.json";
@@ -89,22 +89,22 @@ export default {
             "activeLayerIndex",
             "layers",
         ]),
-        layerTypes() {
+        layerTypes(): { label: string, value: LayerTypes }[] {
             return [
                 { label: this.$t( "graphic" ), value: LayerTypes.LAYER_GRAPHIC },
                 { label: this.$t( "text" ), value: LayerTypes.LAYER_TEXT },
             ];
         },
-        isValid() {
+        isValid(): boolean {
             return this.name.length > 0 && this.type;
         },
     },
-    created() {
+    created(): void {
         if ( !this.name ) {
             this.name = this.$t( "newLayerNum", { num: this.layers.length + 1 });
         }
     },
-    mounted() {
+    mounted(): void {
         focus( this.$refs.nameInput );
         this.$refs.nameInput.select();
     },
@@ -112,7 +112,7 @@ export default {
         ...mapMutations([
             "closeModal",
         ]),
-        requestLayerAdd() {
+        requestLayerAdd(): void {
             if ( !this.isValid ) {
                 return;
             }
@@ -122,17 +122,8 @@ export default {
                  width  : this.activeDocument.width,
                  height : this.activeDocument.height
             });
-            const index  = this.activeLayerIndex + 1;
-            const store  = this.$store;
-            const commit = () => store.commit( "insertLayerAtIndex", { index, layer });
-            commit();
+            addLayer( this.$store, layer, this.activeLayerIndex + 1 );
 
-            enqueueState( `layerAdd_${index}`, {
-                undo() {
-                    store.commit( "removeLayer", index );
-                },
-                redo: commit,
-            });
             this.closeModal();
         },
     },

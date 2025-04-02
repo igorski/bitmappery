@@ -1,6 +1,6 @@
 import { it, describe, expect, vi } from "vitest";
 import type { Effects, Filters, Text } from "@/definitions/document";
-import { LayerTypes } from "@/definitions/layer-types";
+import { LayerTypes, DEFAULT_LAYER_NAME, DEFAULT_TEXT_LAYER_NAME } from "@/definitions/layer-types";
 import EffectsFactory, { type EffectsProps } from "@/factories/effects-factory";
 import FiltersFactory, { type FiltersProps } from "@/factories/filters-factory";
 import LayerFactory, { layerToRect } from "@/factories/layer-factory";
@@ -105,6 +105,26 @@ describe( "Layer factory", () => {
                 effects: { rotation: 270 },
                 filters: { contrast: .7 },
             })
+        });
+
+        describe( "and providing a name to the Layer", () => {
+            it( "should take the default name when none was provided", () => {
+                const layer = LayerFactory.create();
+
+                expect( layer.name ).toEqual( DEFAULT_LAYER_NAME );
+            });
+
+            it( "should take the default name for Text layers when none was provided", () => {
+                const layer = LayerFactory.create({ type: LayerTypes.LAYER_TEXT });
+
+                expect( layer.name ).toEqual( DEFAULT_TEXT_LAYER_NAME );
+            });
+
+            it( "should take the provided name", () => {
+                const layer = LayerFactory.create({ type: LayerTypes.LAYER_TEXT, name: "Billay Bawb" });
+
+                expect( layer.name ).toEqual( "Billay Bawb" );
+            });
         });
     });
 

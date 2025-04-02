@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2023 - https://www.igorski.nl
+ * Igor Zinken 2021-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,8 +20,11 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Rectangle } from "zcanvas";
-import type { Shape, Selection } from "@/definitions/document";
+import { type Store } from "vuex";
+import { type Rectangle } from "zcanvas";
+import { type Shape, Selection } from "@/definitions/document";
+import { getRendererForLayer } from "@/factories/renderer-factory";
+import { type BitMapperyState } from "@/store";
 import { shapeToRectangle, scaleShape } from "@/utils/shape-util";
 
 export const selectionToRectangle = ( selection: Selection ): Rectangle => {
@@ -52,4 +55,11 @@ export const scaleSelection = ( selection: Selection, scale: number ): Selection
 
 export const getLastShape = ( selection: Selection ): Shape => {
     return selection[ selection.length - 1 ];
+};
+
+export const syncSelection = ( store: Store<BitMapperyState> ): void => {
+    const { getters } = store;
+    if ( getters.activeLayer ) {
+        getRendererForLayer( getters.activeLayer )?.setSelection( getters.activeDocument );
+    }
 };

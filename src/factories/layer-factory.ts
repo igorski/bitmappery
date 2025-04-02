@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Rectangle } from "zcanvas";
-import { LayerTypes, DEFAULT_LAYER_NAME } from "@/definitions/layer-types";
+import { LayerTypes, DEFAULT_LAYER_NAME, DEFAULT_TEXT_LAYER_NAME } from "@/definitions/layer-types";
 import type { Layer } from "@/definitions/document";
 import { imageToBase64, base64toCanvas } from "@/utils/canvas-util";
 import EffectsFactory from "@/factories/effects-factory";
@@ -51,7 +51,7 @@ const LayerFactory = {
     }: LayerProps = {}): Layer {
         return {
             id: `layer_${( ++UID_COUNTER )}`,
-            name,
+            name: ( name === DEFAULT_LAYER_NAME && type === LayerTypes.LAYER_TEXT ) ? DEFAULT_TEXT_LAYER_NAME : name,
             type,
             source,
             transparent,

@@ -1,5 +1,12 @@
-import { it, describe, expect } from "vitest";
-import { selectionToRectangle, scaleSelection, getLastShape } from "@/utils/selection-util";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { createMockSelection, createStore, createMockZoomableCanvas, mockZCanvas } from "../mocks";
+
+mockZCanvas();
+
+import DocumentFactory from "@/factories/document-factory";
+import LayerFactory from "@/factories/layer-factory";
+import { createRendererForLayer, flushRendererCache } from "@/factories/renderer-factory";
+import { getLastShape, scaleSelection, selectionToRectangle, syncSelection } from "@/utils/selection-util";
 
 describe( "Selection utilities", () => {
     const selection = [
@@ -15,6 +22,10 @@ describe( "Selection utilities", () => {
             { x: 25, y: 75 },
         ]
     ];
+
+    afterEach(() => {
+        flushRendererCache();
+    });
 
     describe( "when calculating the bounding box rectangle for a selection", () => {
         it( "should be able to calculate the bounding box of a selection with a single Shape", () => {
@@ -54,5 +65,22 @@ describe( "Selection utilities", () => {
 
     it( "should be able to retrieve the last shape in the selection", () => {
         expect( getLastShape( selection )).toEqual( selection.at( -1 ));
+    });
+
+    it( "should be able to synchronize a selection with a specific Layers renderer", () => {
+        const store = createStore();
+        // @ts-expect-error getters is readonly
+        store.getters = {
+            activeDocument: DocumentFactory.create({
+                activeSelection: createMockSelection(),
+            }),
+            activeLayer: LayerFactory.create(),
+        };
+        const renderer = createRendererForLayer( createMockZoomableCanvas(), store.getters.activeLayer, true );
+        const setSelectionSpy = vi.spyOn( renderer, "setSelection" );
+
+        syncSelection( store );
+
+        expect( setSelectionSpy ).toHaveBeenCalledWith( store.getters.activeDocument );
     });
 });

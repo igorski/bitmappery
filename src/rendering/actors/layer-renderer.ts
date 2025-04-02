@@ -30,10 +30,10 @@ import type { Document, Layer, Selection } from "@/definitions/document";
 import type { CanvasContextPairing, CanvasDrawable, Brush, BrushToolOptions, BrushAction } from "@/definitions/editor";
 import { LayerTypes } from "@/definitions/layer-types";
 import ToolTypes, { canDragMask, TOOL_SRC_MERGED } from "@/definitions/tool-types";
+import BrushFactory from "@/factories/brush-factory";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation, rotatePointer } from "@/math/point-math";
 import { fastRound } from "@/math/unit-math";
-import { renderEffectsForLayer } from "@/services/render-service";
 import { getBlendContext, blendLayer } from "@/rendering/operations/blending";
 import { clipContextToSelection, clipLayer } from "@/rendering/operations/clipping";
 import { renderClonedStroke, setCloneSource } from "@/rendering/operations/cloning";
@@ -48,14 +48,16 @@ import { renderBrushOutline } from "@/rendering/cursors/brush";
 import {
     getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, sliceBrushPointers, createOverrideConfig
 } from "@/rendering/utils/drawable-canvas-utils";
-import BrushFactory from "@/factories/brush-factory";
+import { renderEffectsForLayer } from "@/services/render-service";
+import { replaceLayerSource } from "@/store/actions/layer-source-replace";
+import { positionLayer } from "@/store/actions/layer-position";
+import { positionMask } from "@/store/actions/mask-position";
 import { createCanvas, canvasToBlob, cloneCanvas, globalToLocal, getPixelRatio } from "@/utils/canvas-util";
 import { createSyncSnapshot } from "@/utils/document-util";
 import { hasBlend, isDrawable, isMaskable, isRotated, isScaled } from "@/utils/layer-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { getLastShape } from "@/utils/selection-util";
 import { isShapeClosed } from "@/utils/shape-util";
-import { storeLayerPositionInHistory, storeMaskPositionInHistory, storePaintInHistory } from "@/utils/layer-history-util";
 import type { BitMapperyState } from "@/store";
 
 const HALF = 0.5;
@@ -429,7 +431,7 @@ export default class LayerRenderer extends ZoomableSprite {
         const orgBlob  = await canvasToBlob( original );
         const orgState = blobToResource( orgBlob );
         
-        storePaintInHistory( this.layer, orgState, newState, isMaskable( this.layer, this.getStore() ));
+        replaceLayerSource( this.layer, orgState, newState, isMaskable( this.layer, this.getStore() ));
 
         return true;
     }
@@ -465,7 +467,7 @@ export default class LayerRenderer extends ZoomableSprite {
         layer.left = newLayerX;
         layer.top  = newLayerY;
 
-        storeLayerPositionInHistory( this.layer, oldLayerX, oldLayerY, newLayerX, newLayerY, left, top, newLeft, newTop );
+        positionLayer( this.layer, oldLayerX, oldLayerY, newLayerX, newLayerY, left, top, newLeft, newTop );
 
         this.invalidateBlendCache();
     }
@@ -552,7 +554,7 @@ export default class LayerRenderer extends ZoomableSprite {
                 if ( this.layer.effects.mirrorY ) {
                     newMaskY = -newMaskY;
                 }
-                storeMaskPositionInHistory( this.layer, maskX, maskY, newMaskX, newMaskY );
+                positionMask( this.layer, maskX, maskY, newMaskX, newMaskY );
             } else if ( this._isDragMode ) {
                 super.handleMove( x, y, event );
                 return;

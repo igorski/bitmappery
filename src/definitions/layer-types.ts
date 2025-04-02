@@ -25,4 +25,8 @@ export enum LayerTypes {
     LAYER_IMAGE   = "image",
     LAYER_TEXT    = "text",
 };
-export const DEFAULT_LAYER_NAME = "New Layer"; // TODO i18n
+
+ // TODO i18n
+
+export const DEFAULT_LAYER_NAME      = "New Layer";
+export const DEFAULT_TEXT_LAYER_NAME = "New Text Layer";

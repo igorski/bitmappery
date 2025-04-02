@@ -25,7 +25,7 @@ import type { Rectangle, Size } from "zcanvas";
 import type { Document, Layer, Effects, Selection } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
-import { flushLayerRenderers, runRendererFn, getRendererForLayer } from "@/factories/renderer-factory";
+import { createRendererForLayer, flushLayerRenderers, runRendererFn, getRendererForLayer } from "@/factories/renderer-factory";
 import { flushBlendedLayerCache } from "@/rendering/cache/blended-layer-cache";
 import { getCanvasInstance } from "@/services/canvas-service";
 import { resizeLayerContent, cropLayerContent } from "@/utils/layer-util";
@@ -188,7 +188,7 @@ const DocumentModule: Module<DocumentState, any> = {
             state.activeLayerIndex = layerIndex;
             state.maskActive = !!state.documents[ state.activeIndex ]?.layers[ layerIndex ]?.mask;
         },
-        updateLayer( state: DocumentState, { index, opts = {} }: { index: number, opts: Partial<Layer> }): void {
+        updateLayer( state: DocumentState, { index, opts = {}, recreateRenderer = false }: { index: number, opts: Partial<Layer>, recreateRenderer?: boolean }): void {
             let layer = state.documents[ state.activeIndex ]?.layers[ index ];
             if ( !layer ) {
                 return; // likely document unload during async update operation
@@ -198,6 +198,12 @@ const DocumentModule: Module<DocumentState, any> = {
                 ...opts
             };
             state.documents[ state.activeIndex ].layers[ index ] = layer;
+            if ( recreateRenderer ) {
+                getCanvasInstance().setLock( true ); // will be unlocked by renderer recache
+                flushLayerRenderers( layer );
+                createRendererForLayer( getCanvasInstance(), layer, index === state.activeLayerIndex );
+                return;
+            }
             // update layer in renderer
             const renderer = getRendererForLayer( layer );
             if ( renderer ) {

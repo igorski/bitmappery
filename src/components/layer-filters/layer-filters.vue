@@ -134,8 +134,8 @@ import Slider from "@/components/ui/slider/slider.vue";
 import { Layer, Filters } from "@/definitions/document";
 import { BlendModes } from "@/definitions/blend-modes";
 import FiltersFactory from "@/factories/filters-factory";
-import { enqueueState } from "@/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
+import { updateLayerFilters } from "@/store/actions/layer-update-filters";
 import messages from "./messages.json";
 
 export default {
@@ -282,21 +282,13 @@ export default {
             }
         },
         save(): void {
-            // if filter settings were changed, store these in state history
-            const store      = this.$store;
-            const index      = this.activeLayerIndex;
-            const orgFilters = this.orgFilters;
-            const filters    = this.internalValue;
-            if ( !isEqual( filters, orgFilters )) {
-                enqueueState( `filters_${this.activeLayer.id}`, {
-                    undo() {
-                        store.commit( "updateLayer", { index, opts: { filters: orgFilters } });
-                    },
-                    redo() {
-                        store.commit( "updateLayer", { index, opts: { filters }});
-                    },
-                });
+            const filters = this.internalValue;
+            if ( isEqual( filters, this.orgFilters )) {
+                return;
             }
+            // when filter settings were changed, store these in state history
+            updateLayerFilters( this.$store, this.activeLayerIndex, this.orgFilters, this.internalValue );
+            
             // no need to call update(), computed setters have triggered model update
             this.close();
         },

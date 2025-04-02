@@ -22,7 +22,7 @@
  */
 import { canvas, type Rectangle } from "zcanvas";
 import type { Document, Shape, Text, Layer } from "@/definitions/document";
-import type { CopiedSelection } from "@/definitions/editor";
+import type { CanvasDrawable, CopiedSelection } from "@/definitions/editor";
 import { renderEffectsForLayer } from "@/services/render-service";
 import { createRendererForLayer, getRendererForLayer } from "@/factories/renderer-factory";
 import { rotateRectangle, areEqual } from "@/math/rectangle-math";
@@ -58,7 +58,7 @@ export const createDocumentSnapshot = async ( activeDocument: Document ): Promis
  * Creates a snapshot of the provided layer. When an activeDocument is provided, it's boundary box
  * will crop the layer. THIS MULTIPLIES FOR THE DEVICE PIXEL RATIO (as it mimics the onscreen presentation of zCanvas)
  */
-export const createLayerSnapshot = async ( layer: Layer, optActiveDocument?: Document): Promise<HTMLCanvasElement> => {
+export const createLayerSnapshot = async ( layer: Layer, optActiveDocument?: Document ): Promise<HTMLCanvasElement> => {
     const width  = optActiveDocument ? optActiveDocument.width  : layer.width;
     const height = optActiveDocument ? optActiveDocument.height : layer.height;
 
@@ -108,7 +108,7 @@ export const createSyncSnapshot = ( activeDocument: Document, optLayerIndices: n
  * Slice the contents of given bitmap using a grid of given dimensions
  * into a list of grid-sized bitmaps.
  */
-export const sliceTiles = async ( sourceBitmap: HTMLImageElement, tileWidth: number, tileHeight: number ): Promise<HTMLCanvasElement[]> => {
+export const sliceTiles = async ( sourceBitmap: CanvasDrawable, tileWidth: number, tileHeight: number ): Promise<HTMLCanvasElement[]> => {
     const { width, height } = sourceBitmap;
     const out: HTMLCanvasElement[] = [];
 
@@ -134,13 +134,13 @@ export const sliceTiles = async ( sourceBitmap: HTMLImageElement, tileWidth: num
  * Combines the contents of a list of tiles into a single image where the tiles
  * are spread across the given amountOfColumns for as many rows as necessary
  *
- * @param {Array<HTMLCanvasElement>} tiles
+ * @param {Array<CanvasDrawable>} tiles
  * @param {Number} tileWidth width of an individual tile
  * @param {Number} tileHeight height of an individual tile
  * @param {Number} amountOfColumns amount of columns to generate in the destination image
  * @return {HTMLCanvasElement}
  */
-export const tilesToSingle = ( tiles: HTMLCanvasElement[], tileWidth: number, tileHeight: number, amountOfColumns: number ): HTMLCanvasElement => {
+export const tilesToSingle = ( tiles: CanvasDrawable[], tileWidth: number, tileHeight: number, amountOfColumns: number ): HTMLCanvasElement => {
     const amountOfRows = Math.ceil( tiles.length / amountOfColumns );
     const width  = amountOfColumns * tileWidth;
     const height = amountOfRows * tileHeight;

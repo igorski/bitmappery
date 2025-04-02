@@ -23,13 +23,13 @@
 import { type Layer } from "@/definitions/document";
 import { getRendererForLayer } from "@/factories/renderer-factory";
 import { enqueueState } from "@/factories/history-state-factory";
-import { flushBlendedLayerCache, useBlendCaching } from "../rendering/cache/blended-layer-cache";
+import { flushBlendedLayerCache, useBlendCaching } from "@/rendering/cache/blended-layer-cache";
 
 // NOTE we use getRendererForLayer() instead of passing the renderer by reference
 // as it is possible the renderer originally rendering the Layer has been disposed
 // and a new one has been created while traversing the change history
 
-export function storeLayerPositionInHistory(
+export function positionLayer(
     layer: Layer, oldLayerX: number, oldLayerY: number, newLayerX: number, newLayerY: number,
     oldRendererX: number, oldRendererY: number, newRendererX: number, newRendererY: number,
 ): void {
@@ -47,35 +47,6 @@ export function storeLayerPositionInHistory(
     });
 }
 
-export function storeMaskPositionInHistory( layer: Layer, oldMaskX: number, oldMaskY: number, newMaskX: number, newMaskY: number ): void {
-    const commit = (): void => {
-        layer.maskX = newMaskX;
-        layer.maskY = newMaskY;
-        getRendererForLayer( layer )?.resetFilterAndRecache();
-    };
-    commit();
-    enqueueState( `maskPos_${layer.id}`, {
-        undo(): void {
-            layer.maskX = oldMaskX;
-            layer.maskY = oldMaskY;
-            getRendererForLayer( layer )?.resetFilterAndRecache();
-        },
-        redo: commit
-    });
-}
-
-export function storePaintInHistory( layer: Layer, orgSourceBlobURL: string, newSourceBlobURL: string, isMask: boolean ): void {
-    enqueueState( `layerPaint_${layer.id}`, {
-        undo(): void {
-            restorePaintFromHistory( layer, orgSourceBlobURL, isMask );
-        },
-        redo(): void {
-            restorePaintFromHistory( layer, newSourceBlobURL, isMask );
-        },
-        resources: [ orgSourceBlobURL, newSourceBlobURL ],
-    });
-}
-
 /* internal methods */
 
 function positionRendererFromHistory( layer: Layer, x: number, y: number ): void {
@@ -88,16 +59,4 @@ function positionRendererFromHistory( layer: Layer, x: number, y: number ): void
         }
         renderer.invalidate();
     }
-}
-
-function restorePaintFromHistory( layer: Layer, sourceToRestore: string, isMask: boolean ): void {
-    const source = isMask ? layer.mask : layer.source;
-    const ctx = source.getContext( "2d" ) as CanvasRenderingContext2D;
-    ctx.clearRect( 0, 0, source.width, source.height );
-    const image  = new Image();
-    image.onload = () => {
-        ctx.drawImage( image, 0, 0 );
-        getRendererForLayer( layer )?.resetFilterAndRecache();
-    };
-    image.src = sourceToRestore;
 }
