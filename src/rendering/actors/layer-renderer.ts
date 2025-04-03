@@ -671,6 +671,7 @@ export default class LayerRenderer extends ZoomableSprite {
 
             if ( applyBlending ) {
                 drawContext = getBlendContext( documentContext.canvas );
+                drawContext.globalAlpha = altOpacity ? opacity : 1;
                 const scaleFactor = isSnapshotMode ? getPixelRatio() : getPixelRatio() * this.canvas.zoomFactor;
                 drawContext.scale( scaleFactor, scaleFactor );
             }
