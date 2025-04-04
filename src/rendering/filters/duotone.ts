@@ -31,11 +31,10 @@ let cacheKey: string = "";
  */
 export const applyDuotone = ( data: Uint8ClampedArray, color1: string, color2: string ): void  => {
     const colorKey = `${color1}_${color2}`;
-console.info('color key:'+colorKey + ' vs cacheKey:'+ cacheKey)
+
     if ( cacheKey !== colorKey ) {
         cacheGradient( color1, color2 );
         cacheKey = colorKey;
-        console.info('set cached key to ' + colorKey, cacheKey === colorKey)
     }
 
     applyGrayScale( data );
