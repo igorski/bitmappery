@@ -1,6 +1,10 @@
 {
     "en-US": {
-        "enabled": "Filters active",
+        "enabled": "Effects active",
+        "compositing": "Compositing",
+        "toneAdjustments": "Tone adjustments",
+        "colorAdjustments": "Color adjustments",
+        "filters": "Filters",
         "blendMode": "Blend mode",
         "normal": "Normal",
         "darken": "Darken",
@@ -28,6 +32,9 @@
         "vibrance": "Vibrance",
         "threshold": "Threshold",
         "desaturate": "Desaturate",
+        "duotone": "Duotone",
+        "color1": "Color 1",
+        "color2": "Color 2",
         "reset": "Reset",
         "cancel": "Cancel",
         "save": "Save"

@@ -31,7 +31,7 @@
         <div class="component__header">
             <h2
                 class="component__title"
-            >{{ showFilters && activeLayer ? $t( 'filtersForLayer', { name: activeLayer.name }) : $t( 'layers' ) }}</h2>
+            >{{ showEffects && activeLayer ? $t( 'effectsForLayer', { name: activeLayer.name }) : $t( 'layers' ) }}</h2>
             <button
                 type="button"
                 class="component__header-button button--ghost"
@@ -41,9 +41,9 @@
             </button>
         </div>
         <template v-if="!collapsed">
-            <layer-filters
-                v-if="showFilters"
-                @close="showFilters = false"
+            <layer-effects
+                v-if="showEffects"
+                @close="showEffects = false"
             />
             <div
                 v-else
@@ -105,10 +105,10 @@
                                         :class="{ 'layer__actions-button--disabled': !element.visible }"
                                     ><img src="@/assets-inline/images/icon-eye.svg" /></button>
                                     <button
-                                        v-tooltip="$t('filters')"
+                                        v-tooltip="$t('effects')"
                                         type="button"
                                         class="layer__actions-button button--ghost"
-                                        @click="handleFiltersClick( element.index )"
+                                        @click="handleEffectsClick( element.index )"
                                     ><img src="@/assets-inline/images/icon-settings.svg" /></button>
                                     <button
                                         v-tooltip="$t( element.mask ? 'deleteMask' : 'deleteLayer' )"
@@ -127,7 +127,7 @@
                     class="no-layers-text"
                 ></p>
             </div>
-            <div v-if="!showFilters" class="component__actions">
+            <div v-if="!showEffects" class="component__actions">
                 <button
                     v-t="'addLayer'"
                     type="button"
@@ -174,11 +174,11 @@ export default {
     i18n: { messages },
     components: {
         Draggable    : defineAsyncComponent({ loader: () => import( "vuedraggable" ) }),
-        LayerFilters : defineAsyncComponent({ loader: () => import( "@/components/layer-filters/layer-filters.vue" ) }),
+        LayerEffects : defineAsyncComponent({ loader: () => import( "@/components/layer-effects/layer-effects.vue" ) }),
     },
     data: () => ({
         editable: false,
-        showFilters: false,
+        showEffects: false,
     }),
     computed: {
         ...mapState([
@@ -245,9 +245,9 @@ export default {
         handleToggleLayerVisibility( index: number): void {
             toggleLayerVisibility( this.$store, index );
         },
-        handleFiltersClick( index: number ): void {
+        handleEffectsClick( index: number ): void {
             this.setActiveLayerIndex( index );
-            this.showFilters = true;
+            this.showEffects = true;
         },
         handleRemoveClick( index: number ): void {
             const layer = this.layers[ index ];
@@ -329,11 +329,11 @@ export default {
                     this.requestLayerRemove( this.activeLayerIndex );
                     break;
                 case 13: // enter
-                    this.handleFiltersClick( this.activeLayerIndex );
+                    this.handleEffectsClick( this.activeLayerIndex );
                     break;
                 case 27: // escape
                     this.setEditable( false );
-                    this.showFilters = false;
+                    this.showEffects = false;
                     break;
                 case 32: // spacebar
                     this.handleToggleLayerVisibility( this.activeLayerIndex );

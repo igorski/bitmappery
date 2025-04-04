@@ -202,4 +202,4 @@ to float32 prior to allocating the buffer in the WASM instance's memory. This co
 further tweaking to see if it gets closer to the JavaScript Web Worker performance.
 
 However, as in the current setup the JS solution alone is performant enough _and you would need to write the
-filter code twice_, the default for WASM is disabled.
+filter code twice_ (once in TypeScript in `src/rendering/filters` and once in C++ in `src/wasm`), the default for WASM is disabled.

@@ -60,6 +60,11 @@ export type Filters = {
     vibrance: number;
     threshold: number;
     desaturate: boolean;
+    duotone: {
+        enabled: boolean;
+        color1?: string;
+        color2?: string;
+    };
 };
 
 export type Text = {

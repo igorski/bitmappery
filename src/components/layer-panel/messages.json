@@ -1,11 +1,11 @@
 {
     "en-US": {
         "layers": "Layers",
-        "filtersForLayer": "Filters for layer \"{name}\"",
+        "effectsForLayer": "Effects for layer \"{name}\"",
         "noLayers": "There are no layers in this document",
         "addLayer": "Add layer",
         "addMask": "Add mask",
-        "filters": "Filters",
+        "effects": "Effects",
         "areYouSure": "Are you sure?",
         "dblClickToRename": "Double-click to rename layer",
         "clickToEditLayer": "Click to edit layer",

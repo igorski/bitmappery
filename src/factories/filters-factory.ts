@@ -25,6 +25,9 @@ import type { Filters } from "@/definitions/document";
 
 export type FiltersProps = Partial<Filters>;
 
+const DEFAULT_DUOTONE_1 = "#FF0000";
+const DEFAULT_DUOTONE_2 = "#0099FF";
+
 let defaultFilters: Filters | null = null;
 
 const FiltersFactory = {
@@ -37,7 +40,12 @@ const FiltersFactory = {
         contrast   = 0,
         vibrance   = .5,
         threshold  = -1, // -1 == off, working range is 0 - 255
-        desaturate = false
+        desaturate = false,
+        duotone = {
+            enabled: false,
+            color1: DEFAULT_DUOTONE_1,
+            color2: DEFAULT_DUOTONE_2,
+        },
     }: FiltersProps = {}): Filters {
         return {
             enabled,
@@ -49,6 +57,7 @@ const FiltersFactory = {
             desaturate,
             vibrance,
             threshold,
+            duotone,
         };
     },
 
@@ -57,6 +66,7 @@ const FiltersFactory = {
      * for project storage
      */
     serialize( filters: Filters ): any {
+        const { duotone } = filters;
         return {
             e: filters.enabled,
             m: filters.blendMode,
@@ -67,6 +77,9 @@ const FiltersFactory = {
             d: filters.desaturate,
             v: filters.vibrance,
             t: filters.threshold,
+            de: duotone.enabled,
+            d1: duotone.color1,
+            d2: duotone.color2,
         };
     },
 
@@ -85,6 +98,11 @@ const FiltersFactory = {
              desaturate: filters.d,
              vibrance: filters.v,
              threshold: filters.t,
+             duotone: {
+                enabled: filters.de ?? false,
+                color1: filters.d1 ?? DEFAULT_DUOTONE_1,
+                color2: filters.d2 ?? DEFAULT_DUOTONE_2,
+             },
          });
      }
 };
@@ -112,5 +130,8 @@ export const isEqual = ( filters: Filters, filtersToCompareTo?: Filters ): boole
            filters.contrast   === filtersToCompareTo.contrast   &&
            filters.desaturate === filtersToCompareTo.desaturate &&
            filters.vibrance   === filtersToCompareTo.vibrance   &&
-           filters.threshold  === filtersToCompareTo.threshold;
+           filters.threshold  === filtersToCompareTo.threshold  &&
+           filters.duotone.enabled === filtersToCompareTo.duotone.enabled &&
+           filters.duotone.color1  === filtersToCompareTo.duotone.color1  &&
+           filters.duotone.color2  === filtersToCompareTo.duotone.color2;
 };
