@@ -23,7 +23,7 @@ export default {
     },
     methods: {
         ...mapMutations([
-            "updateLayerTransformations",
+            "updateLayerTransform",
         ]),
         detectTouch(): void {
             this.usesTouch = false;
@@ -127,9 +127,9 @@ export default {
         /*
         handleRotateGesture( event ) : void{
             // TODO: this should go into history
-            this.updateLayerTransformations({
+            this.updateLayerTransform({
                 index: this.activeLayerIndex,
-                transformations: { rotation: degreesToRadians( event.angle ) }
+                transform: { rotation: degreesToRadians( event.angle ) }
             });
         },*/
     }

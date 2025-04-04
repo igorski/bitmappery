@@ -7,7 +7,7 @@ mockZCanvas();
 import { BlendModes } from "@/definitions/blend-modes";
 import ToolTypes from "@/definitions/tool-types";
 import DocumentFactory from "@/factories/document-factory";
-import TransformationsFactory from "@/factories/transformations-factory";
+import TransformFactory from "@/factories/transform-factory";
 import FiltersFactory from "@/factories/filters-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
@@ -31,10 +31,10 @@ vi.mock( "@/utils/document-util", () => ({
     createLayerSnapshot: ( ...args: any[] ) => mockDocumentUtilSpy( "createLayerSnapshot", ...args )
 }));
 
-describe( "commit layer effects and transforms action", () => {
+describe( "commit layer effects and transform action", () => {
     const document = DocumentFactory.create();
     const layer    = LayerFactory.create({
-        transformations: TransformationsFactory.create({ rotation: 5, scale: 2 }),
+        transform: TransformFactory.create({ rotation: 5, scale: 2 }),
         filters: FiltersFactory.create({ opacity: 0.5 }),
         source: createMockCanvasElement(),
         mask: createMockCanvasElement(),
@@ -56,14 +56,14 @@ describe( "commit layer effects and transforms action", () => {
         vi.resetAllMocks();
     });
 
-    it( "should replace the Layer sources, transformations, filters and coordinates, requesting a full renderer recreation", async () => {
+    it( "should replace the Layer sources, transform, filters and coordinates, requesting a full renderer recreation", async () => {
         await commitLayerEffectsAndTransforms( store, document, layer, 0 );
 
         expect( store.commit ).toHaveBeenCalledTimes( 1 );
         expect( store.commit ).toHaveBeenCalledWith( "updateLayer", {
             index: 0,
             opts: {
-                transformations: TransformationsFactory.create(),
+                transform: TransformFactory.create(),
                 filters: FiltersFactory.create(),
                 source: expect.any( Object ),
                 mask: null,
@@ -90,7 +90,7 @@ describe( "commit layer effects and transforms action", () => {
     });
 
     it( "should restore the original values when calling undo in state history", async () => {
-        const { transformations, filters, width, height, left, top, maskX, maskY } = layer;
+        const { transform, filters, width, height, left, top, maskX, maskY } = layer;
 
         await commitLayerEffectsAndTransforms( store, document, layer, 0 );
 
@@ -101,7 +101,7 @@ describe( "commit layer effects and transforms action", () => {
         expect( store.commit ).toHaveBeenNthCalledWith( 2, "updateLayer", {
             index: 0,
             opts: {
-                transformations, filters, source: expect.any( Object ), mask: expect.any( Object ), width, height, left, top, maskX, maskY
+                transform, filters, source: expect.any( Object ), mask: expect.any( Object ), width, height, left, top, maskX, maskY
             },
             recreateRenderer: true,
         });
@@ -118,7 +118,7 @@ describe( "commit layer effects and transforms action", () => {
         expect( store.commit ).toHaveBeenNthCalledWith( 3, "updateLayer", {
             index: 0,
             opts: {
-                transformations: TransformationsFactory.create(),
+                transform: TransformFactory.create(),
                 filters: FiltersFactory.create(),
                 source: expect.any( Object ),
                 mask: null,

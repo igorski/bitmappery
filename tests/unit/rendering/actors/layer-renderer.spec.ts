@@ -8,7 +8,7 @@ import { BlendModes } from "@/definitions/blend-modes";
 import { type Layer } from "@/definitions/document";
 import ToolTypes from "@/definitions/tool-types";
 import DocumentFactory from "@/factories/document-factory";
-import TransformationsFactory from "@/factories/transformations-factory";
+import TransformFactory from "@/factories/transform-factory";
 import FiltersFactory from "@/factories/filters-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { degreesToRadians } from "@/math/unit-math";
@@ -135,7 +135,7 @@ describe( "LayerRenderer", () => {
         it( "should return the bounds transformed when there is a scale transformation", () => {
             renderer = createLayerRenderer(
                 LayerFactory.create({
-                    transformations: TransformationsFactory.create({ scale: 2 })
+                    transform: TransformFactory.create({ scale: 2 })
                 })
             );
 
@@ -152,7 +152,7 @@ describe( "LayerRenderer", () => {
         it( "should return the bounds transformed when there is a rotation transformation", () => {
             renderer = createLayerRenderer(
                 LayerFactory.create({
-                    transformations: TransformationsFactory.create({ rotation: degreesToRadians( 90 ) })
+                    transform: TransformFactory.create({ rotation: degreesToRadians( 90 ) })
                 })
             );
 
@@ -169,7 +169,7 @@ describe( "LayerRenderer", () => {
         it( "should return the bounds transformed when there is both a scale and rotation transformation", () => {
             renderer = createLayerRenderer(
                 LayerFactory.create({
-                    transformations: TransformationsFactory.create({ scale: 0.5, rotation: degreesToRadians( 90 ) })
+                    transform: TransformFactory.create({ scale: 0.5, rotation: degreesToRadians( 90 ) })
                 })
             );
 
@@ -419,7 +419,7 @@ describe( "LayerRenderer", () => {
             });
 
             it( "should clip the context to the Layers visible bounds when drawing on a transformed renderer", () => {
-                renderer.layer.transformations.rotation = 45;
+                renderer.layer.transform.rotation = 45;
 
                 renderer.draw( ctx, viewport );
 

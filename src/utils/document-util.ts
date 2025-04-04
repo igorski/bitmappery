@@ -268,7 +268,7 @@ export const getAlignableObjects = ( document: Document, excludeLayer?: Layer ):
              ( excludeLayer && object.id === excludeLayer.id )) {
             return acc;
         }
-        const { left, top, width, height } = rotateRectangle( object as Rectangle, object.transformations?.rotation );
+        const { left, top, width, height } = rotateRectangle( object as Rectangle, object.transform?.rotation );
         // 1. vertical top, center and bottom
         let guideWidth = document.width, guideHeight = 0;
         if ( top > 0 ) {

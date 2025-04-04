@@ -26,7 +26,7 @@ import type { Store } from "vuex";
 import { BlendModes } from "@/definitions/blend-modes";
 import type { Document, Layer } from "@/definitions/document";
 import ToolTypes from "@/definitions/tool-types";
-import TransformationsFactory from "@/factories/transformations-factory";
+import TransformFactory from "@/factories/transform-factory";
 import FiltersFactory from "@/factories/filters-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import type { BitMapperyState } from "@/store";
@@ -38,7 +38,7 @@ export const commitLayerEffectsAndTransforms = async (
 ): Promise<void> => {
     const orgSource = cloneCanvas( layer.source );
     const orgMask = layer.mask ? cloneCanvas( layer.mask ) : undefined;
-    const orgTransformations = cloneDeep( layer.transformations );
+    const orgTransform = cloneDeep( layer.transform );
     const orgFilters = cloneDeep( layer.filters );
     
     const blendMode = ( layerIndex > 0 && layer.filters.enabled && layer.filters.blendMode !== BlendModes.NORMAL ) ? layer.filters.blendMode : BlendModes.NORMAL;
@@ -57,7 +57,7 @@ export const commitLayerEffectsAndTransforms = async (
     const commit = () => {
         store.commit( "updateLayer", { index: layerIndex, opts: {
             filters: FiltersFactory.create({ blendMode }),
-            transformations: TransformationsFactory.create(),
+            transform: TransformFactory.create(),
             source: newSource,
             mask: null,
             left: 0,
@@ -80,7 +80,7 @@ export const commitLayerEffectsAndTransforms = async (
                 index: layerIndex,
                 opts: {
                     filters: { ...orgFilters },
-                    transformations: { ...orgTransformations },
+                    transform: { ...orgTransform },
                     source: orgSource,
                     mask: orgMask,
                     ...orgBounds,

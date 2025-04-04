@@ -194,7 +194,7 @@ export default class InteractionPane extends sprite {
 
     selectAll( targetLayer: Layer = null ): void {
         if ( targetLayer ) {
-            const { scale, rotation, mirrorY } = targetLayer.transformations;
+            const { scale, rotation, mirrorY } = targetLayer.transform;
             const bounds = scaleRectangle( getRendererForLayer( targetLayer ).getBounds(), scale );
             this.setSelection( [ rotateRectangleToCoordinates( bounds, mirrorY ? -rotation : rotation ) ]);
             return;
@@ -465,7 +465,7 @@ export default class InteractionPane extends sprite {
                 ctx.save();
                 ctx.lineWidth   = 1 / this.canvas.zoomFactor;
                 ctx.strokeStyle = "#0db0bc";
-                const { mirrorY, scale, rotation } = activeLayer.transformations;
+                const { mirrorY, scale, rotation } = activeLayer.transform;
                 const { left, top, width, height } = ( scale !== 1 ) ? scaleRectangle( activeLayer, scale ) : activeLayer;
                 const destX = left - viewport.left;
                 const destY = top  - viewport.top;

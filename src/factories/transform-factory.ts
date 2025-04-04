@@ -20,12 +20,12 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Transformations } from "@/definitions/document";
+import type { Transform } from "@/definitions/document";
 
-export type TransformationsProps = Partial<Transformations>;
+export type TransformProps = Partial<Transform>;
 
-const TransformationsFactory = {
-    create({ scale = 1, rotation = 0, mirrorX = false, mirrorY = false }: TransformationsProps = {}): Transformations {
+const TransformFactory = {
+    create({ scale = 1, rotation = 0, mirrorX = false, mirrorY = false }: TransformProps = {}): Transform {
         return {
             scale,
             rotation,
@@ -38,7 +38,7 @@ const TransformationsFactory = {
      * Saving transformation properties into a simplified JSON structure
      * for project storage
      */
-    serialize( data: Transformations ): any {
+    serialize( data: Transform ): any {
         return {
             s: data.scale,
             r: data.rotation,
@@ -48,11 +48,11 @@ const TransformationsFactory = {
     },
 
     /**
-     * Creating a new transformations lists from a stored transformation structure
+     * Creating a new transformations structure from a stored JSON structure
      * inside a stored projects layer
      */
-     deserialize( data: any = {} ): Transformations {
-         return TransformationsFactory.create({
+     deserialize( data: any = {} ): Transform {
+         return TransformFactory.create({
              scale    : data.s,
              rotation : data.r,
              mirrorX  : data.x,
@@ -60,9 +60,9 @@ const TransformationsFactory = {
          });
      }
 };
-export default TransformationsFactory;
+export default TransformFactory;
 
-export const isEqual = ( data: Transformations, dataToCompare?: Transformations ): boolean => {
+export const isEqual = ( data: Transform, dataToCompare?: Transform ): boolean => {
     if ( !dataToCompare ) {
         return false;
     }

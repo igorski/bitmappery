@@ -141,8 +141,8 @@ export default class LayerRenderer extends ZoomableSprite {
         }
         // TODO can we cache this value ?
         return rotateRectangle(
-            scaleRectangle( this._bounds, this.layer.transformations.scale ),
-            this.layer.transformations.rotation
+            scaleRectangle( this._bounds, this.layer.transform.scale ),
+            this.layer.transform.rotation
         );
     }
 
@@ -159,9 +159,9 @@ export default class LayerRenderer extends ZoomableSprite {
     // otherwise use setBounds() for relative positioning with state history
 
     syncPosition(): void {
-        let { left: x, top: y, width, height, transformations } = this.layer;
+        let { left: x, top: y, width, height, transform } = this.layer;
         if ( isRotated( this.layer ) ) {
-            ({ x, y } = translatePointerRotation( x, y, width / 2, height / 2, transformations.rotation ));
+            ({ x, y } = translatePointerRotation( x, y, width / 2, height / 2, transform.rotation ));
         }
         this.setX( x );
         this.setY( y );
@@ -552,8 +552,8 @@ export default class LayerRenderer extends ZoomableSprite {
             if ( this._draggingMask ) {
                 let newMaskX = this._dragStartOffset.x + (( x - this._bounds.left ) - this._dragStartEventCoordinates.x );
                 let newMaskY = this._dragStartOffset.y + (( y - this._bounds.top )  - this._dragStartEventCoordinates.y );
-                this._draggingMask.x = this.layer.transformations.mirrorX ? -newMaskX : newMaskX;
-                this._draggingMask.y = this.layer.transformations.mirrorY ? -newMaskY : newMaskY;
+                this._draggingMask.x = this.layer.transform.mirrorX ? -newMaskX : newMaskX;
+                this._draggingMask.y = this.layer.transform.mirrorY ? -newMaskY : newMaskY;
             } else if ( this._isDragMode ) {
                 super.handleMove( x, y, event );
             }
@@ -615,7 +615,7 @@ export default class LayerRenderer extends ZoomableSprite {
         if ( !isScaled( this.layer ) ) {
             return super.drawCropped( canvasContext, bitmap, transformedBounds );
         }
-        const scale = 1 / this.layer.transformations.scale;
+        const scale = 1 / this.layer.transform.scale;
         const { src, dest } = transformedBounds;
         canvasContext.drawImage(
             bitmap,

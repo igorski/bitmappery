@@ -116,9 +116,9 @@ describe( "Vuex document module", () => {
             expect( getters.activeLayerMask( state, mockedGetters, {}, {} )).toEqual( mockedGetters.activeLayer.mask );
         });
 
-        it( "should be able to retrieve the active Layer transformations", () => {
-            const mockedGetters = { activeLayer: { name: "layer1", transformations: [{ rotation: 1 }] } };
-            expect( getters.activeLayerTransformations( createDocumentState(), mockedGetters, {}, {} )).toEqual( mockedGetters.activeLayer.transformations );
+        it( "should be able to retrieve the active Layer transform", () => {
+            const mockedGetters = { activeLayer: { name: "layer1", transform: [{ rotation: 1 }] } };
+            expect( getters.activeLayerTransform( createDocumentState(), mockedGetters, {}, {} )).toEqual( mockedGetters.activeLayer.transform );
         });
 
         it( "should know whether the current Document has an active selection", () => {
@@ -583,8 +583,8 @@ describe( "Vuex document module", () => {
             let state: DocumentState;
 
             beforeEach(() => {
-                layer1 = LayerFactory.create({ name: "layer1", transformations: { rotation: 0 } });
-                layer2 = LayerFactory.create({ name: "layer2", transformations: { rotation: 0 } });
+                layer1 = LayerFactory.create({ name: "layer1", transform: { rotation: 0 } });
+                layer2 = LayerFactory.create({ name: "layer2", transform: { rotation: 0 } });
                 
                 state = createDocumentState({
                     documents: [ DocumentFactory.create({
@@ -695,9 +695,9 @@ describe( "Vuex document module", () => {
                 });
             });
 
-            it( "should be able to update the transformations of a specific Layer within the active Document", () => {
+            it( "should be able to update the transform of a specific Layer within the active Document", () => {
                 const index   = 0;
-                const transformations = { rotation: 1.6 };
+                const transform = { rotation: 1.6 };
                 const layerRenderer = new LayerRenderer( layer1 );
                 const invalidateBlendCacheSpy = vi.spyOn( layerRenderer, "invalidateBlendCache" );
 
@@ -705,12 +705,12 @@ describe( "Vuex document module", () => {
                     if ( fn === "getRendererForLayer" ) return layerRenderer;
                     return true;
                 });
-                mutations.updateLayerTransformations( state, { index, transformations });
+                mutations.updateLayerTransform( state, { index, transform });
                 expect( state.documents[ 0 ].layers[ index ] ).toEqual({
                     ...layer1,
-                    transformations: {
-                        ...layer1.transformations,
-                        ...transformations,
+                    transform: {
+                        ...layer1.transform,
+                        ...transform,
                     }
                 });
                 expect( mockUpdateFn ).toHaveBeenCalledWith( "getRendererForLayer", state.documents[ 0 ].layers[ index ] );

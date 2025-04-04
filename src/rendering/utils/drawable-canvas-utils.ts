@@ -74,7 +74,7 @@ export const renderDrawableCanvas = (
 
     if ( layer ) {
         const { width, height } = layer;
-        const { scale } = layer.transformations;
+        const { scale } = layer.transform;
 
         offset = {
             x: ( width  * scale / 2 ) - ( width  / 2 ) - layer.left,

@@ -6,7 +6,7 @@ mockZCanvas();
 import { LayerTypes } from "@/definitions/layer-types";
 import ToolTypes, { canDraw, canDragMask, PANE_TYPES, usesInteractionPane } from "@/definitions/tool-types";
 import DocumentFactory from "@/factories/document-factory";
-import TransformationsFactory from "@/factories/transformations-factory";
+import TransformFactory from "@/factories/transform-factory";
 import LayerFactory from "@/factories/layer-factory";
 
 describe( "tool types", () => {
@@ -65,7 +65,7 @@ describe( "tool types", () => {
         it( "should not consider a layer with a selected mask to have a draggable mask when the layer is rotated because math is hard", () => {
             const layer = LayerFactory.create({
                 mask: createMockCanvasElement(),
-                transformations: TransformationsFactory.create({ rotation: 1 })
+                transform: TransformFactory.create({ rotation: 1 })
             });
             expect( canDragMask( layer, layer.mask )).toBe( false );
         });

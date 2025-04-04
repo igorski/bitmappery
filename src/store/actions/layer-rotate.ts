@@ -26,14 +26,14 @@ import { enqueueState } from "@/factories/history-state-factory";
 import { type BitMapperyState } from "@/store";
 
 export const rotateLayer = ( store: Store<BitMapperyState>, layer: Layer, index: number, rotation: number ): void => {
-    const oldRotation = layer.transformations.rotation;
+    const oldRotation = layer.transform.rotation;
     
-    const commit = () => store.commit( "updateLayerTransformations", { index, transformations: { rotation } });
+    const commit = () => store.commit( "updateLayerTransform", { index, transform: { rotation } });
     commit();
 
     enqueueState( `rotation_${index}`, {
         undo(): void {
-            store.commit( "updateLayerTransformations", { index, transformations: { rotation: oldRotation } });
+            store.commit( "updateLayerTransform", { index, transform: { rotation: oldRotation } });
         },
         redo(): void {
             commit();

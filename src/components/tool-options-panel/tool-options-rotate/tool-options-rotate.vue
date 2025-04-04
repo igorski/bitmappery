@@ -88,12 +88,12 @@ export default {
         ...mapGetters([
             "activeLayer",
             "activeLayerIndex",
-            "activeLayerTransformations",
+            "activeLayerTransform",
         ]),
         // note rotation is stored in radians but represented visually as degrees
         rotation: {
             get(): number {
-                return radiansToDegrees( this.activeLayerTransformations.rotation );
+                return radiansToDegrees( this.activeLayerTransform.rotation );
             },
             set( value: number ): void {
                 this.update( degreesToRadians( value % 360 ));
@@ -102,7 +102,7 @@ export default {
     },
     methods: {
         ...mapMutations([
-            "updateLayerTransformations",
+            "updateLayerTransform",
         ]),
         update( rotation: number ): void {
             rotateLayer( this.$store, this.activeLayer, this.activeLayerIndex, rotation );

@@ -24,7 +24,7 @@ import type { Rectangle } from "zcanvas";
 import { LayerTypes, DEFAULT_LAYER_NAME, DEFAULT_TEXT_LAYER_NAME } from "@/definitions/layer-types";
 import type { Layer } from "@/definitions/document";
 import { imageToBase64, base64toCanvas } from "@/utils/canvas-util";
-import TransformationsFactory, { type TransformationsProps } from "@/factories/transformations-factory";
+import TransformFactory, { type TransformProps } from "@/factories/transform-factory";
 import FiltersFactory from "@/factories/filters-factory";
 import TextFactory from "@/factories/text-factory";
 import type { FiltersProps } from "@/factories/filters-factory";
@@ -32,8 +32,8 @@ import type { TextProps } from "@/factories/text-factory";
 
 let UID_COUNTER = 0;
 
-export type LayerProps = Partial<Omit<Layer, "transformations" | "filters" | "text">> & {
-    transformations?: TransformationsProps;
+export type LayerProps = Partial<Omit<Layer, "transform" | "filters" | "text">> & {
+    transform?: TransformProps;
     filters?: FiltersProps;
     text?: TextProps;
 };
@@ -46,7 +46,7 @@ const LayerFactory = {
         name = DEFAULT_LAYER_NAME,
         type = LayerTypes.LAYER_GRAPHIC, transparent = true, source = null, mask = null,
         left = 0, top = 0, maskX = 0, maskY = 0, width = 1, height = 1, visible = true,
-        transformations = {}, filters = {}, text = {}
+        transform = {}, filters = {}, text = {}
     }: LayerProps = {}): Layer {
         return {
             id: `layer_${( ++UID_COUNTER )}`,
@@ -63,7 +63,7 @@ const LayerFactory = {
             height,
             visible,
             text: TextFactory.create( text ),
-            transformations: TransformationsFactory.create( transformations ),
+            transform: TransformFactory.create( transform ),
             filters: FiltersFactory.create( filters ),
         }
     },
@@ -86,7 +86,7 @@ const LayerFactory = {
             w: layer.width,
             h: layer.height,
             tx: TextFactory.serialize( layer.text ),
-            f: TransformationsFactory.serialize( layer.transformations ),
+            f: TransformFactory.serialize( layer.transform ),
             fl: FiltersFactory.serialize( layer.filters ),
             v: layer.visible,
         };
@@ -114,7 +114,7 @@ const LayerFactory = {
             height: layer.h,
             visible: layer.v,
             text,
-            transformations: TransformationsFactory.deserialize( layer.f ),
+            transform: TransformFactory.deserialize( layer.f ),
             filters: FiltersFactory.deserialize( layer.fl ),
         });
     }
