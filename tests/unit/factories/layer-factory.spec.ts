@@ -27,18 +27,6 @@ describe( "Layer factory", () => {
             vi.spyOn( TransformFactory, "create" ).mockImplementation( () => mockTransform );
             vi.spyOn( FiltersFactory, "create" ).mockImplementation( () => mockFilters );
 
-            mockUpdateFn = fn => {
-                switch( fn ) {
-                    default:
-                        return {};
-                    case "createTransform":
-                        return mockTransform;
-                    case "createFilters":
-                        return mockFilters;
-                    case "createText":
-                        return mockText;
-                }
-            }
             const layer = LayerFactory.create();
             expect( layer ).toEqual({
                 id: expect.any( String ),

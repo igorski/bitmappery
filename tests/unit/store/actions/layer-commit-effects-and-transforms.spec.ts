@@ -31,7 +31,7 @@ vi.mock( "@/utils/document-util", () => ({
     createLayerSnapshot: ( ...args: any[] ) => mockDocumentUtilSpy( "createLayerSnapshot", ...args )
 }));
 
-describe( "commit layer effects and transform action", () => {
+describe( "commit layer effects and transforms action", () => {
     const document = DocumentFactory.create();
     const layer    = LayerFactory.create({
         transform: TransformFactory.create({ rotation: 5, scale: 2 }),

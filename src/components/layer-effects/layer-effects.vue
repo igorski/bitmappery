@@ -220,7 +220,7 @@ export default {
                 { label: this.$t( "luminosity" ), value: BlendModes.LUMINOSITY },
             ];
         },
-        // the filters listed here are computed as they require transforms to deal with their value
+        // the effects listed here are computed as we need to map their value
         opacity: {
             get(): number {
                 return this.internalValue.opacity * 100;

@@ -41,7 +41,7 @@ const vertical: number[] = new Array( 3 );
 const snappableAreas: SnappableAreas = { horizontal, vertical };
 
 function cacheSnappableAreas( renderer: LayerRenderer ): SnappableAreas {
-    const bounds = renderer.getActualBounds(); // take Layer transform into account
+    const bounds = renderer.getActualBounds(); // take Layer transformations into account
 
     horizontal[ 0 ] = bounds.left;
     horizontal[ 1 ] = bounds.left + bounds.width / 2;

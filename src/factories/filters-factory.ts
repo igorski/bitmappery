@@ -98,6 +98,7 @@ const FiltersFactory = {
              desaturate: filters.d,
              vibrance: filters.v,
              threshold: filters.t,
+             // these can be undefined as these were added in a later version
              duotone: {
                 enabled: filters.de ?? false,
                 color1: filters.d1 ?? DEFAULT_DUOTONE_1,
