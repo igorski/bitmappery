@@ -38,12 +38,12 @@ export type Layer = {
     transparent: boolean;
     source?: HTMLCanvasElement;
     mask?: HTMLCanvasElement;
-    effects: Effects;
+    transformations: Transformations;
     filters: Filters;
     text: Text;
 };
 
-export type Effects = {
+export type Transformations = {
     scale: number;
     rotation: number;
     mirrorX: boolean;

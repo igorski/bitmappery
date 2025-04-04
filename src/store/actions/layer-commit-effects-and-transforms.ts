@@ -26,7 +26,7 @@ import type { Store } from "vuex";
 import { BlendModes } from "@/definitions/blend-modes";
 import type { Document, Layer } from "@/definitions/document";
 import ToolTypes from "@/definitions/tool-types";
-import EffectsFactory from "@/factories/effects-factory";
+import TransformationsFactory from "@/factories/transformations-factory";
 import FiltersFactory from "@/factories/filters-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import type { BitMapperyState } from "@/store";
@@ -36,14 +36,14 @@ import { createLayerSnapshot } from "@/utils/document-util";
 export const commitLayerEffectsAndTransforms = async (
     store: Store<BitMapperyState>, document: Document, layer: Layer, layerIndex: number
 ): Promise<void> => {
-    const orgSource  = cloneCanvas( layer.source );
-    const orgMask    = layer.mask ? cloneCanvas( layer.mask ) : undefined;
-    const orgEffects = cloneDeep( layer.effects );
+    const orgSource = cloneCanvas( layer.source );
+    const orgMask = layer.mask ? cloneCanvas( layer.mask ) : undefined;
+    const orgTransformations = cloneDeep( layer.transformations );
     const orgFilters = cloneDeep( layer.filters );
     
     const blendMode = ( layerIndex > 0 && layer.filters.enabled && layer.filters.blendMode !== BlendModes.NORMAL ) ? layer.filters.blendMode : BlendModes.NORMAL;
     
-    const orgBounds  = {
+    const orgBounds = {
         left: layer.left,
         top: layer.top,
         width: layer.width,
@@ -57,7 +57,7 @@ export const commitLayerEffectsAndTransforms = async (
     const commit = () => {
         store.commit( "updateLayer", { index: layerIndex, opts: {
             filters: FiltersFactory.create({ blendMode }),
-            effects: EffectsFactory.create(),
+            transformations: TransformationsFactory.create(),
             source: newSource,
             mask: null,
             left: 0,
@@ -80,7 +80,7 @@ export const commitLayerEffectsAndTransforms = async (
                 index: layerIndex,
                 opts: {
                     filters: { ...orgFilters },
-                    effects: { ...orgEffects },
+                    transformations: { ...orgTransformations },
                     source: orgSource,
                     mask: orgMask,
                     ...orgBounds,

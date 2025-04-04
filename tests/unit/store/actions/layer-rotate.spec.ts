@@ -4,7 +4,7 @@ import { createStore, mockZCanvas } from "../../mocks";
 
 mockZCanvas();
 
-import EffectsFactory from "@/factories/effects-factory";
+import TransformationsFactory from "@/factories/transformations-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
 import { rotateLayer } from "@/store/actions/layer-rotate";
@@ -16,7 +16,7 @@ vi.mock( "@/factories/history-state-factory", () => ({
 
 describe( "rotate Layer action", () => {
     const layer = LayerFactory.create({
-        effects: EffectsFactory.create({ rotation: 2 }),
+        transformations: TransformationsFactory.create({ rotation: 2 }),
     });
     let store: Store<BitMapperyState>;
     
@@ -32,9 +32,9 @@ describe( "rotate Layer action", () => {
         rotateLayer( store, layer, 2, 3 );
 
         expect( store.commit ).toHaveBeenCalledTimes( 1 );
-        expect( store.commit ).toHaveBeenCalledWith( "updateLayerEffects", {
+        expect( store.commit ).toHaveBeenCalledWith( "updateLayerTransformations", {
             index: 2,
-            effects: { rotation: 3 },
+            transformations: { rotation: 3 },
         });
     });
 
@@ -56,9 +56,9 @@ describe( "rotate Layer action", () => {
         undo();
 
         expect( store.commit ).toHaveBeenCalledTimes( 2 );
-        expect( store.commit ).toHaveBeenNthCalledWith( 2, "updateLayerEffects", {
+        expect( store.commit ).toHaveBeenNthCalledWith( 2, "updateLayerTransformations", {
             index: 2,
-            effects: { rotation: 2 },
+            transformations: { rotation: 2 },
         });
     });
 
@@ -70,9 +70,9 @@ describe( "rotate Layer action", () => {
         redo();
 
         expect( store.commit ).toHaveBeenCalledTimes( 3 );
-        expect( store.commit ).toHaveBeenNthCalledWith( 3, "updateLayerEffects", {
+        expect( store.commit ).toHaveBeenNthCalledWith( 3, "updateLayerTransformations", {
             index: 2,
-            effects: { rotation: 3 },
+            transformations: { rotation: 3 },
         });
     });
 });

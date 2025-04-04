@@ -185,7 +185,7 @@ export const rotatePointers = ( pointers: Point[], layer: Layer, sourceWidth: nu
     // we take layer.left instead of bounds.left as it provides the unrotated Layer offset
     const { left, top } = layer;
     // translate pointer to translated space, when layer is rotated or mirrored
-    const { mirrorX, mirrorY, rotation } = layer.effects;
+    const { mirrorX, mirrorY, rotation } = layer.transformations;
     return pointers.map( point => {
         // translate recorded pointer towards rotated point
         // and against layer position

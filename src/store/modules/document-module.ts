@@ -22,7 +22,7 @@
  */
 import type { ActionContext, Module } from "vuex";
 import type { Rectangle, Size } from "zcanvas";
-import type { Document, Layer, Effects, Selection } from "@/definitions/document";
+import type { Document, Layer, Transformations, Selection } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { createRendererForLayer, flushLayerRenderers, runRendererFn, getRendererForLayer } from "@/factories/renderer-factory";
@@ -66,8 +66,8 @@ const DocumentModule: Module<DocumentState, any> = {
         activeLayerMask: ( state: DocumentState, getters: any ): HTMLCanvasElement | undefined => {
             return ( state.maskActive && getters.activeLayer?.mask ) || undefined;
         },
-        activeLayerEffects: ( _state: DocumentState, getters: any ): Effects => {
-            return getters.activeLayer?.effects || {};
+        activeLayerTransformations: ( _state: DocumentState, getters: any ): Transformations => {
+            return getters.activeLayer?.transformations || {};
         },
         hasSelection: ( _state: DocumentState, getters: any ): boolean => {
             if ( !getters.activeDocument ) {
@@ -215,14 +215,14 @@ const DocumentModule: Module<DocumentState, any> = {
                 opts.source ? renderer.resetFilterAndRecache() : renderer.cacheEffects();
             }
         },
-        updateLayerEffects( state: DocumentState, { index, effects = {} }: { index: number, effects: Partial<Effects> }): void {
+        updateLayerTransformations( state: DocumentState, { index, transformations = {} }: { index: number, transformations: Partial<Transformations> }): void {
             const layer = state.documents[ state.activeIndex ]?.layers[ index ];
             if ( !layer ) {
                 return;
             }
-            layer.effects = {
-                ...layer.effects,
-                ...effects
+            layer.transformations = {
+                ...layer.transformations,
+                ...transformations
             };
             // update layer renderer
             const renderer = getRendererForLayer( layer );

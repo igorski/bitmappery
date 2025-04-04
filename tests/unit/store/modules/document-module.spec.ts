@@ -116,9 +116,9 @@ describe( "Vuex document module", () => {
             expect( getters.activeLayerMask( state, mockedGetters, {}, {} )).toEqual( mockedGetters.activeLayer.mask );
         });
 
-        it( "should be able to retrieve the active Layer effects", () => {
-            const mockedGetters = { activeLayer: { name: "layer1", effects: [{ rotation: 1 }] } };
-            expect( getters.activeLayerEffects( createDocumentState(), mockedGetters, {}, {} )).toEqual( mockedGetters.activeLayer.effects );
+        it( "should be able to retrieve the active Layer transformations", () => {
+            const mockedGetters = { activeLayer: { name: "layer1", transformations: [{ rotation: 1 }] } };
+            expect( getters.activeLayerTransformations( createDocumentState(), mockedGetters, {}, {} )).toEqual( mockedGetters.activeLayer.transformations );
         });
 
         it( "should know whether the current Document has an active selection", () => {
@@ -577,14 +577,14 @@ describe( "Vuex document module", () => {
             });
         });
 
-        describe( "when updating layer properties", () => {
+        describe( "when updating Layer properties", () => {
             let layer1: Layer;
             let layer2: Layer;
             let state: DocumentState;
 
             beforeEach(() => {
-                layer1 = LayerFactory.create({ name: "layer1", effects: { rotation: 0 } });
-                layer2 = LayerFactory.create({ name: "layer2", effects: { rotation: 0 } });
+                layer1 = LayerFactory.create({ name: "layer1", transformations: { rotation: 0 } });
+                layer2 = LayerFactory.create({ name: "layer2", transformations: { rotation: 0 } });
                 
                 state = createDocumentState({
                     documents: [ DocumentFactory.create({
@@ -595,7 +595,7 @@ describe( "Vuex document module", () => {
                 });
             });
 
-            it( "should be able to update the options of a specific layer within the active Document", () => {
+            it( "should be able to update the options of a specific Layer within the active Document", () => {
                 const index = 1;
                 const opts  = {
                     name: "layer2 updated",
@@ -695,9 +695,9 @@ describe( "Vuex document module", () => {
                 });
             });
 
-            it( "should be able to update the effects of a specific layer within the active Document", () => {
+            it( "should be able to update the transformations of a specific Layer within the active Document", () => {
                 const index   = 0;
-                const effects = { rotation: 1.6 };
+                const transformations = { rotation: 1.6 };
                 const layerRenderer = new LayerRenderer( layer1 );
                 const invalidateBlendCacheSpy = vi.spyOn( layerRenderer, "invalidateBlendCache" );
 
@@ -705,12 +705,12 @@ describe( "Vuex document module", () => {
                     if ( fn === "getRendererForLayer" ) return layerRenderer;
                     return true;
                 });
-                mutations.updateLayerEffects( state, { index, effects });
+                mutations.updateLayerTransformations( state, { index, transformations });
                 expect( state.documents[ 0 ].layers[ index ] ).toEqual({
                     ...layer1,
-                    effects: {
-                        ...layer1.effects,
-                        ...effects,
+                    transformations: {
+                        ...layer1.transformations,
+                        ...transformations,
                     }
                 });
                 expect( mockUpdateFn ).toHaveBeenCalledWith( "getRendererForLayer", state.documents[ 0 ].layers[ index ] );

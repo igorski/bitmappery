@@ -248,9 +248,9 @@ export const deleteSelectionContent = ( activeDocument: Document, activeLayer: L
  * Retrieve a list of rectangles that describe the bounding boxes of
  * elements inside the document that can snapped/aligned to
  *
- * @param {Object} document
- * @param {Object=} excludeLayer optional layer to exclude
- * @return {Array<Object>} list of rectangles to align to
+ * @param {Document} document
+ * @param {Layer=} excludeLayer optional layer to exclude
+ * @return {Array<Rectangle>} list of rectangles to align to
  */
 export const getAlignableObjects = ( document: Document, excludeLayer?: Layer ): Rectangle[] => {
     // create a rectangle describing the document boundaries
@@ -268,7 +268,7 @@ export const getAlignableObjects = ( document: Document, excludeLayer?: Layer ):
              ( excludeLayer && object.id === excludeLayer.id )) {
             return acc;
         }
-        const { left, top, width, height } = rotateRectangle( object as Rectangle, object.effects?.rotation );
+        const { left, top, width, height } = rotateRectangle( object as Rectangle, object.transformations?.rotation );
         // 1. vertical top, center and bottom
         let guideWidth = document.width, guideHeight = 0;
         if ( top > 0 ) {

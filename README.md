@@ -101,7 +101,7 @@ update( propertyName: string, newValue: any ): void {
     // now define and enqueue undo/redo handlers to reverse and redo the commit mutation
     enqueueState( propertyName, {
         undo(): void {
-            store.commit( "updateLayerEffects", { index, opts: { existingValue } });
+            store.commit( "updateLayerTransformations", { index, opts: { existingValue } });
         },
         redo(): void {
             commit();

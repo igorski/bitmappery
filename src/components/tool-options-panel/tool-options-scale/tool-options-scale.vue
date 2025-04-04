@@ -81,18 +81,18 @@ export default {
         ...mapGetters([
             "activeLayer",
             "activeLayerIndex",
-            "activeLayerEffects",
+            "activeLayerTransformations",
         ]),
         scale: {
             get(): number {
-                return ( this.activeLayerEffects.scale - 1 ) * MAX_ZOOM;
+                return ( this.activeLayerTransformations.scale - 1 ) * MAX_ZOOM;
             },
             set( value: number ): void {
                 this.update( scale( value, MAX_ZOOM, 1 ) + 1 );
             }
         },
         isScaled(): boolean {
-            return this.activeLayerEffects.scale !== 1;
+            return this.activeLayerTransformations.scale !== 1;
         },
         isSaveable(): boolean {
             return SAVEABLE_TYPES.includes( this.activeLayer?.type );
@@ -100,16 +100,16 @@ export default {
     },
     methods: {
         update( scale: number ): void {
-            const oldScale = this.activeLayerEffects.scale;
+            const oldScale = this.activeLayerTransformations.scale;
             const index  = this.activeLayerIndex;
             const store  = this.$store;
             const commit = () => {
-                store.commit( "updateLayerEffects", { index, effects: { scale } });
+                store.commit( "updateLayerTransformations", { index, transformations: { scale } });
             };
             commit();
             enqueueState( `scale_${index}`, {
                 undo() {
-                    store.commit( "updateLayerEffects", { index, effects: { scale: oldScale } });
+                    store.commit( "updateLayerTransformations", { index, transformations: { scale: oldScale } });
                 },
                 redo: commit
             });
@@ -117,7 +117,7 @@ export default {
         async save(): Promise<void> {
             const { activeLayer } = this;
             const { left, top, width, height } = activeLayer;
-            const { scale } = activeLayer.effects;
+            const { scale } = activeLayer.transformations;
             const index = this.activeLayerIndex;
             const store = this.$store;
             const orgImage = cloneCanvas( this.activeLayer.source );
@@ -139,14 +139,14 @@ export default {
             const commit = () => {
                 store.commit( "updateLayer", { index, opts: { source: scaledImage, left: 0, top: 0, width: targetWidth, height: targetHeight } });
                 // unset layer scale (the resized image should display at a reset scale)
-                store.commit( "updateLayerEffects", { index, effects: { scale: 1 } });
+                store.commit( "updateLayerTransformations", { index, transformations: { scale: 1 } });
                 getRendererForLayer( activeLayer )?.syncPosition();
             };
             commit();
             enqueueState( `saveScale_${scale}`, {
                 undo() {
                     store.commit( "updateLayer", { index, opts: { source: orgImage, left, top, width, height } });
-                    store.commit( "updateLayerEffects", { index, effects: { scale } });
+                    store.commit( "updateLayerTransformations", { index, transformations: { scale } });
                     getRendererForLayer( activeLayer )?.syncPosition();
                 },
                 redo: commit,

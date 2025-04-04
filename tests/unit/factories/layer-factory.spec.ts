@@ -1,7 +1,7 @@
 import { it, describe, expect, vi } from "vitest";
-import type { Effects, Filters, Text } from "@/definitions/document";
+import type { Transformations, Filters, Text } from "@/definitions/document";
 import { LayerTypes, DEFAULT_LAYER_NAME, DEFAULT_TEXT_LAYER_NAME } from "@/definitions/layer-types";
-import EffectsFactory, { type EffectsProps } from "@/factories/effects-factory";
+import TransformationsFactory, { type TransformationsProps } from "@/factories/transformations-factory";
 import FiltersFactory, { type FiltersProps } from "@/factories/filters-factory";
 import LayerFactory, { layerToRect } from "@/factories/layer-factory";
 import TextFactory, { type TextProps } from "@/factories/text-factory";
@@ -19,20 +19,20 @@ vi.mock( "@/utils/canvas-util", () => ({
 describe( "Layer factory", () => {
     describe( "when creating a new layer", () => {
         it( "should create a default Layer structure when no arguments are passed", () => {
-            const mockEffects = EffectsFactory.create({ scale: 0.5 });
+            const mockTransformations = TransformationsFactory.create({ scale: 0.5 });
             const mockFilters = FiltersFactory.create({ enabled: true });
-            const mockText    = TextFactory.create({ value: "lorem ipsum dolor sit amet" });
+            const mockText = TextFactory.create({ value: "lorem ipsum dolor sit amet" });
 
             vi.spyOn( TextFactory, "create" ).mockImplementation( () => mockText );
-            vi.spyOn( EffectsFactory, "create" ).mockImplementation( () => mockEffects );
+            vi.spyOn( TransformationsFactory, "create" ).mockImplementation( () => mockTransformations );
             vi.spyOn( FiltersFactory, "create" ).mockImplementation( () => mockFilters );
 
             mockUpdateFn = fn => {
                 switch( fn ) {
                     default:
                         return {};
-                    case "createEffects":
-                        return mockEffects;
+                    case "createTransformations":
+                        return mockTransformations;
                     case "createFilters":
                         return mockFilters;
                     case "createText":
@@ -55,14 +55,14 @@ describe( "Layer factory", () => {
                 height: 1,
                 visible: true,
                 text: mockText,
-                effects: mockEffects,
+                transformations: mockTransformations,
                 filters: mockFilters,
             });
         });
 
         it( "should be able to create a layer from given arguments", () => {
             vi.spyOn( TextFactory, "create" ).mockImplementation(( args: TextProps ) => args as Text );
-            vi.spyOn( EffectsFactory, "create" ).mockImplementation(( args: EffectsProps ) => args as Effects );
+            vi.spyOn( TransformationsFactory, "create" ).mockImplementation(( args: TransformationsProps ) => args as Transformations );
             vi.spyOn( FiltersFactory, "create" ).mockImplementation(( args: FiltersProps ) => args as Filters );
 
             mockUpdateFn = ( _fn, data ) => data;
@@ -84,7 +84,7 @@ describe( "Layer factory", () => {
                 height: 9,
                 visible: false,
                 text: { value: "Lorem ipsum" },
-                effects: { rotation: 270 },
+                transformations: { rotation: 270 },
                 filters: { contrast: .7 }
             });
             expect( layer ).toEqual({
@@ -102,7 +102,7 @@ describe( "Layer factory", () => {
                 height: 9,
                 visible: false,
                 text: { value: "Lorem ipsum" },
-                effects: { rotation: 270 },
+                transformations: { rotation: 270 },
                 filters: { contrast: .7 },
             })
         });
@@ -142,14 +142,14 @@ describe( "Layer factory", () => {
                 height: 9,
                 visible: false,
                 text: { value: "Lorem ipsum" },
-                effects: { rotation: 270 },
+                transformations: { rotation: 270 },
                 filters: { contrast: .7 }
             });
             const serializeTextSpy = vi.spyOn( TextFactory, "serialize" ).mockImplementation( args => args );
             const deserializeTextSpy = vi.spyOn( TextFactory, "deserialize" ).mockImplementation( args => args );
 
-            const serializeEffectsSpy = vi.spyOn( EffectsFactory, "serialize" ).mockImplementation( args => args );
-            const deserializeEffectsSpy = vi.spyOn( EffectsFactory, "deserialize" ).mockImplementation( args => args );
+            const serializeTransformationsSpy = vi.spyOn( TransformationsFactory, "serialize" ).mockImplementation( args => args );
+            const deserializeTransformationsSpy = vi.spyOn( TransformationsFactory, "deserialize" ).mockImplementation( args => args );
 
             const serializeFiltersSpy = vi.spyOn( FiltersFactory, "serialize" ).mockImplementation( args => args );
             const deserializeFiltersSpy = vi.spyOn( FiltersFactory, "deserialize" ).mockImplementation( args => args );
@@ -160,7 +160,7 @@ describe( "Layer factory", () => {
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "imageToBase64", layer.source, layer.width, layer.height, layer.transparent );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "imageToBase64", layer.mask,   layer.width, layer.height, true );
             expect( serializeTextSpy ).toHaveBeenCalledWith( layer.text );
-            expect( serializeEffectsSpy ).toHaveBeenCalledWith( layer.effects );
+            expect( serializeTransformationsSpy ).toHaveBeenCalledWith( layer.transformations );
             expect( serializeFiltersSpy ).toHaveBeenCalledWith( layer.filters );
 
             mockUpdateFn = vi.fn(( _fn, data ) => data );
@@ -169,7 +169,7 @@ describe( "Layer factory", () => {
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "base64toCanvas", expect.any( Object ), layer.width, layer.height );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "base64toCanvas", expect.any( Object ), layer.width, layer.height );
             expect( deserializeTextSpy ).toHaveBeenCalledWith( layer.text );
-            expect( deserializeEffectsSpy ).toHaveBeenCalledWith( layer.effects );
+            expect( deserializeTransformationsSpy ).toHaveBeenCalledWith( layer.transformations );
             expect( deserializeFiltersSpy ).toHaveBeenCalledWith( layer.filters );
 
             // note id's are unique per created session instance and therefor will differ

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2024 - https://www.igorski.nl
+ * Igor Zinken 2021-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -25,8 +25,8 @@ import type { Filters } from "@/definitions/document";
 
 export type FiltersProps = Partial<Filters>;
 
-const DEFAULT_DUOTONE_1 = "#FF0000";
-const DEFAULT_DUOTONE_2 = "#0099FF";
+export const DEFAULT_DUOTONE_1 = "#FF0000";
+export const DEFAULT_DUOTONE_2 = "#0099FF";
 
 let defaultFilters: Filters | null = null;
 

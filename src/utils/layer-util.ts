@@ -100,11 +100,11 @@ export const cropLayerContent = async ( layer: Layer, cropRectangle: Rectangle )
     }
 };
 
-export const isRotated = ( layer: Layer ): boolean => ( layer.effects.rotation % 360 ) !== 0;
+export const isRotated = ( layer: Layer ): boolean => ( layer.transformations.rotation % 360 ) !== 0;
 
-export const isScaled = ( layer: Layer ): boolean => layer.effects.scale !== 1;
+export const isScaled = ( layer: Layer ): boolean => layer.transformations.scale !== 1;
 
-export const isMirrored = ( layer: Layer ): boolean => layer.effects.mirrorX || layer.effects.mirrorY;
+export const isMirrored = ( layer: Layer ): boolean => layer.transformations.mirrorX || layer.transformations.mirrorY;
 
 export const hasTransform = ( layer: Layer ): boolean => isRotated( layer ) || isScaled( layer ) || isMirrored( layer );
 

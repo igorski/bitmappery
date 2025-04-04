@@ -1,6 +1,6 @@
 import { it, describe, expect } from "vitest";
 import { BlendModes } from "@/definitions/blend-modes";
-import FiltersFactory, { hasFilters, isEqual } from "@/factories/filters-factory";
+import FiltersFactory, { DEFAULT_DUOTONE_1, DEFAULT_DUOTONE_2, hasFilters, isEqual } from "@/factories/filters-factory";
 
 describe( "Filters factory", () => {
     describe( "when creating a new filter list", () => {
@@ -16,6 +16,11 @@ describe( "Filters factory", () => {
                 vibrance: .5,
                 threshold: -1,
                 desaturate: false,
+                duotone: {
+                    enabled: false,
+                    color1: DEFAULT_DUOTONE_1,
+                    color2: DEFAULT_DUOTONE_2,
+                },
             });
         });
 
@@ -30,6 +35,11 @@ describe( "Filters factory", () => {
                 vibrance: .2,
                 threshold: 127,
                 desaturate: true,
+                duotone: {
+                    enabled: true,
+                    color1: "#FF9900",
+                    color2: "#ABABAB",
+                },
             });
             expect( filters ).toEqual({
                 enabled: false,
@@ -41,6 +51,11 @@ describe( "Filters factory", () => {
                 vibrance: .2,
                 threshold: 127,
                 desaturate: true,
+                duotone: {
+                    enabled: true,
+                    color1: "#FF9900",
+                    color2: "#ABABAB",
+                },
             });
         });
     });
@@ -57,6 +72,11 @@ describe( "Filters factory", () => {
                 vibrance: .2,
                 threshold: 255,
                 desaturate: true,
+                duotone: {
+                    enabled: true,
+                    color1: "#FF9900",
+                    color2: "#ABABAB",
+                },
             });
             const serialized   = FiltersFactory.serialize( filters );
             const deserialized = FiltersFactory.deserialize( serialized );
@@ -95,6 +115,11 @@ describe( "Filters factory", () => {
 
             filter = FiltersFactory.create({ desaturate: true });
             expect( hasFilters( filter )).toBe( true );
+
+            filter = FiltersFactory.create({ duotone: { enabled: true }});
+            expect( hasFilters( filter )).toBe( true );
+
+            // we don't need to check for duotone colors as the enabled flag for the Object is sufficient
         });
     });
 

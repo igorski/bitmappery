@@ -105,7 +105,7 @@ function renderFiltersWasm( imageData: ImageData, filters: any ): Uint8ClampedAr
     // @todo these are not supported by the WASM variant yet
 
     const doThreshold  = filters.threshold  !== defaultFilters.threshold;
-    const doDuotone    = filters.dueotone.enabled !== defaultFilters.duotone.enabled;
+    const doDuotone    = filters.duotone.enabled !== defaultFilters.duotone.enabled;
 
     // run WASM operations
 
