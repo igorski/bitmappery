@@ -1,3 +1,4 @@
+@use "_colors";
 @use "_mixins";
 @use "_variables";
 @use "typography";
@@ -31,6 +32,10 @@ $inputWidth: 65%;
             display: inline-block;
             width: $inputWidth;
         }
+        .color-picker {
+            display: inline-block;
+            margin: variables.$spacing-xsmall;
+        }
         .slider-input {
             vertical-align: middle;
         }
@@ -47,5 +52,12 @@ $inputWidth: 65%;
         .full {
             width: 100%; // when elements have no label
         }
+    }
+
+    .fieldset {
+        border: 1px solid colors.$color-bg;
+        border-radius: variables.$spacing-small;
+        padding: variables.$spacing-xsmall variables.$spacing-medium;
+        margin: variables.$spacing-medium 0;
     }
 }

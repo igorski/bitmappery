@@ -6,7 +6,7 @@ mockZCanvas();
 import { type Store } from "vuex";
 import { BlendModes } from "@/definitions/blend-modes";
 import { LayerTypes } from "@/definitions/layer-types";
-import EffectsFactory from "@/factories/effects-factory";
+import TransformFactory from "@/factories/transform-factory";
 import FiltersFactory from "@/factories/filters-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
@@ -41,12 +41,12 @@ describe( "Layer utilities", () => {
     describe( "when determining the Layers transformations", () => {
         it( "should know when it is rotated", () => {
             const layer = LayerFactory.create({
-                effects: EffectsFactory.create({ rotation: 0 })
+                transform: TransformFactory.create({ rotation: 0 })
             });
             expect( isRotated( layer )).toBe( false );
 
             const rotatedLayer = LayerFactory.create({
-                effects: EffectsFactory.create({ rotation: 90 })
+                transform: TransformFactory.create({ rotation: 90 })
             });
 
             expect( isRotated( rotatedLayer )).toBe( true );
@@ -54,28 +54,28 @@ describe( "Layer utilities", () => {
 
         it( "should know when it is scaled", () => {
             const layer = LayerFactory.create({
-                effects: EffectsFactory.create({ scale: 1 })
+                transform: TransformFactory.create({ scale: 1 })
             });
             expect( isScaled( layer ) ).toBe( false );
 
             const scaledLayer = LayerFactory.create({
-                effects: EffectsFactory.create({ scale: 0.9 })
+                transform: TransformFactory.create({ scale: 0.9 })
             });
             expect( isScaled( scaledLayer )).toBe( true );
         });
 
         it( "should know when it is mirrored", () => {
             expect( isMirrored( LayerFactory.create() )).toBe( false );
-            expect( isMirrored( LayerFactory.create({ effects: EffectsFactory.create({ mirrorX: true })}))).toBe( true );
-            expect( isMirrored( LayerFactory.create({ effects: EffectsFactory.create({ mirrorY: true })}))).toBe( true );
+            expect( isMirrored( LayerFactory.create({ transform: TransformFactory.create({ mirrorX: true })}))).toBe( true );
+            expect( isMirrored( LayerFactory.create({ transform: TransformFactory.create({ mirrorY: true })}))).toBe( true );
         });
         
         it( "should know whether it has any kind of transformation", () => {
             expect( hasTransform( LayerFactory.create() )).toBe( false );
-            expect( hasTransform( LayerFactory.create({ effects: EffectsFactory.create({ rotation: 90 })}))).toBe( true );
-            expect( hasTransform( LayerFactory.create({ effects: EffectsFactory.create({ scale: 2 })}))).toBe( true );
-            expect( hasTransform( LayerFactory.create({ effects: EffectsFactory.create({ mirrorX: true })}))).toBe( true );
-            expect( hasTransform( LayerFactory.create({ effects: EffectsFactory.create({ mirrorY: true })}))).toBe( true );
+            expect( hasTransform( LayerFactory.create({ transform: TransformFactory.create({ rotation: 90 })}))).toBe( true );
+            expect( hasTransform( LayerFactory.create({ transform: TransformFactory.create({ scale: 2 })}))).toBe( true );
+            expect( hasTransform( LayerFactory.create({ transform: TransformFactory.create({ mirrorX: true })}))).toBe( true );
+            expect( hasTransform( LayerFactory.create({ transform: TransformFactory.create({ mirrorY: true })}))).toBe( true );
         });
     });
 
@@ -173,7 +173,7 @@ describe( "Layer utilities", () => {
                 width: 80,
                 height: 100,
                 source: createMockCanvasElement(),
-                effects: EffectsFactory.create({ rotation: 90 }),
+                transform: TransformFactory.create({ rotation: 90 }),
             });
             cropLayerContent( layer, { left: 10, top: 20, width: 40, height: 50 });
 
@@ -189,7 +189,7 @@ describe( "Layer utilities", () => {
                 width: 80,
                 height: 100,
                 source: createMockCanvasElement(),
-                effects: EffectsFactory.create({ rotation: 90 }),
+                transform: TransformFactory.create({ rotation: 90 }),
             });
             cropLayerContent( layer, { left: 10, top: 20, width: 40, height: 50 });
 

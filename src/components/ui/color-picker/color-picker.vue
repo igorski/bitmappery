@@ -36,10 +36,15 @@ const FRAC_VALUE = 0;
 export default {
     emits: [ "update:modelValue" ],
     props: {
-        // the value is represented as RGBA
+        // the value is represented as either HEXA or RGBA
         modelValue: {
             type: String,
             default: "rgba(255,255,255,1)",
+        },
+        colorType: {
+            type: String,
+            validator: ( value: string ) => /RGBA|HEXA/.test( value ),
+            default: "RGBA",
         },
     },
     watch: {
@@ -82,14 +87,20 @@ export default {
     },
     methods: {
         saveColor( value: { toHEXA: () => number[], toRGBA: () => number[] } ): void {
-            const rgba  = value.toRGBA();
+            let parsedValue: string;
 
-            const red   = rgba[ 0 ].toFixed( FRAC_VALUE );
-            const green = rgba[ 1 ].toFixed( FRAC_VALUE );
-            const blue  = rgba[ 2 ].toFixed( FRAC_VALUE );
-            const alpha = rgba[ 3 ];
+            if ( this.colorType === "RGBA" ) {
+                const rgba  = value.toRGBA();
 
-            const parsedValue = `rgba(${red},${green},${blue},${alpha})`;
+                const red   = rgba[ 0 ].toFixed( FRAC_VALUE );
+                const green = rgba[ 1 ].toFixed( FRAC_VALUE );
+                const blue  = rgba[ 2 ].toFixed( FRAC_VALUE );
+                const alpha = rgba[ 3 ];
+
+                parsedValue = `rgba(${red},${green},${blue},${alpha})`;
+            } else {
+                parsedValue = value.toHEXA().toString();
+            }
 
             if ( this.modelValue !== parsedValue ) {
                 this.$emit( "update:modelValue", parsedValue );

@@ -85,7 +85,7 @@ export const createInverseClipping = ( ctx: CanvasRenderingContext2D, shape: Sha
  * be clipped after committing the drawing.
  */
 export const clipLayer = ( ctx: CanvasRenderingContext2D, layer: Layer, rendererBounds: Rectangle, viewport: Viewport, invert = false ): void => {
-    const { scale, rotation, mirrorY } = layer.effects;
+    const { scale, rotation, mirrorY } = layer.transform;
 
     const bounds = scaleRectangle( rendererBounds, scale );
     bounds.top  -= viewport.top;

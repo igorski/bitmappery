@@ -46,7 +46,7 @@ let bounds: Rectangle;
  *                       transformation did take place.
  */
 export const applyTransformation = ( ctx: CanvasRenderingContext2D, layer: Layer, viewport: Partial<Viewport> = { left: 0, top: 0 }): Rectangle | undefined => {
-    const { mirrorX, mirrorY, scale, rotation } = layer.effects;
+    const { mirrorX, mirrorY, scale, rotation } = layer.transform;
 
     const isMirrored = mirrorX || mirrorY;
     const isScaled   = scale !== 1;
@@ -126,7 +126,7 @@ export const applyTransformation = ( ctx: CanvasRenderingContext2D, layer: Layer
  *                       transformation did take place.
  */
 export const reverseTransformation = ( ctx: CanvasRenderingContext2D, layer: Layer ): Rectangle | undefined => {
-    const { mirrorX, mirrorY, scale, rotation } = layer.effects;
+    const { mirrorX, mirrorY, scale, rotation } = layer.transform;
 
     const isMirrored = mirrorX || mirrorY;
     const isScaled   = scale !== 1;

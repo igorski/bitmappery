@@ -52,7 +52,7 @@
 
 <script lang="ts">
 import { mapGetters } from "vuex";
-import type { Effects } from "@/definitions/document";
+import type { Transform } from "@/definitions/document";
 import { enqueueState } from "@/factories/history-state-factory";
 import messages  from "./messages.json";
 
@@ -62,38 +62,38 @@ export default {
         ...mapGetters([
             "activeLayer",
             "activeLayerIndex",
-            "activeLayerEffects",
+            "activeLayerTransform",
         ]),
         canReset(): void {
-            const { mirrorX, mirrorY } = this.activeLayer.effects;
+            const { mirrorX, mirrorY } = this.activeLayer.transform;
             return mirrorX || mirrorY;
         },
     },
     methods: {
         flipHorizontal(): void {
-            this.update({ mirrorX: !this.activeLayerEffects.mirrorX }, "mirrorX" );
+            this.update({ mirrorX: !this.activeLayerTransform.mirrorX }, "mirrorX" );
         },
         flipVertical(): void {
-            this.update({ mirrorY: !this.activeLayerEffects.mirrorY }, "mirrorY" );
+            this.update({ mirrorY: !this.activeLayerTransform.mirrorY }, "mirrorY" );
         },
         resetFlip(): void {
             this.update({ mirrorX: false, mirrorY: false }, "mirrorXY" );
         },
-        update( effect: Partial<Effects>, propName = "mirror" ): void {
-            const { mirrorX, mirrorY } = this.activeLayerEffects;
-            const newEffects = {
+        update( transform: Partial<Transform>, propName = "mirror" ): void {
+            const { mirrorX, mirrorY } = this.activeLayerTransform;
+            const newTransform = {
                 mirrorX,
                 mirrorY,
-                ...effect,
+                ...transform,
             };
             const index  = this.activeLayerIndex;
             const store  = this.$store;
-            const commit = () => store.commit( "updateLayerEffects", { index, effects: newEffects });
+            const commit = () => store.commit( "updateLayerTransform", { index, transform: newTransform });
             commit();
 
             enqueueState( `${propName}_${index}`, {
                 undo(): void {
-                    store.commit( "updateLayerEffects", { index, effects: { mirrorX, mirrorY } });
+                    store.commit( "updateLayerTransform", { index, transform: { mirrorX, mirrorY } });
                 },
                 redo: commit,
             });

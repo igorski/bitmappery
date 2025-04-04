@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2023 - https://www.igorski.nl, adapter from source of:
+ * Igor Zinken 2023-2025 - https://www.igorski.nl, adapter from source of:
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -25,6 +25,13 @@ export type RGB = {
     g: number;
     b: number;
 };
+
+export type RGBA = [
+    number, // red
+    number, // green
+    number, // blue
+    number, // alpha
+];
 
 export type HSV = {
     h: number;

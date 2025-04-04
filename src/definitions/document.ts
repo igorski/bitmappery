@@ -38,12 +38,12 @@ export type Layer = {
     transparent: boolean;
     source?: HTMLCanvasElement;
     mask?: HTMLCanvasElement;
-    effects: Effects;
+    transform: Transform;
     filters: Filters;
     text: Text;
 };
 
-export type Effects = {
+export type Transform = {
     scale: number;
     rotation: number;
     mirrorX: boolean;
@@ -60,6 +60,11 @@ export type Filters = {
     vibrance: number;
     threshold: number;
     desaturate: boolean;
+    duotone: {
+        enabled: boolean;
+        color1?: string;
+        color2?: string;
+    };
 };
 
 export type Text = {

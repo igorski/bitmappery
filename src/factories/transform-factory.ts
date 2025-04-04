@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,12 +20,12 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Effects } from "@/definitions/document";
+import type { Transform } from "@/definitions/document";
 
-export type EffectsProps = Partial<Effects>;
+export type TransformProps = Partial<Transform>;
 
-const EffectsFactory = {
-    create({ scale = 1, rotation = 0, mirrorX = false, mirrorY = false }: EffectsProps = {}): Effects {
+const TransformFactory = {
+    create({ scale = 1, rotation = 0, mirrorX = false, mirrorY = false }: TransformProps = {}): Transform {
         return {
             scale,
             rotation,
@@ -35,39 +35,39 @@ const EffectsFactory = {
     },
 
     /**
-     * Saving effects properties into a simplified JSON structure
+     * Saving transformation properties into a simplified JSON structure
      * for project storage
      */
-    serialize( effects: Effects ): any {
+    serialize( data: Transform ): any {
         return {
-            s: effects.scale,
-            r: effects.rotation,
-            x: effects.mirrorX,
-            y: effects.mirrorY,
+            s: data.scale,
+            r: data.rotation,
+            x: data.mirrorX,
+            y: data.mirrorY,
         };
     },
 
     /**
-     * Creating a new effects lists from a stored effects structure
+     * Creating a new transformations structure from a stored JSON structure
      * inside a stored projects layer
      */
-     deserialize( effects: any = {} ): Effects {
-         return EffectsFactory.create({
-             scale    : effects.s,
-             rotation : effects.r,
-             mirrorX  : effects.x,
-             mirrorY  : effects.y,
+     deserialize( data: any = {} ): Transform {
+         return TransformFactory.create({
+             scale    : data.s,
+             rotation : data.r,
+             mirrorX  : data.x,
+             mirrorY  : data.y,
          });
      }
 };
-export default EffectsFactory;
+export default TransformFactory;
 
-export const isEqual = ( effects: Effects, effectsToCompare?: Effects ): boolean => {
-    if ( !effectsToCompare ) {
+export const isEqual = ( data: Transform, dataToCompare?: Transform ): boolean => {
+    if ( !dataToCompare ) {
         return false;
     }
-    return effects.scale    === effectsToCompare.scale    &&
-           effects.rotation === effectsToCompare.rotation &&
-           effects.mirrorX  === effectsToCompare.mirrorX  &&
-           effects.mirrorY  === effectsToCompare.mirrorY;
+    return data.scale    === dataToCompare.scale    &&
+           data.rotation === dataToCompare.rotation &&
+           data.mirrorX  === dataToCompare.mirrorX  &&
+           data.mirrorY  === dataToCompare.mirrorY;
 };

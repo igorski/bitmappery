@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2023 - https://www.igorski.nl, adapter from source of:
+ * Igor Zinken 2023-2025 - https://www.igorski.nl, adapter from source of:
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { RGB, HSV } from "@/definitions/colors";
+import type { RGB, RGBA, HSV } from "@/definitions/colors";
 
 export const rgb2YCbCr = ( r: number, g: number, b: number ): RGB => ({
     r: 0.2990  * r + 0.5870 * g + 0.1140 * b,
@@ -48,3 +48,19 @@ export const hsv2rgb = ( h: number, s: number, v: number ): RGB => {
     const b = s * Math.cos( h );
     return YCbCr2rgb( v, g, b );
 };
+
+export const hexToRGBA = ( hex: string ): RGBA => {
+    const str = hex.replace( "#", "" );
+    return [
+        hexToInt( str.substring( 0, 2 )),
+        hexToInt( str.substring( 2, 4 )),
+        hexToInt( str.substring( 4, 6 )),
+        str.length > 6 ? hexToInt( str.substring( 6, 8 )) : 255,
+    ];
+};
+
+/* internal methods */
+
+function hexToInt( str: string ): number {
+    return parseInt( str, 16 );
+}
