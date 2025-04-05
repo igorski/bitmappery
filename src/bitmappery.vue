@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div id="app">
+    <div id="app" ref="app">
         <application-menu />
         <section class="main">
             <toolbox
@@ -234,6 +234,7 @@ export default {
         await this.setupServices( this.$t );
         // no need to remove the below as we will require it throughout the application lifetime
         window.addEventListener( "resize", this.handleResize.bind( this ));
+        this.$refs.app.addEventListener( "wheel", ( e: WheelEvent ) => { e.preventDefault(); e.stopPropagation() });
         // prepare adaptive view for mobile environment
         this.setToolboxOpened( true );
         if ( isMobile() ) {

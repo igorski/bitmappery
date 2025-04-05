@@ -20,15 +20,15 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Store } from "vuex";
-import { canvas } from "zcanvas";
-import type { Rectangle, Viewport } from "zcanvas";
-import type { Document } from "@/definitions/document";
+import { type Store } from "vuex";
+import { canvas, type Rectangle, type Viewport } from "zcanvas";
+import { type Document } from "@/definitions/document";
+import { fastRound } from "@/math/unit-math";
 import InteractionPane from "@/rendering/actors/interaction-pane";
 import type LayerRenderer from "@/rendering/actors/layer-renderer";
-import { fastRound } from "@/math/unit-math";
 import { renderState } from "@/services/render-service";
-import type { BitMapperyState } from "@/store";
+import { type BitMapperyState } from "@/store";
+import { zoomIn, zoomOut } from "@/store/actions/canvas-zoom";
 
 class ZoomableCanvas extends canvas {
     public store: Store<BitMapperyState>; // Vuex root store reference
@@ -127,6 +127,10 @@ class ZoomableCanvas extends canvas {
             this._renderPending = true;
             this._renderId = window.requestAnimationFrame( this._renderHandler as FrameRequestCallback );
         }
+    }
+
+    zoomViewport( factor: number ): void {
+        factor > 0 ? zoomOut( this.store ) : zoomIn( this.store );
     }
 
     /* zCanvas.canvas overrides */
@@ -320,7 +324,14 @@ class ZoomableCanvas extends canvas {
                     const WHEEL_SPEED = 20;
                     const xSpeed = deltaX === 0 ? 0 : deltaX > 0 ? WHEEL_SPEED : -WHEEL_SPEED;
                     const ySpeed = deltaY === 0 ? 0 : deltaY > 0 ? WHEEL_SPEED : -WHEEL_SPEED;
-                    this.panViewport( viewport.left + xSpeed, viewport.top + ySpeed, true );
+                    // ctrlKey indicates (MacBook) touchpad gesture
+                    if (( aEvent as WheelEvent ).ctrlKey ) {
+                        aEvent.preventDefault();
+                        aEvent.stopImmediatePropagation();
+                        this.zoomViewport( ySpeed );
+                    } else {
+                        this.panViewport( viewport.left + xSpeed, viewport.top + ySpeed, true );
+                    }
                     break;
             }
         }
