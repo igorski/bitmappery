@@ -397,14 +397,15 @@ export default {
             }
         }
         .panels {
+            display: inline-flex;
+            flex-direction: column;
+            height: calc(100% - variables.$spacing-xsmall );
             $optionsHeight: 250px;
-            height: 100%;
-
+            
             .tool-options-panel {
                 height: calc(#{$optionsHeight - math.div( variables.$spacing-medium, 2 )});
             }
             .layer-panel {
-                height: calc(100% - #{$optionsHeight + math.div( variables.$spacing-medium, 2 )});
                 margin-top: variables.$spacing-medium;
             }
 

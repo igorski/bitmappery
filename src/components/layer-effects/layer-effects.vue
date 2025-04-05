@@ -21,8 +21,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div class="layer-effects">
-        <div class="component__content form">
+    <div class="layer-effects" ref="effectsPanel">
+        <div class="component__content form" ref="effectsList">
             <div class="wrapper input">
                 <label v-t="'enabled'"></label>
                 <toggle-button
@@ -292,6 +292,12 @@ export default {
         this.orgFilters    = clone( this.filters );
         this.internalValue = clone( this.filters );
         KeyboardService.setListener( this.handleKeyUp.bind( this ), false );
+    },
+    mounted(): void {
+        const { scrollHeight } = this.$refs.effectsList;
+        if ( scrollHeight > this.$refs.effectsPanel.getBoundingClientRect().height ) {
+            console.info("does not fit.");
+        }
     },
     beforeUnmount(): void {
         KeyboardService.setListener( null );
