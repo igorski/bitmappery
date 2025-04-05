@@ -44,13 +44,29 @@ $inputWidth: 65%;
             box-sizing: border-box;
             border-radius: variables.$spacing-small;
             border: none;
-            padding: #{variables.$spacing-small + variables.$spacing-xsmall} variables.$spacing-medium;
+            padding: variables.$spacing-small variables.$spacing-medium;
             font-size: 95%;
             @include typography.bodyFont();
         }
 
         .full {
             width: 100%; // when elements have no label
+        }
+
+        // when there are multiple inputs within a single wrapper
+        // this is a wrapper following the <label> element
+        .shared-inputs {
+            display: inline-flex;
+            width: $inputWidth;
+            justify-content: space-around;
+        
+            .input-field,
+            .input-textarea,
+            .slider-input,
+            .select-box-wrapper,
+            .form-element {
+                width: 76px !important;
+            }
         }
     }
 

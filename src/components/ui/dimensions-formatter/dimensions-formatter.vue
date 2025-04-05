@@ -38,7 +38,7 @@
                 />
             </div>
         </div>
-        <div class="wrapper input">
+        <div class="wrapper input wrapper--small">
             <label v-t="'width'"></label>
             <input
                 v-model.number="translatedWidth"
@@ -47,7 +47,7 @@
                 class="input-field"
             />
         </div>
-        <div class="wrapper input">
+        <div class="wrapper input wrapper--small">
             <label v-t="'height'"></label>
             <input
                 v-model.number="translatedHeight"
@@ -171,7 +171,7 @@ export default {
 
 .select-combo {
     display: inline-flex;
-    width: 50%;
+    width: 65%;
 }
 
 .first {

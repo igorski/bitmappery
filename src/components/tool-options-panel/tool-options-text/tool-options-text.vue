@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -35,14 +35,15 @@
                 class="input-textarea full"
             />
         </div>
-        <h3 v-t="'fontProperties'"></h3>
         <div class="wrapper input">
+            <label v-t="'font'"></label>
             <vue-select
                 v-model="font"
                 :options="fonts"
                 :searchable="canSearchFonts"
                 :disabled="disabled"
                 append-to-body
+                class="font-selector"
             >
                 <template #option="{ value }">
                     <font-preview :font="value" />
@@ -51,18 +52,19 @@
         </div>
         <div class="wrapper slider">
             <label v-t="'size'"></label>
-            <input
-                v-model="size"
-                class="input-field half"
-                type="number"
-                :disabled="disabled"
-            />
-            <select-box
-                v-model="unit"
-                :options="unitOptions"
-                class="half"
-                :disabled="disabled"
-            />
+            <div class="wrapper shared-inputs">
+                <input
+                    v-model="size"
+                    class="input-field"
+                    type="number"
+                    :disabled="disabled"
+                />
+                <select-box
+                    v-model="unit"
+                    :options="unitOptions"
+                    :disabled="disabled"
+                />
+            </div>
         </div>
         <div class="wrapper slider">
             <label v-t="'lineHeight'"></label>
@@ -319,6 +321,7 @@ export default {
 
 <style lang="scss" scoped>
 @use "@/styles/_variables";
+@use "@/styles/form";
 @use "@/styles/tool-option";
 
 .color-picker {
@@ -327,8 +330,8 @@ export default {
     transform: translateY(-(variables.$spacing-xsmall));
 }
 
-.half {
-    width: 75px !important;
-    margin-right: variables.$spacing-small;
+.font-selector {
+    display: inline-block;
+    width: form.$inputWidth;
 }
 </style>

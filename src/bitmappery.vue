@@ -394,6 +394,13 @@ export default {
             &.collapsed {
                 width: panel.$collapsed-panel-width;
                 min-height: variables.$heading-height;
+
+                .component__title {
+                    display: none;
+                }
+                .component__header-button {
+                    right: variables.$spacing-xxsmall !important;
+                }
             }
         }
         .panels {

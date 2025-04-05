@@ -143,9 +143,11 @@ export default {
 
 .options-panel-wrapper {
     @include panel.panel();
+    overflow: initial !important;
 
     @include mixins.large() {
         &.collapsed {
+            width: 100%;
             height: panel.$collapsed-panel-height !important;
         }
     }

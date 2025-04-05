@@ -52,18 +52,5 @@ $collapsed-panel-height: 40px; // mobile view
                 margin: 0 variables.$spacing-small;
             }
         }
-
-        &.collapsed {
-            @include mixins.large() {
-                width: $collapsed-panel-width;
-
-                :deep(.component__title) {
-                    display: none;
-                }
-            }
-            :deep(.component__header-button) {
-                right: variables.$spacing-xxsmall;
-            }
-        }
     }
 }

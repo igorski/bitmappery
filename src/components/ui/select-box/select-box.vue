@@ -80,6 +80,8 @@ export default {
 @use "@/styles/_mixins";
 @use "@/styles/form";
 
+$dropdownHeight: variables.$spacing-xlarge;
+
 .select-box-wrapper {
     display: inline-block;
     width: form.$inputWidth;
@@ -90,6 +92,7 @@ export default {
     background-color: #FFF;
     border-color: #FFF;
     padding: 0;
+    height: $dropdownHeight;
 }
 
 .vs--disabled {
@@ -104,12 +107,12 @@ export default {
 }
 
 .vs__selected {
-    margin: variables.$spacing-small variables.$spacing-small;
+    margin: variables.$spacing-xsmall variables.$spacing-small;
     font-size: 95%;
 }
 
 .vs__selected-options {
-    height: 38px;
+    height: $dropdownHeight;
     @include mixins.truncate();
 }
 </style>
