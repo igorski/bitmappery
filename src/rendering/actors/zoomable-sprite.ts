@@ -31,6 +31,9 @@ class ZoomableSprite extends sprite {
         super( opts );
     }
 
+    // unlike regular zCanvas Sprites, ZoomableSprites don't function as masks, don't support tile
+    // sheets and have no children
+    
     drawBitmap( canvasContext: CanvasRenderingContext2D, bitmap: HTMLCanvasElement, viewport?: Viewport, bounds: Rectangle = this._bounds ): void {
         if ( viewport && !isInsideViewport( bounds, viewport )) {
             return;
@@ -61,20 +64,6 @@ class ZoomableSprite extends sprite {
             ( HALF + dest.width )  << 0,
             ( HALF + dest.height ) << 0
         );
-    }
-
-    /* zCanvas overrides */
-
-    // unlike regular zCanvas Sprites, ZoomableSprites don't function as masks, don't support tile
-    // sheets and have no children
-    // NOTE : we take some creative liberty here by changing the function arity, we can pass
-    // a custom bounds object here to override the internal reference. This is done when
-    // multiple transformations take place on the source (see LayerRenderer#draw())
-
-    draw( canvasContext: CanvasRenderingContext2D, viewport?: Viewport, bounds: Rectangle = this._bounds ): void {
-        if ( this._bitmapReady ) {
-            this.drawBitmap( canvasContext, this._bitmap as HTMLCanvasElement, viewport, bounds );
-        }
     }
 }
 export default ZoomableSprite;

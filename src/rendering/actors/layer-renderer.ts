@@ -630,7 +630,6 @@ export default class LayerRenderer extends ZoomableSprite {
         );
     }
 
-    // @ts-expect-error incompatible override
     override draw( documentContext: CanvasRenderingContext2D, viewport: Viewport, isSnapshotMode = false ): void {
         let renderedFromCache = false;
         if ( !isSnapshotMode && useBlendCaching() && !this._pendingEffectsRender ) {
@@ -700,9 +699,9 @@ export default class LayerRenderer extends ZoomableSprite {
                     this._unmaskedBitmap!.width, this._unmaskedBitmap!.height, this._draggingMask.x, this._draggingMask.y
                 );
                 this.drawBitmap( documentContext, composite.cvs, transformCanvas ? undefined : viewport, drawBounds );
-            } else {
+            } else if ( this._bitmapReady ) {
                 // invoke base class behaviour to render bitmap
-                super.draw( drawContext, transformCanvas ? undefined : viewport, drawBounds );
+                this.drawBitmap( drawContext, this._bitmap as HTMLCanvasElement, transformCanvas ? undefined : viewport, drawBounds );
             }
 
             if ( isErasingOnMask ) {
