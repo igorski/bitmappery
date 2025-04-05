@@ -234,7 +234,11 @@ export default {
         await this.setupServices( this.$t );
         // no need to remove the below as we will require it throughout the application lifetime
         window.addEventListener( "resize", this.handleResize.bind( this ));
-        this.$refs.app.addEventListener( "wheel", ( e: WheelEvent ) => { e.preventDefault(); e.stopPropagation() });
+        this.$refs.app.addEventListener( "wheel", ( e: WheelEvent ) => {
+            if ( e.ctrlKey ) {
+                e.preventDefault(); e.stopPropagation(); // prevent zoom using touchpad
+            }
+        });
         // prepare adaptive view for mobile environment
         this.setToolboxOpened( true );
         if ( isMobile() ) {
