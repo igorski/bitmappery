@@ -105,7 +105,7 @@
                                         :class="{ 'layer__actions-button--disabled': !element.visible }"
                                     ><img src="@/assets-inline/images/icon-eye.svg" /></button>
                                     <button
-                                        v-tooltip="$t('effects')"
+                                        v-tooltip="$t('effectsAndFilters')"
                                         type="button"
                                         class="layer__actions-button button--ghost"
                                         @click="handleEffectsClick( element.index )"
@@ -386,11 +386,21 @@ export default {
         }
 
         @include mixins.mobile() {
+            :deep(.component__content) {
+                max-height: 40vh !important;
+            }
+
             &.collapsed {
                 position: fixed;
                 bottom: 0;
                 height: panel.$collapsed-panel-height;
             }
+        }
+    }
+    
+    @include mixins.large() {
+        .component__header-button {
+            display: none;
         }
     }
 }

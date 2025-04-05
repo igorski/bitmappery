@@ -141,10 +141,10 @@ export default {
     computed: {
         ...mapState([
             "blindActive",
-            "toolboxOpened",
-            "openedPanels",
             "dialog",
             "modal",
+            "openedPanels",
+            "toolboxOpened",
             "windowSize",
         ]),
         ...mapGetters([
@@ -304,8 +304,8 @@ export default {
             "resetHistory",
             "setToolboxOpened",
             "setToolOptionValue",
-            "setWindowSize",
             "setLoading",
+            "setWindowSize",
             "unsetLoading",
         ]),
         ...mapActions([
@@ -395,17 +395,25 @@ export default {
             &.collapsed {
                 width: panel.$collapsed-panel-width;
                 min-height: variables.$heading-height;
+
+                .component__title {
+                    display: none;
+                }
+                .component__header-button {
+                    right: variables.$spacing-xxsmall !important;
+                }
             }
         }
         .panels {
+            display: inline-flex;
+            flex-direction: column;
+            height: calc(100% - variables.$spacing-xsmall );
             $optionsHeight: 250px;
-            height: 100%;
-
+            
             .tool-options-panel {
                 height: calc(#{$optionsHeight - math.div( variables.$spacing-medium, 2 )});
             }
             .layer-panel {
-                height: calc(100% - #{$optionsHeight + math.div( variables.$spacing-medium, 2 )});
                 margin-top: variables.$spacing-medium;
             }
 

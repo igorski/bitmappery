@@ -49,6 +49,7 @@ import tool, { ToolState } from "./modules/tool-module";
 export interface BitMapperyState {
     menuOpened: boolean;
     toolboxOpened: boolean;
+    layersMaximized: boolean;
     openedPanels: string[];
     selectionContent: CopiedSelection | null; // clipboard content of copied images
     blindActive: boolean;
@@ -95,6 +96,7 @@ export default {
     state: (): BitMapperyState => ({
         menuOpened: false,
         toolboxOpened: false,
+        layersMaximized: false,
         openedPanels: [ PANEL_TOOL_OPTIONS, PANEL_LAYERS ],
         selectionContent: null,
         blindActive: false,
@@ -123,6 +125,9 @@ export default {
         },
         setToolboxOpened( state: BitMapperyState, value: boolean ): void {
             state.toolboxOpened = !!value;
+        },
+        setLayersMaximized( state: BitMapperyState, value: boolean ): void {
+            state.layersMaximized = value;
         },
         setOpenedPanel( state: BitMapperyState, panel: string ): void {
             if ( state.openedPanels.includes( panel )) {

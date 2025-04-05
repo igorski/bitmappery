@@ -1,7 +1,7 @@
 {
     "en-US": {
         "typeYourTextHere": "Type your text here",
-        "fontProperties": "Font properties",
+        "font": "Font",
         "size": "Size",
         "lineHeight": "Line height",
         "letterSpacing": "Letter spacing",

@@ -61,6 +61,12 @@ describe( "Vuex store", () => {
             expect( state.toolboxOpened ).toBe( true );
         });
 
+        it( "should be able to toggle the maximized state of the layers panel", () => {
+            const state = createState({ layersMaximized: false });
+            mutations.setLayersMaximized( state, true );
+            expect( state.layersMaximized ).toBe( true );
+        });
+
         describe( "when managing the opened panels", () => {
             it( "should be able to add individual panels to the opened panels list", () => {
                 const state = createState({ openedPanels: [ "foo" ] });
