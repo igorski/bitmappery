@@ -296,7 +296,7 @@ export default {
     mounted(): void {
         const { scrollHeight } = this.$refs.effectsList;
         if ( scrollHeight > this.$refs.effectsPanel.getBoundingClientRect().height ) {
-            console.info("does not fit.");
+            this.setLayersMaximized( true );
         }
     },
     beforeUnmount(): void {
@@ -304,8 +304,9 @@ export default {
     },
     methods: {
         ...mapMutations([
-            "updateLayer",
             "closeModal",
+            "setLayersMaximized",
+            "updateLayer",
         ]),
         handleKeyUp( _type: string, keyCode: number ): void {
             if ( keyCode === 27 ) {
@@ -332,6 +333,7 @@ export default {
             this.close();
         },
         close(): void {
+            this.setLayersMaximized( false );
             this.$emit( "close" );
         },
         update( optData?: Filters, optLayerIndex?: number ): void {

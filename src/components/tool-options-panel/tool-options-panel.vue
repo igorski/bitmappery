@@ -54,8 +54,8 @@
     </div>
 </template>
 
-<script>
-import { defineAsyncComponent } from "vue";
+<script lang="ts">
+import { type Component, defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { PANEL_TOOL_OPTIONS } from "@/definitions/panel-types";
 import ToolTypes from "@/definitions/tool-types";
@@ -63,18 +63,22 @@ import messages  from "./messages.json";
 
 export default {
     i18n: { messages },
+    data: () => ({
+        restoreCollapse: false,
+    }),
     computed: {
         ...mapState([
+            "layersMaximized",
             "openedPanels",
         ]),
         ...mapGetters([
             "activeTool",
         ]),
         collapsed: {
-            get() {
+            get(): boolean {
                 return !this.openedPanels.includes( PANEL_TOOL_OPTIONS );
             },
-            set() {
+            set(): void {
                 this.setOpenedPanel( PANEL_TOOL_OPTIONS );
             }
         },
@@ -82,7 +86,7 @@ export default {
          * To cut down on initial bundle size, these components
          * are loaded asynchronously at runtime
          */
-        activeToolOptions() {
+        activeToolOptions(): Promise<Component> | null {
             let loader;
             switch ( this.activeTool ) {
                 default:
@@ -128,6 +132,18 @@ export default {
             return defineAsyncComponent({ loader });
         },
     },
+    watch: {
+        layersMaximized( value: boolean ): void {
+            if ( value && !this.collapsed ) {
+                this.restoreCollapse = true;
+                this.lastActiveTool = this.activeTool;
+                this.collapsed = true;
+            } else if ( !value && this.collapsed && this.restoreCollapse ) {
+                this.restoreCollapse = false;
+                this.collapsed = false;
+            }
+        },
+    },
     methods: {
         ...mapMutations([
             "setOpenedPanel",
@@ -143,7 +159,10 @@ export default {
 
 .options-panel-wrapper {
     @include panel.panel();
-    overflow: initial !important;
+
+    & {
+        overflow: initial !important;
+    }
 
     @include mixins.large() {
         &.collapsed {
@@ -157,8 +176,10 @@ export default {
         bottom: panel.$collapsed-panel-height;
         height: 40%;
 
-        &.collapsed {
-            height: panel.$collapsed-panel-height;
+        & {
+            &.collapsed {
+                height: panel.$collapsed-panel-height;
+            }
         }
     }
 }

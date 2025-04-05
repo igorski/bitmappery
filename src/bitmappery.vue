@@ -141,10 +141,10 @@ export default {
     computed: {
         ...mapState([
             "blindActive",
-            "toolboxOpened",
-            "openedPanels",
             "dialog",
             "modal",
+            "openedPanels",
+            "toolboxOpened",
             "windowSize",
         ]),
         ...mapGetters([
@@ -303,8 +303,8 @@ export default {
             "resetHistory",
             "setToolboxOpened",
             "setToolOptionValue",
-            "setWindowSize",
             "setLoading",
+            "setWindowSize",
             "unsetLoading",
         ]),
         ...mapActions([

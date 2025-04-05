@@ -156,6 +156,7 @@ export function createState( props?: Partial<BitMapperyState> ): BitMapperyState
     return {
         menuOpened: false,
         toolboxOpened: false,
+        layersMaximized: false,
         openedPanels: [],
         selectionContent: null,
         blindActive: false,
