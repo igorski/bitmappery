@@ -664,8 +664,8 @@ export default class LayerRenderer extends ZoomableSprite {
             let drawContext: CanvasRenderingContext2D = documentContext;
 
             const isPainting      = this.isPainting();
+            const isErasing       = isPainting && this._toolType === ToolTypes.ERASER;
             const isDrawingOnMask = isPainting && isMaskable( this.layer, this.getStore() );
-            const isErasingOnMask = isDrawingOnMask && this._toolType === ToolTypes.ERASER;
             const applyBlending   = enabled && blendMode !== BlendModes.NORMAL && !isDrawingOnMask;
 
             if ( applyBlending ) {
@@ -679,7 +679,7 @@ export default class LayerRenderer extends ZoomableSprite {
             if ( isDrawingOnMask ) {
                 maskComposite = getMaskComposite( this.getPaintSize() ); // temporary canvas to combine paintCanvas with source
               
-                if ( !isErasingOnMask ) {
+                if ( !isErasing ) {
                     drawContext = maskComposite.ctx;
                 }
             }
@@ -699,21 +699,24 @@ export default class LayerRenderer extends ZoomableSprite {
                     this._unmaskedBitmap!.width, this._unmaskedBitmap!.height, this._draggingMask.x, this._draggingMask.y
                 );
                 this.drawBitmap( documentContext, composite.cvs, transformCanvas ? undefined : viewport, drawBounds );
-            } else if ( this._bitmapReady ) {
+            } else if ( this._bitmapReady && ( !isErasing || isDrawingOnMask )) {
                 // invoke base class behaviour to render bitmap
                 this.drawBitmap( drawContext, this._bitmap as HTMLCanvasElement, transformCanvas ? undefined : viewport, drawBounds );
             }
 
-            if ( isErasingOnMask ) {
-                const tempMask = cloneCanvas( this._unmaskedBitmap ); // will contain drawable canvas contents to be used as eraser
+            if ( isErasing ) {
+                const maskedSource = cloneCanvas( isDrawingOnMask ? this._unmaskedBitmap : this._bitmap as HTMLCanvasElement );
                 renderDrawableCanvas(
-                    tempMask.getContext( "2d" )!, this.getPaintSize(), this.canvas,
+                    maskedSource.getContext( "2d" )!, this.getPaintSize(), this.canvas,
                     this._brush.options.opacity, "destination-out", this.layer
                 );
-                const tempSource = cloneCanvas( this._bitmap as HTMLCanvasElement ); // used to stamp the temporary mask on
-                maskImage( tempSource.getContext( "2d" )!, this._unmaskedBitmap, tempMask, this.layer.source.width, this.layer.source.height, this.layer.maskX, this.layer.maskY );
-
-                this.drawBitmap( documentContext, tempSource, transformCanvas ? undefined : viewport, drawBounds );
+                if ( isDrawingOnMask ) {
+                    const tempMask = cloneCanvas( this._bitmap as HTMLCanvasElement );
+                    maskImage( tempMask.getContext( "2d" )!, this._unmaskedBitmap, maskedSource, this.layer.source.width, this.layer.source.height, this.layer.maskX, this.layer.maskY );
+                    this.drawBitmap( documentContext, tempMask, transformCanvas ? undefined : viewport, drawBounds );
+                } else {
+                    this.drawBitmap( drawContext, maskedSource, transformCanvas ? undefined : viewport, drawBounds );
+                }
             }
 
             if ( applyBlending ) {
@@ -723,7 +726,7 @@ export default class LayerRenderer extends ZoomableSprite {
             drawContext.restore(); // transformation restore()
 
             // user is currently drawing on this layer, render contents of drawableCanvas onto screen for live preview
-            if ( isPainting && !isErasingOnMask ) {
+            if ( isPainting && !isErasing ) {
                 const clipContext = !this._selection && ( this._bounds.left !== 0 || this._bounds.top !== 0 || transformedBounds );
                 if ( clipContext ) {
                     // when the layer if offset/transformed and there is no active selection, clip the out of bounds content

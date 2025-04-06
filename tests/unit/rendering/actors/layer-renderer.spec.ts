@@ -12,9 +12,9 @@ import TransformFactory from "@/factories/transform-factory";
 import FiltersFactory from "@/factories/filters-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { degreesToRadians } from "@/math/unit-math";
-import { type BitMapperyState } from "@/store";
 import LayerRenderer from "@/rendering/actors/layer-renderer";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
+import { type BitMapperyState } from "@/store";
 
 let mockIsBlendCached = false;
 let mockUseBlendCaching = false;
@@ -41,6 +41,8 @@ const mockAction = vi.fn();
 vi.mock( "@/store/actions/mask-position", () => ({ positionMask: vi.fn(( ...args: any[] ) => mockAction( "positionMask", ...args ))}));
 vi.mock( "@/rendering/operations/snapping", () => ({ snapToGuide: vi.fn(( ...args: any[] ) => mockAction( "snapToGuide", ...args ))}))
 
+vi.mock( "@/utils/resource-manager", () => ({ blobToResource: vi.fn() }));
+
 describe( "LayerRenderer", () => {
     const activeDocument = DocumentFactory.create();
     const layerIndex = 2;
@@ -57,12 +59,18 @@ describe( "LayerRenderer", () => {
         return newRenderer;
     }
 
+    function addMaskToLayer( layer: Layer, layerRenderer: LayerRenderer ): void {
+        layer.mask = createMockCanvasElement();
+        mockStore.getters.activeLayerMask = layer.mask;
+        layerRenderer.setUnmaskedBitmap( createMockCanvasElement());
+        layerRenderer.setActionTarget( "mask" );
+    }
+
     beforeEach(() => {
         vi.useFakeTimers();
         mockCanvasConstructor();
 
         layer = LayerFactory.create();
-
         canvas = createMockZoomableCanvas();
         renderer = createLayerRenderer( layer );
         
@@ -214,8 +222,7 @@ describe( "LayerRenderer", () => {
         });
 
         it( "should return the mask layer when the Layer has an active mask", () => {
-            layer.mask = createMockCanvasElement();
-            mockStore.getters.activeLayerMask = layer.mask;
+            addMaskToLayer( layer, renderer );
 
             expect( renderer.getPaintSource() ).toEqual( layer.mask );
         });
@@ -367,11 +374,8 @@ describe( "LayerRenderer", () => {
         });
 
         it( "should update a dragged Mask position on pointer release and not invoke snapping", () => {
-            layer.mask = createMockCanvasElement();
-            mockStore.getters.activeLayerMask = layer.mask;
+            addMaskToLayer( layer, renderer );
             mockStore.getters.snapAlign = true;
-
-            renderer.setActionTarget( "mask" );
             
             renderer.handlePress( 5, 5, new MouseEvent( "mousedown" ));
             renderer.handleMove( 5, 5, new MouseEvent( "mousemove" ));
@@ -383,8 +387,22 @@ describe( "LayerRenderer", () => {
     });
 
     describe( "when drawing the Layers contents onto the canvas", () => {
+        const bitmap = createMockCanvasElement();
         const viewport = { left: 10, top: 20, width: 400, height: 300, right: 410, bottom: 320 };
         const ctx = createMockCanvasElement().getContext( "2d" );
+
+        beforeEach(() => {
+            renderer.setBitmap( bitmap );
+        });
+
+        it( "should draw the sprites associated bitmap onto the Canvas taking viewport and bounds into account", () => {
+            const drawBitmapSpy = vi.spyOn( renderer, "drawBitmap" );
+
+            renderer.draw( ctx, viewport );
+            
+            expect( drawBitmapSpy ).toHaveBeenCalledTimes( 1 );
+            expect( drawBitmapSpy ).toHaveBeenCalledWith( ctx, bitmap, viewport, renderer.getBounds() );
+        });
 
         describe( "and the layer is in the paint state", () => {
             beforeEach(() => {
@@ -426,6 +444,32 @@ describe( "LayerRenderer", () => {
                 expect( mockRenderOperation ).toHaveBeenCalledWith(
                     "clipLayer", ctx, renderer.layer, renderer.getBounds(), viewport, false
                 );
+            });
+
+            describe( "and the active paint tool is the eraser", () => {
+                it( "draw a temporary Canvas instead of the sprites Bitmap", () => {
+                    const drawBitmapSpy = vi.spyOn( renderer, "drawBitmap" );
+                    renderer.handleActiveTool( ToolTypes.ERASER, undefined, activeDocument );
+
+                    renderer.draw( ctx, viewport );
+
+                    expect( drawBitmapSpy ).toHaveBeenCalledTimes( 1 );
+                    expect( drawBitmapSpy ).not.toHaveBeenCalledWith( ctx, bitmap, viewport, renderer.getBounds() );
+                    expect( drawBitmapSpy ).toHaveBeenCalledWith( ctx, expect.any( Object ), viewport, renderer.getBounds() );
+                });
+
+                it( "draw both the sprites associated Bitmap and a temporary erased mask image on top when erasing from the Mask layer", () => {
+                    addMaskToLayer( layer, renderer );
+                    
+                    const drawBitmapSpy = vi.spyOn( renderer, "drawBitmap" );
+                    renderer.handleActiveTool( ToolTypes.ERASER, undefined, activeDocument );
+     
+                    renderer.draw( ctx, viewport );
+
+                    expect( drawBitmapSpy ).toHaveBeenCalledTimes( 2 );
+                    expect( drawBitmapSpy ).toHaveBeenCalledWith( ctx, bitmap, viewport, renderer.getBounds() );
+                    expect( drawBitmapSpy ).toHaveBeenCalledWith( ctx, expect.any( Object ), viewport, renderer.getBounds() );
+                });
             });
         });
     });

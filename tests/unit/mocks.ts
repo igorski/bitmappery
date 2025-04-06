@@ -15,6 +15,7 @@ import { createToolState } from "@/store/modules/tool-module";
 // @todo should not be necessary when updating to zCanvas 6+
 
 export function sprite() {
+    this._bitmapReady = false;
     this._bounds      = { left: 0, top: 0, width: 10, height: 10 };
     this._dragStartOffset = { x: 0, y: 0 };
     this._dragStartEventCoordinates = { x: 0, y: 0 };
@@ -25,6 +26,10 @@ export function sprite() {
         this._bounds.top    = y;
         this._bounds.width  = w;
         this._bounds.height = h;
+    });
+    this.setBitmap = vi.fn( value  => {
+        this._bitmap = value;
+        this._bitmapReady = true;
     });
     this.setDraggable = vi.fn();
     this.getInteractive = vi.fn(() => this._interactive );
@@ -106,6 +111,7 @@ export function createMockCanvasElement( width = 300, height = 200 ): HTMLCanvas
         width,
         height,
         getContext: () => ctx,
+        toBlob: ( callback: ( b: Blob ) => void ) => callback( new Blob()),
     } as unknown as HTMLCanvasElement;
 
     // @ts-expect-error cannot assign to read only property
