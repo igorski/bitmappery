@@ -9,7 +9,7 @@ import { createDocumentState } from "@/store/modules/document-module";
 import { createHistoryState } from "@/store/modules/history-module";
 import { createImageState } from "@/store/modules/image-module";
 import { createPreferencesState } from "@/store/modules/preferences-module";
-import { createToolState } from "@/store/modules/tool-module";
+import { createEditorState } from "@/store/modules/editor-module";
 
 // zCanvas mocks
 // @todo should not be necessary when updating to zCanvas 6+
@@ -185,7 +185,7 @@ export function createState( props?: Partial<BitMapperyState> ): BitMapperyState
         history: createHistoryState(),
         image: createImageState(),
         preferences: createPreferencesState(),
-        tool: createToolState(),
+        editor: createEditorState(),
         ...props,
     };
 }

@@ -39,12 +39,12 @@ import { copySelection, deleteSelectionContent } from "@/utils/document-util";
 import { saveBlobAsFile, selectFile } from "@/utils/file-util";
 import { replaceLayerSource } from "@/utils/layer-util";
 import { truncate } from "@/utils/string-util";
-import canvas, { CanvasState } from "./modules/canvas-module";
-import document, { DocumentState } from "./modules/document-module";
-import history, { HistoryState } from "./modules/history-module";
-import image, { ImageState } from "./modules/image-module";
-import preferences, { PreferencesState } from "./modules/preferences-module";
-import tool, { ToolState } from "./modules/tool-module";
+import canvas, { type CanvasState } from "./modules/canvas-module";
+import document, { type DocumentState } from "./modules/document-module";
+import history, { type HistoryState } from "./modules/history-module";
+import image, { type ImageState } from "./modules/image-module";
+import preferences, { type PreferencesState } from "./modules/preferences-module";
+import editor, { type EditorState } from "./modules/editor-module";
 
 export interface BitMapperyState {
     menuOpened: boolean;
@@ -72,7 +72,7 @@ export interface BitMapperyState {
     history: HistoryState;
     image: ImageState;
     preferences: PreferencesState;
-    tool: ToolState;
+    editor: EditorState;
 };
 
 // cheat a little by exposing the vue-i18n translations directly to the
@@ -90,7 +90,7 @@ export default {
         history,
         image,
         preferences,
-        tool,
+        editor,
     },
     // @ts-expect-error sub module states are injected by Vuex on store creation
     state: (): BitMapperyState => ({

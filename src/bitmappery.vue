@@ -22,7 +22,7 @@
  */
 <template>
     <div id="app" ref="app">
-        <application-menu />
+        <header-menu />
         <section class="main">
             <toolbox
                 ref="toolbox"
@@ -75,7 +75,7 @@
 import { type Component, defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { createI18n } from "vue-i18n";
-import ApplicationMenu from "@/components/application-menu/application-menu.vue";
+import HeaderMenu from "@/components/menus/header-menu/header-menu.vue";
 import ToolOptionsPanel from "@/components/tool-options-panel/tool-options-panel.vue";
 import LayerPanel from "@/components/layer-panel/layer-panel.vue";
 import Toolbox from "@/components/toolbox/toolbox.vue";
@@ -127,7 +127,7 @@ function asyncComponent( key: string, importFn: () => Promise<any> ): IAsyncComp
 export default {
     mixins: [ ImageToDocumentManager ],
     components: {
-        ApplicationMenu,
+        HeaderMenu,
         DialogWindow,
         Loader,
         Notifications,

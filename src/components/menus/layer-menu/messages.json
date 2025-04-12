@@ -1,0 +1,15 @@
+{
+    "en-US": {
+        "duplicateLayer": "Duplicate layer",
+        "commitEffects": "Commit effects and transforms",
+        "copyLayerFilters": "Copy layer filters",
+        "pasteLayerFilters": "Paste copied filters",
+        "disableLayerFilters": "Disable layer filters",
+        "enableLayerFilters": "Enable layer filters",
+        "toggleLayerFiltersTooltip": "(alt + F)",
+        "mergeDown": "Merge down",
+        "flattenImage": "Flatten image",
+        "mergedLayer": "Merged layer",
+        "filtersCopied": "Filters copied"
+    }
+}

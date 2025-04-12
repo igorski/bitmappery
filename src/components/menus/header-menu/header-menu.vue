@@ -232,68 +232,10 @@
             <!-- layer menu -->
             <li>
                 <a v-t="'layer'" class="title" @click.prevent="openSubMenu('layer')"></a>
-                <ul class="submenu"
-                    :class="{ opened: activeSubMenu === 'layer' }"
+                <layer-menu
+                    :opened="activeSubMenu === 'layer'"
                     @click="close()"
-                >
-                    <li>
-                        <button
-                            v-t="'duplicateLayer'"
-                            type="button"
-                            :disabled="!activeLayer"
-                            @click="requestDuplicateLayer()"
-                        ></button>
-                    </li>
-                    <li>
-                        <button
-                            v-t="'commitEffects'"
-                            type="button"
-                            :disabled="!activeLayerCanBeCommitted"
-                            @click="commitLayerEffects()"
-                        ></button>
-                    </li>
-                    <li>
-                        <button
-                            v-t="'copyLayerFilters'"
-                            type="button"
-                            :disabled="!activeLayer"
-                            @click="copyLayerFilters()"
-                        ></button>
-                    </li>
-                    <li>
-                        <button
-                            v-t="'pasteLayerFilters'"
-                            type="button"
-                            :disabled="!activeLayer || !clonedFilters"
-                            @click="requestPasteLayerFilters()"
-                        ></button>
-                    </li>
-                    <li>
-                        <button
-                            v-t="activeLayerHasFiltersEnabled ? 'disableLayerFilters' : 'enableLayerFilters'"
-                            v-tooltip.right="$t('toggleLayerFiltersTooltip')"
-                            type="button"
-                            :disabled="!activeLayer"
-                            @click="requestToggleLayerFilters()"
-                        ></button>
-                    </li>
-                    <li>
-                        <button
-                            v-t="'mergeDown'"
-                            type="button"
-                            :disabled="!activeLayer || activeLayerIndex === 0"
-                            @click="requestMergeLayerDown()"
-                        ></button>
-                    </li>
-                    <li>
-                        <button
-                            v-t="'flattenImage'"
-                            type="button"
-                            :disabled="!activeLayer || activeDocument.layers.length < 2"
-                            @click="requestMergeLayerDown( true )"
-                        ></button>
-                    </li>
-                </ul>
+                />
             </li>
             <!-- selection menu -->
             <li>
@@ -424,8 +366,8 @@
 </template>
 
 <script lang="ts">
+import { defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
-import { LayerTypes } from "@/definitions/layer-types";
 import { MAX_SPRITESHEET_WIDTH } from "@/definitions/editor-properties";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_WINDOW, LOAD_SELECTION, SAVE_SELECTION,
@@ -433,26 +375,21 @@ import {
 } from "@/definitions/modal-windows";
 import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
-import { hasFilters } from "@/factories/filters-factory";
 import { getCanvasInstance } from "@/services/canvas-service";
 import { cropToSelection } from "@/store/actions/crop-to-selection";
-import { commitLayerEffectsAndTransforms } from "@/store/actions/layer-commit-effects-and-transforms";
-import { duplicateLayer } from "@/store/actions/layer-duplicate";
-import { mergeLayerDown } from "@/store/actions/layer-merge-down";
-import { pasteLayerFilters } from "@/store/actions/layer-paste-filters";
-import { toggleLayerFilters } from "@/store/actions/layer-toggle-filters";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
-import { hasTransform } from "@/utils/layer-util";
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
 
 export default {
     i18n: { messages, sharedMessages },
     mixins: [ CloudServiceConnector, ImageToDocumentManager ],
+    components: {
+        LayerMenu : defineAsyncComponent({ loader: () => import( "@/components/menus/layer-menu/layer-menu.vue" ) }),
+    },
     data: () => ({
         activeSubMenu: null, // used for mobile views collapsed / expanded view
-        clonedFilters: null,
         isFullscreen: false,
         hasDropbox: supportsDropbox(),
         hasDrive: supportsGoogleDrive(),
@@ -486,12 +423,6 @@ export default {
         },
         hasClipboard(): boolean {
             return !!this.selectionContent;
-        },
-        activeLayerHasFiltersEnabled(): boolean {
-            return this.activeLayer?.filters?.enabled;
-        },
-        activeLayerCanBeCommitted(): boolean {
-            return !!this.activeLayer && ( hasTransform( this.activeLayer ) || hasFilters( this.activeLayer.filters )) && this.activeLayer.type !== LayerTypes.LAYER_TEXT;
         },
         canSnapAndAlign: {
             get(): boolean {
@@ -554,7 +485,6 @@ export default {
     methods: {
         ...mapMutations([
             "setMenuOpened",
-            "showNotification",
             "openModal",
             "setActiveDocument",
             "setActiveDocumentSize",
@@ -619,25 +549,6 @@ export default {
         navigateHistory( action = "undo" ): void {
             this.$store.dispatch( action );
         },
-        requestDuplicateLayer(): void {
-            duplicateLayer( this.$store, this.activeLayer, this.activeLayerIndex + 1 );
-        },
-        commitLayerEffects(): void {
-            commitLayerEffectsAndTransforms( this.$store, this.activeDocument, this.activeLayer, this.activeLayerIndex );
-        },
-        async requestMergeLayerDown( allLayers = false ): Promise<void> {
-            await mergeLayerDown( this.$store, this.activeDocument, this.activeLayer, this.activeLayerIndex, this.$t( "mergedLayer" ), allLayers );
-        },
-        copyLayerFilters(): void {
-            this.clonedFilters = { ...this.activeLayer.filters };
-            this.showNotification({ message: this.$t( "filtersCopied" ) });
-        },
-        requestPasteLayerFilters(): void {
-            pasteLayerFilters( this.$store, this.clonedFilters, this.activeLayer, this.activeLayerIndex );
-        },
-        requestToggleLayerFilters(): void {
-            toggleLayerFilters( this.$store, this.activeLayer, this.activeLayerIndex );
-        },
         selectAll(): void {
             getCanvasInstance()?.interactionPane.selectAll();
         },
@@ -656,6 +567,7 @@ export default {
 @use "@/styles/_mixins";
 @use "@/styles/_variables";
 @use "@/styles/typography";
+@use "@/styles/ui";
 
 $toggle-width: 50px;
 
@@ -679,6 +591,7 @@ $toggle-width: 50px;
     height: variables.$menu-height;
     background-image: colors.$color-window-bg;
     @include mixins.boxSize();
+    @include ui.nestedMenu();
 
     @include mixins.large() {
         min-width: 100%;
@@ -795,125 +708,6 @@ h1 {
 
     .emphasis {
         color: #FFF;
-    }
-}
-
-.menu-list {
-    flex: 1;
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-    @include mixins.boxSize();
-
-    li {
-        display: inline-block;
-        padding: 0 variables.$spacing-medium 0 0;
-        margin: 0;
-        font-family: Montserrat, Helvetica, Verdana;
-        cursor: pointer;
-
-        a {
-            color: #b6b6b6;
-            text-decoration: none;
-            padding-bottom: variables.$spacing-large;
-        }
-
-        &:hover,
-        &:hover a {
-            color: colors.$color-1;
-            border-bottom: none;
-            text-decoration: none;
-        }
-
-        &.active {
-            a {
-                border-bottom: 3px solid #555;
-            }
-        }
-
-        button {
-            background: none;
-            cursor: pointer;
-            border: none;
-            color: #b6b6b6;
-            margin: 0;
-            padding: 0;
-            font-size: 95%;
-
-            &:disabled {
-                color: colors.$color-bg !important;
-            }
-
-            &.checked::before {
-                content: "\2713";
-                margin-right: variables.$spacing-small;
-            }
-
-            &:hover {
-                color: colors.$color-4;
-            }
-        }
-
-        ul {
-            list-style: none;
-        }
-
-        @include mixins.large() {
-            &:hover, &:focus {
-                a {
-                    color: colors.$color-1;
-                }
-                ul {
-                    display: block;
-                    z-index: 2;
-                }
-            }
-            ul {
-                display: none;
-                position: absolute;
-                box-shadow: 0 0 5px rgba(0,0,0,.5);
-                padding: variables.$spacing-medium;
-                background-image: colors.$color-window-bg;
-                background-repeat: repeat-x;
-                @include mixins.boxSize();
-            }
-        }
-    }
-
-    @include mixins.mobile() {
-        position: absolute;
-        top: variables.$menu-height;
-        background-image: linear-gradient(to bottom,#fff 35%,#eee 90%);
-        background-repeat: repeat-x;
-        display: none;
-
-        .title {
-            padding: variables.$spacing-small variables.$spacing-medium;
-        }
-
-        .submenu {
-            display: none;
-
-            &.opened {
-                display: block;
-                padding-left: variables.$spacing-medium;
-                background-image: colors.$color-window-bg;
-            }
-        }
-    }
-}
-
-.submenu {
-    @include mixins.large() {
-        li {
-            display: block;
-            color: #b6b6b6;
-            padding: variables.$spacing-xsmall variables.$spacing-medium;
-
-            &:hover {
-                color: #FFF;
-            }
-        }
     }
 }
 

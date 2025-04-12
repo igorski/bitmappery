@@ -1,14 +1,15 @@
 import { it, describe, expect } from "vitest";
 import { mockZCanvas } from "../../mocks";
-import storeModule, { createToolState } from "@/store/modules/tool-module";
 import BrushTypes from "@/definitions/brush-types";
 import ToolTypes, { TOOL_SRC_MERGED } from "@/definitions/tool-types";
+import FiltersFactory from "@/factories/filters-factory";
+import storeModule, { createEditorState } from "@/store/modules/editor-module";
 
 const { getters, mutations } = storeModule;
 
 mockZCanvas();
 
-describe( "Vuex tool module", () => {
+describe( "Vuex editor module", () => {
     const BASE_OPTIONS = {
         [ ToolTypes.ZOOM ]  : { level: 1 },
         [ ToolTypes.BRUSH ] : { size: 10, type: BrushTypes.LINE, opacity: 1, strokes: 1, thickness: .5 },
@@ -20,13 +21,15 @@ describe( "Vuex tool module", () => {
     };
 
     describe( "getters", () => {
-        const state = createToolState({
+        const clonedFilters = FiltersFactory.create();
+        const state = createEditorState({
             activeTool: ToolTypes.CLONE,
             activeColor: "red",
             options: { ...BASE_OPTIONS },
             snapAlign: true,
             antiAlias: true,
             pixelGrid: false,
+            clonedFilters,
         });
         
         it( "should be able to return the active tool", () => {
@@ -70,21 +73,26 @@ describe( "Vuex tool module", () => {
         });
 
         it( "should be able to retrieve the current snap and alignment state", () => {
-            expect( getters.snapAlign ( state, getters, {}, {} )).toBe( true );
+            expect( getters.snapAlign( state, getters, {}, {} )).toBe( true );
         });
 
         it( "should be able to retrieve the current anti-aliasing state", () => {
-            expect( getters.antiAlias ( state, getters, {}, {} )).toBe( true );
+            expect( getters.antiAlias( state, getters, {}, {} )).toBe( true );
+        });
+
+        it( "should be able to retrieve the copied filters", () => {
+            expect( getters.clonedFilters( state, getters, {}, {} )).toEqual( clonedFilters );
         });
     });
 
     describe( "mutations", () => {
-        const state = createToolState({
+        const state = createEditorState({
             activeTool: ToolTypes.ZOOM,
             activeColor: "red",
             options: { ...BASE_OPTIONS },
             snapAlign: true,
             antiAlias: true,
+            clonedFilters: null,
         });
 
         it( "should be able to set the active tool", () => {
@@ -113,6 +121,12 @@ describe( "Vuex tool module", () => {
         it( "should be able to set the anti-aliasing state", () => {
             mutations.setAntiAlias( state, false );
             expect( state.antiAlias ).toBe( false );
+        });
+
+        it( "should be able to set the cloned filters", () => {
+            const filters = FiltersFactory.create({ opacity: 0.5 });
+            mutations.setClonedFilters( state, filters );
+            expect( state.clonedFilters ).toEqual( filters );
         });
     });
 });

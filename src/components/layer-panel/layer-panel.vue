@@ -64,6 +64,7 @@
                                 :class="{
                                     'layer--active': element.index === activeLayerIndex
                                 }"
+                                @contextmenu.stop.prevent="showContextMenu( $event, element )"
                             >
                                 <!-- layer name is an input on double click -->
                                 <input
@@ -143,6 +144,14 @@
                     @click="requestMaskAdd()"
                 ></button>
             </div>
+            <context-menu
+                v-if="contextMenu.show"
+                @close="contextMenu.show = false"
+                :x="contextMenu.x"
+                :y="contextMenu.y"
+            >
+                <layer-menu :opened="true" />
+            </context-menu>
         </template>
     </div>
 </template>
@@ -173,12 +182,19 @@ type IndexedLayer = Layer & { index: number, maskSelected: boolean };
 export default {
     i18n: { messages },
     components: {
+        ContextMenu  : defineAsyncComponent({ loader: () => import( "@/components/menus/context-menu/context-menu.vue" ) }),
         Draggable    : defineAsyncComponent({ loader: () => import( "vuedraggable" ) }),
         LayerEffects : defineAsyncComponent({ loader: () => import( "@/components/layer-effects/layer-effects.vue" ) }),
+        LayerMenu    : defineAsyncComponent({ loader: () => import( "@/components/menus/layer-menu/layer-menu.vue" ) }),
     },
     data: () => ({
         editable: false,
         showEffects: false,
+        contextMenu: {
+            show: false,
+            x: 0,
+            y: 0,
+        },
     }),
     computed: {
         ...mapState([
@@ -358,6 +374,12 @@ export default {
                 focus( this.$refs.nameInput );
                 this.$refs.nameInput?.select();
             }
+        },
+        showContextMenu( event: PointerEvent, layer: IndexedLayer ): void {
+            this.handleLayerClick( layer );
+            this.contextMenu.show = true;
+            this.contextMenu.x = event.clientX;
+            this.contextMenu.y = event.clientY;
         },
     },
 };

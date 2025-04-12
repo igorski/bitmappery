@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Module } from "vuex";
-import type { Document } from "@/definitions/document";
+import type { Document, Filters } from "@/definitions/document";
 import type {
     ZoomToolOptions, BrushToolOptions, EraserToolOptions, CloneToolOptions,
     SelectionToolOptions, FillToolOptions, WandToolOptions
@@ -30,7 +30,7 @@ import ToolTypes, { TOOL_SRC_MERGED } from "@/definitions/tool-types";
 import BrushTypes from "@/definitions/brush-types";
 import { runRendererFn } from "@/factories/renderer-factory";
 
-export interface ToolState {
+export interface EditorState {
     activeTool: ToolTypes;
     activeColor: string;
     options: {
@@ -45,9 +45,10 @@ export interface ToolState {
     snapAlign: boolean;
     antiAlias: boolean;
     pixelGrid: boolean;
+    clonedFilters: Filters | null;
 };
 
-export const createToolState = ( props?: Partial<ToolState> ): ToolState => ({
+export const createEditorState = ( props?: Partial<EditorState> ): EditorState => ({
     activeTool  : null,
     activeColor : "rgba(255,0,0,1)",
     options : {
@@ -62,40 +63,42 @@ export const createToolState = ( props?: Partial<ToolState> ): ToolState => ({
     snapAlign : true,
     antiAlias : true,
     pixelGrid : false,
+    clonedFilters: null,
     ...props,
 });
 
-const ToolModule: Module<ToolState, any> = {
-    state: (): ToolState => createToolState(),
+const EditorModule: Module<EditorState, any> = {
+    state: (): EditorState => createEditorState(),
     getters: {
-        activeTool        : ( state: ToolState ): ToolTypes => state.activeTool,
-        activeColor       : ( state: ToolState ): string => state.activeColor,
+        activeTool        : ( state: EditorState ): ToolTypes => state.activeTool,
+        activeColor       : ( state: EditorState ): string => state.activeColor,
+        clonedFilters     : ( state: EditorState ): Filters => state.clonedFilters,
         // @ts-expect-error Element implicitly has an 'any' type because expression of type 'ToolTypes' can't be used to index type
-        activeToolOptions : ( state: ToolState ): any => state.options[ state.activeTool ],
-        selectionOptions  : ( state: ToolState ): SelectionToolOptions => state.options[ ToolTypes.SELECTION ],
-        zoomOptions       : ( state: ToolState ): ZoomToolOptions => state.options[ ToolTypes.ZOOM ],
-        brushOptions      : ( state: ToolState ): BrushToolOptions => state.options[ ToolTypes.BRUSH ],
-        eraserOptions     : ( state: ToolState ): EraserToolOptions => state.options[ ToolTypes.ERASER ],
-        cloneOptions      : ( state: ToolState ): CloneToolOptions => state.options[ ToolTypes.CLONE ],
-        fillOptions       : ( state: ToolState ): FillToolOptions => state.options[ ToolTypes.FILL ],
-        wandOptions       : ( state: ToolState ): WandToolOptions => state.options[ ToolTypes.WAND ],
-        snapAlign         : ( state: ToolState ): boolean => state.snapAlign,
-        antiAlias         : ( state: ToolState ): boolean => state.antiAlias,
-        pixelGrid         : ( state: ToolState ): boolean => state.pixelGrid,
+        activeToolOptions : ( state: EditorState ): any => state.options[ state.activeTool ],
+        selectionOptions  : ( state: EditorState ): SelectionToolOptions => state.options[ ToolTypes.SELECTION ],
+        zoomOptions       : ( state: EditorState ): ZoomToolOptions => state.options[ ToolTypes.ZOOM ],
+        brushOptions      : ( state: EditorState ): BrushToolOptions => state.options[ ToolTypes.BRUSH ],
+        eraserOptions     : ( state: EditorState ): EraserToolOptions => state.options[ ToolTypes.ERASER ],
+        cloneOptions      : ( state: EditorState ): CloneToolOptions => state.options[ ToolTypes.CLONE ],
+        fillOptions       : ( state: EditorState ): FillToolOptions => state.options[ ToolTypes.FILL ],
+        wandOptions       : ( state: EditorState ): WandToolOptions => state.options[ ToolTypes.WAND ],
+        snapAlign         : ( state: EditorState ): boolean => state.snapAlign,
+        antiAlias         : ( state: EditorState ): boolean => state.antiAlias,
+        pixelGrid         : ( state: EditorState ): boolean => state.pixelGrid,
     },
     mutations: {
-        setActiveTool( state: ToolState, { tool, document }: { tool: ToolTypes, document: Document }): void {
+        setActiveTool( state: EditorState, { tool, document }: { tool: ToolTypes, document: Document }): void {
             state.activeTool = tool;
             runRendererFn( renderer => {
                 // @ts-expect-error Element implicitly has an 'any' type because expression of type 'ToolTypes' can't be used to index type
                 renderer.handleActiveTool( tool, state.options[ state.activeTool ] as any, document );
             });
         },
-        setActiveColor( state: ToolState, color: string ): void {
+        setActiveColor( state: EditorState, color: string ): void {
             state.activeColor = color;
             updateLayerRenderers( state.activeColor, state.options[ ToolTypes.BRUSH ] as BrushToolOptions );
         },
-        setToolOptionValue( state: ToolState, { tool, option, value }: { tool: ToolTypes, option: string, value: any }): void {
+        setToolOptionValue( state: EditorState, { tool, option, value }: { tool: ToolTypes, option: string, value: any }): void {
             // @ts-expect-error Element implicitly has an 'any' type because expression of type 'ToolTypes' can't be used to index type
             const toolOptions: any = state.options[ tool ];
             toolOptions[ option ] = value;
@@ -111,18 +114,21 @@ const ToolModule: Module<ToolState, any> = {
                     break;
             }
         },
-        setSnapAlign( state: ToolState, enabled: boolean ): void {
+        setSnapAlign( state: EditorState, enabled: boolean ): void {
             state.snapAlign = enabled;
         },
-        setAntiAlias( state: ToolState, enabled: boolean ): void {
+        setAntiAlias( state: EditorState, enabled: boolean ): void {
             state.antiAlias = enabled;
         },
-        setPixelGrid( state: ToolState, enabled: boolean ): void {
+        setPixelGrid( state: EditorState, enabled: boolean ): void {
             state.pixelGrid = enabled;
+        },
+        setClonedFilters( state: EditorState, filters: Filters | null ): void {
+            state.clonedFilters = filters;
         },
     },
 };
-export default ToolModule;
+export default EditorModule;
 
 /* internal methods */
 

@@ -39,7 +39,7 @@ const BrushFactory = {
             radius,
             colors,
             pointers,
-            options, // provided by tool-module
+            options, // provided by editor-module
             halfRadius   : radius * 0.5,
             doubleRadius : radius * 2,
             down : false
