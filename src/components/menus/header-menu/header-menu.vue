@@ -22,7 +22,7 @@
  */
 <template>
     <nav class="menu"
-         :class="{ opened: menuOpened }"
+         :class="{ 'menu--opened': menuOpened }"
     >
         <div class="toggle" @click="setMenuOpened( !menuOpened )">
             <span>&#9776;</span>
@@ -35,7 +35,7 @@
             <li>
                 <a v-t="'file'" class="title" @click.prevent="openSubMenu('file')"></a>
                 <ul class="submenu"
-                    :class="{ opened: activeSubMenu === 'file' }"
+                    :class="{ 'submenu--opened': activeSubMenu === 'file' }"
                     @click="close()"
                 >
                     <li>
@@ -115,7 +115,7 @@
             <li>
                 <a v-t="'edit'" class="title" @click.prevent="openSubMenu('edit')"></a>
                 <ul class="submenu"
-                    :class="{ opened: activeSubMenu === 'edit' }"
+                    :class="{ 'submenu--opened': activeSubMenu === 'edit' }"
                     @click="close()"
                 >
                     <li>
@@ -192,7 +192,7 @@
             <li>
                 <a v-t="'document'" class="title" @click.prevent="openSubMenu('document')"></a>
                 <ul class="submenu"
-                    :class="{ opened: activeSubMenu === 'document' }"
+                    :class="{ 'submenu--opened': activeSubMenu === 'document' }"
                     @click="close()"
                 >
                     <li>
@@ -241,7 +241,7 @@
             <li>
                 <a v-t="'selection'" class="title" @click.prevent="openSubMenu('selection')"></a>
                 <ul class="submenu"
-                    :class="{ opened: activeSubMenu === 'selection' }"
+                    :class="{ 'submenu--opened': activeSubMenu === 'selection' }"
                     @click="close()"
                 >
                     <li>
@@ -299,7 +299,7 @@
             <li>
                 <a v-t="'view'" class="title" @click.prevent="openSubMenu('view')"></a>
                 <ul class="submenu"
-                    :class="{ opened: activeSubMenu === 'view' }"
+                    :class="{ 'submenu--opened': activeSubMenu === 'view' }"
                     @click="close()"
                 >
                     <li>
@@ -323,7 +323,7 @@
             <li>
                 <a v-t="'window'" class="title" @click.prevent="openSubMenu('window')"></a>
                 <ul class="submenu"
-                    :class="{ opened: activeSubMenu === 'window' }"
+                    :class="{ 'submenu--opened': activeSubMenu === 'window' }"
                     @click="close()"
                 >
                     <template v-if="documents.length">
@@ -608,7 +608,7 @@ $toggle-width: 50px;
         top: 0;
         left: 0;
 
-        &.opened {
+        &--opened {
             position: absolute;
             height: 100%;
 
@@ -627,52 +627,6 @@ $toggle-width: 50px;
 
         h1 {
             display: none;
-        }
-
-        ul {
-            display: block;
-            width: 100%;
-            padding: 0;
-
-            li {
-                display: block;
-                width: 100%;
-
-                a {
-                    width: 100%;
-                }
-            }
-        }
-
-        ul {
-            h1 {
-               display: none;
-            }
-
-            li {
-                .submenu li {
-                    padding: variables.$spacing-small 0;
-                }
-
-                a {
-                    display: block;
-                    width: 100%;
-                    padding: variables.$spacing-medium variables.$spacing-large;
-                    color: #000;
-
-                    &:hover {
-                        color: #000;
-                    }
-                }
-
-                &.active a {
-                    border-bottom: none;
-                    color: #FFF;
-                    font-weight: bold;
-                    font-style: italic;
-                    background-color: colors.$color-1;
-                }
-            }
         }
     }
 

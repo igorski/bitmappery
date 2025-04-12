@@ -24,15 +24,10 @@
     <div
         class="context-menu menu-list"
         :style="position"
-    >
-        <slot></slot>
-    </div>
+    ><slot></slot></div>
 </template>
 
 <script lang="ts">
-const MENU_WIDTH  = 300; // see style
-const MENU_HEIGHT = 205;
-
 export default {
     emits: [ "close" ],
     props: {
@@ -45,27 +40,74 @@ export default {
             required: true,
         },
     },
+    data: () => ({
+        offsetX: 0,
+        offsetY: 0,
+    }),
     computed: {
         position(): { left: string, top: string } {
             return {
-                left : `${this.x - ( MENU_WIDTH  / 2 )}px`,
-                top  : `${this.y - ( MENU_HEIGHT / 2 )}px`
+                left : `${this.x + this.offsetX}px`,
+                top  : `${this.y + this.offsetY}px`
             };
         },
     },
     mounted(): void {
         this.closeHandler = this.handleClose.bind( this );
 
-        document.addEventListener( "click", this.closeHandler );
+        document.addEventListener( "click",       this.closeHandler );
         document.addEventListener( "contextmenu", this.closeHandler );
+
+        if ( this.$el.children.length > 0 ) {
+            this.syncPosition();
+        } else {
+            // on first mount we need to watch for the child menu injection
+            this.observer = new MutationObserver(() => {
+                this.syncPosition();
+            });
+            this.observer.observe( this.$el, {
+                childList : true,
+                subtree   : true 
+            });
+        }
     },
     beforeUnmount(): void {
         document.removeEventListener( "click", this.closeHandler );
         document.removeEventListener( "contextmenu", this.closeHandler );
+        this.observer?.disconnect();
     },
     methods: {
         handleClose(): void {
             this.$emit( "close" );
+        },
+        syncPosition(): void {
+            const bounds = this.$el.children[ 0 ]?.getBoundingClientRect();
+            if ( bounds ) {
+                const { width, height } = bounds;
+
+                const MARGIN = 24;
+
+                // we center the context menu around the cursor
+                
+                const halfWidth  = width  / 2;
+                const halfHeight = height / 2;
+
+                // but keep the window inside visible bounds when spawned from the edges
+
+                const { innerWidth, innerHeight } = window;
+
+                if (( this.x + halfWidth ) > innerWidth ) {
+                    this.offsetX = (( innerWidth - this.x ) - ( width + MARGIN ));
+                } else {
+                    this.offsetX = -halfWidth;
+                }
+                
+                if (( this.y + halfHeight ) > innerHeight ) {
+                    this.offsetY = (( innerHeight - this.y ) - ( height + MARGIN ));
+                } else {
+                    this.offsetY = -halfHeight;
+                }
+            }
         },
     },
 }
@@ -80,7 +122,8 @@ export default {
     position: fixed;
     background-image: colors.$color-window-bg;
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-    min-width: 300px;
+    min-width: 280px;
+    height: fit-content;
 
     @include ui.nestedMenu();
 }

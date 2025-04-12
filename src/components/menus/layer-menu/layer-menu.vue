@@ -23,7 +23,7 @@
  <template>
     <ul
         class="submenu"
-        :class="{ opened: opened }"
+        :class="{ 'submenu--opened': opened }"
     >
         <li>
             <button

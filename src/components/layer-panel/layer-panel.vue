@@ -150,7 +150,7 @@
                 :x="contextMenu.x"
                 :y="contextMenu.y"
             >
-                <layer-menu :opened="true" />
+                <layer-menu opened />
             </context-menu>
         </template>
     </div>
@@ -504,6 +504,11 @@ export default {
 
     &--selected {
         color: #FFF;
+    }
+
+    @include mixins.mobile() {
+        min-height: 44px;
+        align-items: center;
     }
 }
 </style>
