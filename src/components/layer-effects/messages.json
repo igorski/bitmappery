@@ -30,6 +30,7 @@
         "contrast": "Contrast",
         "brightness": "Brightness",
         "vibrance": "Vibrance",
+        "invert": "Invert",
         "threshold": "Threshold",
         "desaturate": "Desaturate",
         "duotone": "Duotone",

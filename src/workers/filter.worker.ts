@@ -95,7 +95,7 @@ function renderFiltersWasm( imageData: ImageData, filters: any ): Uint8ClampedAr
     const contrast       = Math.pow((( filters.contrast * 100 ) + 100 ) / 100, 2 ); // -100 to 100 range
     const gamma          = ( filters.gamma * 2 ); // 0 to 2 range
     const vibrance       = -(( filters.vibrance * 200 ) - 100 ); // -100 to 100 range
-    const { desaturate, threshold } = filters;
+    const { desaturate, invert, threshold } = filters;
 
     const doBrightness = filters.brightness !== defaultFilters.brightness;
     const doContrast   = filters.contrast   !== defaultFilters.contrast;
@@ -104,7 +104,8 @@ function renderFiltersWasm( imageData: ImageData, filters: any ): Uint8ClampedAr
 
     // @todo these are not supported by the WASM variant yet
 
-    const doThreshold  = filters.threshold  !== defaultFilters.threshold;
+    const doInvert     = invert    !== defaultFilters.invert;
+    const doThreshold  = threshold !== defaultFilters.threshold;
     const doDuotone    = filters.duotone.enabled !== defaultFilters.duotone.enabled;
 
     // run WASM operations

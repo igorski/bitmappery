@@ -41,7 +41,7 @@ export const applyAdjustments = ( pixels: Uint8ClampedArray, filters: Filters ):
     const gamma          = filters.gamma * 2; // 0 to 2 range
     const vibrance       = -(( filters.vibrance * 200 ) - 100 ); // -100 to 100 range
 
-    const { desaturate, threshold } = filters;
+    const { desaturate, invert, threshold } = filters;
 
     let r, g, b, a;
     let grayScale, max, avg, amt;
@@ -52,6 +52,7 @@ export const applyAdjustments = ( pixels: Uint8ClampedArray, filters: Filters ):
     const doGamma      = filters.gamma      !== defaultFilters.gamma;
     const doVibrance   = filters.vibrance   !== defaultFilters.vibrance;
     const doThreshold  = filters.threshold  !== defaultFilters.threshold;
+    const doInvert     = filters.invert     !== defaultFilters.invert;
 
     // loop through the pixels, note we increment the iterator by four
     // as each pixel is defined by four RGBA channel values : red, green, blue and the alpha channel
@@ -68,14 +69,21 @@ export const applyAdjustments = ( pixels: Uint8ClampedArray, filters: Filters ):
         g = pixels[ i + 1 ];
         b = pixels[ i + 2 ];
   
-        // 1. adjust gamma
+        // adjust gamma
         if ( doGamma ) {
             r = r * gammaSquared;
             g = g * gammaSquared;
             b = b * gammaSquared;
         }
 
-        // 2. desaturate
+        // invert
+        if ( doInvert ) {
+            r = MAX_8BIT - r;
+            g = MAX_8BIT - g;
+            b = MAX_8BIT - b;
+        }
+
+        // desaturate
         if ( desaturate ) {
             grayScale = r * 0.3 + g * 0.59 + b * 0.11;
             r = grayScale;
@@ -83,21 +91,21 @@ export const applyAdjustments = ( pixels: Uint8ClampedArray, filters: Filters ):
             b = grayScale;
         }
 
-        // 3. adjust brightness
+        // adjust brightness
         if ( doBrightness ) {
             r *= brightness;
             g *= brightness;
             b *= brightness;
         }
 
-        // 4. adjust contrast
+        // adjust contrast
         if ( doContrast ) {
             r = (( r / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT;
             g = (( g / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT;
             b = (( b / MAX_8BIT - HALF ) * contrast + HALF ) * MAX_8BIT;
         }
 
-        // 5. adjust vibrance
+        // adjust vibrance
         if ( doVibrance ) {
             max = Math.max( r, g, b );
             avg = ( r + g + b ) * ONE_THIRD;
@@ -114,12 +122,12 @@ export const applyAdjustments = ( pixels: Uint8ClampedArray, filters: Filters ):
             }
         }
 
-        // 6. adjust threshold
+        // adjust threshold
 
         if ( doThreshold && a > 0 ) {
             let luma = r * 0.3 + g * 0.59 + b * 0.11;
 
-            luma = luma < threshold ? 0 : 255;
+            luma = luma < threshold ? 0 : MAX_8BIT;
 
             r = g = b = luma;
         }

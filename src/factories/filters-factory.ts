@@ -41,6 +41,7 @@ const FiltersFactory = {
         vibrance   = .5,
         threshold  = -1, // -1 == off, working range is 0 - 255
         desaturate = false,
+        invert     = false,
         duotone = {
             enabled: false,
             color1: DEFAULT_DUOTONE_1,
@@ -55,6 +56,7 @@ const FiltersFactory = {
             brightness,
             contrast,
             desaturate,
+            invert,
             vibrance,
             threshold,
             duotone,
@@ -75,6 +77,7 @@ const FiltersFactory = {
             b: filters.brightness,
             c: filters.contrast,
             d: filters.desaturate,
+            i: filters.invert,
             v: filters.vibrance,
             t: filters.threshold,
             de: duotone.enabled,
@@ -98,7 +101,8 @@ const FiltersFactory = {
              desaturate: filters.d,
              vibrance: filters.v,
              threshold: filters.t,
-             // these can be undefined as these were added in a later version
+             // these can be undefined as these were added in later app versions
+             invert: filters.i ?? false,
              duotone: {
                 enabled: filters.de ?? false,
                 color1: filters.d1 ?? DEFAULT_DUOTONE_1,
@@ -130,6 +134,7 @@ export const isEqual = ( filters: Filters, filtersToCompareTo?: Filters ): boole
            filters.brightness === filtersToCompareTo.brightness &&
            filters.contrast   === filtersToCompareTo.contrast   &&
            filters.desaturate === filtersToCompareTo.desaturate &&
+           filters.invert     === filtersToCompareTo.invert     &&
            filters.vibrance   === filtersToCompareTo.vibrance   &&
            filters.threshold  === filtersToCompareTo.threshold  &&
            filters.duotone.enabled === filtersToCompareTo.duotone.enabled &&

@@ -93,6 +93,14 @@
                     />
                 </div>
                 <div class="wrapper input">
+                    <label v-t="'invert'"></label>
+                    <toggle-button
+                        v-model="internalValue.invert"
+                        name="invert"
+                        sync
+                    />
+                </div>
+                <div class="wrapper input">
                     <label v-t="'desaturate'"></label>
                     <toggle-button
                         v-model="internalValue.desaturate"

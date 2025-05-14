@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -60,6 +60,7 @@ export type Filters = {
     vibrance: number;
     threshold: number;
     desaturate: boolean;
+    invert: boolean;
     duotone: {
         enabled: boolean;
         color1?: string;
