@@ -5,6 +5,12 @@ $ideal-width: 990px;
 $menu-height: 46px;
 $heading-height: 40px;
 
+/* document preview variables */
+
+$preview-ideal-width: 1280px;
+$preview-ideal-height: 700px;
+$preview-max-height: $preview-ideal-height - 55px;
+
 /* spacing units used for global margins / paddings */
 
 $spacing-xxsmall: 2px;

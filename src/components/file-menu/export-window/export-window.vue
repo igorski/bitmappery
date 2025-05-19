@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2024 - https://www.igorski.nl
+ * Igor Zinken 2020-2025 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -52,10 +52,6 @@
                             v-model="name"
                             class="input-field"
                         />
-                    </div>
-                    <div v-if="fileSize" class="wrapper input">
-                        <label v-t="'fileSize'"></label>
-                        <div class="form-element">{{ fileSize }}</div>
                     </div>
                     <template v-if="canCreateAnimatedGIF">
                         <div class="wrapper input">
@@ -108,45 +104,61 @@
                         </template>
                     </template>
                 </div>
-                <div
-                    v-if="base64preview"
-                    class="preview-wrapper"
-                    :class="{
-                        'preview-wrapper--landscape': isLandscape,
-                        'preview-wrapper--actual' : actualSize
-                    }"
-                >
-                    <div class="preview-container">
-                        <img
-                            :src="base64preview"
-                            class="preview-image"
-                        />
-                    </div>
-                </div>
+                <document-preview
+                    v-if="showOriginal && previewOriginalBlob"
+                    class="document-preview"
+                    ref="previewOriginal"
+                    :title="$t('original')"
+                    :src="previewOriginalBlob"
+                    :is-actual-size="actualSize"
+                    :is-landscape="isLandscape"
+                    @scroll="syncScroll( false, $event )"
+                />
+                <document-preview
+                    v-if="previewBlob"
+                    class="document-preview"
+                    ref="previewExport"
+                    :title="$t('exported', { type: selectedType, quality: hasQualityOptions ? quality : 100 })"
+                    :src="previewBlob"
+                    :is-actual-size="actualSize"
+                    :is-landscape="isLandscape"
+                    @scroll="syncScroll( true, $event )"
+                />
             </div>
         </template>
         <template #actions>
             <div class="export-actions">
-                <button
-                    v-t="'export'"
-                    type="button"
-                    class="button"
-                    :disabled="isLoading"
-                    @click="exportImage()"
-                ></button>
-                <button
-                    v-t="'cancel'"
-                    type="button"
-                    class="button"
-                    @click="closeModal()"
-                ></button>
-            </div>
-            <div v-if="canChooseSize" class="wrapper input actual-size-button">
-                <label v-t="'viewActualSize'"></label>
-                <toggle-button
-                    v-model="actualSize"
-                    name="actualSize"
-                />
+                <div class="export-actions__group">
+                    <button
+                        v-t="'export'"
+                        type="button"
+                        class="button"
+                        :disabled="isLoading"
+                        @click="exportImage()"
+                    ></button>
+                    <button
+                        v-t="'cancel'"
+                        type="button"
+                        class="button"
+                        @click="closeModal()"
+                    ></button>
+                </div>
+                <div class="export-actions__group export-options">
+                    <div v-if="showOriginal" class="wrapper input option-button">
+                        <label v-t="'syncScroll'"></label>
+                        <toggle-button
+                            v-model="syncPreviews"
+                            name="syncPreviews"
+                        />
+                    </div>
+                    <div v-if="canChooseSize" class="wrapper input option-button">
+                        <label v-t="'viewActualSize'"></label>
+                        <toggle-button
+                            v-model="actualSize"
+                            name="actualSize"
+                        />
+                    </div>
+                </div>
             </div>
         </template>
     </modal>
@@ -155,27 +167,30 @@
 <script lang="ts">
 import { type Component, defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
-import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
+import DocumentPreview, { type PreviewScrollPos } from "@/components/document-preview/document-preview.vue"
 import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
+import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import { MAX_SPRITESHEET_WIDTH } from "@/definitions/editor-properties";
 import { EXPORTABLE_IMAGE_TYPES, GIF, typeToExt, isCompressableFileType } from "@/definitions/image-types";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
 import { supportsGIF, createGIF, createAnimatedGIF } from "@/services/gif-creation-service";
 import { mapSelectOptions, type SelectOption }  from "@/utils/search-select-util";
 import { isLandscape, isSquare } from "@/math/image-math";
-import { resizeToBase64, getPixelRatio } from "@/utils/canvas-util";
+import { canvasToBlob, resizeImage, getPixelRatio } from "@/utils/canvas-util";
 import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
 import { unblockedWait } from "@/utils/debounce-util";
 import { createDocumentSnapshot, createLayerSnapshot, tilesToSingle } from "@/utils/document-util";
-import { saveBlobAsFile, base64toBlob } from "@/utils/file-util";
-import { displayAsKb } from "@/utils/string-util";
+import { base64toBlob, saveBlobAsFile } from "@/utils/file-util";
 import messages from "./messages.json";
+
+const SMALL_IMAGE_SIZE_PX = 400;
 
 export default {
     i18n: { messages },
     components: {
+        DocumentPreview,
         Modal,
         SelectBox,
         Slider,
@@ -185,7 +200,9 @@ export default {
         name: "",
         type: EXPORTABLE_IMAGE_TYPES[ 0 ],
         quality: 95,
-        base64preview: null,
+        previewOriginalBlob: null,
+        previewBlob: null,
+        syncPreviews: false,
         layersToSpriteSheet: false,
         layersToAnimatedGIF: false,
         frameDurationMs: 100,
@@ -200,11 +217,19 @@ export default {
     computed: {
         ...mapState([
             "loadingStates",
+            "windowSize",
         ]),
         ...mapGetters([
             "activeDocument",
             "isLoading",
         ]),
+        showOriginal(): boolean {
+            // see _variables.scss $preview-ideal-width and $preview-ideal-height
+            return this.windowSize.width >= 1280 && this.windowSize.height >= 700;
+        },
+        selectedType(): string {
+            return typeToExt( this.type );
+        },
         fileTypes(): SelectOption[] {
             const types = this.canCreateGIF ? [ ...EXPORTABLE_IMAGE_TYPES, GIF.mime ] : EXPORTABLE_IMAGE_TYPES;
             return mapSelectOptions( types );
@@ -214,12 +239,6 @@ export default {
         },
         qualityPercentile(): number {
             return parseFloat(( this.quality / 100 ).toFixed( 2 ));
-        },
-        fileSize(): string | null  {
-            if ( !this.base64preview ) {
-                return null;
-            }
-            return displayAsKb( Math.round( this.base64preview.length * 6 / 8 ));
         },
         canCreateSpriteSheet(): boolean {
             return this.activeDocument.layers.length > 1 &&
@@ -278,10 +297,19 @@ export default {
             if ( this.layersToSpriteSheet ) {
                 this.renderPreview();
             }
-        }
+        },
+        syncPreviews( enabled: boolean ): void {
+            if ( !enabled ) {
+                return;
+            }
+            this.syncScroll( true, { left: this.width / 2, top: this.height / 2 }); // syncing one syncs the other =)
+        },
     },
     created(): void {
         this.canCreateGIF = supportsGIF();
+        if ( this.showOriginal ) {
+            this.syncPreviews = true;
+        }
         this.name = this.activeDocument.name.split( "." )[ 0 ];
         [
             // changes to any of the export properties should trigger a re-render
@@ -294,7 +322,8 @@ export default {
         this.renderPreview();
     },
     beforeUnmount(): void {
-        this.base64preview = null;
+        this.previewOriginalBlob = null;
+        this.previewBlob = null;
         this.snapshots = null;
         this.snapshot = null;
     },
@@ -307,20 +336,7 @@ export default {
         async exportImage(): Promise<void> {
             this.setLoading( "exp" );
 
-            // zCanvas magnifies content by the pixel ratio for a crisper result, downscale
-            // to actual dimensions of the document
-            const { width, height } = this.activeDocument;
-         
-            const resizedImage = this.layersToSpriteSheet ? this.base64preview : await resizeToBase64(
-                this.base64preview,
-                width,
-                height,
-                this.type,
-                this.qualityPercentile,
-                width  * getPixelRatio(),
-                height * getPixelRatio()
-            );
-            const file: Blob = await base64toBlob( resizedImage );;
+            const file = this.previewBlob;
             const fileName = `${this.name}.${typeToExt(this.type)}`;
             
             switch ( this.storageLocation ) {
@@ -355,41 +371,51 @@ export default {
             this.setLoading( LOADING_KEY );
 
             const { width, height } = this.activeDocument;
+
+            // created merged layer export and scale it to original (pixel ratio agnostic) dimensions
+            if ( !this.snapshot ) {
+                this.snapshot = await resizeImage(
+                    await createDocumentSnapshot( this.activeDocument ),
+                    width, height, 0, 0, width * getPixelRatio(), height * getPixelRatio()
+                );
+                this.previewOriginalBlob = await canvasToBlob( this.snapshot );
+            }
             let snapshotCvs;
 
             const multiLayerExport = ( this.type === GIF.mime && this.layersToAnimatedGIF ) || this.layersToSpriteSheet;
             if ( multiLayerExport ) {
                 // if we are going to work with individual layers, lazily create a list of layer snapshots
                 if ( !this.snapshots ) {
-                    this.snapshots = await Promise.all( [ ...this.activeDocument.layers ].reverse().map( layer => {
-                        return createLayerSnapshot( layer, this.activeDocument );
+                    this.snapshots = await Promise.all( [ ...this.activeDocument.layers ].reverse().map( async layer => {
+                        return resizeImage(
+                            await createLayerSnapshot( layer, this.activeDocument ),
+                            width, height, 0, 0, width * getPixelRatio(), height * getPixelRatio()
+                        );
                     }));
                 }
                 if ( this.layersToAnimatedGIF ) {
-                    this.base64preview = await createAnimatedGIF( this.snapshots, this.frameDurationMs / 100 );
+                    this.previewBlob = await base64toBlob(
+                        await createAnimatedGIF( this.snapshots, this.frameDurationMs / 100 )
+                    );
                 }
                 else if ( this.layersToSpriteSheet ) {
                     snapshotCvs = tilesToSingle( this.snapshots, width, height, parseFloat( this.sheetCols || "4" ));
                 }
             } else {
-                // merged layer export
-                if ( !this.snapshot ) {
-                    this.snapshot = await createDocumentSnapshot( this.activeDocument );
-                }
                 snapshotCvs = this.snapshot;
             }
 
             if ( snapshotCvs ) {
                 this.width  = snapshotCvs.width;
                 this.height = snapshotCvs.height;
-                this.base64preview = await this.canvasToImageFormat( snapshotCvs );
+                this.previewBlob = await this.snapshotToImageFormat( snapshotCvs );
             } else {
                 this.width  = width;
                 this.height = height;
             }
 
             // force actual size preview for small images
-            if ( !this.actualSize && this.width < 400 && this.height < 400 ) {
+            if ( !this.actualSize && this.width < SMALL_IMAGE_SIZE_PX && this.height < SMALL_IMAGE_SIZE_PX ) {
                 this.actualSize = true;
                 this.canChooseSize = false;
             }
@@ -401,36 +427,80 @@ export default {
                 this.renderPreview();
             }
         },
-        async canvasToImageFormat( canvas: HTMLCanvasElement ): Promise<string> {
+        async snapshotToImageFormat( canvas: HTMLCanvasElement ): Promise<Blob> {
+            let base64: string;
             if ( this.type === GIF.mime ) {
-                const base64gif = await createGIF( canvas );
-                return base64gif;
+                base64 = await createGIF( canvas );
+            } else {
+                base64 = canvas.toDataURL( this.type, this.qualityPercentile );
             }
-            return canvas.toDataURL( this.type, this.qualityPercentile );
+            return await base64toBlob( base64 );
+        },
+        syncScroll( isExport: boolean, scrollPos: PreviewScrollPos ): void {
+            if ( !this.syncPreviews ) {
+                return;
+            }
+            if ( isExport ) {
+                this.$refs.previewOriginal?.setScroll( scrollPos );
+            } else {
+                this.$refs.previewExport.setScroll( scrollPos );
+            }
         },
     },
 };
 </script>
 
 <style lang="scss" scoped>
+@use "sass:math";
+
+@use "@/styles/_colors";
 @use "@/styles/_mixins";
 @use "@/styles/_variables";
 @use "@/styles/component";
 @use "@/styles/typography";
 @use "@/styles/ui";
 
-.export-modal {
-    $idealWidth: 990px;
-    $idealHeight: 500px;
-    $maxPreviewHeight: 445px;
+$idealFormWidth: 340px;
 
-    @include ui.modalBase( $idealWidth, $idealHeight );
+.export-modal {
+    width: 100%;
+    @include ui.modalBase( variables.$ideal-width, variables.$preview-ideal-height );
+    
+    .export-form {
+        width: $idealFormWidth;
+        max-width: $idealFormWidth;
+    }
 
     .export-actions {
         display: flex;
+        width: 100%;
+        justify-content: space-between;
+        align-items: center;
     }
 
-    @include mixins.componentIdeal( $idealWidth, $idealHeight ) {
+    @include mixins.large() {
+        .export-actions button {
+            width: math.div( $idealFormWidth, 2 );
+        }
+    }
+
+    @include mixins.mobile() {
+        .export-form {
+            width: calc(100% - 16pt);
+            max-width: unset;
+        }
+
+        .document-preview {
+            margin: variables.$spacing-medium 0 0 !important;
+        }
+
+        .export-ui {
+            display: initial !important;
+        }
+    }
+
+    @include mixins.componentIdeal( variables.$preview-ideal-width, variables.$preview-ideal-height ) {
+        width: variables.$preview-ideal-width;
         position: relative;
 
         .export-ui {
@@ -438,77 +508,42 @@ export default {
             justify-content: space-between;
         }
 
-        .export-form,
-        .export-actions {
-            flex: 0.4;
-            margin-right: variables.$spacing-xlarge;
+        .document-preview {
+            width: 420px;
         }
 
-        .preview-wrapper {
-            flex: 0.6;
-            height: $maxPreviewHeight;
-            overflow-x: hidden; // image is always full width
-            overflow-y: scroll;
+        .export-actions__group {
+            display: flex;
         }
 
-        .export-actions {
-            button {
-                flex: 0.5;
-            }
-        }
-
-        .actual-size-button {
-            margin-left: auto;
-            margin-top: variables.$spacing-medium;
-
+        .option-button {
             label {
                 margin-right: variables.$spacing-small;
             }
         }
     }
 
-    @include mixins.componentFallback( $idealWidth, $idealHeight ) {
-        .preview-container {
-            height: $maxPreviewHeight !important;
+
+
+    @include mixins.componentFallback( variables.$preview-ideal-width, variables.$preview-ideal-height ) {
+        // this view does not fit the original and export preview side-by-side, only show export
+        .export-ui {
+            display: flex;
         }
-        .preview-image {
-            margin: variables.$spacing-medium 0;
+
+        .document-preview {
+            flex: 1;
+            margin-left: variables.$spacing-medium;
+            height: variables.$preview-max-height !important;
         }
-        .export-actions {
+
+        .export-actions__group {
+            display: flex;
             width: 100%;
         }
-        .actual-size-button {
+    
+        .export-options {
             display: none;
-        }
-    }
-
-    .preview-wrapper {
-        .preview-image {
-            width: 100%;
-        }
-
-        &--landscape {
-            overflow-y: hidden;
-            overflow-x: auto;
-
-            .preview-container {
-                height: 100%;
-            }
-
-            .preview-image {
-                width: auto;
-                height: 100%;
-            }
-        }
-
-        &--actual {
-            overflow-x: auto;
-            overflow-y: auto;
-
-            .preview-image {
-                width: auto !important;
-                height: auto !important;
-            }
         }
     }
 }
