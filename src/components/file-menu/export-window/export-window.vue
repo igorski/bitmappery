@@ -523,7 +523,9 @@ $idealFormWidth: 340px;
         }
     }
 
-
+    @include mixins.minHeight( variables.$preview-ideal-height ) {
+        height: variables.$preview-ideal-height;
+    }
 
     @include mixins.componentFallback( variables.$preview-ideal-width, variables.$preview-ideal-height ) {
         // this view does not fit the original and export preview side-by-side, only show export

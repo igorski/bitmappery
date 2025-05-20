@@ -4,12 +4,7 @@ $mobile-width: 640px; // the threshold below which we start to use the mobile vi
 $ideal-width: 990px;
 $menu-height: 46px;
 $heading-height: 40px;
-
-/* document preview variables */
-
-$preview-ideal-width: 1280px;
-$preview-ideal-height: 700px;
-$preview-max-height: $preview-ideal-height - 55px;
+$modal-header-height: 48px;
 
 /* spacing units used for global margins / paddings */
 
@@ -20,3 +15,9 @@ $spacing-medium: 16px;
 $spacing-large: 28px;
 $spacing-xlarge: 32px;
 $spacing-xxlarge: 48px;
+
+/* document preview variables */
+
+$preview-ideal-width: 1280px;
+$preview-ideal-height: 700px;
+$preview-max-height: $preview-ideal-height - ( $modal-header-height + $spacing-xlarge + 55px ); // modal header + content padding + preview meta

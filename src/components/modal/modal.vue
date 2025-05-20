@@ -79,7 +79,7 @@ export default {
 
     & {
         background-image: colors.$color-window-bg;
-        $headerHeight: 48px;
+        $headerHeight: variables.$modal-header-height;
 
         :deep(.component__header) {
             height: $headerHeight;
