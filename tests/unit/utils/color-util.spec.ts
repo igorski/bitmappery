@@ -3,7 +3,7 @@ import { hexToRGBA, RGBAtoHex } from "@/utils/color-util";
 
 describe( "Color utilities", () => {
    describe( "when converting hex to RGBA", () => { 
-        it( "should convert hex a hex value without transparency to be fully opaque", () => {
+        it( "should convert a hex value without transparency to a fully opaque RGBA value", () => {
             expect( hexToRGBA( "#FF0000" )).toEqual([ 255, 0, 0, 255 ]);
         });
 
