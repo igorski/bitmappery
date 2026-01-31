@@ -129,7 +129,7 @@ async function psdToBitMapperyDocument( smartExec: SmartExecutor, psd: any, psdF
     // this provides a nice fallback that will always display content)
 
     layers.push( LayerFactory.create({
-        name: "Flattened preview",
+        name: "[MERGED]",
         width,
         height,
         source: psd.image.toPng()
@@ -154,8 +154,22 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
     }
 
     const layerProps: LayerProps = {
+        name,
         type: LayerTypes.LAYER_GRAPHIC,
     };
+
+    const createLayer = ( props: LayerProps ): Layer => LayerFactory.create({
+        visible : layer.visible,
+        left    : layerX,
+        top     : layerY,
+        width   : layerWidth,
+        height  : layerHeight,
+        ...props,
+        filters : FiltersFactory.create({
+            opacity   : ( layer.opacity ?? 255 ) / 255,
+            blendMode : convertBlendMode( layer.blendMode.blendKey )
+        }),
+    });
 
     // determine whether layer uses masking
 
@@ -176,9 +190,20 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
     // retrieve layer contents
 
     const isText = typeof layer.typeTool === "function";
+    const imageSource = layer.image ? await base64toCanvas( layer.image.toBase64(), layer.image.width(), layer.image.height() ) : null;
+
     if ( isText ) {
         const textData = layer.typeTool!();
 
+        // also push the rendered text layer as an image bitmap for maximum compatibility
+        layers.push( createLayer({
+            ...layerProps,
+            name: `${name} [RASTERIZED]`,
+            source: imageSource,
+            visible: false,
+        }));
+
+        layerProps.name = `${name} [TEXT]`;
         layerProps.type = LayerTypes.LAYER_TEXT;
         layerProps.text = {
             value: textData.textValue,
@@ -188,22 +213,9 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
             unit: "px",
         } as TextProps;
     } else {
-        layerProps.source = layer.image ? await base64toCanvas( layer.image.toBase64(), layer.image.width(), layer.image.height() ) : null;
+        layerProps.source = imageSource;
     }
-
-    layers.push( LayerFactory.create({
-        visible : layer.visible,
-        left    : layerX,
-        top     : layerY,
-        width   : layerWidth,
-        height  : layerHeight,
-        name,
-        ...layerProps,
-        filters : FiltersFactory.create({
-            opacity   : ( layer.opacity ?? 255 ) / 255,
-            blendMode : convertBlendMode( layer.blendMode.blendKey )
-        }),
-    }));
+    layers.push( createLayer( layerProps ));
 }
 
 
