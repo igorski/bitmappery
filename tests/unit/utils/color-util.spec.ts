@@ -1,7 +1,7 @@
 import { it, describe, expect } from "vitest";
 import { hexToRGBA, RGBAtoHex } from "@/utils/color-util";
 
-describe( "Shape utilities", () => {
+describe( "Color utilities", () => {
    describe( "when converting hex to RGBA", () => { 
         it( "should convert hex a hex value without transparency to be fully opaque", () => {
             expect( hexToRGBA( "#FF0000" )).toEqual([ 255, 0, 0, 255 ]);

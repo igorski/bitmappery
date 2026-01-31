@@ -60,7 +60,7 @@ export const hexToRGBA = ( hex: string ): RGBA => {
 };
 
 export const RGBAtoHex = ( rgba: RGBA ): string => {
-    const [r, g, b, a] = rgba;
+    const [ r, g, b, a ] = rgba;
 
     const rgbHex = `#${intToHex(r)}${intToHex(g)}${intToHex(b)}`;
 
