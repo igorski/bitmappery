@@ -226,20 +226,21 @@ export default class InteractionPane extends sprite {
     closeSelection(): void {
         const { activeSelection } = this.getActiveDocument();
         const selectionShape: Shape = getLastShape( activeSelection ); // the last selection shape we're now closing
-        let selection = activeSelection.slice( 0, -1 ); // is the current selection before commiting selectionShape to it
-        if ( selection.length > 0 && isOverlappingShape( selection, selectionShape )) {
+        const currentSelection = activeSelection.slice( 0, -1 ); // is the current selection before commiting selectionShape to it
+        let selectionToSet = [ ...currentSelection ];
+        if ( selectionToSet.length > 0 && isOverlappingShape( selectionToSet, selectionShape )) {
             const subtract = KeyboardService.hasAlt();
             if ( subtract ) {
-                selection = subtractShapes( selection, selectionShape );
+                selectionToSet = subtractShapes( selectionToSet, selectionShape );
             } else {
-                selection = mergeShapes( selection, selectionShape );
+                selectionToSet = mergeShapes( selectionToSet, selectionShape );
             }
         } else {
-            selection = activeSelection; // no overlap handling necessary, we can commit the closed selection
+            selectionToSet = activeSelection; // no overlap handling necessary, we can commit the whole active selection to history
         }
         this._selectionClosed = true;
-        this.canvas.store.commit( "setActiveSelection", [ ...selection ]);
-        applySelection( getCanvasInstance().store, this.getActiveDocument() );
+        this.canvas.store.commit( "setActiveSelection", [ ...selectionToSet ]);
+        applySelection( getCanvasInstance().store, this.getActiveDocument(), currentSelection );
     }
 
     /* zCanvas.sprite overrides */
@@ -287,8 +288,7 @@ export default class InteractionPane extends sprite {
                     }));
 
                     if ( isShiftKeyDown ) {
-                        // TODO check whether mergable first in above condition
-                        activeSelection = [ mergeShapes( selectedShape, getLastShape( activeSelection ) ?? [] ) ];
+                        activeSelection = mergeShapes( activeSelection, selectedShape );
                     } else {
                         activeSelection = [ ...activeSelection, selectedShape ];
                     }
