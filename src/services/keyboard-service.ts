@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2016-2025 - https://www.igorski.nl
+ * Igor Zinken 2016-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,7 +24,7 @@ import type { Store, Commit, Dispatch } from "vuex";
 import type { Shape } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
 import { ALL_PANELS } from "@/definitions/panel-types";
-import ToolTypes, { canDraw, MAX_BRUSH_SIZE } from "@/definitions/tool-types";
+import ToolTypes, { canDraw, MAX_BRUSH_SIZE, SELECTION_TOOLS } from "@/definitions/tool-types";
 import {
     CREATE_DOCUMENT, ADD_LAYER, SAVE_DOCUMENT, DROPBOX_FILE_SELECTOR,
 } from "@/definitions/modal-windows";
@@ -185,7 +185,10 @@ function handleKeyDown( event: KeyboardEvent ): void {
             break;
 
         case 18: // Alt
-            if ( getters.activeTool !== ToolTypes.ZOOM ) {
+            // alt key sets layer select mode so we can select the active layer on click (by performing transparency checks on the clicked coordinate)
+            // we ignore this when zooming (as alt+clicking then zooms out)
+            // and when we have a selection tool selected when there is an active selection (so we can subtract newly added selections from existing ones)
+            if ( getters.activeTool !== ToolTypes.ZOOM && ( !getters.activeDocument?.activeSelection?.length || !SELECTION_TOOLS.includes( getters.activeTool ))) {
                 commit( "setLayerSelectMode", true );
             }
             break;

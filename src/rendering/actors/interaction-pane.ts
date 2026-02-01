@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,7 +23,7 @@
 import { sprite } from "zcanvas";
 import type { Point, Size, Viewport } from "zcanvas";
 import type { Document, Layer, Shape, Selection } from "@/definitions/document";
-import ToolTypes from "@/definitions/tool-types";
+import ToolTypes, { SELECTION_TOOLS } from "@/definitions/tool-types";
 import { getRendererForLayer } from "@/factories/renderer-factory";
 import { isPointInRange, translatePoints, snapToAngle, rectToCoordinateList } from "@/math/point-math";
 import { rotateRectangleToCoordinates, scaleRectangle } from "@/math/rectangle-math";
@@ -39,7 +39,7 @@ import { applySelection } from "@/store/actions/selection-apply";
 import { getPixelRatio, isInsideTransparentArea } from "@/utils/canvas-util";
 import { createDocumentSnapshot, createLayerSnapshot } from "@/utils/document-util";
 import { getLastShape, syncSelection } from "@/utils/selection-util";
-import { rectangleToShape, mergeShapes, isShapeClosed } from "@/utils/shape-util";
+import { isShapeClosed, isOverlappingShape, mergeShapes, rectangleToShape, subtractShapes } from "@/utils/shape-util";
 
 export enum InteractionModes {
     MODE_PAN = 0,
@@ -67,7 +67,7 @@ export default class InteractionPane extends sprite {
     private _pointerDown: boolean;
     private _dashOffset: number;
     private _selectionClosed: boolean;
-    private _isAddingToExistingSelection: boolean;
+    private _selectionOperation: "merge" | "subtract" = "merge";
     private _isRectangleSelect: boolean;
     private _activeTool: ToolTypes;
     private _pointer: Point;
@@ -115,7 +115,7 @@ export default class InteractionPane extends sprite {
             // rectangle selection tool modes)
             if ( !document.activeSelection ) {
                 this.setSelection( [] );
-            } else if ( this._activeTool !== activeTool ) {
+            } else if ( this._activeTool !== activeTool && !SELECTION_TOOLS.includes( activeTool )) {
                 this.resetSelection();
             }
             this._selectionClosed = isShapeClosed( getLastShape( document.activeSelection ));
@@ -224,9 +224,23 @@ export default class InteractionPane extends sprite {
     }
 
     closeSelection(): void {
+        const { activeSelection } = this.getActiveDocument();
+        const selectionShape: Shape = getLastShape( activeSelection ); // the last selection shape we're now closing
+        const currentSelection = activeSelection.slice( 0, -1 ); // is the current selection before commiting selectionShape to it
+        let selectionToSet: Selection;
+        if ( currentSelection.length > 0 && isOverlappingShape( currentSelection, selectionShape )) {
+            if ( this._selectionOperation === "subtract" ) {
+                selectionToSet = subtractShapes( currentSelection, selectionShape );
+            } else {
+                selectionToSet = mergeShapes( currentSelection, selectionShape );
+            }
+            this._selectionOperation = "merge";
+        } else {
+            selectionToSet = activeSelection; // no overlap handling necessary, we can commit the whole active selection to history
+        }
         this._selectionClosed = true;
-        this.canvas.store.commit( "setActiveSelection", [ ...this.getActiveDocument().activeSelection ]);
-        applySelection( getCanvasInstance().store, this.getActiveDocument() );
+        this.canvas.store.commit( "setActiveSelection", [ ...selectionToSet ]);
+        applySelection( getCanvasInstance().store, this.getActiveDocument(), currentSelection );
     }
 
     /* zCanvas.sprite overrides */
@@ -258,7 +272,8 @@ export default class InteractionPane extends sprite {
                 break;
 
             case InteractionModes.MODE_SELECTION:
-                const isShiftKeyDown = KeyboardService.hasShift();
+                const isShiftKeyDown = KeyboardService.hasShift(); // holding shift allows adding a new selection/overlap to the existing selection list...
+                const isAltKeyDown = KeyboardService.hasAlt(); // ...while holding alt allows removing a shape from the existing selection list
                 let { activeSelection } = this.getActiveDocument();
                 let completeSelection = false;
 
@@ -267,26 +282,23 @@ export default class InteractionPane extends sprite {
                     const pixelRatio = getPixelRatio();
                     const selectedShape: Shape = selectByColor(
                         cvs, fastRound( x * pixelRatio ), fastRound( y * pixelRatio ), this._toolOptions.threshold
-                    ).map(({ x, y }) => ({
+                    ).map(({ x, y }: Point ) => ({
                         x: fastRound( x / pixelRatio ),
                         y: fastRound( y / pixelRatio ),
                     }));
-
-                    if ( isShiftKeyDown ) {
-                        // TODO check whether mergable first in above condition
-                        activeSelection = [ mergeShapes( selectedShape, getLastShape( activeSelection ) ?? [] ) ];
-                    } else {
-                        activeSelection = [ ...activeSelection, selectedShape ];
-                    }
+                    activeSelection = [ ...activeSelection, selectedShape ];
+        
                     this.canvas.store.commit( "setActiveSelection", activeSelection );
                     completeSelection = true;
                 }
-                else if ( !this._selectionClosed || isShiftKeyDown ) {
-                    this._isAddingToExistingSelection = activeSelection.length > 0 && isShiftKeyDown && this._selectionClosed;
-                    if ( this._isAddingToExistingSelection ) {
+                else if ( !this._selectionClosed || isShiftKeyDown || isAltKeyDown ) {
+                    const isAddingToExistingSelection = activeSelection.length > 0 && this._selectionClosed;
+                    if ( isAddingToExistingSelection ) {
                         activeSelection.push( [] );
                         this._selectionClosed = false;
+                        this._selectionOperation = isAltKeyDown ? "subtract" : "merge"
                     }
+                    // the last entry in the active selection will represent the unfinished selection shape we are currently drawing (truly persisted on closeSelection())
                     let selectionShape: Shape = getLastShape( activeSelection );
                     if ( !selectionShape ) {
                         selectionShape = [];
@@ -374,7 +386,6 @@ export default class InteractionPane extends sprite {
         this._lastRelease   = now;
 
         if ( this.mode === InteractionModes.MODE_SELECTION ) {
-            this._isAddingToExistingSelection = false;
             this.forceMoveListener(); // keep the move listener active
             if ( isDoubleClick && this._selectionClosed ) {
                 this.resetSelection();
@@ -504,7 +515,7 @@ function drawShapeOutline( ctx: CanvasRenderingContext2D, zCanvas: ZoomableCanva
     ctx.lineWidth = 2 / zCanvas.zoomFactor;
     ctx.beginPath();
     ctx.strokeStyle = color;
-    shape.forEach(( point, index ) => {
+    shape.forEach(( point: Point, index: number ) => {
         ctx[ index === 0 ? "moveTo" : "lineTo" ](
             ( .5 + point.x - viewport.left ) << 0,
             ( .5 + point.y - viewport.top )  << 0
