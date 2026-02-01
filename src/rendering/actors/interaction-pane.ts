@@ -23,7 +23,7 @@
 import { sprite } from "zcanvas";
 import type { Point, Size, Viewport } from "zcanvas";
 import type { Document, Layer, Shape, Selection } from "@/definitions/document";
-import ToolTypes from "@/definitions/tool-types";
+import ToolTypes, { SELECTION_TOOLS } from "@/definitions/tool-types";
 import { getRendererForLayer } from "@/factories/renderer-factory";
 import { isPointInRange, translatePoints, snapToAngle, rectToCoordinateList } from "@/math/point-math";
 import { rotateRectangleToCoordinates, scaleRectangle } from "@/math/rectangle-math";
@@ -115,7 +115,7 @@ export default class InteractionPane extends sprite {
             // rectangle selection tool modes)
             if ( !document.activeSelection ) {
                 this.setSelection( [] );
-            } else if ( this._activeTool !== activeTool ) {
+            } else if ( this._activeTool !== activeTool && !SELECTION_TOOLS.includes( activeTool )) {
                 this.resetSelection();
             }
             this._selectionClosed = isShapeClosed( getLastShape( document.activeSelection ));
