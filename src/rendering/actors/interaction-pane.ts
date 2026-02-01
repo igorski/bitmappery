@@ -67,7 +67,7 @@ export default class InteractionPane extends sprite {
     private _pointerDown: boolean;
     private _dashOffset: number;
     private _selectionClosed: boolean;
-    private _isAddingToExistingSelection: boolean;
+    private _selectionOperation: "merge" | "subtract" = "merge";
     private _isRectangleSelect: boolean;
     private _activeTool: ToolTypes;
     private _pointer: Point;
@@ -229,12 +229,12 @@ export default class InteractionPane extends sprite {
         const currentSelection = activeSelection.slice( 0, -1 ); // is the current selection before commiting selectionShape to it
         let selectionToSet = [ ...currentSelection ];
         if ( selectionToSet.length > 0 && isOverlappingShape( selectionToSet, selectionShape )) {
-            const subtract = KeyboardService.hasAlt();
-            if ( subtract ) {
+            if ( this._selectionOperation === "subtract" ) {
                 selectionToSet = subtractShapes( selectionToSet, selectionShape );
             } else {
                 selectionToSet = mergeShapes( selectionToSet, selectionShape );
             }
+            this._selectionOperation = "merge";
         } else {
             selectionToSet = activeSelection; // no overlap handling necessary, we can commit the whole active selection to history
         }
@@ -286,20 +286,17 @@ export default class InteractionPane extends sprite {
                         x: fastRound( x / pixelRatio ),
                         y: fastRound( y / pixelRatio ),
                     }));
-
-                    if ( isShiftKeyDown ) {
-                        activeSelection = mergeShapes( activeSelection, selectedShape );
-                    } else {
-                        activeSelection = [ ...activeSelection, selectedShape ];
-                    }
+                    activeSelection = [ ...activeSelection, selectedShape ];
+        
                     this.canvas.store.commit( "setActiveSelection", activeSelection );
                     completeSelection = true;
                 }
                 else if ( !this._selectionClosed || isShiftKeyDown || isAltKeyDown ) {
-                    this._isAddingToExistingSelection = activeSelection.length > 0 && ( isShiftKeyDown || isAltKeyDown ) && this._selectionClosed;
-                    if ( this._isAddingToExistingSelection ) {
+                    const isAddingToExistingSelection = activeSelection.length > 0 && this._selectionClosed;
+                    if ( isAddingToExistingSelection ) {
                         activeSelection.push( [] );
                         this._selectionClosed = false;
+                        this._selectionOperation = isAltKeyDown ? "subtract" : "merge"
                     }
                     // the last entry in the active selection will represent the unfinished selection shape we are currently drawing (truly persisted on closeSelection())
                     let selectionShape: Shape = getLastShape( activeSelection );
@@ -389,7 +386,6 @@ export default class InteractionPane extends sprite {
         this._lastRelease   = now;
 
         if ( this.mode === InteractionModes.MODE_SELECTION ) {
-            this._isAddingToExistingSelection = false;
             this.forceMoveListener(); // keep the move listener active
             if ( isDoubleClick && this._selectionClosed ) {
                 this.resetSelection();
