@@ -92,7 +92,6 @@ export const mergeShapes = ( shapeList: Shape[], shapeToAdd: Shape ): Shape[] =>
     const polyA = shapeList.map( shape => shape.map( pointToMartinez ) as MartinezShape );
     const polyB = [ shapeToAdd.map( pointToMartinez ) as MartinezShape ];
 
-    // Use Martinez polygon clipping to get the union
     const polygonUnion = union( polyA, polyB );
 
     if ( !polygonUnion || polygonUnion.length === 0 ) {
@@ -105,7 +104,6 @@ export const subtractShapes = ( shapeList: Shape[], shapeToSubtract: Shape ): Sh
     const polyA = shapeList.map( shape => shape.map( pointToMartinez ) as MartinezShape );
     const polyB = [ shapeToSubtract.map( pointToMartinez ) as MartinezShape ];
 
-    // Perform polygon difference (cutting)
     const polygonDifference = diff( polyA, polyB );
 
     if ( !polygonDifference || polygonDifference.length === 0 ) {

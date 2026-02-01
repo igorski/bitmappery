@@ -227,12 +227,12 @@ export default class InteractionPane extends sprite {
         const { activeSelection } = this.getActiveDocument();
         const selectionShape: Shape = getLastShape( activeSelection ); // the last selection shape we're now closing
         const currentSelection = activeSelection.slice( 0, -1 ); // is the current selection before commiting selectionShape to it
-        let selectionToSet = [ ...currentSelection ];
-        if ( selectionToSet.length > 0 && isOverlappingShape( selectionToSet, selectionShape )) {
+        let selectionToSet: Selection;
+        if ( currentSelection.length > 0 && isOverlappingShape( currentSelection, selectionShape )) {
             if ( this._selectionOperation === "subtract" ) {
-                selectionToSet = subtractShapes( selectionToSet, selectionShape );
+                selectionToSet = subtractShapes( currentSelection, selectionShape );
             } else {
-                selectionToSet = mergeShapes( selectionToSet, selectionShape );
+                selectionToSet = mergeShapes( currentSelection, selectionShape );
             }
             this._selectionOperation = "merge";
         } else {
