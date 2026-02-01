@@ -79,8 +79,8 @@ export const isShapeClosed = ( shape: Shape ): boolean => {
 };
 
 
-export const isOverlappingShape = ( shapeA: Shape, shapeB: Shape ): boolean => {
-    const polyA = [ shapeA.map( pointToMartinez )];
+export const isOverlappingShape = ( shapeList: Shape[], shapeB: Shape ): boolean => {
+    const polyA = shapeList.map( shape => shape.map( pointToMartinez ));
     const polyB = [ shapeB.map( pointToMartinez )];
 
     const polygonIntersection = intersection( polyA, polyB );
@@ -88,21 +88,21 @@ export const isOverlappingShape = ( shapeA: Shape, shapeB: Shape ): boolean => {
     return polygonIntersection !== null && polygonIntersection.length > 0;
 };
 
-export const mergeShapes = ( shapeA: Shape, shapeToAdd: Shape ): Shape[] => {
-    const polyA = [ shapeA.map( pointToMartinez ) as MartinezShape ];
+export const mergeShapes = ( shapeList: Shape[], shapeToAdd: Shape ): Shape[] => {
+    const polyA = shapeList.map( shape => shape.map( pointToMartinez ) as MartinezShape );
     const polyB = [ shapeToAdd.map( pointToMartinez ) as MartinezShape ];
 
     // Use Martinez polygon clipping to get the union
     const polygonUnion = union( polyA, polyB );
 
     if ( !polygonUnion || polygonUnion.length === 0 ) {
-        return [ shapeA, shapeToAdd ]; // no overlap, keep separate
+        return [ ...shapeList, shapeToAdd ]; // no overlap, return all shapes as unique entries
     }
     return polygonUnion.flatMap( poly => poly.map( ring => ring.map( m => martinezToPoint( m as MartinezPoint ))));
 };
 
-export const subtractShapes = ( shapeA: Shape, shapeToSubtract: Shape ): Shape[]  => {
-    const polyA = [ shapeA.map( pointToMartinez ) as MartinezShape ];
+export const subtractShapes = ( shapeList: Shape[], shapeToSubtract: Shape ): Shape[]  => {
+    const polyA = shapeList.map( shape => shape.map( pointToMartinez ) as MartinezShape );
     const polyB = [ shapeToSubtract.map( pointToMartinez ) as MartinezShape ];
 
     // Perform polygon difference (cutting)

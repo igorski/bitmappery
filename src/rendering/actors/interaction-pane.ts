@@ -224,18 +224,21 @@ export default class InteractionPane extends sprite {
     }
 
     closeSelection(): void {
-        let { activeSelection } = this.getActiveDocument();
-        const selectionShape: Shape = getLastShape( activeSelection );
-        if ( activeSelection.length > 1 && isOverlappingShape( selectionShape, activeSelection[ 0 ]) ) {
-            const subtract = false; // @todo on alt only
+        const { activeSelection } = this.getActiveDocument();
+        const selectionShape: Shape = getLastShape( activeSelection ); // the last selection shape we're now closing
+        let selection = activeSelection.slice( 0, -1 ); // is the current selection before commiting selectionShape to it
+        if ( selection.length > 0 && isOverlappingShape( selection, selectionShape )) {
+            const subtract = true; // @todo on alt only
             if ( subtract ) {
-                activeSelection = subtractShapes( activeSelection[ 0 ], selectionShape );
+                selection = subtractShapes( selection, selectionShape );
             } else {
-                activeSelection = mergeShapes( activeSelection[ 0 ], selectionShape );
+                selection = mergeShapes( selection, selectionShape );
             }
+        } else {
+            selection = activeSelection; // no overlap handling necessary, we can commit the closed selection
         }
         this._selectionClosed = true;
-        this.canvas.store.commit( "setActiveSelection", [ ...activeSelection ]);
+        this.canvas.store.commit( "setActiveSelection", [ ...selection ]);
         applySelection( getCanvasInstance().store, this.getActiveDocument() );
     }
 
