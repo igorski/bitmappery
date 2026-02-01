@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2023 - https://www.igorski.nl
+ * Igor Zinken 2023-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,6 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { diff, intersection, type Position as MartinezPoint, type Ring as MartinezShape, union } from "martinez-polygon-clipping";
 import type { Point, Rectangle } from "zcanvas";
 import type { Shape } from "@/definitions/document";
 
@@ -77,44 +78,48 @@ export const isShapeClosed = ( shape: Shape ): boolean => {
     return firstPoint.x === lastPoint.x && firstPoint.y === lastPoint.y;
 };
 
-/**
- * Verifies whether given shapes overlap and thus can be merged.
- * Note: this assumes each shape is not self-intersecting and has no holes.
- */
-export const canBeMerged = ( shapeA: Shape, shapeB: Shape ): boolean => {
-    // Combine the coordinates of both polygons into a single array
-    let combinedCoords = [ ...shapeA.flat(), ...shapeB.flat() ];
 
-    // Sort the coordinates in counterclockwise order
-    combinedCoords.sort(( a, b ) => {
-        return ( a.x - combinedCoords[ 0 ].x ) * ( b.y - combinedCoords[ 0 ].y ) -
-               ( b.x - combinedCoords[ 0 ].x ) * ( a.y - combinedCoords[ 0 ].y );
-    });
+export const isOverlappingShape = ( shapeA: Shape, shapeB: Shape ): boolean => {
+    const polyA = [ shapeA.map( pointToMartinez )];
+    const polyB = [ shapeB.map( pointToMartinez )];
 
-    // Check if any coordinate is the same as the previous coordinate
-    for ( let i = 1; i < combinedCoords.length; i++ ) {
-        if ( combinedCoords[ i ].x === combinedCoords[ i - 1 ].x &&
-             combinedCoords[ i ].y === combinedCoords[ i - 1 ].y ) {
-            return true;
-        }
+    const polygonIntersection = intersection( polyA, polyB );
+
+    return polygonIntersection !== null && polygonIntersection.length > 0;
+};
+
+export const mergeShapes = ( shapeA: Shape, shapeToAdd: Shape ): Shape[] => {
+    const polyA = [ shapeA.map( pointToMartinez ) as MartinezShape ];
+    const polyB = [ shapeToAdd.map( pointToMartinez ) as MartinezShape ];
+
+    // Use Martinez polygon clipping to get the union
+    const polygonUnion = union( polyA, polyB );
+
+    if ( !polygonUnion || polygonUnion.length === 0 ) {
+        return [ shapeA, shapeToAdd ]; // no overlap, keep separate
     }
-    return false;
+    return polygonUnion.flatMap( poly => poly.map( ring => ring.map( m => martinezToPoint( m as MartinezPoint ))));
 };
 
-export const mergeShapes = ( shapeA: Shape, shapeB: Shape ): Shape => {
-    let combinedCoords = [ ...shapeA, ...shapeB ];
+export const subtractShapes = ( shapeA: Shape, shapeToSubtract: Shape ): Shape[]  => {
+    const polyA = [ shapeA.map( pointToMartinez ) as MartinezShape ];
+    const polyB = [ shapeToSubtract.map( pointToMartinez ) as MartinezShape ];
 
-    // Sort the coordinates in counterclockwise order
-    combinedCoords.sort(( a, b ) => {
-        return ( a.x - combinedCoords[ 0 ].x ) * ( b.y - combinedCoords[ 0 ].y ) -
-               ( b.x - combinedCoords[ 0 ].x ) * ( a.y - combinedCoords[ 0 ].y );
-    });
+    // Perform polygon difference (cutting)
+    const polygonDifference = diff( polyA, polyB );
 
-    // Remove any duplicate points
-    let uniqueCoords = combinedCoords.filter(( item, index ) => {
-        return combinedCoords.findIndex(( coord ) => coord.x === item.x && coord.y === item.y ) === index;
-    });
-
-    // Create a new array of polygons that contains the merged polygon
-    return uniqueCoords;
+    if ( !polygonDifference || polygonDifference.length === 0 ) {
+        return []; // the entire shape was removed
+    }
+    return polygonDifference.flatMap( poly => poly.map( ring => ring.map( m => martinezToPoint( m as MartinezPoint ))));
 };
+
+/* internal methods */
+
+function pointToMartinez( p: Point ): MartinezPoint {
+    return [ p.x, p.y ];
+}
+
+function martinezToPoint( [ x, y ]: MartinezPoint ): Point {
+    return { x, y };
+}

@@ -37,6 +37,7 @@
     "lodash.clonedeep": "^4.5.0",
     "lodash.isequal": "^4.5.0",
     "lz-string": "^1.4.4",
+    "martinez-polygon-clipping": "^0.8.1",
     "pdfjs-dist": "^4.4.168",
     "sass": "^1.51.0",
     "typescript": "~4.7.4",

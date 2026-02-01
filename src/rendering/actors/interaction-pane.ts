@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -39,7 +39,7 @@ import { applySelection } from "@/store/actions/selection-apply";
 import { getPixelRatio, isInsideTransparentArea } from "@/utils/canvas-util";
 import { createDocumentSnapshot, createLayerSnapshot } from "@/utils/document-util";
 import { getLastShape, syncSelection } from "@/utils/selection-util";
-import { rectangleToShape, mergeShapes, isShapeClosed } from "@/utils/shape-util";
+import { isShapeClosed, isOverlappingShape, mergeShapes, rectangleToShape, subtractShapes } from "@/utils/shape-util";
 
 export enum InteractionModes {
     MODE_PAN = 0,
@@ -224,8 +224,18 @@ export default class InteractionPane extends sprite {
     }
 
     closeSelection(): void {
+        let { activeSelection } = this.getActiveDocument();
+        const selectionShape: Shape = getLastShape( activeSelection );
+        if ( activeSelection.length > 1 && isOverlappingShape( selectionShape, activeSelection[ 0 ]) ) {
+            const subtract = false; // @todo on alt only
+            if ( subtract ) {
+                activeSelection = subtractShapes( activeSelection[ 0 ], selectionShape );
+            } else {
+                activeSelection = mergeShapes( activeSelection[ 0 ], selectionShape );
+            }
+        }
         this._selectionClosed = true;
-        this.canvas.store.commit( "setActiveSelection", [ ...this.getActiveDocument().activeSelection ]);
+        this.canvas.store.commit( "setActiveSelection", [ ...activeSelection ]);
         applySelection( getCanvasInstance().store, this.getActiveDocument() );
     }
 

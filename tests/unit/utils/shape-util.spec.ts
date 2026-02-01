@@ -1,7 +1,8 @@
 import { it, describe, expect } from "vitest";
 import {
-    shapeToRectangle, rectangleToShape, scaleShape,
-    isShapeRectangular, isShapeClosed
+    mergeShapes,
+    rectangleToShape, scaleShape, shapeToRectangle, subtractShapes,
+    isOverlappingShape, isShapeRectangular, isShapeClosed
 } from "@/utils/shape-util";
 
 describe( "Shape utilities", () => {
@@ -112,6 +113,67 @@ describe( "Shape utilities", () => {
                 { x: 100, y: 150 }
             ];
             expect( isShapeClosed( shape )).toBe( true );
+        });
+    });
+
+    describe( "when detecting overlapping shapes", () => {
+        it( "should return false for non-overlaps", () => {
+            const shapeA = [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }, { x: 0, y: 0 }];
+            const shapeB = [{ x: 10, y: 5 }, { x: 15, y: 5 }, { x: 15, y: 10 }, { x: 10, y: 10 }, { x: 10, y: 5 }];
+
+            expect( isOverlappingShape( shapeA, shapeB )).toBe( false );
+        });
+
+        it( "should return true for overlaps", () => {
+            const shapeA = [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }, { x: 0, y: 0 }];
+            const shapeB = [{ x: 9, y: 5 }, { x: 15, y: 5 }, { x: 15, y: 10 }, { x: 5, y: 10 }, { x: 9, y: 5 }];
+
+            expect( isOverlappingShape( shapeA, shapeB )).toBe( true );
+        });
+    });
+
+    it( "should be able to merge two overlapping shapes", () => {
+        const shapeA = [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }, { x: 0, y: 0 }];
+        const shapeB = [{ x: 5, y: 5 }, { x: 15, y: 5 }, { x: 15, y: 10 }, { x: 5, y: 10 }, { x: 5, y: 5 }];
+
+        const merged = mergeShapes( shapeA, shapeB );
+
+        expect( merged ).toEqual([
+            [
+                { x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 5 }, { x: 15, y: 5 }, { x: 15, y: 10 },
+                { x: 10, y: 10 }, { x: 5, y: 10 }, { x: 0, y: 10 }, { x: 0, y: 0 },
+            ]
+        ]);
+    });
+
+    describe( "when subtracting an overlapping shape from another", () => {
+        it( "should be able to remove an overlapping edge and return a single shape", () => {
+            const shapeA = [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }, { x: 0, y: 0 }];
+            const shapeB = [{ x: 5, y: 5 }, { x: 15, y: 5 }, { x: 15, y: 10 }, { x: 5, y: 10 }, { x: 5, y: 5 }];
+            
+            const subtracted = subtractShapes( shapeA, shapeB );
+
+            expect( subtracted ).toEqual([
+                [
+                    { x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 5 }, { x: 5, y: 5 }, { x: 5, y: 10 }, { x: 0, y: 10 }, { x: 0, y: 0 }
+                ]
+            ]);
+        });
+
+        it( "should return multiple shapes when the overlapping area has split the other shape", () => {
+            const shapeA = [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }, { x: 0, y: 0 }];
+            const shapeB = [{ x: 3, y: 0 }, { x: 7, y: 0 }, { x: 7, y: 10 }, { x: 3, y: 10 }, { x: 3, y: 0 }];
+            
+            const subtracted = subtractShapes( shapeA, shapeB );
+
+            expect( subtracted ).toEqual([
+                [
+                    { x: 0, y: 0 }, { x: 3, y: 0 }, { x: 3, y: 10 }, { x: 0, y: 10 }, { x: 0, y: 0 },
+                ],
+                [
+                    { x: 7, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 7, y: 10 }, { x: 7, y: 0 },
+                ]
+            ]);
         });
     });
 });
