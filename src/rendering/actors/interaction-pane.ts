@@ -228,7 +228,7 @@ export default class InteractionPane extends sprite {
         const selectionShape: Shape = getLastShape( activeSelection ); // the last selection shape we're now closing
         let selection = activeSelection.slice( 0, -1 ); // is the current selection before commiting selectionShape to it
         if ( selection.length > 0 && isOverlappingShape( selection, selectionShape )) {
-            const subtract = true; // @todo on alt only
+            const subtract = KeyboardService.hasAlt();
             if ( subtract ) {
                 selection = subtractShapes( selection, selectionShape );
             } else {
@@ -271,7 +271,8 @@ export default class InteractionPane extends sprite {
                 break;
 
             case InteractionModes.MODE_SELECTION:
-                const isShiftKeyDown = KeyboardService.hasShift();
+                const isShiftKeyDown = KeyboardService.hasShift(); // holding shift allows adding a new selection/overlap to the existing selection list...
+                const isAltKeyDown = KeyboardService.hasAlt(); // ...while holding alt allows removing a shape from the existing selection list
                 let { activeSelection } = this.getActiveDocument();
                 let completeSelection = false;
 
@@ -280,7 +281,7 @@ export default class InteractionPane extends sprite {
                     const pixelRatio = getPixelRatio();
                     const selectedShape: Shape = selectByColor(
                         cvs, fastRound( x * pixelRatio ), fastRound( y * pixelRatio ), this._toolOptions.threshold
-                    ).map(({ x, y }) => ({
+                    ).map(({ x, y }: Point ) => ({
                         x: fastRound( x / pixelRatio ),
                         y: fastRound( y / pixelRatio ),
                     }));
@@ -294,12 +295,13 @@ export default class InteractionPane extends sprite {
                     this.canvas.store.commit( "setActiveSelection", activeSelection );
                     completeSelection = true;
                 }
-                else if ( !this._selectionClosed || isShiftKeyDown ) {
-                    this._isAddingToExistingSelection = activeSelection.length > 0 && isShiftKeyDown && this._selectionClosed;
+                else if ( !this._selectionClosed || isShiftKeyDown || isAltKeyDown ) {
+                    this._isAddingToExistingSelection = activeSelection.length > 0 && ( isShiftKeyDown || isAltKeyDown ) && this._selectionClosed;
                     if ( this._isAddingToExistingSelection ) {
                         activeSelection.push( [] );
                         this._selectionClosed = false;
                     }
+                    // the last entry in the active selection will represent the unfinished selection shape we are currently drawing (truly persisted on closeSelection())
                     let selectionShape: Shape = getLastShape( activeSelection );
                     if ( !selectionShape ) {
                         selectionShape = [];
@@ -517,7 +519,7 @@ function drawShapeOutline( ctx: CanvasRenderingContext2D, zCanvas: ZoomableCanva
     ctx.lineWidth = 2 / zCanvas.zoomFactor;
     ctx.beginPath();
     ctx.strokeStyle = color;
-    shape.forEach(( point, index ) => {
+    shape.forEach(( point: Point, index: number ) => {
         ctx[ index === 0 ? "moveTo" : "lineTo" ](
             ( .5 + point.x - viewport.left ) << 0,
             ( .5 + point.y - viewport.top )  << 0
