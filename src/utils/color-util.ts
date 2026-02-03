@@ -59,8 +59,18 @@ export const hexToRGBA = ( hex: string ): RGBA => {
     ];
 };
 
+export const RGBAtoHex = ( [ r, g, b, a ]: RGBA ): string => {
+    const rgbHex = `#${intToHex(r)}${intToHex(g)}${intToHex(b)}`;
+
+    return a === 255 ? rgbHex : `${rgbHex}${intToHex(a)}`;
+}
+
 /* internal methods */
 
 function hexToInt( str: string ): number {
     return parseInt( str, 16 );
+}
+
+function intToHex( value: number ): string {
+    return value.toString( 16 ).padStart( 2, "0" ).toUpperCase();
 }

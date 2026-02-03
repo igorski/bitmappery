@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2022-2023 - https://www.igorski.nl
+ * Igor Zinken 2022-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,14 +24,18 @@
 import PSD from "psd.js";
 import type { Rectangle, Size } from "zcanvas";
 import { BlendModes } from "@/definitions/blend-modes";
+import type { RGBA } from "@/definitions/colors";
 import type { Document, Layer } from "@/definitions/document";
+import { googleFonts } from "@/definitions/font-types";
+import { LayerTypes } from "@/definitions/layer-types";
 import DocumentFactory from "@/factories/document-factory";
 import FiltersFactory from "@/factories/filters-factory";
-import LayerFactory from "@/factories/layer-factory";
-import type { LayerProps } from "@/factories/layer-factory";
+import LayerFactory, { type LayerProps } from "@/factories/layer-factory";
+import type { TextProps } from "@/factories/text-factory";
 import { inverseMask } from "@/rendering/operations/compositing";
 import { createCanvas, base64toCanvas } from "@/utils/canvas-util";
-import { unblockedWait } from "@/utils/debounce-util";
+import { RGBAtoHex } from "@/utils/color-util";
+import { SmartExecutor } from "@/utils/debounce-util";
 
 type PSDLayer = Rectangle & {
     mask: Rectangle;
@@ -48,7 +52,8 @@ type PSDLayer = Rectangle & {
         maskData: {
             buffer: ArrayBuffer;
         }
-    }
+    },
+    typeTool?: () => PSDTextData;
 };
 
 type PSDNode = {
@@ -62,6 +67,13 @@ type PSDNode = {
     }
 };
 
+type PSDTextData = {
+    textValue: string;
+    colors: () => RGBA[];
+    fonts: () => string[];
+    sizes: () => number[];
+};
+
 type PSD = {
     tree: () => Size & PSDNode;
     image: {
@@ -71,9 +83,10 @@ type PSD = {
 
 export const importPSD = async ( psdFileReference: File ): Promise<Document> => {
     try {
+        const smartExec = new SmartExecutor(); // parsing nested PSD content can get heavy on CPU resources
         const psd = await PSD.fromDroppedFile( psdFileReference );
-        await unblockedWait();
-        const doc = await psdToBitMapperyDocument( psd, psdFileReference );
+        await smartExec.waitWhenBusy();
+        const doc = await psdToBitMapperyDocument( smartExec, psd, psdFileReference );
         return doc;
     } catch ( error ) {
         console.error( error );
@@ -83,33 +96,32 @@ export const importPSD = async ( psdFileReference: File ): Promise<Document> => 
 
 /* internal methods */
 
-async function psdToBitMapperyDocument( psd: any, psdFileReference: File ): Promise<Document> {
+async function psdToBitMapperyDocument( smartExec: SmartExecutor, psd: any, psdFileReference: File ): Promise<Document> {
     const psdTree = psd.tree();
     const { width, height } = psdTree;
 
     // collect layers
     const layers: Layer[] = [];
 
-    const treeLayerObjects = psdTree.children().reverse();
-    for ( const layerObj of treeLayerObjects ) {
+    for ( const layerObj of psdTree.children().reverse() ) {
         const { layer } = layerObj;
 
-        // 1. determine layer bounding box
-
+        // when there are children, this is likely a group layer
         const children = layer.node?.children() ?? [];
 
         if ( children.length ) {
-            // we are likely looking at a group layer
             for ( const childLayer of children.reverse() ) {
                 await createLayer( childLayer.layer, layers, childLayer.name );
+                await smartExec.waitWhenBusy();
             }
         } else {
             try {
                 await createLayer( layer, layers, layerObj.name );
             } catch ( e: any ) {
-                console.error( `Error occured importing layer "${layerObj.name}".`, e );
+                console.error( `Error occured while importing layer "${layerObj.name}".`, e );
             }
         }
+        await smartExec.waitWhenBusy();
     }
 
     // also add the merged layer preview
@@ -117,7 +129,7 @@ async function psdToBitMapperyDocument( psd: any, psdFileReference: File ): Prom
     // this provides a nice fallback that will always display content)
 
     layers.push( LayerFactory.create({
-        name: "Flattened preview",
+        name: "[MERGED]",
         width,
         height,
         source: psd.image.toPng()
@@ -141,9 +153,25 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
         return; // likely an adjustment layer, which we don't support
     }
 
-    // 2. determine whether layer uses masking
+    const layerProps: LayerProps = {
+        name,
+        type: LayerTypes.LAYER_GRAPHIC,
+    };
 
-    const layerProps: LayerProps = {};
+    const createLayer = ( props: LayerProps ): Layer => LayerFactory.create({
+        visible : layer.visible,
+        left    : layerX,
+        top     : layerY,
+        width   : layerWidth,
+        height  : layerHeight,
+        ...props,
+        filters : FiltersFactory.create({
+            opacity   : ( layer.opacity ?? 255 ) / 255,
+            blendMode : convertBlendMode( layer.blendMode.blendKey )
+        }),
+    });
+
+    // determine whether layer uses masking
 
     if ( layer.image.hasMask && layer.mask.width ) {
         // note that we position the mask at the 0, 0 coordinate relative to the layer, whereas Photoshop
@@ -159,27 +187,35 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
         layerProps.mask = cvs;
     }
 
-    // 3. retrieve layer source
+    // retrieve layer contents
 
-    const source = layer.image ? await base64toCanvas( layer.image.toBase64(), layer.image.width(), layer.image.height() ) : null;
+    const isText = typeof layer.typeTool === "function";
+    const imageSource = layer.image ? await base64toCanvas( layer.image.toBase64(), layer.image.width(), layer.image.height() ) : null;
 
-    layers.push( LayerFactory.create({
-        visible : layer.visible,
-        left    : layerX,
-        top     : layerY,
-        width   : layerWidth,
-        height  : layerHeight,
-        name,
-        source,
-        ...layerProps,
-        filters : FiltersFactory.create({
-            opacity   : ( layer.opacity ?? 255 ) / 255,
-            blendMode : convertBlendMode( layer.blendMode.blendKey )
-        }),
-    }));
+    if ( isText ) {
+        const textData = layer.typeTool!();
 
-    // layer bitmap parsing can be heavy, unblock CPU on each iteration
-    await unblockedWait();
+        // also push the rendered text layer as an image bitmap for maximum compatibility
+        layers.push( createLayer({
+            ...layerProps,
+            name: `${name} [RASTERIZED]`,
+            source: imageSource,
+            visible: false,
+        }));
+
+        layerProps.name = `${name} [TEXT]`;
+        layerProps.type = LayerTypes.LAYER_TEXT;
+        layerProps.text = {
+            value: textData.textValue,
+            color: RGBAtoHex( textData.colors()?.[ 0 ] ?? [ 0, 0, 0, 0 ]),
+            font: textData.fonts()?.find( font => googleFonts.includes( font )),
+            size : textData.sizes()?.[0],
+            unit: "px",
+        } as TextProps;
+    } else {
+        layerProps.source = imageSource;
+    }
+    layers.push( createLayer( layerProps ));
 }
 
 
