@@ -2,7 +2,7 @@
     "include": [ "env.d.ts", "src/**/*", "src/**/*.vue" ],
     "exclude": [],
     "compilerOptions": {
-        "target": "es6",
+        "target": "es2022",
         "composite": true,
         "baseUrl": ".",
         "esModuleInterop": true,

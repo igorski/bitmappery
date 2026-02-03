@@ -74,6 +74,8 @@ export default class LayerRenderer extends ZoomableSprite {
     public actionTarget: "source" | "mask";
     public cloneStartCoords: Point | undefined;
     public toolOptions: any;
+    
+    // @ts-expect-error TS2612 deliberately overriding declaration to type canvas as ZoomableCanvas
     public canvas: ZoomableCanvas;
 
     protected _pointer: Point;
