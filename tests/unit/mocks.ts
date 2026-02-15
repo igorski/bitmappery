@@ -82,7 +82,7 @@ export function createMockImageElement(): HTMLImageElement {
     } as unknown as HTMLImageElement;
 }
 
-function createMockCanvasRenderingContext2D() {
+function createMockCanvasRenderingContext2D(): CanvasRenderingContext2D {
     return {
         arc: vi.fn(),
         beginPath: vi.fn(),
