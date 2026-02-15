@@ -20,7 +20,13 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { diff, intersection, type Position as MartinezPoint, type Ring as MartinezShape, union } from "martinez-polygon-clipping";
+import {
+    diff,
+    intersection,
+    type Position as MartinezPoint,
+    type Ring as MartinezShape,
+    union
+} from "martinez-polygon-clipping";
 import type { Point, Rectangle } from "zcanvas";
 import type { Shape } from "@/definitions/document";
 
@@ -109,7 +115,11 @@ export const subtractShapes = ( shapeList: Shape[], shapeToSubtract: Shape ): Sh
     if ( !polygonDifference || polygonDifference.length === 0 ) {
         return []; // the entire shape was removed
     }
-    return polygonDifference.flatMap( poly => poly.map( ring => ring.map( m => martinezToPoint( m as MartinezPoint ))));
+    
+    // remove any possible holes from the subtracted polygons
+    const cleanedDiff = polygonDifference.map( polygon => [ polygon[ 0 ]]);
+
+    return cleanedDiff.flatMap( poly => poly.map( ring => ring.map( m => martinezToPoint( m as MartinezPoint ))));
 };
 
 /* internal methods */

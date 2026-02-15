@@ -193,5 +193,19 @@ describe( "Shape utilities", () => {
                 ]
             ]);
         });
+
+        it( "should remove any holes from the subtracted shapes", () => {
+            const shapeA = [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }, { x: 0, y: 0 }];
+            const shapeB = [{ x: 2, y: 2 }, { x: 4, y: 2 }, { x: 4, y: 4 }, { x: 2, y: 4 }, { x: 2, y: 2 }];
+            
+            const subtracted = subtractShapes([ shapeA ], shapeB );
+
+            // expect original shapeA to be the result (shapeB is an inner square, and thus a hole)
+            expect ( subtracted ).toEqual([
+                [
+                    { x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }, { x: 0, y: 0 }
+                ],
+            ]);
+        });
     });
-});
+})
