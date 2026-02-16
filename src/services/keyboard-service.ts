@@ -53,6 +53,7 @@ let lastKeyCode = -1;
 const DEFAULT_BLOCKED    = [ 8, 32, 37, 38, 39, 40 ];
 const MOVABLE_TOOL_TYPES = [ ToolTypes.DRAG, ToolTypes.SELECTION, ToolTypes.LASSO, ToolTypes.WAND ];
 const BRUSH_TOOL_TYPES   = [ ToolTypes.BRUSH, ToolTypes.ERASER, ToolTypes.CLONE ];
+const LAYER_SELECT_EXCLUDE_TYPES = [ ToolTypes.CLONE, ToolTypes.ZOOM ];
 
 const defaultBlock = ( e: KeyboardEvent ): void => e.preventDefault();
 
@@ -186,9 +187,10 @@ function handleKeyDown( event: KeyboardEvent ): void {
 
         case 18: // Alt
             // alt key sets layer select mode so we can select the active layer on click (by performing transparency checks on the clicked coordinate)
-            // we ignore this when zooming (as alt+clicking then zooms out)
+            // we ignore this when zooming and clone brushing (as alt+clicking then zooms out / selects source coordinate)
             // and when we have a selection tool selected when there is an active selection (so we can subtract newly added selections from existing ones)
-            if ( getters.activeTool !== ToolTypes.ZOOM && ( !getters.activeDocument?.activeSelection?.length || !SELECTION_TOOLS.includes( getters.activeTool ))) {
+            if ( !LAYER_SELECT_EXCLUDE_TYPES.includes( getters.activeTool ) &&
+                ( !getters.activeDocument?.activeSelection?.length || !SELECTION_TOOLS.includes( getters.activeTool ))) {
                 commit( "setLayerSelectMode", true );
             }
             break;
