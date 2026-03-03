@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -37,7 +37,7 @@ export type UndoRedoState = {
 const stateQueue      = new Map<string, UndoRedoState>();
 const ENQUEUE_TIMEOUT = 1000;
 
-let timeout = 0;
+let timeout: ReturnType<typeof setTimeout>;
 let store: Store<BitMapperyState> | undefined;
 
 export const initHistory = ( storeReference: Store<BitMapperyState> ): void => {
@@ -80,13 +80,13 @@ export const enqueueState = ( key: string, undoRedoState: UndoRedoState ): void 
         processQueue();
     }
     stateQueue.set( key, undoRedoState );
-    window.setTimeout( processQueue, ENQUEUE_TIMEOUT );
+    timeout = setTimeout( processQueue, ENQUEUE_TIMEOUT );
 };
 
 /* internal methods */
 
 function processQueue(): void {
-    window.clearTimeout( timeout );
+    clearTimeout( timeout );
     stateQueue.forEach( undoRedoState => store?.commit( "saveState", undoRedoState ));
     stateQueue.clear();
 }
