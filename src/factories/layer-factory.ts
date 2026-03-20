@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -22,7 +22,7 @@
  */
 import type { Rectangle } from "zcanvas";
 import { LayerTypes, DEFAULT_LAYER_NAME, DEFAULT_TEXT_LAYER_NAME } from "@/definitions/layer-types";
-import type { Layer } from "@/definitions/document";
+import type { Layer, LayerRel } from "@/definitions/document";
 import { imageToBase64, base64toCanvas } from "@/utils/canvas-util";
 import TransformFactory, { type TransformProps } from "@/factories/transform-factory";
 import FiltersFactory from "@/factories/filters-factory";
@@ -32,10 +32,11 @@ import type { TextProps } from "@/factories/text-factory";
 
 let UID_COUNTER = 0;
 
-export type LayerProps = Partial<Omit<Layer, "transform" | "filters" | "text">> & {
+export type LayerProps = Partial<Omit<Layer, "transform" | "filters" | "text" | "rel">> & {
     transform?: TransformProps;
     filters?: FiltersProps;
     text?: TextProps;
+    rel?: Partial<LayerRel>;
 };
 
 const LayerFactory = {
@@ -46,7 +47,7 @@ const LayerFactory = {
         name = DEFAULT_LAYER_NAME,
         type = LayerTypes.LAYER_GRAPHIC, transparent = true, source = null, mask = null,
         left = 0, top = 0, maskX = 0, maskY = 0, width = 1, height = 1, visible = true,
-        transform = {}, filters = {}, text = {}
+        transform = {}, filters = {}, text = {}, rel = {},
     }: LayerProps = {}): Layer {
         return {
             id: `layer_${( ++UID_COUNTER )}`,
@@ -65,6 +66,10 @@ const LayerFactory = {
             text: TextFactory.create( text ),
             transform: TransformFactory.create( transform ),
             filters: FiltersFactory.create( filters ),
+            rel: {
+                type: "none",
+                ...rel,
+            },
         }
     },
 
@@ -89,6 +94,10 @@ const LayerFactory = {
             f: TransformFactory.serialize( layer.transform ),
             fl: FiltersFactory.serialize( layer.filters ),
             v: layer.visible,
+            r: {
+                t: layer.rel.type,
+                i: layer.rel.id,
+            },
         };
     },
 
@@ -116,6 +125,10 @@ const LayerFactory = {
             text,
             transform: TransformFactory.deserialize( layer.f ),
             filters: FiltersFactory.deserialize( layer.fl ),
+            rel: layer.r ? {
+                type: layer.r.t,
+                id: layer.r.i,
+            } : {}
         });
     }
 };

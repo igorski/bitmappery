@@ -45,6 +45,9 @@ describe( "Layer factory", () => {
                 text: mockText,
                 transform: mockTransform,
                 filters: mockFilters,
+                rel: {
+                    type: "none",
+                },
             });
         });
 
@@ -73,7 +76,11 @@ describe( "Layer factory", () => {
                 visible: false,
                 text: { value: "Lorem ipsum" },
                 transform: { rotation: 270 },
-                filters: { contrast: .7 }
+                filters: { contrast: .7 },
+                rel: {
+                    type: "group",
+                    id: "Foo",
+                },
             });
             expect( layer ).toEqual({
                 id: expect.any( String ),
@@ -92,7 +99,11 @@ describe( "Layer factory", () => {
                 text: { value: "Lorem ipsum" },
                 transform: { rotation: 270 },
                 filters: { contrast: .7 },
-            })
+                rel: {
+                    type: "group",
+                    id: "Foo",
+                },
+            });
         });
 
         describe( "and providing a name to the Layer", () => {
@@ -131,7 +142,11 @@ describe( "Layer factory", () => {
                 visible: false,
                 text: { value: "Lorem ipsum" },
                 transform: { rotation: 270 },
-                filters: { contrast: .7 }
+                filters: { contrast: .7 },
+                rel: {
+                    type: "tile",
+                    id: "1",
+                },
             });
             const serializeTextSpy = vi.spyOn( TextFactory, "serialize" ).mockImplementation( args => args );
             const deserializeTextSpy = vi.spyOn( TextFactory, "deserialize" ).mockImplementation( args => args );
@@ -160,6 +175,11 @@ describe( "Layer factory", () => {
             expect( deserializeTransformSpy ).toHaveBeenCalledWith( layer.transform );
             expect( deserializeFiltersSpy ).toHaveBeenCalledWith( layer.filters );
 
+            expect( deserialized.rel ).toEqual({
+                type: "tile",
+                id: "1",
+            });
+
             // note id's are unique per created session instance and therefor will differ
             expect({
                 ...deserialized,
@@ -167,6 +187,17 @@ describe( "Layer factory", () => {
             }).toEqual({
                 ...layer,
                 id: expect.any( String ),
+            });
+        });
+
+        it( "should deserialize with a default rel structure for legacy serialized layers", async () => {
+            const serialized = LayerFactory.serialize( LayerFactory.create());
+            delete serialized.r;
+
+            const deserialized = await LayerFactory.deserialize( serialized );
+
+            expect( deserialized.rel ).toEqual({
+                type: "none",
             });
         });
     });

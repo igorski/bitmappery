@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,6 +24,11 @@ import type { Point } from "zcanvas";
 import type { BlendModes } from "./blend-modes";
 import type { LayerTypes } from "./layer-types";
 
+export type LayerRel = {
+    type: "none" | "group" | "tile";
+    id?: string;
+};
+
 export type Layer = {
     id: string;
     name: string;
@@ -41,6 +46,7 @@ export type Layer = {
     transform: Transform;
     filters: Filters;
     text: Text;
+    rel: LayerRel;
 };
 
 export type Transform = {
