@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { canvas, type Rectangle, type Size } from "zcanvas";
+import { type Rectangle, type Size } from "zcanvas";
 import type { Document, Shape, Text, Layer } from "@/definitions/document";
 import type { CanvasDrawable, CopiedSelection } from "@/definitions/editor";
 import { renderEffectsForLayer } from "@/services/render-service";
@@ -28,7 +28,8 @@ import { createRendererForLayer, getRendererForLayer } from "@/factories/rendere
 import { rotateRectangle, areEqual } from "@/math/rectangle-math";
 import { fastRound } from "@/math/unit-math";
 import { reverseTransformation } from "@/rendering/operations/transforming";
-import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
+import ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
+import { getCanvasInstance } from "@/services/canvas-service";
 import { createCanvas, cloneCanvas, getPixelRatio } from "@/utils/canvas-util";
 import { SmartExecutor } from "@/utils/debounce-util";
 import { selectionToRectangle } from "@/utils/selection-util";
@@ -347,11 +348,20 @@ export const restoreFromClone = ( document: Document, clone: Map<string, ClonedS
  * Create a (temporary) instance of zCanvas at the full document size.
  * (as the current on-screen instance is a "best fit" for the screen size)
  */
-function createFullSizeZCanvas( object: { width: number, height: number } ): { zcvs: canvas, cvs: HTMLCanvasElement, ctx: CanvasRenderingContext2D } {
-     const { width, height } = object;
-     const zcvs = new canvas({ width, height, viewport: { width: width * 10, height: height * 10 } });
-     const cvs  = zcvs.getElement() as HTMLCanvasElement;
-     const ctx  = cvs.getContext( "2d" )!;
+function createFullSizeZCanvas( object: { width: number, height: number } ): { zcvs: ZoomableCanvas, cvs: HTMLCanvasElement, ctx: CanvasRenderingContext2D } {
+    const { width, height } = object;
+    const noop = () => {};
+    const zcvs = new ZoomableCanvas({
+        width,
+        height,
+        viewport: {
+            width: width * 10,
+            height: height * 10
+        }
+    }, getCanvasInstance().store, noop, noop );
 
-     return { zcvs, cvs, ctx };
+    const cvs  = zcvs.getElement() as HTMLCanvasElement;
+    const ctx  = cvs.getContext( "2d" )!;
+
+    return { zcvs, cvs, ctx };
 }

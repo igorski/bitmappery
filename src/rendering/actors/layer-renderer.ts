@@ -192,14 +192,14 @@ export default class LayerRenderer extends ZoomableSprite {
             return; // debounced to only occur once before next render cycle
         }
         this._pendingEffectsRender = true;
-        this.canvas?.setLock?.( true );
+        this.canvas?.setLock( true );
         requestAnimationFrame( async () => {
             await renderEffectsForLayer( this.layer );
             this._pendingEffectsRender = false;
-            this.canvas?.setLock?.( false );
+            this.canvas?.setLock( false );
             this.invalidateBlendCache( true ); // now layer effects are cached, invalidate any existing blend cache
             if ( this.layer.visible ) {
-                createLayerThumbnail( this.layer, true, this.canvas?.getActiveDocument?.() );
+                createLayerThumbnail( this.layer, true, this.canvas?.getActiveDocument() );
             }
         });
     }
