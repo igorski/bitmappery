@@ -25,6 +25,7 @@ describe( "Document factory", () => {
                 height: 1000,
                 layers: [ { name: "layer1" } ],
                 selections: {},
+                type: "default",
                 activeSelection: [],
                 invertSelection: false,
             });
@@ -40,6 +41,7 @@ describe( "Document factory", () => {
                 width: 1200,
                 height: 900,
                 layers,
+                type: "timeline",
                 selections: { foo: [[ { x: 0, y: 0 } ]] }
             });
             expect( document ).toEqual({
@@ -49,6 +51,7 @@ describe( "Document factory", () => {
                 height: 900,
                 layers,
                 selections: { foo: [[ { x: 0, y: 0 } ]] },
+                type: "timeline",
                 activeSelection: [],
                 invertSelection: false,
             });
@@ -70,7 +73,8 @@ describe( "Document factory", () => {
                 width: 1200,
                 height: 900,
                 layers,
-                selections
+                selections,
+                type: "timeline",
             });
             const serializeLayerSpy = vi.spyOn( LayerFactory, "serialize" ).mockImplementation( data => JSON.stringify( data ));
             const deserializeLayerSpy = vi.spyOn( LayerFactory, "deserialize" ).mockImplementation( data => JSON.parse( data ));
@@ -93,6 +97,17 @@ describe( "Document factory", () => {
                 ...document,
                 id: expect.any( String )
             })
+        });
+
+        it( "should default to the 'default' type for legacy documents", async () => {
+            const document = DocumentFactory.create();
+
+            const serialized = DocumentFactory.serialize( document );
+            delete serialized.t;
+
+            const deserialized = await DocumentFactory.deserialize( serialized );
+
+            expect( deserialized.type ).toEqual( "default" );
         });
     });
 });

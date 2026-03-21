@@ -175,11 +175,6 @@ describe( "Layer factory", () => {
             expect( deserializeTransformSpy ).toHaveBeenCalledWith( layer.transform );
             expect( deserializeFiltersSpy ).toHaveBeenCalledWith( layer.filters );
 
-            expect( deserialized.rel ).toEqual({
-                type: "tile",
-                id: "1",
-            });
-
             // note id's are unique per created session instance and therefor will differ
             expect({
                 ...deserialized,

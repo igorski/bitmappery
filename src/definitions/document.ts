@@ -97,6 +97,7 @@ export type Document = {
     width: number;
     height: number;
     selections: Record<string, Selection>;
+    type: "default" | "timeline";
     // the below are only used at runtime, will not be serialized
     activeSelection: Selection;
     invertSelection: boolean;
