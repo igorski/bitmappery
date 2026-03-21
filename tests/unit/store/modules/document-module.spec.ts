@@ -13,32 +13,36 @@ mockZCanvas();
 
 let mockUpdateFn: ( fnName: string, ...args: any[]) => void;
 vi.mock( "@/factories/renderer-factory", () => ({
-    flushLayerRenderers: ( ...args: any[]) => mockUpdateFn?.( "flushLayerRenderers", ...args ),
-    runRendererFn: ( ...args: any[]) => mockUpdateFn?.( "runRendererFn", ...args ),
-    getRendererForLayer: ( ...args: any[]) => mockUpdateFn?.( "getRendererForLayer", ...args ),
-    createRendererForLayer: ( ...args: any[]) => mockUpdateFn?.( "createRendererForLayer", ...args ),
+    flushLayerRenderers: vi.fn(( ...args: any[]) => mockUpdateFn?.( "flushLayerRenderers", ...args )),
+    runRendererFn: vi.fn(( ...args: any[]) => mockUpdateFn?.( "runRendererFn", ...args )),
+    getRendererForLayer: vi.fn(( ...args: any[]) => mockUpdateFn?.( "getRendererForLayer", ...args )),
+    createRendererForLayer: vi.fn(( ...args: any[]) => mockUpdateFn?.( "createRendererForLayer", ...args )),
 }));
 const mockFlushBlendedLayerCache = vi.fn();
 vi.mock( "@/rendering/cache/blended-layer-cache", async ( importOriginal ) => {
     return {
         ...await importOriginal(),
-        flushBlendedLayerCache: ( ...args: any[] ) => mockFlushBlendedLayerCache( ...args ),
+        flushBlendedLayerCache: vi.fn(( ...args: any[] ) => mockFlushBlendedLayerCache( ...args )),
     }
 });
+const mockCreateLayerThumbnail = vi.fn();
+const mockFlushThumbnailCache = vi.fn();
+vi.mock( "@/rendering/cache/thumbnail-cache", () => ({
+    createLayerThumbnail: vi.fn(( ...args: any[] ) => mockCreateLayerThumbnail( ...args )),
+    flushThumbnailForLayer: vi.fn(( ...args: any[] ) => mockFlushThumbnailCache( ...args )),
+}));
 const mockCanvasInstance = createMockZoomableCanvas();
 vi.mock( "@/services/canvas-service", () => ({
-    getCanvasInstance: ( ...args: any[]) => {
+    getCanvasInstance: vi.fn(( ...args: any[]) => {
         mockUpdateFn?.( "getCanvasInstance", ...args );
         return mockCanvasInstance;
-    },
+    }),
 }));
-vi.mock( "@/utils/layer-util", async ( importOriginal ) => {
-    return {
-        ...await importOriginal(),
-        resizeLayerContent: (...args: any[]) => mockUpdateFn?.( "resizeLayerContent", ...args ),
-        cropLayerContent: (...args: any[]) => mockUpdateFn?.( "cropLayerContent", ...args ),
-    }
-});
+vi.mock( "@/utils/layer-util", async ( importOriginal ) => ({
+    ...await importOriginal(),
+    resizeLayerContent: vi.fn((...args: any[]) => mockUpdateFn?.( "resizeLayerContent", ...args )),
+    cropLayerContent: vi.fn((...args: any[]) => mockUpdateFn?.( "cropLayerContent", ...args )),
+}));
 
 describe( "Vuex document module", () => {
     afterEach(() => {
@@ -434,6 +438,12 @@ describe( "Vuex document module", () => {
 
                 expect( mockFlushBlendedLayerCache ).toHaveBeenCalledWith( true );
             });
+
+            it( "should flush the thumbnail cache for the layer", () => {
+                mutations.removeLayer( state, 1 );
+
+                expect( mockFlushThumbnailCache ).toHaveBeenLastCalledWith( layer2 );
+            });
         });
 
         it( "should be able to replace all layers in a single operation", () => {
@@ -715,6 +725,7 @@ describe( "Vuex document module", () => {
                 });
                 expect( mockUpdateFn ).toHaveBeenCalledWith( "getRendererForLayer", state.documents[ 0 ].layers[ index ] );
                 expect( invalidateBlendCacheSpy ).toHaveBeenCalled();
+                expect( mockCreateLayerThumbnail ).toHaveBeenCalledWith( layer1, true, state.documents[ 0 ]);
             });
         });
 

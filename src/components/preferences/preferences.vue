@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2024 - https://www.igorski.nl
+ * Igor Zinken 2021-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -27,6 +27,14 @@
         </template>
         <template #content>
             <div class="form" @keyup.enter="save()">
+                <div class="wrapper input">
+                    <label v-t="'layerThumbnails'"></label>
+                    <toggle-button
+                        v-model="internalValue.thumbnails"
+                        sync
+                    />
+                </div>
+                <p v-t="'layerThumbnailsExpl'" class="expl"></p>
                 <div class="wrapper input">
                     <label v-t="'lowMemoryMode'"></label>
                     <toggle-button
@@ -68,7 +76,6 @@
 import { mapGetters, mapMutations, mapActions } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
-import { setWasmFilters } from "@/services/render-service";
 import messages from "./messages.json";
 
 export default {
@@ -88,14 +95,6 @@ export default {
         hasWebAssembly() {
             return this.supportWASM;
         },
-    },
-    watch: {
-        internalValue: {
-            deep: true,
-            handler( value ) {
-                setWasmFilters( this.supportWASM && !!value.wasmFilters );
-            }
-        }
     },
     created() {
         this.internalValue = { ...this.preferences };

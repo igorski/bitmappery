@@ -1,6 +1,8 @@
 {
     "en-US": {
         "preferences": "Preferences",
+        "layerThumbnails": "Show layer thumbnails",
+        "layerThumbnailsExpl": "Display previews of individual layer content inside the layers panel.",
         "lowMemoryMode": "Low memory mode",
         "lowMemoryExpl": "On devices with low memory (like phones), this mode is recommended to reduce the amount of allocated memory. It comes at the expense of brush history accuracy (e.g. undo will instantly go back several strokes instead of one at a time).",
         "wasmFilters": "Web Assembly filters",

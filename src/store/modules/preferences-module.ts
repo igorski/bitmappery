@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2023 - https://www.igorski.nl
+ * Igor Zinken 2021-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -22,6 +22,7 @@
  */
 import type { ActionContext, Module } from "vuex";
 import { isMobile } from "@/utils/environment-util";
+import { setEnabled } from "@/rendering/cache/thumbnail-cache";
 import { setWasmFilters } from "@/services/render-service";
 
 // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
@@ -31,6 +32,7 @@ const STORAGE_KEY = "bpy_pref";
 
 export type Preferences = {
     lowMemory: boolean;
+    thumbnails: boolean;
     wasmFilters: boolean;
     snapAlign: boolean;
     antiAlias: boolean;
@@ -43,6 +45,7 @@ export interface PreferencesState {
 export const createPreferencesState = ( props?: Partial<Preferences> ): PreferencesState => ({
     preferences: {
         lowMemory   : isMobile(),
+        thumbnails  : !isMobile(),
         wasmFilters : false,
         snapAlign   : false,
         antiAlias   : true,
@@ -65,7 +68,7 @@ const PreferencesModule: Module<PreferencesState, any> = {
         },
     },
     actions: {
-        restorePreferences({ commit }: ActionContext<PreferencesState, any> ): void {
+        restorePreferences({ commit, dispatch }: ActionContext<PreferencesState, any> ): void {
             const existing = window.localStorage?.getItem( STORAGE_KEY );
             if ( existing ) {
                 try {
@@ -83,9 +86,17 @@ const PreferencesModule: Module<PreferencesState, any> = {
                     // non-blocking
                 }
             }
+            dispatch( "handlePreferences" );
         },
-        storePreferences({ state }: ActionContext<PreferencesState, any> ): void {
+        storePreferences({ state, dispatch }: ActionContext<PreferencesState, any> ): void {
             window.localStorage?.setItem( STORAGE_KEY, JSON.stringify( state.preferences ));
+            dispatch( "handlePreferences" );
+        },
+        handlePreferences({ state }: ActionContext<PreferencesState, any> ): void {
+            const { preferences } = state;
+
+            setEnabled( !!preferences.thumbnails );
+            setWasmFilters( SUPPORT_WASM && !!preferences.wasmFilters );
         },
     }
 };

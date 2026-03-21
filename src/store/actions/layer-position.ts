@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,6 +24,7 @@ import { type Layer } from "@/definitions/document";
 import { getRendererForLayer } from "@/factories/renderer-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import { flushBlendedLayerCache, useBlendCaching } from "@/rendering/cache/blended-layer-cache";
+import { createLayerThumbnail } from "@/rendering/cache/thumbnail-cache";
 
 // NOTE we use getRendererForLayer() instead of passing the renderer by reference
 // as it is possible the renderer originally rendering the Layer has been disposed
@@ -57,6 +58,7 @@ function positionRendererFromHistory( layer: Layer, x: number, y: number ): void
         if ( useBlendCaching() ) {
             flushBlendedLayerCache();
         }
+        createLayerThumbnail( layer, true );
         renderer.invalidate();
     }
 }

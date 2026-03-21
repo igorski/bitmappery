@@ -78,6 +78,7 @@ import {
 import { InteractionModes } from "@/rendering/actors/interaction-pane";
 import { flushBitmapCache } from "@/rendering/cache/bitmap-cache";
 import { flushBlendedLayerCache, setBlendCaching } from "@/rendering/cache/blended-layer-cache";
+import { createLayerThumbnail, flushThumbnailCache, hasThumbnail } from "@/rendering/cache/thumbnail-cache";
 import { getCanvasInstance, setCanvasInstance } from "@/services/canvas-service";
 import { renderState } from "@/services/render-service";
 import { scaleToRatio } from "@/math/image-math";
@@ -144,6 +145,7 @@ export default {
             "canvasDimensions",
             "hasSelection",
             "snapAlign",
+            "preferences",
             "pixelGrid",
             "zoomOptions",
         ]),
@@ -188,6 +190,7 @@ export default {
                     flushRendererCache();
                     flushBitmapCache();
                     flushBlendedLayerCache();
+                    flushThumbnailCache();
                     renderState.reset();
                     layerPool.clear();
                     this.calcIdealDimensions( true );
@@ -464,8 +467,14 @@ export default {
         createLayerRenderers(): void {
             const seen: string[] = [];
             const zCanvas = getCanvasInstance();
-            this.layers?.forEach( layer => {
+            const { thumbnails } = this.preferences;
+            
+            this.layers?.forEach(( layer: Layer ) => {
                 if ( !layer.visible ) {
+                    if ( thumbnails && !hasThumbnail( layer.id )) {
+                        // there is no renderer to trigger this creation, but we'd like to preview all the same
+                        createLayerThumbnail( layer, false, this.activeDocument );
+                    }
                     flushLayerRenderers( layer );
                     return;
                 }
@@ -482,7 +491,7 @@ export default {
             // ensure the visible layers are at the right position in display list
             // @todo can we do this in the loop above?
             let blendLayer = -1;
-            this.layers?.forEach(( layer, index ) => {
+            this.layers?.forEach(( layer: Layer, index: number ) => {
                 if ( !layer.visible ) {
                     return;
                 }

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -27,6 +27,7 @@ import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { createRendererForLayer, flushLayerRenderers, runRendererFn, getRendererForLayer } from "@/factories/renderer-factory";
 import { flushBlendedLayerCache } from "@/rendering/cache/blended-layer-cache";
+import { createLayerThumbnail, flushThumbnailForLayer } from "@/rendering/cache/thumbnail-cache";
 import { getCanvasInstance } from "@/services/canvas-service";
 import { resizeLayerContent, cropLayerContent } from "@/utils/layer-util";
 
@@ -160,6 +161,7 @@ const DocumentModule: Module<DocumentState, any> = {
             }
             flushLayerRenderers( layer );
             flushBlendedLayerCache( true );
+            flushThumbnailForLayer( layer );
             state.documents[ state.activeIndex ].layers.splice( index, 1 );
             if ( state.activeLayerIndex === index ) {
                 state.activeLayerIndex = Math.max( 0, index - 1 );
@@ -216,7 +218,8 @@ const DocumentModule: Module<DocumentState, any> = {
             }
         },
         updateLayerTransform( state: DocumentState, { index, transform = {} }: { index: number, transform: Partial<Transform> }): void {
-            const layer = state.documents[ state.activeIndex ]?.layers[ index ];
+            const activeDocument = state.documents[ state.activeIndex ];
+            const layer = activeDocument?.layers[ index ];
             if ( !layer ) {
                 return;
             }
@@ -229,6 +232,7 @@ const DocumentModule: Module<DocumentState, any> = {
             if ( renderer ) {
                 renderer.layer = layer;
                 renderer.invalidateBlendCache();
+                createLayerThumbnail( layer, true, activeDocument );
             }
         },
         async resizeActiveDocumentContent( state: DocumentState, { scaleX, scaleY }: { scaleX: number, scaleY: number }): Promise<void> {

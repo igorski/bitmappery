@@ -208,3 +208,7 @@ export function createMockShape(): Shape {
 export function createMockSelection(): Selection {
     return [ createMockShape() ];
 }
+
+export function flushPromises(): Promise<unknown> {
+    return Promise.all([ Promise.resolve ]);
+}

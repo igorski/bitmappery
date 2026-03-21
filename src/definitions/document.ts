@@ -90,7 +90,7 @@ export type Document = {
     layers: Layer[];
     width: number;
     height: number;
-    selections: Record<string, Selection>,
+    selections: Record<string, Selection>;
     // the below are only used at runtime, will not be serialized
     activeSelection: Selection;
     invertSelection: boolean;
