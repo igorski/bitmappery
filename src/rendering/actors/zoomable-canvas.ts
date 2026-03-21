@@ -135,14 +135,6 @@ class ZoomableCanvas extends canvas {
 
     /* zCanvas.canvas overrides */
 
-    // TODO : can be removed after update to zCanvas 5.1.5 (requires Webpack 5 migration)
-    getCoordinate(): DOMRect {
-        if ( this._bounds === null ) {
-            this._bounds = this._element.getBoundingClientRect();
-        }
-        return this._bounds;
-    }
-
     // see QQQ comments to see what the difference is. Ideally these changes
     // should eventually be propagated to the zCanvas library.
 
@@ -418,5 +410,5 @@ function updateCanvasSize( canvasInstance: ZoomableCanvas ): void {
         canvasInstance.setSmoothing( false );
     }
     // @ts-expect-error protected property access
-    canvasInstance._bounds = null; // TODO : can be removed after update to zCanvas 5.1.5 (requires Webpack 5 migration)
+    canvasInstance._coords = null;
 }

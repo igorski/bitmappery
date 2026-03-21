@@ -348,8 +348,8 @@ export const restoreFromClone = ( document: Document, clone: Map<string, ClonedS
  * Create a (temporary) instance of zCanvas at the full document size.
  * (as the current on-screen instance is a "best fit" for the screen size)
  */
-function createFullSizeZCanvas( object: { width: number, height: number } ): { zcvs: ZoomableCanvas, cvs: HTMLCanvasElement, ctx: CanvasRenderingContext2D } {
-    const { width, height } = object;
+function createFullSizeZCanvas( size: Size ): { zcvs: ZoomableCanvas, cvs: HTMLCanvasElement, ctx: CanvasRenderingContext2D } {
+    const { width, height } = size;
     const noop = () => {};
     const zcvs = new ZoomableCanvas({
         width,

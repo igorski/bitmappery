@@ -1,7 +1,7 @@
 /**
 * The MIT License (MIT)
 *
-* Igor Zinken 2021-2022 - https://www.igorski.nl
+* Igor Zinken 2021-2026 - https://www.igorski.nl
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 * this software and associated documentation files (the "Software"), to deal in
@@ -36,6 +36,13 @@
                         class="input-field"
                     />
                 </div>
+                <div class="wrapper input">
+                    <label v-t="'documentType'"></label>
+                    <select-box
+                        :options="types"
+                        v-model="type"
+                    />
+                </div>
                 <dimensions-formatter
                     v-model="dimensions"
                 />
@@ -61,6 +68,8 @@
 <script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal.vue";
+import SelectBox from "@/components/ui/select-box/select-box.vue";
+import type { DocumentType } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
 import DimensionsFormatter from "@/components/ui/dimensions-formatter/dimensions-formatter.vue";
 import { focus } from "@/utils/environment-util";
@@ -69,11 +78,13 @@ import messages from "./messages.json";
 export default {
     i18n: { messages },
     components: {
-        Modal,
         DimensionsFormatter,
+        Modal,
+        SelectBox,
     },
     data: () => ({
-        name   : "",
+        name : "",
+        type : "default",
         dimensions: {
             width: 1000,
             height: 1000,
@@ -83,6 +94,9 @@ export default {
         ...mapGetters([
             "documents",
         ]),
+        types(): { label: string, value: DocumentType }[] {
+            return [ { label: this.$t( "default" ), value: "default" }, { label: this.$t( "timeline" ), value: "timeline" }];
+        },
     },
     mounted(): void {
         this.name = this.$t( "newDocumentNum", { num: this.documents.length + 1 });
@@ -96,6 +110,7 @@ export default {
         async save(): Promise<void> {
             this.addNewDocument( DocumentFactory.create({
                 name   : this.name,
+                type   : this.type,
                 width  : Math.round( this.dimensions.width ),
                 height : Math.round( this.dimensions.height ),
             }));

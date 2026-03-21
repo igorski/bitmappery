@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -57,14 +57,16 @@
                 :viewport-height="viewportHeight"
                 @input="panViewport"
             />
+            <component :is="timelinePanel" />
         </template>
         <file-import v-else />
     </div>
 </template>
 
 <script lang="ts">
+import { type Component, defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
-import { type Viewport } from "zcanvas";
+import type { Viewport } from "zcanvas";
 import ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import GuideRenderer from "@/rendering/actors/guide-renderer";
 import FileImport from "@/components/file-import/file-import.vue";
@@ -95,19 +97,23 @@ import TouchDecorator from "./decorators/touch-decorator";
 /* internal non-reactive properties */
 
 const mobileView = isMobile();
-let lastDocument, containerSize, canvasBoundingBox, guideRenderer;
+let lastDocumentId: string;
+let containerSize: DOMRect;
+let canvasBoundingBox: DOMRect;
+let guideRenderer: GuideRenderer;
+
 // maintain a pool of renderers representing the layers within the active document
 // the renderers themselves are cached within the renderer-factory, this is merely
 // used for change detection in the current editing session (see watchers)
 const layerPool = new Map();
+
 // scale of the on-screen canvas relative to the document
 // eslint-disable-next-line no-unused-vars
 let xScale = 1, yScale = 1, zoom = 1, maxInScale = 1, maxOutScale = 1;
 
-function calculateCanvasBoundingBox() {
+function calculateCanvasBoundingBox(): void {
     const zCanvas = getCanvasInstance();
     if ( zCanvas ) {
-        zCanvas._bounds = null; // TODO : can be removed after update to zCanvas 5.1.5 (requires Webpack 5 migration)
         canvasBoundingBox = getCanvasInstance()?.getCoordinate();
     }
 }
@@ -159,6 +165,17 @@ export default {
         hasGuideRenderer(): boolean {
             return this.snapAlign || this.pixelGrid;
         },
+        hasTimeline(): boolean {
+            return this.activeDocument?.type === "timeline";
+        },
+        timelinePanel(): Promise<Component> | null {
+            if ( this.hasTimeline ) {
+                return defineAsyncComponent({
+                    loader: () => import( "@/components/timeline-panel/timeline-panel.vue" ),
+                });
+            }
+            return null;
+        },
     },
     watch: {
         windowSize(): void {
@@ -185,8 +202,8 @@ export default {
                 }
                 const { id } = document;
                 // switching between documents
-                if ( id !== lastDocument ) {
-                    lastDocument = id;
+                if ( id !== lastDocumentId ) {
+                    lastDocumentId = id;
                     flushRendererCache();
                     flushBitmapCache();
                     flushBlendedLayerCache();
@@ -348,8 +365,9 @@ export default {
             this.centerCanvas = zCanvas.getWidth() < containerSize.width || zCanvas.getHeight() < containerSize.height ;
         },
         scaleWrapper(): void {
+            const marginBottom = this.hasTimeline ? 120 : 20;
             if ( !mobileView ) {
-                this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
+                this.wrapperHeight = `${window.innerHeight - containerSize.top - marginBottom}px`;
             }
         },
         calcIdealDimensions( scaleDocumentToFit = false ): void {
@@ -360,7 +378,7 @@ export default {
                 this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value: fitInWindow( this.activeDocument, this.canvasDimensions ) });
             }
         },
-        panViewport({ left, top }): void {
+        panViewport({ left, top }: Viewport ): void {
             getCanvasInstance().panViewport(
                 Math.round( left * ( this.cvsWidth  - this.viewportWidth )),
                 Math.round( top  * ( this.cvsHeight - this.viewportHeight ))

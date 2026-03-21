@@ -90,6 +90,7 @@ export type Shape = Point[];
 // selections can consist of multiple non-connecting Shapes
 export type Selection = Shape[];
 
+export type DocumentType = "default" | "timeline";
 export type Document = {
     id: string;
     name: string;
@@ -97,7 +98,7 @@ export type Document = {
     width: number;
     height: number;
     selections: Record<string, Selection>;
-    type: "default" | "timeline";
+    type: DocumentType;
     // the below are only used at runtime, will not be serialized
     activeSelection: Selection;
     invertSelection: boolean;

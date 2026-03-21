@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -107,7 +107,7 @@ let lastDocumentId = null;
 
 // wrapper for loading dynamic components with custom loading states
 type IAsyncComponent = { component: Promise<Component>};
-function asyncComponent( key: string, importFn: () => Promise<any> ): IAsyncComponent {
+function asyncComponent( _key: string, importFn: () => Promise<any> ): IAsyncComponent {
     return defineAsyncComponent({
         loader: async () => {
             try {
@@ -118,7 +118,6 @@ function asyncComponent( key: string, importFn: () => Promise<any> ): IAsyncComp
                 if ( import.meta.env.MODE !== "production" ) {
                     console.error( e );
                 }
-                reject();
             }
         }
     });

@@ -4,6 +4,9 @@
         "newDocumentNum": "New document #{num}",
         "name": "Name",
         "create": "Create",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "documentType": "Document type",
+        "default": "Default",
+        "timeline": "Timeline"
     }
 }
