@@ -220,7 +220,7 @@ describe( "LayerRenderer", () => {
             expect( paintSpy ).toHaveBeenCalled();
         });
 
-        it( "should by default not request to render a thumbnail preview", () => {
+        it( "should by default not request to render a thumbnail preview on release", () => {
             renderer.handleRelease( 0, 0 );
 
             expect( mockCreateLayerThumbnail ).not.toHaveBeenCalled();

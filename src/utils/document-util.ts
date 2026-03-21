@@ -55,7 +55,7 @@ export const createDocumentSnapshot = async ( activeDocument: Document ): Promis
 };
 
 /**
- * Creates a snapshot of the provided layer. When a crop Size is provided, it's boundary box
+ * Creates a snapshot of the provided layer. When a crop Size is provided, its boundary box
  * will crop the layer (you can pass the Document for instance to crop by Document boundary box).
  * THIS MULTIPLIES FOR THE DEVICE PIXEL RATIO (as it mimics the onscreen presentation of zCanvas)
  */
