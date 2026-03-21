@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { canvas, type Rectangle } from "zcanvas";
+import { canvas, type Rectangle, type Size } from "zcanvas";
 import type { Document, Shape, Text, Layer } from "@/definitions/document";
 import type { CanvasDrawable, CopiedSelection } from "@/definitions/editor";
 import { renderEffectsForLayer } from "@/services/render-service";
@@ -55,12 +55,13 @@ export const createDocumentSnapshot = async ( activeDocument: Document ): Promis
 };
 
 /**
- * Creates a snapshot of the provided layer. When an activeDocument is provided, it's boundary box
- * will crop the layer. THIS MULTIPLIES FOR THE DEVICE PIXEL RATIO (as it mimics the onscreen presentation of zCanvas)
+ * Creates a snapshot of the provided layer. When a crop Size is provided, its boundary box
+ * will crop the layer (you can pass the Document for instance to crop by Document boundary box).
+ * THIS MULTIPLIES FOR THE DEVICE PIXEL RATIO (as it mimics the onscreen presentation of zCanvas)
  */
-export const createLayerSnapshot = async ( layer: Layer, optActiveDocument?: Document ): Promise<HTMLCanvasElement> => {
-    const width  = optActiveDocument ? optActiveDocument.width  : layer.width;
-    const height = optActiveDocument ? optActiveDocument.height : layer.height;
+export const createLayerSnapshot = async ( layer: Layer, optCrop?: Size ): Promise<HTMLCanvasElement> => {
+    const width  = optCrop ? optCrop.width  : layer.width;
+    const height = optCrop ? optCrop.height : layer.height;
 
     const { zcvs, cvs, ctx } = createFullSizeZCanvas({ width, height });
 

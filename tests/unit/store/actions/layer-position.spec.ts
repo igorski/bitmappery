@@ -26,6 +26,11 @@ vi.mock( "@/rendering/cache/blended-layer-cache", () => ({
     isBlendCached: vi.fn(),
 }));
 
+const mockCreateLayerThumbnail = vi.fn();
+vi.mock( "@/rendering/cache/thumbnail-cache", () => ({
+    createLayerThumbnail: vi.fn(( ...args ) => mockCreateLayerThumbnail( ...args )),
+}));
+
 describe( "Layer positioning action", () => {
     let layer: Layer;
     let layerRenderer: LayerRenderer;
@@ -133,6 +138,13 @@ describe( "Layer positioning action", () => {
                 ( action === "undo" ) ? undo() : redo();
                 
                 expect( mockFlushBlendedLayerCache ).toHaveBeenCalled();
+            });
+
+            it.each([ "undo", "redo" ])
+            ( `should request to recreate the layer thumbnail for the "%s" action`, ( action: string ) => {
+                ( action === "undo" ) ? undo() : redo();
+
+                expect( mockCreateLayerThumbnail ).toHaveBeenCalledWith( layer, true );
             });
         });
     });

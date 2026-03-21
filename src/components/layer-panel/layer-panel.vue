@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -66,6 +66,16 @@
                                 }"
                                 @contextmenu.stop.prevent="showContextMenu( $event, element )"
                             >
+                                <!-- thumbnail -->
+                                <div
+                                    v-if="renderThumbnails"
+                                    class="layer__thumbnail"
+                                >
+                                    <img
+                                        :ref="`thumb_${element.id}`"
+                                        :src="getThumbnail( element.id )"
+                                    />
+                                </div>
                                 <!-- layer name is an input on double click -->
                                 <input
                                     v-if="editable && element.index === activeLayerIndex"
@@ -170,6 +180,7 @@ import { addMask } from "@/store/actions/mask-add";
 import { removeMask } from "@/store/actions/mask-remove";
 import { toggleLayerVisibility } from "@/store/actions/layer-toggle-visibility";
 import { getRendererForLayer } from "@/factories/renderer-factory";
+import { getThumbnailForLayer, subscribe, unsubscribe } from "@/rendering/cache/thumbnail-cache";
 import { getCanvasInstance } from "@/services/canvas-service";
 import KeyboardService from "@/services/keyboard-service";
 import { focus } from "@/utils/environment-util";
@@ -208,6 +219,7 @@ export default {
             "activeTool",
             "hasSelection",
             "layers",
+            "preferences",
         ]),
         collapsed: {
             get(): boolean {
@@ -220,7 +232,7 @@ export default {
         reverseLayers: {
             get(): IndexedLayer[] {
                 // we like to see the highest layer on top, so reverse order for v-for templating
-                return this.layers?.slice().map(( layer, index ) => ({
+                return this.layers?.slice().map(( layer: Layer, index: number ) => ({
                     ...layer,
                     index,
                     maskSelected: layer.mask ? layer.mask === this.activeLayerMask : false,
@@ -240,6 +252,20 @@ export default {
         overrideCustomKeyHandler(): boolean {
             return this.hasSelection || NON_OVERRIDABLE_TOOLS.includes( this.activeTool );
         },
+        renderThumbnails(): boolean {
+            return this.preferences.thumbnails;
+        },
+    },
+    mounted(): void {
+        subscribe( "layers", ( layerId: string, data: string ) => {
+            const el = this.$refs[ `thumb_${layerId}` ];
+            if ( el ) {
+                el.setAttribute( "src", data );
+            }
+        });
+    },
+    beforeUnmount(): void {
+        unsubscribe( "layers" );
     },
     methods: {
         ...mapMutations([
@@ -254,7 +280,7 @@ export default {
         requestLayerAdd(): void {
             this.openModal( ADD_LAYER );
         },
-        updateActiveLayerName({ target }): void {
+        updateActiveLayerName({ target }: Event ): void {
             const newName = target.value;
             renameLayer( this.$store, this.activeLayer, this.activeLayerIndex, newName );
         },
@@ -381,6 +407,9 @@ export default {
             this.contextMenu.x = event.clientX;
             this.contextMenu.y = event.clientY;
         },
+        getThumbnail( layerId: string ): string {
+            return getThumbnailForLayer( layerId );
+        },
     },
 };
 </script>
@@ -449,6 +478,19 @@ export default {
     &:hover {
         background-color: colors.$color-4;
         color: #000;
+    }
+
+    &__thumbnail {
+        width: 40px; // see thumbnail-cache.ts
+        border: 1px solid colors.$color-lines;
+        margin: variables.$spacing-xsmall;
+        background: url( "../../assets-inline/images/document_transparent_bg.png" ) repeat;
+        
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
     }
 
     &__name,

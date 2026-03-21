@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -43,6 +43,7 @@ import { getMaskComposite, disposeMaskComposite, maskImage } from "@/rendering/o
 import { snapToGuide } from "@/rendering/operations/snapping";
 import { applyTransformation } from "@/rendering/operations/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
+import { createLayerThumbnail } from "@/rendering/cache/thumbnail-cache";
 import { cacheBlendedLayer, flushBlendedLayerCache, getBlendCache, getBlendableLayers, isBlendCached, pauseBlendCaching, useBlendCaching } from "@/rendering/cache/blended-layer-cache";
 import { renderBrushOutline } from "@/rendering/cursors/brush";
 import {
@@ -191,12 +192,15 @@ export default class LayerRenderer extends ZoomableSprite {
             return; // debounced to only occur once before next render cycle
         }
         this._pendingEffectsRender = true;
-        this.canvas?.setLock( true );
+        this.canvas?.setLock?.( true );
         requestAnimationFrame( async () => {
             await renderEffectsForLayer( this.layer );
             this._pendingEffectsRender = false;
-            this.canvas?.setLock( false );
+            this.canvas?.setLock?.( false );
             this.invalidateBlendCache( true ); // now layer effects are cached, invalidate any existing blend cache
+            if ( this.layer.visible ) {
+                createLayerThumbnail( this.layer, true, this.canvas?.getActiveDocument?.() );
+            }
         });
     }
 
@@ -603,6 +607,7 @@ export default class LayerRenderer extends ZoomableSprite {
                 snapToGuide( this, this.canvas.guides ); // snap to guide
             }
             this.canvas.draggingSprite = null;
+            createLayerThumbnail( this.layer, true, this.canvas.getActiveDocument() );
         }
     }
 
@@ -768,6 +773,7 @@ export default class LayerRenderer extends ZoomableSprite {
         flushLayerCache( this.layer );
 
         this._bitmap = null;
+        this._bitmapReady = false;
         this._unmaskedBitmap = null;
     }
 };

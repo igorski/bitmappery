@@ -27,6 +27,11 @@ vi.mock( "@/rendering/cache/blended-layer-cache", () => ({
     flushBlendedLayerCache: vi.fn(() => mockFlushBlendedLayerCache() ),
 }));
 
+const mockCreateLayerThumbnail = vi.fn();
+vi.mock( "@/rendering/cache/thumbnail-cache", () => ({
+    createLayerThumbnail: vi.fn(( ...args ) => mockCreateLayerThumbnail( ...args )),
+}));
+
 const mockRenderOperation = vi.fn();
 vi.mock( "@/rendering/operations/clipping", () => ({
     clipLayer: vi.fn(( ...args: any[] ) => mockRenderOperation( "clipLayer", ...args )),
@@ -214,6 +219,20 @@ describe( "LayerRenderer", () => {
 
             expect( paintSpy ).toHaveBeenCalled();
         });
+
+        it( "should by default not request to render a thumbnail preview on release", () => {
+            renderer.handleRelease( 0, 0 );
+
+            expect( mockCreateLayerThumbnail ).not.toHaveBeenCalled();
+        });
+
+        it( "should request to render a thumbnail preview when releasing a drag action", () => {
+            renderer.handleActiveLayer( renderer.layer ); // make interactive
+            renderer.handleActiveTool( ToolTypes.DRAG, {}, activeDocument ); // set tool
+            renderer.handleRelease( 0, 0 );
+
+            expect( mockCreateLayerThumbnail ).toHaveBeenCalledWith( renderer.layer, true, activeDocument );
+        });
     });
 
     describe( "when handling the paint state", () => {
@@ -308,6 +327,15 @@ describe( "LayerRenderer", () => {
             await mockAsyncRender();
 
             expect( invalidateSpy ).toHaveBeenCalledWith( true );
+        });
+
+        it( "should request a render of the thumbnail upon render completion", async () => {
+            const layerRenderer = new LayerRenderer( LayerFactory.create({
+                filters: FiltersFactory.create({ blendMode: BlendModes.DARKEN })
+            }));
+            await mockAsyncRender();
+
+            expect( mockCreateLayerThumbnail ).toHaveBeenCalledWith( layerRenderer.layer, true, undefined );
         });
     });
 
