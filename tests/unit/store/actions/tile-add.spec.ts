@@ -30,6 +30,8 @@ describe( "Tile add action", () => {
         store.getters.activeGroup = 1;
 
         activeDocument = DocumentFactory.create({
+            width: 500,
+            height: 500,
             layers: [
                 tile1Layer1, tile1Layer2,
                 tile2Layer1, tile2Layer2,
@@ -52,6 +54,15 @@ describe( "Tile add action", () => {
                 type: "tile",
                 id: 2,
             });
+        });
+
+        it( "should create a new Layer that matches the Document dimensions", () => {
+            addTile( store, activeDocument );
+
+            const { layer } = vi.mocked( store.commit ).mock.calls[ 0 ][ 1 ] as { index: number, layer: Layer };
+            
+            expect( layer.width ).toEqual( activeDocument.width );
+            expect( layer.height ).toEqual( activeDocument.height );
         });
 
         it( "should append the created Layer after the last Layer index", () => {

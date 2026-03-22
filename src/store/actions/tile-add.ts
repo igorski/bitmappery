@@ -35,6 +35,8 @@ export const addTile = ( store: Store<BitMapperyState>, activeDocument: Document
     const nextTile = groups.length;
     
     const layer = LayerFactory.create({
+        width: activeDocument.width,
+        height: activeDocument.height,
         rel: {
             type: "tile",
             id: nextTile,
