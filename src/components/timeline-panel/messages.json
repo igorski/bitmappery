@@ -1,4 +1,7 @@
 {
     "en-US": {
+        "add": "Add tile",
+        "clone": "Clone tile",
+        "delete": "Delete tile"
     }
 }

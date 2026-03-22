@@ -21,24 +21,137 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div class="timeline-panel">
-        <h1>Timeline</h1>
+    <div class="timeline">
+        <div class="timeline__header">
+            <button
+                type="button"
+                v-t="$t('add')"
+                @click="handleAdd()"
+            ></button>
+        </div>
+        <div class="timeline__tiles">
+            <div
+                v-for="tile in activeDocument.groups"
+                class="timeline__tile"
+                @click.stop.prevent="setActiveGroup( tile )"
+                @contextmenu.stop.prevent="showContextMenu( $event, tile )"
+                :class="{
+                    'timeline__tile--active': tile === activeGroup
+                }"
+            >
+                {{ tile }}
+            </div>
+        </div>
+        <context-menu
+            v-if="contextMenu.show"
+            @close="contextMenu.show = false"
+            :x="contextMenu.x"
+            :y="contextMenu.y"
+        >
+            <ul class="submenu">
+                <li>
+                    <button
+                        type="button"
+                        v-t="$t('clone')"
+                        @click.prevent="handleClone()"
+                    ></button>
+                </li>
+                <li>
+                    <button
+                        type="button"
+                        v-t="$t('delete')"
+                        @click.prevent="handleDelete()"
+                    ></button>
+                </li>
+            </ul>
+        </context-menu>
     </div>
 </template>
 
 <script lang="ts">
-import { mapGetters } from "vuex";
+import { defineAsyncComponent } from "vue";
+import { mapGetters, mapMutations } from "vuex";
+import type { Layer, RelId } from "@/definitions/document";
+import { addTile } from "@/store/actions/tile-add";
+import { cloneTile } from "@/store/actions/tile-clone";
+import { deleteTile } from "@/store/actions/tile-delete";
+import { getIndexOfFirstLayerInTileGroup } from "@/utils/timeline-util";
 import messages  from "./messages.json";
 
 export default {
     i18n: { messages },
+    components: {
+        ContextMenu : defineAsyncComponent({ loader: () => import( "@/components/menus/context-menu/context-menu.vue" ) }),
+    },
     data: () => ({
-
+        contextMenu: {
+            tile: "",
+            show: false,
+            x: 0,
+            y: 0,
+        },
     }),
     computed: {
         ...mapGetters([
             "activeDocument",
+            "activeGroup",
+            "layers",
         ]),
+    },
+    watch: {
+        layers: {
+            immediate: true,
+            deep: true,
+            handler(): void {
+                const { layers } = this.activeDocument;
+                const groups: RelId[] = [];
+console.info('doc fires',layers.length)
+                layers.forEach(( layer: Layer ) => {
+                    if ( layer.rel.type === "tile" && !groups.includes( layer.rel.id )) {
+                        groups.push( layer.rel.id );
+                    }
+                });
+
+                // new document
+                if ( groups.length === 0 && layers.length === 1 ) {
+                    layers[ 0 ].rel = {
+                        type: "tile",
+                        id: 0,
+                    };
+                    groups.push( 0 );
+                }
+                this.updateGroups( groups );
+            }
+        },
+        activeGroup: {
+            immediate: true,
+            handler( id: RelId ): void {
+                console.info('--- group changed to ' + id)
+                this.setActiveLayerIndex( getIndexOfFirstLayerInTileGroup( this.activeDocument, id ));
+            },
+        }
+    },
+    methods: {
+        ...mapMutations([
+            "setActiveLayerIndex",
+            "setActiveGroup",
+            "updateGroups",
+        ]),
+        showContextMenu( event: PointerEvent, tile: string ): void {
+            this.contextMenu.show = true;
+            this.contextMenu.tile = tile;
+            this.contextMenu.x = event.clientX;
+            this.contextMenu.y = event.clientY;
+        },
+        handleAdd(): void {
+            addTile( this.$store, this.activeDocument );
+        },
+        handleClone(): void {
+            cloneTile( this.$store, this.activeDocument, this.contextMenu.tile );
+        },
+        handleDelete(): void {
+            deleteTile( this.$store, this.activeDocument, this.contextMenu.tile );
+        },
     },
 };
 </script>
@@ -49,10 +162,33 @@ export default {
 @use "@/styles/_variables";
 @use "@/styles/component";
 @use "@/styles/typography";
+@use "@/styles/ui";
 
-.timeline-panel {
-    display: flex;
+.timeline {
     height: 100px;
     background-color: red;
+    box-sizing: border-box;
+    padding: variables.$spacing-medium;
+    align-items: center;
+    overflow: hidden;
+
+    &__tiles {
+        display: flex;
+        gap: variables.$spacing-small;
+    }
+
+    &__tile {
+        cursor: pointer;
+        border: 1px solid colors.$color-lines;
+        width: 80px;
+
+        &--active {
+            border-color: #FFF;
+        }
+    }
+}
+
+.submenu {
+    @include ui.nestedMenu();
 }
 </style>

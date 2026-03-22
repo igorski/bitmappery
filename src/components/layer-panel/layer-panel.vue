@@ -241,7 +241,7 @@ export default {
                     ...layer,
                     index: this.hasTimeline ? this.layers.indexOf( layer ): index,
                     maskSelected: layer.mask ? layer.mask === this.activeLayerMask : false,
-                })).reverse() ?? [];
+                })).reverse();
             },
             set( value: Layer[] ): void {
                 // when updating the Vuex store, we reverse the layers again
@@ -265,9 +265,9 @@ export default {
                 return this.$t( "layersForTile", { id: this.activeGroup + 1 });
             }
             if ( this.showEffects && this.activeLayer ) {
-                return this.$t( "effectsForLayer", { name: activeLayer.name });
+                return this.$t( "effectsForLayer", { name: this.activeLayer.name });
             }
-            else return this.$t( "layers" );
+            return this.$t( "layers" );
         },
         hasTimeline(): boolean {
             return this.activeDocument?.type === "timeline"

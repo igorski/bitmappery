@@ -31,7 +31,7 @@ export type RelId = string | number;
 
 /**
  * A LayerRel describes whether the Layer is related
- * to another entity (like a Layer or Tile Group)
+ * to another entity (like a Layer- or Tile Group)
  */
 export type LayerRel = {
     type: "none" | "group" | "tile";
