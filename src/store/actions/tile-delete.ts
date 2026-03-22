@@ -28,8 +28,8 @@ import { getLayersByTile, getIndexOfFirstLayerInTileGroup } from "@/utils/timeli
 
 export const deleteTile = ( store: Store<BitMapperyState>, activeDocument: Document, tile: number ): void => {
     const layers = getLayersByTile( activeDocument, tile );
-    const currentActiveSet = store.getters.activeSet;
-    const currentTileAmount = activeDocument.sets.length;
+    const currentlyActiveGroup = store.getters.activeGroup;
+    const currentTileAmount = activeDocument.groups.length;
 
     // clone the layers of the current tile
     
@@ -67,8 +67,8 @@ export const deleteTile = ( store: Store<BitMapperyState>, activeDocument: Docum
                 });
             }
         }
-        if ( currentActiveSet === tile ) {
-            store.commit( "setActiveSet", Math.max( 0, tile - 1 ));
+        if ( currentlyActiveGroup === tile ) {
+            store.commit( "setActiveGroup", Math.max( 0, tile - 1 ));
         }
     };
     commit();
@@ -93,8 +93,8 @@ export const deleteTile = ( store: Store<BitMapperyState>, activeDocument: Docum
                     });
                 }
             }
-            if ( currentActiveSet === tile ) {
-                store.commit( "setActiveSet", currentActiveSet );
+            if ( currentlyActiveGroup === tile ) {
+                store.commit( "setActiveGroup", currentlyActiveGroup );
             }
         },
         redo: commit,

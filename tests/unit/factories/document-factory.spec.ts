@@ -28,6 +28,7 @@ describe( "Document factory", () => {
                 type: "default",
                 activeSelection: [],
                 invertSelection: false,
+                groups: [],
             });
         });
 
@@ -54,6 +55,7 @@ describe( "Document factory", () => {
                 type: "timeline",
                 activeSelection: [],
                 invertSelection: false,
+                groups: [],
             });
         });
     });

@@ -255,6 +255,9 @@ const DocumentModule: Module<DocumentState, any> = {
             const document = state.documents[ state.activeIndex ];
             document.selections[ name ] = selection;
         },
+        updateGroups( state: DocumentState, values: number[] ): void {
+            state.documents[ state.activeIndex ].groups = values;
+        },
     },
     actions: {
         requestDocumentClose({ state, commit, getters }: ActionContext<DocumentState, any> ): void {

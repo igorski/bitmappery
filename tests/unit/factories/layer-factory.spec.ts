@@ -145,7 +145,7 @@ describe( "Layer factory", () => {
                 filters: { contrast: .7 },
                 rel: {
                     type: "tile",
-                    id: "1",
+                    id: 2,
                 },
             });
             const serializeTextSpy = vi.spyOn( TextFactory, "serialize" ).mockImplementation( args => args );

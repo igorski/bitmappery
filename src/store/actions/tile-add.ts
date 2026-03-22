@@ -28,11 +28,11 @@ import { type BitMapperyState } from "@/store";
 import { getIndexOfLastLayerInTileGroup } from "@/utils/timeline-util";
 
 export const addTile = ( store: Store<BitMapperyState>, activeDocument: Document ): void => {
-    const { sets } = activeDocument;
+    const { groups } = activeDocument;
 
-    const currentActiveSet = store.getters.activeSet;
-    const insertIndex = getIndexOfLastLayerInTileGroup( activeDocument, sets[ sets.length - 1 ]) + 1;
-    const nextTile = sets.length;
+    const currentlyActiveGroup = store.getters.activeGroup;
+    const insertIndex = getIndexOfLastLayerInTileGroup( activeDocument, groups[ groups.length - 1 ]) + 1;
+    const nextTile = groups.length;
     
     const layer = LayerFactory.create({
         rel: {
@@ -43,14 +43,14 @@ export const addTile = ( store: Store<BitMapperyState>, activeDocument: Document
 
     const commit = (): void => {
         store.commit( "insertLayerAtIndex", { index: insertIndex, layer });
-        store.commit( "setActiveSet", nextTile );
+        store.commit( "setActiveGroup", nextTile );
     };
     commit();
 
     enqueueState( `tileAdd_${layer.id}`, {
         undo(): void {
             store.commit( "removeLayer", insertIndex );
-            store.commit( "setActiveSet", currentActiveSet );
+            store.commit( "setActiveGroup", currentlyActiveGroup );
         },
         redo: commit,
     });

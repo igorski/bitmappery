@@ -29,8 +29,8 @@ import { cloneLayer } from "@/utils/layer-util";
 
 export const cloneTile = ( store: Store<BitMapperyState>, activeDocument: Document, tile: number ): void => {
     const layers = getLayersByTile( activeDocument, tile );
-    const currentActiveSet = store.getters.activeSet;
-    const currentTileAmount = activeDocument.sets.length;
+    const currentlyActiveGroup = store.getters.activeGroup;
+    const currentTileAmount = activeDocument.groups.length;
     const nextTile = tile + 1;
 
     // clone the layers of the current tile
@@ -76,7 +76,7 @@ export const cloneTile = ( store: Store<BitMapperyState>, activeDocument: Docume
                 });
             }
         }
-        store.commit( "setActiveSet", nextTile );
+        store.commit( "setActiveGroup", nextTile );
     };
     commit();
 
@@ -101,7 +101,7 @@ export const cloneTile = ( store: Store<BitMapperyState>, activeDocument: Docume
                     });
                 }
             }
-            store.commit( "setActiveSet", currentActiveSet );
+            store.commit( "setActiveGroup", currentlyActiveGroup );
         },
         redo: commit,
     });

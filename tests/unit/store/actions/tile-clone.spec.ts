@@ -41,7 +41,7 @@ describe( "Tile clone action", () => {
 
     beforeEach(() => {
         store = createStore();
-        store.getters.activeSet = 1;
+        store.getters.activeGroup = 1;
 
         activeDocument = DocumentFactory.create({
             layers: [
@@ -51,7 +51,7 @@ describe( "Tile clone action", () => {
                 tile4Layer1, tile4Layer2,
             ],
         });
-        activeDocument.sets = [ 0, 1, 2, 3 ];
+        activeDocument.groups = [ 0, 1, 2, 3 ];
     });
 
     afterEach(() => {
@@ -68,7 +68,7 @@ describe( "Tile clone action", () => {
         it( "should mark the cloned set index as the active set", () => {
             cloneTile( store, activeDocument, 2 );
 
-            expect( store.commit ).toHaveBeenCalledWith( "setActiveSet", 3 );
+            expect( store.commit ).toHaveBeenCalledWith( "setActiveGroup", 3 );
         });
 
         it( "should be able to clone the tiles Layer contents and inject it between tile sets", () => {
@@ -86,7 +86,7 @@ describe( "Tile clone action", () => {
             expect( store.commit ).toHaveBeenNthCalledWith( 5, "updateLayer", { index: expect.any( Number ), opts: { rel: { type: "tile", id: 4 }}});
             expect( store.commit ).toHaveBeenNthCalledWith( 6, "updateLayer", { index: expect.any( Number ), opts: { rel: { type: "tile", id: 4 }}});
 
-            expect( store.commit ).toHaveBeenNthCalledWith( 7, "setActiveSet", 2 );
+            expect( store.commit ).toHaveBeenNthCalledWith( 7, "setActiveGroup", 2 );
         });
     });
 
@@ -110,7 +110,7 @@ describe( "Tile clone action", () => {
 
             undo();
 
-            expect( store.commit ).toHaveBeenCalledWith( "setActiveSet", 1 );
+            expect( store.commit ).toHaveBeenCalledWith( "setActiveGroup", 1 );
         });
 
         it( "should restore the original tile set indices when restoring a clone action between tile sets", () => {
@@ -134,7 +134,7 @@ describe( "Tile clone action", () => {
             expect( store.commit ).toHaveBeenNthCalledWith( 5, "updateLayer", { index: expect.any( Number ), opts: { rel: { type: "tile", id: 3 }}});
             expect( store.commit ).toHaveBeenNthCalledWith( 6, "updateLayer", { index: expect.any( Number ), opts: { rel: { type: "tile", id: 3 }}});
 
-            expect( store.commit ).toHaveBeenNthCalledWith( 7, "setActiveSet", 1 );
+            expect( store.commit ).toHaveBeenNthCalledWith( 7, "setActiveGroup", 1 );
         });
     });
 });

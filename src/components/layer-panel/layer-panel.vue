@@ -31,7 +31,7 @@
         <div class="component__header">
             <h2
                 class="component__title"
-            >{{ showEffects && activeLayer ? $t( 'effectsForLayer', { name: activeLayer.name }) : $t( 'layers' ) }}</h2>
+            >{{ title }}</h2>
             <button
                 type="button"
                 class="component__header-button button--ghost"
@@ -216,6 +216,7 @@ export default {
             "activeLayer",
             "activeLayerIndex",
             "activeLayerMask",
+            "activeGroup",
             "activeTool",
             "hasSelection",
             "layers",
@@ -232,9 +233,13 @@ export default {
         reverseLayers: {
             get(): IndexedLayer[] {
                 // we like to see the highest layer on top, so reverse order for v-for templating
-                return this.layers?.slice().map(( layer: Layer, index: number ) => ({
+                let layers = this.layers?.slice() ?? [];
+                if ( this.hasTimeline ) {
+                    layers = layers.filter( layer => layer.rel.id === this.activeGroup );
+                }
+                return layers.map(( layer: Layer, index: number ) => ({
                     ...layer,
-                    index,
+                    index: this.hasTimeline ? this.layers.indexOf( layer ): index,
                     maskSelected: layer.mask ? layer.mask === this.activeLayerMask : false,
                 })).reverse() ?? [];
             },
@@ -254,6 +259,18 @@ export default {
         },
         renderThumbnails(): boolean {
             return this.preferences.thumbnails;
+        },
+        title(): string {
+            if ( this.hasTimeline ) {
+                return this.$t( "layersForTile", { id: this.activeGroup + 1 });
+            }
+            if ( this.showEffects && this.activeLayer ) {
+                return this.$t( "effectsForLayer", { name: activeLayer.name });
+            }
+            else return this.$t( "layers" );
+        },
+        hasTimeline(): boolean {
+            return this.activeDocument?.type === "timeline"
         },
     },
     mounted(): void {

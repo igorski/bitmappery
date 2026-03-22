@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2025 - https://www.igorski.nl
+ * Igor Zinken 2021-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -26,7 +26,15 @@ import { enqueueState } from "@/factories/history-state-factory";
 import { type BitMapperyState } from "@/store";
 
 export const addTextLayer = ({ getters, commit }: Store<BitMapperyState> ): void => {
-    const fn = (): void => commit( "addLayer", { type: LayerTypes.LAYER_TEXT });
+    const activeDocument = getters.activeDocument;
+
+    const fn = (): void => commit( "addLayer", {
+        type: LayerTypes.LAYER_TEXT,
+        rel : activeDocument.type === "timeline" ? {
+            type: "tile",
+            id: getters.activeGroup,
+        } : undefined,
+    });
 
     fn();
     const addedLayerIndex = getters.activeLayerIndex;

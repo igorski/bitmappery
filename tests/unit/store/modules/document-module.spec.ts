@@ -741,7 +741,9 @@ describe( "Vuex document module", () => {
             mockUpdateFn = vi.fn();
             const scaleX = 1.1;
             const scaleY = 1.2;
+            
             await mutations.resizeActiveDocumentContent( state, { scaleX, scaleY });
+            
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "resizeLayerContent", layer1, scaleX, scaleY );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "resizeLayerContent", layer2, scaleX, scaleY );
         });
@@ -758,11 +760,24 @@ describe( "Vuex document module", () => {
             mockUpdateFn = vi.fn();
             const left = 10;
             const top  = 15;
+            
             await mutations.cropActiveDocumentContent( state, { left, top });
+            
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "cropLayerContent", layer1, { left, top });
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "getRendererForLayer", layer1 );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "cropLayerContent", layer2, { left, top });
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 4, "getRendererForLayer", layer2 );
         });
+
+        it( "should be able to update the Document Groups", () => {
+            const state = createDocumentState({
+                documents: [ DocumentFactory.create() ],
+                activeIndex: 0,
+            });
+
+            mutations.updateGroups( state, [ 0, 1, 2 ]);
+
+            expect( state.documents[ 0 ].groups ).toEqual([ 0, 1, 2 ]);
+        })
     });
 });

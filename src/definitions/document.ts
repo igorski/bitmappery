@@ -24,11 +24,24 @@ import type { Point } from "zcanvas";
 import type { BlendModes } from "./blend-modes";
 import type { LayerTypes } from "./layer-types";
 
+/**
+ * Identifier for related entites
+ */
+export type RelId = string | number;
+
+/**
+ * A LayerRel describes whether the Layer is related
+ * to another entity (like a Layer or Tile Group)
+ */
 export type LayerRel = {
     type: "none" | "group" | "tile";
-    id?: string;
+    id?: RelId;
 };
 
+/**
+ * Properties of the Layer structure.
+ * The Layer is what holds the content (image, text, etc.)
+ */
 export type Layer = {
     id: string;
     name: string;
@@ -102,4 +115,5 @@ export type Document = {
     // the below are only used at runtime, will not be serialized
     activeSelection: Selection;
     invertSelection: boolean;
+    groups: RelId[]; // derived from Layer rels
 };

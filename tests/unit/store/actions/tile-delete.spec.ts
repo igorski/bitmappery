@@ -33,7 +33,7 @@ describe( "Tile delete action", () => {
 
     beforeEach(() => {
         store = createStore();
-        store.getters.activeSet = 1;
+        store.getters.activeGroup = 1;
 
         activeDocument = DocumentFactory.create({
             layers: [
@@ -43,7 +43,7 @@ describe( "Tile delete action", () => {
                 tile4Layer1, tile4Layer2,
             ],
         });
-        activeDocument.sets = [ 0, 1, 2, 3 ];
+        activeDocument.groups = [ 0, 1, 2, 3 ];
     });
 
     afterEach(() => {
@@ -62,13 +62,13 @@ describe( "Tile delete action", () => {
         it( "should update the active set index to the previous one in case it is the deleted set", () => {
             deleteTile( store, activeDocument, 1 );
 
-            expect( store.commit ).toHaveBeenCalledWith( "setActiveSet", 0 );
+            expect( store.commit ).toHaveBeenCalledWith( "setActiveGroup", 0 );
         });
 
         it( "should not update the active set index in case it is not equal to the deleted set", () => {
             deleteTile( store, activeDocument, 2 );
 
-            expect( store.commit ).not.toHaveBeenCalledWith( "setActiveSet", expect.any( Number ));
+            expect( store.commit ).not.toHaveBeenCalledWith( "setActiveGroup", expect.any( Number ));
         });
 
         it( "should be able to update the set indices of any subsequent tile layers", () => {
@@ -82,7 +82,7 @@ describe( "Tile delete action", () => {
             expect( store.commit ).toHaveBeenNthCalledWith( 5, "updateLayer", { index: expect.any( Number ), opts: { rel: { type: "tile", id: 2 }}});
             expect( store.commit ).toHaveBeenNthCalledWith( 6, "updateLayer", { index: expect.any( Number ), opts: { rel: { type: "tile", id: 2 }}});
 
-            expect( store.commit ).toHaveBeenNthCalledWith( 7, "setActiveSet", 0 );
+            expect( store.commit ).toHaveBeenNthCalledWith( 7, "setActiveGroup", 0 );
         });
     });
 
@@ -108,7 +108,7 @@ describe( "Tile delete action", () => {
 
             undo();
 
-            expect( store.commit ).toHaveBeenCalledWith( "setActiveSet", 1 );
+            expect( store.commit ).toHaveBeenCalledWith( "setActiveGroup", 1 );
         });
 
         it( "should not update the active set when the originally active set was not the deleted one", () => {
@@ -119,7 +119,7 @@ describe( "Tile delete action", () => {
 
             undo();
 
-            expect( store.commit ).not.toHaveBeenCalledWith( "setActiveSet", expect.any( Number ));
+            expect( store.commit ).not.toHaveBeenCalledWith( "setActiveGroup", expect.any( Number ));
         });
 
         it( "should restore the original tile set indices of all subsequent tile layers when restoring a delete action between tile sets", () => {
@@ -136,7 +136,7 @@ describe( "Tile delete action", () => {
             expect( store.commit ).toHaveBeenNthCalledWith( 5, "updateLayer", { index: expect.any( Number ), opts: { rel: { type: "tile", id: 3 }}});
             expect( store.commit ).toHaveBeenNthCalledWith( 6, "updateLayer", { index: expect.any( Number ), opts: { rel: { type: "tile", id: 3 }}});
 
-            expect( store.commit ).toHaveBeenNthCalledWith( 7, "setActiveSet", 1 );
+            expect( store.commit ).toHaveBeenNthCalledWith( 7, "setActiveGroup", 1 );
         });
     });
 });

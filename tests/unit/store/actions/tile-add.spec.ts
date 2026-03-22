@@ -27,7 +27,7 @@ describe( "Tile add action", () => {
 
     beforeEach(() => {
         store = createStore();
-        store.getters.activeSet = 1;
+        store.getters.activeGroup = 1;
 
         activeDocument = DocumentFactory.create({
             layers: [
@@ -35,7 +35,7 @@ describe( "Tile add action", () => {
                 tile2Layer1, tile2Layer2,
             ],
         });
-        activeDocument.sets = [ 0, 1 ];
+        activeDocument.groups = [ 0, 1 ];
     });
 
     afterEach(() => {
@@ -63,7 +63,7 @@ describe( "Tile add action", () => {
         it( "should mark the added set index as the active set", () => {
             addTile( store, activeDocument );
 
-            expect( store.commit ).toHaveBeenCalledWith( "setActiveSet", 2 );
+            expect( store.commit ).toHaveBeenCalledWith( "setActiveGroup", 2 );
         });
     });
 
@@ -87,7 +87,7 @@ describe( "Tile add action", () => {
 
             undo();
 
-            expect( store.commit ).toHaveBeenCalledWith( "setActiveSet", 1 );
+            expect( store.commit ).toHaveBeenCalledWith( "setActiveGroup", 1 );
         });
     });
 });
