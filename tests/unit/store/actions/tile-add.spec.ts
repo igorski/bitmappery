@@ -4,7 +4,7 @@ import { createStore, mockZCanvas } from "../../mocks";
 
 mockZCanvas();
 
-import { type Document } from "@/definitions/document";
+import type { Document, Layer } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
@@ -46,7 +46,7 @@ describe( "Tile add action", () => {
         it( "should create a new Layer and group it under a new tile", () => {
             addTile( store, activeDocument );
 
-            const { layer } = store.commit.mock.calls[ 0 ][ 1 ];
+            const { layer } = vi.mocked( store.commit ).mock.calls[ 0 ][ 1 ] as { index: number, layer: Layer };
             
             expect( layer.rel ).toEqual({
                 type: "tile",
