@@ -58,7 +58,6 @@ describe( "Tile clone action", () => {
         vi.resetAllMocks();
     });
 
-
     describe( "when cloning a tile", () => {
         it( "should be able to clone the tiles Layer contents and append it after the original", () => {
             cloneTile( store, activeDocument, 2 );
