@@ -61,7 +61,7 @@ describe( "Tile add action", () => {
         });
 
         it( "should mark the added set index as the active set", () => {
-            addTile( store, activeDocument, 2 );
+            addTile( store, activeDocument );
 
             expect( store.commit ).toHaveBeenCalledWith( "setActiveSet", 2 );
         });
