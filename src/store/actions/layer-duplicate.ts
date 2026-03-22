@@ -20,22 +20,14 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-// @ts-expect-error TS7016 no type definitions for lodash.clonedeep
-import cloneDeep from "lodash.clonedeep";
 import { type Store } from "vuex";
 import { type Layer } from "@/definitions/document";
 import { enqueueState } from "@/factories/history-state-factory";
-import LayerFactory from "@/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
-import { cloneCanvas } from "@/utils/canvas-util";
+import { cloneLayer } from "@/utils/layer-util";
 
 export const duplicateLayer = ( store: Store<BitMapperyState>, layerToClone: Layer, indexToAdd: number ): void => {
-    const layer = LayerFactory.create({
-        ...cloneDeep( layerToClone ),
-        name: `${layerToClone.name} #2`,
-        source: cloneCanvas( layerToClone.source ),
-        mask: layerToClone.mask ? cloneCanvas( layerToClone.mask ) : null
-    });
+    const layer = cloneLayer( layerToClone );
 
     const commit = () => store.commit( "insertLayerAtIndex", { index: indexToAdd, layer });
     commit();
