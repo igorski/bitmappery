@@ -82,7 +82,7 @@ import { mapGetters, mapMutations } from "vuex";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import type { Document, RelId } from "@/definitions/document";
 import { ANIMATION_PREVIEW } from "@/definitions/modal-windows";
-import { createGroupTile, flushTileCache, subscribe, unsubscribe } from "@/rendering/cache/tile-cache";
+import { createGroupTile, flushTileCache, subscribe, type Tile, unsubscribe } from "@/rendering/cache/tile-cache";
 import { addTile } from "@/store/actions/tile-add";
 import { cloneTile } from "@/store/actions/tile-clone";
 import { deleteTile } from "@/store/actions/tile-delete";
@@ -147,11 +147,12 @@ export default {
         }
     },
     mounted(): void {
-        subscribe( "timeline", ( id: RelId, snapshot: HTMLCanvasElement ) => {
-            const el = this.$refs[ `thumb_${id}` ];
+        subscribe( "timeline", ( id: RelId, tile: Tile ) => {
+            const el = this.$refs[ `thumb_${id}` ] as HTMLCanvasElement[];
             if ( el ) {
-                // @todo
-                el[ 0 ].getContext( "2d" ).drawImage( snapshot, 0, 0, snapshot.width, snapshot.height, 0, 0, 100, snapshot.width / snapshot.height * 100 );
+                el[ 0 ].width = tile.thumb.width;
+                el[ 0 ].height = tile.thumb.height;
+                el[ 0 ].getContext( "2d" )!.drawImage( tile.thumb, 0, 0 );
             }
         });
     },
@@ -225,7 +226,7 @@ export default {
     &__tile {
         cursor: pointer;
         border: 1px solid colors.$color-lines;
-        width: 100px;
+        width: 50px; // see tile-cache THUMB_HEIGHT
         background-color: #FFF;
 
         &--active {

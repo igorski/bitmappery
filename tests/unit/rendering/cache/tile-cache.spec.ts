@@ -18,6 +18,11 @@ vi.mock( "@/utils/document-util", () => ({
     createGroupSnapshot: vi.fn().mockResolvedValue(({ mock: "canvas" })),
 }));
 
+vi.mock( "@/utils/canvas-util", async ( importOriginal ) => ({
+    ...await importOriginal(),
+    resizeImage: vi.fn().mockResolvedValue({ mock: "thumb" }),
+}));
+
 describe( "Tile cache", () => {
     const layers = [
         LayerFactory.create({ rel: { id: 0, type: "tile" }}),
@@ -49,7 +54,10 @@ describe( "Tile cache", () => {
         it( "should receive an update on cache completion", async () => {
             await createGroupTile( 0, document );
  
-            expect( updateFn ).toHaveBeenCalledWith( 0, { mock: "canvas" });
+            expect( updateFn ).toHaveBeenCalledWith( 0, {
+                source: { mock: "canvas" },
+                thumb: { mock: "thumb"},
+            });
         });
 
         it( "should no longer receive updates on unsubscribe", async () => {
@@ -98,12 +106,15 @@ describe( "Tile cache", () => {
             expect( hasTile( 1 )).toBe( false );
         });
 
-        it( "should return a thumbnail image when the caching has completed", async () => {
+         it( "should return full size source and thumbnail images when the caching has completed", async () => {
             await createGroupTile( 0, document );
 
-            const thumb = getTileForGroup( 0 );
+            const tile = getTileForGroup( 0 );
 
-            expect( thumb ).toEqual({ mock: "canvas" });
+            expect( tile ).toEqual({
+                source: { mock: "canvas" },
+                thumb: { mock: "thumb" }
+            });
         });
     });
 });

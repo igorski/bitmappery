@@ -34,6 +34,12 @@
             </div>
         </template>
         <template #actions>
+            <slider
+                v-model="fps"
+                :min="1"
+                :max="60"
+                :tooltip="'fps'"
+            />
             <button
                 v-t="'close'"
                 type="button"
@@ -47,6 +53,7 @@
 <script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal.vue";
+import Slider from "@/components/ui/slider/slider.vue";
 import { LayerTypes } from "@/definitions/layer-types";
 import { createGroupTile, hasTile, getTileForGroup } from "@/rendering/cache/tile-cache";
 import { getAllTileGroupsInDocument } from "@/utils/timeline-util";
@@ -59,15 +66,22 @@ export default {
     i18n: { messages },
     components: {
         Modal,
+        Slider,
     },
     data: () => ({
         name: "",
+        fps: 10,
         type: LayerTypes.LAYER_GRAPHIC,
     }),
     computed: {
         ...mapGetters([
             "activeDocument",
         ]),
+    },
+    watch: {
+        fps(): void {
+            this.startAnimation();
+        },
     },
     mounted(): void {
         this.prepare();
@@ -113,18 +127,21 @@ export default {
             this.startAnimation();
         },
         startAnimation(): void {
+            this.stopAnimation();
+
             const context = ( this.$refs.preview as HTMLCanvasElement ).getContext( "2d" )!;
             let index = 0;
             let max = this.snapshots.length;
 
+            // @todo RAF
             this.interval = window.setInterval(() => {
                 context.clearRect( 0, 0, this.tileWidth, this.tileHeight );
-                context.drawImage( this.snapshots[ index ], 0, 0, this.tileWidth, this.tileHeight );
+                context.drawImage( this.snapshots[ index ].source, 0, 0, this.tileWidth, this.tileHeight );
 
                 if ( ++index === max ) {
                     index = 0;
                 }
-            }, 1000 / 10 );
+            }, 1000 / this.fps );
         },
         stopAnimation(): void {
             window.clearInterval( this.interval );

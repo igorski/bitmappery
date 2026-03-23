@@ -21,11 +21,18 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Document, RelId } from "@/definitions/document";
+import { getPixelRatio, resizeImage } from "@/utils/canvas-util";
 import { createGroupSnapshot } from "@/utils/document-util";
 
-const tileCache = new Map<RelId, HTMLCanvasElement>;
+export const THUMB_HEIGHT = 50;
 
-type SubscriberCallback = ( id: RelId, data: HTMLCanvasElement ) => void;
+export type Tile = {
+    source: HTMLCanvasElement;
+    thumb: HTMLCanvasElement;
+};
+const tileCache = new Map<RelId, Tile>;
+
+type SubscriberCallback = ( id: RelId, data: Tile ) => void;
 const subscribers = new Map<string, SubscriberCallback>;
 
 export const subscribe = ( subscriberId: string, callback: SubscriberCallback ): void => {
@@ -40,20 +47,27 @@ export const unsubscribe = ( subscriberId: string ): void => {
 };
 
 export const createGroupTile = async ( id: RelId, document?: Document ): Promise<void> => {
-    const snapshot = await createGroupSnapshot( document, id );
-
     console.info( `creating tile for group ${id}` );
 
-    tileCache.set( id, snapshot );
+    const snapshot = await createGroupSnapshot( document, id );
+    const thumb = await resizeImage(
+        snapshot,
+        snapshot.height / snapshot.width * ( THUMB_HEIGHT * getPixelRatio() ), THUMB_HEIGHT * getPixelRatio()
+    );
+    const tile = {
+        source: snapshot,
+        thumb, 
+    }
+    tileCache.set( id, tile );
 
     for ( const subscriber of subscribers.values() ) {
-        subscriber( id, snapshot );
+        subscriber( id, tile );
     }
 };
 
 export const hasTile = ( id: RelId ): boolean => tileCache.has( id );
 
-export const getTileForGroup = ( id: RelId ): HTMLCanvasElement | undefined => {
+export const getTileForGroup = ( id: RelId ): Tile | undefined => {
     return tileCache.get( id );
 };
 
