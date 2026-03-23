@@ -52,7 +52,7 @@ export const getAllTileGroupsInDocument = ( activeDocument: Document ): RelId[] 
     const out = new Set<RelId>();
 
     for ( const layer of activeDocument.layers ) {
-        if ( layer.rel?.id !== undefined ) {
+        if ( layer.rel?.type === "tile" && layer.rel.id !== undefined ) {
             out.add( layer.rel.id );
         }
     }

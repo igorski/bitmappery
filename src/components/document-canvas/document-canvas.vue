@@ -70,7 +70,7 @@ import type { Viewport } from "zcanvas";
 import ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import GuideRenderer from "@/rendering/actors/guide-renderer";
 import FileImport from "@/components/file-import/file-import.vue";
-import type { Document, Layer } from "@/definitions/document";
+import type { Document, Layer, RelId } from "@/definitions/document";
 import { HEADER_HEIGHT } from "@/definitions/editor-properties";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import ToolTypes, { SELECTION_TOOLS, MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@/definitions/tool-types";
@@ -87,7 +87,7 @@ import { scaleToRatio } from "@/math/image-math";
 import { pointerToCanvasCoordinates } from "@/math/point-math";
 import { scale } from "@/math/unit-math";
 import { unblockedWait, rafCallback } from "@/utils/debounce-util";
-import { getAlignableObjects } from "@/utils/document-util";
+import { createGroupSnapshot, getAlignableObjects } from "@/utils/document-util";
 import { isMobile } from "@/utils/environment-util";
 import { hasBlend } from "@/utils/layer-util";
 import { fitInWindow } from "@/utils/zoom-util";
@@ -143,6 +143,7 @@ export default {
         ]),
         ...mapGetters([
             "activeDocument",
+            "activeGroup",
             "layers",
             "activeLayer",
             "activeTool",
@@ -150,6 +151,7 @@ export default {
             "antiAlias",
             "canvasDimensions",
             "hasSelection",
+            "showTrace",
             "snapAlign",
             "preferences",
             "pixelGrid",
@@ -163,7 +165,7 @@ export default {
             return `${name}.${PROJECT_FILE_EXTENSION}`;
         },
         hasGuideRenderer(): boolean {
-            return this.snapAlign || this.pixelGrid;
+            return this.snapAlign || this.pixelGrid || this.hasTimeline;
         },
         hasTimeline(): boolean {
             return this.activeDocument?.type === "timeline";
@@ -232,6 +234,12 @@ export default {
                 this.createLayerRenderers();
             },
         },
+        activeGroup( _id: RelId ): void {
+            this.createLayerRenderers();
+            this.$nextTick(() => {
+                this.handleTrace();
+            });
+        },
         activeLayer( _layer: Layer ): void {
             this.handleActiveLayer();
         },
@@ -273,6 +281,9 @@ export default {
         },
         antiAlias( value: boolean ): void {
             getCanvasInstance()?.setSmoothing( value );
+        },
+        showTrace( value: boolean ): void {
+            this.handleTrace();
         },
     },
     async mounted(): Promise<void> {
@@ -365,7 +376,7 @@ export default {
             this.centerCanvas = zCanvas.getWidth() < containerSize.width || zCanvas.getHeight() < containerSize.height ;
         },
         scaleWrapper(): void {
-            const marginBottom = this.hasTimeline ? 120 : 20;
+            const marginBottom = this.hasTimeline ? 175 : 20; // see timeline-panel height + margin
             if ( !mobileView ) {
                 this.wrapperHeight = `${window.innerHeight - containerSize.top - marginBottom}px`;
             }
@@ -422,6 +433,17 @@ export default {
                 case ToolTypes.EYEDROPPER:
                     canvasClasses.add( "cursor-pointer" );
                     break;
+            }
+        },
+        handleTrace(): void {
+            if ( this.showTrace && this.activeGroup > 0 ) {
+                createGroupSnapshot( this.activeDocument, this.activeGroup - 1 ).then( snapshot => {
+                    guideRenderer.setTrace( snapshot );
+                }).catch(() => {
+                    console.error( `Error during creation of group snapshot` );
+                });
+            } else {
+                guideRenderer.setTrace( null );
             }
         },
         updateGuideModes(): void {
@@ -488,7 +510,7 @@ export default {
             const { thumbnails } = this.preferences;
             
             this.layers?.forEach(( layer: Layer ) => {
-                if ( !layer.visible ) {
+                if ( !this.isVisible( layer )) {
                     if ( thumbnails && !hasThumbnail( layer.id )) {
                         // there is no renderer to trigger this creation, but we'd like to preview all the same
                         createLayerThumbnail( layer, false, this.activeDocument );
@@ -510,7 +532,7 @@ export default {
             // @todo can we do this in the loop above?
             let blendLayer = -1;
             this.layers?.forEach(( layer: Layer, index: number ) => {
-                if ( !layer.visible ) {
+                if ( !this.isVisible( layer )) {
                     return;
                 }
                 const renderer = getRendererForLayer( layer );
@@ -589,6 +611,15 @@ export default {
                 getCanvasInstance()?.interactionPane.stopOutsideSelection();
             }
         },
+        isVisible( layer: Layer ): boolean {
+            if ( !layer.visible ) {
+                return false;
+            }
+            if ( this.hasTimeline ) {
+                return layer.rel.id === this.activeGroup;
+            }
+            return true;
+        }
     },
 };
 </script>

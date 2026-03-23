@@ -96,7 +96,7 @@ import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_WINDOW,
     DROPBOX_FILE_SELECTOR, GOOGLE_DRIVE_FILE_SELECTOR, AWS_S3_FILE_SELECTOR,
     ADD_LAYER, LOAD_SELECTION, SAVE_SELECTION, PREFERENCES, RESIZE_CANVAS,
-    GRID_TO_LAYERS, STROKE_SELECTION
+    GRID_TO_LAYERS, STROKE_SELECTION, ANIMATION_PREVIEW,
 } from "@/definitions/modal-windows";
 
 // Create VueI18n instance with options
@@ -199,6 +199,9 @@ export default {
                     break;
                 case STROKE_SELECTION:
                     loadFn = () => import( "@/components/stroke-selection-window/stroke-selection-window.vue" );
+                    break;
+                case ANIMATION_PREVIEW:
+                    loadFn = () => import( "@/components/timeline-panel/animation-preview/animation-preview-window.vue" );
                     break;
             }
             return asyncComponent( "mw", loadFn );

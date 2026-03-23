@@ -1,6 +1,8 @@
 {
     "en-US": {
+        "timeline": "Timeline",
         "add": "Add tile",
+        "play": "Play animation",
         "clone": "Clone tile",
         "delete": "Delete tile"
     }
