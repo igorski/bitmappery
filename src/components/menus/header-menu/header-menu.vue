@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -303,10 +303,29 @@
                     @click="close()"
                 >
                     <li>
-                        <button v-t="'snapAlign'" type="button" :class="{ checked: snapAlign }" @click="canSnapAndAlign = !canSnapAndAlign"></button>
+                        <button
+                            v-t="'snapAlign'"
+                            type="button"
+                            :class="{ checked: snapAlign }"
+                            @click="canSnapAndAlign = !canSnapAndAlign"
+                        ></button>
                     </li>
                     <li>
-                        <button v-t="'antiAlias'" type="button" :class="{ checked: antiAlias }" @click="useAntiAlias = !useAntiAlias"></button>
+                        <button
+                            v-t="'antiAlias'"
+                            type="button"
+                            :class="{ checked: antiAlias }"
+                            @click="useAntiAlias = !useAntiAlias"
+                        ></button>
+                    </li>
+                    <li>
+                        <button
+                            v-t="'useTracing'"
+                            type="button"
+                            :class="{ checked: useTracing }"
+                            :disabled="!canUseTracing"
+                            @click="useTracing = !useTracing"
+                        ></button>
                     </li>
                     <li>
                         <button
@@ -411,6 +430,7 @@ export default {
             "canRedo",
             "getPreferences",
             "hasSelection",
+            "showTrace",
             "snapAlign",
             "pixelGrid",
         ]),
@@ -452,11 +472,22 @@ export default {
                 this.setPixelGrid( value );
             },
         },
+        useTracing: {
+            get(): boolean {
+                return this.showTrace;
+            },
+            set( value: boolean ): void {
+                this.setShowTrace( value );
+            },
+        },
         fullscreenTooltip(): string {
             return `${this.isFullscreen ? this.$t( "minimize" ) : this.$t( "maximize" )} (Shift + F)`;
         },
         canUsePixelGrid(): boolean {
             return this.activeDocument?.width <= MAX_SPRITESHEET_WIDTH;
+        },
+        canUseTracing(): boolean {
+            return this.activeDocument?.type === "timeline";
         },
     },
     watch: {
@@ -491,6 +522,7 @@ export default {
             "closeActiveDocument",
             "cropActiveDocumentContent",
             "setPreferences",
+            "setShowTrace",
             "setSnapAlign",
             "setAntiAlias",
             "setPixelGrid",

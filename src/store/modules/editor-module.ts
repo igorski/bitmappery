@@ -34,6 +34,7 @@ export interface EditorState {
     activeTool: ToolTypes;
     activeColor: string;
     activeGroup: RelId;
+    showTrace  : boolean;
     options: {
         [ ToolTypes.ZOOM ]  : ZoomToolOptions;
         [ ToolTypes.BRUSH ] : BrushToolOptions;
@@ -53,6 +54,7 @@ export const createEditorState = ( props?: Partial<EditorState> ): EditorState =
     activeTool  : null,
     activeColor : "rgba(255,0,0,1)",
     activeGroup : 0,
+    showTrace   : true,
     options : {
         [ ToolTypes.ZOOM ]  : { level: 1 },
         [ ToolTypes.BRUSH ] : { size: 10, type: BrushTypes.LINE, opacity: 1, strokes: 1, thickness: .5 },
@@ -75,6 +77,7 @@ const EditorModule: Module<EditorState, any> = {
         activeTool        : ( state: EditorState ): ToolTypes => state.activeTool,
         activeColor       : ( state: EditorState ): string => state.activeColor,
         activeGroup       : ( state: EditorState ): RelId => state.activeGroup,
+        showTrace         : ( state: EditorState ): boolean => state.showTrace,
         clonedFilters     : ( state: EditorState ): Filters => state.clonedFilters,
         // @ts-expect-error Element implicitly has an 'any' type because expression of type 'ToolTypes' can't be used to index type
         activeToolOptions : ( state: EditorState ): any => state.options[ state.activeTool ],
@@ -103,6 +106,9 @@ const EditorModule: Module<EditorState, any> = {
         },
         setActiveGroup( state: EditorState, value: RelId ): void {
             state.activeGroup = value;
+        },
+        setShowTrace( state: EditorState, value: boolean ): void {
+            state.showTrace = value;
         },
         setToolOptionValue( state: EditorState, { tool, option, value }: { tool: ToolTypes, option: string, value: any }): void {
             // @ts-expect-error Element implicitly has an 'any' type because expression of type 'ToolTypes' can't be used to index type

@@ -26,6 +26,7 @@ describe( "Vuex editor module", () => {
             activeTool: ToolTypes.CLONE,
             activeColor: "red",
             activeGroup: 2,
+            showTrace : true,
             options: { ...BASE_OPTIONS },
             snapAlign: true,
             antiAlias: true,
@@ -47,6 +48,10 @@ describe( "Vuex editor module", () => {
 
         it( "should be able to return the active group", () => {
             expect( getters.activeGroup( state, getters, {}, {} )).toEqual( 2 );
+        });
+
+        it( "should be able to return whether to show a trace outline", () => {
+            expect( getters.showTrace( state, getters, {}, {} )).toEqual( true );
         });
 
         it( "should be able to retrieve the selection options", () => {
@@ -97,6 +102,7 @@ describe( "Vuex editor module", () => {
             options: { ...BASE_OPTIONS },
             snapAlign: true,
             antiAlias: true,
+            showTrace: true,
             clonedFilters: null,
         });
 
@@ -131,6 +137,11 @@ describe( "Vuex editor module", () => {
         it( "should be able to set the anti-aliasing state", () => {
             mutations.setAntiAlias( state, false );
             expect( state.antiAlias ).toBe( false );
+        });
+
+        it( "should be able to set the show trace state", () => {
+            mutations.setShowTrace( state, false );
+            expect( state.showTrace ).toBe( false );
         });
 
         it( "should be able to set the cloned filters", () => {
