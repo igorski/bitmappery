@@ -21,10 +21,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { type Rectangle, type Size } from "zcanvas";
-import type { Document, Shape, Text, Layer } from "@/definitions/document";
+import type { Document, Layer, RelId, Shape, Text } from "@/definitions/document";
 import type { CanvasDrawable, CopiedSelection } from "@/definitions/editor";
 import { renderEffectsForLayer } from "@/services/render-service";
-import { createRendererForLayer, getRendererForLayer } from "@/factories/renderer-factory";
+import { createRendererForLayer, flushLayerRenderers, getRendererForLayer, hasRendererForLayer } from "@/factories/renderer-factory";
 import { rotateRectangle, areEqual } from "@/math/rectangle-math";
 import { fastRound } from "@/math/unit-math";
 import { reverseTransformation } from "@/rendering/operations/transforming";
@@ -33,6 +33,7 @@ import { getCanvasInstance } from "@/services/canvas-service";
 import { createCanvas, cloneCanvas, getPixelRatio } from "@/utils/canvas-util";
 import { SmartExecutor } from "@/utils/debounce-util";
 import { selectionToRectangle } from "@/utils/selection-util";
+import { getLayersByTile } from "@/utils/timeline-util";
 
 /**
  * Creates a snapshot of the current document. THIS MULTIPLIES FOR THE DEVICE PIXEL RATIO
@@ -67,13 +68,41 @@ export const createLayerSnapshot = async ( layer: Layer, optCrop?: Size ): Promi
     const { zcvs, cvs, ctx } = createFullSizeZCanvas({ width, height });
 
     // if the layer is currently invisible, it has no renderer, create it lazily here.
-    const renderer = !layer.visible ? createRendererForLayer( zcvs as ZoomableCanvas, layer, false ) : getRendererForLayer( layer );
+    const renderer = !layer.visible ? createRendererForLayer( zcvs, layer, false ) : getRendererForLayer( layer );
 
     // ensure all layer effects are rendered, note we omit caching
     await renderEffectsForLayer( layer, false );
 
     // draw existing layers onto temporary canvas at full document scale
     renderer?.draw( ctx, zcvs.getViewport(), true );
+    zcvs.dispose();
+
+    return cvs;
+};
+
+/**
+ * Creates a snapshot of all visible layers for a specific group in the Document
+ * THIS MULTIPLIES FOR THE DEVICE PIXEL RATIO (as it mimics the onscreen presentation of zCanvas)
+ */
+export const createGroupSnapshot = async ( document: Document, group: RelId ): Promise<HTMLCanvasElement> => {
+    const { width, height } = document;
+    const layers = getLayersByTile( document, group ).filter( layer => layer.visible );
+
+    const { zcvs, cvs, ctx } = createFullSizeZCanvas({ width, height });
+
+    for ( const layer of layers ) {
+        const hadRenderer = hasRendererForLayer( layer );
+        const renderer = hadRenderer ? getRendererForLayer( layer ) : createRendererForLayer( zcvs, layer, false );
+
+        // similar to createLayerSnapshot
+        await renderEffectsForLayer( layer, false );
+        renderer?.draw( ctx, zcvs.getViewport(), true );
+
+        // free allocated memory
+        if ( !hadRenderer ) {
+            flushLayerRenderers( layer );
+        }
+    }
     zcvs.dispose();
 
     return cvs;

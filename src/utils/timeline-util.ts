@@ -47,3 +47,14 @@ export const getIndexOfLastLayerInTileGroup = ( activeDocument: Document, tile: 
     const layers = getLayersByTile( activeDocument, tile );
     return activeDocument.layers.indexOf( layers[ layers.length - 1 ]);
 };
+
+export const getAllTileGroupsInDocument = ( activeDocument: Document ): RelId[] => {
+    const out = new Set<RelId>();
+
+    for ( const layer of activeDocument.layers ) {
+        if ( layer.rel?.id !== undefined ) {
+            out.add( layer.rel.id );
+        }
+    }
+    return [ ...out ];
+};

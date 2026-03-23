@@ -6,6 +6,7 @@ mockZCanvas();
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import {
+    getAllTileGroupsInDocument,
     getLayersByTile,
     getIndexOfFirstLayerInTileGroup,
     getIndexOfLastLayerInTileGroup,
@@ -27,6 +28,10 @@ describe( "Timeline utilities", () => {
             tile2Layer1, tile2Layer2, tile2Layer3,
             tile3Layer1,
         ]
+    });
+
+    it( "should be able to retrieve all unique Layer group ids from a Document", () => {
+        expect( getAllTileGroupsInDocument( activeDocument )).toEqual([ 0, 1, 2 ]);
     });
 
     it( "should be able to retrieve all Layers by their tile grouping", () => {
