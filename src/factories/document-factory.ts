@@ -34,7 +34,7 @@ const DocumentFactory = {
      * all layers and image content)
      */
     create({
-        name = "New document", width = 1000, height = 1000, layers = [], selections = {}, type = "default"
+        name = "New document", width = 1000, height = 1000, layers = [], selections = {}, type = "default", meta = {},
     }: DocumentProps = {}): Document {
         if ( !layers.length ) {
             layers = [ LayerFactory.create({ width, height }) ];
@@ -47,6 +47,7 @@ const DocumentFactory = {
             height,
             selections,
             type,
+            meta,
             // only during runtime, will not be serialized
             activeSelection: [],
             invertSelection: false,
@@ -67,6 +68,9 @@ const DocumentFactory = {
             l: layers,
             s: { ...document.selections },
             t: document.type,
+            m: {
+                f: document.meta.fps,
+            },
         };
     },
 
@@ -85,6 +89,9 @@ const DocumentFactory = {
             layers,
             selections: document.s,
             type: document.t,
+            meta: {
+                fps: document.m?.f,
+            }
         });
     },
 

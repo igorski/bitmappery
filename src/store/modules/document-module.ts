@@ -22,7 +22,7 @@
  */
 import type { ActionContext, Module } from "vuex";
 import type { Rectangle, Size } from "zcanvas";
-import type { Document, Layer, Transform, Selection } from "@/definitions/document";
+import type { Document, DocumentMeta, Layer, Transform, Selection } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { createRendererForLayer, flushLayerRenderers, runRendererFn, getRendererForLayer } from "@/factories/renderer-factory";
@@ -257,6 +257,9 @@ const DocumentModule: Module<DocumentState, any> = {
         },
         updateGroups( state: DocumentState, values: number[] ): void {
             state.documents[ state.activeIndex ].groups = values;
+        },
+        updateMeta( state: DocumentState, value: DocumentMeta ): void {
+            state.documents[ state.activeIndex ].meta = value;
         },
     },
     actions: {

@@ -26,6 +26,7 @@ describe( "Document factory", () => {
                 layers: [ { name: "layer1" } ],
                 selections: {},
                 type: "default",
+                meta: {},
                 activeSelection: [],
                 invertSelection: false,
                 groups: [],
@@ -43,6 +44,9 @@ describe( "Document factory", () => {
                 height: 900,
                 layers,
                 type: "timeline",
+                meta: {
+                    fps: 15,
+                },
                 selections: { foo: [[ { x: 0, y: 0 } ]] }
             });
             expect( document ).toEqual({
@@ -53,6 +57,9 @@ describe( "Document factory", () => {
                 layers,
                 selections: { foo: [[ { x: 0, y: 0 } ]] },
                 type: "timeline",
+                meta: {
+                    fps: 15,
+                },
                 activeSelection: [],
                 invertSelection: false,
                 groups: [],
@@ -77,6 +84,9 @@ describe( "Document factory", () => {
                 layers,
                 selections,
                 type: "timeline",
+                meta: {
+                    fps: 15,
+                },
             });
             const serializeLayerSpy = vi.spyOn( LayerFactory, "serialize" ).mockImplementation( data => JSON.stringify( data ));
             const deserializeLayerSpy = vi.spyOn( LayerFactory, "deserialize" ).mockImplementation( data => JSON.parse( data ));
@@ -110,6 +120,17 @@ describe( "Document factory", () => {
             const deserialized = await DocumentFactory.deserialize( serialized );
 
             expect( deserialized.type ).toEqual( "default" );
+        });
+
+        it( "should an empty meta structure for legacy documents", async () => {
+            const document = DocumentFactory.create();
+
+            const serialized = DocumentFactory.serialize( document );
+            delete serialized.m;
+
+            const deserialized = await DocumentFactory.deserialize( serialized );
+
+            expect( deserialized.meta ).toEqual( {} );
         });
     });
 });

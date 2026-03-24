@@ -79,11 +79,13 @@ export default {
         ]),
     },
     watch: {
-        fps(): void {
+        fps( fps: number ): void {
+            this.updateMeta({ fps });
             this.startAnimation();
         },
     },
     mounted(): void {
+        this.fps = this.activeDocument.meta.fps ?? 10;
         this.prepare();
     },
     beforeUnmount(): void {
@@ -95,6 +97,7 @@ export default {
             "closeModal",
             "setLoading",
             "unsetLoading",
+            "updateMeta",
         ]),
         async prepare(): Promise<void> {
             this.setLoading( "ani" );

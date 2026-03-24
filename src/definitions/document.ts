@@ -104,6 +104,9 @@ export type Shape = Point[];
 export type Selection = Shape[];
 
 export type DocumentType = "default" | "timeline";
+export type DocumentMeta = {
+    fps?: number;
+};
 export type Document = {
     id: string;
     name: string;
@@ -112,6 +115,7 @@ export type Document = {
     height: number;
     selections: Record<string, Selection>;
     type: DocumentType;
+    meta: DocumentMeta;
     // the below are only used at runtime, will not be serialized
     activeSelection: Selection;
     invertSelection: boolean;

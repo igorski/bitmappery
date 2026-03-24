@@ -778,6 +778,21 @@ describe( "Vuex document module", () => {
             mutations.updateGroups( state, [ 0, 1, 2 ]);
 
             expect( state.documents[ 0 ].groups ).toEqual([ 0, 1, 2 ]);
-        })
+        });
+
+        it( "should be able to update the Documents metadata", () => {
+            const state = createDocumentState({
+                documents: [ DocumentFactory.create() ],
+                activeIndex: 0,
+            });
+
+            mutations.updateMeta( state, {
+                fps: 10,
+            });
+
+            expect( state.documents[ 0 ].meta ).toEqual({
+                fps: 10,
+            });
+        });
     });
 });
