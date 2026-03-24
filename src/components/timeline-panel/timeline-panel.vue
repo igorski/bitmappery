@@ -208,7 +208,6 @@ export default {
 @use "@/styles/_mixins";
 @use "@/styles/_variables";
 @use "@/styles/component";
-@use "@/styles/typography";
 @use "@/styles/ui";
 
 .timeline {
@@ -232,6 +231,12 @@ export default {
         &--active {
             border-color: #FFF;
         }
+    }
+
+    @include mixins.mobile() {
+        position: fixed;
+        width: 100%;
+        bottom: variables.$heading-height * 2;
     }
 }
 
