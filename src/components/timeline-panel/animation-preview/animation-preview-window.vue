@@ -79,7 +79,7 @@ export default {
     watch: {
         fps( fps: number ): void {
             this.updateMeta({ fps });
-            this.startAnimation();
+            this.renderInterval = 1000 / fps;
         },
     },
     mounted(): void {
@@ -129,24 +129,38 @@ export default {
             this.startAnimation();
         },
         startAnimation(): void {
-            this.stopAnimation();
-
             const context = ( this.$refs.preview as HTMLCanvasElement ).getContext( "2d" )!;
+
             let index = 0;
             let max = this.snapshots.length;
+            this.renderInterval = 1000 / this.fps;
+            let lastRender = window.performance.now();
 
-            // @todo RAF
-            this.interval = window.setInterval(() => {
+            const requestAniFrame = () => {
+                this.interval = window.requestAnimationFrame( update );
+            };
+
+            const update = ( now: DOMHighResTimeStamp ) => {
+                const delta = now - lastRender;
+
+                requestAniFrame();
+
+                if (( delta / this.renderInterval ) < 0.9 ) {
+                    return;
+                }
+                
+                lastRender = now;
                 context.clearRect( 0, 0, this.tileWidth, this.tileHeight );
                 context.drawImage( this.snapshots[ index ].source, 0, 0, this.tileWidth, this.tileHeight );
 
                 if ( ++index === max ) {
                     index = 0;
                 }
-            }, 1000 / this.fps );
+            };
+            requestAniFrame();
         },
         stopAnimation(): void {
-            window.clearInterval( this.interval );
+            window.cancelAnimationFrame( this.interval );
         },
     },
 };
