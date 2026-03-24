@@ -46,6 +46,8 @@
                     :class="{
                         'timeline__tile--active': tile === activeGroup
                     }"
+                    :width="thumbSize.width"
+                    :height="thumbSize.height"
                 >
                 </canvas>
             </div>
@@ -79,13 +81,16 @@
 <script lang="ts">
 import { defineAsyncComponent } from "vue";
 import { mapGetters, mapMutations } from "vuex";
+import { type Size } from "zcanvas";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import type { Document, RelId } from "@/definitions/document";
 import { ANIMATION_PREVIEW } from "@/definitions/modal-windows";
-import { createGroupTile, flushTileCache, subscribe, type Tile, unsubscribe } from "@/rendering/cache/tile-cache";
+import { scaleToFixedHeight } from "@/math/image-math";
+import { createGroupTile, flushTileCache, subscribe, THUMB_HEIGHT, type Tile, unsubscribe } from "@/rendering/cache/tile-cache";
 import { addTile } from "@/store/actions/tile-add";
 import { cloneTile } from "@/store/actions/tile-clone";
 import { deleteTile } from "@/store/actions/tile-delete";
+import { getPixelRatio } from "@/utils/canvas-util";
 import { SmartExecutor } from "@/utils/debounce-util";
 import { getAllTileGroupsInDocument, getIndexOfFirstLayerInTileGroup } from "@/utils/timeline-util";
 import messages from "./messages.json";
@@ -110,6 +115,9 @@ export default {
             "activeGroup",
             "layers",
         ]),
+        thumbSize(): Size {
+            return scaleToFixedHeight( this.activeDocument?.width, this.activeDocument?.height, THUMB_HEIGHT * getPixelRatio());
+        },
     },
     watch: {
         activeDocument: {
@@ -225,7 +233,7 @@ export default {
     &__tile {
         cursor: pointer;
         border: 1px solid colors.$color-lines;
-        width: 50px; // see tile-cache THUMB_HEIGHT
+        height: 50px; // see tile-cache THUMB_HEIGHT
         background-color: #FFF;
 
         &--active {

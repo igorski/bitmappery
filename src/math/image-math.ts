@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -56,6 +56,28 @@ export const scaleToRatio = ( imageWidth: number, imageHeight: number, destWidth
     }
     return {
         width: destWidth, height
+    };
+};
+
+/**
+ * Scales the provided dimensions to provided width, with the resulting height matching the original ratio
+ */
+export const scaleToFixedWidth = ( imageWidth: number, imageHeight: number, destWidth: number ): Size => {
+    const ratio = imageHeight / imageWidth;
+    return {
+        width: destWidth,
+        height: destWidth * ratio
+    };
+};
+
+/**
+ * Scales the provided dimensions to provided height, with the resulting width matching the original ratio
+ */
+export const scaleToFixedHeight = ( imageWidth: number, imageHeight: number, destHeight: number ): Size => {
+    const ratio = imageWidth / imageHeight;
+    return {
+        width: destHeight * ratio,
+        height: destHeight
     };
 };
 

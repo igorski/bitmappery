@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Document, RelId } from "@/definitions/document";
+import { scaleToFixedHeight } from "@/math/image-math";
 import { getPixelRatio, resizeImage } from "@/utils/canvas-util";
 import { createGroupSnapshot } from "@/utils/document-util";
 
@@ -50,16 +51,16 @@ export const createGroupTile = async ( id: RelId, document?: Document ): Promise
     console.info( `creating tile for group ${id}` );
 
     const snapshot = await createGroupSnapshot( document, id );
+    const thumbSize = scaleToFixedHeight( snapshot.width, snapshot.height, THUMB_HEIGHT * getPixelRatio());
     const thumb = await resizeImage(
-        snapshot,
-        snapshot.height / snapshot.width * ( THUMB_HEIGHT * getPixelRatio() ), THUMB_HEIGHT * getPixelRatio()
+        snapshot, thumbSize.width, thumbSize.height,
     );
     const tile = {
         source: snapshot,
         thumb, 
     }
     tileCache.set( id, tile );
-
+console.info('tile created at ' + thumbSize.width + ' x ' + thumbSize.height)
     for ( const subscriber of subscribers.values() ) {
         subscriber( id, tile );
     }

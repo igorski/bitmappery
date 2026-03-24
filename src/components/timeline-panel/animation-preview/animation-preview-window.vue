@@ -55,12 +55,13 @@ import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import Slider from "@/components/ui/slider/slider.vue";
 import { LayerTypes } from "@/definitions/layer-types";
+import { scaleToFixedWidth } from "@/math/image-math";
 import { createGroupTile, hasTile, getTileForGroup } from "@/rendering/cache/tile-cache";
 import { getAllTileGroupsInDocument } from "@/utils/timeline-util";
-import { resizeImage } from "@/utils/canvas-util";
+import { getPixelRatio, resizeImage } from "@/utils/canvas-util";
 import messages from "./messages.json";
 
-const SIZE = 300;
+const ANIMATION_WIDTH = 300;
 
 export default {
     i18n: { messages },
@@ -107,8 +108,10 @@ export default {
 
             const { width, height } = this.activeDocument;
 
-            this.tileWidth  = SIZE;
-            this.tileHeight = width / height * SIZE;
+            const tileSize = scaleToFixedWidth( width, height, ANIMATION_WIDTH * getPixelRatio());
+
+            this.tileWidth  = tileSize.width;
+            this.tileHeight = tileSize.height;
 
             const canvas = ( this.$refs.preview as HTMLCanvasElement );
             canvas.width  = this.tileWidth;
@@ -120,7 +123,7 @@ export default {
                 }
                 let snapshot = getTileForGroup( id );
 
-                if ( snapshot.width > this.tileWidth ) {
+                if ( snapshot.width > this.tileWidth || snapshot.height > this.tileHeight ) {
                     snapshot = await resizeImage( snapshot, this.tileWidth, this.tileHeight );
                 }
                 this.snapshots.push( snapshot );
@@ -162,11 +165,13 @@ export default {
 }
 
 .animation-preview {
-    text-align: center;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    justify-content: center;
 
     &__canvas {
-        width: 300px;
-        height: 300px;
+        width: 300px; // see ANIMATION_WIDTH
     }
 }
 </style>

@@ -3,7 +3,10 @@ import { mockZCanvas } from "../mocks";
 mockZCanvas();
 
 import { it, describe, expect } from "vitest";
-import { constrain, isPortrait, isLandscape, isSquare } from "@/math/image-math";
+import {
+    constrain, isPortrait, isLandscape, isSquare,
+    scaleToFixedWidth, scaleToFixedHeight,
+} from "@/math/image-math";
 
 describe( "Image math utilities", () => {
     describe( "When constrainting an image to the maximum supported size in megapixels", () => {
@@ -49,6 +52,46 @@ describe( "Image math utilities", () => {
             expect( isSquare( PORTRAIT.width,  PORTRAIT.height )).toBe( false );
             expect( isSquare( LANDSCAPE.width, LANDSCAPE.height )).toBe( false );
             expect( isSquare( SQUARE.width,    SQUARE.height )).toBe( true );
+        });
+    });
+
+    describe( "When scaling dimensions to match a specific width", () => {
+        it( "should correctly scale portrait ratios", () => {
+            expect(
+                scaleToFixedWidth( 400, 300, 200 )
+            ).toEqual({ width: 200, height: 150 });
+        });
+
+        it( "should correctly scale landscape ratios", () => {
+            expect(
+                scaleToFixedWidth( 400, 600, 200 )
+            ).toEqual({ width: 200, height: 300 });
+        });
+
+        it( "should correctly scale square ratios", () => {
+            expect(
+                scaleToFixedWidth( 400, 400, 200 )
+            ).toEqual({ width: 200, height: 200 });
+        });
+    });
+
+    describe( "When scaling dimensions to match a specific height", () => {
+        it( "should correctly scale portrait ratios", () => {
+            expect(
+                scaleToFixedHeight( 400, 300, 150 )
+            ).toEqual({ width: 200, height: 150 });
+        });
+
+        it( "should correctly scale landscape ratios", () => {
+            expect(
+                scaleToFixedHeight( 300, 600, 200 )
+            ).toEqual({ width: 100, height: 200 });
+        });
+
+        it( "should correctly scale square ratios", () => {
+            expect(
+                scaleToFixedHeight( 400, 400, 200 )
+            ).toEqual({ width: 200, height: 200 });
         });
     });
 });
