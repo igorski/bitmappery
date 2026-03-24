@@ -10,6 +10,7 @@ import {
     getLayersByTile,
     getIndexOfFirstLayerInTileGroup,
     getIndexOfLastLayerInTileGroup,
+    getTileByLayer,
 } from "@/utils/timeline-util";
 
 describe( "Timeline utilities", () => {
@@ -62,5 +63,11 @@ describe( "Timeline utilities", () => {
         expect( tile1lastIndex ).toEqual( 1 );
         expect( tile2lastIndex ).toEqual( 4 );
         expect( tile3lastIndex ).toEqual( 5 );
+    });
+
+    it( "should be able to retrieve the tile group id for a specific Layer by the Layers id", () => {
+        expect(
+            getTileByLayer( activeDocument, tile2Layer2.id )
+        ).toEqual( 1 );
     });
 });

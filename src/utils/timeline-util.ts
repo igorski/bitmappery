@@ -30,6 +30,10 @@ export const getLayersByTile = ( activeDocument: Document, tile: RelId ): Layer[
     return activeDocument.layers.filter( layer => layer.rel.id === tile );
 };
 
+export const getTileByLayer = ( activeDocument: Document, layerId: string ): RelId | undefined => {
+    return activeDocument.layers.find(({ id }) => id === layerId )?.rel.id;
+};
+
 /**
  * Retrieves the index (relative to the Documents layer list) of the first layer
  * belonging to the provided tile group.

@@ -89,14 +89,19 @@ import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleBu
 import type { Document, RelId } from "@/definitions/document";
 import { ANIMATION_PREVIEW } from "@/definitions/modal-windows";
 import { scaleToFixedHeight } from "@/math/image-math";
-import { createGroupTile, flushTileCache, subscribe, THUMB_HEIGHT, type Tile, unsubscribe } from "@/rendering/cache/tile-cache";
+import {
+    createGroupTile, flushTileCache, subscribe as subscribeTile, THUMB_HEIGHT, type Tile, unsubscribe as unsubscribeTile
+} from "@/rendering/cache/tile-cache";
+import { subscribe as subscribeThumbnail, unsubscribe as unsubscribeThumbnail } from "@/rendering/cache/thumbnail-cache";
 import { addTile } from "@/store/actions/tile-add";
 import { cloneTile } from "@/store/actions/tile-clone";
 import { deleteTile } from "@/store/actions/tile-delete";
 import { getPixelRatio } from "@/utils/canvas-util";
 import { SmartExecutor } from "@/utils/debounce-util";
-import { getAllTileGroupsInDocument, getIndexOfFirstLayerInTileGroup } from "@/utils/timeline-util";
+import { getAllTileGroupsInDocument, getIndexOfFirstLayerInTileGroup, getTileByLayer } from "@/utils/timeline-util";
 import messages from "./messages.json";
+
+const SUBSCRIPTION_TOKEN = "timeline"; // safe to declare outside of component as only one instance is used
 
 export default {
     i18n: { messages },
@@ -158,7 +163,7 @@ export default {
         }
     },
     mounted(): void {
-        subscribe( "timeline", ( id: RelId, tile: Tile ) => {
+        subscribeTile( SUBSCRIPTION_TOKEN, ( id: RelId, tile: Tile ) => {
             const el = this.$refs[ `thumb_${id}` ] as HTMLCanvasElement[];
             if ( el ) {
                 el[ 0 ].width = tile.thumb.width;
@@ -166,9 +171,19 @@ export default {
                 el[ 0 ].getContext( "2d" )!.drawImage( tile.thumb, 0, 0 );
             }
         });
+        // to manage on-the-fly updates of group tiles, we track changes to layer thumbnails
+        // as a convenient signal, with the additional bonus that thumbnail creation is already debounced
+        subscribeThumbnail( SUBSCRIPTION_TOKEN, ( layerId: string ) => {
+            console.info('thumbnail updated for layer ' + layerId + ' for tile:'+getTileByLayer(this.activeDocument, layerId));
+            const tile = getTileByLayer( this.activeDocument, layerId );
+            if ( tile !== undefined ) {
+                createGroupTile( tile, this.activeDocument );
+            }
+        });
     },
     beforeUnmount(): void {
-        unsubscribe( "timeline" );
+        unsubscribeTile( SUBSCRIPTION_TOKEN );
+        unsubscribeThumbnail( SUBSCRIPTION_TOKEN );
         flushTileCache();
     },
     methods: {

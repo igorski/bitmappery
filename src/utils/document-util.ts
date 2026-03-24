@@ -92,7 +92,7 @@ export const createGroupSnapshot = async ( document: Document, group: RelId ): P
 
     for ( const layer of layers ) {
         const hadRenderer = hasRendererForLayer( layer );
-        const renderer = hadRenderer ? getRendererForLayer( layer ) : createRendererForLayer( zcvs, layer, false );
+        const renderer = hadRenderer ? getRendererForLayer( layer ) : createRendererForLayer( zcvs, layer, false, false );
 
         // similar to createLayerSnapshot
         await renderEffectsForLayer( layer, false );

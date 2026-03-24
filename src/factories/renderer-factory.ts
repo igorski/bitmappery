@@ -72,7 +72,7 @@ export const flushRendererCache = (): void => {
  * Lazily retrieve / create a cached renderer to represent given
  * layer content on given zCanvas instance
  */
-export const createRendererForLayer = ( zCanvasInstance: ZoomableCanvas, layer: Layer, isInteractive = false ): LayerRenderer => {
+export const createRendererForLayer = ( zCanvasInstance: ZoomableCanvas, layer: Layer, isInteractive = false, cacheOnCreation = true ): LayerRenderer => {
     const { id } = layer;
     let output;
     if ( hasRendererForLayer( layer )) {
@@ -80,7 +80,7 @@ export const createRendererForLayer = ( zCanvasInstance: ZoomableCanvas, layer: 
     }
     // lazily create renderer
     if ( !output ) {
-        output = new LayerRenderer( layer );
+        output = new LayerRenderer( layer, cacheOnCreation );
         output.setDraggable( true );
         output.setInteractive( isInteractive );
         zCanvasInstance.addChild( output );

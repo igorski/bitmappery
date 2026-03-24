@@ -95,7 +95,7 @@ export default class LayerRenderer extends ZoomableSprite {
     protected _unmaskedBitmap: HTMLCanvasElement | undefined; // a reference to the effected source w/out mask applied
     protected _draggingMask: Point | undefined;
 
-    constructor( layer: Layer ) {
+    constructor( layer: Layer, cacheOnCreation = true ) {
         const { left, top, width, height } = layer;
         super({ x: left, y: top, width, height }); // zCanvas.sprite inheritance
 
@@ -115,7 +115,10 @@ export default class LayerRenderer extends ZoomableSprite {
         this._brush = BrushFactory.create();
 
         this.setActionTarget();
-        this.cacheEffects();
+        
+        if ( cacheOnCreation ) {
+            this.cacheEffects();
+        }
     }
 
     setActionTarget( target: "source" | "mask" = "source" ): void {

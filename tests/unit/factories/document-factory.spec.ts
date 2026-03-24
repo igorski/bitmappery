@@ -122,7 +122,7 @@ describe( "Document factory", () => {
             expect( deserialized.type ).toEqual( "default" );
         });
 
-        it( "should an empty meta structure for legacy documents", async () => {
+        it( "should create an empty meta structure for legacy documents", async () => {
             const document = DocumentFactory.create();
 
             const serialized = DocumentFactory.serialize( document );
