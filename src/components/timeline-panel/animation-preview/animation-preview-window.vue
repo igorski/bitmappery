@@ -34,18 +34,15 @@
             </div>
         </template>
         <template #actions>
-            <slider
-                v-model="fps"
-                :min="1"
-                :max="60"
-                :tooltip="'fps'"
-            />
-            <button
-                v-t="'close'"
-                type="button"
-                class="button"
-                @click="closeModal()"
-            ></button>
+            <div class="animation-preview__controls">
+                <h2 v-t="'frameRate'"></h2>
+                <slider
+                    v-model="fps"
+                    :min="1"
+                    :max="60"
+                    :tooltip="'fps'"
+                />
+            </div>
         </template>
     </modal>
 </template>
@@ -95,7 +92,6 @@ export default {
     },
     methods: {
         ...mapMutations([
-            "closeModal",
             "setLoading",
             "unsetLoading",
             "updateMeta",
@@ -157,6 +153,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@use "@/styles/_colors";
 @use "@/styles/_variables";
 @use "@/styles/ui";
 
@@ -172,6 +169,14 @@ export default {
 
     &__canvas {
         width: 300px; // see ANIMATION_WIDTH
+    }
+
+    &__controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        border-top: 1px dashed colors.$color-bg;
     }
 }
 </style>

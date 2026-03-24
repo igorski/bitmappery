@@ -60,7 +60,7 @@ export const createGroupTile = async ( id: RelId, document?: Document ): Promise
         thumb, 
     }
     tileCache.set( id, tile );
-console.info('tile created at ' + thumbSize.width + ' x ' + thumbSize.height)
+
     for ( const subscriber of subscribers.values() ) {
         subscriber( id, tile );
     }

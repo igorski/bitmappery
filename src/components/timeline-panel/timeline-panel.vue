@@ -26,13 +26,16 @@
             <div class="component__title" v-t="'timeline'"></div>
             <button
                 type="button"
-                v-t="'add'"
+                :title="$t('add')"
                 @click="handleAdd()"
-            ></button>
+                class="button button--small timeline__button-add"
+            >+</button>
             <button
                 type="button"
                 v-t="'play'"
+                :title="$t('previewAnimation')"
                 @click="handlePlay()"
+                class="button button--small"
             ></button>
         </div>
         <div class="component__content">
@@ -218,6 +221,8 @@ export default {
 @use "@/styles/component";
 @use "@/styles/ui";
 
+@include ui.nestedMenu();
+
 .timeline {
     @include component.component();
 
@@ -232,12 +237,12 @@ export default {
 
     &__tile {
         cursor: pointer;
-        border: 1px solid colors.$color-lines;
+        border: 2px solid transparent;//colors.$color-lines;
         height: 50px; // see tile-cache THUMB_HEIGHT
         background-color: #FFF;
 
         &--active {
-            border-color: #FFF;
+            border-color: colors.$color-1;
         }
     }
 
@@ -246,14 +251,17 @@ export default {
         width: 100%;
         bottom: variables.$heading-height * 2;
     }
+
+    &__button-add {
+        position: absolute;
+        right: variables.$spacing-medium;
+        bottom: variables.$spacing-medium;
+        z-index: 1;
+    }
 }
 
 .component__content {
     background: colors.$color-window-bg;
     overflow-x: auto;
-}
-
-.submenu {
-    @include ui.nestedMenu();
 }
 </style>
