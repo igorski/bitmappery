@@ -71,7 +71,6 @@ import ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import GuideRenderer from "@/rendering/actors/guide-renderer";
 import FileImport from "@/components/file-import/file-import.vue";
 import type { Document, Layer, RelId } from "@/definitions/document";
-import { HEADER_HEIGHT } from "@/definitions/editor-properties";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import ToolTypes, { SELECTION_TOOLS, MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@/definitions/tool-types";
 import {
@@ -110,6 +109,8 @@ const layerPool = new Map();
 // scale of the on-screen canvas relative to the document
 // eslint-disable-next-line no-unused-vars
 let xScale = 1, yScale = 1, zoom = 1, maxInScale = 1, maxOutScale = 1;
+
+const HEADER_HEIGHT = 40;
 
 function calculateCanvasBoundingBox(): void {
     const zCanvas = getCanvasInstance();

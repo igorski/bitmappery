@@ -387,7 +387,7 @@
 <script lang="ts">
 import { defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
-import { MAX_SPRITESHEET_WIDTH } from "@/definitions/editor-properties";
+import { isPixelArt } from "@/definitions/editor-properties";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_WINDOW, LOAD_SELECTION, SAVE_SELECTION,
     PREFERENCES, RESIZE_CANVAS, GRID_TO_LAYERS, STROKE_SELECTION
@@ -484,7 +484,10 @@ export default {
             return `${this.isFullscreen ? this.$t( "minimize" ) : this.$t( "maximize" )} (Shift + F)`;
         },
         canUsePixelGrid(): boolean {
-            return this.activeDocument?.width <= MAX_SPRITESHEET_WIDTH;
+            if ( !this.activeDocument ) {
+                return false;
+            }
+            return isPixelArt( this.activeDocument );
         },
         canUseTracing(): boolean {
             return this.activeDocument?.type === "timeline";

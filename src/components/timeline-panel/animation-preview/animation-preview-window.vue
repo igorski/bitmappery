@@ -53,8 +53,7 @@ import Modal from "@/components/modal/modal.vue";
 import Slider from "@/components/ui/slider/slider.vue";
 import { LayerTypes } from "@/definitions/layer-types";
 import { scaleToFixedWidth } from "@/math/image-math";
-import { createGroupTile, hasTile, getTileForGroup } from "@/rendering/cache/tile-cache";
-import { getAllTileGroupsInDocument } from "@/utils/timeline-util";
+import { renderAnimation } from "@/services/render-animation-service";
 import { getPixelRatio, resizeImage } from "@/utils/canvas-util";
 import messages from "./messages.json";
 
@@ -99,7 +98,6 @@ export default {
         async prepare(): Promise<void> {
             this.setLoading( "ani" );
 
-            const groups = getAllTileGroupsInDocument( this.activeDocument );
             this.snapshots = [] as HTMLCanvasElement[];
 
             const { width, height } = this.activeDocument;
@@ -113,16 +111,14 @@ export default {
             canvas.width  = this.tileWidth;
             canvas.height = this.tileHeight;
 
-            for ( const id of groups ) {
-                if ( !hasTile( id )) {
-                    await createGroupTile( id, this.activeDocument );
-                }
-                let snapshot = getTileForGroup( id );
+            const renders = await renderAnimation( this.activeDocument );
 
+            for ( const snapshot of renders ) {
+                let output = snapshot;
                 if ( snapshot.width > this.tileWidth || snapshot.height > this.tileHeight ) {
-                    snapshot = await resizeImage( snapshot, this.tileWidth, this.tileHeight );
+                    output = await resizeImage( snapshot, this.tileWidth, this.tileHeight );
                 }
-                this.snapshots.push( snapshot );
+                this.snapshots.push( output );
             }
             this.unsetLoading( "ani" );
 
@@ -151,7 +147,7 @@ export default {
                 
                 lastRender = now;
                 context.clearRect( 0, 0, this.tileWidth, this.tileHeight );
-                context.drawImage( this.snapshots[ index ].source, 0, 0, this.tileWidth, this.tileHeight );
+                context.drawImage( this.snapshots[ index ], 0, 0, this.tileWidth, this.tileHeight );
 
                 if ( ++index === max ) {
                     index = 0;

@@ -137,7 +137,7 @@ async function processQueue(): Promise<void> {
         thumbData.source = imageToBase64(
             await resizeImage( snapshot, width, height ), width, height, true
         );
-        smartExec.waitWhenBusy();
+        await smartExec.waitWhenBusy();
         broadcastUpdate( layerId );
     }
 }
