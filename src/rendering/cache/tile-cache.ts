@@ -47,10 +47,13 @@ export const unsubscribe = ( subscriberId: string ): void => {
     subscribers.delete( subscriberId );
 };
 
-export const createGroupTile = async ( id: RelId, document?: Document ): Promise<void> => {
+export const createGroupTile = async ( id: RelId, activeDocument?: Document ): Promise<void> => {
+    if ( !activeDocument ) {
+        return;
+    }
     console.info( `creating tile for group ${id}` );
 
-    const snapshot = await createGroupSnapshot( document, id );
+    const snapshot = await createGroupSnapshot( activeDocument, id );
     const thumbSize = scaleToFixedHeight( snapshot.width, snapshot.height, THUMB_HEIGHT * getPixelRatio());
     const thumb = await resizeImage(
         snapshot, thumbSize.width, thumbSize.height,

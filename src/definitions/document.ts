@@ -106,6 +106,7 @@ export type Selection = Shape[];
 export type DocumentType = "default" | "timeline";
 export type DocumentMeta = {
     fps?: number;
+    bgColor?: string; // transparent when empty
 };
 export type Document = {
     id: string;

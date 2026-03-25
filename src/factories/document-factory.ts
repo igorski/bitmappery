@@ -70,6 +70,7 @@ const DocumentFactory = {
             t: document.type,
             m: {
                 f: document.meta.fps,
+                b: document.meta.bgColor,
             },
         };
     },
@@ -91,6 +92,7 @@ const DocumentFactory = {
             type: document.t,
             meta: {
                 fps: document.m?.f,
+                bgColor: document.m?.b,
             }
         });
     },

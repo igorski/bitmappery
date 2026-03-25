@@ -46,7 +46,10 @@
             <div
                 ref="canvasContainer"
                 class="component__content"
-                :class="{ 'center': centerCanvas }"
+                :class="{
+                    'component__content--center': centerCanvas,
+                    'component__content--transparent': !hasBgColor,
+                }"
             ></div>
             <scrollbars
                 v-if="activeDocument"
@@ -165,6 +168,9 @@ export default {
             }
             return `${name}.${PROJECT_FILE_EXTENSION}`;
         },
+        hasBgColor(): boolean {
+            return this.activeDocument?.meta.bgColor !== undefined;
+        },
         hasGuideRenderer(): boolean {
             return this.snapAlign || this.pixelGrid || this.hasTimeline;
         },
@@ -185,9 +191,9 @@ export default {
             this.calcIdealDimensions();
         },
         activeDocument: {
-            handler( document?: Document ): void {
+            handler( activeDocument?: Document ): void {
                 // no active document or no document content
-                if ( !document?.layers ) {
+                if ( !activeDocument?.layers ) {
                     if ( getCanvasInstance() ) {
                         this.removeTouchListeners();
                         getCanvasInstance().dispose();
@@ -203,7 +209,7 @@ export default {
                         this.calcIdealDimensions( true );
                     });
                 }
-                const { id } = document;
+                const { id } = activeDocument;
                 // switching between documents
                 if ( id !== lastDocumentId ) {
                     lastDocumentId = id;
@@ -214,7 +220,9 @@ export default {
                     renderState.reset();
                     layerPool.clear();
                     this.calcIdealDimensions( true );
+                    
                     this.$nextTick( async (): Promise<void> => {
+                        getCanvasInstance().setBackgroundColor( activeDocument.meta.bgColor ?? null );
                         // previously active tool needs to update to new document ref
                         const tool = this.activeTool;
                         if ( tool === null ) {
@@ -654,8 +662,6 @@ export default {
         background-size: variables.$spacing-xlarge variables.$spacing-xlarge;
 
         canvas {
-            background: url( "../../assets-inline/images/document_transparent_bg.png" ) repeat;
-
             &.no-cursor {
                 cursor: none;
             }
@@ -670,7 +676,11 @@ export default {
             }
         }
 
-        &.center canvas {
+        &--transparent canvas {
+            background: url( "../../assets-inline/images/document_transparent_bg.png" ) repeat;
+        }
+
+        &--center canvas {
             @include mixins.large() {
                 position: absolute;
                 top: 50%;

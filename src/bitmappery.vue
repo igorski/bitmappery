@@ -159,7 +159,7 @@ export default {
                 default:
                     return null;
                 case CREATE_DOCUMENT:
-                    loadFn = () => import( "@/components/file-menu/create-document/create-document.vue" );
+                    loadFn = () => import( "@/components/file-menu/create-document-window/create-document-window.vue" );
                     break;
                 case RESIZE_DOCUMENT:
                     loadFn = () => import( "@/components/resize-document-window/resize-document-window.vue" );

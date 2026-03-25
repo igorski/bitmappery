@@ -42,6 +42,11 @@ import { getLayersByTile } from "@/utils/timeline-util";
 export const createDocumentSnapshot = async ( activeDocument: Document ): Promise<HTMLCanvasElement> => {
     const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
 
+    if ( activeDocument.meta.bgColor !== undefined ) {
+        ctx.fillStyle = activeDocument.meta.bgColor;
+        ctx.fillRect( 0, 0, cvs.width, cvs.height );
+    }
+
     // ensure all layer effects are rendered, note we omit caching
     const { layers } = activeDocument;
     for ( let i = 0, l = layers.length; i < l; ++i ) {
@@ -84,11 +89,16 @@ export const createLayerSnapshot = async ( layer: Layer, optCrop?: Size ): Promi
  * Creates a snapshot of all visible layers for a specific group in the Document
  * THIS MULTIPLIES FOR THE DEVICE PIXEL RATIO (as it mimics the onscreen presentation of zCanvas)
  */
-export const createGroupSnapshot = async ( document: Document, group: RelId ): Promise<HTMLCanvasElement> => {
-    const { width, height } = document;
-    const layers = getLayersByTile( document, group ).filter( layer => layer.visible );
+export const createGroupSnapshot = async ( activeDocument: Document, group: RelId ): Promise<HTMLCanvasElement> => {
+    const { width, height } = activeDocument;
+    const layers = getLayersByTile( activeDocument, group ).filter( layer => layer.visible );
 
     const { zcvs, cvs, ctx } = createFullSizeZCanvas({ width, height });
+
+    if ( activeDocument.meta.bgColor !== undefined ) {
+        ctx.fillStyle = activeDocument.meta.bgColor;
+        ctx.fillRect( 0, 0, cvs.width, cvs.height );
+    }
 
     for ( const layer of layers ) {
         const hadRenderer = hasRendererForLayer( layer );

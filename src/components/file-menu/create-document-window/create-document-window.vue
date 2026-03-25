@@ -46,6 +46,15 @@
                 <dimensions-formatter
                     v-model="dimensions"
                 />
+                <div class="wrapper input">
+                    <label v-t="'backgroundColor'"></label>
+                    <color-picker
+                        v-model="backgroundColor"
+                        v-tooltip="$t('color')"
+                        color-type="HEXA"
+                        @open="handleColorPickerOpen"
+                    />
+                </div>
             </div>
         </template>
         <template #actions>
@@ -71,13 +80,17 @@ import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import type { DocumentType } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
+import ColorPicker from "@/components/ui/color-picker/color-picker.vue";
 import DimensionsFormatter from "@/components/ui/dimensions-formatter/dimensions-formatter.vue";
 import { focus } from "@/utils/environment-util";
 import messages from "./messages.json";
 
+const TRANSPARENT_COLOR = "#FFFFFF00"; 
+
 export default {
     i18n: { messages },
     components: {
+        ColorPicker,
         DimensionsFormatter,
         Modal,
         SelectBox,
@@ -89,6 +102,8 @@ export default {
             width: 1000,
             height: 1000,
         },
+        backgroundColor: TRANSPARENT_COLOR,
+        transparent: true,
     }),
     computed: {
         ...mapGetters([
@@ -107,12 +122,22 @@ export default {
             "closeModal",
             "addNewDocument",
         ]),
+        handleColorPickerOpen(): void {
+            console.info('oooopen');
+            if ( this.backgroundColor === TRANSPARENT_COLOR ) {
+                this.backgroundColor = "#FFFFFF";
+            }
+        },
         async save(): Promise<void> {
+            const meta = {
+                bgColor: this.backgroundColor !== TRANSPARENT_COLOR ? this.backgroundColor : undefined,
+            };
             this.addNewDocument( DocumentFactory.create({
                 name   : this.name,
                 type   : this.type,
                 width  : Math.round( this.dimensions.width ),
                 height : Math.round( this.dimensions.height ),
+                meta,
             }));
             this.closeModal();
         },
@@ -124,6 +149,6 @@ export default {
 @use "@/styles/ui";
 
 .create-document {
-    @include ui.modalBase( 480px, 325px );
+    @include ui.modalBase( 480px, 365px );
 }
 </style>

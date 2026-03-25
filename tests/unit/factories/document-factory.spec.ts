@@ -46,6 +46,7 @@ describe( "Document factory", () => {
                 type: "timeline",
                 meta: {
                     fps: 15,
+                    bgColor: "#FF0000",
                 },
                 selections: { foo: [[ { x: 0, y: 0 } ]] }
             });
@@ -59,6 +60,7 @@ describe( "Document factory", () => {
                 type: "timeline",
                 meta: {
                     fps: 15,
+                    bgColor: "#FF0000",
                 },
                 activeSelection: [],
                 invertSelection: false,
@@ -86,6 +88,7 @@ describe( "Document factory", () => {
                 type: "timeline",
                 meta: {
                     fps: 15,
+                    bgColor: "#FF0000",
                 },
             });
             const serializeLayerSpy = vi.spyOn( LayerFactory, "serialize" ).mockImplementation( data => JSON.stringify( data ));

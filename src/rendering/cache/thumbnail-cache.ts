@@ -66,7 +66,7 @@ export const setEnabled = ( value: boolean ): void => {
 
 export const isEnabled = (): boolean => enabled;
 
-export const createLayerThumbnail = async ( layer: Layer, force = false, document?: Document ): Promise<void> => {
+export const createLayerThumbnail = async ( layer: Layer, force = false, activeDocument?: Document ): Promise<void> => {
     if ( !enabled ) {
         return;
     }
@@ -76,8 +76,8 @@ export const createLayerThumbnail = async ( layer: Layer, force = false, documen
         thumbnailCache.set( layer.id, {
             source: TRANSPARENT_IMAGE,
             size: {
-                width: document?.width ?? layer.width,
-                height: document?.height ?? layer.height,
+                width: activeDocument?.width ?? layer.width,
+                height: activeDocument?.height ?? layer.height,
             },
         });
         delay = 0; // instant render
@@ -137,8 +137,8 @@ async function processQueue(): Promise<void> {
         thumbData.source = imageToBase64(
             await resizeImage( snapshot, width, height ), width, height, true
         );
-        await smartExec.waitWhenBusy();
         broadcastUpdate( layerId );
+        await smartExec.waitWhenBusy();
     }
 }
 
