@@ -243,11 +243,13 @@ export default {
             return parseFloat(( this.quality / 100 ).toFixed( 2 ));
         },
         canCreateSpriteSheet(): boolean {
-            return this.activeDocument.layers.length > 1 && isPixelArt( this.activeDocument ) && !this.exportAnimation;
+            return this.isMultiLayer && isPixelArt( this.activeDocument ) && !this.exportAnimation;
         },
         canCreateAnimatedGIF(): boolean {
-            return this.canCreateGIF && this.type === GIF.mime &&
-                   this.activeDocument.layers.length > 1 && this.canAnimate;
+            return this.canCreateGIF && this.type === GIF.mime && this.isMultiLayer && this.canAnimate;
+        },
+        isMultiLayer(): boolean {
+            return this.activeDocument.layers.length > 1;
         },
         isLandscape(): boolean {
             return isLandscape( this.width, this.height ) || isSquare( this.width, this.height );
@@ -334,12 +336,14 @@ export default {
                 this.renderPreview();
             });
         });
+
+        this.snapshots = [] as HTMLCanvasElement[];
         this.renderPreview();
     },
     beforeUnmount(): void {
         this.previewOriginalBlob = null;
         this.previewBlob = null;
-        this.snapshots = null;
+        this.snapshots.length = 0;
         this.snapshot = null;
     },
     methods: {
@@ -401,7 +405,7 @@ export default {
             if ( multiLayerExport ) {
                 // if we are going to work with individual layers, lazily create a list of layer snapshots
                 
-                if ( !this.snapshots ) {
+                if ( this.snapshots.length === 0 ) {
                     let renders: HTMLCanvasElement[];
                     if ( this.hasTimeline ) {
                         renders = await renderAnimation( this.activeDocument );
