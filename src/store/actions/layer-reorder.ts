@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2025 - https://www.igorski.nl
+ * Igor Zinken 2021-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -26,15 +26,32 @@ import { enqueueState } from "@/factories/history-state-factory";
 import { type BitMapperyState } from "@/store";
 
 /**
- * originalOrder and updatedOrder are lists of layer ids
+ * layerIds represents an ordered list
  */
-export const reorderLayers = ( store: Store<BitMapperyState>, activeDocument: Document, originalOrder: string[], updatedOrder: string[] ): void => {
+export const reorderLayers = ( store: Store<BitMapperyState>, activeDocument: Document, layerIds: string[] ): void => {
+    // provided layerIds can be a subset of all of the documents layers (for instance
+    // when rearranging inside a group/animation tile), so we must relate these
+    // to the full Layer structure
+
+    const originalOrder = activeDocument.layers.map( layer => layer.id );
+    const updatedOrder  = [ ...originalOrder ];
+    const subsetIndices = originalOrder.reduce(( acc: number[], layerId: string, idx: number ) => {
+        if ( layerIds.includes( layerId )) {
+            acc.push( idx );
+        }
+        return acc;
+    }, []);
+
+    subsetIndices.forEach(( idx: number, i: number ) => {
+        updatedOrder[ idx ] = layerIds[ i ];
+    });
+    
     const commit = () => {
         store.commit( "reorderLayers", { document: activeDocument, layerIds: updatedOrder } );
     }
     commit();
     
-    enqueueState( `reorderLayers_${updatedOrder.join()}`, {
+    enqueueState( `reorderLayers_${layerIds.join()}`, {
         undo() {
             store.commit( "reorderLayers", { document: activeDocument, layerIds: originalOrder });
         },

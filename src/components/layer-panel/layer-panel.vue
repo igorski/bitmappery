@@ -244,11 +244,9 @@ export default {
                 })).reverse();
             },
             set( value: Layer[] ): void {
-                // when updating the Vuex store, we reverse the layers again
-                const originalOrder = this.reverseLayers.map(({ id }) => id ).reverse();
-                const updatedOrder  = value.map(({ id }) => id ).reverse();
-
-                reorderLayers( this.$store, this.activeDocument, originalOrder, updatedOrder );
+                // before updating the model state, we reverse the layers again
+                const updatedOrder = value.map(({ id }) => id ).reverse();
+                reorderLayers( this.$store, this.activeDocument, updatedOrder );
             }
         },
         currentLayerHasMask(): boolean {
