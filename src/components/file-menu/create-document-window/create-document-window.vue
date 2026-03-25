@@ -52,7 +52,6 @@
                         v-model="backgroundColor"
                         v-tooltip="$t('color')"
                         color-type="HEXA"
-                        @open="handleColorPickerOpen"
                     />
                 </div>
             </div>
@@ -103,7 +102,6 @@ export default {
             height: 1000,
         },
         backgroundColor: TRANSPARENT_COLOR,
-        transparent: true,
     }),
     computed: {
         ...mapGetters([
@@ -122,12 +120,6 @@ export default {
             "closeModal",
             "addNewDocument",
         ]),
-        handleColorPickerOpen(): void {
-            console.info('oooopen');
-            if ( this.backgroundColor === TRANSPARENT_COLOR ) {
-                this.backgroundColor = "#FFFFFF";
-            }
-        },
         async save(): Promise<void> {
             const meta = {
                 bgColor: this.backgroundColor !== TRANSPARENT_COLOR ? this.backgroundColor : undefined,

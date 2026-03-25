@@ -51,7 +51,7 @@ export const createGroupTile = async ( id: RelId, activeDocument?: Document ): P
     if ( !activeDocument ) {
         return;
     }
-    console.info( `creating tile for group ${id}` );
+    // console.info( `creating tile for group ${id}` );
 
     const snapshot = await createGroupSnapshot( activeDocument, id );
     const thumbSize = scaleToFixedHeight( snapshot.width, snapshot.height, THUMB_HEIGHT * getPixelRatio());
@@ -76,11 +76,11 @@ export const getTileForGroup = ( id: RelId ): Tile | undefined => {
 };
 
 export const flushTileForGroup = ( id: RelId ): void => {
-    console.info( `flushing tile for group ${id}` );
+    // console.info( `flushing tile for group ${id}` );
     tileCache.delete( id );
 };
 
 export const flushTileCache = (): void => {
-    console.info( "flushing tile cache" );
+    // console.info( "flushing tile cache" );
     tileCache.clear();
 };
