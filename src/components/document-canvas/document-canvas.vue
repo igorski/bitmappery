@@ -114,6 +114,7 @@ const layerPool = new Map();
 let xScale = 1, yScale = 1, zoom = 1, maxInScale = 1, maxOutScale = 1;
 
 const HEADER_HEIGHT = 40;
+const IGNORED_OUTSIDE_TARGETS = [ "BUTTON", "CANVAS" ]; // tags to ignore outside click handler from
 
 function calculateCanvasBoundingBox(): void {
     const zCanvas = getCanvasInstance();
@@ -584,8 +585,8 @@ export default {
             this.createLayerRenderers();
         },
         handleOutsideDown( event: Event ): void {
-            if ( event.target.tagName === "CANVAS" || !getCanvasInstance() ) {
-                return; // don't handle clicks originating from the canvas
+            if ( IGNORED_OUTSIDE_TARGETS.includes( event.target.tagName ) || !getCanvasInstance() ) {
+                return; // don't handle clicks originating from the canvas or outside UI components
             }
             const zCanvas = getCanvasInstance();
             const { x, y } = pointerToCanvasCoordinates( event.pageX, event.pageY, zCanvas, canvasBoundingBox );
