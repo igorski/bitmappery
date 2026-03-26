@@ -58,7 +58,7 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import Slider from "@/components/ui/slider/slider.vue";
 import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
@@ -81,10 +81,10 @@ export default {
             "canvasDimensions",
         ]),
         zoomLevel: {
-            get() {
+            get(): number {
                 return this.zoomOptions.level;
             },
-            set( value ) {
+            set( value: number ): void {
                 this.setToolOptionValue({
                     tool: ToolTypes.ZOOM,
                     option: "level",
@@ -97,13 +97,13 @@ export default {
         ...mapMutations([
             "setToolOptionValue",
         ]),
-        setBestFit() {
+        setBestFit(): void {
             this.zoomLevel = 0;
         },
-        setFitWindow() {
+        setFitWindow(): void {
             this.zoomLevel = fitInWindow( this.activeDocument, this.canvasDimensions );
         },
-        setOriginalSize() {
+        setOriginalSize(): void {
             this.zoomLevel = displayOriginalSize( this.activeDocument, this.canvasDimensions );
         },
     },

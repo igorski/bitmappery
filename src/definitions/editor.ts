@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Point, SizedImage } from "zcanvas";
+import type { Point } from "zcanvas";
 import type BrushTypes from "@/definitions/brush-types";
 import type { LayerTypes } from "@/definitions/layer-types";
 import type { Selection } from "@/definitions/document";

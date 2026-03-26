@@ -31,7 +31,7 @@
         <div class="component__header">
             <h2
                 class="component__title"
-            >{{ showEffects && activeLayer ? $t( 'effectsForLayer', { name: activeLayer.name }) : $t( 'layers' ) }}</h2>
+            >{{ title }}</h2>
             <button
                 type="button"
                 class="component__header-button button--ghost"
@@ -69,6 +69,7 @@
                                 <!-- thumbnail -->
                                 <div
                                     v-if="renderThumbnails"
+                                    v-tooltip.left="$t('dragToAdjustOrder')"
                                     class="layer__thumbnail"
                                 >
                                     <img
@@ -216,6 +217,7 @@ export default {
             "activeLayer",
             "activeLayerIndex",
             "activeLayerMask",
+            "activeGroup",
             "activeTool",
             "hasSelection",
             "layers",
@@ -232,18 +234,20 @@ export default {
         reverseLayers: {
             get(): IndexedLayer[] {
                 // we like to see the highest layer on top, so reverse order for v-for templating
-                return this.layers?.slice().map(( layer: Layer, index: number ) => ({
+                let layers = this.layers?.slice() ?? [];
+                if ( this.hasTimeline ) {
+                    layers = layers.filter( layer => layer.rel.id === this.activeGroup );
+                }
+                return layers.map(( layer: Layer, index: number ) => ({
                     ...layer,
-                    index,
+                    index: this.hasTimeline ? this.layers.indexOf( layer ): index,
                     maskSelected: layer.mask ? layer.mask === this.activeLayerMask : false,
-                })).reverse() ?? [];
+                })).reverse();
             },
             set( value: Layer[] ): void {
-                // when updating the Vuex store, we reverse the layers again
-                const originalOrder = this.reverseLayers.map(({ id }) => id ).reverse();
-                const updatedOrder  = value.map(({ id }) => id ).reverse();
-
-                reorderLayers( this.$store, this.activeDocument, originalOrder, updatedOrder );
+                // before updating the model state, we reverse the layers again
+                const updatedOrder = value.map(({ id }) => id ).reverse();
+                reorderLayers( this.$store, this.activeDocument, updatedOrder );
             }
         },
         currentLayerHasMask(): boolean {
@@ -254,6 +258,18 @@ export default {
         },
         renderThumbnails(): boolean {
             return this.preferences.thumbnails;
+        },
+        title(): string {
+            if ( this.hasTimeline ) {
+                return this.$t( "layersForTile", { id: this.activeGroup + 1 });
+            }
+            if ( this.showEffects && this.activeLayer ) {
+                return this.$t( "effectsForLayer", { name: this.activeLayer.name });
+            }
+            return this.$t( "layers" );
+        },
+        hasTimeline(): boolean {
+            return this.activeDocument?.type === "timeline"
         },
     },
     mounted(): void {
@@ -495,11 +511,13 @@ export default {
 
     &__name,
     &__name-input {
+        display: flex;
+        align-items: center;
         flex: 3;
         @include mixins.truncate();
         font-size: 90%;
-        padding: variables.$spacing-small variables.$spacing-small 0;
-        margin-left: variables.$spacing-small;
+        padding: 0 variables.$spacing-small;
+        margin-left: variables.$spacing-xsmall;
     }
     
     &__name-input {
@@ -507,6 +525,8 @@ export default {
     }
 
     &__actions {
+        display: flex;
+        align-items: center;
         margin-right: variables.$spacing-small;
 
         &-button {

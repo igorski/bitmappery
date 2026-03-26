@@ -22,12 +22,13 @@
  */
 import type { ActionContext, Module } from "vuex";
 import type { Rectangle, Size } from "zcanvas";
-import type { Document, Layer, Transform, Selection } from "@/definitions/document";
+import type { Document, DocumentMeta, Layer, Transform, Selection } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { createRendererForLayer, flushLayerRenderers, runRendererFn, getRendererForLayer } from "@/factories/renderer-factory";
 import { flushBlendedLayerCache } from "@/rendering/cache/blended-layer-cache";
-import { createLayerThumbnail, flushThumbnailForLayer } from "@/rendering/cache/thumbnail-cache";
+import { createLayerThumbnail, flushThumbnailCache, flushThumbnailForLayer } from "@/rendering/cache/thumbnail-cache";
+import { flushTileCache } from "@/rendering/cache/tile-cache";
 import { getCanvasInstance } from "@/services/canvas-service";
 import { resizeLayerContent, cropLayerContent } from "@/utils/layer-util";
 
@@ -96,6 +97,8 @@ const DocumentModule: Module<DocumentState, any> = {
             getCanvasInstance()?.setDimensions( width, height, true, true );
             getCanvasInstance()?.rescaleFn();
             getCanvasInstance()?.refreshFn();
+            flushThumbnailCache();
+            flushTileCache();
         },
         setActiveSelection( state: DocumentState, selection: Selection ): void {
             state.documents[ state.activeIndex ].activeSelection = selection;
@@ -254,6 +257,12 @@ const DocumentModule: Module<DocumentState, any> = {
         saveSelection( state: DocumentState, { name, selection }: { name: string, selection: Selection }): void {
             const document = state.documents[ state.activeIndex ];
             document.selections[ name ] = selection;
+        },
+        updateGroups( state: DocumentState, values: number[] ): void {
+            state.documents[ state.activeIndex ].groups = values;
+        },
+        updateMeta( state: DocumentState, value: DocumentMeta ): void {
+            state.documents[ state.activeIndex ].meta = value;
         },
     },
     actions: {

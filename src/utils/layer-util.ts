@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2025 - https://www.igorski.nl
+ * Igor Zinken 2021-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,13 +20,16 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+// @ts-expect-error TS7016 no type definitions for lodash.clonedeep
+import cloneDeep from "lodash.clonedeep";
 import { type Store } from "vuex";
 import { type Rectangle } from "zcanvas";
 import { BlendModes } from "@/definitions/blend-modes";
 import { type Layer } from "@/definitions/document";
 import { LayerTypes } from "@/definitions/layer-types";
+import LayerFactory from "@/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
-import { resizeImage } from "@/utils/canvas-util";
+import { cloneCanvas, resizeImage } from "@/utils/canvas-util";
 
 /**
  * Replace the source / mask contents of given layer, updating its
@@ -98,6 +101,15 @@ export const cropLayerContent = async ( layer: Layer, cropRectangle: Rectangle )
         layer.left -= left;
         layer.top  -= top;
     }
+};
+
+export const cloneLayer = ( layerToClone: Layer ): Layer => {
+    return LayerFactory.create({
+        ...cloneDeep( layerToClone ),
+        name: `${layerToClone.name} #2`,
+        source: cloneCanvas( layerToClone.source ),
+        mask: layerToClone.mask ? cloneCanvas( layerToClone.mask ) : null
+    });
 };
 
 export const isRotated = ( layer: Layer ): boolean => ( layer.transform.rotation % 360 ) !== 0;

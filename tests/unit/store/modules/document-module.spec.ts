@@ -27,9 +27,15 @@ vi.mock( "@/rendering/cache/blended-layer-cache", async ( importOriginal ) => {
 });
 const mockCreateLayerThumbnail = vi.fn();
 const mockFlushThumbnailCache = vi.fn();
+const mockFlushThumbnailForLayer = vi.fn();
 vi.mock( "@/rendering/cache/thumbnail-cache", () => ({
     createLayerThumbnail: vi.fn(( ...args: any[] ) => mockCreateLayerThumbnail( ...args )),
-    flushThumbnailForLayer: vi.fn(( ...args: any[] ) => mockFlushThumbnailCache( ...args )),
+    flushThumbnailCache: vi.fn(( ...args: any[] ) => mockFlushThumbnailCache( ...args )),
+    flushThumbnailForLayer: vi.fn(( ...args: any[] ) => mockFlushThumbnailForLayer( ...args )),
+}));
+const mockFlushTileCacheFn = vi.fn();
+vi.mock( "@/rendering/cache/tile-cache", () => ({
+    flushTileCache: vi.fn(( ...args: any[] ) => mockFlushTileCacheFn( ...args )),
 }));
 const mockCanvasInstance = createMockZoomableCanvas();
 vi.mock( "@/services/canvas-service", () => ({
@@ -240,6 +246,18 @@ describe( "Vuex document module", () => {
                 expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "getCanvasInstance" );
                 expect( mockCanvasInstance.refreshFn ).toHaveBeenCalled();
             });
+
+            it( "should flush the thumbnail and tile caches", () => {
+                const state = createDocumentState({
+                    documents: [ DocumentFactory.create() ],
+                    activeIndex : 0,
+                });
+
+                mutations.setActiveDocumentSize( state, { width: 500, height: 500 });
+
+                expect( mockFlushThumbnailCache ).toHaveBeenCalled();
+                expect( mockFlushTileCacheFn ).toHaveBeenCalled();
+            });
         });
 
         it( "should be able to set the active selection for the currently active document", () => {
@@ -442,7 +460,7 @@ describe( "Vuex document module", () => {
             it( "should flush the thumbnail cache for the layer", () => {
                 mutations.removeLayer( state, 1 );
 
-                expect( mockFlushThumbnailCache ).toHaveBeenLastCalledWith( layer2 );
+                expect( mockFlushThumbnailForLayer ).toHaveBeenLastCalledWith( layer2 );
             });
         });
 
@@ -741,7 +759,9 @@ describe( "Vuex document module", () => {
             mockUpdateFn = vi.fn();
             const scaleX = 1.1;
             const scaleY = 1.2;
+            
             await mutations.resizeActiveDocumentContent( state, { scaleX, scaleY });
+            
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "resizeLayerContent", layer1, scaleX, scaleY );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "resizeLayerContent", layer2, scaleX, scaleY );
         });
@@ -758,11 +778,39 @@ describe( "Vuex document module", () => {
             mockUpdateFn = vi.fn();
             const left = 10;
             const top  = 15;
+            
             await mutations.cropActiveDocumentContent( state, { left, top });
+            
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "cropLayerContent", layer1, { left, top });
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "getRendererForLayer", layer1 );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 3, "cropLayerContent", layer2, { left, top });
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 4, "getRendererForLayer", layer2 );
+        });
+
+        it( "should be able to update the Document Groups", () => {
+            const state = createDocumentState({
+                documents: [ DocumentFactory.create() ],
+                activeIndex: 0,
+            });
+
+            mutations.updateGroups( state, [ 0, 1, 2 ]);
+
+            expect( state.documents[ 0 ].groups ).toEqual([ 0, 1, 2 ]);
+        });
+
+        it( "should be able to update the Documents metadata", () => {
+            const state = createDocumentState({
+                documents: [ DocumentFactory.create() ],
+                activeIndex: 0,
+            });
+
+            mutations.updateMeta( state, {
+                fps: 10,
+            });
+
+            expect( state.documents[ 0 ].meta ).toEqual({
+                fps: 10,
+            });
         });
     });
 });

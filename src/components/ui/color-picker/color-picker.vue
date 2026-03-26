@@ -70,7 +70,8 @@ export default {
                     cmyk: true,
                     input: true
                 }
-            }
+            },
+            swatches: [ "#000000", "#FFFFFF", "#FFEE00", "#F44336", "#E91E63", "#9C27B0", "#673AB7" ],
         });
         this.pickrInstance.on( "change", this.saveColor.bind( this ));
         // hacky way to assign keyboard-service shortcut to open this picker

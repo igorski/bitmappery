@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -30,8 +30,9 @@
                 <div class="form export-form" @keyup.enter="exportImage">
                     <div class="wrapper input">
                         <label v-t="'imageType'"></label>
-                        <select-box :options="fileTypes"
-                                     v-model="type"
+                        <select-box
+                            :options="fileTypes"
+                            v-model="type"
                         />
                     </div>
                     <div
@@ -57,11 +58,11 @@
                         <div class="wrapper input">
                             <label v-t="'layersToAnimation'"></label>
                             <toggle-button
-                                v-model="layersToAnimatedGIF"
+                                v-model="exportAnimation"
                                 name="createAnimatedGIF"
                             />
                         </div>
-                        <div v-if="layersToAnimatedGIF" class="wrapper input">
+                        <div v-if="exportAnimation" class="wrapper input">
                             <label v-t="'frameDuration'"></label>
                             <input
                                 type="number"
@@ -93,11 +94,13 @@
                             />
                         </div>
                         <template v-if="layersToSpriteSheet">
-                            <div class="wrapper input">
+                            <div class="wrapper input wrapper--small">
                                 <label v-t="'columnAmount'"></label>
                                 <input
                                     type="number"
-                                    v-model="sheetCols"
+                                    v-model.number="sheetCols"
+                                    min="1"
+                                    max="999"
                                     class="input-field"
                                 />
                             </div>
@@ -172,12 +175,13 @@ import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
-import { MAX_SPRITESHEET_WIDTH } from "@/definitions/editor-properties";
+import { canExportAsAnimation, isPixelArt } from "@/definitions/editor-properties";
 import { EXPORTABLE_IMAGE_TYPES, GIF, typeToExt, isCompressableFileType } from "@/definitions/image-types";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
 import { supportsGIF, createGIF, createAnimatedGIF } from "@/services/gif-creation-service";
 import { mapSelectOptions, type SelectOption }  from "@/utils/search-select-util";
 import { isLandscape, isSquare } from "@/math/image-math";
+import { renderAnimation } from "@/services/render-animation-service";
 import { canvasToBlob, resizeImage, getPixelRatio } from "@/utils/canvas-util";
 import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
 import { unblockedWait } from "@/utils/debounce-util";
@@ -204,7 +208,7 @@ export default {
         previewBlob: null,
         syncPreviews: false,
         layersToSpriteSheet: false,
-        layersToAnimatedGIF: false,
+        exportAnimation: false,
         frameDurationMs: 100,
         sheetCols: 4,
         width: 1,
@@ -225,7 +229,8 @@ export default {
         ]),
         showOriginal(): boolean {
             // see _variables.scss $preview-ideal-width and $preview-ideal-height
-            return this.windowSize.width >= 1280 && this.windowSize.height >= 700;
+            const isLargeEnough = this.windowSize.width >= 1280 && this.windowSize.height >= 700;
+            return isLargeEnough && !this.exportAnimation;
         },
         selectedType(): string {
             return typeToExt( this.type );
@@ -241,17 +246,22 @@ export default {
             return parseFloat(( this.quality / 100 ).toFixed( 2 ));
         },
         canCreateSpriteSheet(): boolean {
-            return this.activeDocument.layers.length > 1 &&
-                   this.activeDocument.width <= MAX_SPRITESHEET_WIDTH &&
-                   !this.layersToAnimatedGIF;
+            return this.isMultiLayer && isPixelArt( this.activeDocument ) && !this.exportAnimation;
         },
         canCreateAnimatedGIF(): boolean {
-            return this.canCreateGIF && this.type === GIF.mime &&
-                   this.activeDocument.layers.length > 1 &&
-                   this.activeDocument.width <= MAX_SPRITESHEET_WIDTH;
+            return this.canCreateGIF && this.type === GIF.mime && this.isMultiLayer && this.canAnimate;
+        },
+        isMultiLayer(): boolean {
+            return this.activeDocument.layers.length > 1;
         },
         isLandscape(): boolean {
             return isLandscape( this.width, this.height ) || isSquare( this.width, this.height );
+        },
+        hasTimeline(): boolean {
+            return this.activeDocument.type === "timeline";
+        },
+        canAnimate(): boolean {
+            return canExportAsAnimation( this.activeDocument );
         },
         storageLocations(): { label: string, value: STORAGE_TYPES }[] {
             const out = [{ label: this.$t( "local" ), value: STORAGE_TYPES.LOCAL }];
@@ -307,24 +317,36 @@ export default {
     },
     created(): void {
         this.canCreateGIF = supportsGIF();
+
+        if ( this.canCreateGIF && this.hasTimeline && this.canAnimate ) {
+            this.type = GIF.mime; // auto select animated GIF
+            this.exportAnimation = true;
+        }
+
+        if ( this.activeDocument.meta.fps ) {
+            this.frameDurationMs = Math.round( 1000 / this.activeDocument.meta.fps );
+        }
+
         if ( this.showOriginal ) {
             this.syncPreviews = true;
         }
         this.name = this.activeDocument.name.split( "." )[ 0 ];
         [
             // changes to any of the export properties should trigger a re-render
-            "quality", "type", "layersToSpriteSheet", "layersToAnimatedGIF", "frameDurationMs"
+            "quality", "type", "layersToSpriteSheet", "exportAnimation", "frameDurationMs"
         ].forEach( property => {
             this.$watch( property, () => {
                 this.renderPreview();
             });
         });
+
+        this.snapshots = [] as HTMLCanvasElement[];
         this.renderPreview();
     },
     beforeUnmount(): void {
         this.previewOriginalBlob = null;
         this.previewBlob = null;
-        this.snapshots = null;
+        this.snapshots.length = 0;
         this.snapshot = null;
     },
     methods: {
@@ -382,24 +404,32 @@ export default {
             }
             let snapshotCvs;
 
-            const multiLayerExport = ( this.type === GIF.mime && this.layersToAnimatedGIF ) || this.layersToSpriteSheet;
+            const multiLayerExport = ( this.type === GIF.mime && this.exportAnimation ) || this.layersToSpriteSheet;
             if ( multiLayerExport ) {
                 // if we are going to work with individual layers, lazily create a list of layer snapshots
-                if ( !this.snapshots ) {
-                    this.snapshots = await Promise.all( [ ...this.activeDocument.layers ].reverse().map( async layer => {
-                        return resizeImage(
-                            await createLayerSnapshot( layer, this.activeDocument ),
-                            width, height, 0, 0, width * getPixelRatio(), height * getPixelRatio()
-                        );
+                
+                if ( this.snapshots.length === 0 ) {
+                    let renders: HTMLCanvasElement[];
+                    if ( this.hasTimeline ) {
+                        renders = await renderAnimation( this.activeDocument );
+                    } else {
+                        renders = await Promise.all( this.activeDocument.layers.map( async layer => {
+                            return createLayerSnapshot( layer, this.activeDocument );
+                        }));
+                    }
+                    this.snapshots = await Promise.all( renders.reverse().map( async snapshot => {
+                        return resizeImage( snapshot, width, height, 0, 0, width * getPixelRatio(), height * getPixelRatio());
                     }));
                 }
-                if ( this.layersToAnimatedGIF ) {
+
+                if ( this.exportAnimation ) {
                     this.previewBlob = await base64toBlob(
                         await createAnimatedGIF( this.snapshots, this.frameDurationMs / 100 )
                     );
                 }
                 else if ( this.layersToSpriteSheet ) {
-                    snapshotCvs = tilesToSingle( this.snapshots, width, height, parseFloat( this.sheetCols || "4" ));
+                    const columns = Math.min( this.snapshots.length, this.sheetCols ?? Infinity );
+                    snapshotCvs = tilesToSingle( this.snapshots, width, height, columns );
                 }
             } else {
                 snapshotCvs = this.snapshot;
@@ -476,6 +506,10 @@ $idealFormWidth: 340px;
         width: 100%;
         justify-content: space-between;
         align-items: center;
+    }
+
+    .wrapper--small input {
+        width: 80px;
     }
 
     @include mixins.large() {

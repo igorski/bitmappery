@@ -1,0 +1,10 @@
+{
+    "en-US": {
+        "timeline": "Timeline",
+        "add": "Add new tile",
+        "play": "Play",
+        "previewAnimation": "Preview animation",
+        "clone": "Clone tile",
+        "delete": "Delete tile"
+    }
+}

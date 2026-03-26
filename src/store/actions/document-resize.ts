@@ -2,7 +2,7 @@
 /**
 * The MIT License (MIT)
 *
-* Igor Zinken 2020-2025 - https://www.igorski.nl
+* Igor Zinken 2020-2026 - https://www.igorski.nl
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 * this software and associated documentation files (the "Software"), to deal in
@@ -24,13 +24,17 @@
 import { type Store } from "vuex";
 import { type Size } from "zcanvas";
 import { type Document } from "@/definitions/document";
+import { type Unit } from "@/definitions/document-presets";
 import { enqueueState } from "@/factories/history-state-factory";
 import { type BitMapperyState } from "@/store";
 import { cloneLayers, restoreFromClone } from "@/utils/document-util";
 
-export const resizeDocument = async ( store: Store<BitMapperyState>, activeDocument: Document, dimensions: Size ): Promise<void> => {
+type Dimensions = Size & { dpi: number, unit: Unit }
+
+export const resizeDocument = async ( store: Store<BitMapperyState>, activeDocument: Document, dimensions: Dimensions ): Promise<void> => {
     const originalWidth  = activeDocument.width;
     const originalHeight = activeDocument.height;
+    const originalMeta   = { ...activeDocument.meta };
 
     const { width, height } = dimensions;
     const scaleX = width  / originalWidth;
@@ -41,12 +45,18 @@ export const resizeDocument = async ( store: Store<BitMapperyState>, activeDocum
 
     const fn = async (): Promise<void> => {
         await commit( "resizeActiveDocumentContent", { scaleX, scaleY });
+        commit( "updateMeta", {
+            ...originalMeta,
+            dpi: dimensions.dpi,
+            unit: dimensions.unit
+        });
         commit( "setActiveDocumentSize", { width: Math.round( width ), height: Math.round( height ) });
     };
 
     enqueueState( "resizeDocument", {
         async undo(): Promise<void> {
             restoreFromClone( activeDocument, orgContent );
+            commit( "updateMeta", originalMeta );
             commit( "setActiveDocumentSize", { width: originalWidth, height: originalHeight });
         },
         redo: fn,

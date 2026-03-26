@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Module } from "vuex";
-import type { Document, Filters } from "@/definitions/document";
+import type { Document, Filters, RelId } from "@/definitions/document";
 import type {
     ZoomToolOptions, BrushToolOptions, EraserToolOptions, CloneToolOptions,
     SelectionToolOptions, FillToolOptions, WandToolOptions
@@ -33,6 +33,8 @@ import { runRendererFn } from "@/factories/renderer-factory";
 export interface EditorState {
     activeTool: ToolTypes;
     activeColor: string;
+    activeGroup: RelId;
+    showTrace  : boolean;
     options: {
         [ ToolTypes.ZOOM ]  : ZoomToolOptions;
         [ ToolTypes.BRUSH ] : BrushToolOptions;
@@ -51,6 +53,8 @@ export interface EditorState {
 export const createEditorState = ( props?: Partial<EditorState> ): EditorState => ({
     activeTool  : null,
     activeColor : "rgba(255,0,0,1)",
+    activeGroup : 0,
+    showTrace   : true,
     options : {
         [ ToolTypes.ZOOM ]  : { level: 1 },
         [ ToolTypes.BRUSH ] : { size: 10, type: BrushTypes.LINE, opacity: 1, strokes: 1, thickness: .5 },
@@ -72,6 +76,8 @@ const EditorModule: Module<EditorState, any> = {
     getters: {
         activeTool        : ( state: EditorState ): ToolTypes => state.activeTool,
         activeColor       : ( state: EditorState ): string => state.activeColor,
+        activeGroup       : ( state: EditorState ): RelId => state.activeGroup,
+        showTrace         : ( state: EditorState ): boolean => state.showTrace,
         clonedFilters     : ( state: EditorState ): Filters => state.clonedFilters,
         // @ts-expect-error Element implicitly has an 'any' type because expression of type 'ToolTypes' can't be used to index type
         activeToolOptions : ( state: EditorState ): any => state.options[ state.activeTool ],
@@ -97,6 +103,12 @@ const EditorModule: Module<EditorState, any> = {
         setActiveColor( state: EditorState, color: string ): void {
             state.activeColor = color;
             updateLayerRenderers( state.activeColor, state.options[ ToolTypes.BRUSH ] as BrushToolOptions );
+        },
+        setActiveGroup( state: EditorState, value: RelId ): void {
+            state.activeGroup = value;
+        },
+        setShowTrace( state: EditorState, value: boolean ): void {
+            state.showTrace = value;
         },
         setToolOptionValue( state: EditorState, { tool, option, value }: { tool: ToolTypes, option: string, value: any }): void {
             // @ts-expect-error Element implicitly has an 'any' type because expression of type 'ToolTypes' can't be used to index type

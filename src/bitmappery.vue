@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -83,6 +83,7 @@ import DialogWindow from "@/components/dialog-window/dialog-window.vue";
 import Notifications from "@/components/notifications/notifications.vue";
 import Loader from "@/components/loader/loader.vue";
 import type { Document } from "@/definitions/document";
+import { isPixelArt } from "@/definitions/editor-properties";
 import ToolTypes from "@/definitions/tool-types";
 import DocumentFactory from "@/factories/document-factory";
 import { isMobile } from "@/utils/environment-util";
@@ -96,18 +97,18 @@ import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_WINDOW,
     DROPBOX_FILE_SELECTOR, GOOGLE_DRIVE_FILE_SELECTOR, AWS_S3_FILE_SELECTOR,
     ADD_LAYER, LOAD_SELECTION, SAVE_SELECTION, PREFERENCES, RESIZE_CANVAS,
-    GRID_TO_LAYERS, STROKE_SELECTION
+    GRID_TO_LAYERS, STROKE_SELECTION, ANIMATION_PREVIEW,
 } from "@/definitions/modal-windows";
 
 // Create VueI18n instance with options
 const i18n = createI18n({
     messages
 });
-let lastDocumentId = null;
+let lastDocumentId: string | undefined;
 
 // wrapper for loading dynamic components with custom loading states
 type IAsyncComponent = { component: Promise<Component>};
-function asyncComponent( key: string, importFn: () => Promise<any> ): IAsyncComponent {
+function asyncComponent( _key: string, importFn: () => Promise<any> ): IAsyncComponent {
     return defineAsyncComponent({
         loader: async () => {
             try {
@@ -118,7 +119,6 @@ function asyncComponent( key: string, importFn: () => Promise<any> ): IAsyncComp
                 if ( import.meta.env.MODE !== "production" ) {
                     console.error( e );
                 }
-                reject();
             }
         }
     });
@@ -149,6 +149,8 @@ export default {
         ]),
         ...mapGetters([
             "activeDocument",
+            "antiAlias",
+            "preferences",
             "isLoading",
         ]),
         documentCanvas(): IAsyncComponent {
@@ -160,7 +162,7 @@ export default {
                 default:
                     return null;
                 case CREATE_DOCUMENT:
-                    loadFn = () => import( "@/components/file-menu/create-document/create-document.vue" );
+                    loadFn = () => import( "@/components/file-menu/create-document-window/create-document-window.vue" );
                     break;
                 case RESIZE_DOCUMENT:
                     loadFn = () => import( "@/components/resize-document-window/resize-document-window.vue" );
@@ -190,7 +192,7 @@ export default {
                     loadFn = () => import( "@/components/selection-menu/save-selection/save-selection.vue" );
                     break;
                 case PREFERENCES:
-                    loadFn = () => import( "@/components/preferences/preferences.vue" );
+                    loadFn = () => import( "@/components/preferences-window/preferences-window.vue" );
                     break;
                 case RESIZE_CANVAS:
                     loadFn = () => import( "@/components/resize-canvas-window/resize-canvas-window.vue" );
@@ -201,6 +203,9 @@ export default {
                 case STROKE_SELECTION:
                     loadFn = () => import( "@/components/stroke-selection-window/stroke-selection-window.vue" );
                     break;
+                case ANIMATION_PREVIEW:
+                    loadFn = () => import( "@/components/timeline-panel/animation-preview/animation-preview-window.vue" );
+                    break;
             }
             return asyncComponent( "mw", loadFn );
         },
@@ -209,16 +214,24 @@ export default {
         },
     },
     watch: {
-        activeDocument( document: Document ): void {
-            if ( !document?.layers ) {
+        activeDocument( activeDocument: Document ): void {
+            if ( !activeDocument?.layers ) {
                 this.resetHistory();
                 if ( isMobile() ) {
                     this.closeOpenedPanels();
                 }
             } else {
-                const { id } = document;
+                const { id } = activeDocument;
                 if ( id !== lastDocumentId ) {
                     lastDocumentId = id;
+                    const useAntiAlias = !isPixelArt( activeDocument );
+                    if ( this.preferences.autoAlias && useAntiAlias !== this.antiAlias ) {
+                        this.setAntiAlias( useAntiAlias );
+                        this.showNotification({
+                            title: "",
+                            message: this.$t( useAntiAlias ? "antiAliasingEnabled" : "antiAliasingDisabled" )
+                        });
+                    }
                     this.resetHistory();
                 }
             }
@@ -306,6 +319,7 @@ export default {
             "closeOpenedPanels",
             "openDialog",
             "resetHistory",
+            "setAntiAlias",
             "setToolboxOpened",
             "setToolOptionValue",
             "setLoading",

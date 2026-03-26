@@ -1,12 +1,14 @@
 {
     "en-US": {
         "layers": "Layers",
+        "layersForTile": "Layers for tile {id}",
         "effectsForLayer": "Effects for layer \"{name}\"",
         "noLayers": "There are no layers in this document",
         "addLayer": "Add layer",
         "addMask": "Add mask",
         "effectsAndFilters": "Effects & filters",
         "areYouSure": "Are you sure?",
+        "dragToAdjustOrder": "Drag to adjust order",
         "dblClickToRename": "Double-click to rename layer",
         "clickToEditLayer": "Click to edit layer",
         "clickToEditMask": "Click to edit layer mask",

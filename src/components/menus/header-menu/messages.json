@@ -45,6 +45,7 @@
         "snapAlign": "Snap / auto align",
         "antiAlias": "Anti-alias",
         "pixelGrid": "Pixel grid",
+        "useTracing": "Carbon copy",
         "window": "Window",
         "noDocumentsOpen": "There are no open documents",
         "windowNumName": "Window #{num}: {name}",

@@ -5,6 +5,7 @@ import { createStore, mockZCanvas } from "../../mocks";
 mockZCanvas();
 
 import { LayerTypes } from "@/definitions/layer-types";
+import DocumentFactory from "@/factories/document-factory";
 import { type BitMapperyState } from "@/store";
 import { addTextLayer } from "@/store/actions/layer-add-text-layer";
 
@@ -18,6 +19,7 @@ describe( "add text Layer action", () => {
     
     beforeEach(() => {
         store = createStore();
+        store.getters.activeDocument = DocumentFactory.create();
         store.getters.activeLayerIndex = 3;
     });
 
@@ -41,6 +43,21 @@ describe( "add text Layer action", () => {
                 redo: expect.any( Function )
             }
         );
+    });
+
+    it( "should add the Layer to the currently active tile group when the Document is of the timeline type", () => {
+        store.getters.activeDocument.type = "timeline";
+        store.getters.activeGroup = 2;
+
+        addTextLayer( store );
+
+        expect( store.commit ).toHaveBeenCalledWith( "addLayer", {
+            type: LayerTypes.LAYER_TEXT,
+            rel: {
+                type: "tile",
+                id: 2
+            }
+        });
     });
 
     it( "should remove the added Text Layer when calling undo in state history", () => {

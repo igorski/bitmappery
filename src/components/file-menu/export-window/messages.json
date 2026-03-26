@@ -9,7 +9,7 @@
         "syncScroll": "Sync scroll",
         "layersToAnimation": "As animation",
         "frameDuration": "Frame duration (ms)",
-        "layersToSheetExpl": "This document contains layers and seems to be of appropriate size. You can combine the layers into a grid layout (e.g. create a spritesheet)",
+        "layersToSheetExpl": "This documents size supports combining its contents into a tiled sheet (for instance to turn animation tiles / layered content into a spritesheet)",
         "layersToSpriteSheet": "Merge into sheet",
         "columnAmount": "Column amount",
         "export": "Export",

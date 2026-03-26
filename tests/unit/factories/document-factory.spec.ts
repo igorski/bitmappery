@@ -1,6 +1,7 @@
 import { it, describe, expect, afterAll, vi } from "vitest";
 import { mockZCanvas } from "../mocks";
 import type { Layer, Selection } from "@/definitions/document";
+import { DEFAULT_DPI, DEFAULT_UNIT } from "@/definitions/document-presets";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 
@@ -25,8 +26,14 @@ describe( "Document factory", () => {
                 height: 1000,
                 layers: [ { name: "layer1" } ],
                 selections: {},
+                type: "default",
+                meta: {
+                    dpi: DEFAULT_DPI,
+                    unit: DEFAULT_UNIT,
+                },
                 activeSelection: [],
                 invertSelection: false,
+                groups: [],
             });
         });
 
@@ -40,6 +47,13 @@ describe( "Document factory", () => {
                 width: 1200,
                 height: 900,
                 layers,
+                type: "timeline",
+                meta: {
+                    fps: 15,
+                    bgColor: "#FF0000",
+                    dpi: 300,
+                    unit: "cm",
+                },
                 selections: { foo: [[ { x: 0, y: 0 } ]] }
             });
             expect( document ).toEqual({
@@ -49,8 +63,16 @@ describe( "Document factory", () => {
                 height: 900,
                 layers,
                 selections: { foo: [[ { x: 0, y: 0 } ]] },
+                type: "timeline",
+                meta: {
+                    fps: 15,
+                    bgColor: "#FF0000",
+                    dpi: 300,
+                    unit: "cm",
+                },
                 activeSelection: [],
                 invertSelection: false,
+                groups: [],
             });
         });
     });
@@ -70,7 +92,14 @@ describe( "Document factory", () => {
                 width: 1200,
                 height: 900,
                 layers,
-                selections
+                selections,
+                type: "timeline",
+                meta: {
+                    fps: 15,
+                    bgColor: "#FF0000",
+                    dpi: 300,
+                    unit: "cm",
+                },
             });
             const serializeLayerSpy = vi.spyOn( LayerFactory, "serialize" ).mockImplementation( data => JSON.stringify( data ));
             const deserializeLayerSpy = vi.spyOn( LayerFactory, "deserialize" ).mockImplementation( data => JSON.parse( data ));
@@ -93,6 +122,31 @@ describe( "Document factory", () => {
                 ...document,
                 id: expect.any( String )
             })
+        });
+
+        it( "should default to the 'default' type for legacy documents", async () => {
+            const document = DocumentFactory.create();
+
+            const serialized = DocumentFactory.serialize( document );
+            delete serialized.t;
+
+            const deserialized = await DocumentFactory.deserialize( serialized );
+
+            expect( deserialized.type ).toEqual( "default" );
+        });
+
+        it( "should create an empty meta structure containing only the default DPI and unit values for legacy documents", async () => {
+            const document = DocumentFactory.create();
+
+            const serialized = DocumentFactory.serialize( document );
+            delete serialized.m;
+
+            const deserialized = await DocumentFactory.deserialize( serialized );
+
+            expect( deserialized.meta ).toEqual( {
+                dpi: DEFAULT_DPI,
+                unit: DEFAULT_UNIT,
+            });
         });
     });
 });

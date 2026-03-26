@@ -1,9 +1,0 @@
-{
-    "en-US": {
-        "newDocument": "New document",
-        "newDocumentNum": "New document #{num}",
-        "name": "Name",
-        "create": "Create",
-        "cancel": "Cancel"
-    }
-}

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -46,7 +46,10 @@
             <div
                 ref="canvasContainer"
                 class="component__content"
-                :class="{ 'center': centerCanvas }"
+                :class="{
+                    'component__content--center': centerCanvas,
+                    'component__content--transparent': !hasBgColor,
+                }"
             ></div>
             <scrollbars
                 v-if="activeDocument"
@@ -57,19 +60,20 @@
                 :viewport-height="viewportHeight"
                 @input="panViewport"
             />
+            <component :is="timelinePanel" />
         </template>
         <file-import v-else />
     </div>
 </template>
 
 <script lang="ts">
+import { type Component, defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
-import { type Viewport } from "zcanvas";
+import type { Viewport } from "zcanvas";
 import ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import GuideRenderer from "@/rendering/actors/guide-renderer";
 import FileImport from "@/components/file-import/file-import.vue";
-import type { Document, Layer } from "@/definitions/document";
-import { HEADER_HEIGHT } from "@/definitions/editor-properties";
+import type { Document, Layer, RelId } from "@/definitions/document";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import ToolTypes, { SELECTION_TOOLS, MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@/definitions/tool-types";
 import {
@@ -85,7 +89,7 @@ import { scaleToRatio } from "@/math/image-math";
 import { pointerToCanvasCoordinates } from "@/math/point-math";
 import { scale } from "@/math/unit-math";
 import { unblockedWait, rafCallback } from "@/utils/debounce-util";
-import { getAlignableObjects } from "@/utils/document-util";
+import { createGroupSnapshot, getAlignableObjects } from "@/utils/document-util";
 import { isMobile } from "@/utils/environment-util";
 import { hasBlend } from "@/utils/layer-util";
 import { fitInWindow } from "@/utils/zoom-util";
@@ -95,19 +99,26 @@ import TouchDecorator from "./decorators/touch-decorator";
 /* internal non-reactive properties */
 
 const mobileView = isMobile();
-let lastDocument, containerSize, canvasBoundingBox, guideRenderer;
+let lastDocumentId: string;
+let containerSize: DOMRect;
+let canvasBoundingBox: DOMRect;
+let guideRenderer: GuideRenderer;
+
 // maintain a pool of renderers representing the layers within the active document
 // the renderers themselves are cached within the renderer-factory, this is merely
 // used for change detection in the current editing session (see watchers)
 const layerPool = new Map();
+
 // scale of the on-screen canvas relative to the document
 // eslint-disable-next-line no-unused-vars
 let xScale = 1, yScale = 1, zoom = 1, maxInScale = 1, maxOutScale = 1;
 
-function calculateCanvasBoundingBox() {
+const HEADER_HEIGHT = 40;
+const IGNORED_OUTSIDE_TARGETS = [ "BUTTON", "CANVAS" ]; // tags to ignore outside click handler from
+
+function calculateCanvasBoundingBox(): void {
     const zCanvas = getCanvasInstance();
     if ( zCanvas ) {
-        zCanvas._bounds = null; // TODO : can be removed after update to zCanvas 5.1.5 (requires Webpack 5 migration)
         canvasBoundingBox = getCanvasInstance()?.getCoordinate();
     }
 }
@@ -137,6 +148,7 @@ export default {
         ]),
         ...mapGetters([
             "activeDocument",
+            "activeGroup",
             "layers",
             "activeLayer",
             "activeTool",
@@ -144,6 +156,7 @@ export default {
             "antiAlias",
             "canvasDimensions",
             "hasSelection",
+            "showTrace",
             "snapAlign",
             "preferences",
             "pixelGrid",
@@ -156,8 +169,22 @@ export default {
             }
             return `${name}.${PROJECT_FILE_EXTENSION}`;
         },
+        hasBgColor(): boolean {
+            return this.activeDocument?.meta.bgColor !== undefined;
+        },
         hasGuideRenderer(): boolean {
-            return this.snapAlign || this.pixelGrid;
+            return this.snapAlign || this.pixelGrid || this.hasTimeline;
+        },
+        hasTimeline(): boolean {
+            return this.activeDocument?.type === "timeline";
+        },
+        timelinePanel(): Promise<Component> | null {
+            if ( this.hasTimeline ) {
+                return defineAsyncComponent({
+                    loader: () => import( "@/components/timeline-panel/timeline-panel.vue" ),
+                });
+            }
+            return null;
         },
     },
     watch: {
@@ -165,9 +192,9 @@ export default {
             this.calcIdealDimensions();
         },
         activeDocument: {
-            handler( document?: Document ): void {
+            handler( activeDocument?: Document ): void {
                 // no active document or no document content
-                if ( !document?.layers ) {
+                if ( !activeDocument?.layers ) {
                     if ( getCanvasInstance() ) {
                         this.removeTouchListeners();
                         getCanvasInstance().dispose();
@@ -183,10 +210,10 @@ export default {
                         this.calcIdealDimensions( true );
                     });
                 }
-                const { id } = document;
+                const { id } = activeDocument;
                 // switching between documents
-                if ( id !== lastDocument ) {
-                    lastDocument = id;
+                if ( id !== lastDocumentId ) {
+                    lastDocumentId = id;
                     flushRendererCache();
                     flushBitmapCache();
                     flushBlendedLayerCache();
@@ -194,7 +221,9 @@ export default {
                     renderState.reset();
                     layerPool.clear();
                     this.calcIdealDimensions( true );
+                    
                     this.$nextTick( async (): Promise<void> => {
+                        getCanvasInstance().setBackgroundColor( activeDocument.meta.bgColor ?? null );
                         // previously active tool needs to update to new document ref
                         const tool = this.activeTool;
                         if ( tool === null ) {
@@ -214,6 +243,12 @@ export default {
             handler(): void {
                 this.createLayerRenderers();
             },
+        },
+        activeGroup( _id: RelId ): void {
+            this.createLayerRenderers();
+            this.$nextTick(() => {
+                this.handleTrace();
+            });
         },
         activeLayer( _layer: Layer ): void {
             this.handleActiveLayer();
@@ -256,6 +291,9 @@ export default {
         },
         antiAlias( value: boolean ): void {
             getCanvasInstance()?.setSmoothing( value );
+        },
+        showTrace( value: boolean ): void {
+            this.handleTrace();
         },
     },
     async mounted(): Promise<void> {
@@ -348,8 +386,9 @@ export default {
             this.centerCanvas = zCanvas.getWidth() < containerSize.width || zCanvas.getHeight() < containerSize.height ;
         },
         scaleWrapper(): void {
+            const marginBottom = this.hasTimeline ? 175 : 20; // see timeline-panel height + margin
             if ( !mobileView ) {
-                this.wrapperHeight = `${window.innerHeight - containerSize.top - 20}px`;
+                this.wrapperHeight = `${window.innerHeight - containerSize.top - marginBottom}px`;
             }
         },
         calcIdealDimensions( scaleDocumentToFit = false ): void {
@@ -360,7 +399,7 @@ export default {
                 this.setToolOptionValue({ tool: ToolTypes.ZOOM, option: "level", value: fitInWindow( this.activeDocument, this.canvasDimensions ) });
             }
         },
-        panViewport({ left, top }): void {
+        panViewport({ left, top }: Viewport ): void {
             getCanvasInstance().panViewport(
                 Math.round( left * ( this.cvsWidth  - this.viewportWidth )),
                 Math.round( top  * ( this.cvsHeight - this.viewportHeight ))
@@ -404,6 +443,17 @@ export default {
                 case ToolTypes.EYEDROPPER:
                     canvasClasses.add( "cursor-pointer" );
                     break;
+            }
+        },
+        handleTrace(): void {
+            if ( this.showTrace && this.activeGroup > 0 ) {
+                createGroupSnapshot( this.activeDocument, this.activeGroup - 1 ).then( snapshot => {
+                    guideRenderer.setTrace( snapshot );
+                }).catch(() => {
+                    console.error( `Error during creation of group snapshot` );
+                });
+            } else {
+                guideRenderer.setTrace( null );
             }
         },
         updateGuideModes(): void {
@@ -470,7 +520,7 @@ export default {
             const { thumbnails } = this.preferences;
             
             this.layers?.forEach(( layer: Layer ) => {
-                if ( !layer.visible ) {
+                if ( !this.isVisible( layer )) {
                     if ( thumbnails && !hasThumbnail( layer.id )) {
                         // there is no renderer to trigger this creation, but we'd like to preview all the same
                         createLayerThumbnail( layer, false, this.activeDocument );
@@ -492,7 +542,7 @@ export default {
             // @todo can we do this in the loop above?
             let blendLayer = -1;
             this.layers?.forEach(( layer: Layer, index: number ) => {
-                if ( !layer.visible ) {
+                if ( !this.isVisible( layer )) {
                     return;
                 }
                 const renderer = getRendererForLayer( layer );
@@ -535,8 +585,8 @@ export default {
             this.createLayerRenderers();
         },
         handleOutsideDown( event: Event ): void {
-            if ( event.target.tagName === "CANVAS" || !getCanvasInstance() ) {
-                return; // don't handle clicks originating from the canvas
+            if ( IGNORED_OUTSIDE_TARGETS.includes( event.target.tagName ) || !getCanvasInstance() ) {
+                return; // don't handle clicks originating from the canvas or outside UI components
             }
             const zCanvas = getCanvasInstance();
             const { x, y } = pointerToCanvasCoordinates( event.pageX, event.pageY, zCanvas, canvasBoundingBox );
@@ -571,6 +621,15 @@ export default {
                 getCanvasInstance()?.interactionPane.stopOutsideSelection();
             }
         },
+        isVisible( layer: Layer ): boolean {
+            if ( !layer.visible ) {
+                return false;
+            }
+            if ( this.hasTimeline ) {
+                return layer.rel.id === this.activeGroup;
+            }
+            return true;
+        }
     },
 };
 </script>
@@ -604,8 +663,6 @@ export default {
         background-size: variables.$spacing-xlarge variables.$spacing-xlarge;
 
         canvas {
-            background: url( "../../assets-inline/images/document_transparent_bg.png" ) repeat;
-
             &.no-cursor {
                 cursor: none;
             }
@@ -620,7 +677,11 @@ export default {
             }
         }
 
-        &.center canvas {
+        &--transparent canvas {
+            background: url( "../../assets-inline/images/document_transparent_bg.png" ) repeat;
+        }
+
+        &--center canvas {
             @include mixins.large() {
                 position: absolute;
                 top: 50%;

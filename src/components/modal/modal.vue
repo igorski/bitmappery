@@ -1,7 +1,7 @@
 /**
 * The MIT License (MIT)
 *
-* Igor Zinken 2019-2022 - https://www.igorski.nl
+* Igor Zinken 2019-2026 - https://www.igorski.nl
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 * this software and associated documentation files (the "Software"), to deal in
@@ -41,7 +41,7 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { mapMutations } from "vuex";
 import { focus } from "@/utils/environment-util";
 
@@ -51,18 +51,18 @@ export default {
             "closeModal",
         ]),
     },
-    mounted() {
+    mounted(): void {
         focus( this.$refs.content );
-        this.escListener = ({ keyCode }) => {
-            if ( keyCode === 27 ) {
+        this.escListener = ({ key }: KeyboardEvent ) => {
+            if ( key === "Escape" ) {
                 this.closeModal();
             }
         };
         window.addEventListener( "keyup", this.escListener );
     },
-    unmounted() {
+    unmounted(): void {
         window.removeEventListener( "keyup", this.escListener );
-    }
+    },
 };
 </script>
 <style lang="scss" scoped>

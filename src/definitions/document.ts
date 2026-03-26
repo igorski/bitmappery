@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -22,8 +22,27 @@
  */
 import type { Point } from "zcanvas";
 import type { BlendModes } from "./blend-modes";
+import type { Unit } from "./document-presets";
 import type { LayerTypes } from "./layer-types";
 
+/**
+ * Identifier for related entites
+ */
+export type RelId = string | number;
+
+/**
+ * A LayerRel describes whether the Layer is related
+ * to another entity (like a Layer- or Tile Group)
+ */
+export type LayerRel = {
+    type: "none" | "group" | "tile";
+    id?: RelId;
+};
+
+/**
+ * Properties of the Layer structure.
+ * The Layer is what holds the content (image, text, etc.)
+ */
 export type Layer = {
     id: string;
     name: string;
@@ -41,6 +60,7 @@ export type Layer = {
     transform: Transform;
     filters: Filters;
     text: Text;
+    rel: LayerRel;
 };
 
 export type Transform = {
@@ -84,6 +104,13 @@ export type Shape = Point[];
 // selections can consist of multiple non-connecting Shapes
 export type Selection = Shape[];
 
+export type DocumentType = "default" | "timeline";
+export type DocumentMeta = {
+    dpi: number;
+    unit: Unit;
+    fps?: number; // for timeline DocumentType
+    bgColor?: string; // transparent when empty
+};
 export type Document = {
     id: string;
     name: string;
@@ -91,7 +118,10 @@ export type Document = {
     width: number;
     height: number;
     selections: Record<string, Selection>;
+    type: DocumentType;
+    meta: DocumentMeta;
     // the below are only used at runtime, will not be serialized
     activeSelection: Selection;
     invertSelection: boolean;
+    groups: RelId[]; // derived from Layer rels
 };

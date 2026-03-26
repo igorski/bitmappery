@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2025 - https://www.igorski.nl
+ * Igor Zinken 2021-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -25,12 +25,14 @@ import type { Rectangle, Viewport } from "zcanvas";
 import { fastRound } from "@/math/unit-math";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import { getClosestSnappingPoints } from "@/rendering/operations/snapping";
+import { getPixelRatio } from "@/utils/canvas-util";
 
 const AMOUNT_OF_PIXELS = 1; // currently only 1 pixel grid supported
 
 class GuideRenderer extends sprite  {
     private drawGuides: boolean;
     private drawPixelGrid: boolean;
+    private trace: HTMLCanvasElement;
 
     constructor( zCanvasInstance: ZoomableCanvas = null ) {
         // @ts-expect-error ignoring some arguments...
@@ -51,13 +53,16 @@ class GuideRenderer extends sprite  {
         this.drawPixelGrid = drawPixelGrid;
     }
 
-    draw( ctx: CanvasRenderingContext2D, viewport?: Viewport ): void {
+    setTrace( snapshot: HTMLCanvasElement ): void {
+        this.trace = snapshot;
+    }
+
+    override draw( ctx: CanvasRenderingContext2D, viewport: Viewport ): void {
 
         /* grid */
 
         if ( this.drawPixelGrid ) {
-            const width  = viewport?.width  || this.canvas.getWidth();
-            const height = viewport?.height || this.canvas.getHeight();
+            const { width, height } = viewport;
 
             ctx.strokeStyle = "000";
             ctx.lineWidth = 1 / this.canvas.zoomFactor;
@@ -74,14 +79,27 @@ class GuideRenderer extends sprite  {
             ctx.stroke();
         }
 
+        /* trace outline */
+
+        if ( this.trace ) {
+            ctx.save();
+            ctx.globalAlpha = 0.5;
+            const pixelRatio = getPixelRatio();
+            ctx.drawImage(
+                this.trace, -fastRound( viewport.left ), -fastRound( viewport.top ),
+                fastRound( this.trace.width / pixelRatio ), fastRound( this.trace.height / pixelRatio )
+            );
+            ctx.restore();
+        }
+
         /* guides */
 
         if ( !this.drawGuides || !this.canvas.guides || !this.canvas.draggingSprite ) {
             return;
         }
 
-        const vpLeft = viewport?.left || 0;
-        const vpTop  = viewport?.top  || 0;
+        const vpLeft = viewport.left;
+        const vpTop  = viewport.top;
 
         // we can snap the currently draggingSprite against its edge and center
         const guides: Rectangle[] = getClosestSnappingPoints( this.canvas.draggingSprite, this.canvas.guides );

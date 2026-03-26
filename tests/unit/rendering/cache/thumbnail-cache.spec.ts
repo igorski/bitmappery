@@ -26,19 +26,16 @@ vi.mock( "@/utils/canvas-util", async ( importOriginal ) => ({
     ...await importOriginal(),
     imageToBase64: vi.fn().mockReturnValue( "data:image/png;base64," ),
     resizeImage: vi.fn().mockResolvedValue( {} ),
-}))
+}));
 
 describe( "Thumbnail cache", () => {
-    let setTimeoutSpy: MockInstance<typeof setTimeout>;
-    let clearTimeoutSpy: MockInstance<typeof clearTimeout>;
-
     const layer = LayerFactory.create();
     const document = DocumentFactory.create();
 
     beforeEach(() => {
         vi.useFakeTimers();
-        setTimeoutSpy = vi.spyOn( global, "setTimeout" );
-        clearTimeoutSpy = vi.spyOn( global, "clearTimeout" );
+        vi.spyOn( global, "setTimeout" );
+        vi.spyOn( global, "clearTimeout" );
     });
 
     afterEach(() => {

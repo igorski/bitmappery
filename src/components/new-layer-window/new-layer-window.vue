@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -87,6 +87,7 @@ export default {
         ...mapGetters([
             "activeDocument",
             "activeLayerIndex",
+            "activeGroup",
             "layers",
         ]),
         layerTypes(): { label: string, value: LayerTypes }[] {
@@ -116,11 +117,16 @@ export default {
             if ( !this.isValid ) {
                 return;
             }
+            const useTimeline = this.activeDocument.type === "timeline";
             const layer = LayerFactory.create({
-                 name   : this.name,
-                 type   : this.type,
-                 width  : this.activeDocument.width,
-                 height : this.activeDocument.height
+                name   : this.name,
+                type   : this.type,
+                width  : this.activeDocument.width,
+                height : this.activeDocument.height,
+                rel    : useTimeline ? {
+                    type: "tile",
+                    id: this.activeGroup,
+                } : undefined,
             });
             addLayer( this.$store, layer, this.activeLayerIndex + 1 );
 
