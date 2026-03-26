@@ -7,6 +7,8 @@
         "lowMemoryExpl": "On devices with low memory (like phones), this mode is recommended to reduce the amount of allocated memory. It comes at the expense of brush history accuracy (e.g. undo will instantly go back several strokes instead of one at a time).",
         "wasmFilters": "Web Assembly filters",
         "wasmFiltersExpl": "Experimental feature. If application of layer filters is slow, you can enable this mode which can offer a performance gain depending on your environment.",
+        "autoAlias": "Auto (anti) aliasing",
+        "autoAliasExpl": "Automatically choose the best anti-aliasing setting for a Document to ensure the best fidelity (\"on\" for photos and \"off\" for pixel art).",
         "save": "Save",
         "cancel": "Cancel"
     }

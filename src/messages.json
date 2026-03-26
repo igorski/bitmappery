@@ -12,6 +12,8 @@
         "selectionInverted": "Selection inverted",
         "corsError": "Could not open file '{file}' as the owner does not allow cross-origin sharing",
         "importError": "Could not import file '{file}'",
+        "antiAliasingEnabled": "Enabled anti-aliasing",
+        "antiAliasingDisabled": "Disabled anti-aliasing",
         "fonts": {
             "consentRequired": "Consent required",
             "consentExpl": "You are about to use text within a BitMappery document. BitMappery text is rendered using Google Fonts, which is a free to use online service providing a large range of type faces. \n\nUnder GDPR, CCPA, DPA and similar privacy laws, sites are required to request explicit approval before serving Google Fonts to end users.\n\nIf you agree to the usage of Google Fonts, you can provide consent by clicking OK.\n\nYou can also choose to reject using Google Fonts and continue using BitMappery with fallback fonts (or not use text at all). When in doubt, consult the privacy policy."

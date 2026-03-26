@@ -83,6 +83,7 @@ import DialogWindow from "@/components/dialog-window/dialog-window.vue";
 import Notifications from "@/components/notifications/notifications.vue";
 import Loader from "@/components/loader/loader.vue";
 import type { Document } from "@/definitions/document";
+import { isPixelArt } from "@/definitions/editor-properties";
 import ToolTypes from "@/definitions/tool-types";
 import DocumentFactory from "@/factories/document-factory";
 import { isMobile } from "@/utils/environment-util";
@@ -103,7 +104,7 @@ import {
 const i18n = createI18n({
     messages
 });
-let lastDocumentId = null;
+let lastDocumentId: string | undefined;
 
 // wrapper for loading dynamic components with custom loading states
 type IAsyncComponent = { component: Promise<Component>};
@@ -148,6 +149,8 @@ export default {
         ]),
         ...mapGetters([
             "activeDocument",
+            "antiAlias",
+            "preferences",
             "isLoading",
         ]),
         documentCanvas(): IAsyncComponent {
@@ -189,7 +192,7 @@ export default {
                     loadFn = () => import( "@/components/selection-menu/save-selection/save-selection.vue" );
                     break;
                 case PREFERENCES:
-                    loadFn = () => import( "@/components/preferences/preferences.vue" );
+                    loadFn = () => import( "@/components/preferences-window/preferences-window.vue" );
                     break;
                 case RESIZE_CANVAS:
                     loadFn = () => import( "@/components/resize-canvas-window/resize-canvas-window.vue" );
@@ -211,16 +214,24 @@ export default {
         },
     },
     watch: {
-        activeDocument( document: Document ): void {
-            if ( !document?.layers ) {
+        activeDocument( activeDocument: Document ): void {
+            if ( !activeDocument?.layers ) {
                 this.resetHistory();
                 if ( isMobile() ) {
                     this.closeOpenedPanels();
                 }
             } else {
-                const { id } = document;
+                const { id } = activeDocument;
                 if ( id !== lastDocumentId ) {
                     lastDocumentId = id;
+                    const useAntiAlias = !isPixelArt( activeDocument );
+                    if ( this.preferences.autoAlias && useAntiAlias !== this.antiAlias ) {
+                        this.setAntiAlias( useAntiAlias );
+                        this.showNotification({
+                            title: "",
+                            message: this.$t( useAntiAlias ? "antiAliasingEnabled" : "antiAliasingDisabled" )
+                        });
+                    }
                     this.resetHistory();
                 }
             }
@@ -308,6 +319,7 @@ export default {
             "closeOpenedPanels",
             "openDialog",
             "resetHistory",
+            "setAntiAlias",
             "setToolboxOpened",
             "setToolOptionValue",
             "setLoading",

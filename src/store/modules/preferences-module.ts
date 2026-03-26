@@ -36,6 +36,7 @@ export type Preferences = {
     wasmFilters: boolean;
     snapAlign: boolean;
     antiAlias: boolean;
+    autoAlias: boolean;
 };
 
 export interface PreferencesState {
@@ -49,6 +50,7 @@ export const createPreferencesState = ( props?: Partial<Preferences> ): Preferen
         wasmFilters : false,
         snapAlign   : false,
         antiAlias   : true,
+        autoAlias   : true,
         ...props,
     },
 })

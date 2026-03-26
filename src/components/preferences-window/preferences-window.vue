@@ -28,6 +28,14 @@
         <template #content>
             <div class="form" @keyup.enter="save()">
                 <div class="wrapper input">
+                    <label v-t="'lowMemoryMode'"></label>
+                    <toggle-button
+                        v-model="internalValue.lowMemory"
+                        sync
+                    />
+                </div>
+                <p v-t="'lowMemoryExpl'" class="expl"></p>
+                <div class="wrapper input">
                     <label v-t="'layerThumbnails'"></label>
                     <toggle-button
                         v-model="internalValue.thumbnails"
@@ -36,13 +44,13 @@
                 </div>
                 <p v-t="'layerThumbnailsExpl'" class="expl"></p>
                 <div class="wrapper input">
-                    <label v-t="'lowMemoryMode'"></label>
+                    <label v-t="'autoAlias'"></label>
                     <toggle-button
-                        v-model="internalValue.lowMemory"
+                        v-model="internalValue.autoAlias"
                         sync
                     />
                 </div>
-                <p v-t="'lowMemoryExpl'" class="expl"></p>
+                <p v-t="'autoAliasExpl'" class="expl"></p>
                 <template v-if="hasWebAssembly">
                     <div class="wrapper input">
                         <label v-t="'wasmFilters'"></label>
@@ -72,7 +80,7 @@
     </modal>
 </template>
 
-<script>
+<script lang="ts">
 import { mapGetters, mapMutations, mapActions } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
@@ -96,7 +104,7 @@ export default {
             return this.supportWASM;
         },
     },
-    created() {
+    created(): void {
         this.internalValue = { ...this.preferences };
     },
     methods: {
@@ -107,7 +115,7 @@ export default {
         ...mapActions([
             "storePreferences",
         ]),
-        async save() {
+        async save(): Promise<void> {
             this.setPreferences( this.internalValue );
             await this.storePreferences();
             this.closeModal();
@@ -122,7 +130,7 @@ export default {
 @use "@/styles/ui";
 
 .preferences {
-    @include ui.modalBase( 480px, 370px );
+    @include ui.modalBase( 480px, 440px );
 }
 
 .expl {

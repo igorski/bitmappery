@@ -27,6 +27,7 @@ describe( "Vuex preferences module", () => {
             wasmFilters : true,
             snapAlign   : true,
             antiAlias   : true,
+            autoAlias   : true,
         });
 
         it( "should be able to return all preferences", () => {
@@ -45,6 +46,7 @@ describe( "Vuex preferences module", () => {
                 thumbnails  : false,
                 wasmFilters : true,
                 antiAlias   : true,
+                autoAlias   : true,
             });
             mutations.setPreferences( state, { lowMemory: true, thumbnails: true, snapAlign: false });
             expect( state.preferences ).toEqual({
@@ -53,6 +55,7 @@ describe( "Vuex preferences module", () => {
                 wasmFilters : true,
                 snapAlign   : false,
                 antiAlias   : true,
+                autoAlias   : true,
             });
         });
     });
@@ -64,7 +67,8 @@ describe( "Vuex preferences module", () => {
                 thumbnails  : false,
                 wasmFilters : true,
                 snapAlign   : true,
-                antiAlias   : false
+                antiAlias   : false,
+                autoAlias   : false,
             };
             const commit = vi.fn();
             const dispatch = vi.fn();
@@ -94,6 +98,7 @@ describe( "Vuex preferences module", () => {
                 thumbnails  : true,
                 wasmFilters : true,
                 antiAlias   : true,
+                autoAlias   : true,
             })
 
             // @ts-expect-error Not all constituents of type 'Action<PreferencesState, any>' are callable
