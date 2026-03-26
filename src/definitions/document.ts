@@ -22,6 +22,7 @@
  */
 import type { Point } from "zcanvas";
 import type { BlendModes } from "./blend-modes";
+import type { Unit } from "./document-presets";
 import type { LayerTypes } from "./layer-types";
 
 /**
@@ -105,7 +106,9 @@ export type Selection = Shape[];
 
 export type DocumentType = "default" | "timeline";
 export type DocumentMeta = {
-    fps?: number;
+    dpi: number;
+    unit: Unit;
+    fps?: number; // for timeline DocumentType
     bgColor?: string; // transparent when empty
 };
 export type Document = {

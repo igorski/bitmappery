@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Document, Layer } from "@/definitions/document";
+import { DEFAULT_DPI, DEFAULT_UNIT } from "@/definitions/document-presets";
 import LayerFactory from "@/factories/layer-factory";
 import { compress, decompress } from "@/services/compression-service";
 
@@ -34,7 +35,9 @@ const DocumentFactory = {
      * all layers and image content)
      */
     create({
-        name = "New document", width = 1000, height = 1000, layers = [], selections = {}, type = "default", meta = {},
+        name = "New document", width = 1000, height = 1000, layers = [], selections = {}, type = "default", meta = {
+            dpi: DEFAULT_DPI, unit: DEFAULT_UNIT,
+        },
     }: DocumentProps = {}): Document {
         if ( !layers.length ) {
             layers = [ LayerFactory.create({ width, height }) ];
@@ -71,6 +74,8 @@ const DocumentFactory = {
             m: {
                 f: document.meta.fps,
                 b: document.meta.bgColor,
+                d: document.meta.dpi,
+                u: document.meta.unit,
             },
         };
     },
@@ -93,6 +98,8 @@ const DocumentFactory = {
             meta: {
                 fps: document.m?.f,
                 bgColor: document.m?.b,
+                dpi: document.m?.d ?? DEFAULT_DPI,
+                unit: document.m?.u ?? DEFAULT_UNIT,
             }
         });
     },

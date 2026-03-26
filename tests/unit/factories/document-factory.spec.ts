@@ -1,6 +1,7 @@
 import { it, describe, expect, afterAll, vi } from "vitest";
 import { mockZCanvas } from "../mocks";
 import type { Layer, Selection } from "@/definitions/document";
+import { DEFAULT_DPI, DEFAULT_UNIT } from "@/definitions/document-presets";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 
@@ -26,7 +27,10 @@ describe( "Document factory", () => {
                 layers: [ { name: "layer1" } ],
                 selections: {},
                 type: "default",
-                meta: {},
+                meta: {
+                    dpi: DEFAULT_DPI,
+                    unit: DEFAULT_UNIT,
+                },
                 activeSelection: [],
                 invertSelection: false,
                 groups: [],
@@ -47,6 +51,8 @@ describe( "Document factory", () => {
                 meta: {
                     fps: 15,
                     bgColor: "#FF0000",
+                    dpi: 300,
+                    unit: "cm",
                 },
                 selections: { foo: [[ { x: 0, y: 0 } ]] }
             });
@@ -61,6 +67,8 @@ describe( "Document factory", () => {
                 meta: {
                     fps: 15,
                     bgColor: "#FF0000",
+                    dpi: 300,
+                    unit: "cm",
                 },
                 activeSelection: [],
                 invertSelection: false,
@@ -89,6 +97,8 @@ describe( "Document factory", () => {
                 meta: {
                     fps: 15,
                     bgColor: "#FF0000",
+                    dpi: 300,
+                    unit: "cm",
                 },
             });
             const serializeLayerSpy = vi.spyOn( LayerFactory, "serialize" ).mockImplementation( data => JSON.stringify( data ));
@@ -125,7 +135,7 @@ describe( "Document factory", () => {
             expect( deserialized.type ).toEqual( "default" );
         });
 
-        it( "should create an empty meta structure for legacy documents", async () => {
+        it( "should create an empty meta structure containing only the default DPI and unit values for legacy documents", async () => {
             const document = DocumentFactory.create();
 
             const serialized = DocumentFactory.serialize( document );
@@ -133,7 +143,10 @@ describe( "Document factory", () => {
 
             const deserialized = await DocumentFactory.deserialize( serialized );
 
-            expect( deserialized.meta ).toEqual( {} );
+            expect( deserialized.meta ).toEqual( {
+                dpi: DEFAULT_DPI,
+                unit: DEFAULT_UNIT,
+            });
         });
     });
 });
