@@ -69,6 +69,7 @@
                                 <!-- thumbnail -->
                                 <div
                                     v-if="renderThumbnails"
+                                    v-tooltip.left="$t('dragToAdjustOrder')"
                                     class="layer__thumbnail"
                                 >
                                     <img
@@ -510,11 +511,13 @@ export default {
 
     &__name,
     &__name-input {
+        display: flex;
+        align-items: center;
         flex: 3;
         @include mixins.truncate();
         font-size: 90%;
-        padding: variables.$spacing-small variables.$spacing-small 0;
-        margin-left: variables.$spacing-small;
+        padding: 0 variables.$spacing-small;
+        margin-left: variables.$spacing-xsmall;
     }
     
     &__name-input {
@@ -522,6 +525,8 @@ export default {
     }
 
     &__actions {
+        display: flex;
+        align-items: center;
         margin-right: variables.$spacing-small;
 
         &-button {
