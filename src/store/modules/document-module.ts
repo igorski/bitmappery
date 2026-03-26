@@ -27,7 +27,8 @@ import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { createRendererForLayer, flushLayerRenderers, runRendererFn, getRendererForLayer } from "@/factories/renderer-factory";
 import { flushBlendedLayerCache } from "@/rendering/cache/blended-layer-cache";
-import { createLayerThumbnail, flushThumbnailForLayer } from "@/rendering/cache/thumbnail-cache";
+import { createLayerThumbnail, flushThumbnailCache, flushThumbnailForLayer } from "@/rendering/cache/thumbnail-cache";
+import { flushTileCache } from "@/rendering/cache/tile-cache";
 import { getCanvasInstance } from "@/services/canvas-service";
 import { resizeLayerContent, cropLayerContent } from "@/utils/layer-util";
 
@@ -96,6 +97,8 @@ const DocumentModule: Module<DocumentState, any> = {
             getCanvasInstance()?.setDimensions( width, height, true, true );
             getCanvasInstance()?.rescaleFn();
             getCanvasInstance()?.refreshFn();
+            flushThumbnailCache();
+            flushTileCache();
         },
         setActiveSelection( state: DocumentState, selection: Selection ): void {
             state.documents[ state.activeIndex ].activeSelection = selection;

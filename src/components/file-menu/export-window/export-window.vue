@@ -94,11 +94,13 @@
                             />
                         </div>
                         <template v-if="layersToSpriteSheet">
-                            <div class="wrapper input">
+                            <div class="wrapper input wrapper--small">
                                 <label v-t="'columnAmount'"></label>
                                 <input
                                     type="number"
-                                    v-model="sheetCols"
+                                    v-model.number="sheetCols"
+                                    min="1"
+                                    max="999"
                                     class="input-field"
                                 />
                             </div>
@@ -227,7 +229,8 @@ export default {
         ]),
         showOriginal(): boolean {
             // see _variables.scss $preview-ideal-width and $preview-ideal-height
-            return this.windowSize.width >= 1280 && this.windowSize.height >= 700;
+            const isLargeEnough = this.windowSize.width >= 1280 && this.windowSize.height >= 700;
+            return isLargeEnough && !this.exportAnimation;
         },
         selectedType(): string {
             return typeToExt( this.type );
@@ -425,7 +428,8 @@ export default {
                     );
                 }
                 else if ( this.layersToSpriteSheet ) {
-                    snapshotCvs = tilesToSingle( this.snapshots, width, height, parseFloat( this.sheetCols || "4" ));
+                    const columns = Math.min( this.snapshots.length, this.sheetCols ?? Infinity );
+                    snapshotCvs = tilesToSingle( this.snapshots, width, height, columns );
                 }
             } else {
                 snapshotCvs = this.snapshot;
@@ -502,6 +506,10 @@ $idealFormWidth: 340px;
         width: 100%;
         justify-content: space-between;
         align-items: center;
+    }
+
+    .wrapper--small input {
+        width: 80px;
     }
 
     @include mixins.large() {

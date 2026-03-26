@@ -174,7 +174,6 @@ export default {
         // to manage on-the-fly updates of group tiles, we track changes to layer thumbnails
         // as a convenient signal, with the additional bonus that thumbnail creation is already debounced
         subscribeThumbnail( SUBSCRIPTION_TOKEN, ( layerId: string ) => {
-            console.info('thumbnail updated for layer ' + layerId + ' for tile:'+getTileByLayer(this.activeDocument, layerId));
             const tile = getTileByLayer( this.activeDocument, layerId );
             if ( tile !== undefined ) {
                 createGroupTile( tile, this.activeDocument );
