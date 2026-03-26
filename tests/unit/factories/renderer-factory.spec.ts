@@ -61,8 +61,9 @@ describe( "Renderer factory", () => {
         it( "should retrieve the cached renderer on repeated invocation for the same layer", () => {
             layer1renderer = createRendererForLayer( zCanvas, layer1 );
 
-            const newRenderer = createRendererForLayer( zCanvas, layer1 );
             vi.resetAllMocks();
+            
+            const newRenderer = createRendererForLayer( zCanvas, layer1 );
             
             expect( newRenderer ).toEqual( layer1renderer );
             expect( zCanvas.addChild ).not.toHaveBeenCalledWith( layer1renderer );
