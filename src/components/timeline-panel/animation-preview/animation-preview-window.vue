@@ -51,7 +51,6 @@
 import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import Slider from "@/components/ui/slider/slider.vue";
-import { LayerTypes } from "@/definitions/layer-types";
 import { scaleToFixedWidth } from "@/math/image-math";
 import { renderAnimation } from "@/services/render-animation-service";
 import { getPixelRatio, resizeImage } from "@/utils/canvas-util";
@@ -66,9 +65,7 @@ export default {
         Slider,
     },
     data: () => ({
-        name: "",
         fps: 10,
-        type: LayerTypes.LAYER_GRAPHIC,
     }),
     computed: {
         ...mapGetters([
@@ -186,7 +183,6 @@ export default {
         align-items: center;
         justify-content: center;
         width: 100%;
-        border-top: 1px dashed colors.$color-bg;
     }
 }
 </style>
