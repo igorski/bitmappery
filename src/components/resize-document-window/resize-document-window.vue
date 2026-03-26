@@ -1,7 +1,7 @@
 /**
 * The MIT License (MIT)
 *
-* Igor Zinken 2020-2025 - https://www.igorski.nl
+* Igor Zinken 2020-2026 - https://www.igorski.nl
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 * this software and associated documentation files (the "Software"), to deal in
@@ -61,6 +61,7 @@ import { mapGetters, mapMutations } from "vuex";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import Modal from "@/components/modal/modal.vue";
 import DimensionsFormatter from "@/components/ui/dimensions-formatter/dimensions-formatter.vue";
+import { DEFAULT_DPI, DEFAULT_UNIT } from "@/definitions/document-presets";
 import { resizeDocument } from "@/store/actions/document-resize";
 import messages from "./messages.json";
 
@@ -75,6 +76,8 @@ export default {
         dimensions: {
             width: 0,
             height: 0,
+            dpi: DEFAULT_DPI,
+            unit: DEFAULT_UNIT,
         },
         ratio: 0,
         syncLock: false,
@@ -84,19 +87,24 @@ export default {
         ...mapGetters([
             "activeDocument",
         ]),
-        width() {
+        width(): number {
             return this.dimensions.width;
         },
-        height() {
+        height(): number {
             return this.dimensions.height;
         },
     },
     created(): void {
-        this.dimensions.width  = this.activeDocument.width;
-        this.dimensions.height = this.activeDocument.height;
-        this.ratio = this.dimensions.width / this.dimensions.height;
+        const { width, height, meta } = this.activeDocument;
 
-        this.$watch( "width", function( value ) {
+        this.dimensions.width  = width;
+        this.dimensions.height = height;
+        this.dimensions.dpi = meta.dpi;
+        this.dimensions.unit = meta.unit;
+
+        this.ratio = width / height;
+
+        this.$watch( "width", function( value: number ): void  {
             if ( !this.maintainRatio || this.syncLock ) {
                 return;
             }
@@ -104,7 +112,7 @@ export default {
             this.dimensions.height = Math.round( value / this.ratio );
         });
 
-        this.$watch( "height", function( value ) {
+        this.$watch( "height", function( value: number ): void {
             if ( !this.maintainRatio || this.syncLock ) {
                 return;
             }

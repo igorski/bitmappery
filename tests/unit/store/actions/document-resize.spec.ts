@@ -29,7 +29,7 @@ vi.mock( "@/utils/document-util", () => ({
 }));
 
 describe( "resize Document action", () => {
-    const document = DocumentFactory.create({ width: 400, height: 400 });
+    const document = DocumentFactory.create({ width: 400, height: 400, meta: { dpi: 300, unit: "cm" } });
     let store: Store<BitMapperyState>;
     
     beforeEach(() => {
@@ -42,21 +42,26 @@ describe( "resize Document action", () => {
     });
 
     it( "should be able to resize the Document", async () => {
-        await resizeDocument( store, document, { width: 200, height: 200 });
+        await resizeDocument( store, document, { width: 200, height: 200, dpi: 150, unit: "in" });
 
-        expect( store.commit ).toHaveBeenCalledTimes( 2 );
+        expect( store.commit ).toHaveBeenCalledTimes( 3 );
         expect( store.commit ).toHaveBeenCalledWith( "resizeActiveDocumentContent", { scaleX: 0.5, scaleY: 0.5 });
+        expect( store.commit ).toHaveBeenCalledWith( "updateMeta", {
+            ...document.meta,
+            dpi: 150,
+            unit: "in",
+        });
         expect( store.commit ).toHaveBeenCalledWith( "setActiveDocumentSize", { width: 200, height: 200 });
     });
 
     it( "should round the provided values when resizing the Document", async () => {
-        await resizeDocument( store, document, { width: 200.3434, height: 200.788 });
+        await resizeDocument( store, document, { width: 200.3434, height: 200.788, dpi: 150, unit: "in" });
 
         expect( store.commit ).toHaveBeenCalledWith( "setActiveDocumentSize", { width: 200, height: 201 });
     });
 
     it( "should store the action in state history", async () => {
-        await resizeDocument( store, document, { width: 200, height: 200 });
+        await resizeDocument( store, document, { width: 200, height: 200, dpi: 150, unit: "in" });
 
         expect( mockEnqueueState ).toHaveBeenCalledWith( 
             `resizeDocument`, {
@@ -67,25 +72,35 @@ describe( "resize Document action", () => {
     });
 
     it( "should restore the original dimensions and content when calling undo in state history", async () => {
-        await resizeDocument( store, document, { width: 200, height: 200 });
+        await resizeDocument( store, document, { width: 200, height: 200, dpi: 150, unit: "in" });
 
         const { undo } = mockEnqueueState.mock.calls[ 0 ][ 1 ];
+        vi.resetAllMocks();
+
         await undo();
 
         expect( mockRestoreFromClone ).toHaveBeenCalledWith( document, MOCK_CLONED_CONTENT );
-        expect( store.commit ).toHaveBeenCalledTimes( 3 );
+        expect( store.commit ).toHaveBeenCalledTimes( 2 );
+        expect( store.commit ).toHaveBeenCalledWith( "updateMeta", document.meta );
         expect( store.commit ).toHaveBeenCalledWith( "setActiveDocumentSize", { width: 400, height: 400 });
     });
 
     it( "should resize the Document to the provided values again when calling redo in state history", async () => {
-        await resizeDocument( store, document, { width: 200, height: 200 });
+        await resizeDocument( store, document, { width: 200, height: 200, dpi: 150, unit: "in" });
 
         const { undo, redo } = mockEnqueueState.mock.calls[ 0 ][ 1 ];
         await undo();
+
+        vi.resetAllMocks();
         await redo();
 
-        expect( store.commit ).toHaveBeenCalledTimes( 5 );
-        expect( store.commit ).toHaveBeenNthCalledWith( 4, "resizeActiveDocumentContent", { scaleX: 0.5, scaleY: 0.5 });
-        expect( store.commit ).toHaveBeenNthCalledWith( 5, "setActiveDocumentSize", { width: 200, height: 200 });
+        expect( store.commit ).toHaveBeenCalledTimes( 3 );
+        expect( store.commit ).toHaveBeenCalledWith( "resizeActiveDocumentContent", { scaleX: 0.5, scaleY: 0.5 });
+        expect( store.commit ).toHaveBeenCalledWith( "updateMeta", {
+            ...document.meta,
+            dpi: 150,
+            unit: "in",
+        })
+        expect( store.commit ).toHaveBeenCalledWith( "setActiveDocumentSize", { width: 200, height: 200 });
     });
 });

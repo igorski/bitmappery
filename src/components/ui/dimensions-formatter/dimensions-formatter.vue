@@ -1,7 +1,7 @@
 /**
 * The MIT License (MIT)
 *
-* Igor Zinken 2021-2025 - https://www.igorski.nl
+* Igor Zinken 2021-2026 - https://www.igorski.nl
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 * this software and associated documentation files (the "Software"), to deal in
@@ -28,11 +28,11 @@
             <div class="select-combo">
                 <select-box
                     :options="units"
-                    v-model="unit"
+                    v-model="internalValue.unit"
                     class="first"
                 />
                 <select-box
-                    v-model="dpi"
+                    v-model.number="dpi"
                     :options="dpis"
                     :disabled="!showDPI"
                 />
@@ -44,6 +44,8 @@
                 v-model.number="translatedWidth"
                 type="number"
                 name="width"
+                min="1"
+                max="9999"
                 class="input-field"
             />
         </div>
@@ -53,6 +55,8 @@
                 v-model.number="translatedHeight"
                 type="number"
                 name="height"
+                min="1"
+                max="9999"
                 class="input-field"
             />
         </div>
@@ -61,11 +65,9 @@
 
 <script lang="ts">
 import SelectBox from "@/components/ui/select-box/select-box.vue";
+import { DEFAULT_DPI, DEFAULT_UNIT, DPI, UNITS } from "@/definitions/document-presets";
 import { pixelsToInch, pixelsToCm, pixelsToMm, inchesToPixels, cmToPixels, mmToPixels,  } from "@/math/unit-math";
 import messages from "./messages.json";
-
-const DPI   = [ 72, 97, 150, 300, 600 ];
-const UNITS = [ "px", "in", "cm", "mm" ];
 
 const toFixedFloat = ( value: number, exp = 2 ): number => parseFloat( value.toFixed( exp ));
 
@@ -79,20 +81,25 @@ export default {
         modelValue: {
             type: Object,
             required: true,
-            validator: ({ width, height }) => typeof width === "number" && typeof height === "number"
+            validator: ({ width, height, dpi, unit }) => {
+                return typeof width === "number" && typeof height === "number" && ( dpi === undefined || typeof dpi === "number" ) && typeof unit === "string";
+            }
         },
     },
     data: () => ({
-        unit: UNITS[ 0 ],
-        dpi: DPI[ 0 ].toString(),
-        internalValue: {},
+        internalValue: {
+            width: 1,
+            height: 1,
+            dpi: DEFAULT_DPI,
+            unit: DEFAULT_UNIT,
+        },
     }),
     computed: {
         showDPI(): boolean {
-            return this.unit !== "px";
+            return this.internalValue.unit !== "px";
         },
-        dpis(): { label: string, value: string }[] {
-            return DPI.map( dpi => ({ label: `${dpi} DPI`, value: dpi.toString() }));
+        dpis(): { label: string, value: number }[] {
+            return DPI.map( dpi => ({ label: `${dpi} DPI`, value: dpi }));
         },
         units(): { label: string, value: string }[] {
             return UNITS.map( unit => ({ label: this.$t( unit ), value: unit }));
@@ -109,29 +116,39 @@ export default {
             get(): number {
                 return this.valueFromPx( this.internalValue.height );
             },
-            set( value: number ): number {
+            set( value: number ): void {
                 this.internalValue.height = this.valueToPx( value )
             },
-        }
+        },
+        dpi: {
+            get(): number {
+                return this.internalValue.dpi;
+            },
+            set( value: number ): void {
+                const oldValue = this.internalValue.dpi;
+                this.internalValue.dpi = value;
+
+                if ( this.internalValue.unit !== "px" ) {
+                    const ratio = value / oldValue;
+                    // when changing DPI we keep the dimensions for the current unit the same
+                    this.internalValue.width  *= ratio;
+                    this.internalValue.height *= ratio;
+                }
+            },
+        },
     },
-    mounted() {
+    mounted(): void {
         this.internalValue = { ...this.modelValue };
     },
     watch: {
-        internalValue( value ) {
+        internalValue( value ): void {
             this.$emit( "update:modelValue", value );
         },
-        dpi( value, oldValue = value ) {
-            const ratio = value / oldValue;
-            // when changing DPI we keep the dimensions for the current unit the same
-            this.internalValue.width  *= ratio;
-            this.internalValue.height *= ratio;
-        }
     },
     methods: {
         valueFromPx( valueInPx: number ): number {
-            const dpi = parseFloat( this.dpi );
-            switch ( this.unit ) {
+            const { dpi, unit } = this.internalValue;
+            switch ( unit ) {
                 default:
                 case "px":
                     return Math.round( valueInPx );
@@ -144,16 +161,17 @@ export default {
             }
         },
         valueToPx( value: number ): number {
-            switch ( this.unit ) {
+            const { dpi, unit } = this.internalValue;
+            switch ( unit ) {
                 default:
                 case "px":
                     return Math.round( value );
                 case "in":
-                    return inchesToPixels( value, this.dpi );
+                    return inchesToPixels( value, dpi );
                 case "cm":
-                    return cmToPixels( value, this.dpi );
+                    return cmToPixels( value, dpi );
                 case "mm":
-                    return mmToPixels( value, this.dpi );
+                    return mmToPixels( value, dpi );
             }
         },
     }
@@ -176,5 +194,9 @@ export default {
 
 .first {
     margin-right: variables.$spacing-small;
+}
+
+.wrapper--small .input-field {
+    width: 90px !important;
 }
 </style>

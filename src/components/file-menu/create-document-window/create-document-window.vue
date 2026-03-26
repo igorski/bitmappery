@@ -36,16 +36,24 @@
                         class="input-field"
                     />
                 </div>
-                <div class="wrapper input">
+                <div class="wrapper input wrapper--small">
                     <label v-t="'documentType'"></label>
                     <select-box
                         :options="types"
                         v-model="type"
                     />
                 </div>
+                <div class="wrapper input wrapper--small">
+                    <label v-t="'preset'"></label>
+                    <select-box
+                        :options="presets"
+                        v-model="preset"
+                    />
+                </div>
                 <dimensions-formatter
                     v-model="dimensions"
                 />
+                <h3 v-t="'options'" class="title"></h3>
                 <div class="wrapper input">
                     <label v-t="'backgroundColor'"></label>
                     <color-picker
@@ -78,6 +86,7 @@ import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import type { DocumentType } from "@/definitions/document";
+import { AllPresets, DEFAULT_DPI, DEFAULT_UNIT, DefaultPresets, type PresetValue, TimelinePresets } from "@/definitions/document-presets";
 import DocumentFactory from "@/factories/document-factory";
 import ColorPicker from "@/components/ui/color-picker/color-picker.vue";
 import DimensionsFormatter from "@/components/ui/dimensions-formatter/dimensions-formatter.vue";
@@ -97,9 +106,12 @@ export default {
     data: () => ({
         name : "",
         type : "default",
+        preset: Object.keys( DefaultPresets )[ 0 ],
         dimensions: {
-            width: 1000,
-            height: 1000,
+            width: 1,
+            height: 1,
+            dpi: DEFAULT_DPI,
+            unit: DEFAULT_UNIT,
         },
         backgroundColor: TRANSPARENT_COLOR,
     }),
@@ -108,7 +120,41 @@ export default {
             "documents",
         ]),
         types(): { label: string, value: DocumentType }[] {
-            return [ { label: this.$t( "default" ), value: "default" }, { label: this.$t( "timeline" ), value: "timeline" }];
+            return [
+                { label: this.$t( "default" ), value: "default" },
+                { label: this.$t( "timeline" ), value: "timeline" }
+            ];
+        },
+        presets(): { label: string, value: PresetValue }[] {
+            if ( this.type === "timeline" ) {
+                return Object.keys( TimelinePresets ).map(( name: string ) => {
+                    return { label: this.$t( name ), value: name };
+                });
+            }
+
+            return Object.keys( DefaultPresets ).map(( name: string ) => {
+                return { label: this.$t( name ), value: name };
+            });
+        },
+    },
+    watch: {
+        preset: {
+            immediate: true,
+            handler( name: string ): void {
+                const value = AllPresets[ name ];
+                
+                this.dimensions.dpi = value.dpi ?? DEFAULT_DPI;
+                this.dimensions.width = value.width;
+                this.dimensions.height = value.height;
+                this.dimensions.unit = value.unit;
+            },
+        },
+        type( type: DocumentType ): void {
+            if ( type === "timeline" ) {
+                this.preset = "SMALL";
+            } else {
+                this.preset = "DEFAULT";
+            }
         },
     },
     mounted(): void {
@@ -123,6 +169,8 @@ export default {
         async save(): Promise<void> {
             const meta = {
                 bgColor: this.backgroundColor !== TRANSPARENT_COLOR ? this.backgroundColor : undefined,
+                dpi: this.dimensions.dpi,
+                unit: this.dimensions.unit,
             };
             this.addNewDocument( DocumentFactory.create({
                 name   : this.name,
@@ -138,9 +186,20 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@use "@/styles/_variables";
+@use "@/styles/form";
 @use "@/styles/ui";
 
 .create-document {
-    @include ui.modalBase( 480px, 365px );
+    @include ui.modalBase( 480px, 445px );
+}
+
+.title {
+    color: #FFF;
+    margin: variables.$spacing-medium 0 variables.$spacing-medium form.$labelWidth;
+}
+
+.wrapper--small .select-box-wrapper {
+    width: 140px;
 }
 </style>
