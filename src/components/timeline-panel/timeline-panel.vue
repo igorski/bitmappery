@@ -130,10 +130,11 @@ export default {
     watch: {
         activeDocument: {
             immediate: true,
-            handler( document?: Document ): void {
+            handler( activeDocument?: Document ): void {
                 flushTileCache();
-                if ( document ) {
+                if ( activeDocument ) {
                     this.cacheTiles();
+                    this.$nextTick(() => this.setActiveGroup( 0 ));
                 }
             }
         },
