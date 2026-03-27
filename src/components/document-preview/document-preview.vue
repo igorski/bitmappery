@@ -38,8 +38,11 @@
             @scroll="handleScroll( $event )"
         >
             <img
-                :src="blobURL"
                 class="document-preview__image"
+                :src="blobURL"
+                :class="{
+                    'document-preview__image--crisp': !antiAlias,
+                }"
             />
         </div>
     </div>
@@ -72,6 +75,10 @@ export default {
         isLandscape: {
             type: Boolean,
             required: true,
+        },
+        antiAlias: {
+            type: Boolean,
+            default: true,
         },
     },
     data: () => ({
@@ -121,6 +128,8 @@ export default {
 @use "@/styles/_variables";
 
 $metaHeight: 80px;
+$colorBg: colors.$color-bg-dark;
+$colorLines: colors.$color-bg-light;
 
 .document-preview {
     overflow: hidden;
@@ -131,7 +140,7 @@ $metaHeight: 80px;
 
     &__meta {
         width: 100%;
-        border: 1px solid colors.$color-lines;
+        border: 1px solid $colorLines;
         padding: 0 variables.$spacing-medium;
         margin-bottom: variables.$spacing-small;
         box-sizing: border-box;
@@ -151,11 +160,17 @@ $metaHeight: 80px;
         overflow-x: auto;
         overflow-y: auto;
         height: calc(100% - $metaHeight);
-        overscroll-behavior-y: none; // prevent bounce on scroll end
+        background-color: $colorBg;
+        border: 1px solid $colorLines;
+        overscroll-behavior-y: none; // prevents bounce on scroll end
     }
 
     &__image {
         width: 100%;
+
+        &--crisp {
+            image-rendering: pixelated;
+        }
     }
 
     &--landscape {

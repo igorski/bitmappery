@@ -113,8 +113,9 @@
                     ref="previewOriginal"
                     :title="$t('original')"
                     :src="previewOriginalBlob"
-                    :is-actual-size="actualSize"
+                    :is-actual-size="actualSize && !isSmallSize"
                     :is-landscape="isLandscape"
+                    :anti-alias="activeDocument.meta.smoothing"
                     @scroll="syncScroll( false, $event )"
                 />
                 <document-preview
@@ -123,8 +124,9 @@
                     ref="previewExport"
                     :title="$t('exported', { type: selectedType, quality: hasQualityOptions ? quality : 100 })"
                     :src="previewBlob"
-                    :is-actual-size="actualSize"
+                    :is-actual-size="actualSize && !isSmallSize"
                     :is-landscape="isLandscape"
+                    :anti-alias="activeDocument.meta.smoothing"
                     @scroll="syncScroll( true, $event )"
                 />
             </div>
@@ -180,7 +182,7 @@ import { EXPORTABLE_IMAGE_TYPES, GIF, typeToExt, isCompressableFileType } from "
 import { STORAGE_TYPES } from "@/definitions/storage-types";
 import { supportsGIF, createGIF, createAnimatedGIF } from "@/services/gif-creation-service";
 import { mapSelectOptions, type SelectOption }  from "@/utils/search-select-util";
-import { isLandscape, isSquare } from "@/math/image-math";
+import { isLandscape } from "@/math/image-math";
 import { renderAnimation } from "@/services/render-animation-service";
 import { canvasToBlob, resizeImage, getPixelRatio } from "@/utils/canvas-util";
 import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
@@ -255,7 +257,10 @@ export default {
             return this.activeDocument.layers.length > 1;
         },
         isLandscape(): boolean {
-            return isLandscape( this.width, this.height ) || isSquare( this.width, this.height );
+            return isLandscape( this.width, this.height );
+        },
+        isSmallSize(): boolean {
+            return this.width < 300 || this.height < 300;
         },
         hasTimeline(): boolean {
             return this.activeDocument.type === "timeline";
@@ -506,6 +511,7 @@ $idealFormWidth: 340px;
         width: 100%;
         justify-content: space-between;
         align-items: center;
+        border-top: 1px dashed colors.$color-bg-dark;
     }
 
     .wrapper--small input {

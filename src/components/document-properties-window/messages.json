@@ -3,6 +3,7 @@
         "documentProperties": "Document properties",
         "options": "Options",
         "backgroundColor": "Background color",
+        "color": "Color",
         "save": "Save",
         "cancel": "Cancel"
     }
