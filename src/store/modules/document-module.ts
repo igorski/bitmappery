@@ -147,14 +147,14 @@ const DocumentModule: Module<DocumentState, any> = {
             layers[ index1 ] = layers[ index2 ];
             layers[ index2 ] = obj1;
         },
-        reorderLayers( _state: DocumentState, { document, layerIds }: { document: Document, layerIds: string[] }): void {
-            const oldLayers = [ ...document.layers ];
-            const layers = [ ...document.layers ];
+        reorderLayers( _state: DocumentState, { activeDocument, layerIds }: { activeDocument: Document, layerIds: string[] }): void {
+            const oldLayers = [ ...activeDocument.layers ];
+            const layers = [ ...activeDocument.layers ];
             layers.splice( 0, oldLayers.length );
             layerIds.forEach( id => {
                 layers.push( oldLayers.find( layer => layer.id === id ));
             });
-            document.layers = layers;
+            activeDocument.layers = layers;
             flushBlendedLayerCache( true );
         },
         removeLayer( state: DocumentState, index: number ): void {

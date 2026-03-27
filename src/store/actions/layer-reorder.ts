@@ -21,9 +21,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { type Store } from "vuex";
-import { type Document } from "@/definitions/document";
+import type { Document, RelId } from "@/definitions/document";
 import { enqueueState } from "@/factories/history-state-factory";
+import { createGroupTile } from "@/rendering/cache/tile-cache";
 import { type BitMapperyState } from "@/store";
+import { getTileByLayer } from "@/utils/timeline-util";
 
 /**
  * layerIds represents an ordered list
@@ -45,15 +47,22 @@ export const reorderLayers = ( store: Store<BitMapperyState>, activeDocument: Do
     subsetIndices.forEach(( idx: number, i: number ) => {
         updatedOrder[ idx ] = layerIds[ i ];
     });
-    
+
+    const tileIds = activeDocument.type === "timeline" ? [ ...layerIds.reduce(( acc, layerId ) => {
+        acc.add( getTileByLayer( activeDocument, layerId ));
+        return acc;
+    }, new Set<RelId>())] : [];
+
     const commit = () => {
-        store.commit( "reorderLayers", { document: activeDocument, layerIds: updatedOrder } );
-    }
+        store.commit( "reorderLayers", { activeDocument, layerIds: updatedOrder } );
+        tileIds.forEach( tileId => createGroupTile( tileId, activeDocument ));
+    };
     commit();
     
     enqueueState( `reorderLayers_${layerIds.join()}`, {
-        undo() {
-            store.commit( "reorderLayers", { document: activeDocument, layerIds: originalOrder });
+        undo(): void {
+            store.commit( "reorderLayers", { activeDocument, layerIds: originalOrder });
+            tileIds.forEach( tileId => createGroupTile( tileId, activeDocument ));
         },
         redo: commit,
     });

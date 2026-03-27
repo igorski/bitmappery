@@ -523,7 +523,7 @@ describe( "Vuex document module", () => {
                 documents: [ DocumentFactory.create({ name: "foo", layers })],
                 activeIndex: 0
             });
-            mutations.reorderLayers( state, { document: state.documents[ 0 ], layerIds: [
+            mutations.reorderLayers( state, { activeDocument: state.documents[ 0 ], layerIds: [
                 layers[ 1 ].id, layers[ 2 ].id, layers[ 0 ].id, layers[ 3 ].id 
             ] });
             // note we check by reference to ensure all bindings remain
