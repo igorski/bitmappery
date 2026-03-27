@@ -100,7 +100,7 @@ export default {
             "preferences",
             "supportWASM",
         ]),
-        hasWebAssembly() {
+        hasWebAssembly(): boolean {
             return this.supportWASM;
         },
     },

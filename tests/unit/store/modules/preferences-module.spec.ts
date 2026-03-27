@@ -78,8 +78,8 @@ describe( "Vuex preferences module", () => {
 
             expect( commit ).toHaveBeenNthCalledWith( 1, "setPreferences", mockStorageData );
             expect( commit ).toHaveBeenNthCalledWith( 2, "setSnapAlign", mockStorageData.snapAlign );
-            expect( commit ).toHaveBeenNthCalledWith( 3, "setAntiAlias", mockStorageData.antiAlias );
-            expect( dispatch ).toHaveBeenCalledWith( "handlePreferences" );
+            expect( dispatch ).toHaveBeenNthCalledWith( 1, "updateAntiAlias", mockStorageData.antiAlias );
+            expect( dispatch ).toHaveBeenNthCalledWith( 2, "handlePreferences" );
         });
 
         it( "should be able to store preferences", async () => {

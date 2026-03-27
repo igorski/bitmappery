@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { type Rectangle, type Size } from "zcanvas";
+import { type Rectangle } from "zcanvas";
 import type { Document, Layer, RelId, Shape, Text } from "@/definitions/document";
 import type { CanvasDrawable, CopiedSelection } from "@/definitions/editor";
 import { renderEffectsForLayer } from "@/services/render-service";
@@ -30,7 +30,7 @@ import { fastRound } from "@/math/unit-math";
 import { reverseTransformation } from "@/rendering/operations/transforming";
 import ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import { getCanvasInstance } from "@/services/canvas-service";
-import { createCanvas, cloneCanvas, getPixelRatio } from "@/utils/canvas-util";
+import { createCanvas, cloneCanvas, getPixelRatio, setSmoothing } from "@/utils/canvas-util";
 import { SmartExecutor } from "@/utils/debounce-util";
 import { selectionToRectangle } from "@/utils/selection-util";
 import { getLayersByTile } from "@/utils/timeline-util";
@@ -62,15 +62,11 @@ export const createDocumentSnapshot = async ( activeDocument: Document ): Promis
 };
 
 /**
- * Creates a snapshot of the provided layer. When a crop Size is provided, its boundary box
- * will crop the layer (you can pass the Document for instance to crop by Document boundary box).
+ * Creates a snapshot of the provided layer. The Documents boundary box will crop the layer.
  * THIS MULTIPLIES FOR THE DEVICE PIXEL RATIO (as it mimics the onscreen presentation of zCanvas)
  */
-export const createLayerSnapshot = async ( layer: Layer, optCrop?: Size ): Promise<HTMLCanvasElement> => {
-    const width  = optCrop ? optCrop.width  : layer.width;
-    const height = optCrop ? optCrop.height : layer.height;
-
-    const { zcvs, cvs, ctx } = createFullSizeZCanvas({ width, height });
+export const createLayerSnapshot = async ( layer: Layer, activeDocument: Document ): Promise<HTMLCanvasElement> => {
+    const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
 
     // if the layer is currently invisible, it has no renderer, create it lazily here.
     const renderer = !layer.visible ? createRendererForLayer( zcvs, layer, false ) : getRendererForLayer( layer );
@@ -90,11 +86,10 @@ export const createLayerSnapshot = async ( layer: Layer, optCrop?: Size ): Promi
  * THIS MULTIPLIES FOR THE DEVICE PIXEL RATIO (as it mimics the onscreen presentation of zCanvas)
  */
 export const createGroupSnapshot = async ( activeDocument: Document, group: RelId ): Promise<HTMLCanvasElement> => {
-    const { width, height } = activeDocument;
     const layers = getLayersByTile( activeDocument, group ).filter( layer => layer.visible );
 
-    const { zcvs, cvs, ctx } = createFullSizeZCanvas({ width, height });
-
+    const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
+    
     if ( activeDocument.meta.bgColor !== undefined ) {
         ctx.fillStyle = activeDocument.meta.bgColor;
         ctx.fillRect( 0, 0, cvs.width, cvs.height );
@@ -387,8 +382,8 @@ export const restoreFromClone = ( document: Document, clone: Map<string, ClonedS
  * Create a (temporary) instance of zCanvas at the full document size.
  * (as the current on-screen instance is a "best fit" for the screen size)
  */
-function createFullSizeZCanvas( size: Size ): { zcvs: ZoomableCanvas, cvs: HTMLCanvasElement, ctx: CanvasRenderingContext2D } {
-    const { width, height } = size;
+function createFullSizeZCanvas( activeDocument: Document ): { zcvs: ZoomableCanvas, cvs: HTMLCanvasElement, ctx: CanvasRenderingContext2D } {
+    const { width, height } = activeDocument;
     const noop = () => {};
     const zcvs = new ZoomableCanvas({
         width,
@@ -399,8 +394,11 @@ function createFullSizeZCanvas( size: Size ): { zcvs: ZoomableCanvas, cvs: HTMLC
         }
     }, getCanvasInstance().store, noop, noop );
 
-    const cvs  = zcvs.getElement() as HTMLCanvasElement;
-    const ctx  = cvs.getContext( "2d" )!;
+    const cvs = zcvs.getElement() as HTMLCanvasElement;
+    const ctx = cvs.getContext( "2d" )!;
 
+    if ( !activeDocument.meta.smoothing ) {
+        setSmoothing( cvs, false );
+    }
     return { zcvs, cvs, ctx };
 }

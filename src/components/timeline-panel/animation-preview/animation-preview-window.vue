@@ -53,7 +53,7 @@ import Modal from "@/components/modal/modal.vue";
 import Slider from "@/components/ui/slider/slider.vue";
 import { scaleToFixedWidth } from "@/math/image-math";
 import { renderAnimation } from "@/services/render-animation-service";
-import { getPixelRatio, resizeImage } from "@/utils/canvas-util";
+import { getPixelRatio, resizeImage, setSmoothing } from "@/utils/canvas-util";
 import messages from "./messages.json";
 
 const ANIMATION_WIDTH = 300;
@@ -122,7 +122,10 @@ export default {
             this.startAnimation();
         },
         startAnimation(): void {
-            const context = ( this.$refs.preview as HTMLCanvasElement ).getContext( "2d" )!;
+            const cvs = this.$refs.preview as HTMLCanvasElement;
+            const ctx = cvs.getContext( "2d" )!;
+
+            setSmoothing( cvs, this.activeDocument.meta.smoothing );
 
             let index = 0;
             let max = this.snapshots.length;
@@ -143,8 +146,8 @@ export default {
                 }
                 
                 lastRender = now;
-                context.clearRect( 0, 0, this.tileWidth, this.tileHeight );
-                context.drawImage( this.snapshots[ index ], 0, 0, this.tileWidth, this.tileHeight );
+                ctx.clearRect( 0, 0, this.tileWidth, this.tileHeight );
+                ctx.drawImage( this.snapshots[ index ], 0, 0, this.tileWidth, this.tileHeight );
 
                 if ( ++index === max ) {
                     index = 0;

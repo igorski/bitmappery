@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { type Layer } from "@/definitions/document";
+import type { Document, Layer } from "@/definitions/document";
 import { getRendererForLayer } from "@/factories/renderer-factory";
 import { enqueueState } from "@/factories/history-state-factory";
 import { flushBlendedLayerCache, useBlendCaching } from "@/rendering/cache/blended-layer-cache";
@@ -31,17 +31,18 @@ import { createLayerThumbnail } from "@/rendering/cache/thumbnail-cache";
 // and a new one has been created while traversing the change history
 
 export function positionLayer(
-    layer: Layer, oldLayerX: number, oldLayerY: number, newLayerX: number, newLayerY: number,
+    layer: Layer, activeDocument: Document,
+    oldLayerX: number, oldLayerY: number, newLayerX: number, newLayerY: number,
     oldRendererX: number, oldRendererY: number, newRendererX: number, newRendererY: number,
 ): void {
     enqueueState( `layerPos_${layer.id}`, {
         undo(): void {
-            positionRendererFromHistory( layer, oldRendererX, oldRendererY );
+            positionRendererFromHistory( layer, activeDocument, oldRendererX, oldRendererY );
             layer.left = oldLayerX;
             layer.top  = oldLayerY;
         },
         redo(): void {
-            positionRendererFromHistory( layer, newRendererX, newRendererY );
+            positionRendererFromHistory( layer, activeDocument, newRendererX, newRendererY );
             layer.left = newLayerX;
             layer.top  = newLayerY;
         }
@@ -50,7 +51,7 @@ export function positionLayer(
 
 /* internal methods */
 
-function positionRendererFromHistory( layer: Layer, x: number, y: number ): void {
+function positionRendererFromHistory( layer: Layer, activeDocument: Document, x: number, y: number ): void {
     const renderer = getRendererForLayer( layer );
     if ( renderer ) {
         renderer.getBounds().left = x;
@@ -58,7 +59,7 @@ function positionRendererFromHistory( layer: Layer, x: number, y: number ): void
         if ( useBlendCaching() ) {
             flushBlendedLayerCache();
         }
-        createLayerThumbnail( layer, true );
+        createLayerThumbnail( layer, activeDocument, true );
         renderer.invalidate();
     }
 }

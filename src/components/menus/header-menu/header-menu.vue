@@ -459,7 +459,7 @@ export default {
                 return this.antiAlias;
             },
             async set( value: boolean ): Promise<void> {
-                this.setAntiAlias( value );
+                this.updateAntiAlias( value );
                 this.setPreferences({ antiAlias: value });
                 await this.storePreferences();
             }
@@ -527,7 +527,6 @@ export default {
             "setPreferences",
             "setShowTrace",
             "setSnapAlign",
-            "setAntiAlias",
             "setPixelGrid",
             "updateLayer",
         ]),
@@ -541,6 +540,7 @@ export default {
             "deleteInSelection",
             "loadDocument",
             "storePreferences",
+            "updateAntiAlias",
         ]),
         openSubMenu( name: string ): void {
             this.activeSubMenu = this.activeSubMenu === name ? null : name;

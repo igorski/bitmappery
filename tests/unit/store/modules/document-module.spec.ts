@@ -743,7 +743,7 @@ describe( "Vuex document module", () => {
                 });
                 expect( mockUpdateFn ).toHaveBeenCalledWith( "getRendererForLayer", state.documents[ 0 ].layers[ index ] );
                 expect( invalidateBlendCacheSpy ).toHaveBeenCalled();
-                expect( mockCreateLayerThumbnail ).toHaveBeenCalledWith( layer1, true, state.documents[ 0 ]);
+                expect( mockCreateLayerThumbnail ).toHaveBeenCalledWith( layer1, state.documents[ 0 ], true );
             });
         });
 
@@ -798,9 +798,16 @@ describe( "Vuex document module", () => {
             expect( state.documents[ 0 ].groups ).toEqual([ 0, 1, 2 ]);
         });
 
-        it( "should be able to update the Documents metadata", () => {
+        it( "should be able to update the Documents metadata using partial updates", () => {
             const state = createDocumentState({
-                documents: [ DocumentFactory.create() ],
+                documents: [
+                    DocumentFactory.create({
+                        meta: {
+                            dpi: 150,
+                            unit: "px",
+                        }
+                    }),
+                ],
                 activeIndex: 0,
             });
 
@@ -809,7 +816,9 @@ describe( "Vuex document module", () => {
             });
 
             expect( state.documents[ 0 ].meta ).toEqual({
+                dpi: 150,
                 fps: 10,
+                unit: "px",
             });
         });
     });

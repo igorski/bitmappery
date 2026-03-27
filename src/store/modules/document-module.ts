@@ -81,19 +81,19 @@ const DocumentModule: Module<DocumentState, any> = {
     mutations: {
         setActiveDocument( state: DocumentState, index: number ): void {
             state.activeIndex = index;
-            const document = state.documents[ index ];
-            if ( state.activeLayerIndex >=  document?.layers?.length ) {
-                state.activeLayerIndex = document.layers.length - 1;
+            const activeDocument = state.documents[ index ];
+            if ( state.activeLayerIndex >=  activeDocument?.layers?.length ) {
+                state.activeLayerIndex = activeDocument.layers.length - 1;
             }
-            runRendererFn( renderer => renderer.invalidate(), document );
+            runRendererFn( renderer => renderer.invalidate(), activeDocument );
         },
         setActiveDocumentName( state: DocumentState, name: string ): void {
             state.documents[ state.activeIndex ].name = name;
         },
         setActiveDocumentSize( state: DocumentState, { width, height }: Size ): void {
-            const document = state.documents[ state.activeIndex ];
-            document.width  = width;
-            document.height = height;
+            const activeDocument = state.documents[ state.activeIndex ];
+            activeDocument.width  = width;
+            activeDocument.height = height;
             getCanvasInstance()?.setDimensions( width, height, true, true );
             getCanvasInstance()?.rescaleFn();
             getCanvasInstance()?.refreshFn();
@@ -104,37 +104,37 @@ const DocumentModule: Module<DocumentState, any> = {
             state.documents[ state.activeIndex ].activeSelection = selection;
         },
         addNewDocument( state: DocumentState, nameOrDocument: string | Document ): void {
-            const document = typeof nameOrDocument === "object" ? nameOrDocument : DocumentFactory.create({ name: nameOrDocument });
-            state.documents.push( document );
+            const activeDocument = typeof nameOrDocument === "object" ? nameOrDocument : DocumentFactory.create({ name: nameOrDocument });
+            state.documents.push( activeDocument );
             state.activeIndex = state.documents.length - 1;
-            state.activeLayerIndex = document.layers.length - 1;
+            state.activeLayerIndex = activeDocument.layers.length - 1;
         },
         closeActiveDocument( state: DocumentState ): void {
-            const document = state.documents[ state.activeIndex ];
-            if ( !document ) {
+            const activeDocument = state.documents[ state.activeIndex ];
+            if ( !activeDocument ) {
                 return;
             }
             // free allocated resources
-            document.layers.forEach( layer => flushLayerRenderers( layer ));
+            activeDocument.layers.forEach( layer => flushLayerRenderers( layer ));
             state.documents.splice( state.activeIndex, 1 );
             state.activeIndex = Math.min( state.documents.length - 1, state.activeIndex );
         },
         addLayer( state: DocumentState, opts: Partial<Layer> = {} ): void {
-            const document = state.documents[ state.activeIndex ];
-            const layers   = [ ...document.layers ];
+            const activeDocument = state.documents[ state.activeIndex ];
+            const layers   = [ ...activeDocument.layers ];
             if ( typeof opts.width !== "number" ) {
-                opts.width  = document.width;
-                opts.height = document.height;
+                opts.width  = activeDocument.width;
+                opts.height = activeDocument.height;
             }
             layers.push( opts.id ? opts as Layer : LayerFactory.create( opts ));
-            document.layers = layers;
+            activeDocument.layers = layers;
             state.activeLayerIndex = layers.length - 1;
         },
         insertLayerAtIndex( state: DocumentState, { index, layer }: { index: number, layer: Layer }): void {
             layer = layer.id ? layer : LayerFactory.create( layer );
-            const document = state.documents[ state.activeIndex ];
-            const orgLayers = [ ...document.layers ];
-            document.layers = [
+            const activeDocument = state.documents[ state.activeIndex ];
+            const orgLayers = [ ...activeDocument.layers ];
+            activeDocument.layers = [
                 ...orgLayers.slice( 0, index ),
                 layer,
                 ...orgLayers.slice( index ),
@@ -235,49 +235,53 @@ const DocumentModule: Module<DocumentState, any> = {
             if ( renderer ) {
                 renderer.layer = layer;
                 renderer.invalidateBlendCache();
-                createLayerThumbnail( layer, true, activeDocument );
+                createLayerThumbnail( layer, activeDocument, true );
             }
         },
         async resizeActiveDocumentContent( state: DocumentState, { scaleX, scaleY }: { scaleX: number, scaleY: number }): Promise<void> {
-            const document = state.documents[ state.activeIndex ];
-            for ( const layer of document?.layers ?? [] ) {
+            const activeDocument = state.documents[ state.activeIndex ];
+            for ( const layer of activeDocument?.layers ?? [] ) {
                 await resizeLayerContent( layer, scaleX, scaleY );
             }
         },
         async cropActiveDocumentContent( state: DocumentState, cropRectangle: Rectangle ): Promise<void> {
-            const document = state.documents[ state.activeIndex ];
-            if ( !document ) {
+            const activeDocument = state.documents[ state.activeIndex ];
+            if ( !activeDocument ) {
                 return;
             }
-            for ( const layer of document.layers ) {
+            for ( const layer of activeDocument.layers ) {
                 await cropLayerContent( layer, cropRectangle );
                 getRendererForLayer( layer )?.syncPosition();
             }
         },
         saveSelection( state: DocumentState, { name, selection }: { name: string, selection: Selection }): void {
-            const document = state.documents[ state.activeIndex ];
-            document.selections[ name ] = selection;
+            const activeDocument = state.documents[ state.activeIndex ];
+            activeDocument.selections[ name ] = selection;
         },
         updateGroups( state: DocumentState, values: number[] ): void {
             state.documents[ state.activeIndex ].groups = values;
         },
-        updateMeta( state: DocumentState, value: DocumentMeta ): void {
-            state.documents[ state.activeIndex ].meta = value;
+        updateMeta( state: DocumentState, value: Partial<DocumentMeta> ): void {
+            const activeDocument = state.documents[ state.activeIndex ];
+            activeDocument.meta = {
+                ...activeDocument.meta,
+                ...value,
+            };
         },
     },
     actions: {
         requestDocumentClose({ state, commit, getters }: ActionContext<DocumentState, any> ): void {
-            const document = getters.activeDocument;
-            if ( !document ) {
+            const activeDocument = getters.activeDocument;
+            if ( !activeDocument ) {
                 return;
             }
             commit( "openDialog", {
                 type    : "confirm",
                 title   : getters.t( "areYouSure" ),
-                message : getters.t( "closeDocumentWarning", { document: document.name } ),
+                message : getters.t( "closeDocumentWarning", { document: activeDocument.name } ),
                 confirm : () => {
                     commit( "closeActiveDocument" );
-                    commit( "removeImagesForDocument", document );
+                    commit( "removeImagesForDocument", activeDocument );
                     commit( "setActiveDocument", Math.min( state.documents.length - 1, state.activeIndex ));
                 },
                 cancel : () => true

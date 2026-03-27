@@ -1,11 +1,12 @@
-import { it, describe, expect } from "vitest";
+import { it, describe, expect, vi } from "vitest";
 import { mockZCanvas } from "../../mocks";
 import BrushTypes from "@/definitions/brush-types";
 import ToolTypes, { TOOL_SRC_MERGED } from "@/definitions/tool-types";
+import DocumentFactory from "@/factories/document-factory";
 import FiltersFactory from "@/factories/filters-factory";
 import storeModule, { createEditorState } from "@/store/modules/editor-module";
 
-const { getters, mutations } = storeModule;
+const { actions, getters, mutations } = storeModule;
 
 mockZCanvas();
 
@@ -148,6 +149,32 @@ describe( "Vuex editor module", () => {
             const filters = FiltersFactory.create({ opacity: 0.5 });
             mutations.setClonedFilters( state, filters );
             expect( state.clonedFilters ).toEqual( filters );
+        });
+    });
+
+    describe( "actions", () => {
+        describe( "when updating the anti aliasing state", () => {
+            const mockedGetters = {
+                activeDocument: DocumentFactory.create(),
+            };
+
+            it( "should commit the state to the store", () => {
+                const commit = vi.fn();
+
+                // @ts-expect-error Not all constituents of type 'Action<PreferencesState, any>' are callable
+                actions.updateAntiAlias({ commit, getters: mockedGetters }, true );
+
+                expect( commit ).toHaveBeenCalledWith( "setAntiAlias", true );
+            });
+
+            it( "should update the active Document meta", () => {
+                const commit = vi.fn();
+
+                // @ts-expect-error Not all constituents of type 'Action<PreferencesState, any>' are callable
+                actions.updateAntiAlias({ commit, getters: mockedGetters }, true );
+
+                expect( commit ).toHaveBeenCalledWith( "updateMeta", { smoothing: true });
+            });
         });
     });
 });

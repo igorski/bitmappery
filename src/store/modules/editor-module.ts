@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Module } from "vuex";
+import type { ActionContext, Module } from "vuex";
 import type { Document, Filters, RelId } from "@/definitions/document";
 import type {
     ZoomToolOptions, BrushToolOptions, EraserToolOptions, CloneToolOptions,
@@ -137,6 +137,14 @@ const EditorModule: Module<EditorState, any> = {
         },
         setClonedFilters( state: EditorState, filters: Filters | null ): void {
             state.clonedFilters = filters;
+        },
+    },
+    actions: {
+        updateAntiAlias({ commit, getters }: ActionContext<EditorState, any>, enabled: boolean ): void {
+            commit( "setAntiAlias", enabled );
+            if ( getters.activeDocument ) {
+                commit( "updateMeta", { smoothing: enabled });
+            }
         },
     },
 };

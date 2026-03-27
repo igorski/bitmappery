@@ -81,7 +81,7 @@ const PreferencesModule: Module<PreferencesState, any> = {
                         commit( "setSnapAlign", preferences.snapAlign );
                     }
                     if ( typeof preferences.antiAlias === "boolean" ) {
-                        commit( "setAntiAlias", preferences.antiAlias );
+                        dispatch( "updateAntiAlias", preferences.antiAlias );
                     }
                     setWasmFilters( SUPPORT_WASM && !!preferences.wasmFilters );
                 } catch {

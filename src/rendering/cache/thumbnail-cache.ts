@@ -31,8 +31,13 @@ export type Thumbnail = {
     size: Size;
 };
 
+type LayerDef = {
+    document: Document;
+    layer: Layer;
+};
+
 const thumbnailCache = new Map<string, Thumbnail>;
-const renderQueue = new Map<string, Layer>();
+const renderQueue = new Map<string, LayerDef>();
 let timeout: ReturnType<typeof setTimeout>;
 let enabled = false;
 
@@ -66,7 +71,7 @@ export const setEnabled = ( value: boolean ): void => {
 
 export const isEnabled = (): boolean => enabled;
 
-export const createLayerThumbnail = async ( layer: Layer, force = false, activeDocument?: Document ): Promise<void> => {
+export const createLayerThumbnail = async ( layer: Layer, document: Document, force = false ): Promise<void> => {
     if ( !enabled ) {
         return;
     }
@@ -76,8 +81,8 @@ export const createLayerThumbnail = async ( layer: Layer, force = false, activeD
         thumbnailCache.set( layer.id, {
             source: TRANSPARENT_IMAGE,
             size: {
-                width: activeDocument?.width ?? layer.width,
-                height: activeDocument?.height ?? layer.height,
+                width: document.width,
+                height: document.height,
             },
         });
         delay = 0; // instant render
@@ -86,12 +91,12 @@ export const createLayerThumbnail = async ( layer: Layer, force = false, activeD
     }
     
     if ( renderQueue.has( layer.id )) {
-        renderQueue.set( layer.id, layer ); // update layer ref
+        renderQueue.set( layer.id, { layer, document }); // update layer ref
         return; // render request is already pending for this layer
     } else if ( renderQueue.size > 0 ) {
         await processQueue(); // another set of requests was pending, process now
     }
-    renderQueue.set( layer.id, layer );
+    renderQueue.set( layer.id, { layer, document });
     timeout = setTimeout( processQueue, delay );
 };
 
@@ -120,8 +125,12 @@ async function processQueue(): Promise<void> {
     const layerIds = [ ...renderQueue.keys() ];
 
     for ( const layerId of layerIds ) {
-        const layer = renderQueue.get( layerId );
+        const layerDef = renderQueue.get( layerId );
         renderQueue.delete( layerId );
+
+        if ( !layerDef ) {
+            continue;
+        }
         
         const thumbData = thumbnailCache.get( layerId );
         if ( thumbData === undefined ) {
@@ -132,7 +141,7 @@ async function processQueue(): Promise<void> {
 
         // console.info( "creating thumbnail for layer " + layer.id);
 
-        const snapshot = await createLayerSnapshot( layer, thumbData.size );
+        const snapshot = await createLayerSnapshot( layerDef.layer, layerDef.document );
 
         thumbData.source = imageToBase64(
             await resizeImage( snapshot, width, height ), width, height, true

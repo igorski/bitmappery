@@ -4,6 +4,7 @@ import { createMockCanvasElement, mockZCanvas } from "../../mocks";
 mockZCanvas();
 
 import { type Layer } from "@/definitions/document";
+import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import LayerRenderer from "@/rendering/actors/layer-renderer";
 import { positionLayer } from "@/store/actions/layer-position";
@@ -32,6 +33,7 @@ vi.mock( "@/rendering/cache/thumbnail-cache", () => ({
 }));
 
 describe( "Layer positioning action", () => {
+    const activeDocument = DocumentFactory.create();
     let layer: Layer;
     let layerRenderer: LayerRenderer;
 
@@ -60,7 +62,7 @@ describe( "Layer positioning action", () => {
 
         it( "should enqueue the state in history", () => {
             positionLayer(
-                layer, oldLayerX, oldLayerY, newLayerX, newLayerY,
+                layer, activeDocument, oldLayerX, oldLayerY, newLayerX, newLayerY,
                 oldRendererX, oldRendererY, newRendererX, newRendererY
             );
             expect( mockEnqueueState ).toHaveBeenCalledWith(
@@ -77,7 +79,7 @@ describe( "Layer positioning action", () => {
 
             beforeEach(() => {
                 positionLayer(
-                    layer, oldLayerX, oldLayerY, newLayerX, newLayerY,
+                    layer, activeDocument, oldLayerX, oldLayerY, newLayerX, newLayerY,
                     oldRendererX, oldRendererY, newRendererX, newRendererY
                 );
                 ({ undo, redo } = mockEnqueueState.mock.calls[ 0 ][ 1 ]);
@@ -144,7 +146,7 @@ describe( "Layer positioning action", () => {
             ( `should request to recreate the layer thumbnail for the "%s" action`, ( action: string ) => {
                 ( action === "undo" ) ? undo() : redo();
 
-                expect( mockCreateLayerThumbnail ).toHaveBeenCalledWith( layer, true );
+                expect( mockCreateLayerThumbnail ).toHaveBeenCalledWith( layer, activeDocument, true );
             });
         });
     });

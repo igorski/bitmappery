@@ -282,8 +282,8 @@ describe( "Vuex store", () => {
                 // assert resulting Document has been added as the active document
                 expect( commit ).toHaveBeenNthCalledWith( 1, "setLoading", "doc" );
                 expect( commit ).toHaveBeenNthCalledWith( 2, "addNewDocument", mockDocument );
-                expect( commit ).toHaveBeenNthCalledWith( 3, "showNotification", expect.any( Object ));
-                expect( commit ).toHaveBeenNthCalledWith( 4, "unsetLoading", "doc" );
+                // expect( commit ).toHaveBeenNthCalledWith( 3, "showNotification", expect.any( Object ));
+                expect( commit ).toHaveBeenNthCalledWith( 3, "unsetLoading", "doc" );
             });
 
             it( "should be able to load a saved document from a given File/Blob", async () => {
@@ -301,8 +301,8 @@ describe( "Vuex store", () => {
                 // assert resulting Document has been added as the active document
                 expect( commit ).toHaveBeenNthCalledWith( 1, "setLoading", "doc" );
                 expect( commit ).toHaveBeenNthCalledWith( 2, "addNewDocument", mockDocument );
-                expect( commit ).toHaveBeenNthCalledWith( 3, "showNotification", expect.any( Object ));
-                expect( commit ).toHaveBeenNthCalledWith( 4, "unsetLoading", "doc" );
+                // expect( commit ).toHaveBeenNthCalledWith( 3, "showNotification", expect.any( Object ));
+                expect( commit ).toHaveBeenNthCalledWith( 3, "unsetLoading", "doc" );
             });
 
             describe( "and the document has text layers", () => {

@@ -201,8 +201,8 @@ export default class LayerRenderer extends ZoomableSprite {
             this._pendingEffectsRender = false;
             this.canvas?.setLock( false );
             this.invalidateBlendCache( true ); // now layer effects are cached, invalidate any existing blend cache
-            if ( this.layer.visible ) {
-                createLayerThumbnail( this.layer, true, this.canvas?.getActiveDocument() );
+            if ( this.layer.visible && !!this.canvas ) {
+                createLayerThumbnail( this.layer, this.canvas.getActiveDocument(), true );
             }
         });
     }
@@ -477,7 +477,7 @@ export default class LayerRenderer extends ZoomableSprite {
         layer.left = newLayerX;
         layer.top  = newLayerY;
 
-        positionLayer( this.layer, oldLayerX, oldLayerY, newLayerX, newLayerY, left, top, newLeft, newTop );
+        positionLayer( this.layer, this.canvas.getActiveDocument(), oldLayerX, oldLayerY, newLayerX, newLayerY, left, top, newLeft, newTop );
 
         this.invalidateBlendCache();
     }
@@ -610,7 +610,7 @@ export default class LayerRenderer extends ZoomableSprite {
                 snapToGuide( this, this.canvas.guides ); // snap to guide
             }
             this.canvas.draggingSprite = null;
-            createLayerThumbnail( this.layer, true, this.canvas.getActiveDocument() );
+            createLayerThumbnail( this.layer, this.canvas.getActiveDocument(), true );
         }
     }
 

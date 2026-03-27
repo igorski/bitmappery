@@ -226,11 +226,13 @@ export default {
                     lastDocumentId = id;
                     const useAntiAlias = !isPixelArt( activeDocument );
                     if ( this.preferences.autoAlias && useAntiAlias !== this.antiAlias ) {
-                        this.setAntiAlias( useAntiAlias );
+                        this.updateAntiAlias( useAntiAlias );
                         this.showNotification({
                             title: "",
                             message: this.$t( useAntiAlias ? "antiAliasingEnabled" : "antiAliasingDisabled" )
                         });
+                    } else {
+                        this.updateMeta({ smoothing: this.antiAlias });
                     }
                     this.resetHistory();
                 }
@@ -319,15 +321,16 @@ export default {
             "closeOpenedPanels",
             "openDialog",
             "resetHistory",
-            "setAntiAlias",
             "setToolboxOpened",
             "setToolOptionValue",
             "setLoading",
             "setWindowSize",
             "unsetLoading",
+            "updateMeta",
         ]),
         ...mapActions([
             "setupServices",
+            "updateAntiAlias",
         ]),
         handleResize(): void {
             this.setWindowSize({ width: window.innerWidth, height: window.innerHeight });

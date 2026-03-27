@@ -278,7 +278,7 @@ export default class InteractionPane extends sprite {
                 let completeSelection = false;
 
                 if ( this._activeTool === ToolTypes.WAND ) {
-                    const cvs = await ( this._toolOptions.sampleMerged ? createDocumentSnapshot( this.getActiveDocument() ) : createLayerSnapshot( this.getActiveLayer() ));
+                    const cvs = await ( this._toolOptions.sampleMerged ? createDocumentSnapshot( this.getActiveDocument() ) : createLayerSnapshot( this.getActiveLayer(), this.getActiveDocument() ));
                     const pixelRatio = getPixelRatio();
                     const selectedShape: Shape = selectByColor(
                         cvs, fastRound( x * pixelRatio ), fastRound( y * pixelRatio ), this._toolOptions.threshold

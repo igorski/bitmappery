@@ -58,7 +58,7 @@ describe( "Thumbnail cache", () => {
         it( "should unset the existing cache when disabling a previously enabled cache", async () => {
             setEnabled( true );
 
-            await createLayerThumbnail( layer, true, document );
+            await createLayerThumbnail( layer, document, true );
             vi.advanceTimersByTime( ENQUEUE_TIMEOUT );
 
             setEnabled( false );
@@ -69,7 +69,7 @@ describe( "Thumbnail cache", () => {
         it( "should not unset the enabled state when flushing the existing cache", async () => {
             setEnabled( true );
 
-            await createLayerThumbnail( layer, true, document );
+            await createLayerThumbnail( layer, document, true );
             flushThumbnailCache();
 
             expect( isEnabled() ).toBe( true );
@@ -91,13 +91,13 @@ describe( "Thumbnail cache", () => {
         });
 
         it( "should not receive an update on cache request as it is debounced", async () => {
-            await createLayerThumbnail( layer, true, document );
+            await createLayerThumbnail( layer, document, true );
 
             expect( updateFn ).not.toHaveBeenCalled();
         });
 
         it( "should receive an update on debounced cache completion", async () => {
-            await createLayerThumbnail( layer, true, document );
+            await createLayerThumbnail( layer, document, true );
 
             vi.advanceTimersByTime( ENQUEUE_TIMEOUT );  
             await flushPromises();
@@ -107,7 +107,7 @@ describe( "Thumbnail cache", () => {
 
         describe( "when force caching is disabled", () => {
             it( "should receive an update when requesting to cache a Layer that was not cached before", async () => {
-                await createLayerThumbnail( layer, false, document );
+                await createLayerThumbnail( layer, document, false );
                 
                 vi.advanceTimersByTime( ENQUEUE_TIMEOUT );
                 await flushPromises();
@@ -116,7 +116,7 @@ describe( "Thumbnail cache", () => {
             });
 
             it( "should not receive an update upon requesting to cache a Layer that was cached before", async () => {
-                await createLayerThumbnail( layer, false, document );
+                await createLayerThumbnail( layer, document, false );
                 
                 vi.advanceTimersByTime( ENQUEUE_TIMEOUT );
                 await flushPromises();
@@ -124,7 +124,7 @@ describe( "Thumbnail cache", () => {
                 expect( updateFn ).toHaveBeenCalledWith( layer.id, expect.any( String ));
                 updateFn.mockReset();
 
-                await createLayerThumbnail( layer, false, document );
+                await createLayerThumbnail( layer, document, false );
                 
                 vi.advanceTimersByTime( ENQUEUE_TIMEOUT );
                 await flushPromises();
@@ -134,7 +134,7 @@ describe( "Thumbnail cache", () => {
         });
 
         it( "should no longer receive updates on unsubscribe", async () => {
-            await createLayerThumbnail( layer, true, document );
+            await createLayerThumbnail( layer, document, true );
             unsubscribe( SUBSCRIBE_TOKEN );
 
             vi.advanceTimersByTime( ENQUEUE_TIMEOUT );
@@ -146,8 +146,8 @@ describe( "Thumbnail cache", () => {
         it( "should immediately cache pending jobs for other layers when a new layer is requested", async () => {
             const layer2 = LayerFactory.create();
 
-            await createLayerThumbnail( layer, true, document );
-            await createLayerThumbnail( layer2, true, document );
+            await createLayerThumbnail( layer, document, true );
+            await createLayerThumbnail( layer2, document, true );
 
             expect( updateFn ).toHaveBeenCalledTimes( 1 ); // first layer already processed
 
@@ -169,7 +169,7 @@ describe( "Thumbnail cache", () => {
         });
 
         it( "should not cache when the thumbnail cache is disabled", async () => {
-            await createLayerThumbnail( layer, true, document );
+            await createLayerThumbnail( layer, document, true );
 
             expect( hasThumbnail( layer.id )).toBe( false );
         });
@@ -177,7 +177,7 @@ describe( "Thumbnail cache", () => {
         it( "should cache when the thumbnail cache is enabled", async () => {
             setEnabled( true );
 
-            await createLayerThumbnail( layer, true, document );
+            await createLayerThumbnail( layer, document, true );
 
             expect( hasThumbnail( layer.id )).toBe( true );
         });
@@ -187,8 +187,8 @@ describe( "Thumbnail cache", () => {
 
             const layer2 = LayerFactory.create();
 
-            await createLayerThumbnail( layer, true, document );
-            await createLayerThumbnail( layer2, true, document );
+            await createLayerThumbnail( layer, document, true );
+            await createLayerThumbnail( layer2, document, true );
 
             expect( hasThumbnail( layer.id )).toBe( true );
             expect( hasThumbnail( layer2.id )).toBe( true );
@@ -204,8 +204,8 @@ describe( "Thumbnail cache", () => {
 
             const layer2 = LayerFactory.create();
 
-            await createLayerThumbnail( layer, true, document );
-            await createLayerThumbnail( layer2, true, document );
+            await createLayerThumbnail( layer, document, true );
+            await createLayerThumbnail( layer2, document, true );
 
             expect( hasThumbnail( layer.id )).toBe( true );
             expect( hasThumbnail( layer2.id )).toBe( true );
@@ -225,7 +225,7 @@ describe( "Thumbnail cache", () => {
         it( "should return a thumbnail image when the caching has completed", async () => {
             setEnabled( true );
 
-            await createLayerThumbnail( layer, true, document );
+            await createLayerThumbnail( layer, document, true );
 
             vi.advanceTimersByTime( ENQUEUE_TIMEOUT );
             await flushPromises();

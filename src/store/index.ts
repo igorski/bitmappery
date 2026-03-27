@@ -228,9 +228,9 @@ export default {
                 const document = await DocumentFactory.fromBlob( file );
                 const openDocument = () => {
                     commit( "addNewDocument", document );
-                    commit( "showNotification", {
-                        message: translate( "loadedFileSuccessfully", { file: truncate( file!.name, 35 ) })
-                    });
+                    // commit( "showNotification", {
+                    //     message: translate( "loadedFileSuccessfully", { file: truncate( file!.name, 35 ) })
+                    // });
                 };
                 // if document contains text, show GDPR consention message before using Google Fonts
                 if ( !fontsConsented() && document.layers?.some(({ type }) => type === LayerTypes.LAYER_TEXT )) {

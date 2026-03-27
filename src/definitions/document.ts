@@ -110,6 +110,7 @@ export type DocumentMeta = {
     unit: Unit;
     fps?: number; // for timeline DocumentType
     bgColor?: string; // transparent when empty
+    smoothing?: boolean; // unserialized property to propagate application anti alias setting to render paths
 };
 export type Document = {
     id: string;

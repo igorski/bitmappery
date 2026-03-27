@@ -44,6 +44,32 @@ export const createCanvas = ( optWidth = 0, optHeight = 0 ): CanvasContextPairin
     return { cvs, ctx };
 };
 
+/**
+ * Set the smoothing state for provided canvas element. When true (default, so essentially no-op)
+ * image contents are smoothed. When false, image contents are rendered without anti aliasing
+ * (ideal for pixel art images)
+ */
+export const setSmoothing = ( cvs: HTMLCanvasElement, enabled: boolean ): void => {
+    const props = [
+        "imageSmoothingEnabled",  "mozImageSmoothingEnabled", "oImageSmoothingEnabled", "webkitImageSmoothingEnabled"
+    ];
+
+    const styles = [
+        "-moz-crisp-edges", "-webkit-crisp-edges", "pixelated", "crisp-edges"
+    ];
+    
+    const ctx = cvs.getContext( "2d" )!;
+
+    for ( const prop of props ) {
+        // @ts-expect-error error TS7053
+        if ( ctx[ prop ] !== undefined ) ctx[ prop ] = enabled;
+    }
+    for ( const style of styles ) {
+        // @ts-expect-error error TS7053
+        cvs.style[ "image-rendering" ] = enabled ? undefined : style;
+    }
+};
+
 export const cloneResized = ( source: HTMLCanvasElement, width: number, height: number ): HTMLCanvasElement => {
     const { cvs, ctx } = createCanvas( width, height );
     ctx.drawImage( source, 0, 0, source.width, source.height, 0, 0, width, height );

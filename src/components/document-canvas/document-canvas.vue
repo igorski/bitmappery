@@ -256,6 +256,9 @@ export default {
         activeTool( tool: ToolTypes ): void {
             this.handleActiveTool( tool );
         },
+        antiAlias( value: boolean ): void {
+            getCanvasInstance()?.setSmoothing( value );
+        },
         hasSelection( value: boolean ): void {
             getCanvasInstance()?.setAnimatable( value ); // show animated selection outline
         },
@@ -288,9 +291,6 @@ export default {
         },
         pixelGrid(): void {
             this.updateGuideModes();
-        },
-        antiAlias( value: boolean ): void {
-            getCanvasInstance()?.setSmoothing( value );
         },
         showTrace( value: boolean ): void {
             this.handleTrace();
@@ -523,7 +523,7 @@ export default {
                 if ( !this.isVisible( layer )) {
                     if ( thumbnails && !hasThumbnail( layer.id )) {
                         // there is no renderer to trigger this creation, but we'd like to preview all the same
-                        createLayerThumbnail( layer, false, this.activeDocument );
+                        createLayerThumbnail( layer, this.activeDocument, false );
                     }
                     flushLayerRenderers( layer );
                     return;

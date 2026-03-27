@@ -231,7 +231,7 @@ describe( "LayerRenderer", () => {
             renderer.handleActiveTool( ToolTypes.DRAG, {}, activeDocument ); // set tool
             renderer.handleRelease( 0, 0 );
 
-            expect( mockCreateLayerThumbnail ).toHaveBeenCalledWith( renderer.layer, true, activeDocument );
+            expect( mockCreateLayerThumbnail ).toHaveBeenCalledWith( renderer.layer, activeDocument, true );
         });
     });
 
@@ -319,7 +319,7 @@ describe( "LayerRenderer", () => {
         });
 
         it( "should request a full invalidation of the the blend cache upon render completion", async () => {
-            const layerRenderer = new LayerRenderer( LayerFactory.create({
+            const layerRenderer = createLayerRenderer( LayerFactory.create({
                 filters: FiltersFactory.create({ blendMode: BlendModes.DARKEN })
             }));
             const invalidateSpy = vi.spyOn( layerRenderer, "invalidateBlendCache" );
@@ -330,18 +330,18 @@ describe( "LayerRenderer", () => {
         });
 
         it( "should request a render of the thumbnail upon render completion", async () => {
-            const layerRenderer = new LayerRenderer( LayerFactory.create({
+            const layerRenderer = createLayerRenderer( LayerFactory.create({
                 filters: FiltersFactory.create({ blendMode: BlendModes.DARKEN })
             }));
             await mockAsyncRender();
 
-            expect( mockCreateLayerThumbnail ).toHaveBeenCalledWith( layerRenderer.layer, true, undefined );
+            expect( mockCreateLayerThumbnail ).toHaveBeenCalledWith( layerRenderer.layer, activeDocument, true );
         });
     });
 
     describe( "when invalidating the blend cache", () => {
         it( "should not flush the blended layer cache when the layer does not have a blend filter", () => {
-            const layerRenderer = new LayerRenderer( LayerFactory.create({
+            const layerRenderer = createLayerRenderer( LayerFactory.create({
                 filters: FiltersFactory.create({ blendMode: BlendModes.NORMAL })
             }));
 
@@ -351,7 +351,7 @@ describe( "LayerRenderer", () => {
         });
 
         it( "should flush the blended layer cache when the layer has a blend filter", () => {
-            const layerRenderer = new LayerRenderer( LayerFactory.create({
+            const layerRenderer = createLayerRenderer( LayerFactory.create({
                 filters: FiltersFactory.create({ blendMode: BlendModes.DARKEN })
             }));
 
@@ -363,7 +363,7 @@ describe( "LayerRenderer", () => {
         it( "should flush the blended layer cache when the layer does not have a blend filter, but is part of the blended layer cache", () => {
             mockIsBlendCached = true;
 
-            const layerRenderer = new LayerRenderer( LayerFactory.create({
+            const layerRenderer = createLayerRenderer( LayerFactory.create({
                 filters: FiltersFactory.create({ blendMode: BlendModes.NORMAL })
             }));
 
