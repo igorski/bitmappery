@@ -24,6 +24,7 @@ import type { Document, RelId } from "@/definitions/document";
 import { scaleToFixedHeight } from "@/math/image-math";
 import { getPixelRatio, resizeImage } from "@/utils/canvas-util";
 import { createGroupSnapshot } from "@/utils/document-util";
+import { getAllTileGroupsInDocument } from "@/utils/timeline-util";
 
 export const THUMB_HEIGHT = 50;
 
@@ -73,6 +74,13 @@ export const hasTile = ( id: RelId ): boolean => tileCache.has( id );
 
 export const getTileForGroup = ( id: RelId ): Tile | undefined => {
     return tileCache.get( id );
+};
+
+export const rebuildAllTiles = async ( activeDocument: Document ): Promise<void[]> => {
+    const tiles = getAllTileGroupsInDocument( activeDocument );
+    return Promise.all(
+        tiles.map( tile => createGroupTile( tile, activeDocument )),
+    );
 };
 
 export const flushTileForGroup = ( id: RelId ): void => {

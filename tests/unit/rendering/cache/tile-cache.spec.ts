@@ -10,6 +10,7 @@ import {
     flushTileForGroup,
     flushTileCache,
     getTileForGroup,
+    rebuildAllTiles,
     subscribe,
     unsubscribe,
 } from "@/rendering/cache/tile-cache";
@@ -29,7 +30,7 @@ describe( "Tile cache", () => {
         LayerFactory.create({ rel: { id: 1, type: "tile" }}),
         LayerFactory.create({ rel: { id: 1, type: "tile" }}),
     ];
-    const document = DocumentFactory.create({
+    const activeDocument = DocumentFactory.create({
         layers,
         type: "timeline",
     });
@@ -52,7 +53,7 @@ describe( "Tile cache", () => {
         });
 
         it( "should receive an update on cache completion", async () => {
-            await createGroupTile( 0, document );
+            await createGroupTile( 0, activeDocument );
  
             expect( updateFn ).toHaveBeenCalledWith( 0, {
                 source: { mock: "canvas" },
@@ -63,7 +64,7 @@ describe( "Tile cache", () => {
         it( "should no longer receive updates on unsubscribe", async () => {
             unsubscribe( SUBSCRIBE_TOKEN );
 
-            await createGroupTile( 0, document );
+            await createGroupTile( 0, activeDocument );
             
             expect( updateFn ).not.toHaveBeenCalled();
         });
@@ -75,14 +76,14 @@ describe( "Tile cache", () => {
         });
 
         it( "should have a cached tile after initial creation", async () => {
-            await createGroupTile( 0, document );
+            await createGroupTile( 0, activeDocument );
 
             expect( hasTile( 0 )).toBe( true );
         });
 
         it( "should be able to remove the cache for an individual Layer group", async () => {
-            await createGroupTile( 0, document );
-            await createGroupTile( 1, document );
+            await createGroupTile( 0, activeDocument );
+            await createGroupTile( 1, activeDocument );
 
             expect( hasTile( 0 )).toBe( true );
             expect( hasTile( 1 )).toBe( true );
@@ -94,8 +95,8 @@ describe( "Tile cache", () => {
         });
 
         it( "should be able to remove the cache for all Layer groups", async () => {
-            await createGroupTile( 0, document );
-            await createGroupTile( 1, document );
+            await createGroupTile( 0, activeDocument );
+            await createGroupTile( 1, activeDocument );
 
             expect( hasTile( 0 )).toBe( true );
             expect( hasTile( 1 )).toBe( true );
@@ -107,7 +108,7 @@ describe( "Tile cache", () => {
         });
 
          it( "should return full size source and thumbnail images when the caching has completed", async () => {
-            await createGroupTile( 0, document );
+            await createGroupTile( 0, activeDocument );
 
             const tile = getTileForGroup( 0 );
 
@@ -116,5 +117,12 @@ describe( "Tile cache", () => {
                 thumb: { mock: "thumb" }
             });
         });
+    });
+
+    it( "should be able to rebuild the cache for all tiles in the document", async () => {
+        await rebuildAllTiles( activeDocument );
+
+        expect( hasTile( 0 )).toBe( true );
+        expect( hasTile( 1 )).toBe( true );
     });
 });

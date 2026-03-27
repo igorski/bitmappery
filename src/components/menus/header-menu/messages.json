@@ -24,6 +24,7 @@
         "resizeDocument": "Resize document",
         "canvasSize": "Canvas size",
         "sliceGridToLayers": "Slice grid to layers",
+        "properties": "Properties",
         "layer": "Layer",
         "selection": "Selection",
         "deselectAll": "Deselect all",

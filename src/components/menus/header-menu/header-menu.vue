@@ -227,6 +227,14 @@
                             @click="requestGridToLayers()"
                         ></button>
                     </li>
+                    <li>
+                        <button
+                            v-t="'properties'"
+                            type="button"
+                            :disabled="noDocumentsAvailable"
+                            @click="requestPropertiesEdit()"
+                        ></button>
+                    </li>
                 </ul>
             </li>
             <!-- layer menu -->
@@ -390,7 +398,7 @@ import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { isPixelArt } from "@/definitions/editor-properties";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_WINDOW, LOAD_SELECTION, SAVE_SELECTION,
-    PREFERENCES, RESIZE_CANVAS, GRID_TO_LAYERS, STROKE_SELECTION
+    PREFERENCES, RESIZE_CANVAS, GRID_TO_LAYERS, STROKE_SELECTION, DOCUMENT_PROPERTIES,
 } from "@/definitions/modal-windows";
 import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
@@ -562,6 +570,9 @@ export default {
         },
         requestGridToLayers(): void {
             this.openModal( GRID_TO_LAYERS );
+        },
+        requestPropertiesEdit(): void {
+            this.openModal( DOCUMENT_PROPERTIES );
         },
         requestDocumentExport(): void {
             this.openModal( SAVE_DOCUMENT );

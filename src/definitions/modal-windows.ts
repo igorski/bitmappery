@@ -35,3 +35,4 @@ export const RESIZE_CANVAS              = 12;
 export const GRID_TO_LAYERS             = 13;
 export const STROKE_SELECTION           = 14;
 export const ANIMATION_PREVIEW          = 15;
+export const DOCUMENT_PROPERTIES        = 16;
