@@ -25,14 +25,14 @@ import type { Rectangle, Viewport } from "zcanvas";
 import { fastRound } from "@/math/unit-math";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import { getClosestSnappingPoints } from "@/rendering/operations/snapping";
-import { getPixelRatio } from "@/utils/canvas-util";
+import { createCanvas, getPixelRatio } from "@/utils/canvas-util";
 
 const AMOUNT_OF_PIXELS = 1; // currently only 1 pixel grid supported
 
 class GuideRenderer extends sprite  {
     private drawGuides: boolean;
     private drawPixelGrid: boolean;
-    private trace: HTMLCanvasElement;
+    private trace: HTMLCanvasElement | null;
 
     constructor( zCanvasInstance: ZoomableCanvas = null ) {
         // @ts-expect-error ignoring some arguments...
@@ -53,7 +53,14 @@ class GuideRenderer extends sprite  {
         this.drawPixelGrid = drawPixelGrid;
     }
 
-    setTrace( snapshot: HTMLCanvasElement ): void {
+    setTrace( snapshot: HTMLCanvasElement | null ): void {
+        if ( snapshot ) {
+            const { cvs, ctx } = createCanvas( snapshot.width, snapshot.height );
+            ctx.globalAlpha = 0.5;
+            ctx.drawImage( snapshot, 0, 0 );
+
+            snapshot = cvs;
+        }
         this.trace = snapshot;
     }
 
@@ -82,14 +89,11 @@ class GuideRenderer extends sprite  {
         /* trace outline */
 
         if ( this.trace ) {
-            ctx.save();
-            ctx.globalAlpha = 0.5;
             const pixelRatio = getPixelRatio();
             ctx.drawImage(
                 this.trace, -fastRound( viewport.left ), -fastRound( viewport.top ),
                 fastRound( this.trace.width / pixelRatio ), fastRound( this.trace.height / pixelRatio )
             );
-            ctx.restore();
         }
 
         /* guides */

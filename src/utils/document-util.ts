@@ -85,12 +85,12 @@ export const createLayerSnapshot = async ( layer: Layer, activeDocument: Documen
  * Creates a snapshot of all visible layers for a specific group in the Document
  * THIS MULTIPLIES FOR THE DEVICE PIXEL RATIO (as it mimics the onscreen presentation of zCanvas)
  */
-export const createGroupSnapshot = async ( activeDocument: Document, group: RelId ): Promise<HTMLCanvasElement> => {
+export const createGroupSnapshot = async ( activeDocument: Document, group: RelId, omitBackground = false ): Promise<HTMLCanvasElement> => {
     const layers = getLayersByTile( activeDocument, group ).filter( layer => layer.visible );
 
     const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
     
-    if ( activeDocument.meta.bgColor !== undefined ) {
+    if ( !omitBackground && activeDocument.meta.bgColor !== undefined ) {
         ctx.fillStyle = activeDocument.meta.bgColor;
         ctx.fillRect( 0, 0, cvs.width, cvs.height );
     }

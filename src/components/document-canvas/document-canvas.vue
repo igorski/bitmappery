@@ -447,10 +447,10 @@ export default {
         },
         handleTrace(): void {
             if ( this.showTrace && this.activeGroup > 0 ) {
-                createGroupSnapshot( this.activeDocument, this.activeGroup - 1 ).then( snapshot => {
+                createGroupSnapshot( this.activeDocument, this.activeGroup - 1, true ).then( snapshot => {
                     guideRenderer.setTrace( snapshot );
-                }).catch(() => {
-                    console.error( `Error during creation of group snapshot` );
+                }).catch(( e: Error ) => {
+                    console.error( `Error during creation of group snapshot: ${e.message}` );
                 });
             } else {
                 guideRenderer.setTrace( null );
