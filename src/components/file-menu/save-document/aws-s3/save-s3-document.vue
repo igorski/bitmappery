@@ -22,7 +22,7 @@
  */
 <template>
     <div class="save-s3-document">
-        <div class="wrapper input">
+        <div class="wrapper wrapper--input">
             <label v-t="'folder'"></label>
             <input
                 type="text"

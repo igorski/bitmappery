@@ -27,7 +27,7 @@
         </template>
         <template #content>
             <div class="form" @keyup.enter="requestLayerAdd()">
-                <div class="wrapper input">
+                <div class="wrapper wrapper--input">
                     <label v-t="'layerName'"></label>
                     <input
                         ref="nameInput"
@@ -36,7 +36,7 @@
                         class="input-field"
                     />
                 </div>
-                <div class="wrapper input">
+                <div class="wrapper wrapper--select">
                     <label v-t="'layerType'"></label>
                     <select-box
                         :options="layerTypes"

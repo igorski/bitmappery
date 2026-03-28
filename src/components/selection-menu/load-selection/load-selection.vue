@@ -27,7 +27,7 @@
         </template>
         <template #content>
             <div class="form" @keyup.enter="requestLoad()">
-                <div class="wrapper input">
+                <div class="wrapper wrapper--select">
                     <label v-t="'availableSelections'"></label>
                     <select-box
                         :options="selections"

@@ -27,7 +27,7 @@
         </template>
         <template #content>
             <div class="form" @keyup.enter="requestSave()">
-                <div class="wrapper input">
+                <div class="wrapper wrapper--input">
                     <label v-t="'name'"></label>
                     <input ref="nameInput"
                            type="text"

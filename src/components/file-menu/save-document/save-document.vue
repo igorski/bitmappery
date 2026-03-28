@@ -30,7 +30,7 @@
                 class="form"
                 @keyup.enter="requestSave()"
             >
-                <div class="wrapper input">
+                <div class="wrapper wrapper--input">
                     <label v-t="'documentTitle'"></label>
                     <input
                         ref="nameInput"
@@ -41,7 +41,7 @@
                 </div>
                 <div
                     v-if="hasCloudStorage"
-                    class="wrapper input"
+                    class="wrapper wrapper--select"
                 >
                     <label v-t="'storageLocation'"></label>
                     <select-box

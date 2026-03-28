@@ -23,7 +23,7 @@
 <template>
     <div>
         <h3 v-t="'dimensions'" class="title"></h3>
-        <div class="wrapper input">
+        <div class="wrapper wrapper--select">
             <label v-t="'unit'"></label>
             <div class="select-combo">
                 <select-box
@@ -38,7 +38,7 @@
                 />
             </div>
         </div>
-        <div class="wrapper input wrapper--small">
+        <div class="wrapper wrapper--input wrapper--small">
             <label v-t="'width'"></label>
             <input
                 v-model.number="translatedWidth"
@@ -49,7 +49,7 @@
                 class="input-field"
             />
         </div>
-        <div class="wrapper input wrapper--small">
+        <div class="wrapper wrapper--input wrapper--small">
             <label v-t="'height'"></label>
             <input
                 v-model.number="translatedHeight"

@@ -128,7 +128,6 @@ export default {
 @use "@/styles/_variables";
 
 $metaHeight: 80px;
-$colorBg: colors.$color-bg-dark;
 $colorLines: colors.$color-bg-light;
 
 .document-preview {
@@ -160,13 +159,13 @@ $colorLines: colors.$color-bg-light;
         overflow-x: auto;
         overflow-y: auto;
         height: calc(100% - $metaHeight);
-        background-color: $colorBg;
         border: 1px solid $colorLines;
         overscroll-behavior-y: none; // prevents bounce on scroll end
     }
 
     &__image {
         width: 100%;
+        background: url( "../../assets-inline/images/document_transparent_bg.png" ) repeat;
 
         &--crisp {
             image-rendering: pixelated;

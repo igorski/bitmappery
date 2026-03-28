@@ -27,7 +27,7 @@
         </template>
         <template #content>
             <div class="form" @keyup.enter="stroke()">
-                <div class="wrapper input">
+                <div class="wrapper wrapper--input">
                     <label v-t="'strokeSize'"></label>
                     <input
                         ref="sizeInput"
@@ -38,7 +38,7 @@
                         class="input-field size-input"
                     />
                 </div>
-                <div class="wrapper input">
+                <div class="wrapper wrapper--picker">
                     <label v-t="'strokeColor'"></label>
                     <color-picker
                         v-model="color"

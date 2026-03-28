@@ -106,13 +106,21 @@ $dropdownHeight: variables.$spacing-xlarge;
     }
 }
 
+.vs__dropdown-menu {
+    overflow-x: hidden;
+}
+
+.vs__actions {
+    padding: 0;
+    margin-right: variables.$spacing-small;
+}
+
 .vs__selected {
     margin: variables.$spacing-xsmall variables.$spacing-small;
     font-size: 95%;
 }
 
 .vs__selected-options {
-    height: $dropdownHeight;
     @include mixins.truncate();
 }
 </style>

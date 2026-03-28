@@ -27,9 +27,11 @@
         <div class="toggle" @click="setMenuOpened( !menuOpened )">
             <span>&#9776;</span>
         </div>
-        <h1 class="heading">
-            Bit<span class="emphasis">Mappery</span>
-        </h1>
+        <img
+            class="logo"
+            src="/assets/favicon/favicon-96x96.png"
+            alt="BitMappery logo"
+        />
         <ul class="menu-list">
             <!-- file menu -->
             <li>
@@ -410,6 +412,7 @@ import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
 
 export default {
+    emits: [ "rescale" ],
     i18n: { messages, sharedMessages },
     mixins: [ CloudServiceConnector, ImageToDocumentManager ],
     components: {
@@ -518,8 +521,9 @@ export default {
             setToggleButton( this.$refs.fullscreenBtn, isFullscreen => {
                 this.isFullscreen = isFullscreen;
                 // slight timeout as resize doesn't fire until full screen toggle is complete
-                window.setTimeout(() => {
+                setTimeout(() => {
                     getCanvasInstance()?.rescaleFn();
+                    this.$emit( "rescale" );
                 }, 100 );
             });
         }
@@ -617,13 +621,9 @@ export default {
 
 $toggle-width: 50px;
 
-.heading {
-    @include typography.customFont();
-    letter-spacing: variables.$spacing-xxsmall;
-
-    .emphasis {
-        letter-spacing: math.div( variables.$spacing-xxsmall, 4 );
-    }
+.logo {
+    width: variables.$spacing-large;
+    margin-right: variables.$spacing-medium;
 }
 
 .menu {
@@ -631,7 +631,6 @@ $toggle-width: 50px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 0 auto;
     padding: variables.$spacing-small variables.$spacing-medium;
     width: 100%;
     height: variables.$menu-height;
@@ -642,8 +641,7 @@ $toggle-width: 50px;
     @include mixins.large() {
         min-width: 100%;
         max-width: variables.$ideal-width;
-        margin: 0 auto;
-        padding-left: variables.$spacing-large;
+        padding-left: variables.$spacing-xlarge;
     }
 
     @include mixins.mobile() {
@@ -671,7 +669,7 @@ $toggle-width: 50px;
             display: block;
         }
 
-        h1 {
+        .logo {
             display: none;
         }
     }

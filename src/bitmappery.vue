@@ -22,7 +22,7 @@
  */
 <template>
     <div id="app" ref="app">
-        <header-menu />
+        <header-menu @rescale="scaleContainer" />
         <section class="main">
             <toolbox
                 ref="toolbox"
@@ -40,12 +40,8 @@
                 class="panels"
                 :class="{ 'collapsed': !openedPanels.length }"
             >
-                <tool-options-panel
-                    class="tool-options-panel"
-                />
-                <layer-panel
-                    class="layer-panel"
-                />
+                <tool-options-panel class="tool-options-panel" />
+                <layer-panel class="layer-panel" />
             </div>
         </section>
         <!-- dialog window used for information messages, alerts and confirmations -->
@@ -74,7 +70,6 @@
 <script lang="ts">
 import { type Component, defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
-import { createI18n } from "vue-i18n";
 import HeaderMenu from "@/components/menus/header-menu/header-menu.vue";
 import ToolOptionsPanel from "@/components/tool-options-panel/tool-options-panel.vue";
 import LayerPanel from "@/components/layer-panel/layer-panel.vue";
@@ -92,7 +87,6 @@ import { renderState } from "@/services/render-service";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { readClipboardFiles, readDroppedFiles } from "@/utils/file-util";
 import { truncate } from "@/utils/string-util";
-import messages from "./messages.json";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_WINDOW,
     DROPBOX_FILE_SELECTOR, GOOGLE_DRIVE_FILE_SELECTOR, AWS_S3_FILE_SELECTOR,
@@ -100,10 +94,6 @@ import {
     GRID_TO_LAYERS, STROKE_SELECTION, ANIMATION_PREVIEW, DOCUMENT_PROPERTIES,
 } from "@/definitions/modal-windows";
 
-// Create VueI18n instance with options
-const i18n = createI18n({
-    messages
-});
 let lastDocumentId: string | undefined;
 
 // wrapper for loading dynamic components with custom loading states
@@ -351,7 +341,7 @@ export default {
             }
             const toolboxWidth      = this.$refs.toolbox?.$el.clientWidth;
             const optionsPanelWidth = this.$refs.panels?.clientWidth;
-            this.docWidth = `calc(100% - ${toolboxWidth + optionsPanelWidth + 32}px)`;
+            this.docWidth = `calc(100% - ${toolboxWidth + optionsPanelWidth + 16}px)`;
             this.$nextTick(() => this.$refs.documentCanvas?.calcIdealDimensions());
         },
     }
@@ -386,7 +376,7 @@ export default {
         position: relative;
 
         @include mixins.large() {
-            padding: variables.$spacing-medium;
+            padding: variables.$spacing-small;
         }
     }
 
@@ -402,7 +392,7 @@ export default {
 
     .document-container {
         width: 100%;
-        margin: 0 variables.$spacing-medium;
+        margin: 0 variables.$spacing-small;
     }
 
     /* three column layout on tablet / desktops */
@@ -424,40 +414,35 @@ export default {
                     display: none;
                 }
                 .component__header-button {
-                    right: variables.$spacing-xxsmall !important;
+                    right: variables.$spacing-small;// !important;
                 }
             }
         }
         .panels {
             display: inline-flex;
             flex-direction: column;
-            height: calc(100% - variables.$spacing-xsmall );
-            $optionsHeight: 250px;
+            height: calc(100% - ( variables.$spacing-small + variables.$spacing-xsmall ));
             
             .tool-options-panel {
-                height: calc(#{$optionsHeight - math.div( variables.$spacing-medium, 2 )});
+                flex: 0 0 auto; // expand to fit content
+                min-height: 220px;
+
+                &.collapsed {
+                    min-height: auto;
+                }
             }
             .layer-panel {
-                margin-top: variables.$spacing-medium;
-            }
-
-            @include mixins.minHeight( 900px ) {
-                $optionsHeight: 390px;
-                .tool-options-panel {
-                    height: calc(#{$optionsHeight - math.div( variables.$spacing-medium, 2 )});
-                }
-                .layer-panel {
-                    height: calc(100% - #{$optionsHeight + math.div( variables.$spacing-medium, 2 )});
-                    margin-top: variables.$spacing-medium;
-                }
+                flex: 1;
+                min-height: 0;
+                margin-top: variables.$spacing-small;
             }
         }
 
         .toolbox {
-            width: 105px;
+            width: 94px;
         }
         .panels {
-            width: 300px;
+            width: 320px;
         }
     }
 
@@ -474,7 +459,6 @@ export default {
             position: fixed;
             width: 100%;
             max-height: 50%;
-            //max-height: calc(100% - #{variables.$menu-height * 3});
             bottom: 0;
             overflow-y: scroll;
             border-top: 1px solid colors.$color-bg;

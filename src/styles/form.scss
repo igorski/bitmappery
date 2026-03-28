@@ -8,36 +8,53 @@ $inputWidth: 65%;
 
 .form {
     .wrapper {
-        margin: variables.$spacing-small 0;
+        display: flex;
+        align-items: center;
+        margin: variables.$spacing-xsmall 0;
+
+        // we can have modifiers per input element type, e.g :
+        // &--input,
+        // &--textarea,
+        // &--picker,
+        // &--select,
+        // &--slider,
+        // &--toggle {
+        //     // style here
+        // }
+
+        &--textarea,
+        &--toggle,
+        &--select {
+            margin-bottom: variables.$spacing-small;
+        }
 
         // use where there is no <label> element
-        &.full {
+        &--full {
             width: 200%;
-            margin-left: variables.$spacing-xsmall;
 
-            &.slider .slider-input {
+            .input-slider {
                 width: 48% !important;
             }
         }
 
         label {
-            display: inline-block;
             width: $labelWidth;
+        }
+
+        .input-suffix {
+            margin-left: variables.$spacing-small;
         }
 
         .input-field,
         .input-textarea,
-        .slider-input,
-        .form-element {
-            display: inline-block;
+        .input-slider {
             width: $inputWidth;
         }
-        .color-picker {
-            display: inline-block;
-            margin: variables.$spacing-xsmall;
-        }
-        .slider-input {
+        .input-slider {
             vertical-align: middle;
+        }
+        .input-field {
+            margin: 0 0 variables.$spacing-xsmall;
         }
         .input-field,
         .input-textarea {
@@ -49,22 +66,21 @@ $inputWidth: 65%;
             @include typography.bodyFont();
         }
 
-        .full {
+        .input-full {
             width: 100%; // when elements have no label
         }
 
         // when there are multiple inputs within a single wrapper
         // this is a wrapper following the <label> element
         .shared-inputs {
-            display: inline-flex;
+            display: flex;
             width: $inputWidth;
-            justify-content: space-around;
+            gap: variables.$spacing-small;
+            margin: 0;
         
             .input-field,
-            .input-textarea,
-            .slider-input,
-            .select-box-wrapper,
-            .form-element {
+            .input-slider,
+            .select-box-wrapper {
                 width: 76px !important;
             }
         }

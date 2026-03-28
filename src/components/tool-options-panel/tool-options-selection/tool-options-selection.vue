@@ -29,7 +29,7 @@
         <h3 v-t="'selection'"></h3>
         <p v-if="isLassoSelection" v-t="'lassoExpl'"></p>
         <template v-else>
-            <div class="wrapper input">
+            <div class="wrapper wrapper--toggle">
                 <label v-t="'lockRatio'" v-tooltip="$t('shiftKey')"></label>
                 <toggle-button
                     v-model="maintainRatio"
@@ -38,7 +38,7 @@
                     :disabled="!activeLayer"
                 />
             </div>
-            <div class="wrapper input">
+            <div class="wrapper wrapper--input">
                 <label v-t="'widthToHeight'"></label>
                 <input
                     type="number"
@@ -54,8 +54,8 @@
                 />
             </div>
         </template>
-        <p v-t="'existingSelection'"></p>
-        <div class="wrapper input">
+        <h4 v-t="'existingSelection'"></h4>
+        <div class="wrapper wrapper--input">
             <label v-t="'coordinates'"></label>
             <input
                 type="number"
@@ -75,7 +75,7 @@
             />
         </div>
         <template v-if="!isLassoSelection">
-            <div class="wrapper input">
+            <div class="wrapper wrapper--input">
                 <label v-t="'dimensions'"></label>
                 <input
                     type="number"
@@ -254,6 +254,7 @@ export default {
 
 .half {
     width: 30% !important;
+    
     &:first-of-type {
         margin-right: variables.$spacing-small;
     }

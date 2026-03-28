@@ -23,7 +23,7 @@
 <template>
     <div class="tool-option">
         <h3 v-t="'brush'"></h3>
-        <div class="wrapper input">
+        <div class="wrapper wrapper--select">
             <label v-t="'brushType'"></label>
             <select-box
                 v-model="brushType"
@@ -31,7 +31,7 @@
                 :disabled="disabled"
             />
         </div>
-        <div class="wrapper slider">
+        <div class="wrapper wrapper--slider">
             <label v-t="'brushSize'"></label>
             <slider
                 v-model="brushSize"
@@ -42,7 +42,7 @@
         </div>
         <div
             v-if="hasThickness"
-            class="wrapper slider"
+            class="wrapper wrapper--slider"
         >
             <label v-t="'thickness'"></label>
             <slider
@@ -53,7 +53,7 @@
             />
         </div>
         <template v-if="canStroke">
-            <div class="wrapper slider">
+            <div class="wrapper wrapper--slider">
                 <label v-t="'strokeAmount'"></label>
                 <slider
                     v-model="strokes"
@@ -62,7 +62,7 @@
                     :disabled="disabled"
                 />
             </div>
-            <div class="wrapper input">
+            <div class="wrapper wrapper--toggle">
                 <label v-t="'smoothing'"></label>
                 <toggle-button
                     v-model="smooth"
@@ -71,7 +71,7 @@
                 />
             </div>
         </template>
-        <div class="wrapper slider">
+        <div class="wrapper wrapper--slider">
             <label v-t="'opacity'"></label>
             <slider
                 v-model="opacity"

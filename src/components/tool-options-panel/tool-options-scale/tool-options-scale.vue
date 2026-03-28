@@ -23,7 +23,7 @@
 <template>
     <div class="tool-option">
         <h3 v-t="'scale'"></h3>
-        <div class="wrapper full slider">
+        <div class="wrapper wrapper--slider wrapper--full">
             <slider
                 v-model="scale"
                 :min="min"

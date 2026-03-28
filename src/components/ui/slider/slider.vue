@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 <template>
-    <div class="slider-input">
+    <div class="input-slider">
         <input
             v-if="!textInput"
             v-model.number="internalValue"

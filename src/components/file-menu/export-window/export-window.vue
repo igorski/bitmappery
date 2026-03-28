@@ -28,7 +28,7 @@
         <template #content>
             <div class="export-ui">
                 <div class="form export-form" @keyup.enter="exportImage">
-                    <div class="wrapper input">
+                    <div class="wrapper wrapper--select">
                         <label v-t="'imageType'"></label>
                         <select-box
                             :options="fileTypes"
@@ -46,7 +46,7 @@
                             :max="100"
                         />
                     </div>
-                    <div class="wrapper input">
+                    <div class="wrapper wrapper--input">
                         <label v-t="'fileName'"></label>
                         <input
                             type="text"
@@ -55,25 +55,26 @@
                         />
                     </div>
                     <template v-if="canCreateAnimatedGIF">
-                        <div class="wrapper input">
+                        <div class="wrapper wrapper--toggle">
                             <label v-t="'layersToAnimation'"></label>
                             <toggle-button
                                 v-model="exportAnimation"
                                 name="createAnimatedGIF"
                             />
                         </div>
-                        <div v-if="exportAnimation" class="wrapper input">
+                        <div v-if="exportAnimation" class="wrapper wrapper--input wrapper--small">
                             <label v-t="'frameDuration'"></label>
                             <input
                                 type="number"
                                 v-model="frameDurationMs"
                                 class="input-field"
                             />
+                            <span v-t="'millis'" class="input-suffix"></span>
                         </div>
                     </template>
                     <div
                         v-if="hasCloudStorage"
-                        class="wrapper input"
+                        class="wrapper wrapper--select"
                     >
                         <label v-t="'storageLocation'"></label>
                         <select-box
@@ -86,7 +87,7 @@
                     <component :is="s3SaveComponent"      ref="s3Component" />
                     <template v-if="canCreateSpriteSheet">
                         <p v-t="'layersToSheetExpl'" class="expl"></p>
-                        <div class="wrapper input">
+                        <div class="wrapper wrapper--toggle">
                             <label v-t="'layersToSpriteSheet'"></label>
                             <toggle-button
                                 v-model="layersToSpriteSheet"
@@ -94,7 +95,7 @@
                             />
                         </div>
                         <template v-if="layersToSpriteSheet">
-                            <div class="wrapper input wrapper--small">
+                            <div class="wrapper wrapper--input wrapper--small">
                                 <label v-t="'columnAmount'"></label>
                                 <input
                                     type="number"
@@ -149,14 +150,14 @@
                     ></button>
                 </div>
                 <div class="export-actions__group export-options">
-                    <div v-if="showOriginal" class="wrapper input option-button">
+                    <div v-if="showOriginal" class="wrapper wrapper--toggle option-button">
                         <label v-t="'syncScroll'"></label>
                         <toggle-button
                             v-model="syncPreviews"
                             name="syncPreviews"
                         />
                     </div>
-                    <div v-if="canChooseSize" class="wrapper input option-button">
+                    <div v-if="canChooseSize" class="wrapper wrapper--toggle option-button">
                         <label v-t="'viewActualSize'"></label>
                         <toggle-button
                             v-model="actualSize"
@@ -232,7 +233,7 @@ export default {
         showOriginal(): boolean {
             // see _variables.scss $preview-ideal-width and $preview-ideal-height
             const isLargeEnough = this.windowSize.width >= 1280 && this.windowSize.height >= 700;
-            return isLargeEnough && !this.exportAnimation;
+            return isLargeEnough && ( !this.exportAnimation || !this.canCreateAnimatedGIF );
         },
         selectedType(): string {
             return typeToExt( this.type );
@@ -495,7 +496,7 @@ export default {
 @use "@/styles/typography";
 @use "@/styles/ui";
 
-$idealFormWidth: 340px;
+$idealFormWidth: 310px;
 
 .export-modal {
     width: 100%;
@@ -504,6 +505,9 @@ $idealFormWidth: 340px;
     .export-form {
         width: $idealFormWidth;
         max-width: $idealFormWidth;
+        padding: variables.$spacing-medium variables.$spacing-large;
+        border: 1px dotted colors.$color-lines-dark;
+        border-bottom: none;
     }
 
     .export-actions {

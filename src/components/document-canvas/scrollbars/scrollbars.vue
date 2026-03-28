@@ -267,7 +267,7 @@ export default {
 @use "@/styles/_mixins";
 @use "@/styles/_variables";
 
-$size: variables.$spacing-medium;
+$size: variables.$spacing-small;
 
 .scroll {
     position: absolute;

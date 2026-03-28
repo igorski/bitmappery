@@ -23,7 +23,7 @@
 <template>
     <div class="layer-effects" ref="effectsPanel">
         <div class="component__content form" ref="effectsList">
-            <div class="wrapper input">
+            <div class="wrapper wrapper--toggle">
                 <label v-t="'enabled'"></label>
                 <toggle-button
                     v-model="internalValue.enabled"
@@ -33,7 +33,7 @@
             </div>
             <fieldset class="fieldset">
                 <legend v-t="'compositing'" />
-                <div class="wrapper input">
+                <div class="wrapper wrapper--select">
                     <label v-t="'blendMode'"></label>
                     <select-box
                         v-model="internalValue.blendMode"
@@ -41,7 +41,7 @@
                         :disabled="activeLayerIndex === 0"
                     />
                 </div>
-                <div class="wrapper slider">
+                <div class="wrapper wrapper--slider">
                     <label v-t="'opacity'"></label>
                     <slider
                         v-model="opacity"
@@ -53,7 +53,7 @@
             </fieldset>
             <fieldset class="fieldset">
                 <legend v-t="'toneAdjustments'" />
-                <div class="wrapper slider">
+                <div class="wrapper wrapper--slider">
                     <label v-t="'gamma'"></label>
                     <slider
                         v-model="gamma"
@@ -62,7 +62,7 @@
                         :tooltip="'none'"
                     />
                 </div>
-                <div class="wrapper slider">
+                <div class="wrapper wrapper--slider">
                     <label v-t="'brightness'"></label>
                     <slider
                         v-model="brightness"
@@ -71,7 +71,7 @@
                         :tooltip="'none'"
                     />
                 </div>
-                <div class="wrapper slider">
+                <div class="wrapper wrapper--slider">
                     <label v-t="'contrast'"></label>
                     <slider
                         v-model="contrast"
@@ -83,7 +83,7 @@
             </fieldset>
             <fieldset class="fieldset">
                 <legend v-t="'colorAdjustments'" />
-                <div class="wrapper slider">
+                <div class="wrapper wrapper--slider">
                     <label v-t="'vibrance'"></label>
                     <slider
                         v-model="vibrance"
@@ -92,7 +92,7 @@
                         :tooltip="'none'"
                     />
                 </div>
-                <div class="wrapper input">
+                <div class="wrapper wrapper--toggle">
                     <label v-t="'invert'"></label>
                     <toggle-button
                         v-model="internalValue.invert"
@@ -100,7 +100,7 @@
                         sync
                     />
                 </div>
-                <div class="wrapper input">
+                <div class="wrapper wrapper--toggle">
                     <label v-t="'desaturate'"></label>
                     <toggle-button
                         v-model="internalValue.desaturate"
@@ -111,7 +111,7 @@
             </fieldset>
             <fieldset class="fieldset">
                 <legend v-t="'filters'" />
-                <div class="wrapper input">
+                <div class="wrapper wrapper--slider">
                     <label v-t="'threshold'"></label>
                     <slider
                         v-model="internalValue.threshold"
@@ -120,7 +120,7 @@
                         :tooltip="'none'"
                     />
                 </div>
-                <div class="wrapper input">
+                <div class="wrapper wrapper--toggle">
                     <label
                         for="duotone"
                         v-t="'duotone'"
@@ -131,18 +131,20 @@
                         sync
                     />
                 </div>
-                <div class="wrapper input">
+                <div class="wrapper wrapper--picker">
                     <label></label>
-                    <color-picker
-                        id="duotoneColor1"
-                        color-type="HEXA"
-                        v-model="internalValue.duotone.color1"
-                    />
-                    <color-picker
-                        id="duotoneColor2"
-                        color-type="HEXA"
-                        v-model="internalValue.duotone.color2"
-                    />
+                    <div class="shared-inputs">
+                        <color-picker
+                            id="duotoneColor1"
+                            color-type="HEXA"
+                            v-model="internalValue.duotone.color1"
+                        />
+                        <color-picker
+                            id="duotoneColor2"
+                            color-type="HEXA"
+                            v-model="internalValue.duotone.color2"
+                        />
+                    </div>
                 </div>
             </fieldset>
         </div>
@@ -371,7 +373,7 @@ export default {
         :deep(.component__content) {
             @include mixins.boxSize();
             @include mixins.truncate();
-            border-bottom: 1px solid colors.$color-lines;
+            border-bottom: 1px solid colors.$color-lines-dark;
             overflow-x: hidden;
             overflow-y: auto;
         }

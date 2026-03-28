@@ -27,7 +27,7 @@
         </template>
         <template #content>
             <div class="form" @keyup.enter="save()">
-                <div class="wrapper input">
+                <div class="wrapper wrapper--toggle">
                     <label v-t="'maintainAspectRatio'"></label>
                     <toggle-button
                         v-model="maintainRatio"

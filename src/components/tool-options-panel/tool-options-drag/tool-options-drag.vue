@@ -27,7 +27,7 @@
         @focusout="handleBlur()"
     >
         <h3 v-t="isMask ? 'maskPosition' : 'layerPosition'"></h3>
-        <div class="wrapper input">
+        <div class="wrapper wrapper--input">
             <label v-t="'coordinates'"></label>
             <input
                 type="number"

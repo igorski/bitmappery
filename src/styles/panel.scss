@@ -14,7 +14,7 @@ $collapsed-panel-height: 40px; // mobile view
         overflow: hidden;
 
         :deep(.component__content) {
-            padding: variables.$spacing-small variables.$spacing-medium variables.$spacing-medium;
+            padding: variables.$spacing-xsmall variables.$spacing-medium variables.$spacing-small;
             overflow-x: hidden;
             overflow-y: auto;
         }
@@ -30,10 +30,9 @@ $collapsed-panel-height: 40px; // mobile view
 
         // overrides component mixin
         :deep(.component__header-button) {
-            top: variables.$spacing-small - variables.$spacing-xxsmall;
-            right: variables.$spacing-small;
-            width: 36px;
-            height: 29px;
+            top: variables.$spacing-small;
+            right: variables.$spacing-medium;
+            width: 24px;
 
             img {
                 width: variables.$spacing-medium + variables.$spacing-small;

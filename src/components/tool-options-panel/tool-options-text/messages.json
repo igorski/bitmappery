@@ -1,11 +1,12 @@
 {
     "en-US": {
+        "text": "Text",
         "typeYourTextHere": "Type your text here",
         "font": "Font",
         "size": "Size",
         "lineHeight": "Line height",
         "letterSpacing": "Letter spacing",
-        "color": "Color",
+        "color": "Text color",
         "pixels": "Px",
         "points": "Pts",
         "millis": "Mm",

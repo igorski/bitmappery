@@ -34,11 +34,9 @@
             >{{ title }}</h2>
             <button
                 type="button"
-                class="component__header-button button--ghost"
+                class="component__header-button"
                 @click="collapsed = !collapsed"
-            >
-                <img :src="`assets/images/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
-            </button>
+            >{{ collapsed ? '+' : '-' }}</button>
         </div>
         <template v-if="!collapsed">
             <layer-effects
@@ -62,7 +60,8 @@
                             <div
                                 class="layer"
                                 :class="{
-                                    'layer--active': element.index === activeLayerIndex
+                                    'layer--active': element.index === activeLayerIndex,
+                                    'layer--has-thumb': renderThumbnails,
                                 }"
                                 @contextmenu.stop.prevent="showContextMenu( $event, element )"
                             >
@@ -93,7 +92,7 @@
                                     v-tooltip.left="$t( element.maskSelected ? 'clickToEditLayer' : 'dblClickToRename')"
                                     class="layer__name"
                                     :class="{
-                                        'layer--selected': element.index === activeLayerIndex && !element.maskSelected
+                                        'layer--selected': element.index === activeLayerIndex && !element.maskSelected,
                                     }"
                                     @dblclick="handleLayerDoubleClick( element )"
                                     @click="handleLayerClick( element )"
@@ -436,6 +435,7 @@ export default {
 @use "@/styles/_variables";
 @use "@/styles/panel";
 @use "@/styles/typography";
+@use "@/styles/ui";
 
 .layer-panel-wrapper {
     @include panel.panel();
@@ -464,9 +464,11 @@ export default {
             }
         }
     }
-    
-    @include mixins.large() {
-        .component__header-button {
+
+    .component__header-button {
+        @include ui.closeButton();
+
+        @include mixins.large() {
             display: none;
         }
     }
@@ -480,11 +482,12 @@ export default {
 
 .no-layers-text {
     padding: 0 variables.$spacing-medium;
+    font-size: 90%;
 }
 
 .layer {
     cursor: pointer;
-    border-bottom: 1px dotted colors.$color-lines;
+    border-bottom: 1px solid colors.$color-lines-dark;
     padding: 0 variables.$spacing-xsmall;
     @include mixins.boxSize();
     @include typography.customFont();
@@ -499,7 +502,6 @@ export default {
     &__thumbnail {
         width: 40px; // see thumbnail-cache.ts
         border: 1px solid colors.$color-lines;
-        margin: variables.$spacing-xsmall;
         background: url( "../../assets-inline/images/document_transparent_bg.png" ) repeat;
         
         img {
@@ -511,28 +513,25 @@ export default {
 
     &__name,
     &__name-input {
-        display: flex;
-        align-items: center;
         flex: 3;
         @include mixins.truncate();
         font-size: 90%;
-        padding: 0 variables.$spacing-small;
-        margin-left: variables.$spacing-xsmall;
+        padding: variables.$spacing-small 0;
+        margin-left: variables.$spacing-small + variables.$spacing-xsmall;
     }
     
     &__name-input {
-        padding-top: 0;
+        padding: variables.$spacing-xsmall;
+        margin: variables.$spacing-xsmall 0 variables.$spacing-xsmall variables.$spacing-small;
     }
 
     &__actions {
-        display: flex;
-        align-items: center;
-        margin-right: variables.$spacing-small;
+        margin: variables.$spacing-xsmall variables.$spacing-xsmall 0 0;
 
         &-button {
             cursor: pointer;
-            width: 30px;
-            height: 32px;
+            width: 22px;
+            height: 22px;
             padding: 0;
             filter: brightness(0) invert(0.5);
 
@@ -545,7 +544,7 @@ export default {
             }
 
             img {
-                width: 24px;
+                width: 18px;
                 vertical-align: middle;
             }
         }
@@ -566,6 +565,15 @@ export default {
 
     &--selected {
         color: #FFF;
+    }
+
+    &--has-thumb {
+        padding: 0;
+
+        .layer__name {
+            padding: variables.$spacing-small variables.$spacing-xsmall;
+            margin: 0 variables.$spacing-small;
+        }
     }
 
     @include mixins.mobile() {

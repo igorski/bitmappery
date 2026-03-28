@@ -29,7 +29,7 @@
             <div class="form" @keyup.enter="requestSlice()">
                 <p v-t="'gridSliceExpl'" class="expl"></p>
                 <p>{{ $t( "currentDocumentSize", { width: Math.round( activeDocument.width ), height: Math.round( activeDocument.height ) }) }}</p>
-                <div class="wrapper input">
+                <div class="wrapper wrapper--input">
                     <label v-t="'width'"></label>
                     <input
                         ref="widthInput"
@@ -39,7 +39,7 @@
                         class="input-field"
                     />
                 </div>
-                <div class="wrapper input">
+                <div class="wrapper wrapper--input">
                     <label v-t="'height'"></label>
                     <input
                         v-model.number="height"
@@ -49,7 +49,7 @@
                     />
                 </div>
                 <p v-t="'layerVisibilityExpl'" class="expl"></p>
-                <div class="wrapper input">
+                <div class="wrapper wrapper--toggle">
                     <label v-t="'allLayersVisible'"></label>
                     <toggle-button
                         v-model="allVisible"

@@ -31,11 +31,9 @@
             ></h2>
             <button
                 type="button"
-                class="component__header-button button--ghost"
+                class="component__header-button"
                 @click="collapsed = !collapsed"
-            >
-                <img :src="`assets/images/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
-            </button>
+            >{{ collapsed ? '+' : '-' }}</button>
         </div>
         <!-- click.stop.prevent is to prevent document scroll on double tap on iOS -->
         <div
@@ -288,6 +286,7 @@ export default {
 @use "@/styles/_variables";
 @use "@/styles/component";
 @use "@/styles/typography";
+@use "@/styles/ui";
 
 $toolButtonWidth: variables.$spacing-large;
 
@@ -297,19 +296,14 @@ $toolButtonWidth: variables.$spacing-large;
     @include mixins.large() {
         .component__content {
             margin-right: -(variables.$spacing-small);
-            padding: variables.$spacing-small + variables.$spacing-xsmall;
+            padding: variables.$spacing-small variables.$spacing-small;
         }
 
         .component__header-button {
-            top: variables.$spacing-small - variables.$spacing-xxsmall;
-            right: variables.$spacing-xxsmall;
-            width: 36px;
-            height: 29px;
-
-            img {
-                width: variables.$spacing-medium + variables.$spacing-small;
-                height: variables.$spacing-medium + variables.$spacing-small;
-            }
+            @include ui.closeButton();
+            top: variables.$spacing-small;
+            right: variables.$spacing-small;
+            width: 24px;
         }
 
         &--docked {
@@ -358,7 +352,7 @@ $toolButtonWidth: variables.$spacing-large;
 
     @media screen and (min-height: 880px) {
         @include mixins.large() {
-            width: 60px !important;
+            width: 52px !important;
         }
 
         .component__title {
@@ -367,7 +361,7 @@ $toolButtonWidth: variables.$spacing-large;
 
         .component__header-button {
             top: variables.$spacing-small;
-            right: #{variables.$spacing-medium - variables.$spacing-xsmall};
+            right: #{variables.$spacing-medium - variables.$spacing-xxsmall} !important;
         }
 
         .color-panel {
@@ -383,7 +377,6 @@ $toolButtonWidth: variables.$spacing-large;
 
 .tool-button {
     cursor: pointer;
-    border-radius: variables.$spacing-xsmall;
     border: none;
     padding: variables.$spacing-xxsmall variables.$spacing-xsmall;
     font-weight: bold;
@@ -409,13 +402,13 @@ $toolButtonWidth: variables.$spacing-large;
     }
 
     &:disabled {
-        background-color: #333;
+        background-color: transparent;
         color: colors.$color-bg;
         cursor: default;
     }
 
     @include mixins.large() {
-        margin: 0 variables.$spacing-small variables.$spacing-small 0;
+        margin: 0 variables.$spacing-xsmall variables.$spacing-xsmall 0;
         display: inline-block;
     }
 
@@ -458,5 +451,4 @@ $toolButtonWidth: variables.$spacing-large;
         color: #FFF;
     }
 }
-
 </style>

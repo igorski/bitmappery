@@ -23,7 +23,7 @@
 <template>
     <div class="tool-option">
         <h3 v-t="'cloneBrush'"></h3>
-        <div class="wrapper input">
+        <div class="wrapper wrapper--select">
             <label v-t="'sourceLayer'"></label>
             <select-box
                 v-model="sourceLayer"
@@ -31,7 +31,7 @@
                 :disabled="disabled"
             />
         </div>
-        <div class="wrapper slider">
+        <div class="wrapper wrapper--slider">
             <label v-t="'brushSize'"></label>
             <slider
                 v-model="brushSize"
@@ -40,7 +40,7 @@
                 :disabled="disabled"
             />
         </div>
-        <!-- <div class="wrapper slider">
+        <!-- <div class="wrapper wrapper--slider">
             <label v-t="'thickness'"></label>
             <slider
                 v-model="thickness"
@@ -49,7 +49,7 @@
                 :disabled="disabled"
             />
         </div> -->
-        <div class="wrapper slider">
+        <div class="wrapper wrapper--slider">
             <label v-t="'opacity'"></label>
             <slider
                 v-model="opacity"
@@ -58,7 +58,7 @@
                 :disabled="disabled"
             />
         </div>
-        <div class="wrapper input">
+        <div class="wrapper">
             <button
                 v-t="'selectSourceCoordinate'"
                 v-tooltip="'(Alt + Click)'"

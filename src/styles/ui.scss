@@ -32,13 +32,6 @@
             right: (variables.$spacing-xlarge + variables.$spacing-medium);
         }
     }
-
-    .close-button {
-        position: absolute;
-        top: variables.$spacing-medium;
-        right: variables.$spacing-large;
-        @include closeButton();
-    }
 }
 
 /**
@@ -91,14 +84,14 @@
 @mixin closeButton() {
     cursor: pointer;
     background: none;
-    color: colors.$color-lines;
-    border: 2px solid colors.$color-lines;
+    color: #6a6a6a;
+    border: 1.5px solid colors.$color-lines-dark;
     border-radius: 5px;
     padding: variables.$spacing-xxsmall #{variables.$spacing-xsmall + variables.$spacing-xxsmall};
 
     &:hover {
-        color: colors.$color-4;
-        border-color: colors.$color-4;
+        color: #fff;
+        border-color: colors.$color-lines;
     }
 }
 
@@ -248,6 +241,7 @@
 
     .submenu {
         list-style: none;
+        margin-top: variables.$spacing-small;
 
         li {
             padding: variables.$spacing-small 0;
@@ -255,7 +249,7 @@
             @include mixins.large() {
                 display: block;
                 color: #b6b6b6;
-                padding: variables.$spacing-xsmall variables.$spacing-small;
+                padding: variables.$spacing-xxsmall variables.$spacing-small;
                 
                 &:hover {
                     color: #FFF;
@@ -266,7 +260,7 @@
         @include mixins.large() {
             position: absolute;
             box-shadow: 0 0 5px rgba(0,0,0,.5);
-            padding: variables.$spacing-medium;
+            padding: variables.$spacing-medium variables.$spacing-small;
             background-image: colors.$color-window-bg;
             background-repeat: repeat-x;
             @include mixins.boxSize();

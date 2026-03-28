@@ -71,7 +71,7 @@
                         ></button>
                         <component :is="s3ImportType" />
                     </template>
-                    <div class="wrapper input">
+                    <div class="wrapper wrapper--select">
                         <label v-t="'openImageAsNew'" class="file-target-label"></label>
                         <select-box
                             :options="fileTargetOptions"
@@ -218,5 +218,9 @@ export default {
 
 .button--third-party:last-of-type {
     margin-bottom: variables.$spacing-medium;
+}
+
+.wrapper--select {
+    margin-top: variables.$spacing-medium;
 }
 </style>

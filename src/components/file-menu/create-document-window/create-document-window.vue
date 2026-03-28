@@ -27,7 +27,7 @@
         </template>
         <template #content>
             <div class="form" @keyup.enter="save()">
-                <div class="wrapper input">
+                <div class="wrapper wrapper--input">
                     <label v-t="'name'"></label>
                     <input
                         ref="first"
@@ -36,14 +36,14 @@
                         class="input-field"
                     />
                 </div>
-                <div class="wrapper input wrapper--small">
+                <div class="wrapper wrapper--select wrapper--small">
                     <label v-t="'documentType'"></label>
                     <select-box
                         :options="types"
                         v-model="type"
                     />
                 </div>
-                <div class="wrapper input wrapper--small">
+                <div class="wrapper wrapper--select wrapper--small">
                     <label v-t="'preset'"></label>
                     <select-box
                         :options="presets"
@@ -54,7 +54,7 @@
                     v-model="dimensions"
                 />
                 <h3 v-t="'options'" class="title"></h3>
-                <div class="wrapper input">
+                <div class="wrapper wrapper--picker">
                     <label v-t="'backgroundColor'"></label>
                     <color-picker
                         v-model="backgroundColor"
@@ -191,7 +191,7 @@ export default {
 @use "@/styles/ui";
 
 .create-document {
-    @include ui.modalBase( 480px, 445px );
+    @include ui.modalBase( 480px, 450px );
 }
 
 .title {

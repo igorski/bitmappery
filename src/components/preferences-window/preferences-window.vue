@@ -27,7 +27,7 @@
         </template>
         <template #content>
             <div class="form" @keyup.enter="save()">
-                <div class="wrapper input">
+                <div class="wrapper wrapper--toggle">
                     <label v-t="'lowMemoryMode'"></label>
                     <toggle-button
                         v-model="internalValue.lowMemory"
@@ -35,7 +35,7 @@
                     />
                 </div>
                 <p v-t="'lowMemoryExpl'" class="expl"></p>
-                <div class="wrapper input">
+                <div class="wrapper wrapper--toggle">
                     <label v-t="'layerThumbnails'"></label>
                     <toggle-button
                         v-model="internalValue.thumbnails"
@@ -43,7 +43,7 @@
                     />
                 </div>
                 <p v-t="'layerThumbnailsExpl'" class="expl"></p>
-                <div class="wrapper input">
+                <div class="wrapper wrapper--toggle">
                     <label v-t="'autoAlias'"></label>
                     <toggle-button
                         v-model="internalValue.autoAlias"
@@ -52,7 +52,7 @@
                 </div>
                 <p v-t="'autoAliasExpl'" class="expl"></p>
                 <template v-if="hasWebAssembly">
-                    <div class="wrapper input">
+                    <div class="wrapper wrapper--toggle">
                         <label v-t="'wasmFilters'"></label>
                         <toggle-button
                             v-model="internalValue.wasmFilters"

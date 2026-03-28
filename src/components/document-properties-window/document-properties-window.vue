@@ -28,7 +28,7 @@
         <template #content>
             <div class="form" @keyup.enter="save()">
                 <h3 v-t="'options'" class="title"></h3>
-                <div class="wrapper input">
+                <div class="wrapper wrapper--picker">
                     <label v-t="'backgroundColor'"></label>
                     <color-picker
                         v-model="backgroundColor"

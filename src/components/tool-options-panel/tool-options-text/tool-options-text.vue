@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -26,16 +26,17 @@
         @focusin="handleFocus"
         @focusout="handleBlur"
     >
-        <div class="wrapper input">
+        <h3 v-t="'text'"></h3>
+        <div class="wrapper wrapper--textarea">
             <textarea
                 ref="textInput"
                 v-model="text"
                 :placeholder="$t('typeYourTextHere')"
                 :disabled="disabled"
-                class="input-textarea full"
+                class="input-textarea input-full"
             />
         </div>
-        <div class="wrapper input">
+        <div class="wrapper wrapper--select">
             <label v-t="'font'"></label>
             <vue-select
                 v-model="font"
@@ -50,9 +51,9 @@
                 </template>
             </vue-select>
         </div>
-        <div class="wrapper slider">
+        <div class="wrapper wrapper--select">
             <label v-t="'size'"></label>
-            <div class="wrapper shared-inputs">
+            <div class="shared-inputs">
                 <input
                     v-model="size"
                     class="input-field"
@@ -66,7 +67,7 @@
                 />
             </div>
         </div>
-        <div class="wrapper slider">
+        <div class="wrapper wrapper--slider">
             <label v-t="'lineHeight'"></label>
             <slider
                 v-model="lineHeight"
@@ -76,7 +77,7 @@
                 :tooltip="'none'"
             />
         </div>
-        <div class="wrapper slider">
+        <div class="wrapper wrapper--slider">
             <label v-t="'letterSpacing'"></label>
             <slider
                 v-model="spacing"
@@ -86,7 +87,7 @@
                 :tooltip="'none'"
             />
         </div>
-        <div class="wrapper input">
+        <div class="wrapper wrapper--picker">
             <label v-t="'color'"></label>
             <component
                 :is="colorPicker"
@@ -99,15 +100,16 @@
     </div>
 </template>
 
-<script>
-import { defineAsyncComponent } from "vue";
+<script lang="ts">
+import { defineAsyncComponent, type IAsyncComponent } from "vue";
 import { mapGetters, mapMutations } from "vuex";
 import VueSelect from "vue-select";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
+import type { Layer } from "@/definitions/document";
 import { DEFAULT_LAYER_NAME, LayerTypes } from "@/definitions/layer-types";
 import FontPreview from "./font-preview/font-preview.vue";
-import { mapSelectOptions } from "@/utils/search-select-util";
+import { mapSelectOptions, type SelectOption } from "@/utils/search-select-util";
 import { enqueueState } from "@/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
 import { fontsConsented, consentFonts, rejectFonts } from "@/services/font-service";
@@ -136,22 +138,22 @@ export default {
             "activeLayerIndex",
             "activeLayer",
         ]),
-        disabled() {
+        disabled(): boolean {
             return this.activeLayer?.type !== LayerTypes.LAYER_TEXT;
         },
-        canSearchFonts() {
+        canSearchFonts(): boolean {
             return !isMobile(); // only show preview list on mobile
         },
-        colorPicker() {
+        colorPicker(): IAsyncComponent {
             // load async as this adds to the bundle size
             return defineAsyncComponent({
                 loader: () => import( "@/components/ui/color-picker/color-picker.vue" )
             });
         },
-        fonts() {
+        fonts(): SelectOption[] {
             return mapSelectOptions( [ ...googleFonts ].sort() );
         },
-        unitOptions() {
+        unitOptions(): { label: string, value: string }[] {
             return [
                 { label: this.$t( "pixels" ), value: "px" },
                 { label: this.$t( "points" ), value: "pt" },
@@ -160,10 +162,10 @@ export default {
             ];
         },
         text: {
-            get() {
+            get(): string {
                 return this.internalText;
             },
-            set( value ) {
+            set( value: string ): void {
                 this.internalText = value;
                 // debounce the model update (and subsequent text render)
                 // to not update on each entered character
@@ -178,10 +180,10 @@ export default {
             }
         },
         size: {
-            get() {
+            get(): number {
                 return this.activeLayer?.text?.size;
             },
-            set( size ) {
+            set( size: string | number ): void {
                 size = parseFloat( size );
                 if ( isNaN( size )) {
                     return;
@@ -191,42 +193,42 @@ export default {
             }
         },
         unit: {
-            get() {
+            get(): string {
                 return this.activeLayer?.text?.unit;
             },
-            set( unit ) {
+            set( unit: string ): void {
                 this.update({ unit }, "unit" );
             },
         },
         lineHeight: {
-            get() {
+            get(): number {
                 return this.activeLayer?.text?.lineHeight;
             },
-            set( lineHeight ) {
+            set( lineHeight: number ): void {
                 this.update({ lineHeight }, "lineHeight" );
             }
         },
         spacing: {
-            get() {
+            get(): number {
                 return this.activeLayer?.text?.spacing;
             },
-            set( spacing ) {
+            set( spacing: number ): void {
                 this.update({ spacing }, "spacing" );
             }
         },
         color: {
-            get() {
+            get(): string {
                 return this.activeLayer?.text?.color;
             },
-            set( color ) {
+            set( color: string ): void {
                 this.update({ color }, "color" );
             }
         },
         font: {
-            get() {
+            get(): string {
                 return this.activeLayer?.text?.font;
             },
-            set({ value } ) {
+            set({ value }: { value: string }): void {
                 this.update({ font: value }, "font" );
             }
         }
@@ -234,7 +236,7 @@ export default {
     watch: {
         activeLayer: {
             immediate: true,
-            handler( layer ) {
+            handler( layer: Layer ): void {
                 if ( layer && this.layerId !== layer.id ) {
                     this.internalText = layer.text?.value;
                     this.syncText     = this.internalText === layer.name || layer.name === DEFAULT_LAYER_NAME;
@@ -243,7 +245,7 @@ export default {
             }
         },
     },
-    mounted() {
+    mounted(): void {
         if ( !fontsConsented() ) {
             this.openDialog({
                 type: "confirm",
@@ -261,7 +263,7 @@ export default {
             focus( this.$refs.textInput );
         }
     },
-    unmounted() {
+    unmounted(): void {
         this.handleBlur();
     },
     methods: {
@@ -270,13 +272,13 @@ export default {
             "setActiveTool",
             "updateLayer",
         ]),
-        handleFocus() {
+        handleFocus(): void {
             KeyboardService.setSuspended( true );
         },
-        handleBlur() {
+        handleBlur(): void {
             KeyboardService.setSuspended( false );
         },
-        update( textOpts = {}, propName = "text" ) {
+        update( textOpts = {}, propName = "text" ): void {
             if ( !this.activeLayer ) {
                 return;
             }
@@ -323,12 +325,6 @@ export default {
 @use "@/styles/_variables";
 @use "@/styles/form";
 @use "@/styles/tool-option";
-
-.color-picker {
-    width: 50%;
-    display: inline-block;
-    transform: translateY(-(variables.$spacing-xsmall));
-}
 
 .font-selector {
     display: inline-block;

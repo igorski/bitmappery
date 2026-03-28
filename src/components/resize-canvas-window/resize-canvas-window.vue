@@ -27,7 +27,7 @@
         </template>
         <template #content>
             <div class="form" @keyup.enter="resize()">
-                <div class="wrapper input">
+                <div class="wrapper wrapper--input">
                     <label v-t="'width'"></label>
                     <input
                         v-model.number="width"
@@ -37,7 +37,7 @@
                         class="input-field"
                     />
                 </div>
-                <div class="wrapper input">
+                <div class="wrapper wrapper--input">
                     <label v-t="'height'"></label>
                     <input
                         v-model.number="height"
@@ -46,7 +46,7 @@
                         class="input-field"
                     />
                 </div>
-                <div class="wrapper input">
+                <div class="wrapper wrapper--select">
                     <label v-t="'contentAlignment'"></label>
                     <select-box :options="alignmentOptions"
                                  v-model="alignment"

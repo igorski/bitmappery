@@ -33,11 +33,9 @@
             ></h2>
             <button
                 type="button"
-                class="component__header-button button--ghost"
+                class="component__header-button"
                 @click="collapsed = !collapsed"
-            >
-                <img :src="`assets/images/icon-${collapsed ? 'expand' : 'collapse'}.svg`" />
-            </button>
+            >{{ collapsed ? '+' : '-' }}</button>
         </div>
         <div
             v-if="!collapsed"
@@ -155,10 +153,12 @@ export default {
 <style lang="scss" scoped>
 @use "@/styles/_mixins";
 @use "@/styles/_variables";
+@use "@/styles/ui";
 @use "@/styles/panel";
 
 .options-panel-wrapper {
     @include panel.panel();
+    height: auto;
 
     & {
         overflow: initial !important;
@@ -174,7 +174,6 @@ export default {
     @include mixins.mobile() {
         position: fixed;
         bottom: panel.$collapsed-panel-height;
-        height: 40%;
 
         & {
             &.collapsed {
@@ -184,7 +183,12 @@ export default {
     }
 }
 
+.component__header-button {
+    @include ui.closeButton();
+}
+
 .no-tools-text {
     margin-top: variables.$spacing-small;
+    font-size: 90%;
 }
 </style>
