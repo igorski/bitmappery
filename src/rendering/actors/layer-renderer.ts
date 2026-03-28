@@ -228,7 +228,7 @@ export default class LayerRenderer extends ZoomableSprite {
 
     setSelection( document: Document, onlyWhenClosed = false ): void {
         const { activeSelection } = document;
-        if ( !onlyWhenClosed || ( isShapeClosed( getLastShape( activeSelection )))) {
+        if ( !onlyWhenClosed || ( activeSelection && isShapeClosed( getLastShape( activeSelection )))) {
             this._selection = activeSelection?.length > 0 ? activeSelection : null;
         } else {
             this._selection = undefined;
