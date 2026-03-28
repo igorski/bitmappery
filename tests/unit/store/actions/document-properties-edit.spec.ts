@@ -4,7 +4,7 @@ import { createStore } from "../../mocks";
 import { type Document } from "@/definitions/document";
 import DocumentFactory from "@/factories/document-factory";
 import { type BitMapperyState } from "@/store";
-import { editDocumentProperties, TRANSPARENT_COLOR } from "@/store/actions/document-properties";
+import { editDocumentProperties, TRANSPARENT_COLOR } from "@/store/actions/document-properties-edit";
 
 const mockEnqueueState = vi.fn();
 vi.mock( "@/factories/history-state-factory", () => ({
