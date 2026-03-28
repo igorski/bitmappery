@@ -496,7 +496,7 @@ export default {
 @use "@/styles/typography";
 @use "@/styles/ui";
 
-$idealFormWidth: 310px;
+$idealFormWidth: 370px;
 
 .export-modal {
     width: 100%;
@@ -507,7 +507,7 @@ $idealFormWidth: 310px;
         max-width: $idealFormWidth;
         padding: variables.$spacing-medium variables.$spacing-large;
         border: 1px dotted colors.$color-lines-dark;
-        border-bottom: none;
+        @include mixins.boxSize();
     }
 
     .export-actions {
@@ -523,6 +523,8 @@ $idealFormWidth: 310px;
     }
 
     @include mixins.large() {
+        border-bottom: none;
+        
         .export-actions button {
             width: math.div( $idealFormWidth, 2 );
         }
@@ -530,7 +532,7 @@ $idealFormWidth: 310px;
 
     @include mixins.mobile() {
         .export-form {
-            width: calc(100% - 16pt);
+            width: calc(100% - variables.$spacing-xxsmall);
             max-width: unset;
         }
 

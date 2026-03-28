@@ -109,7 +109,7 @@
                     />
                 </div>
             </fieldset>
-            <fieldset class="fieldset">
+            <fieldset class="fieldset fieldset--duotone">
                 <legend v-t="'filters'" />
                 <div class="wrapper wrapper--slider">
                     <label v-t="'threshold'"></label>
@@ -365,22 +365,24 @@ export default {
 
 .layer-effects {
     @include panel.panel();
+    padding-top: variables.$spacing-small;
+    display: flex;
+    flex-direction: column;
 
-    & {
-        display: flex;
-        flex-direction: column;
-
-        :deep(.component__content) {
-            @include mixins.boxSize();
-            @include mixins.truncate();
-            border-bottom: 1px solid colors.$color-lines-dark;
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
-
-        .component__actions {
-            margin-top: variables.$spacing-medium;
-        }
+    :deep(.component__content) {
+        @include mixins.boxSize();
+        @include mixins.truncate();
+        border-bottom: 1px solid colors.$color-lines-dark;
+        overflow-x: hidden;
+        overflow-y: auto;
     }
+
+    .component__actions {
+        margin-top: variables.$spacing-medium;
+    }
+}
+
+.fieldset--duotone {
+    padding-bottom: variables.$spacing-small;
 }
 </style>

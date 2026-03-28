@@ -166,6 +166,7 @@ $colorLines: colors.$color-bg-light;
     &__image {
         width: 100%;
         background: url( "../../assets-inline/images/document_transparent_bg.png" ) repeat;
+        @include mixins.noEvents();
 
         &--crisp {
             image-rendering: pixelated;

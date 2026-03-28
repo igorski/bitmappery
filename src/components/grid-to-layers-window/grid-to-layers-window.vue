@@ -29,7 +29,7 @@
             <div class="form" @keyup.enter="requestSlice()">
                 <p v-t="'gridSliceExpl'" class="expl"></p>
                 <p>{{ $t( "currentDocumentSize", { width: Math.round( activeDocument.width ), height: Math.round( activeDocument.height ) }) }}</p>
-                <div class="wrapper wrapper--input">
+                <div class="wrapper wrapper--input wrapper--small">
                     <label v-t="'width'"></label>
                     <input
                         ref="widthInput"
@@ -39,7 +39,7 @@
                         class="input-field"
                     />
                 </div>
-                <div class="wrapper wrapper--input">
+                <div class="wrapper wrapper--input wrapper--small">
                     <label v-t="'height'"></label>
                     <input
                         v-model.number="height"
@@ -135,6 +135,10 @@ export default {
 
 .grid-to-layers {
     @include ui.modalBase( 480px, 470px );
+}
+
+.wrapper--small .input-field {
+    width: 100px;
 }
 
 .expl {

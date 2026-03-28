@@ -27,7 +27,7 @@
         </template>
         <template #content>
             <div class="form" @keyup.enter="resize()">
-                <div class="wrapper wrapper--input">
+                <div class="wrapper wrapper--input wrapper--small">
                     <label v-t="'width'"></label>
                     <input
                         v-model.number="width"
@@ -37,7 +37,7 @@
                         class="input-field"
                     />
                 </div>
-                <div class="wrapper wrapper--input">
+                <div class="wrapper wrapper--input wrapper--small">
                     <label v-t="'height'"></label>
                     <input
                         v-model.number="height"
@@ -46,7 +46,7 @@
                         class="input-field"
                     />
                 </div>
-                <div class="wrapper wrapper--select">
+                <div class="wrapper wrapper--select wrapper--small">
                     <label v-t="'contentAlignment'"></label>
                     <select-box :options="alignmentOptions"
                                  v-model="alignment"
@@ -163,6 +163,17 @@ export default {
 @use "@/styles/ui";
 
 .resize-canvas {
-    @include ui.modalBase( 480px, 220px );
+    @include ui.modalBase( 420px, 220px );
+}
+
+.wrapper {
+    justify-content: space-between;
+}
+
+.wrapper--small {
+    .input-field,
+    .select-box-wrapper {
+        width: 180px;
+    }
 }
 </style>

@@ -159,10 +159,7 @@ export default {
 .options-panel-wrapper {
     @include panel.panel();
     height: auto;
-
-    & {
-        overflow: initial !important;
-    }
+    overflow: initial !important;
 
     @include mixins.large() {
         &.collapsed {
