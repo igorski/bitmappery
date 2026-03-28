@@ -15,6 +15,11 @@ vi.mock( "@/factories/history-state-factory", () => ({
     enqueueState: ( ...args: any[] ) => mockEnqueueState( ...args ),
 }));
 
+const mockFlushTileForGroup = vi.fn();
+vi.mock( "@/rendering/cache/tile-cache", () => ({
+    flushTileForGroup: ( ...args: any[] ) => mockFlushTileForGroup( ...args ),
+}));
+
 describe( "Tile add action", () => {
     let store: Store<BitMapperyState>;
     let activeDocument: Document;
@@ -78,7 +83,7 @@ describe( "Tile add action", () => {
         });
     });
 
-    describe( "when restoring a tile cloning step", () => {
+    describe( "when restoring a tile add step", () => {
         it( "should remove the added Layer", () => {
             addTile( store, activeDocument );
 
@@ -99,6 +104,18 @@ describe( "Tile add action", () => {
             undo();
 
             expect( store.commit ).toHaveBeenCalledWith( "setActiveGroup", 1 );
+        });
+
+        it( "should flush the cache for the added tile", () => {
+            addTile( store, activeDocument );
+
+            const { undo } = mockEnqueueState.mock.calls[ 0 ][ 1 ];
+            vi.resetAllMocks();
+
+            undo();
+
+            expect( mockFlushTileForGroup ).toHaveBeenCalledTimes( 1 );
+            expect( mockFlushTileForGroup ).toHaveBeenCalledWith( 2 );
         });
     });
 });

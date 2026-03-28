@@ -1,6 +1,6 @@
 import { type Store } from "vuex";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createMockCanvasElement, createStore, mockZCanvas } from "../../mocks";
+import { createMockCanvasElement, createStore, flushPromises, mockZCanvas } from "../../mocks";
 
 mockZCanvas();
 
@@ -13,6 +13,13 @@ import { cloneTile } from "@/store/actions/tile-clone";
 const mockEnqueueState = vi.fn();
 vi.mock( "@/factories/history-state-factory", () => ({
     enqueueState: ( ...args: any[] ) => mockEnqueueState( ...args ),
+}));
+
+const mockFlushTileCache = vi.fn();
+const mockRebuildAllTiles = vi.fn();
+vi.mock( "@/rendering/cache/tile-cache", () => ({
+    flushTileCache: ( ...args: any[] ) => mockFlushTileCache( ...args ),
+    rebuildAllTiles: ( ...args: any[] ) => mockRebuildAllTiles( ...args ),
 }));
 
 vi.mock( "@/utils/canvas-util", async ( importOriginal ) => {
@@ -88,6 +95,15 @@ describe( "Tile clone action", () => {
 
             expect( store.commit ).toHaveBeenNthCalledWith( 7, "setActiveGroup", 2 );
         });
+
+        it( "should request a rebuild of all tiles in the cache", async () => {
+            cloneTile( store, activeDocument, 1 );
+
+            await flushPromises();
+
+            expect( mockFlushTileCache ).toHaveBeenCalledTimes( 1 );
+            expect( mockRebuildAllTiles ).toHaveBeenCalledWith( activeDocument );
+        });
     });
 
     describe( "when restoring a tile cloning step", () => {
@@ -135,6 +151,20 @@ describe( "Tile clone action", () => {
             expect( store.commit ).toHaveBeenNthCalledWith( 6, "updateLayer", { index: expect.any( Number ), opts: { rel: { type: "tile", id: 3 }}});
 
             expect( store.commit ).toHaveBeenNthCalledWith( 7, "setActiveGroup", 1 );
+        });
+
+        it( "should request a rebuild of all tiles in the cache", async () => {
+            cloneTile( store, activeDocument, 1 );
+
+            const { undo } = mockEnqueueState.mock.calls[ 0 ][ 1 ];
+            vi.resetAllMocks();
+            
+            undo();
+
+            await flushPromises();
+            
+            expect( mockFlushTileCache ).toHaveBeenCalledTimes( 1 );
+            expect( mockRebuildAllTiles ).toHaveBeenCalledWith( activeDocument );
         });
     });
 });

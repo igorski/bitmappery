@@ -23,6 +23,7 @@
 import { type Store } from "vuex";
 import type { Document, Layer } from "@/definitions/document";
 import { enqueueState } from "@/factories/history-state-factory";
+import { flushTileCache, rebuildAllTiles } from "@/rendering/cache/tile-cache";
 import { type BitMapperyState } from "@/store";
 import { getLayersByTile, getIndexOfFirstLayerInTileGroup } from "@/utils/timeline-util";
 
@@ -48,6 +49,13 @@ export const deleteTile = ( store: Store<BitMapperyState>, activeDocument: Docum
         }
     }
 
+    const updateTileCache = (): void => {
+        flushTileCache();
+        queueMicrotask(() => {
+            rebuildAllTiles( activeDocument );
+        });
+    };
+
     const commit = (): void => {
         layers.forEach( layer => {
             store.commit( "removeLayer", activeDocument.layers.findIndex( compare => compare.id === layer.id ));
@@ -70,6 +78,7 @@ export const deleteTile = ( store: Store<BitMapperyState>, activeDocument: Docum
         if ( currentlyActiveGroup === tile ) {
             store.commit( "setActiveGroup", Math.max( 0, tile - 1 ));
         }
+        updateTileCache();
     };
     commit();
 
@@ -96,6 +105,7 @@ export const deleteTile = ( store: Store<BitMapperyState>, activeDocument: Docum
             if ( currentlyActiveGroup === tile ) {
                 store.commit( "setActiveGroup", currentlyActiveGroup );
             }
+            updateTileCache();
         },
         redo: commit,
     });

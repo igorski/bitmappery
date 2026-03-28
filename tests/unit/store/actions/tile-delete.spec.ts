@@ -1,6 +1,6 @@
 import { type Store } from "vuex";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createStore, mockZCanvas } from "../../mocks";
+import { createStore, flushPromises, mockZCanvas } from "../../mocks";
 
 mockZCanvas();
 
@@ -13,6 +13,13 @@ import { deleteTile } from "@/store/actions/tile-delete";
 const mockEnqueueState = vi.fn();
 vi.mock( "@/factories/history-state-factory", () => ({
     enqueueState: ( ...args: any[] ) => mockEnqueueState( ...args ),
+}));
+
+const mockFlushTileCache = vi.fn();
+const mockRebuildAllTiles = vi.fn();
+vi.mock( "@/rendering/cache/tile-cache", () => ({
+    flushTileCache: ( ...args: any[] ) => mockFlushTileCache( ...args ),
+    rebuildAllTiles: ( ...args: any[] ) => mockRebuildAllTiles( ...args ),
 }));
 
 describe( "Tile delete action", () => {
@@ -50,7 +57,7 @@ describe( "Tile delete action", () => {
         vi.resetAllMocks();
     });
 
-    describe( "when delete a tile", () => {
+    describe( "when deleting a tile", () => {
         it( "should be able to delete the tiles Layer contents", () => {
             deleteTile( store, activeDocument, 1 );
 
@@ -83,6 +90,15 @@ describe( "Tile delete action", () => {
             expect( store.commit ).toHaveBeenNthCalledWith( 6, "updateLayer", { index: expect.any( Number ), opts: { rel: { type: "tile", id: 2 }}});
 
             expect( store.commit ).toHaveBeenNthCalledWith( 7, "setActiveGroup", 0 );
+        });
+
+        it( "should request a rebuild of all tiles in the cache", async () => {
+            deleteTile( store, activeDocument, 1 );
+
+            await flushPromises();
+
+            expect( mockFlushTileCache ).toHaveBeenCalledTimes( 1 );
+            expect( mockRebuildAllTiles ).toHaveBeenCalledWith( activeDocument );
         });
     });
 
@@ -137,6 +153,20 @@ describe( "Tile delete action", () => {
             expect( store.commit ).toHaveBeenNthCalledWith( 6, "updateLayer", { index: expect.any( Number ), opts: { rel: { type: "tile", id: 3 }}});
 
             expect( store.commit ).toHaveBeenNthCalledWith( 7, "setActiveGroup", 1 );
+        });
+
+        it( "should request a rebuild of all tiles in the cache", async () => {
+            deleteTile( store, activeDocument, 1 );
+
+            const { undo } = mockEnqueueState.mock.calls[ 0 ][ 1 ];
+            vi.resetAllMocks();
+            
+            undo();
+
+            await flushPromises();
+
+            expect( mockFlushTileCache ).toHaveBeenCalledTimes( 1 );
+            expect( mockRebuildAllTiles ).toHaveBeenCalledWith( activeDocument );
         });
     });
 });

@@ -23,6 +23,7 @@
 import { type Store } from "vuex";
 import type { Document, Layer } from "@/definitions/document";
 import { enqueueState } from "@/factories/history-state-factory";
+import { flushTileCache, rebuildAllTiles } from "@/rendering/cache/tile-cache";
 import { type BitMapperyState } from "@/store";
 import { getLayersByTile, getIndexOfLastLayerInTileGroup } from "@/utils/timeline-util";
 import { cloneLayer } from "@/utils/layer-util";
@@ -57,6 +58,13 @@ export const cloneTile = ( store: Store<BitMapperyState>, activeDocument: Docume
         ++tileIndex;
     }
 
+    const updateTileCache = (): void => {
+        flushTileCache();
+        queueMicrotask(() => {
+            rebuildAllTiles( activeDocument );
+        });
+    };
+
     const commit = (): void => {
         clonedLayers.forEach(( layer: Layer, index: number ) => {
             store.commit( "insertLayerAtIndex", { index: insertIndex + index, layer });
@@ -77,6 +85,7 @@ export const cloneTile = ( store: Store<BitMapperyState>, activeDocument: Docume
             }
         }
         store.commit( "setActiveGroup", nextTile );
+        updateTileCache();
     };
     commit();
 
@@ -102,6 +111,8 @@ export const cloneTile = ( store: Store<BitMapperyState>, activeDocument: Docume
                 }
             }
             store.commit( "setActiveGroup", currentlyActiveGroup );
+
+            updateTileCache();
         },
         redo: commit,
     });

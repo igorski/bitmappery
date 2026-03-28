@@ -24,6 +24,7 @@ import { type Store } from "vuex";
 import type { Document } from "@/definitions/document";
 import { enqueueState } from "@/factories/history-state-factory";
 import LayerFactory from "@/factories/layer-factory";
+import { flushTileForGroup } from "@/rendering/cache/tile-cache";
 import { type BitMapperyState } from "@/store";
 import { getIndexOfLastLayerInTileGroup } from "@/utils/timeline-util";
 
@@ -32,25 +33,26 @@ export const addTile = ( store: Store<BitMapperyState>, activeDocument: Document
 
     const currentlyActiveGroup = store.getters.activeGroup;
     const insertIndex = getIndexOfLastLayerInTileGroup( activeDocument, groups[ groups.length - 1 ]) + 1;
-    const nextTile = groups.length;
+    const nextGroup = groups.length;
     
     const layer = LayerFactory.create({
         width: activeDocument.width,
         height: activeDocument.height,
         rel: {
             type: "tile",
-            id: nextTile,
+            id: nextGroup,
         }
     });
 
     const commit = (): void => {
         store.commit( "insertLayerAtIndex", { index: insertIndex, layer });
-        store.commit( "setActiveGroup", nextTile );
+        store.commit( "setActiveGroup", nextGroup );
     };
     commit();
 
     enqueueState( `tileAdd_${layer.id}`, {
         undo(): void {
+            flushTileForGroup( nextGroup );
             store.commit( "removeLayer", insertIndex );
             store.commit( "setActiveGroup", currentlyActiveGroup );
         },
