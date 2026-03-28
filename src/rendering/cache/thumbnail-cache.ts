@@ -106,6 +106,12 @@ export const getThumbnailForLayer = ( layerId: string ): string => {
     return thumbnailCache.get( layerId )?.source ?? TRANSPARENT_IMAGE;
 };
 
+export const rebuildAllThumbnails = async ( activeDocument: Document ): Promise<void[]> => {
+    return Promise.all(
+        activeDocument.layers.map( layer => createLayerThumbnail( layer, activeDocument )),
+    );
+};
+
 export const flushThumbnailForLayer = ( layer: Layer ): void => {
     // console.info( "flushing thumbnail for layer " + layer.id );
     thumbnailCache.delete( layer.id );

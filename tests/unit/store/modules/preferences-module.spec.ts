@@ -1,5 +1,6 @@
-import { it, describe, expect, vi } from "vitest";
+import { it, afterEach, describe, expect, vi } from "vitest";
 import { mockZCanvas } from "../../mocks";
+import DocumentFactory from "@/factories/document-factory";
 import storeModule, { createPreferencesState, type Preferences } from "@/store/modules/preferences-module";
 
 const { getters, mutations, actions } = storeModule;
@@ -10,8 +11,10 @@ Storage.prototype.getItem = vi.fn(() => JSON.stringify( mockStorageData ));
 mockZCanvas();
 
 const mockSetThumbnailCacheEnabled = vi.fn();
+const mockRebuildAllThumbnails = vi.fn();
 vi.mock( "@/rendering/cache/thumbnail-cache", () => ({
     setEnabled: vi.fn(( ...args ) => mockSetThumbnailCacheEnabled( ...args )),
+    rebuildAllThumbnails: vi.fn(( ...args ) => mockRebuildAllThumbnails( ...args )),
 }));
 
 const mockSetWasmFilters = vi.fn();
@@ -20,6 +23,10 @@ vi.mock( "@/services/render-service", () => ({
 }));
 
 describe( "Vuex preferences module", () => {
+    afterEach(() => {
+        vi.resetAllMocks();
+    });
+
     describe( "getters", () => {
         const state = createPreferencesState({
             lowMemory   : false,
@@ -99,15 +106,49 @@ describe( "Vuex preferences module", () => {
                 wasmFilters : true,
                 antiAlias   : true,
                 autoAlias   : true,
-            })
+            });
+            const getters = { activeDocument: DocumentFactory.create() };
 
             // @ts-expect-error Not all constituents of type 'Action<PreferencesState, any>' are callable
-            actions.handlePreferences({ state });
-            
-            expect( mockSetThumbnailCacheEnabled ).toHaveBeenCalledWith( true );
+            actions.handlePreferences({ state, getters });
             
             // WASM support is currently disabled
             expect( mockSetWasmFilters ).toHaveBeenCalledWith( false );
+        });
+
+        describe( "when handling changes to thumbnail display", () => {
+            it( "should disable the thumbnail cache when disabling", () => {
+                const state = createPreferencesState({ thumbnails: false });
+                const getters = { activeDocument: DocumentFactory.create() };
+
+                // @ts-expect-error Not all constituents of type 'Action<PreferencesState, any>' are callable
+                actions.handlePreferences({ state, getters });
+
+                expect( mockSetThumbnailCacheEnabled ).toHaveBeenCalledWith( false );
+                expect( mockRebuildAllThumbnails ).not.toHaveBeenCalled();
+            });
+
+            it( "should enable the thumbnail cache when enabling", () => {
+                const state = createPreferencesState({ thumbnails: true });
+                const getters = {};
+
+                // @ts-expect-error Not all constituents of type 'Action<PreferencesState, any>' are callable
+                actions.handlePreferences({ state, getters });
+
+                expect( mockSetThumbnailCacheEnabled ).toHaveBeenCalledWith( true );
+                expect( mockRebuildAllThumbnails ).not.toHaveBeenCalled();
+            });
+
+            it( "should rebuild the thumbnail cache when there is an active document when enabling", () => {
+                const state = createPreferencesState({ thumbnails: true });
+                const getters = { activeDocument: DocumentFactory.create() };
+
+                // @ts-expect-error Not all constituents of type 'Action<PreferencesState, any>' are callable
+                actions.handlePreferences({ state, getters });
+
+                expect( mockSetThumbnailCacheEnabled ).toHaveBeenCalledWith( true );
+                expect( mockRebuildAllThumbnails ).toHaveBeenCalledWith( getters.activeDocument );
+            });
         });
     });
 });

@@ -22,7 +22,7 @@
  */
 import type { ActionContext, Module } from "vuex";
 import { isMobile } from "@/utils/environment-util";
-import { setEnabled } from "@/rendering/cache/thumbnail-cache";
+import { setEnabled, rebuildAllThumbnails } from "@/rendering/cache/thumbnail-cache";
 import { setWasmFilters } from "@/services/render-service";
 
 // @ts-expect-error 'import.meta' property not allowed (not an issue, Vite takes care of it)
@@ -94,10 +94,14 @@ const PreferencesModule: Module<PreferencesState, any> = {
             window.localStorage?.setItem( STORAGE_KEY, JSON.stringify( state.preferences ));
             dispatch( "handlePreferences" );
         },
-        handlePreferences({ state }: ActionContext<PreferencesState, any> ): void {
+        handlePreferences({ state, getters }: ActionContext<PreferencesState, any> ): void {
             const { preferences } = state;
+            const { activeDocument } = getters;
 
             setEnabled( !!preferences.thumbnails );
+            if ( preferences.thumbnails && activeDocument ) {
+                rebuildAllThumbnails( activeDocument );
+            }
             setWasmFilters( SUPPORT_WASM && !!preferences.wasmFilters );
         },
     }

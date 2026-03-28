@@ -12,6 +12,7 @@ import {
     flushThumbnailCache,
     getThumbnailForLayer,
     isEnabled,
+    rebuildAllThumbnails,
     setEnabled,
     subscribe,
     TRANSPARENT_IMAGE,
@@ -217,7 +218,7 @@ describe( "Thumbnail cache", () => {
         });
     });
 
-    describe( "when caching and retrieving a layers thumbnail", () => {
+    describe( "when caching and retrieving a Layers thumbnail", () => {
         it( "should by default retrieve a transparent image when the thumbnail isn't cached yet", () => {
             expect( getThumbnailForLayer( layer.id )).toEqual( TRANSPARENT_IMAGE );
         });
@@ -235,5 +236,23 @@ describe( "Thumbnail cache", () => {
             expect( thumb ).not.toEqual( TRANSPARENT_IMAGE );
             expect( thumb ).toEqual( "data:image/png;base64," );
         });
+    });
+
+    it( "should be able to rebuild all thumbnails for a Document", async () => {
+            setEnabled( true );
+
+            const layer1 = LayerFactory.create();
+            const layer2 = LayerFactory.create();
+            const layer3 = LayerFactory.create();
+
+            const doc = DocumentFactory.create({
+                layers: [ layer1, layer2, layer3 ],
+            });
+
+            await rebuildAllThumbnails( doc );
+
+            expect( hasThumbnail( layer1.id )).toBe( true );
+            expect( hasThumbnail( layer2.id )).toBe( true );
+            expect( hasThumbnail( layer3.id )).toBe( true );
     });
 });
