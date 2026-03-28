@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -31,7 +31,6 @@ let registerAccessToken: ( token: string ) => void;
 let init: () => void;
 let validateScopes: ( scope: string ) => boolean;
 let disconnect: () => void;
-let loginWindow: Window;
 let boundHandler: ( event: MessageEvent ) => void;
 
 const PRIVACY_POLICY_URL = "https://www.igorski.nl/bitmappery/privacy";
@@ -114,23 +113,22 @@ export default {
             }
         },
         loginDropbox(): void {
-            loginWindow  = window.open( this.authUrl );
-            boundHandler = this.messageHandlerDropbox.bind( this );
-            window.addEventListener( "message", boundHandler );
-        },
-        messageHandlerDropbox({ data }: MessageEvent ): void {
-            if ( data?.accessToken ) {
-                registerAccessToken( data.accessToken );
-                window.removeEventListener( "message", boundHandler );
-                loginWindow.close();
-                loginWindow = null;
-                this.showConnectionMessage( STORAGE_TYPES.DROPBOX );
-                this.authenticated = true;
+            const authChannel = new BroadcastChannel( "dropbox_auth" );
+            let loginWindow: Window;
+            authChannel.onmessage = ({ data }: MessageEvent ): void => {
+                if ( data?.accessToken ) {
+                    registerAccessToken( data.accessToken );
+                    this.showConnectionMessage( STORAGE_TYPES.DROPBOX );
+                    this.authenticated = true;
 
-                if ( autoOpenFileBrowserOnConnect ) {
-                    this.openFileBrowserDropbox();
+                    if ( autoOpenFileBrowserOnConnect ) {
+                        this.openFileBrowserDropbox();
+                    }
+                    authChannel.close();
+                    loginWindow.close();
                 }
-            }
+            };
+            loginWindow = window.open( this.authUrl )!;
         },
         openFileBrowserDropbox(): void {
             this.openModal( DROPBOX_FILE_SELECTOR );

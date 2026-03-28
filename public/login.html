@@ -11,19 +11,19 @@
 </body>
 <script type="text/javascript">
     (function() {
-        var params = window.location.hash.split( "&" );
-        var accessToken = null;
-        for ( var i = 0; i < params.length; i++ ) {
-            var param = params[ i ];
+        const params = window.location.hash.split( "&" );
+        let accessToken = null;
+        for ( let i = 0; i < params.length; i++ ) {
+            const param = params[ i ];
             if ( param.indexOf( "access_token" ) > -1 ) {
                 accessToken = param.split( "access_token=" )[ 1 ];
                 break;
             }
         }
         if ( accessToken ) {
-            window.opener.postMessage({
-                "accessToken": accessToken,
-            }, window.opener );
+            const authChannel = new BroadcastChannel( "dropbox_auth" );
+            authChannel.postMessage({ accessToken });
+            window.close();
         }
     })();
 </script>
