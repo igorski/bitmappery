@@ -195,16 +195,6 @@ function handleKeyDown( event: KeyboardEvent ): void {
             }
             break;
 
-        case 27: // escape
-
-            // close dialog (if existing), else close overlay (if existing)
-            if ( state.dialog ) {
-                commit( "closeDialog" );
-            } else if ( state.modal ) {
-                commit( "closeModal" );
-            }
-            break;
-
         case 32: // spacebar
             commit( "setPanMode", true );
             break;
