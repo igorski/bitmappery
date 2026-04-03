@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2025 - https://www.igorski.nl
+ * Igor Zinken 2021-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -25,7 +25,7 @@ import { type Rectangle } from "zcanvas";
 import { type Shape, Selection } from "@/definitions/document";
 import { getRendererForLayer } from "@/factories/renderer-factory";
 import { type BitMapperyState } from "@/store";
-import { shapeToRectangle, scaleShape } from "@/utils/shape-util";
+import { shapeToRectangle, roundShape, scaleShape } from "@/utils/shape-util";
 
 export const selectionToRectangle = ( selection: Selection ): Rectangle => {
     if ( selection.length === 1 ) {
@@ -47,6 +47,10 @@ export const selectionToRectangle = ( selection: Selection ): Rectangle => {
         width  : Math.max.apply( null, xCoords ) - left,
         height : Math.max.apply( null, yCoords ) - top,
     };
+};
+
+export const roundSelection = ( selection: Selection ): Selection => {
+    return selection.map(( shape: Shape ) => roundShape( shape ));
 };
 
 export const scaleSelection = ( selection: Selection, scale: number ): Selection => {

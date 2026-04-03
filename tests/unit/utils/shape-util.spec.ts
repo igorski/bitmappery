@@ -1,7 +1,7 @@
 import { it, describe, expect } from "vitest";
 import {
     mergeShapes,
-    rectangleToShape, scaleShape, shapeToRectangle, subtractShapes,
+    rectangleToShape, roundShape, scaleShape, shapeToRectangle, subtractShapes,
     isOverlappingShape, isShapeRectangular, isShapeClosed
 } from "@/utils/shape-util";
 
@@ -28,6 +28,22 @@ describe( "Shape utilities", () => {
             { x: 450, y: 375 },
             { x: 50,  y: 375 },
             { x: 50,  y: 75 }
+        ]);
+    });
+
+    it( "should be able to round the values in a Shape to their nearest integer values", () => {
+        expect( roundShape([
+            { x: 4.250559227410698, y: 5.228564005399 },
+            { x: 6.846033445918115, y: 5.228564005399 },
+            { x: 6.846033445918115, y: 7.598344813601424 },
+            { x: 4.250559227410698, y: 7.598344813601424 },
+            { x: 4.250559227410698, y: 5.228564005399 }
+        ])).toEqual([
+            { x: 4, y: 5 },
+            { x: 7, y: 5 },
+            { x: 7, y: 8 },
+            { x: 4, y: 8 },
+            { x: 4, y: 5 },
         ]);
     });
 

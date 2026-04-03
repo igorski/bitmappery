@@ -24,6 +24,7 @@ import { sprite } from "zcanvas";
 import type { Point, Size, Viewport } from "zcanvas";
 import type { Document, Layer, Shape, Selection } from "@/definitions/document";
 import ToolTypes, { SELECTION_TOOLS } from "@/definitions/tool-types";
+import { isPixelArt } from "@/definitions/editor-properties";
 import { getRendererForLayer } from "@/factories/renderer-factory";
 import { isPointInRange, translatePoints, snapToAngle, rectToCoordinateList } from "@/math/point-math";
 import { rotateRectangleToCoordinates, scaleRectangle } from "@/math/rectangle-math";
@@ -38,7 +39,7 @@ import { invertSelection } from "@/store/actions/selection-invert";
 import { applySelection } from "@/store/actions/selection-apply";
 import { getPixelRatio, isInsideTransparentArea } from "@/utils/canvas-util";
 import { createDocumentSnapshot, createLayerSnapshot } from "@/utils/document-util";
-import { getLastShape, syncSelection } from "@/utils/selection-util";
+import { getLastShape, roundSelection, syncSelection } from "@/utils/selection-util";
 import { isShapeClosed, isOverlappingShape, mergeShapes, rectangleToShape, subtractShapes } from "@/utils/shape-util";
 
 export enum InteractionModes {
@@ -236,6 +237,9 @@ export default class InteractionPane extends sprite {
             this._selectionOperation = "merge";
         } else {
             selectionToSet = activeSelection; // no overlap handling necessary, we can commit the whole active selection to history
+        }
+        if ( isPixelArt( this.getActiveDocument() )) {
+            selectionToSet = roundSelection( selectionToSet );
         }
         this._selectionClosed = true;
         this.canvas.store.commit( "setActiveSelection", [ ...selectionToSet ]);

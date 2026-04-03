@@ -28,6 +28,7 @@ import {
     union
 } from "martinez-polygon-clipping";
 import type { Point, Rectangle } from "zcanvas";
+import { fastRound } from "@/math/unit-math";
 import type { Shape } from "@/definitions/document";
 
 export const shapeToRectangle = ( shape: Shape ): Rectangle => {
@@ -60,6 +61,10 @@ export const rectangleToShape = ( width: number, height: number, x = 0, y = 0 ):
 
 export const scaleShape = ( shape: Shape, scale: number ): Shape => {
     return shape.map(( point: Point ) => ({ x: point.x * scale, y: point.y * scale }));
+};
+
+export const roundShape = ( shape: Shape ): Shape => {
+    return shape.map(({ x, y }: Point ) => ({ x: fastRound( x ), y: fastRound( y ) }));
 };
 
 export const isShapeRectangular = ( shape: Shape ): boolean => {

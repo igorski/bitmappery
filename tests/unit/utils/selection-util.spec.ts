@@ -6,7 +6,7 @@ mockZCanvas();
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { createRendererForLayer, flushRendererCache } from "@/factories/renderer-factory";
-import { getLastShape, scaleSelection, selectionToRectangle, syncSelection } from "@/utils/selection-util";
+import { getLastShape, roundSelection, scaleSelection, selectionToRectangle, syncSelection } from "@/utils/selection-util";
 
 describe( "Selection utilities", () => {
     const selection = [
@@ -45,6 +45,24 @@ describe( "Selection utilities", () => {
                 height: 70
             });
         });
+    });
+
+    it( "should be able to round the Shape coordinates inside a selection", () => {
+        expect( roundSelection([
+            [
+                { x: 4.25, y: 5.56 }, { x: 5.55, y: 5.56 }, { x: 5.55, y: 7.2 }, { x: 4.25, y: 5.56 },
+            ],
+            [
+                { x: 2.25, y: 2.56 }, { x: 4.55, y: 5.56 }, { x: 4.55, y: 7.2 }, { x: 2.25, y: 5.56 },
+            ]
+        ])).toEqual([
+            [
+                { x: 4, y: 6 }, { x: 6, y: 6 }, { x: 6, y: 7 }, { x: 4, y: 6 },
+            ],
+            [
+                { x: 2, y: 3 }, { x: 5, y: 6 }, { x: 5, y: 7 }, { x: 2, y: 6 },
+            ]
+        ]);
     });
 
     it( "should be able to scale the Shapes inside a selection", () => {
