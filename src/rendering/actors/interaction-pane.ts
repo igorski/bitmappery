@@ -49,8 +49,7 @@ export enum InteractionModes {
 };
 
 const DASH_SIZE  = 10;
-const DASH_SPEED = 1; // per frame
-
+const DASH_SPEED = 0.05;
 const SNAP_MARGIN = 5;
 
 /**
@@ -417,7 +416,7 @@ export default class InteractionPane extends sprite {
 
     update( _now: DOMHighResTimeStamp, framesSinceLastUpdate: number ): void {
         if ( this._selectionClosed && this.getActiveDocument().activeSelection?.length ) {
-            this._dashOffset -= (( DASH_SPEED * this.canvas.zoomFactor ) * framesSinceLastUpdate ); // advance the selection outline animation
+            this._dashOffset = ( this._dashOffset + ( DASH_SPEED * framesSinceLastUpdate )) % 1;
         }
     }
 
@@ -461,7 +460,7 @@ export default class InteractionPane extends sprite {
                 if ( !this._selectionClosed ) {
                     const { zoomFactor } = this.canvas;
                     ctx.beginPath();
-                    ctx.lineWidth   = 2 / zoomFactor;
+                    ctx.lineWidth = 2 / zoomFactor;
                     ctx.strokeStyle = "#0db0bc";
                     const size = firstPoint && isPointInRange( this._pointer.x, this._pointer.y, firstPoint.x, firstPoint.y, SNAP_MARGIN / zoomFactor ) ? 15 : 5;
                     ctx.arc( localPointerX, localPointerY, size / zoomFactor, 0, 2 * Math.PI );
@@ -500,12 +499,10 @@ function drawSelectionShape( ctx: CanvasRenderingContext2D, zoomableCanvas: Zoom
                              shape: Shape, currentPosition?: Point, dashOffset = 0 ): void {
     const { zoomFactor } = zoomableCanvas;
     ctx.save();
+    const zoomedDashSize = DASH_SIZE / zoomFactor;
     drawShapeOutline( ctx, zoomableCanvas, viewport, shape, "#000", currentPosition );
-    ctx.restore();
-
-    ctx.save();
-    ctx.setLineDash([ DASH_SIZE / zoomFactor ]);
-    ctx.lineDashOffset = ( DASH_SIZE + dashOffset ) / zoomFactor;   
+    ctx.setLineDash([ zoomedDashSize ]);
+    ctx.lineDashOffset = -dashOffset * ( zoomedDashSize * 2 );   
     drawShapeOutline( ctx, zoomableCanvas, viewport, shape, "#FFF", currentPosition );
     ctx.restore();
 }
