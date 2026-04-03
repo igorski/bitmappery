@@ -350,7 +350,7 @@ $toolButtonWidth: variables.$spacing-large;
 
     // tall screens
 
-    @media screen and (min-height: 880px) {
+    @media screen and (min-height: variables.$ideal-height) {
         @include mixins.large() {
             width: 52px !important;
         }

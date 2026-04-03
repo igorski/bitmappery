@@ -637,11 +637,15 @@ $toggle-width: 50px;
     background-image: colors.$color-window-bg;
     @include mixins.boxSize();
     @include ui.nestedMenu();
-
+    
     @include mixins.large() {
         min-width: 100%;
         max-width: variables.$ideal-width;
         padding-left: variables.$spacing-xlarge;
+
+        @media screen and (min-height: variables.$ideal-height) {
+            padding-left: variables.$spacing-medium + variables.$spacing-xsmall;
+        }
     }
 
     @include mixins.mobile() {
