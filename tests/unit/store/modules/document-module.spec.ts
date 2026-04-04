@@ -819,6 +819,7 @@ describe( "Vuex document module", () => {
                 dpi: 150,
                 fps: 10,
                 unit: "px",
+                swatches: [],
             });
         });
     });

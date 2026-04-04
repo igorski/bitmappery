@@ -4,6 +4,12 @@
         "options": "Options",
         "backgroundColor": "Background color",
         "color": "Color",
+        "swatches": "Swatches",
+        "availableSwatches": "Available swatches",
+        "noSwatchesAvailable": "There are no custom swatches defined for this Document.",
+        "newSwatch": "New swatch",
+        "addSwatch": "Add swatch",
+        "duplicateColor": "An existing swatch of that color already exists",
         "save": "Save",
         "cancel": "Cancel"
     }

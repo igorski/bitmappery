@@ -31,17 +31,23 @@ describe( "edit Document properties action", () => {
     
     beforeEach(() => {
         store = createStore();
-        activeDocument = DocumentFactory.create({ meta: { unit: "px", dpi: 300, bgColor: "#00FF00" }});
+        activeDocument = DocumentFactory.create({ meta: { unit: "px", dpi: 300, bgColor: "#00FF00", swatches: [ "#0000FF" ] }});
     });
 
     afterEach(() => {
         vi.resetAllMocks();
     });
 
-    it( "should be able to edit the Document properties", () => {
+    it( "should be able to edit the Document bgColor property", () => {
         editDocumentProperties( store, activeDocument, { bgColor: "#FF0000" });
 
         expect( store.commit ).toHaveBeenCalledWith( "updateMeta", { bgColor: "#FF0000" });
+    });
+
+    it( "should be able to edit the Document swatches", () => {
+        editDocumentProperties( store, activeDocument, { swatches: [ "#FF0000", "#00FF00" ] });
+
+        expect( store.commit ).toHaveBeenCalledWith( "updateMeta", { swatches: [ "#FF0000", "#00FF00" ] });
     });
 
     it( "should set the color onto the canvas instance and invalidate its contents", () => {
@@ -73,13 +79,13 @@ describe( "edit Document properties action", () => {
     });
 
     it( "should restore the original color and content when calling undo in state history", () => {
-        editDocumentProperties( store, activeDocument, { bgColor: "#FF0000" });
+        editDocumentProperties( store, activeDocument, { bgColor: "#FF0000", swatches: [ "#FF0000" ] });
 
         const { undo } = mockEnqueueState.mock.calls[ 0 ][ 1 ];
         vi.resetAllMocks();
 
         undo();
 
-        expect( store.commit ).toHaveBeenCalledWith( "updateMeta", { bgColor: "#00FF00" });
+        expect( store.commit ).toHaveBeenCalledWith( "updateMeta", { bgColor: "#00FF00", swatches: [ "#0000FF" ] });
     });
 });

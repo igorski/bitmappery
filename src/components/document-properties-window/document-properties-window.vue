@@ -36,6 +36,39 @@
                         color-type="HEXA"
                     />
                 </div>
+                <h3 v-t="'swatches'" class="title"></h3>
+                <div
+                    v-if="hasSwatches"
+                    class="wrapper wrapper--picker-list"
+                >
+                    <label v-t="'availableSwatches'"></label>
+                    <div class="wrapper--picker-list__container">
+                        <color-picker
+                            v-for="( swatch, index ) in swatches"
+                            v-model="swatches[ index ]"
+                            color-type="HEXA"
+                        />
+                    </div>
+                </div>
+                <p
+                    v-else
+                    v-t="'noSwatchesAvailable'"
+                    class="expl"
+                ></p>
+                <div class="wrapper wrapper--picker">
+                    <label v-t="'newSwatch'"></label>
+                    <color-picker
+                        v-model="newSwatchColor"
+                        v-tooltip="$t('color')"
+                        color-type="HEXA"
+                    />
+                    <button
+                        type="button"
+                        v-t="'addSwatch'"
+                        class="button button--small button__add-swatch"
+                        @click="addSwatch()"
+                    ></button>
+                </div>
             </div>
         </template>
         <template #actions>
@@ -71,29 +104,74 @@ export default {
     },
     data: () => ({
         backgroundColor: "",
+        newSwatchColor: "",
+        swatches: [],
     }),
     computed: {
         ...mapGetters([
+            "activeColor",
             "activeDocument",
         ]),
         isValid(): boolean {
+            if ( this.swatches.some( color => !this.activeDocument.meta.swatches.includes( color ))) {
+                return true;
+            }
             if ( !this.activeDocument.meta.bgColor && this.backgroundColor === TRANSPARENT_COLOR ) {
                 return false;
             }
-            return this.backgroundColor !== this.activeDocument.meta.bgColor;
+            if ( this.backgroundColor !== this.activeDocument.meta.bgColor ) {
+                return true;
+            }
+            return false;
+        },
+        hasSwatches(): boolean {
+            return this.swatches.length > 0;
         },
     },
     created(): void {
         this.backgroundColor = this.activeDocument.meta.bgColor ?? TRANSPARENT_COLOR;
+        this.swatches = [ ...this.activeDocument.meta.swatches ];
+        this.newSwatchColor = this.activeColor;
     },
     methods: {
         ...mapMutations([
             "closeModal",
+            "showNotification",
+            "updateMeta",
         ]),
         save(): void {
-            editDocumentProperties( this.$store, this.activeDocument, { bgColor: this.backgroundColor });
+            editDocumentProperties( this.$store, this.activeDocument, { bgColor: this.backgroundColor, swatches: this.swatches });
             this.closeModal();
+        },
+        addSwatch(): void {
+            if ( this.swatches.includes( this.newSwatchColor )) {
+                this.showNotification({ title: "", message: this.$t( "duplicateColor" )});
+                return;
+            }
+            this.swatches.push( this.newSwatchColor );
         },
     },
 };
 </script>
+
+<style lang="scss" scoped>
+@use "@/styles/_variables";
+@use "@/styles/typography";
+
+.expl {
+    @include typography.smallText();
+}
+
+.wrapper--picker-list__container {
+    display: flex;
+    gap: variables.$spacing-small;
+
+    .color-picker {
+        display: flex;
+    }
+}
+
+.button__add-swatch {
+    margin-left: variables.$spacing-small;
+}
+</style>

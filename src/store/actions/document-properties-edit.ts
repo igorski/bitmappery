@@ -31,16 +31,17 @@ import { type BitMapperyState } from "@/store";
 export const TRANSPARENT_COLOR = "#FFFFFF00"; 
 
 export const editDocumentProperties = async (
-    store: Store<BitMapperyState>, activeDocument: Document, props: Pick<DocumentMeta, "bgColor">
+    store: Store<BitMapperyState>, activeDocument: Document, props: Pick<DocumentMeta, "bgColor" | "swatches">
 ): Promise<void> => {
     const orgBgColor = activeDocument.meta.bgColor;
+    const orgSwatches = activeDocument.meta.swatches;
     const isTimeline = activeDocument.type === "timeline";
 
-    const update = ( color?: string ): void => {
+    const update = ( color?: string, swatches?: string[] ): void => {
         if ( color === TRANSPARENT_COLOR ) {
             color = undefined;
         }
-        store.commit( "updateMeta", { bgColor: color });
+        store.commit( "updateMeta", { bgColor: color, swatches: swatches ?? undefined });
         getCanvasInstance().setBackgroundColor( color ?? null );
         getCanvasInstance().invalidate();
 
@@ -50,13 +51,13 @@ export const editDocumentProperties = async (
     };
 
     const commit = () => {
-        update( props.bgColor );
+        update( props.bgColor, props.swatches );
     };
     commit();
 
-    enqueueState( "bgColor", {
+    enqueueState( "documentProps", {
         undo(): void {
-            update( orgBgColor );
+            update( orgBgColor, orgSwatches );
         },
         redo: commit,
     });

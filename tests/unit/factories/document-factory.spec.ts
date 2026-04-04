@@ -30,6 +30,7 @@ describe( "Document factory", () => {
                 meta: {
                     dpi: DEFAULT_DPI,
                     unit: DEFAULT_UNIT,
+                    swatches: [],
                 },
                 activeSelection: [],
                 invertSelection: false,
@@ -53,8 +54,9 @@ describe( "Document factory", () => {
                     bgColor: "#FF0000",
                     dpi: 300,
                     unit: "cm",
+                    swatches: [ "#FF0000", "#00FF00" ],
                 },
-                selections: { foo: [[ { x: 0, y: 0 } ]] }
+                selections: { foo: [[ { x: 0, y: 0 } ]] },
             });
             expect( document ).toEqual({
                 id: expect.any( String ),
@@ -69,6 +71,7 @@ describe( "Document factory", () => {
                     bgColor: "#FF0000",
                     dpi: 300,
                     unit: "cm",
+                    swatches: [ "#FF0000", "#00FF00" ],
                 },
                 activeSelection: [],
                 invertSelection: false,
@@ -99,6 +102,7 @@ describe( "Document factory", () => {
                     bgColor: "#FF0000",
                     dpi: 300,
                     unit: "cm",
+                    swatches: [ "#FF0000", "#00FF00" ],
                 },
             });
             const serializeLayerSpy = vi.spyOn( LayerFactory, "serialize" ).mockImplementation( data => JSON.stringify( data ));
@@ -135,7 +139,7 @@ describe( "Document factory", () => {
             expect( deserialized.type ).toEqual( "default" );
         });
 
-        it( "should create an empty meta structure containing only the default DPI and unit values for legacy documents", async () => {
+        it( "should create an empty meta structure containing only the default DPI and unit values with an empty swatches list for legacy documents", async () => {
             const document = DocumentFactory.create();
 
             const serialized = DocumentFactory.serialize( document );
@@ -146,6 +150,7 @@ describe( "Document factory", () => {
             expect( deserialized.meta ).toEqual( {
                 dpi: DEFAULT_DPI,
                 unit: DEFAULT_UNIT,
+                swatches: [],
             });
         });
     });

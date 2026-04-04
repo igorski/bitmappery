@@ -111,6 +111,7 @@ export type DocumentMeta = {
     fps?: number; // for timeline DocumentType
     bgColor?: string; // transparent when empty
     smoothing?: boolean; // unserialized property to propagate application anti alias setting to render paths
+    swatches?: string[]; // array of color strings
 };
 export type Document = {
     id: string;

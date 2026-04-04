@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -27,10 +27,12 @@
 </template>
 
 <script lang="ts">
+import { mapGetters } from "vuex";
 import "@simonwep/pickr/dist/themes/nano.min.css";
 //import Pickr from "@simonwep/pickr/dist/pickr.es5.min"; // 3 x size of modern bundle
 import Pickr from "@simonwep/pickr";
 
+const DEFAULT_SWATCHES = [ "#000000", "#FFFFFF", "#FFEE00", "#F44336", "#E91E63", "#9C27B0", "#673AB7" ];
 const FRAC_VALUE = 0;
 
 export default {
@@ -47,10 +49,34 @@ export default {
             default: "RGBA",
         },
     },
+    computed: {
+        ...mapGetters([
+            "activeDocument",
+        ]),
+        swatches(): string[] {
+            if ( !this.activeDocument || this.activeDocument.meta.swatches.length === 0 ) {
+                return DEFAULT_SWATCHES;
+            }
+            return this.activeDocument.meta.swatches;
+        },
+    },
     watch: {
         modelValue( color: string ): void {
             this.pickrInstance?.setColor( color );
-        }
+        },
+        swatches( value: string[], oldValue?: string[] ): void {
+            if ( oldValue ) {
+                if ( value.length === oldValue.length && oldValue.every( color => value.includes( color ))) {
+                    return;
+                }
+                for ( let i = 0, l = oldValue.length; i < l; ++i ) {
+                    this.pickrInstance?.removeSwatch( 0 );
+                }
+            }
+            for ( const color of value ) {
+                this.pickrInstance?.addSwatch( color );
+            }
+        },
     },
     mounted(): void {
         this.pickrInstance = Pickr.create({
@@ -71,7 +97,7 @@ export default {
                     input: true
                 }
             },
-            swatches: [ "#000000", "#FFFFFF", "#FFEE00", "#F44336", "#E91E63", "#9C27B0", "#673AB7" ],
+            swatches: this.swatches,
         });
         this.pickrInstance.on( "change", this.saveColor.bind( this ));
         // hacky way to assign keyboard-service shortcut to open this picker

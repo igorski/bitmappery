@@ -50,7 +50,10 @@ const DocumentFactory = {
             height,
             selections,
             type,
-            meta,
+            meta: {
+                swatches: [],
+                ...meta,
+            },
             // only during runtime, will not be serialized
             activeSelection: [],
             invertSelection: false,
@@ -76,6 +79,7 @@ const DocumentFactory = {
                 b: document.meta.bgColor,
                 d: document.meta.dpi,
                 u: document.meta.unit,
+                s: [ ...document.meta.swatches ],
             },
         };
     },
@@ -83,24 +87,25 @@ const DocumentFactory = {
      /**
       * Creating a new document instance from a stored JSON structure
       */
-    async deserialize( document: any ): Promise<Document> {
+    async deserialize( serialized: any ): Promise<Document> {
         const layers: Layer[] = [];
-        for ( let i = 0, l = ( document.l ?? [] ).length; i < l; ++i ) {
-            layers.push( await LayerFactory.deserialize( document.l[ i ]));
+        for ( let i = 0, l = ( serialized.l ?? [] ).length; i < l; ++i ) {
+            layers.push( await LayerFactory.deserialize( serialized.l[ i ]));
         }
         return DocumentFactory.create({
-            name: document.n,
-            width: document.w,
-            height: document.h,
+            name: serialized.n,
+            width: serialized.w,
+            height: serialized.h,
             layers,
-            selections: document.s,
-            type: document.t,
+            selections: serialized.s,
+            type: serialized.t,
             meta: {
-                fps: document.m?.f,
-                bgColor: document.m?.b,
-                dpi: document.m?.d ?? DEFAULT_DPI,
-                unit: document.m?.u ?? DEFAULT_UNIT,
-            }
+                fps: serialized.m?.f,
+                bgColor: serialized.m?.b,
+                dpi: serialized.m?.d ?? DEFAULT_DPI,
+                unit: serialized.m?.u ?? DEFAULT_UNIT,
+                swatches: [ ...( serialized.m?.s ?? []) ],
+            },
         });
     },
 
