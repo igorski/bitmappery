@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2025 - https://www.igorski.nl
+ * Igor Zinken 2021-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -103,6 +103,17 @@ export const renderBrushStroke = ( ctx: CanvasRenderingContext2D, brush: Brush, 
                     size, size
                 );
             }
+            continue;
+        }
+
+        // pixel types
+
+        if ( type === BrushTypes.PIXEL ) {
+            ctx.fillStyle = brush.colors[ 0 ];
+            if ( isFirst ) {
+                ctx.fillRect( Math.floor( prevPoint.x ), Math.floor( prevPoint.y ), 1, 1 );
+            }
+            ctx.fillRect( Math.floor( point.x ), Math.floor( point.y ), 1, 1 );
             continue;
         }
 

@@ -5,6 +5,7 @@
         "smoothing": "Smoothing",
         "brushSize": "Brush size",
         "strokeAmount": "Stroke amount",
+        "pixel": "Pixel",
         "line": "Line",
         "opacity": "Opacity",
         "paintBrush": "Paint brush",

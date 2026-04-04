@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2025 - https://www.igorski.nl
+ * Igor Zinken 2021-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -25,6 +25,7 @@ import type { Layer } from "@/definitions/document";
 import type { CanvasContextPairing, Brush } from "@/definitions/editor";
 import { reverseTransformation } from "@/rendering/operations/transforming";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
+import { fastRound } from "@/math/unit-math";
 import { createCanvas, setCanvasDimensions } from "@/utils/canvas-util";
 import { clone } from "@/utils/object-util";
 
@@ -33,7 +34,7 @@ export type OverrideConfig = {
     zoom: number;
     vpX: number;
     vpY: number;
-    pointers: Point[]
+    pointers: Point[];
 };
 
 // a pooled Canvas instance used for drawing (only one in use at a time)
@@ -62,7 +63,7 @@ export const getDrawableCanvas = ( size: Size ): CanvasContextPairing => {
  */
 export const renderDrawableCanvas = (
     destinationContext: CanvasRenderingContext2D, destinationSize: Size, zoomableCanvas: ZoomableCanvas,
-    alpha = 1, compositeOperation?: GlobalCompositeOperation, layer?: Layer
+    alpha = 1, compositeOperation?: GlobalCompositeOperation, layer?: Layer, roundValues = false,
 ): void => {
     const source = drawableCanvas.cvs;
     const { documentScale } = zoomableCanvas;
@@ -89,11 +90,14 @@ export const renderDrawableCanvas = (
         destinationContext.globalCompositeOperation = compositeOperation;
     }
 
+    const destX = (( viewport?.left ?? 0 ) * documentScale ) + ( offset?.x ?? 0 );
+    const destY = (( viewport?.top  ?? 0 ) * documentScale ) + ( offset?.y ?? 0 );
+
     destinationContext.drawImage(
         source,
         0, 0, source.width, source.height,
-        (( viewport?.left ?? 0 ) * documentScale ) + ( offset?.x ?? 0 ),
-        (( viewport?.top  ?? 0 ) * documentScale ) + ( offset?.y ?? 0 ),
+        roundValues ? fastRound( destX ) : destX,
+        roundValues ? fastRound( destY ) : destY,
         destinationSize.width, destinationSize.height
     );
     destinationContext.restore();

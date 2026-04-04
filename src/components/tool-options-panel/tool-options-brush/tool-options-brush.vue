@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -28,7 +28,7 @@
             <select-box
                 v-model="brushType"
                 :options="brushTypes"
-                :disabled="disabled"
+                :disabled="disabled || isPixelArt"
             />
         </div>
         <div class="wrapper wrapper--slider">
@@ -37,7 +37,7 @@
                 v-model="brushSize"
                 :min="1"
                 :max="MAX_BRUSH_SIZE"
-                :disabled="disabled"
+                :disabled="disabled || isPixelArt"
             />
         </div>
         <div
@@ -87,6 +87,8 @@
 import { mapGetters, mapMutations }  from "vuex";
 import ToolTypes, { MAX_BRUSH_SIZE, canDraw } from "@/definitions/tool-types";
 import BrushTypes from "@/definitions/brush-types";
+import type { Document } from "@/definitions/document";
+import { isPixelArt } from "@/definitions/editor-properties";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
@@ -119,6 +121,9 @@ export default {
             return this.brushType === BrushTypes.PEN;
         },
         brushTypes(): { label: string, value: BrushTypes }[] {
+            if ( this.isPixelArt ) {
+                return [{ label: this.$t( "pixel" ), value: BrushTypes.PIXEL }];
+            }
             return [
                 { label: this.$t( "line" ),             value: BrushTypes.LINE },
                 { label: this.$t( "paintBrush" ),       value: BrushTypes.PAINT_BRUSH },
@@ -176,6 +181,27 @@ export default {
             set( value: number ): void {
                 this.update( "opacity", value / 100 );
             },
+        },
+        isPixelArt(): boolean {
+            if ( this.activeDocument ) {
+                return isPixelArt( this.activeDocument );
+            }
+            return false;
+        },
+    },
+    watch: {
+        activeDocument: {
+            immediate: true,
+            handler ( activeDocument?: Document ): void {
+                if ( !activeDocument ) {
+                    return;
+                }
+                if ( isPixelArt( activeDocument )) {
+                    this.update( "type", BrushTypes.PIXEL );
+                } else if ( this.brushType === BrushTypes.PIXEL ) {
+                    this.update( "type", BrushTypes.LINE );
+                }
+            }
         },
     },
     methods: {

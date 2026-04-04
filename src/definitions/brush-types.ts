@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -30,6 +30,7 @@ enum BrushTypes {
     CONNECTED,
     NEAREST,
     SPRAY,
+    PIXEL,
 };
 export default BrushTypes;
 
@@ -45,5 +46,7 @@ export const getSizeForBrush = ({ options, radius, halfRadius }: Brush): number 
             return halfRadius * 0.25;
         case BrushTypes.NEAREST:
             return halfRadius;
+        case BrushTypes.PIXEL:
+            return 0.5;
     }
 };
