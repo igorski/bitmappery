@@ -56,13 +56,13 @@
                     </div>
                     <template v-if="canCreateAnimatedGIF">
                         <div class="wrapper wrapper--toggle">
-                            <label v-t="'layersToAnimation'"></label>
+                            <label v-t="'toAnimation'"></label>
                             <toggle-button
-                                v-model="exportAnimation"
+                                v-model="contentToAnimation"
                                 name="createAnimatedGIF"
                             />
                         </div>
-                        <div v-if="exportAnimation" class="wrapper wrapper--input wrapper--small">
+                        <div v-if="contentToAnimation" class="wrapper wrapper--input wrapper--small">
                             <label v-t="'frameDuration'"></label>
                             <input
                                 type="number"
@@ -86,15 +86,15 @@
                     <component :is="driveSaveComponent"   ref="driveComponent" />
                     <component :is="s3SaveComponent"      ref="s3Component" />
                     <template v-if="canCreateSpriteSheet">
-                        <p v-t="'layersToSheetExpl'" class="expl"></p>
+                        <p v-t="'toSheetExpl'" class="expl"></p>
                         <div class="wrapper wrapper--toggle">
-                            <label v-t="'layersToSpriteSheet'"></label>
+                            <label v-t="'toSpriteSheet'"></label>
                             <toggle-button
-                                v-model="layersToSpriteSheet"
-                                name="layersToSpritesheet"
+                                v-model="contentToSpriteSheet"
+                                name="contentToSpriteSheet"
                             />
                         </div>
-                        <template v-if="layersToSpriteSheet">
+                        <template v-if="contentToSpriteSheet">
                             <div class="wrapper wrapper--input wrapper--small">
                                 <label v-t="'columnAmount'"></label>
                                 <input
@@ -210,8 +210,8 @@ export default {
         previewOriginalBlob: null,
         previewBlob: null,
         syncPreviews: false,
-        layersToSpriteSheet: false,
-        exportAnimation: false,
+        contentToSpriteSheet: false,
+        contentToAnimation: false,
         frameDurationMs: 100,
         sheetCols: 4,
         width: 1,
@@ -233,7 +233,7 @@ export default {
         showOriginal(): boolean {
             // see _variables.scss $preview-ideal-width and $preview-ideal-height
             const isLargeEnough = this.windowSize.width >= 1280 && this.windowSize.height >= 700;
-            return isLargeEnough && ( !this.exportAnimation || !this.canCreateAnimatedGIF );
+            return isLargeEnough && ( !this.contentToAnimation || !this.canCreateAnimatedGIF );
         },
         selectedType(): string {
             return typeToExt( this.type );
@@ -249,7 +249,7 @@ export default {
             return parseFloat(( this.quality / 100 ).toFixed( 2 ));
         },
         canCreateSpriteSheet(): boolean {
-            return this.isMultiLayer && isPixelArt( this.activeDocument ) && !this.exportAnimation;
+            return this.isMultiLayer && isPixelArt( this.activeDocument ) && !this.createAnimation;
         },
         canCreateAnimatedGIF(): boolean {
             return this.canCreateGIF && this.type === GIF.mime && this.isMultiLayer && this.canAnimate;
@@ -282,6 +282,9 @@ export default {
             }
             return out;
         },
+        createAnimation(): boolean {
+            return this.type === GIF.mime && this.contentToAnimation;
+        },
         dropboxSaveComponent(): Promise<Component> | null {
             if ( this.storageLocation === STORAGE_TYPES.DROPBOX ) {
                 return defineAsyncComponent({
@@ -310,7 +313,7 @@ export default {
     watch: {
         // see additional watchers added in created hook
         sheetCols(): void {
-            if ( this.layersToSpriteSheet ) {
+            if ( this.contentToSpriteSheet ) {
                 this.renderPreview();
             }
         },
@@ -326,7 +329,7 @@ export default {
 
         if ( this.canCreateGIF && this.hasTimeline && this.canAnimate ) {
             this.type = GIF.mime; // auto select animated GIF
-            this.exportAnimation = true;
+            this.contentToAnimation = true;
         }
 
         if ( this.activeDocument.meta.fps ) {
@@ -339,7 +342,7 @@ export default {
         this.name = this.activeDocument.name.split( "." )[ 0 ];
         [
             // changes to any of the export properties should trigger a re-render
-            "quality", "type", "layersToSpriteSheet", "exportAnimation", "frameDurationMs"
+            "quality", "type", "contentToSpriteSheet", "contentToAnimation", "frameDurationMs"
         ].forEach( property => {
             this.$watch( property, () => {
                 this.renderPreview();
@@ -410,13 +413,13 @@ export default {
             }
             let snapshotCvs;
 
-            const multiLayerExport = ( this.type === GIF.mime && this.exportAnimation ) || this.layersToSpriteSheet;
+            const multiLayerExport = this.createAnimation || this.contentToSpriteSheet;
             if ( multiLayerExport ) {
                 // if we are going to work with individual layers, lazily create a list of layer snapshots
                 
                 if ( this.snapshots.length === 0 ) {
                     let renders: HTMLCanvasElement[];
-                    if ( this.hasTimeline ) {
+                    if ( this.hasTimeline && this.createAnimation ) {
                         renders = await renderAnimation( this.activeDocument );
                     } else {
                         renders = await Promise.all( this.activeDocument.layers.map( async layer => {
@@ -428,12 +431,12 @@ export default {
                     }));
                 }
 
-                if ( this.exportAnimation ) {
+                if ( this.createAnimation ) {
                     this.previewBlob = await base64toBlob(
                         await createAnimatedGIF( this.snapshots, this.frameDurationMs / 100 )
                     );
                 }
-                else if ( this.layersToSpriteSheet ) {
+                else if ( this.contentToSpriteSheet ) {
                     const columns = Math.min( this.snapshots.length, this.sheetCols ?? Infinity );
                     snapshotCvs = tilesToSingle( this.snapshots, width, height, columns );
                 }
