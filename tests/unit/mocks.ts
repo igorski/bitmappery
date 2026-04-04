@@ -114,6 +114,7 @@ export function createMockCanvasElement( width = 300, height = 200 ): HTMLCanvas
         height,
         getContext: () => ctx,
         toBlob: ( callback: ( b: Blob ) => void ) => callback( new Blob()),
+        style: {},
     } as unknown as HTMLCanvasElement;
 
     // @ts-expect-error cannot assign to read only property
