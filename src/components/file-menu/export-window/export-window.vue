@@ -496,7 +496,7 @@ export default {
 @use "@/styles/typography";
 @use "@/styles/ui";
 
-$idealFormWidth: 370px;
+$idealFormWidth: 400px;
 
 .export-modal {
     width: 100%;
