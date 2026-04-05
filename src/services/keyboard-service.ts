@@ -406,7 +406,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
         case 86: // V
             // paste current selection
             if ( nativeModifier ) {
-                if ( state.selectionContent ) {
+                if ( state.selection.selectionContent ) {
                     dispatch( "pasteSelection" );
                     preventDefault( event ); // override browser paste
                 }

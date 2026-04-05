@@ -60,7 +60,7 @@
                             <div
                                 class="layer"
                                 :class="{
-                                    'layer--active': element.index === activeLayerIndex,
+                                    'layer--active': isSelected( element ),
                                     'layer--has-thumb': renderThumbnails,
                                 }"
                                 @contextmenu.stop.prevent="showContextMenu( $event, element )"
@@ -92,10 +92,10 @@
                                     v-tooltip.left="$t( element.maskSelected ? 'clickToEditLayer' : 'dblClickToRename')"
                                     class="layer__name"
                                     :class="{
-                                        'layer--selected': element.index === activeLayerIndex && !element.maskSelected,
+                                        'layer--selected': isSelected( element ),
                                     }"
                                     @dblclick="handleLayerDoubleClick( element )"
-                                    @click="handleLayerClick( element )"
+                                    @click="handleLayerClick( element, $event )"
                                 >{{ element.name }}</span>
                                 <div class="layer__actions">
                                     <!-- optional layer mask -->
@@ -205,6 +205,10 @@ export default {
             show: false,
             x: 0,
             y: 0,
+        },
+        selected: {
+            first: 0,
+            last: 0,
         },
     }),
     computed: {
@@ -342,7 +346,15 @@ export default {
             this.setActiveLayerIndex( layer.index );
             this.setEditable( true );
         },
-        handleLayerClick( layer: IndexedLayer ): void {
+        handleLayerClick( layer: IndexedLayer, e?: PointerEvent ): void {
+            console.info("handle lyaer click");
+            if ( e?.shiftKey ) {
+                this.selected.first = Math.min( this.selected.first, layer.index );
+                this.selected.last  = Math.max( this.selected.last, layer.index );
+                return;
+            } else {
+                this.selected.first = this.selected.last = layer.index;
+            }
             this.setActiveLayerIndex( layer.index );
             getRendererForLayer( layer )?.setActionTarget( "source" );
             if ( KeyboardService.hasAlt() ) {
@@ -350,11 +362,6 @@ export default {
                     getCanvasInstance()?.interactionPane.selectAll( this.activeLayer );
                 });
             }
-            /*
-            if ( layer.type === LAYER_TEXT ) {
-                this.setActiveTool({ tool: ToolTypes.TEXT });
-            }
-            */
         },
         handleLayerMaskClick( layer: IndexedLayer ): void {
             if ( layer.maskSelected ) {
@@ -374,7 +381,7 @@ export default {
         handleBlur(): void {
             KeyboardService.setListener( null );
         },
-        handleKeyboard( type: string, keyCode: number, event: Event ): void {
+        handleKeyboard( type: string, keyCode: number, event: KeyboardEvent ): void {
             if ( type !== "up" || this.overrideCustomKeyHandler ) {
                 return;
             }
@@ -401,6 +408,18 @@ export default {
                 case 40: // down
                     this.setActiveLayerIndex( Math.max( 0, this.activeLayerIndex - 1 ));
                     break;
+                case 67: // C
+                    if ( !KeyboardService.hasOption( event )) {
+                        return;
+                    }
+                console.info("koppie, koppie. set in some store");
+                    break;
+                case 86: // V
+                    if ( !KeyboardService.hasOption( event )) {
+                        return;
+                    }
+                console.info("pasta, pasta. paste from some store")
+                    break;
             }
             event.preventDefault();
         },
@@ -417,13 +436,23 @@ export default {
             }
         },
         showContextMenu( event: PointerEvent, layer: IndexedLayer ): void {
-            this.handleLayerClick( layer );
+            if ( !this.isSelected( layer )) {
+                this.handleLayerClick( layer );
+            }
             this.contextMenu.show = true;
             this.contextMenu.x = event.clientX;
             this.contextMenu.y = event.clientY;
         },
         getThumbnail( layerId: string ): string {
             return getThumbnailForLayer( layerId );
+        },
+        isSelected( layer: Layer ): boolean {
+            const { index } = layer;
+            console.info('isSelected '+layer.index,( index === this.activeLayerIndex && !layer.maskSelected ),index >= this.selected.first && index <= this.selected.last)
+            if ( index === this.activeLayerIndex && !layer.maskSelected ) {
+                return true;
+            }
+            return index >= this.selected.first && index <= this.selected.last;
         },
     },
 };

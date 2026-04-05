@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -22,6 +22,7 @@
  */
 import type { Point } from "zcanvas";
 import type BrushTypes from "@/definitions/brush-types";
+import type { Layer } from "@/definitions/document";
 import type { LayerTypes } from "@/definitions/layer-types";
 import type { Selection } from "@/definitions/document";
 
@@ -142,7 +143,14 @@ export type WandToolOptions = {
     sampleMerged: boolean;
 };
 
-export type CopiedSelection = {
+// @todo image or layer type?
+
+export type CopiedImage = {
     bitmap: HTMLCanvasElement;
     type: LayerTypes;
+};
+export type CopiedLayer = Layer;
+export type CopiedSelection = {
+    type: "image" | "layer";
+    content: CopiedImage | CopiedLayer[]
 };

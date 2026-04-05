@@ -22,28 +22,23 @@
  */
 import { ActionContext } from "vuex";
 import type { Size } from "zcanvas";
-import type { Notification, Dialog, CopiedSelection } from "@/definitions/editor";
+import type { Notification, Dialog } from "@/definitions/editor";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { LayerTypes } from "@/definitions/layer-types";
 import { PANEL_TOOL_OPTIONS, PANEL_LAYERS } from "@/definitions/panel-types";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
 import DocumentFactory from "@/factories/document-factory";
-import LayerFactory from "@/factories/layer-factory";
-import { initHistory, enqueueState } from "@/factories/history-state-factory";
-import { getRendererForLayer } from "@/factories/renderer-factory";
-import { getCanvasInstance } from "@/services/canvas-service";
+import { initHistory } from "@/factories/history-state-factory";
 import { fontsConsented, consentFonts, rejectFonts } from "@/services/font-service";
 import KeyboardService from "@/services/keyboard-service";
-import { cloneCanvas } from "@/utils/canvas-util";
-import { copySelection, deleteSelectionContent } from "@/utils/document-util";
 import { saveBlobAsFile, selectFile } from "@/utils/file-util";
-import { replaceLayerSource } from "@/utils/layer-util";
 import { truncate } from "@/utils/string-util";
 import canvas, { type CanvasState } from "./modules/canvas-module";
 import document, { type DocumentState } from "./modules/document-module";
 import history, { type HistoryState } from "./modules/history-module";
 import image, { type ImageState } from "./modules/image-module";
 import preferences, { type PreferencesState } from "./modules/preferences-module";
+import selection, { type SelectionState } from "./modules/selection-module";
 import editor, { type EditorState } from "./modules/editor-module";
 
 export interface BitMapperyState {
@@ -51,7 +46,6 @@ export interface BitMapperyState {
     toolboxOpened: boolean;
     layersMaximized: boolean;
     openedPanels: string[];
-    selectionContent: CopiedSelection | null; // clipboard content of copied images
     blindActive: boolean;
     panMode: boolean;         // whether drag interactions with the document will pan its viewport
     selectMode: boolean;      // whether the currently active tool is a selection type (works across layers)
@@ -73,6 +67,7 @@ export interface BitMapperyState {
     image: ImageState;
     preferences: PreferencesState;
     editor: EditorState;
+    selection: SelectionState,
 };
 
 // cheat a little by exposing the vue-i18n translations directly to the
@@ -91,6 +86,7 @@ export default {
         image,
         preferences,
         editor,
+        selection,
     },
     // @ts-expect-error sub module states are injected by Vuex on store creation
     state: (): BitMapperyState => ({
@@ -98,7 +94,6 @@ export default {
         toolboxOpened: false,
         layersMaximized: false,
         openedPanels: [ PANEL_TOOL_OPTIONS, PANEL_LAYERS ],
-        selectionContent: null,
         blindActive: false,
         panMode: false,
         selectMode: false,
@@ -138,9 +133,6 @@ export default {
         },
         closeOpenedPanels( state: BitMapperyState ): void {
             state.openedPanels = [];
-        },
-        setSelectionContent( state: BitMapperyState, image: CopiedSelection ): void {
-            state.selectionContent = image;
         },
         setBlindActive( state: BitMapperyState, active: boolean ): void {
             state.blindActive = !!active;
@@ -266,71 +258,6 @@ export default {
             saveBlobAsFile( binary, `${name!.split( "." )[ 0 ]}.${PROJECT_FILE_EXTENSION}` );
             commit( "showNotification", {
                 message: translate( "savedFileSuccessfully" , { file: truncate( name, 35 ) })
-            });
-        },
-        async requestSelectionCopy({ commit, getters }: ActionContext<BitMapperyState, any>, { merged = false, isCut = false }): Promise<void> {
-            const selectionImage = await copySelection( getters.activeDocument, getters.activeLayer, merged );
-            commit( "setSelectionContent", selectionImage );
-            commit( "setActiveTool", { tool: null, activeLayer: getters.activeLayer });
-            commit( "showNotification", { message: translate( isCut ? "selectionCut" : "selectionCopied" ) });
-        },
-        async requestSelectionCut({ dispatch }: ActionContext<BitMapperyState, any> ): Promise<void> {
-            await dispatch( "requestSelectionCopy", { merged: false, isCut: true });
-            dispatch( "deleteInSelection" );
-        },
-        clearSelection(): void {
-            getCanvasInstance()?.interactionPane.resetSelection();
-        },
-        invertSelection({ commit }: ActionContext<BitMapperyState, any> ): void {
-            getCanvasInstance()?.interactionPane.invertSelection();
-            commit( "showNotification", { message: translate( "selectionInverted") });
-        },
-        pasteSelection({ commit, getters, dispatch, state }: ActionContext<BitMapperyState, any> ): void {
-            const selection = state.selectionContent;
-            const { bitmap, type } = selection;
-            const layer = LayerFactory.create({
-                type: ( !type || type === LayerTypes.LAYER_TEXT ) ? LayerTypes.LAYER_GRAPHIC : type,
-                source: cloneCanvas( bitmap ),
-                width: bitmap.width,
-                height: bitmap.height,
-                left: getters.activeDocument.width  / 2 - bitmap.width  / 2,
-                top : getters.activeDocument.height / 2 - bitmap.height / 2,
-            });
-            const index = getters.activeDocument.layers.length;
-            const paste = () => {
-                commit( "insertLayerAtIndex", { index, layer });
-                dispatch( "clearSelection" );
-            };
-            paste();
-            enqueueState( `paste_${type}_${bitmap.width}_${bitmap.height}`, {
-                undo() {
-                    commit( "setSelectionContent", selection );
-                    commit( "removeLayer", index );
-                },
-                redo: paste
-            });
-        },
-        async deleteInSelection({ getters }: ActionContext<BitMapperyState, any> ): Promise<void> {
-            const activeLayer = getters.activeLayer;
-            if ( !activeLayer || !getters.activeDocument?.activeSelection.length ) {
-                return;
-            }
-            const hasMask       = !!activeLayer.mask && getters.activeLayerMask === activeLayer.mask;
-            const orgContent    = cloneCanvas( hasMask ? activeLayer.mask : activeLayer.source );
-            const updatedBitmap = deleteSelectionContent( getters.activeDocument, activeLayer );
-
-            const replaceSource = ( newSource: HTMLCanvasElement ) => {
-                replaceLayerSource( activeLayer, newSource, hasMask );
-                getRendererForLayer( activeLayer )?.resetFilterAndRecache();
-            };
-            replaceSource( updatedBitmap );
-            enqueueState( `deleteFromSelection_${activeLayer.id}`, {
-                undo(): void {
-                    replaceSource( orgContent );
-                },
-                redo(): void {
-                    replaceSource( updatedBitmap );
-                },
             });
         },
         /**
