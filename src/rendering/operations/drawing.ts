@@ -57,7 +57,11 @@ export const renderBrushStroke = ( ctx: CanvasRenderingContext2D, brush: Brush, 
     }
 
     if ( pointers.length < 2 ) {
-        return lastIndex;
+        if ( type === BrushTypes.PIXEL && pointers.length === 1 ) {
+            pointers.push({ ...pointers[ 0 ] }); // pixel brushes draw on "first contact"
+        } else {
+            return lastIndex;
+        }
     }
 
     const lineWidth = getSizeForBrush( brush ) * scale;
@@ -110,9 +114,6 @@ export const renderBrushStroke = ( ctx: CanvasRenderingContext2D, brush: Brush, 
 
         if ( type === BrushTypes.PIXEL ) {
             ctx.fillStyle = brush.colors[ 0 ];
-            if ( isFirst ) {
-                ctx.fillRect( Math.floor( prevPoint.x ), Math.floor( prevPoint.y ), 1, 1 );
-            }
             ctx.fillRect( Math.floor( point.x ), Math.floor( point.y ), 1, 1 );
             continue;
         }
