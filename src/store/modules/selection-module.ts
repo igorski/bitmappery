@@ -21,15 +21,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { ActionContext, Module } from "vuex";
-import type { CopiedImage, CopiedSelection } from "@/definitions/editor";
-import { LayerTypes } from "@/definitions/layer-types";
-import LayerFactory from "@/factories/layer-factory";
+import type { Layer } from "@/definitions/document";
+import type { CopiedSelection } from "@/definitions/editor";
 import { enqueueState } from "@/factories/history-state-factory";
 import { getRendererForLayer } from "@/factories/renderer-factory";
 import { getCanvasInstance } from "@/services/canvas-service";
 import { cloneCanvas } from "@/utils/canvas-util";
 import { copySelection, deleteSelectionContent } from "@/utils/document-util";
-import { replaceLayerSource } from "@/utils/layer-util";
+import { cloneLayer, replaceLayerSource } from "@/utils/layer-util";
 
 export interface SelectionState {
     selectionContent: CopiedSelection | null; // clipboard content of copied images
@@ -61,50 +60,20 @@ const SelectionModule: Module<SelectionState, any> = {
             await dispatch( "requestSelectionCopy", { merged: false, isCut: true });
             dispatch( "deleteInSelection" );
         },
+        requestLayerCopy({ commit }: ActionContext<SelectionState, any>, layers: Layer[] ): void {
+            const clonedLayers = layers.map( layer => cloneLayer( layer ));
+            console.info('copy die shit', clonedLayers)
+            commit( "setSelectionContent", {
+                type: "layer",
+                content: clonedLayers,
+            });
+        },
         clearSelection(): void {
             getCanvasInstance()?.interactionPane.resetSelection();
         },
         invertSelection({ commit, getters }: ActionContext<SelectionState, any> ): void {
             getCanvasInstance()?.interactionPane.invertSelection();
             commit( "showNotification", { message: getters.t( "selectionInverted") });
-        },
-        pasteSelection({ commit, getters, dispatch, state }: ActionContext<SelectionState, any> ): void {
-            const selection = state.selectionContent;
-
-            // @todo move to action maybe?
-
-            switch ( selection.type ) {
-                default:
-                    return;
-                case "layer":
-                    console.info( "TODODO LAYER PASTE", selection);
-                    break;
-                case "image":
-                    const { bitmap, type } = selection.content as CopiedImage;
-                    console.info(selection);
-                    const layer = LayerFactory.create({
-                        type: ( !type || type === LayerTypes.LAYER_TEXT ) ? LayerTypes.LAYER_GRAPHIC : type,
-                        source: cloneCanvas( bitmap ),
-                        width: bitmap.width,
-                        height: bitmap.height,
-                        left: getters.activeDocument.width  / 2 - bitmap.width  / 2,
-                        top : getters.activeDocument.height / 2 - bitmap.height / 2,
-                    });
-                    const index = getters.activeDocument.layers.length;
-                    const paste = () => {
-                        commit( "insertLayerAtIndex", { index, layer });
-                        dispatch( "clearSelection" );
-                    };
-                    paste();
-                    enqueueState( `paste_${type}_${bitmap.width}_${bitmap.height}`, {
-                        undo() {
-                            commit( "setSelectionContent", selection );
-                            commit( "removeLayer", index );
-                        },
-                        redo: paste
-                    });
-                    break;
-            }
         },
         // @todo technically a problem of the document-module
         async deleteInSelection({ getters }: ActionContext<SelectionState, any> ): Promise<void> {

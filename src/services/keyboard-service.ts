@@ -32,6 +32,7 @@ import { zoomIn, zoomOut } from "@/store/actions/canvas-zoom";
 import { addTextLayer } from "@/store/actions/layer-add-text-layer";
 import { toggleLayerFilters } from "@/store/actions/layer-toggle-filters";
 import { toggleLayerVisibility } from "@/store/actions/layer-toggle-visibility";
+import { pasteSelectionContent } from "@/store/actions/selection-content-paste";
 import { getRendererForLayer } from "@/factories/renderer-factory";
 import { translatePoints } from "@/math/point-math";
 import { getCanvasInstance } from "@/services/canvas-service";
@@ -407,7 +408,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
             // paste current selection
             if ( nativeModifier ) {
                 if ( state.selection.selectionContent ) {
-                    dispatch( "pasteSelection" );
+                    pasteSelectionContent( store );
                     preventDefault( event ); // override browser paste
                 }
             } else if ( getters.activeDocument ) {

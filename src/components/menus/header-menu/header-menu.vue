@@ -406,6 +406,7 @@ import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { getCanvasInstance } from "@/services/canvas-service";
 import { cropToSelection } from "@/store/actions/crop-to-selection";
+import { pasteSelectionContent } from "@/store/actions/selection-content-paste";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector
@@ -547,7 +548,6 @@ export default {
             "requestSelectionCopy",
             "requestSelectionCut",
             "clearSelection",
-            "pasteSelection",
             "invertSelection",
             "deleteInSelection",
             "loadDocument",
@@ -589,6 +589,9 @@ export default {
         },
         openPreferences(): void {
             this.openModal( PREFERENCES );
+        },
+        pasteSelection(): void {
+            pasteSelectionContent( this.$store );
         },
         strokeSelection(): void {
             this.openModal( STROKE_SELECTION );

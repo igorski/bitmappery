@@ -168,7 +168,7 @@
 
 <script lang="ts">
 import { defineAsyncComponent } from "vue";
-import { mapState, mapGetters, mapMutations } from "vuex";
+import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { ADD_LAYER } from "@/definitions/modal-windows";
 import { PANEL_LAYERS } from "@/definitions/panel-types";
 import ToolTypes from "@/definitions/tool-types";
@@ -275,6 +275,12 @@ export default {
             return this.activeDocument?.type === "timeline"
         },
     },
+    watch: {
+        layers( value: Layer[] ): void {
+            console.info('layers changeD!');
+            this.selected.first = this.selected.last = value[ 0 ].index;
+        },
+    },
     mounted(): void {
         subscribe( "layers", ( layerId: string, data: string ) => {
             const el = this.$refs[ `thumb_${layerId}` ];
@@ -287,6 +293,9 @@ export default {
         unsubscribe( "layers" );
     },
     methods: {
+        ...mapActions([
+            "requestLayerCopy",
+        ]),
         ...mapMutations([
             "openModal",
             "removeLayer",
@@ -409,16 +418,18 @@ export default {
                     this.setActiveLayerIndex( Math.max( 0, this.activeLayerIndex - 1 ));
                     break;
                 case 67: // C
+                // @todo also meta key! (not tracked now)
                     if ( !KeyboardService.hasOption( event )) {
                         return;
                     }
                 console.info("koppie, koppie. set in some store");
+                    this.requestLayerCopy( this.reverseLayers.filter( layer => this.isSelected( layer )).reverse());
                     break;
-                case 86: // V
-                    if ( !KeyboardService.hasOption( event )) {
+                case 88: // X
+                if ( !KeyboardService.hasOption( event )) {
                         return;
                     }
-                console.info("pasta, pasta. paste from some store")
+                    console.info('cut! cut!');
                     break;
             }
             event.preventDefault();
@@ -448,7 +459,6 @@ export default {
         },
         isSelected( layer: Layer ): boolean {
             const { index } = layer;
-            console.info('isSelected '+layer.index,( index === this.activeLayerIndex && !layer.maskSelected ),index >= this.selected.first && index <= this.selected.last)
             if ( index === this.activeLayerIndex && !layer.maskSelected ) {
                 return true;
             }
