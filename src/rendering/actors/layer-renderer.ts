@@ -500,6 +500,8 @@ export default class LayerRenderer extends ZoomableSprite {
     }
 
     override handlePress( x: number, y: number, { type }: Event ): void {
+        this._pressed = true; // when invoked from document-canvas#handleOutsideDown we need to set this superclass value
+        
         if ( type.startsWith( "touch" )) {
             this._pointer.x = x;
             this._pointer.y = y;
@@ -574,6 +576,9 @@ export default class LayerRenderer extends ZoomableSprite {
                 super.handleMove( x, y, event );
             }
         } else if ( this.isDrawing() ) {
+            if ( !this._pressed ) {
+                return this.handleRelease( x, y ); // prevent conflict with document-canvas#handleOutsideMove
+            }
             // enqueue current pointer position, painting of all enqueued pointers will be deferred
             // to the update()-hook, this prevents multiple renders on each move event
             this.storeBrushPointer( x, y );

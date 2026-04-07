@@ -584,7 +584,7 @@ export default {
             layerPool.clear();
             this.createLayerRenderers();
         },
-        handleOutsideDown( event: Event ): void {
+        handleOutsideDown( event: PointerEvent ): void {
             if ( IGNORED_OUTSIDE_TARGETS.includes( event.target.tagName ) || !getCanvasInstance() ) {
                 return; // don't handle clicks originating from the canvas or outside UI components
             }
@@ -600,21 +600,21 @@ export default {
             }
             this.hasOutsideAction = true;
         },
-        handleOutsideMove( event: Event ): void {
-            if ( event.target.tagName === "CANVAS" || !getCanvasInstance() ) {
+        handleOutsideMove( event: PointerEvent ): void {
+            if ( IGNORED_OUTSIDE_TARGETS.includes( event.target.tagName ) || !getCanvasInstance() ) {
                 return;
             }
             // TODO only when supported outside tools/modes are active ?
             getCanvasInstance().handleInteraction( event );
         },
-        handleOutsideUp( event: Event ): void {
+        handleOutsideUp( event: PointerEvent ): void {
             if ( !this.hasOutsideAction ) {
                 return;
             }
             this.hasOutsideAction = false;
             const zCanvas = getCanvasInstance();
             const { x, y } = pointerToCanvasCoordinates( event.pageX, event.pageY, zCanvas, canvasBoundingBox );
-
+            
             if ( [ ToolTypes.BRUSH, ToolTypes.ERASER ].includes( this.activeTool )) {
                 getRendererForLayer( this.activeLayer )?.handleRelease( x, y, event );
             } else if ( this.selectMode ) {
