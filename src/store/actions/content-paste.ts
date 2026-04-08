@@ -22,37 +22,35 @@
  */
 import { type Store } from "vuex";
 import type { Layer } from "@/definitions/document";
-import type { CopiedImage, CopiedLayer } from "@/definitions/editor";
+import type { CopiedImage, CopiedLayers } from "@/definitions/editor";
 import { LayerTypes } from "@/definitions/layer-types";
 import { enqueueState } from "@/factories/history-state-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
 import { cloneCanvas } from "@/utils/canvas-util";
 
-export const pasteSelectionContent = ( store: Store<BitMapperyState> ): void => {
+export const pasteCopiedContent = ( store: Store<BitMapperyState> ): void => {
     const { commit, dispatch, getters, state } = store;
-console.info(state);
-    const selection = state.selection.selectionContent;
-    const insertIndex = getters.activeLayerIndex + 1;
 
-    switch ( selection.type ) {
+    const { copyContent } = state.copy;
+    const insertIndex = getters.activeLayerIndex;
+
+    switch ( copyContent.type ) {
         default:
             return;
         
         case "layer":
-            const layers = selection.content as CopiedLayer;
+            const layers = copyContent.content as CopiedLayers;
             const layerIndices = layers.map(( _layer: Layer, i: number ) => {
-                return insertIndex + i;
+                return insertIndex + i + 1;
             });
             const pasteLayers = () => {
                 for ( let i = 0; i < layers.length; ++i ) {
-                    console.info("pasting layer " + i, layers[i], layerIndices[ i ]);
                     commit( "insertLayerAtIndex", { index: layerIndices[ i ], layer: layers[ i ] });
                 }
             };
-            console.info("pastaaa",layers);
             pasteLayers();
-            enqueueState( `paste_${selection.type}_${layers.length}`, {
+            enqueueState( `paste_${copyContent.type}_${layers.length}`, {
                 undo() {
                     let i = layerIndices.length;
                     while ( i-- ) {
@@ -64,8 +62,8 @@ console.info(state);
             break;
         
         case "image":
-            const { bitmap, type } = selection.content as CopiedImage;
-            console.info(selection);
+            const { bitmap, type } = copyContent.content as CopiedImage;
+            
             const layer = LayerFactory.create({
                 type: ( !type || type === LayerTypes.LAYER_TEXT ) ? LayerTypes.LAYER_GRAPHIC : type,
                 source: cloneCanvas( bitmap ),
@@ -74,17 +72,17 @@ console.info(state);
                 left: getters.activeDocument.width  / 2 - bitmap.width  / 2,
                 top : getters.activeDocument.height / 2 - bitmap.height / 2,
             });
-            const paste = () => {
+            const pasteImage = () => {
                 commit( "insertLayerAtIndex", { index: insertIndex, layer });
                 dispatch( "clearSelection" );
             };
-            paste();
+            pasteImage();
             enqueueState( `paste_${type}_${bitmap.width}_${bitmap.height}`, {
                 undo() {
-                    commit( "setSelectionContent", selection );
+                    commit( "setCopiedContent", copyContent );
                     commit( "removeLayer", insertIndex );
                 },
-                redo: paste
+                redo: pasteImage
             });
             break;
     }

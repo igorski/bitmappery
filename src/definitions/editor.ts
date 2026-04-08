@@ -143,14 +143,12 @@ export type WandToolOptions = {
     sampleMerged: boolean;
 };
 
-// @todo image or layer type?
-
 export type CopiedImage = {
     bitmap: HTMLCanvasElement;
     type: LayerTypes;
 };
-export type CopiedLayer = Layer;
+export type CopiedLayers = Layer[];
 export type CopiedSelection = {
     type: "image" | "layer";
-    content: CopiedImage | CopiedLayer[]
+    content: CopiedImage | CopiedLayers;
 };

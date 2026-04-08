@@ -29,10 +29,11 @@ import {
     CREATE_DOCUMENT, ADD_LAYER, SAVE_DOCUMENT, DROPBOX_FILE_SELECTOR,
 } from "@/definitions/modal-windows";
 import { zoomIn, zoomOut } from "@/store/actions/canvas-zoom";
+import { pasteCopiedContent } from "@/store/actions/content-paste";
 import { addTextLayer } from "@/store/actions/layer-add-text-layer";
 import { toggleLayerFilters } from "@/store/actions/layer-toggle-filters";
 import { toggleLayerVisibility } from "@/store/actions/layer-toggle-visibility";
-import { pasteSelectionContent } from "@/store/actions/selection-content-paste";
+import { deleteSelection } from "@/store/actions/selection-delete";
 import { getRendererForLayer } from "@/factories/renderer-factory";
 import { translatePoints } from "@/math/point-math";
 import { getCanvasInstance } from "@/services/canvas-service";
@@ -166,7 +167,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
     {
         case 8: // backspace
             if ( getters.activeDocument?.activeSelection?.length && getters.activeLayer ) {
-                dispatch( "deleteInSelection" );
+                deleteSelection( store );
             }
             break;
 
@@ -407,8 +408,8 @@ function handleKeyDown( event: KeyboardEvent ): void {
         case 86: // V
             // paste current selection
             if ( nativeModifier ) {
-                if ( state.selection.selectionContent ) {
-                    pasteSelectionContent( store );
+                if ( state.copy.copyContent ) {
+                    pasteCopiedContent( store );
                     preventDefault( event ); // override browser paste
                 }
             } else if ( getters.activeDocument ) {

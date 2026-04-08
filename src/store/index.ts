@@ -29,6 +29,7 @@ import { PANEL_TOOL_OPTIONS, PANEL_LAYERS } from "@/definitions/panel-types";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
 import DocumentFactory from "@/factories/document-factory";
 import { initHistory } from "@/factories/history-state-factory";
+import { getCanvasInstance } from "@/services/canvas-service";
 import { fontsConsented, consentFonts, rejectFonts } from "@/services/font-service";
 import KeyboardService from "@/services/keyboard-service";
 import { saveBlobAsFile, selectFile } from "@/utils/file-util";
@@ -38,7 +39,7 @@ import document, { type DocumentState } from "./modules/document-module";
 import history, { type HistoryState } from "./modules/history-module";
 import image, { type ImageState } from "./modules/image-module";
 import preferences, { type PreferencesState } from "./modules/preferences-module";
-import selection, { type SelectionState } from "./modules/selection-module";
+import copy, { type CopyState } from "./modules/copy-module";
 import editor, { type EditorState } from "./modules/editor-module";
 
 export interface BitMapperyState {
@@ -67,7 +68,7 @@ export interface BitMapperyState {
     image: ImageState;
     preferences: PreferencesState;
     editor: EditorState;
-    selection: SelectionState,
+    copy: CopyState,
 };
 
 // cheat a little by exposing the vue-i18n translations directly to the
@@ -86,7 +87,7 @@ export default {
         image,
         preferences,
         editor,
-        selection,
+        copy,
     },
     // @ts-expect-error sub module states are injected by Vuex on store creation
     state: (): BitMapperyState => ({
@@ -259,6 +260,13 @@ export default {
             commit( "showNotification", {
                 message: translate( "savedFileSuccessfully" , { file: truncate( name, 35 ) })
             });
+        },
+        clearSelection( _context: ActionContext<BitMapperyState, any> ): void {
+            getCanvasInstance()?.interactionPane.resetSelection();
+        },
+        invertSelection({ commit, getters }: ActionContext<BitMapperyState, any> ): void {
+            getCanvasInstance()?.interactionPane.invertSelection();
+            commit( "showNotification", { message: getters.t( "selectionInverted") });
         },
         /**
          * Install the services that will listen to global hardware events
