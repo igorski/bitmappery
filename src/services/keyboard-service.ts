@@ -56,6 +56,7 @@ const DEFAULT_BLOCKED    = [ 8, 32, 37, 38, 39, 40 ];
 const MOVABLE_TOOL_TYPES = [ ToolTypes.DRAG, ToolTypes.SELECTION, ToolTypes.LASSO, ToolTypes.WAND ];
 const BRUSH_TOOL_TYPES   = [ ToolTypes.BRUSH, ToolTypes.ERASER, ToolTypes.CLONE ];
 const LAYER_SELECT_EXCLUDE_TYPES = [ ToolTypes.CLONE, ToolTypes.ZOOM ];
+const APPLE_OPTION_KEYS = [ 224 /* Firefox */, 91 /* WebKit left key */, 93 /* WebKit right key */ ];
 
 const defaultBlock = ( e: KeyboardEvent ): void => e.preventDefault();
 
@@ -140,6 +141,12 @@ function handleKeyDown( event: KeyboardEvent ): void {
     shiftDown = !!event.shiftKey;
     altDown   = event.altKey;
 
+    // capture Apples option key here as it is not recognized as a modifier
+
+    if ( APPLE_OPTION_KEYS.includes( keyCode )) {
+        optionDown = true; // only unset on keyUp
+    }
+
     // prevent defaults when using the arrows, space (prevents page jumps) and backspace (navigate back in history)
 
     if ( blockDefaults && DEFAULT_BLOCKED.includes( keyCode )) {
@@ -199,14 +206,6 @@ function handleKeyDown( event: KeyboardEvent ): void {
 
         case 32: // spacebar
             commit( "setPanMode", true );
-            break;
-
-        // capture the apple key here as it is not recognized as a modifier
-
-        case 224:   // Firefox
-        case 91:    // WebKit left key
-        case 93:    // Webkit right key
-            optionDown = true;
             break;
 
         case 38: // up
@@ -501,6 +500,12 @@ function handleKeyUp( event: KeyboardEvent ): void {
             break;
     }
 
+    if ( !suspended ) {
+        if ( typeof listener === "function" ) {
+            listener( "up", event.keyCode, event );
+        }
+    }
+
     if ( optionDown ) {
         switch ( event.keyCode ) {
             // Apple key
@@ -510,12 +515,6 @@ function handleKeyUp( event: KeyboardEvent ): void {
             case 93:    // Webkit right key
                 optionDown = false;
                 break;
-        }
-    }
-
-    if ( !suspended ) {
-        if ( typeof listener === "function" ) {
-            listener( "up", event.keyCode, event );
         }
     }
 }

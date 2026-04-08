@@ -391,7 +391,7 @@ export default {
             KeyboardService.setListener( null );
         },
         handleKeyboard( type: string, keyCode: number, event: KeyboardEvent ): void {
-            if ( type !== "up" || this.overrideCustomKeyHandler ) {
+            if ( type !== "down" || this.overrideCustomKeyHandler ) {
                 return;
             }
             switch ( keyCode ) {
@@ -418,11 +418,9 @@ export default {
                     this.setActiveLayerIndex( Math.max( 0, this.activeLayerIndex - 1 ));
                     break;
                 case 67: // C
-                // @todo also meta key! (not tracked now)
                     if ( !KeyboardService.hasOption( event )) {
                         return;
                     }
-                console.info("koppie, koppie. set in some store");
                     this.requestLayerCopy( this.reverseLayers.filter( layer => this.isSelected( layer )).reverse());
                     break;
                 case 88: // X

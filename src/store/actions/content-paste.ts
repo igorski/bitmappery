@@ -33,7 +33,7 @@ export const pasteCopiedContent = ( store: Store<BitMapperyState> ): void => {
     const { commit, dispatch, getters, state } = store;
 
     const { copyContent } = state.copy;
-    const insertIndex = getters.activeLayerIndex;
+    const insertIndex = getters.activeLayerIndex + 1;
 
     switch ( copyContent.type ) {
         default:
@@ -42,7 +42,7 @@ export const pasteCopiedContent = ( store: Store<BitMapperyState> ): void => {
         case "layer":
             const layers = copyContent.content as CopiedLayers;
             const layerIndices = layers.map(( _layer: Layer, i: number ) => {
-                return insertIndex + i + 1;
+                return insertIndex + i;
             });
             const pasteLayers = () => {
                 for ( let i = 0; i < layers.length; ++i ) {

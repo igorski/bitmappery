@@ -45,7 +45,7 @@ describe( "content paste action", () => {
         it( "should be able to paste at the center of the Document", () => {
             pasteCopiedContent( store );
             
-            expect( store.commit ).toHaveBeenCalledWith( "insertLayerAtIndex", { index: 0, layer: expect.any( Object ) });
+            expect( store.commit ).toHaveBeenCalledWith( "insertLayerAtIndex", { index: 1, layer: expect.any( Object ) });
             expect( store.dispatch ).toHaveBeenCalledWith( "clearSelection" );
         });
 
@@ -92,7 +92,7 @@ describe( "content paste action", () => {
 
             undo();
 
-            expect( store.commit ).toHaveBeenCalledWith( "removeLayer", 0 );
+            expect( store.commit ).toHaveBeenCalledWith( "removeLayer", 1 );
         });
     });
 
