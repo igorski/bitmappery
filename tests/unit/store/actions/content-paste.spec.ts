@@ -69,6 +69,21 @@ describe( "content paste action", () => {
             const createdLayer = ( store.commit as Mock ).mock.calls.find(([ cmd ]) => cmd === "insertLayerAtIndex" )![ 1 ].layer;
             
             expect( createdLayer.type ).toEqual( LayerTypes.LAYER_GRAPHIC );
+            expect( createdLayer.rel ).toEqual({ type: "none" });
+        });
+
+        it( "should be able to paste inside the active group of a timeline Document", () => {
+            store.getters.activeDocument.type = "timeline";
+            store.getters.activeGroup = 1;
+
+            pasteCopiedContent( store );
+            
+            const createdLayer = ( store.commit as Mock ).mock.calls.find(([ cmd ]) => cmd === "insertLayerAtIndex" )![ 1 ].layer;
+            
+            expect( createdLayer.rel ).toEqual({
+                type: "tile",
+                id: store.getters.activeGroup,
+            });
         });
 
         it( "should store the action in state history", () => {
@@ -117,6 +132,20 @@ describe( "content paste action", () => {
             expect( store.commit ).toHaveBeenCalledTimes( 2 );
             expect( store.commit ).toHaveBeenNthCalledWith( 1, "insertLayerAtIndex", { index: 2, layer: copiedLayers[ 0 ] });
             expect( store.commit ).toHaveBeenNthCalledWith( 2, "insertLayerAtIndex", { index: 3, layer: copiedLayers[ 1 ] });
+        });
+
+        it( "should be able to paste the Layers inside the active group of a timeline Document", () => {
+            store.getters.activeDocument.type = "timeline";
+            store.getters.activeGroup = 1;
+
+            pasteCopiedContent( store );
+            
+            const createdLayer = ( store.commit as Mock ).mock.calls.find(([ cmd ]) => cmd === "insertLayerAtIndex" )![ 1 ].layer;
+            
+            expect( createdLayer.rel ).toEqual({
+                type: "tile",
+                id: store.getters.activeGroup,
+            });
         });
 
         it( "should store the action in state history", () => {

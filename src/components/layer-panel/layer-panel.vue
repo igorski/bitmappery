@@ -126,6 +126,7 @@
                                         type="button"
                                         class="layer__actions-button button--ghost"
                                         @click="handleRemoveClick( element.index )"
+                                        :class="{ 'layer__actions-button--disabled': !canDelete }"
                                     ><img src="@/assets-inline/images/icon-trashcan.svg" /></button>
                                 </div>
                             </div>
@@ -185,6 +186,7 @@ import { getThumbnailForLayer, subscribe, unsubscribe } from "@/rendering/cache/
 import { getCanvasInstance } from "@/services/canvas-service";
 import KeyboardService from "@/services/keyboard-service";
 import { focus } from "@/utils/environment-util";
+import { getLayersByTile } from "@/utils/timeline-util";
 import messages from "./messages.json";
 
 const NON_OVERRIDABLE_TOOLS = [ ToolTypes.MOVE, ToolTypes.DRAG ];
@@ -275,6 +277,9 @@ export default {
         hasTimeline(): boolean {
             return this.activeDocument?.type === "timeline"
         },
+        canDelete(): boolean {
+            return !this.hasTimeline || getLayersByTile( this.activeDocument, this.activeGroup ).length > 1; 
+        },
     },
     watch: {
         layers( _value: Layer[] ): void {
@@ -328,6 +333,9 @@ export default {
             }
         },
         requestLayerRemove( index: number ): void {
+            if ( !this.canDelete ) {
+                return;
+            }
             const layer = this.layers[ index ];
             this.openDialog({
                 type: "confirm",
@@ -361,7 +369,7 @@ export default {
                 this.selected.last  = Math.max( this.selected.last, layer.index );
                 return;
             } else {
-                this.resetSelectedLayers();
+                this.selected.first = this.selected.last = layer.index;
             }
             this.setActiveLayerIndex( layer.index );
             getRendererForLayer( layer )?.setActionTarget( "source" );
@@ -496,7 +504,10 @@ export default {
             return index >= this.selected.first && index <= this.selected.last;
         },
         hasSelectedLayers(): boolean {
-            return this.selected.first !== undefined && this.selected.last !== undefined;
+            if ( this.selected.first === undefined && this.selected.last === undefined ) {
+                return false;
+            }
+            return this.selected.first !== this.selected.last;
         },
         resetSelectedLayers(): void {
             this.selected.first = this.selected.last = undefined;

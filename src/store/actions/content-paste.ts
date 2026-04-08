@@ -28,12 +28,15 @@ import { enqueueState } from "@/factories/history-state-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
 import { cloneCanvas } from "@/utils/canvas-util";
+import { getIndexOfLastLayerInTileGroup } from "@/utils/timeline-util";
 
 export const pasteCopiedContent = ( store: Store<BitMapperyState> ): void => {
     const { commit, dispatch, getters, state } = store;
 
+    const { activeDocument, activeGroup } = getters;
+    const isTimeline = activeDocument.type === "timeline";
+    const insertIndex = ( isTimeline ? getIndexOfLastLayerInTileGroup( activeDocument, activeGroup ) : getters.activeLayerIndex ) + 1;
     const { copyContent } = state.copy;
-    const insertIndex = getters.activeLayerIndex + 1;
 
     switch ( copyContent.type ) {
         default:
@@ -46,7 +49,7 @@ export const pasteCopiedContent = ( store: Store<BitMapperyState> ): void => {
             });
             const pasteLayers = () => {
                 for ( let i = 0; i < layers.length; ++i ) {
-                    commit( "insertLayerAtIndex", { index: layerIndices[ i ], layer: layers[ i ] });
+                    commit( "insertLayerAtIndex", { index: layerIndices[ i ], layer: wrapLayer( layers[ i ], isTimeline, activeGroup ) });
                 }
             };
             pasteLayers();
@@ -64,14 +67,16 @@ export const pasteCopiedContent = ( store: Store<BitMapperyState> ): void => {
         case "image":
             const { bitmap, type } = copyContent.content as CopiedImage;
             
-            const layer = LayerFactory.create({
-                type: ( !type || type === LayerTypes.LAYER_TEXT ) ? LayerTypes.LAYER_GRAPHIC : type,
-                source: cloneCanvas( bitmap ),
-                width: bitmap.width,
-                height: bitmap.height,
-                left: getters.activeDocument.width  / 2 - bitmap.width  / 2,
-                top : getters.activeDocument.height / 2 - bitmap.height / 2,
-            });
+            const layer = wrapLayer(
+                LayerFactory.create({
+                    type: ( !type || type === LayerTypes.LAYER_TEXT ) ? LayerTypes.LAYER_GRAPHIC : type,
+                    source: cloneCanvas( bitmap ),
+                    width: bitmap.width,
+                    height: bitmap.height,
+                    left: getters.activeDocument.width  / 2 - bitmap.width  / 2,
+                    top : getters.activeDocument.height / 2 - bitmap.height / 2,  
+                }), isTimeline, activeGroup,
+            );
             const pasteImage = () => {
                 commit( "insertLayerAtIndex", { index: insertIndex, layer });
                 dispatch( "clearSelection" );
@@ -87,3 +92,15 @@ export const pasteCopiedContent = ( store: Store<BitMapperyState> ): void => {
             break;
     }
 };
+
+/* internal methods */
+
+function wrapLayer( layer: Layer, isTimeline: boolean, activeGroup: number ): Layer {
+    return {
+        ...layer,
+        rel : isTimeline ? {
+            type: "tile",
+            id: activeGroup,
+        } : { type: "none" },
+    };
+}
