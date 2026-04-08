@@ -264,9 +264,9 @@ export default {
         clearSelection( _context: ActionContext<BitMapperyState, any> ): void {
             getCanvasInstance()?.interactionPane.resetSelection();
         },
-        invertSelection({ commit, getters }: ActionContext<BitMapperyState, any> ): void {
+        invertSelection({ commit }: ActionContext<BitMapperyState, any> ): void {
             getCanvasInstance()?.interactionPane.invertSelection();
-            commit( "showNotification", { message: getters.t( "selectionInverted") });
+            commit( "showNotification", { message: translate( "selectionInverted" ) });
         },
         /**
          * Install the services that will listen to global hardware events
