@@ -10,6 +10,7 @@ import { createHistoryState } from "@/store/modules/history-module";
 import { createImageState } from "@/store/modules/image-module";
 import { createPreferencesState } from "@/store/modules/preferences-module";
 import { createEditorState } from "@/store/modules/editor-module";
+import { createCopyState } from "../../src/store/modules/copy-module";
 
 // zCanvas mocks
 // @todo should not be necessary when updating to zCanvas 6+
@@ -167,7 +168,6 @@ export function createState( props?: Partial<BitMapperyState> ): BitMapperyState
         toolboxOpened: false,
         layersMaximized: false,
         openedPanels: [],
-        selectionContent: null,
         blindActive: false,
         panMode: false,
         selectMode: false,
@@ -189,6 +189,7 @@ export function createState( props?: Partial<BitMapperyState> ): BitMapperyState
         image: createImageState(),
         preferences: createPreferencesState(),
         editor: createEditorState(),
+        copy: createCopyState(),
         ...props,
     };
 }

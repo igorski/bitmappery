@@ -237,8 +237,11 @@ export const copySelection = async ( activeDocument: Document, activeLayer: Laye
     zcvs.dispose();
 
     return {
-        bitmap: selectionCanvas.cvs,
-        type: activeLayer.type,
+        type: "image",
+        content: {
+            bitmap: selectionCanvas.cvs,
+            type: activeLayer.type,
+        },
     };
 };
 

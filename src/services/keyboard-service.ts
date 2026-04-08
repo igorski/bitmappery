@@ -29,9 +29,11 @@ import {
     CREATE_DOCUMENT, ADD_LAYER, SAVE_DOCUMENT, DROPBOX_FILE_SELECTOR,
 } from "@/definitions/modal-windows";
 import { zoomIn, zoomOut } from "@/store/actions/canvas-zoom";
+import { pasteCopiedContent } from "@/store/actions/content-paste";
 import { addTextLayer } from "@/store/actions/layer-add-text-layer";
 import { toggleLayerFilters } from "@/store/actions/layer-toggle-filters";
 import { toggleLayerVisibility } from "@/store/actions/layer-toggle-visibility";
+import { deleteSelection } from "@/store/actions/selection-delete";
 import { getRendererForLayer } from "@/factories/renderer-factory";
 import { translatePoints } from "@/math/point-math";
 import { getCanvasInstance } from "@/services/canvas-service";
@@ -54,6 +56,7 @@ const DEFAULT_BLOCKED    = [ 8, 32, 37, 38, 39, 40 ];
 const MOVABLE_TOOL_TYPES = [ ToolTypes.DRAG, ToolTypes.SELECTION, ToolTypes.LASSO, ToolTypes.WAND ];
 const BRUSH_TOOL_TYPES   = [ ToolTypes.BRUSH, ToolTypes.ERASER, ToolTypes.CLONE ];
 const LAYER_SELECT_EXCLUDE_TYPES = [ ToolTypes.CLONE, ToolTypes.ZOOM ];
+const APPLE_OPTION_KEYS = [ 224 /* Firefox */, 91 /* WebKit left key */, 93 /* WebKit right key */ ];
 
 const defaultBlock = ( e: KeyboardEvent ): void => e.preventDefault();
 
@@ -138,6 +141,12 @@ function handleKeyDown( event: KeyboardEvent ): void {
     shiftDown = !!event.shiftKey;
     altDown   = event.altKey;
 
+    // capture Apples option key here as it is not recognized as a modifier
+
+    if ( APPLE_OPTION_KEYS.includes( keyCode )) {
+        optionDown = true; // only unset on keyUp
+    }
+
     // prevent defaults when using the arrows, space (prevents page jumps) and backspace (navigate back in history)
 
     if ( blockDefaults && DEFAULT_BLOCKED.includes( keyCode )) {
@@ -165,7 +174,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
     {
         case 8: // backspace
             if ( getters.activeDocument?.activeSelection?.length && getters.activeLayer ) {
-                dispatch( "deleteInSelection" );
+                deleteSelection( store );
             }
             break;
 
@@ -197,14 +206,6 @@ function handleKeyDown( event: KeyboardEvent ): void {
 
         case 32: // spacebar
             commit( "setPanMode", true );
-            break;
-
-        // capture the apple key here as it is not recognized as a modifier
-
-        case 224:   // Firefox
-        case 91:    // WebKit left key
-        case 93:    // Webkit right key
-            optionDown = true;
             break;
 
         case 38: // up
@@ -406,8 +407,8 @@ function handleKeyDown( event: KeyboardEvent ): void {
         case 86: // V
             // paste current selection
             if ( nativeModifier ) {
-                if ( state.selectionContent ) {
-                    dispatch( "pasteSelection" );
+                if ( state.copy.copyContent ) {
+                    pasteCopiedContent( store );
                     preventDefault( event ); // override browser paste
                 }
             } else if ( getters.activeDocument ) {
@@ -499,6 +500,12 @@ function handleKeyUp( event: KeyboardEvent ): void {
             break;
     }
 
+    if ( !suspended ) {
+        if ( typeof listener === "function" ) {
+            listener( "up", event.keyCode, event );
+        }
+    }
+
     if ( optionDown ) {
         switch ( event.keyCode ) {
             // Apple key
@@ -508,12 +515,6 @@ function handleKeyUp( event: KeyboardEvent ): void {
             case 93:    // Webkit right key
                 optionDown = false;
                 break;
-        }
-    }
-
-    if ( !suspended ) {
-        if ( typeof listener === "function" ) {
-            listener( "up", event.keyCode, event );
         }
     }
 }

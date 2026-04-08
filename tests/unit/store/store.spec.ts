@@ -1,6 +1,5 @@
-import { it, beforeEach, describe, expect, afterAll, vi } from "vitest";
-import { createMockCanvasElement, createState, mockZCanvas } from "../mocks";
-import { type Layer } from "@/definitions/document";
+import { it, describe, expect, afterAll, vi } from "vitest";
+import { createState } from "../mocks";
 import { type Dialog } from "@/definitions/editor";
 import { SAVE_DOCUMENT } from "@/definitions/modal-windows";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
@@ -9,7 +8,7 @@ import { LayerTypes } from "@/definitions/layer-types";
 import DocumentFactory from "@/factories/document-factory";
 import LayerFactory from "@/factories/layer-factory";
 import KeyboardService from "@/services/keyboard-service";
-import store, { type BitMapperyState } from "@/store";
+import store from "@/store";
 
 const { getters, mutations, actions } = store;
 
@@ -25,14 +24,6 @@ vi.mock( "@/utils/file-util", () => ({
     selectFile: (...args: any[]) => mockUpdateFn?.( "selectFile", ...args ),
     saveBlobAsFile: (...args: any[]) => mockUpdateFn?.( "saveBlobAsFile", ...args ),
 }));
-vi.mock("@/utils/canvas-util", () => ({
-    createCanvas: vi.fn(() => ({ cvs: {}, ctx: {} })),
-    cloneCanvas: vi.fn( cvs => cvs ),
-    imageToBase64: vi.fn(),
-    imageToCanvas: vi.fn(),
-    base64ToLayerImage: vi.fn()
-}));
-mockZCanvas();
 
 describe( "Vuex store", () => {
     afterAll(() => {
@@ -85,13 +76,6 @@ describe( "Vuex store", () => {
                 mutations.closeOpenedPanels( state );
                 expect( state.openedPanels ).toHaveLength( 0 );
             });
-        });
-
-        it( "should be able to set the current selection content", () => {
-            const state = createState({ selectionContent: null });
-            const selection = { bitmap: createMockCanvasElement(), type: LayerTypes.LAYER_GRAPHIC };
-            mutations.setSelectionContent( state, selection );
-            expect( state.selectionContent ).toEqual( selection );
         });
 
         it( "should be able to toggle the active state of the blinding layer", () => {
@@ -374,7 +358,6 @@ describe( "Vuex store", () => {
             const mockedGetters = {
                 activeDocument: DocumentFactory.create({ name: "foo" }),
             };
-            const mockSavedDocument = { n: "foo" };
             mockUpdateFn = vi.fn( _fn => {
                 return true;
             });
@@ -389,59 +372,6 @@ describe( "Vuex store", () => {
             // assert the resulting Blob will be saved to a File
             expect( mockUpdateFn ).toHaveBeenCalledWith( "saveBlobAsFile", expect.any( Object ), `foo.${PROJECT_FILE_EXTENSION}` );
             expect( commit ).toHaveBeenCalledWith( "showNotification", expect.any( Object ));
-        });
-
-        describe( "when pasting the current in-memory image selection", () => {
-            const mockedGetters = { activeDocument: { width: 200, height: 150, layers: [] as Layer[] } };
-            let state: BitMapperyState;
-
-            beforeEach(() => {
-                state = createState({
-                    selectionContent: {
-                        bitmap: createMockCanvasElement(),
-                        type: LayerTypes.LAYER_GRAPHIC,
-                    },
-                });
-            });
-
-            it( "should be able to paste at the center of the Document", async () => {
-                const commit   = vi.fn();
-                const dispatch = vi.fn();
-
-                // @ts-expect-error not assignable to parameter of type 'ActionContext<BitMapperyState, any>'
-                await actions.pasteSelection({ state, getters: mockedGetters, commit, dispatch });
-                
-                expect( commit ).toHaveBeenCalledWith( "insertLayerAtIndex", { index: 0, layer: expect.any( Object ) });
-                expect( dispatch ).toHaveBeenCalledWith( "clearSelection" );
-            });
-
-            it.each(
-                [ LayerTypes.LAYER_GRAPHIC, LayerTypes.LAYER_IMAGE ]
-            )( `should keep the original type when the selection was made from a "$%s"-Layer`, async ( type: LayerTypes ) => {
-                const commit = vi.fn();
-
-                state.selectionContent.type = type;
-
-                // @ts-expect-error not assignable to parameter of type 'ActionContext<BitMapperyState, any>'
-                await actions.pasteSelection({ state, getters: mockedGetters, commit, dispatch: vi.fn() });
-                
-                const createdLayer = commit.mock.calls.find(([ cmd ]) => cmd === "insertLayerAtIndex" )![ 1 ].layer;
-                
-                expect( createdLayer.type ).toEqual( type );
-            });
-
-            it( `should convert a selection made from a "${LayerTypes.LAYER_TEXT}"-Layer to the "${LayerTypes.LAYER_GRAPHIC} type`, async () => {
-                const commit = vi.fn();
-
-                state.selectionContent.type = LayerTypes.LAYER_TEXT;;
-
-                // @ts-expect-error not assignable to parameter of type 'ActionContext<BitMapperyState, any>'
-                await actions.pasteSelection({ state, getters: mockedGetters, commit, dispatch: vi.fn() });
-                
-                const createdLayer = commit.mock.calls.find(([ cmd ]) => cmd === "insertLayerAtIndex" )![ 1 ].layer;
-                
-                expect( createdLayer.type ).toEqual( LayerTypes.LAYER_GRAPHIC );
-            });
         });
     });
 });
