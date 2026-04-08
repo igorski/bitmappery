@@ -173,6 +173,7 @@ import { ADD_LAYER } from "@/definitions/modal-windows";
 import { PANEL_LAYERS } from "@/definitions/panel-types";
 import ToolTypes from "@/definitions/tool-types";
 import type { Layer } from "@/definitions/types/document";
+import { cutLayerContent } from "@/store/actions/content-cut-layers";
 import { removeLayer } from "@/store/actions/layer-remove";
 import { renameLayer } from "@/store/actions/layer-rename";
 import { reorderLayers } from "@/store/actions/layer-reorder";
@@ -207,8 +208,8 @@ export default {
             y: 0,
         },
         selected: {
-            first: 0,
-            last: 0,
+            first: undefined,
+            last: undefined,
         },
     }),
     computed: {
@@ -276,9 +277,8 @@ export default {
         },
     },
     watch: {
-        layers( value: Layer[] ): void {
-            console.info('layers changeD!');
-            this.selected.first = this.selected.last = value[ 0 ].index;
+        layers( _value: Layer[] ): void {
+            this.resetSelected();
         },
     },
     mounted(): void {
@@ -356,7 +356,6 @@ export default {
             this.setEditable( true );
         },
         handleLayerClick( layer: IndexedLayer, e?: PointerEvent ): void {
-            console.info("handle lyaer click");
             if ( e?.shiftKey ) {
                 this.selected.first = Math.min( this.selected.first, layer.index );
                 this.selected.last  = Math.max( this.selected.last, layer.index );
@@ -412,10 +411,40 @@ export default {
                     this.handleToggleLayerVisibility( this.activeLayerIndex );
                     break;
                 case 38: // up
-                    this.setActiveLayerIndex( Math.min( this.layers.length - 1, this.activeLayerIndex + 1 ));
+                    const nextUp = Math.min( this.layers.length - 1, this.activeLayerIndex + 1 );
+                    if ( event.shiftKey ) {
+                        if ( !this.hasSelected() ) {
+                            this.selected.first = this.activeLayerIndex;
+                            this.selected.last = nextUp;
+                        } else {
+                            if ( this.activeLayerIndex === this.selected.last ) {
+                                this.selected.last = nextUp;
+                            } else {
+                                this.selected.first = nextUp;
+                            }
+                        }
+                    } else {
+                        this.resetSelected();
+                    }
+                    this.setActiveLayerIndex( nextUp );
                     break;
                 case 40: // down
-                    this.setActiveLayerIndex( Math.max( 0, this.activeLayerIndex - 1 ));
+                    const nextDown = Math.max( 0, this.activeLayerIndex - 1 );
+                    if ( event.shiftKey ) {
+                        if ( !this.hasSelected() ) {
+                            this.selected.first = nextDown;
+                            this.selected.last = this.activeLayerIndex;
+                        } else {
+                            if ( this.activeLayerIndex === this.selected.first ) {
+                                this.selected.first = nextDown;
+                            } else {
+                                this.selected.last = nextDown;
+                            }
+                        }
+                    } else {
+                        this.resetSelected();
+                    }
+                    this.setActiveLayerIndex( nextDown );
                     break;
                 case 67: // C
                     if ( !KeyboardService.hasOption( event )) {
@@ -424,10 +453,11 @@ export default {
                     this.requestLayerCopy( this.reverseLayers.filter( layer => this.isSelected( layer )).reverse());
                     break;
                 case 88: // X
-                if ( !KeyboardService.hasOption( event )) {
+                    if ( !KeyboardService.hasOption( event )) {
                         return;
                     }
-                    console.info('cut! cut!');
+                    cutLayerContent( this.$store, this.reverseLayers.filter( layer => this.isSelected( layer )).reverse());
+                    this.resetSelected();
                     break;
             }
             event.preventDefault();
@@ -455,12 +485,18 @@ export default {
         getThumbnail( layerId: string ): string {
             return getThumbnailForLayer( layerId );
         },
-        isSelected( layer: Layer ): boolean {
+        isSelected( layer: IndexedLayer ): boolean {
             const { index } = layer;
             if ( index === this.activeLayerIndex && !layer.maskSelected ) {
                 return true;
             }
             return index >= this.selected.first && index <= this.selected.last;
+        },
+        hasSelected(): boolean {
+            return this.selected.first !== undefined && this.selected.last !== undefined;
+        },
+        resetSelected(): void {
+            this.selected.first = this.selected.last = undefined;
         },
     },
 };
