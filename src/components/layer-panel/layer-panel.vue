@@ -60,7 +60,7 @@
                             <div
                                 class="layer"
                                 :class="{
-                                    'layer--active': isSelected( element ),
+                                    'layer--active': isSelectedLayer( element ),
                                     'layer--has-thumb': renderThumbnails,
                                 }"
                                 @contextmenu.stop.prevent="showContextMenu( $event, element )"
@@ -92,7 +92,7 @@
                                     v-tooltip.left="$t( element.maskSelected ? 'clickToEditLayer' : 'dblClickToRename')"
                                     class="layer__name"
                                     :class="{
-                                        'layer--selected': isSelected( element ),
+                                        'layer--selected': isSelectedLayer( element ),
                                     }"
                                     @dblclick="handleLayerDoubleClick( element )"
                                     @click="handleLayerClick( element, $event )"
@@ -278,7 +278,7 @@ export default {
     },
     watch: {
         layers( _value: Layer[] ): void {
-            this.resetSelected();
+            this.resetSelectedLayers();
         },
     },
     mounted(): void {
@@ -361,7 +361,7 @@ export default {
                 this.selected.last  = Math.max( this.selected.last, layer.index );
                 return;
             } else {
-                this.selected.first = this.selected.last = layer.index;
+                this.resetSelectedLayers();
             }
             this.setActiveLayerIndex( layer.index );
             getRendererForLayer( layer )?.setActionTarget( "source" );
@@ -413,7 +413,7 @@ export default {
                 case 38: // up
                     const nextUp = Math.min( this.layers.length - 1, this.activeLayerIndex + 1 );
                     if ( event.shiftKey ) {
-                        if ( !this.hasSelected() ) {
+                        if ( !this.hasSelectedLayers() ) {
                             this.selected.first = this.activeLayerIndex;
                             this.selected.last = nextUp;
                         } else {
@@ -424,14 +424,14 @@ export default {
                             }
                         }
                     } else {
-                        this.resetSelected();
+                        this.resetSelectedLayers();
                     }
                     this.setActiveLayerIndex( nextUp );
                     break;
                 case 40: // down
                     const nextDown = Math.max( 0, this.activeLayerIndex - 1 );
                     if ( event.shiftKey ) {
-                        if ( !this.hasSelected() ) {
+                        if ( !this.hasSelectedLayers() ) {
                             this.selected.first = nextDown;
                             this.selected.last = this.activeLayerIndex;
                         } else {
@@ -442,7 +442,7 @@ export default {
                             }
                         }
                     } else {
-                        this.resetSelected();
+                        this.resetSelectedLayers();
                     }
                     this.setActiveLayerIndex( nextDown );
                     break;
@@ -450,14 +450,14 @@ export default {
                     if ( !KeyboardService.hasOption( event )) {
                         return;
                     }
-                    this.requestLayerCopy( this.reverseLayers.filter( layer => this.isSelected( layer )).reverse());
+                    this.requestLayerCopy( this.reverseLayers.filter( layer => this.isSelectedLayer( layer )).reverse());
                     break;
                 case 88: // X
                     if ( !KeyboardService.hasOption( event )) {
                         return;
                     }
-                    cutLayerContent( this.$store, this.reverseLayers.filter( layer => this.isSelected( layer )).reverse());
-                    this.resetSelected();
+                    cutLayerContent( this.$store, this.reverseLayers.filter( layer => this.isSelectedLayer( layer )).reverse());
+                    this.resetSelectedLayers();
                     break;
             }
             event.preventDefault();
@@ -475,7 +475,10 @@ export default {
             }
         },
         showContextMenu( event: PointerEvent, layer: IndexedLayer ): void {
-            if ( !this.isSelected( layer )) {
+            if ( this.hasSelectedLayers()) {
+                return; // no bulk context actions (yet?)
+            }
+            if ( !this.isSelectedLayer( layer )) {
                 this.handleLayerClick( layer );
             }
             this.contextMenu.show = true;
@@ -485,17 +488,17 @@ export default {
         getThumbnail( layerId: string ): string {
             return getThumbnailForLayer( layerId );
         },
-        isSelected( layer: IndexedLayer ): boolean {
+        isSelectedLayer( layer: IndexedLayer ): boolean {
             const { index } = layer;
             if ( index === this.activeLayerIndex && !layer.maskSelected ) {
                 return true;
             }
             return index >= this.selected.first && index <= this.selected.last;
         },
-        hasSelected(): boolean {
+        hasSelectedLayers(): boolean {
             return this.selected.first !== undefined && this.selected.last !== undefined;
         },
-        resetSelected(): void {
+        resetSelectedLayers(): void {
             this.selected.first = this.selected.last = undefined;
         },
     },
