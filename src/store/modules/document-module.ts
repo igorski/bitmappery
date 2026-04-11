@@ -283,6 +283,7 @@ const DocumentModule: Module<DocumentState, any> = {
                     commit( "closeActiveDocument" );
                     commit( "removeImagesForDocument", activeDocument );
                     commit( "setActiveDocument", Math.min( state.documents.length - 1, state.activeIndex ));
+                    commit( "clearHistory", activeDocument.id );
                 },
                 cancel : () => true
             });

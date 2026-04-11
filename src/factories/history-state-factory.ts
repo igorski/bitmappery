@@ -29,9 +29,10 @@ import { type BitMapperyState } from "@/store";
  * Blob URLs will be revoked when the state is popped from the history stack to free memory.
  */
 export type UndoRedoState = {
-     undo: () => void;
-     redo: () => void;
-     resources?: string[];
+    id: string; // activeDocument id
+    undo: () => void;
+    redo: () => void;
+    resources?: string[];
 };
 
 const stateQueue      = new Map<string, UndoRedoState>();
@@ -63,11 +64,11 @@ export const forceProcess = processQueue;
  * @param {String} key unique identifier for this state
  * @param {UndoRedoState} undoRedoState
  */
-export const enqueueState = ( key: string, undoRedoState: UndoRedoState ): void => {
+export const enqueueState = ( key: string, undoRedoState: Omit<UndoRedoState, "id"> ): void => {
     // new state is for the same property as the previously enqueued state
     // we can discard the previously enqueued states.redo in favour of this more actual one
     if ( stateQueue.has( key )) {
-        const existing = stateQueue.get( key );
+        const existing = stateQueue.get( key )!;
         existing.redo = undoRedoState.redo;
         if ( existing.resources && undoRedoState.resources ) {
             existing.resources.push( ...undoRedoState.resources );
@@ -79,7 +80,10 @@ export const enqueueState = ( key: string, undoRedoState: UndoRedoState ): void 
     if ( hasQueue() ) {
         processQueue();
     }
-    stateQueue.set( key, undoRedoState );
+    const stateToSet = undoRedoState as UndoRedoState;
+    stateToSet.id = stateToSet.id ?? store?.getters.activeDocument?.id;
+
+    stateQueue.set( key, stateToSet );
     timeout = setTimeout( processQueue, ENQUEUE_TIMEOUT );
 };
 

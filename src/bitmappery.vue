@@ -209,7 +209,6 @@ export default {
     watch: {
         activeDocument( activeDocument: Document ): void {
             if ( !activeDocument?.layers ) {
-                this.resetHistory();
                 if ( isMobile() ) {
                     this.closeOpenedPanels();
                 }
@@ -227,7 +226,7 @@ export default {
                     } else {
                         this.updateMeta({ smoothing: this.antiAlias });
                     }
-                    this.resetHistory();
+                    this.registerDocument( activeDocument );
                 }
             }
         },
@@ -313,7 +312,7 @@ export default {
             "closeModal",
             "closeOpenedPanels",
             "openDialog",
-            "resetHistory",
+            "registerDocument",
             "setToolboxOpened",
             "setToolOptionValue",
             "setLoading",

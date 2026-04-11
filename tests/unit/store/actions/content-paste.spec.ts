@@ -130,8 +130,18 @@ describe( "content paste action", () => {
             pasteCopiedContent( store );
 
             expect( store.commit ).toHaveBeenCalledTimes( 2 );
-            expect( store.commit ).toHaveBeenNthCalledWith( 1, "insertLayerAtIndex", { index: 2, layer: copiedLayers[ 0 ] });
-            expect( store.commit ).toHaveBeenNthCalledWith( 2, "insertLayerAtIndex", { index: 3, layer: copiedLayers[ 1 ] });
+            expect( store.commit ).toHaveBeenNthCalledWith( 1, "insertLayerAtIndex", {
+                index: 2, layer: {
+                    ...copiedLayers[ 0 ],
+                    id: expect.any( String ),
+                }
+            });
+            expect( store.commit ).toHaveBeenNthCalledWith( 2, "insertLayerAtIndex", {
+                index: 3, layer: {
+                    ...copiedLayers[ 1 ],
+                    id: expect.any( String ),
+                }
+            });
         });
 
         it( "should be able to paste the Layers inside the active group of a timeline Document", () => {
