@@ -206,7 +206,7 @@ On a particular (deliberately low powered) configuration, running all filters at
 * 603 ms in WebAssembly inside a Web Worker
 
 Note that the WebAssembly Web Worker execution takes a performance hit when compared to its inline operation. This
-is due to messaging overhead when providing image buffers to the WASM memory. This could benefit from further tweaking
+is due to messaging overhead when providing image buffers to the WASM memory inside the Worker context. This could benefit from further tweaking
 to see whether it gets closer to the JavaScript Web Worker performance.
 
 However, as in the current setup the JS solution alone is performant enough _and you would need to write the
