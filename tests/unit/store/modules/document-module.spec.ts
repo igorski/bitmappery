@@ -827,7 +827,7 @@ describe( "Vuex document module", () => {
     describe( "actions", () => {
         it( "should be able to flush all resources allocated to a Document when closing", () => {
             const state = createDocumentState({
-                documents: [ DocumentFactory.create() ],
+                documents: [ DocumentFactory.create(), DocumentFactory.create() ],
                 activeIndex: 1,
             });
             const commit = vi.fn();
