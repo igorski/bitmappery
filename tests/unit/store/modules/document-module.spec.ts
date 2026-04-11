@@ -828,7 +828,7 @@ describe( "Vuex document module", () => {
         it( "should be able to flush all resources allocated to a Document when closing", () => {
             const state = createDocumentState({
                 documents: [ DocumentFactory.create(), DocumentFactory.create() ],
-                activeIndex: 1,
+                activeIndex: 0,
             });
             const commit = vi.fn();
             const getters = {
@@ -836,6 +836,7 @@ describe( "Vuex document module", () => {
                 t: vi.fn(),
             };
 
+            // @ts-expect-error Not all constituents of type 'Action<HistoryState, any>' are callable.
             actions.requestDocumentClose({ state, commit, getters });
 
             expect( commit ).toHaveBeenCalledTimes( 1 );
