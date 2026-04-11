@@ -7,7 +7,7 @@ import LayerFactory from "@/factories/layer-factory";
 import DocumentModule, { createDocumentState, type DocumentState } from "@/store/modules/document-module";
 import LayerRenderer from "@/rendering/actors/layer-renderer";
 
-const { getters, mutations } = DocumentModule;
+const { getters, mutations, actions } = DocumentModule;
 
 mockZCanvas();
 
@@ -821,6 +821,36 @@ describe( "Vuex document module", () => {
                 unit: "px",
                 swatches: [],
             });
+        });
+    });
+
+    describe( "actions", () => {
+        it( "should be able to flush all resources allocated to a Document when closing", () => {
+            const state = createDocumentState({
+                documents: [ DocumentFactory.create() ],
+                activeIndex: 1,
+            });
+            const commit = vi.fn();
+            const getters = {
+                activeDocument: state.documents[ 0 ],
+                t: vi.fn(),
+            };
+
+            actions.requestDocumentClose({ state, commit, getters });
+
+            expect( commit ).toHaveBeenCalledTimes( 1 );
+            expect( commit ).toHaveBeenCalledWith( "openDialog", expect.any( Object ));
+
+            // grab the Dialog window request actions and confirm Document close
+            const { confirm } = commit.mock.calls[ 0 ][ 1 ];
+            confirm();
+
+            expect( commit ).toHaveBeenCalledTimes( 5 );
+
+            expect( commit ).toHaveBeenCalledWith( "closeActiveDocument" );
+            expect( commit ).toHaveBeenCalledWith( "removeImagesForDocument", getters.activeDocument );
+            expect( commit ).toHaveBeenCalledWith( "setActiveDocument", 0 );
+            expect( commit ).toHaveBeenCalledWith( "clearHistory", getters.activeDocument.id );
         });
     });
 });

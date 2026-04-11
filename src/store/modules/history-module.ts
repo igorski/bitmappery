@@ -65,13 +65,13 @@ const HistoryModule: Module<HistoryState, any> = {
     state: createHistoryState(),
     getters: {
         canUndo( state: HistoryState, rootGetters: any ): boolean {
-            if ( !rootGetters.activeDocument || !state.documents.has( rootGetters.activeDocument.id )) {
+            if ( !rootGetters.activeDocument ) {
                 return false;
             }
             return canUndo( state.documents.get( rootGetters.activeDocument.id ));
         },
         canRedo( state: HistoryState, rootGetters: any ): boolean {
-            if ( !rootGetters.activeDocument || !state.documents.has( rootGetters.activeDocument.id )) {
+            if ( !rootGetters.activeDocument ) {
                 return false;
             }
             return canRedo( state.documents.get( rootGetters.activeDocument.id ));
