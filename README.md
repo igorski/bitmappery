@@ -20,8 +20,8 @@ Please vote on feature requests by using the Thumbs Up/Down reaction on the firs
 
 ## Model
 
-BitMappery works with entities known as `Document`s. A Document contains several `Layer`s, each of
-which define their content, transformation, `Effect`s, etc. Each of the nested entity properties
+BitMappery works with entities known as a `Document`. A Document contains several `Layer`s, each of
+which define their content, transformation, `Filters`, etc. Each of the nested entity properties
 has its own factory (see `src/factories`). The Document is managed by the Vuex `document-module.ts`.
 
 The types for each of these are defined in `src/definitions/document.ts`.
@@ -45,7 +45,7 @@ Interactions that start/end from _outside the canvas_ (for instance the opening/
 drawing of a brush stroke outside of the canvas area) are handled by `document-canvas.vue` where the global DOM coordinates are translated to coordinates relative to the canvas document before being forwarded to the zCanvas
 event handler. See "Rendering concepts" below for more details on screen-to-document coordinates.
 
-Rendering of transformations, text and effects is an asynchronous operation handled by `src/services/render-service.ts`. The purpose of this service is to perform and cache repeated operations and eventually maintain
+Rendering of transformations, text and filters is an asynchronous operation handled by `src/services/render-service.ts`. The purpose of this service is to perform and cache repeated operations and eventually maintain
 the source bitmap represented by the LayerRenderer. The LayerRenderer invokes the rendering service whenever
 Layer content changes and manages its own cache.
 
@@ -73,7 +73,8 @@ and translating these to (non-zoomed and non-panned) source bitmaps.
 Mutations can be registered in state history (Vuex `history-module.ts`) in order to provide undo and redo
 of operations. In order to prevent storing a lot of changes of the same property (for instance when dragging a slider), the storage of a new state is deferred through a queue. This is why history states are enqueued by _propertyName_:
 
-When enqueuing a new state while there is an existing one enqueued for the same property name, the first state is updated so its redo will match that of the newest state, the undo remaining unchanged. The second state will not
+When enqueuing a new state while there is an existing one enqueued for the same property name, the first state
+is updated so its redo will match that of the newest state, the undo remaining unchanged. The second state will not
 be added to the queue.
 
 It is good to understand that the undo/redo for an action should be considered separate
@@ -88,7 +89,9 @@ the application lifetime before the undo/redo handler fires which would otherwis
 being updated.
 
 ```typescript
-update( propertyName: string, newValue: any ): void {
+import { enqueueState } from "@/factories/history-state-factory";
+
+update( propertyName: string, newValue: T ): void {
     // cache the existing values of the property value we are about to mutate...
     const existingValue = this.getterForExistingValue;
     // ...and the layer index that is used to identify the layer containing the property
@@ -110,9 +113,14 @@ update( propertyName: string, newValue: any ): void {
 }
 ```
 
+### State changing actions
+
 Whenever an action (that requires an undo state) can be triggered in multiple locations (for instance
 inside a component and as a keyboard shortcut in `src/services/keyboard-service`), you can
 create a custom handler inside `src/store/actions` to avoid code duplication.
+
+Creating a custom handler also creates a single source of truth and an isolated piece of code
+that can be covered more easily in tests.
 
 ## Third party storage integration
 
@@ -168,8 +176,8 @@ BitMappery can also use WebAssembly to _potentially_ increase performance of ima
 WebAssembly filtering is a user controllable feature in the preferences pane, as long as the `.env` file has set
 support for `VITE_ENABLE_WASM_FILTERS` to true.
 
-The source code is C based and compiled to WASM using [Emscripten](https://github.com/emscripten-core/emscripten). Because this setup is a little more cumbersome, the repository contains precompiled binaries in the `src/wasm/bin`-folder meaning you can
-omit this setup if you don't intend to make changes to these sources.
+The source code is C based and compiled to WASM using [Emscripten](https://github.com/emscripten-core/emscripten). Because this setup is a little more cumbersome, the repository contains precompiled binaries in the `src/wasm/bin`-folder meaning
+you can omit this setup if you don't intend to make changes to these sources.
 
 If you do wish to make contributions on this end, to compile the source (`src/wasm`) C-code to WASM, you
 will first need to prepare your environment (note the last _source_ call does not permanently update your paths):
@@ -197,9 +205,9 @@ On a particular (deliberately low powered) configuration, running all filters at
 * 484 ms in JavaScript inside a Web Worker
 * 603 ms in WebAssembly inside a Web Worker
 
-Note that the WebAssembly Web Worker takes a performance hit from converting the ImageData buffer
-to float32 prior to allocating the buffer in the WASM instance's memory. This could benefit from
-further tweaking to see if it gets closer to the JavaScript Web Worker performance.
+Note that the WebAssembly Web Worker execution takes a performance hit when compared to its inline operation. This
+is due to messaging overhead when providing image buffers to the WASM memory inside the Worker context. This could benefit from further tweaking
+to see whether it gets closer to the JavaScript Web Worker performance.
 
 However, as in the current setup the JS solution alone is performant enough _and you would need to write the
 filter code twice_ (once in TypeScript in `src/rendering/filters` and once in C++ in `src/wasm`), the default for WASM is disabled.

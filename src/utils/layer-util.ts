@@ -103,10 +103,10 @@ export const cropLayerContent = async ( layer: Layer, cropRectangle: Rectangle )
     }
 };
 
-export const cloneLayer = ( layerToClone: Layer ): Layer => {
+export const cloneLayer = ( layerToClone: Layer, keepOrgName = false ): Layer => {
     return LayerFactory.create({
         ...cloneDeep( layerToClone ),
-        name: `${layerToClone.name} #2`,
+        name: keepOrgName ? layerToClone.name : `${layerToClone.name} #2`,
         source: cloneCanvas( layerToClone.source ),
         mask: layerToClone.mask ? cloneCanvas( layerToClone.mask ) : null
     });

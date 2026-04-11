@@ -28,6 +28,7 @@ import { enqueueState } from "@/factories/history-state-factory";
 import LayerFactory from "@/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
 import { cloneCanvas } from "@/utils/canvas-util";
+import { cloneLayer } from "@/utils/layer-util";
 import { getIndexOfLastLayerInTileGroup } from "@/utils/timeline-util";
 
 export const pasteCopiedContent = ( store: Store<BitMapperyState> ): void => {
@@ -43,7 +44,8 @@ export const pasteCopiedContent = ( store: Store<BitMapperyState> ): void => {
             return;
         
         case "layer":
-            const layers = copyContent.content as CopiedLayers;
+            // cloning is important in case we paste across Documents
+            const layers = ( copyContent.content as CopiedLayers ).map( layer => cloneLayer( layer, true ));
             const layerIndices = layers.map(( _layer: Layer, i: number ) => {
                 return insertIndex + i;
             });
