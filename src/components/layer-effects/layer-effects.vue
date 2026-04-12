@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2025 - https://www.igorski.nl
+ * Igor Zinken 2021-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -120,6 +120,15 @@
                         :tooltip="'none'"
                     />
                 </div>
+                <div class="wrapper wrapper--slider">
+                    <label v-t="'blur'"></label>
+                    <slider
+                        v-model="internalValue.blur"
+                        :min="0"
+                        :max="maxBlur"
+                        :tooltip="'none'"
+                    />
+                </div>
                 <div class="wrapper wrapper--toggle">
                     <label
                         for="duotone"
@@ -181,6 +190,7 @@ import Slider from "@/components/ui/slider/slider.vue";
 import { Layer, Filters } from "@/definitions/document";
 import { BlendModes } from "@/definitions/blend-modes";
 import FiltersFactory from "@/factories/filters-factory";
+import { MAX_BLUR } from "@/rendering/filters/blur";
 import KeyboardService from "@/services/keyboard-service";
 import { updateLayerFilters } from "@/store/actions/layer-update-filters";
 import { clone } from "@/utils/object-util";
@@ -299,8 +309,9 @@ export default {
         }
     },
     created(): void {
-        this.orgFilters    = clone( this.filters );
+        this.orgFilters = clone( this.filters );
         this.internalValue = clone( this.filters );
+        this.maxBlur = MAX_BLUR;
         KeyboardService.setListener( this.handleKeyUp.bind( this ), false );
     },
     mounted(): void {

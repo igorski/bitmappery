@@ -22,6 +22,7 @@ describe( "Filters factory", () => {
                     color1: DEFAULT_DUOTONE_1,
                     color2: DEFAULT_DUOTONE_2,
                 },
+                blur: 0,
             });
         });
 
@@ -42,6 +43,7 @@ describe( "Filters factory", () => {
                     color1: "#FF9900",
                     color2: "#ABABAB",
                 },
+                blur: 33,
             });
             expect( filters ).toEqual({
                 enabled: false,
@@ -59,6 +61,7 @@ describe( "Filters factory", () => {
                     color1: "#FF9900",
                     color2: "#ABABAB",
                 },
+                blur: 33,
             });
         });
     });
@@ -81,6 +84,7 @@ describe( "Filters factory", () => {
                     color1: "#FF9900",
                     color2: "#ABABAB",
                 },
+                blur: 50,
             });
             const serialized   = FiltersFactory.serialize( filters );
             const deserialized = FiltersFactory.deserialize( serialized );
@@ -126,13 +130,16 @@ describe( "Filters factory", () => {
             filter = FiltersFactory.create({ duotone: { enabled: true }});
             expect( hasFilters( filter )).toBe( true );
 
+            filter = FiltersFactory.create({ blur: 25 });
+            expect( hasFilters( filter )).toBe( true );
+
             // we don't need to check for duotone colors as the enabled flag for the Object is sufficient
         });
     });
 
     it( "should know when two filters instances are equal", () => {
         const defaultFilter = FiltersFactory.create();
-        [ "enabled", "blendMode", "opacity", "gamma", "brightness", "contrast", "vibrance", "threshold", "desaturate", "invert" ]
+        [ "enabled", "blendMode", "opacity", "gamma", "brightness", "contrast", "vibrance", "threshold", "desaturate", "invert", "blur" ]
         .forEach( property => {
             const filters = FiltersFactory.create({ [ property ]: .88 });
             expect( isEqual( filters, defaultFilter )).toBe( false );

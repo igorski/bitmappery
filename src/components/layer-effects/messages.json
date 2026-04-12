@@ -34,6 +34,7 @@
         "threshold": "Threshold",
         "desaturate": "Desaturate",
         "duotone": "Duotone",
+        "blur": "Blur",
         "color1": "Color 1",
         "color2": "Color 2",
         "reset": "Reset",
