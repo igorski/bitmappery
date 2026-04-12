@@ -189,8 +189,6 @@ import { focus } from "@/utils/environment-util";
 import { getLayersByTile } from "@/utils/timeline-util";
 import messages from "./messages.json";
 
-const NON_OVERRIDABLE_TOOLS = [ ToolTypes.MOVE, ToolTypes.DRAG ];
-
 type IndexedLayer = Layer & { index: number, maskSelected: boolean };
 
 export default {
@@ -258,9 +256,6 @@ export default {
         },
         currentLayerHasMask(): boolean {
             return !!this.activeLayer?.mask;
-        },
-        overrideCustomKeyHandler(): boolean {
-            return this.hasSelection || NON_OVERRIDABLE_TOOLS.includes( this.activeTool );
         },
         renderThumbnails(): boolean {
             return this.preferences.thumbnails;
@@ -397,13 +392,13 @@ export default {
         handleBlur(): void {
             KeyboardService.setListener( null );
         },
-        handleKeyboard( type: string, keyCode: number, event: KeyboardEvent ): void {
-            if ( type !== "down" || this.overrideCustomKeyHandler ) {
-                return;
+        handleKeyboard( type: string, keyCode: number, event: KeyboardEvent ): boolean {
+            if ( type !== "down" ) {
+                return false;
             }
             switch ( keyCode ) {
                 default:
-                    return;
+                    return false;
                 case 8:  // backspace
                 case 46: // delete
                     this.requestLayerRemove( this.activeLayerIndex );
@@ -456,19 +451,19 @@ export default {
                     break;
                 case 67: // C
                     if ( !KeyboardService.hasOption( event )) {
-                        return;
+                        return false;
                     }
                     this.requestLayerCopy( this.reverseLayers.filter( layer => this.isSelectedLayer( layer )).reverse());
                     break;
                 case 88: // X
                     if ( !KeyboardService.hasOption( event )) {
-                        return;
+                        return false;
                     }
                     cutLayerContent( this.$store, this.reverseLayers.filter( layer => this.isSelectedLayer( layer )).reverse());
                     this.resetSelectedLayers();
                     break;
             }
-            event.preventDefault();
+            return true;
         },
         async setEditable( value: boolean ): Promise<void> {
             const isEditable = this.editable;
