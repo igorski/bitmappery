@@ -32,8 +32,8 @@ export const applyBlur = ( pixels: Uint8ClampedArray, width: number, height: num
     const source = new Uint32Array( pixels.buffer );
     const coeffs = gaussCoef( width / invertedRadius );
 
-    convolveRGBA( source, out, tmpLines, coeffs, width, height );
-    convolveRGBA( out, source, tmpLines, coeffs, height, width );
+    convolve( source, out, tmpLines, coeffs, width, height );
+    convolve( out, source, tmpLines, coeffs, height, width );
 };
 
 /* internal methods */
@@ -66,13 +66,13 @@ function gaussCoef( sigma: number ): Float32Array
 /**
  * Blurs and transposes src into dest
  */
-function convolveRGBA(
+function convolve(
     src: Uint32Array, dest: Uint32Array, lines: Float32Array, coeffs: Float32Array, width: number, height: number
 ): void {
     for ( let i = 0; i < height; i++ ) {
         // RGBA values for source and destination pixel
         let srcR: number, srcG: number, srcB: number, srcA: number;
-        let outR: number, outG: number, outB: number, outA: number;
+        let destR: number, destG: number, destB: number, destA: number;
 
         let srcIndex = i * width;
         let outIndex = i;
@@ -86,15 +86,15 @@ function convolveRGBA(
         let prevSrcB = ( rgba >> 16 ) & 0xff;
         let prevSrcA = ( rgba >> 24 ) & 0xff;
 
-        let prevPrevOutR = prevSrcR * coeffs[ 6 ];
-        let prevPrevOutG = prevSrcG * coeffs[ 6 ];
-        let prevPrevOutB = prevSrcB * coeffs[ 6 ];
-        let prevPrevOutA = prevSrcA * coeffs[ 6 ];
+        let prevPrevDestR = prevSrcR * coeffs[ 6 ];
+        let prevPrevDestG = prevSrcG * coeffs[ 6 ];
+        let prevPrevDestB = prevSrcB * coeffs[ 6 ];
+        let prevPrevDestA = prevSrcA * coeffs[ 6 ];
 
-        let prevOutR = prevPrevOutR;
-        let prevOutG = prevPrevOutG;
-        let prevOutB = prevPrevOutB;
-        let prevOutA = prevPrevOutA;
+        let prevDestR = prevPrevDestR;
+        let prevDestG = prevPrevDestG;
+        let prevDestB = prevPrevDestB;
+        let prevDestA = prevPrevDestA;
 
         let a0 = coeffs[ 0 ];
         let a1 = coeffs[ 1 ];
@@ -108,30 +108,30 @@ function convolveRGBA(
             srcB = ( rgba >> 16 ) & 0xff;
             srcA = ( rgba >> 24 ) & 0xff;
 
-            outR = srcR * a0 + prevSrcR * a1 + prevOutR * b1 + prevPrevOutR * b2;
-            outG = srcG * a0 + prevSrcG * a1 + prevOutG * b1 + prevPrevOutG * b2;
-            outB = srcB * a0 + prevSrcB * a1 + prevOutB * b1 + prevPrevOutB * b2;
-            outA = srcA * a0 + prevSrcA * a1 + prevOutA * b1 + prevPrevOutA * b2;
+            destR = srcR * a0 + prevSrcR * a1 + prevDestR * b1 + prevPrevDestR * b2;
+            destG = srcG * a0 + prevSrcG * a1 + prevDestG * b1 + prevPrevDestG * b2;
+            destB = srcB * a0 + prevSrcB * a1 + prevDestB * b1 + prevPrevDestB * b2;
+            destA = srcA * a0 + prevSrcA * a1 + prevDestA * b1 + prevPrevDestA * b2;
 
-            prevPrevOutR = prevOutR;
-            prevPrevOutG = prevOutG;
-            prevPrevOutB = prevOutB;
-            prevPrevOutA = prevOutA;
+            prevPrevDestR = prevDestR;
+            prevPrevDestG = prevDestG;
+            prevPrevDestB = prevDestB;
+            prevPrevDestA = prevDestA;
 
-            prevOutR = outR;
-            prevOutG = outG;
-            prevOutB = outB;
-            prevOutA = outA;
+            prevDestR = destR;
+            prevDestG = destG;
+            prevDestB = destB;
+            prevDestA = destA;
 
             prevSrcR = srcR;
             prevSrcG = srcG;
             prevSrcB = srcB;
             prevSrcA = srcA;
 
-            lines[ lineIndex ] = prevOutR;
-            lines[ lineIndex + 1 ] = prevOutG;
-            lines[ lineIndex + 2 ] = prevOutB;
-            lines[ lineIndex + 3 ] = prevOutA;
+            lines[ lineIndex ] = prevDestR;
+            lines[ lineIndex + 1 ] = prevDestG;
+            lines[ lineIndex + 2 ] = prevDestB;
+            lines[ lineIndex + 3 ] = prevDestA;
 
             lineIndex += 4;
             srcIndex++;
@@ -149,15 +149,15 @@ function convolveRGBA(
         prevSrcB = ( rgba >> 16 ) & 0xff;
         prevSrcA = ( rgba >> 24 ) & 0xff;
 
-        prevPrevOutR = prevSrcR * coeffs[ 7 ];
-        prevPrevOutG = prevSrcG * coeffs[ 7 ];
-        prevPrevOutB = prevSrcB * coeffs[ 7 ];
-        prevPrevOutA = prevSrcA * coeffs[ 7 ];
+        prevPrevDestR = prevSrcR * coeffs[ 7 ];
+        prevPrevDestG = prevSrcG * coeffs[ 7 ];
+        prevPrevDestB = prevSrcB * coeffs[ 7 ];
+        prevPrevDestA = prevSrcA * coeffs[ 7 ];
 
-        prevOutR = prevPrevOutR;
-        prevOutG = prevPrevOutG;
-        prevOutB = prevPrevOutB;
-        prevOutA = prevPrevOutA;
+        prevDestR = prevPrevDestR;
+        prevDestG = prevPrevDestG;
+        prevDestB = prevPrevDestB;
+        prevDestA = prevPrevDestA;
 
         srcR = prevSrcR;
         srcG = prevSrcG;
@@ -168,20 +168,20 @@ function convolveRGBA(
         a1 = coeffs[ 3 ];
 
         for ( let j = width - 1; j >= 0; j-- ) {
-            outR = srcR * a0 + prevSrcR * a1 + prevOutR * b1 + prevPrevOutR * b2;
-            outG = srcG * a0 + prevSrcG * a1 + prevOutG * b1 + prevPrevOutG * b2;
-            outB = srcB * a0 + prevSrcB * a1 + prevOutB * b1 + prevPrevOutB * b2;
-            outA = srcA * a0 + prevSrcA * a1 + prevOutA * b1 + prevPrevOutA * b2;
+            destR = srcR * a0 + prevSrcR * a1 + prevDestR * b1 + prevPrevDestR * b2;
+            destG = srcG * a0 + prevSrcG * a1 + prevDestG * b1 + prevPrevDestG * b2;
+            destB = srcB * a0 + prevSrcB * a1 + prevDestB * b1 + prevPrevDestB * b2;
+            destA = srcA * a0 + prevSrcA * a1 + prevDestA * b1 + prevPrevDestA * b2;
 
-            prevPrevOutR = prevOutR;
-            prevPrevOutG = prevOutG;
-            prevPrevOutB = prevOutB;
-            prevPrevOutA = prevOutA;
+            prevPrevDestR = prevDestR;
+            prevPrevDestG = prevDestG;
+            prevPrevDestB = prevDestB;
+            prevPrevDestA = prevDestA;
 
-            prevOutR = outR;
-            prevOutG = outG;
-            prevOutB = outB;
-            prevOutA = outA;
+            prevDestR = destR;
+            prevDestG = destG;
+            prevDestB = destB;
+            prevDestA = destA;
 
             prevSrcR = srcR;
             prevSrcG = srcG;
@@ -195,10 +195,10 @@ function convolveRGBA(
             srcA = ( rgba >> 24 ) & 0xff;
 
             rgba =
-                (( lines[ lineIndex ] + prevOutR ) << 0 ) +
-                (( lines[ lineIndex + 1 ] + prevOutG) << 8 ) +
-                (( lines[ lineIndex + 2 ] + prevOutB) << 16 ) +
-                (( lines[ lineIndex + 3 ] + prevOutA) << 24 );
+                (( lines[ lineIndex ] + prevDestR ) << 0 ) +
+                (( lines[ lineIndex + 1 ] + prevDestG) << 8 ) +
+                (( lines[ lineIndex + 2 ] + prevDestB) << 16 ) +
+                (( lines[ lineIndex + 3 ] + prevDestA) << 24 );
 
             dest[ outIndex ] = rgba;
 
