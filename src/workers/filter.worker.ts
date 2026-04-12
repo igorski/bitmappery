@@ -25,6 +25,7 @@ import FiltersFactory from "@/factories/filters-factory";
 import { imageDataAsFloat } from "@/utils/wasm-util";
 import type { WasmFilterInstance } from "@/utils/wasm-util";
 import { applyAdjustments } from "@/rendering/filters/adjustments";
+import { applyBlur } from "@/rendering/filters/blur";
 import { applyDuotone } from "@/rendering/filters/duotone";
 import wasmJs from "@/wasm/bin/filters.js";
 
@@ -80,6 +81,10 @@ self.addEventListener( "message", async ({ data }: MessageEvent ): Promise<void>
 function renderFilters( imageData: ImageData, filters: Filters ): Uint8ClampedArray {
     const pixels = imageData.data;
 
+    if ( filters.blur > 0 ) {
+        applyBlur( pixels, imageData.width, imageData.height, filters.blur );
+    }
+
     applyAdjustments( pixels, filters );
 
     if ( filters.duotone.enabled ) {
@@ -107,6 +112,7 @@ function renderFiltersWasm( imageData: ImageData, filters: any ): Uint8ClampedAr
     const doInvert     = invert    !== defaultFilters.invert;
     const doThreshold  = threshold !== defaultFilters.threshold;
     const doDuotone    = filters.duotone.enabled !== defaultFilters.duotone.enabled;
+    const doBlur = filters.blur > 0;
 
     // run WASM operations
 
@@ -114,7 +120,7 @@ function renderFiltersWasm( imageData: ImageData, filters: any ): Uint8ClampedAr
         wasmInstance._filter(
             memory, length,
             gamma, brightness, contrast, vibrance,/* threshold, duotone.color1, duotone.color2 */
-            doGamma, desaturate, doBrightness, doContrast, doVibrance/*, doThreshold, doDuotone*/
+            doGamma, desaturate, doBrightness, doContrast, doVibrance/*, doThreshold, doDuotone, doBlur*/
         );
     });
 }

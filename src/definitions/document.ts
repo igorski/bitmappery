@@ -86,6 +86,7 @@ export type Filters = {
         color1?: string;
         color2?: string;
     };
+    blur: number;
 };
 
 export type Text = {
