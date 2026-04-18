@@ -138,7 +138,7 @@ export default {
         },
         timelineTiles: {
             get(): RelId[] {
-                return this.activeDocument.groups;
+                return this.activeDocument?.groups ?? [];
             },
             set( groups: RelId[] ) {
                 reorderTiles( this.$store, this.activeDocument, groups );
@@ -184,7 +184,7 @@ export default {
     mounted(): void {
         subscribeTile( SUBSCRIPTION_TOKEN, ( id: RelId, tile: Tile ) => {
             if ( !this.renderTile( id, tile )) {
-                this.renderTileDebounced( id, tile ); // draggable list not updated yet
+                this.renderTileDebounced( id, tile ); // draggable list likely still mounting (canvas tile not available yet)
             }
         });
         // to manage on-the-fly updates of group tiles, we track changes to layer thumbnails
@@ -197,6 +197,7 @@ export default {
         });
     },
     beforeUnmount(): void {
+        clearTimeout( pendingTimeout );
         pending.clear();
         unsubscribeTile( SUBSCRIPTION_TOKEN );
         unsubscribeThumbnail( SUBSCRIPTION_TOKEN );
