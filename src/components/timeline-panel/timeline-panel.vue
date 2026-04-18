@@ -99,10 +99,10 @@ import {
     createGroupTile, flushTileCache, subscribe as subscribeTile, THUMB_HEIGHT, type Tile, unsubscribe as unsubscribeTile
 } from "@/rendering/cache/tile-cache";
 import { subscribe as subscribeThumbnail, unsubscribe as unsubscribeThumbnail } from "@/rendering/cache/thumbnail-cache";
-import { reorderTiles } from "@/store/actions/tile-reorder";
 import { addTile } from "@/store/actions/tile-add";
 import { cloneTile } from "@/store/actions/tile-clone";
 import { deleteTile } from "@/store/actions/tile-delete";
+import { reorderTiles } from "@/store/actions/tile-reorder";
 import { getPixelRatio } from "@/utils/canvas-util";
 import { SmartExecutor } from "@/utils/debounce-util";
 import { getAllTileGroupsInDocument, getIndexOfFirstLayerInTileGroup, getTileByLayer } from "@/utils/timeline-util";
