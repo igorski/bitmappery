@@ -419,14 +419,15 @@ export default {
                 
                 if ( this.snapshots.length === 0 ) {
                     let renders: HTMLCanvasElement[];
-                    if ( this.hasTimeline && this.createAnimation ) {
+                    if ( this.hasTimeline ) {
                         renders = await renderAnimation( this.activeDocument );
                     } else {
                         renders = await Promise.all( this.activeDocument.layers.map( async layer => {
                             return createLayerSnapshot( layer, this.activeDocument );
                         }));
+                        renders.reverse(); // layers appear in reverse
                     }
-                    this.snapshots = await Promise.all( renders.reverse().map( async snapshot => {
+                    this.snapshots = await Promise.all( renders.map( async snapshot => {
                         return resizeImage( snapshot, width, height, 0, 0, width * getPixelRatio(), height * getPixelRatio());
                     }));
                 }
