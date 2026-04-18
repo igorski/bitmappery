@@ -62,6 +62,7 @@ export default {
     },
     watch: {
         modelValue( color: string ): void {
+            this.lock();
             this.pickrInstance?.setColor( color );
         },
         swatches( value: string[], oldValue?: string[] ): void {
@@ -105,6 +106,7 @@ export default {
             window.pickrInstance = this.pickrInstance;
             this.globalInstance = true;
         }
+        this._locked = false;
     },
     destroy(): void {
         this.pickrInstance?.destroyAndRemove();
@@ -113,6 +115,17 @@ export default {
         }
     },
     methods: {
+        // when updating the color from the synced model value
+        // we shouldn't emit an update on the saveColor handler
+        lock(): void {
+            if ( this._locked ) {
+                return;
+            }
+            this._locked = true;
+            queueMicrotask(() => {
+                this._locked = false;
+            });
+        },
         saveColor( value: { toHEXA: () => number[], toRGBA: () => number[] } ): void {
             let parsedValue: string;
 
@@ -129,7 +142,7 @@ export default {
                 parsedValue = value.toHEXA().toString();
             }
 
-            if ( this.modelValue !== parsedValue ) {
+            if ( !this._locked && this.modelValue !== parsedValue ) {
                 this.$emit( "update:modelValue", parsedValue );
             }
         },

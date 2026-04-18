@@ -175,7 +175,7 @@ export default {
                 this.renderPending = true;
                 window.setTimeout(() => {
                     this.renderPending = false;
-                    this.update( null, `value_${this.text}` );
+                    this.update({ value: this.internalText }, "value" );
                 }, 50 );
             }
         },
@@ -236,12 +236,15 @@ export default {
     watch: {
         activeLayer: {
             immediate: true,
-            handler( layer: Layer ): void {
-                if ( layer && this.layerId !== layer.id ) {
-                    this.internalText = layer.text?.value;
-                    this.syncText     = this.internalText === layer.name || layer.name === DEFAULT_LAYER_NAME;
-                    this.layerId      = layer.id;
+            handler( layer?: Layer ): void {
+                if ( !layer ) {
+                    return;
                 }
+                if ( this.layerId !== layer.id ) {
+                    this.layerId = layer.id;
+                }
+                this.internalText = layer.text?.value;
+                this.syncText = this.internalText === layer.name || layer.name === DEFAULT_LAYER_NAME;
             }
         },
     },
@@ -308,6 +311,7 @@ export default {
             const { left, top, width, height } = this.activeLayer;
             const commit = () => store.commit( "updateLayer", { index, opts: { name: newName, text: newOpts } });
             commit();
+            
             enqueueState( `${propName}_${index}`, {
                 undo() {
                     store.commit( "updateLayer", { index, opts: { left, top, width, height, name: orgName, text: orgOpts } });
