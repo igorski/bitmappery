@@ -39,21 +39,27 @@
             ></button>
         </div>
         <div class="component__content">
-            <div class="timeline__tiles">
-                <canvas
-                    v-for="tile in activeDocument.groups"
-                    :ref="`thumb_${tile}`"
-                    class="timeline__tile"
-                    @click.stop.prevent="setActiveGroup( tile )"
-                    @contextmenu.stop.prevent="showContextMenu( $event, tile )"
-                    :class="{
-                        'timeline__tile--active': tile === activeGroup
-                    }"
-                    :width="thumbSize.width"
-                    :height="thumbSize.height"
-                >
-                </canvas>
-            </div>
+            <draggable
+                v-model="timelineTiles"
+                @change="handleTileDrag"
+                class="timeline__tiles"
+                itemKey="id"
+            >
+                <template #item="{element}">
+                    <canvas
+                        :ref="`thumb_${element}`"
+                        class="timeline__tile"
+                        @click.stop.prevent="setActiveGroup( element )"
+                        @contextmenu.stop.prevent="showContextMenu( $event, element )"
+                        :class="{
+                            'timeline__tile--active': element === activeGroup
+                        }"
+                        :width="thumbSize.width"
+                        :height="thumbSize.height"
+                    >
+                    </canvas>
+                </template>
+            </draggable>
         </div>
         <context-menu
             v-if="contextMenu.show"
@@ -93,6 +99,7 @@ import {
     createGroupTile, flushTileCache, subscribe as subscribeTile, THUMB_HEIGHT, type Tile, unsubscribe as unsubscribeTile
 } from "@/rendering/cache/tile-cache";
 import { subscribe as subscribeThumbnail, unsubscribe as unsubscribeThumbnail } from "@/rendering/cache/thumbnail-cache";
+import { reorderTiles } from "@/store/actions/tile-reorder";
 import { addTile } from "@/store/actions/tile-add";
 import { cloneTile } from "@/store/actions/tile-clone";
 import { deleteTile } from "@/store/actions/tile-delete";
@@ -102,11 +109,14 @@ import { getAllTileGroupsInDocument, getIndexOfFirstLayerInTileGroup, getTileByL
 import messages from "./messages.json";
 
 const SUBSCRIPTION_TOKEN = "timeline"; // safe to declare outside of component as only one instance is used
+const pending: Map<RelId, Tile> = new Map();
+let pendingTimeout: ReturnType<typeof setTimeout>;
 
 export default {
     i18n: { messages },
     components: {
         ContextMenu : defineAsyncComponent({ loader: () => import( "@/components/menus/context-menu/context-menu.vue" ) }),
+        Draggable : defineAsyncComponent({ loader: () => import( "vuedraggable" ) }),
         ToggleButton,
     },
     data: () => ({
@@ -125,6 +135,14 @@ export default {
         ]),
         thumbSize(): Size {
             return scaleToFixedHeight( this.activeDocument?.width, this.activeDocument?.height, THUMB_HEIGHT * getPixelRatio());
+        },
+        timelineTiles: {
+            get(): RelId[] {
+                return this.activeDocument.groups;
+            },
+            set( groups: RelId[] ) {
+                reorderTiles( this.$store, this.activeDocument, groups );
+            },
         },
     },
     watch: {
@@ -165,11 +183,8 @@ export default {
     },
     mounted(): void {
         subscribeTile( SUBSCRIPTION_TOKEN, ( id: RelId, tile: Tile ) => {
-            const el = this.$refs[ `thumb_${id}` ] as HTMLCanvasElement[];
-            if ( el ) {
-                el[ 0 ].width = tile.thumb.width;
-                el[ 0 ].height = tile.thumb.height;
-                el[ 0 ].getContext( "2d" )!.drawImage( tile.thumb, 0, 0 );
+            if ( !this.renderTile( id, tile )) {
+                this.renderTileDebounced( id, tile ); // draggable list not updated yet
             }
         });
         // to manage on-the-fly updates of group tiles, we track changes to layer thumbnails
@@ -182,6 +197,7 @@ export default {
         });
     },
     beforeUnmount(): void {
+        pending.clear();
         unsubscribeTile( SUBSCRIPTION_TOKEN );
         unsubscribeThumbnail( SUBSCRIPTION_TOKEN );
         flushTileCache();
@@ -212,6 +228,31 @@ export default {
         },
         handlePlay(): void {
             this.openModal( ANIMATION_PREVIEW );
+        },
+        handleTileDrag( dragEvent: { moved: { element: RelId, newIndex: number, oldIndex: number }}): void {
+            this.setActiveGroup( dragEvent.moved.element );
+        },
+        renderTile( id: RelId, tile: Tile ): boolean {
+            const el = this.$refs[ `thumb_${id}` ] as HTMLCanvasElement;
+            if ( !el ) {
+                return false;
+            }
+            el.width = tile.thumb.width;
+            el.height = tile.thumb.height;
+            el.getContext( "2d" )!.drawImage( tile.thumb, 0, 0 );
+
+            return true;
+        },
+        renderTileDebounced( id: RelId, tile: Tile ): void {
+            pending.set( id, tile );
+
+            clearTimeout( pendingTimeout );
+            pendingTimeout = setTimeout(() => {
+                for ( const [ id, tile ] of pending.entries() ) {
+                    this.renderTile( id, tile );
+                }
+                pending.clear();
+            }, 10 );
         },
         async cacheTiles(): Promise<void> {
             const groupIds = getAllTileGroupsInDocument( this.activeDocument );

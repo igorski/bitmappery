@@ -288,7 +288,7 @@ export default {
     },
     mounted(): void {
         subscribe( "layers", ( layerId: string, data: string ) => {
-            const el = this.$refs[ `thumb_${layerId}` ];
+            const el = this.$refs[ `thumb_${layerId}` ] as HTMLImageElement;
             if ( el ) {
                 el.setAttribute( "src", data );
             }
