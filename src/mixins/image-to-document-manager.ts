@@ -22,7 +22,8 @@
  */
 import { mapGetters, mapMutations, mapActions } from "vuex";
 import { type Size, loader } from "zcanvas";
-import type { Document, Layer } from "@/definitions/document";
+import type { Document } from "@/model/types/document";
+import type { Layer } from "@/model/types/layer";
 import { isTransparent } from "@/definitions/image-types";
 import { ACCEPTED_FILE_EXTENSIONS, PSD, PDF, isImageFile, isProjectFile, isThirdPartyDocument } from "@/definitions/file-types";
 import { LayerTypes } from "@/definitions/layer-types";

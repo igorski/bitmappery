@@ -25,9 +25,9 @@ import cloneDeep from "lodash.clonedeep";
 import { type Store } from "vuex";
 import { type Rectangle } from "zcanvas";
 import { BlendModes } from "@/definitions/blend-modes";
-import { type Layer } from "@/definitions/document";
+import { type Layer } from "@/model/types/layer";
 import { LayerTypes } from "@/definitions/layer-types";
-import LayerFactory from "@/factories/layer-factory";
+import LayerFactory from "@/model/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
 import { cloneCanvas, resizeImage } from "@/utils/canvas-util";
 

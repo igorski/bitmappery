@@ -68,8 +68,8 @@ import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import { LayerTypes } from "@/definitions/layer-types";
-import LayerFactory from "@/factories/layer-factory";
-import { addLayer } from "@/store/actions/layer-add";
+import LayerFactory from "@/model/factories/layer-factory";
+import { addLayer } from "@/model/actions/layer-add";
 import { focus } from "@/utils/environment-util";
 
 import messages from "./messages.json";

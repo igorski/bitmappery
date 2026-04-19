@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Size } from "zcanvas";
-import type { Document } from "@/definitions/document";
+import type { Document } from "@/model/types/document";
 import type { CanvasDimensions, CanvasZoomRange } from "@/definitions/editor";
 import { getMinImageSize } from "@/definitions/editor-properties";
 import { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";

@@ -1,11 +1,11 @@
 import { it, describe, expect, beforeEach, afterAll, vi } from "vitest";
 import { mockZCanvas } from "../../mocks";
-import DocumentFactory from "@/factories/document-factory";
+import DocumentFactory from "@/model/factories/document-factory";
 import store, { createHistoryState, type HistoryState, STATES_TO_SAVE } from "@/store/modules/history-module";
 const { getters, mutations, actions }  = store;
 
 let mockUpdateFn: ( fnName: string, ...args: any[] ) => void;
-vi.mock( "@/factories/history-state-factory", () => ({
+vi.mock( "@/model/factories/history-state-factory", () => ({
     forceProcess: (...args: any[]) => mockUpdateFn?.( "forceProcess", ...args ),
     flushQueue: (...args: any[]) => mockUpdateFn?.( "flushQueue", ...args )
 }));

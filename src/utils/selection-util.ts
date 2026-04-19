@@ -22,8 +22,8 @@
  */
 import { type Store } from "vuex";
 import { type Rectangle } from "zcanvas";
-import { type Shape, Selection } from "@/definitions/document";
-import { getRendererForLayer } from "@/factories/renderer-factory";
+import { type Shape, Selection } from "@/model/types/selection";
+import { getRendererForLayer } from "@/model/factories/renderer-factory";
 import { type BitMapperyState } from "@/store";
 import { shapeToRectangle, roundShape, scaleShape } from "@/utils/shape-util";
 

@@ -22,9 +22,9 @@ Please vote on feature requests by using the Thumbs Up/Down reaction on the firs
 
 BitMappery works with entities known as a `Document`. A Document contains several `Layer`s, each of
 which define their content, transformation, `Filters`, etc. Each of the nested entity properties
-has its own factory (see `src/factories`). The Document is managed by the Vuex `document-module.ts`.
+has its own factory (see `src/model/factories`). The Document is managed by the Vuex `document-module.ts`.
 
-The types for each of these are defined in `src/definitions/document.ts`.
+The types for each of these are defined in the `src/model/types` folder.
 
 ## Document rendering and interactions
 
@@ -89,7 +89,7 @@ the application lifetime before the undo/redo handler fires which would otherwis
 being updated.
 
 ```typescript
-import { enqueueState } from "@/factories/history-state-factory";
+import { enqueueState } from "@/model/factories/history-state-factory";
 
 update( propertyName: string, newValue: T ): void {
     // cache the existing values of the property value we are about to mutate...
@@ -117,7 +117,7 @@ update( propertyName: string, newValue: T ): void {
 
 Whenever an action (that requires an undo state) can be triggered in multiple locations (for instance
 inside a component and as a keyboard shortcut in `src/services/keyboard-service`), you can
-create a custom handler inside `src/store/actions` to avoid code duplication.
+create a custom handler inside `src/model/actions` to avoid code duplication.
 
 Creating a custom handler also creates a single source of truth and an isolated piece of code
 that can be covered more easily in tests.

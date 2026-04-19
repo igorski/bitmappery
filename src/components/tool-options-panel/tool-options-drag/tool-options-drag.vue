@@ -68,9 +68,9 @@
 <script lang="ts">
 import { mapGetters } from "vuex";
 import { canDragMask } from "@/definitions/tool-types";
-import { enqueueState } from "@/factories/history-state-factory";
+import { enqueueState } from "@/model/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
-import { getRendererForLayer } from "@/factories/renderer-factory";
+import { getRendererForLayer } from "@/model/factories/renderer-factory";
 
 import messages from "./messages.json";
 

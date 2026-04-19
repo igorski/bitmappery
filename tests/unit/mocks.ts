@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 import { type Store } from "vuex";
-import type { Shape, Selection } from "@/definitions/document";
+import type { Shape, Selection } from "@/model/types/selection";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import { type BitMapperyState } from "@/store";

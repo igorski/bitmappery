@@ -85,9 +85,9 @@
 import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
-import type { DocumentType } from "@/definitions/document";
+import type { DocumentType } from "@/model/types/document";
 import { AllPresets, DEFAULT_DPI, DEFAULT_UNIT, DefaultPresets, type PresetValue, TimelinePresets } from "@/definitions/document-presets";
-import DocumentFactory from "@/factories/document-factory";
+import DocumentFactory from "@/model/factories/document-factory";
 import ColorPicker from "@/components/ui/color-picker/color-picker.vue";
 import DimensionsFormatter from "@/components/ui/dimensions-formatter/dimensions-formatter.vue";
 import { focus } from "@/utils/environment-util";

@@ -62,7 +62,7 @@ import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleBu
 import Modal from "@/components/modal/modal.vue";
 import DimensionsFormatter from "@/components/ui/dimensions-formatter/dimensions-formatter.vue";
 import { DEFAULT_DPI, DEFAULT_UNIT } from "@/definitions/document-presets";
-import { resizeDocument } from "@/store/actions/document-resize";
+import { resizeDocument } from "@/model/actions/document-resize";
 import messages from "./messages.json";
 
 export default {

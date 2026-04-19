@@ -29,7 +29,7 @@ import {
 } from "martinez-polygon-clipping";
 import type { Point, Rectangle } from "zcanvas";
 import { fastRound } from "@/math/unit-math";
-import type { Shape } from "@/definitions/document";
+import type { Shape } from "@/model/types/selection";
 
 export const shapeToRectangle = ( shape: Shape ): Rectangle => {
     let minX = Infinity;

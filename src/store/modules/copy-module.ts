@@ -21,9 +21,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { ActionContext, Module } from "vuex";
-import type { Layer } from "@/definitions/document";
+import type { Layer } from "@/model/types/layer";
 import type { CopiedSelection } from "@/definitions/editor";
-import { deleteSelection } from "@/store/actions/selection-delete";
+import { deleteSelection } from "@/model/actions/selection-delete";
 import { copySelection } from "@/utils/document-util";
 import { cloneLayer } from "@/utils/layer-util";
 

@@ -22,9 +22,9 @@
  */
 import type { Point } from "zcanvas";
 import type BrushTypes from "@/definitions/brush-types";
-import type { Layer } from "@/definitions/document";
+import type { Layer } from "@/model/types/layer";
 import type { LayerTypes } from "@/definitions/layer-types";
-import type { Selection } from "@/definitions/document";
+import type { Selection } from "@/model/types/selection";
 
 export type Notification = {
     title?: string;

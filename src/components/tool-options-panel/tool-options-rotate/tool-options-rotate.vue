@@ -71,7 +71,7 @@
 import { mapGetters, mapMutations } from "vuex";
 import Slider from "@/components/ui/slider/slider.vue";
 import { pauseBlendCaching } from "@/rendering/cache/blended-layer-cache";
-import { rotateLayer } from "@/store/actions/layer-rotate";
+import { rotateLayer } from "@/model/actions/layer-rotate";
 import messages from "./messages.json";
 import { degreesToRadians, radiansToDegrees } from "@/math/unit-math";
 

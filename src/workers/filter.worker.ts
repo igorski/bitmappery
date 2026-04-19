@@ -20,8 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { type Filters } from "@/definitions/document";
-import FiltersFactory from "@/factories/filters-factory";
+import { type Filters } from "@/model/types/filters";
+import FiltersFactory from "@/model/factories/filters-factory";
 import { imageDataAsFloat } from "@/utils/wasm-util";
 import type { WasmFilterInstance } from "@/utils/wasm-util";
 import { applyAdjustments } from "@/rendering/filters/adjustments";

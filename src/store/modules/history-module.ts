@@ -23,10 +23,10 @@
 // @ts-expect-error UndoManager has no types
 import UndoManager from "undo-manager";
 import type { ActionContext, Module } from "vuex";
-import type { Document } from "@/definitions/document";
-import { forceProcess, flushQueue } from "@/factories/history-state-factory";
-import type { UndoRedoState } from "@/factories/history-state-factory";
-import { getRendererForLayer } from "@/factories/renderer-factory";
+import type { Document } from "@/model/types/document";
+import { forceProcess, flushQueue } from "@/model/factories/history-state-factory";
+import type { UndoRedoState } from "@/model/factories/history-state-factory";
+import { getRendererForLayer } from "@/model/factories/renderer-factory";
 import { disposeResource } from "@/utils/resource-manager";
 
 export const STATES_TO_SAVE = 99;

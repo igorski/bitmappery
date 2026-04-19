@@ -52,8 +52,8 @@
 
 <script lang="ts">
 import { mapGetters } from "vuex";
-import type { Transform } from "@/definitions/document";
-import { enqueueState } from "@/factories/history-state-factory";
+import type { Transform } from "@/model/types/transform";
+import { enqueueState } from "@/model/factories/history-state-factory";
 import messages  from "./messages.json";
 
 export default {

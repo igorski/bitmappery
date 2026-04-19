@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Document } from "@/definitions/document";
+import type { Document } from "@/model/types/document";
 import type { CanvasDimensions } from "@/definitions/editor";
 import { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import { getZoomRange } from "@/math/image-math";

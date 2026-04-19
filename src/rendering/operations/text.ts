@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Text } from "@/definitions/document";
+import type { Text } from "@/model/types/text";
 import { fastRound } from "@/math/unit-math";
 
 type MeasuredLineDef = {

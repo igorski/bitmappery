@@ -93,7 +93,7 @@
 import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import ColorPicker from "@/components/ui/color-picker/color-picker.vue";
-import { editDocumentProperties, TRANSPARENT_COLOR } from "@/store/actions/document-properties-edit";
+import { editDocumentProperties, TRANSPARENT_COLOR } from "@/model/actions/document-properties-edit";
 import messages from "./messages.json";
 
 export default {

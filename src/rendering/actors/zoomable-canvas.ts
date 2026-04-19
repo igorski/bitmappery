@@ -22,13 +22,13 @@
  */
 import { type Store } from "vuex";
 import { canvas, type Rectangle, type Viewport } from "zcanvas";
-import { type Document } from "@/definitions/document";
+import { type Document } from "@/model/types/document";
 import { fastRound } from "@/math/unit-math";
 import InteractionPane from "@/rendering/actors/interaction-pane";
 import type LayerRenderer from "@/rendering/actors/layer-renderer";
 import { renderState } from "@/services/render-service";
 import { type BitMapperyState } from "@/store";
-import { zoomIn, zoomOut } from "@/store/actions/canvas-zoom";
+import { zoomIn, zoomOut } from "@/model/actions/canvas-zoom";
 
 class ZoomableCanvas extends canvas {
     public store: Store<BitMapperyState>; // Vuex root store reference

@@ -2,7 +2,7 @@ import { it, afterEach, describe, expect } from "vitest";
 import { createMockCanvasElement, mockZCanvas } from "../../mocks";
 mockZCanvas();
 
-import LayerFactory from "@/factories/layer-factory";
+import LayerFactory from "@/model/factories/layer-factory";
 import {
     cacheBlendedLayer, flushBlendedLayerCache, getBlendCache, getBlendableLayers,
     isBlendCached, pauseBlendCaching, setBlendCaching, useBlendCaching,

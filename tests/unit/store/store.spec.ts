@@ -5,8 +5,8 @@ import { SAVE_DOCUMENT } from "@/definitions/modal-windows";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { LayerTypes } from "@/definitions/layer-types";
-import DocumentFactory from "@/factories/document-factory";
-import LayerFactory from "@/factories/layer-factory";
+import DocumentFactory from "@/model/factories/document-factory";
+import LayerFactory from "@/model/factories/layer-factory";
 import KeyboardService from "@/services/keyboard-service";
 import store from "@/store";
 

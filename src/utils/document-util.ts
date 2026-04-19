@@ -21,10 +21,13 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { type Rectangle } from "zcanvas";
-import type { Document, Layer, RelId, Shape, Text } from "@/definitions/document";
+import type { Document } from "@/model/types/document";
+import type { Layer, RelId } from "@/model/types/layer";
+import type { Shape } from "@/model/types/selection";
+import type { Text } from "@/model/types/text";
 import type { CanvasDrawable, CopiedSelection } from "@/definitions/editor";
 import { renderEffectsForLayer } from "@/services/render-service";
-import { createRendererForLayer, flushLayerRenderers, getRendererForLayer, hasRendererForLayer } from "@/factories/renderer-factory";
+import { createRendererForLayer, flushLayerRenderers, getRendererForLayer, hasRendererForLayer } from "@/model/factories/renderer-factory";
 import { rotateRectangle, areEqual } from "@/math/rectangle-math";
 import { fastRound } from "@/math/unit-math";
 import { reverseTransformation } from "@/rendering/operations/transforming";

@@ -5,12 +5,12 @@ mockZCanvas();
 
 import { type Store } from "vuex";
 import { BlendModes } from "@/definitions/blend-modes";
-import { type Layer } from "@/definitions/document";
+import { type Layer } from "@/model/types/layer";
 import ToolTypes from "@/definitions/tool-types";
-import DocumentFactory from "@/factories/document-factory";
-import TransformFactory from "@/factories/transform-factory";
-import FiltersFactory from "@/factories/filters-factory";
-import LayerFactory from "@/factories/layer-factory";
+import DocumentFactory from "@/model/factories/document-factory";
+import TransformFactory from "@/model/factories/transform-factory";
+import FiltersFactory from "@/model/factories/filters-factory";
+import LayerFactory from "@/model/factories/layer-factory";
 import { degreesToRadians } from "@/math/unit-math";
 import LayerRenderer from "@/rendering/actors/layer-renderer";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
@@ -43,7 +43,7 @@ vi.mock( "@/services/render-service", () => ({
 }));
 
 const mockAction = vi.fn();
-vi.mock( "@/store/actions/mask-position", () => ({ positionMask: vi.fn(( ...args: any[] ) => mockAction( "positionMask", ...args ))}));
+vi.mock( "@/model/actions/mask-position", () => ({ positionMask: vi.fn(( ...args: any[] ) => mockAction( "positionMask", ...args ))}));
 vi.mock( "@/rendering/operations/snapping", () => ({ snapToGuide: vi.fn(( ...args: any[] ) => mockAction( "snapToGuide", ...args ))}))
 
 vi.mock( "@/utils/resource-manager", () => ({ blobToResource: vi.fn() }));

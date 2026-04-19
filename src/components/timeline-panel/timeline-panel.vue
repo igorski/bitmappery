@@ -92,17 +92,18 @@ import { defineAsyncComponent } from "vue";
 import { mapGetters, mapMutations } from "vuex";
 import { type Size } from "zcanvas";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
-import type { Document, RelId } from "@/definitions/document";
+import type { Document } from "@/model/types/document";
+import type { RelId } from "@/model/types/layer";
 import { ANIMATION_PREVIEW } from "@/definitions/modal-windows";
 import { scaleToFixedHeight } from "@/math/image-math";
 import {
     createGroupTile, flushTileCache, subscribe as subscribeTile, THUMB_HEIGHT, type Tile, unsubscribe as unsubscribeTile
 } from "@/rendering/cache/tile-cache";
 import { subscribe as subscribeThumbnail, unsubscribe as unsubscribeThumbnail } from "@/rendering/cache/thumbnail-cache";
-import { addTile } from "@/store/actions/tile-add";
-import { cloneTile } from "@/store/actions/tile-clone";
-import { deleteTile } from "@/store/actions/tile-delete";
-import { reorderTiles } from "@/store/actions/tile-reorder";
+import { addTile } from "@/model/actions/tile-add";
+import { cloneTile } from "@/model/actions/tile-clone";
+import { deleteTile } from "@/model/actions/tile-delete";
+import { reorderTiles } from "@/model/actions/tile-reorder";
 import { getPixelRatio } from "@/utils/canvas-util";
 import { SmartExecutor } from "@/utils/debounce-util";
 import { getAllTileGroupsInDocument, getIndexOfFirstLayerInTileGroup, getTileByLayer } from "@/utils/timeline-util";

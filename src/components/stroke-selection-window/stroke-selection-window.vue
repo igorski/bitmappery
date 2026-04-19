@@ -69,7 +69,7 @@
 import { mapGetters, mapMutations } from "vuex";
 import ColorPicker from "@/components/ui/color-picker/color-picker.vue";
 import Modal from "@/components/modal/modal.vue";
-import { getRendererForLayer } from "@/factories/renderer-factory";
+import { getRendererForLayer } from "@/model/factories/renderer-factory";
 import { focus } from "@/utils/environment-util";
 
 import messages from "./messages.json";

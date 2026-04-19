@@ -1,9 +1,9 @@
 import { it, afterEach, beforeEach, describe, expect, vi } from "vitest";
 import { mockZCanvas, createMockCanvasElement, createMockZoomableCanvas } from "../../mocks";
-import { type Layer } from "@/definitions/document";
+import { type Layer } from "@/model/types/layer";
 import { LayerTypes } from "@/definitions/layer-types";
-import DocumentFactory from "@/factories/document-factory";
-import LayerFactory from "@/factories/layer-factory";
+import DocumentFactory from "@/model/factories/document-factory";
+import LayerFactory from "@/model/factories/layer-factory";
 import DocumentModule, { createDocumentState, type DocumentState } from "@/store/modules/document-module";
 import LayerRenderer from "@/rendering/actors/layer-renderer";
 
@@ -12,7 +12,7 @@ const { getters, mutations, actions } = DocumentModule;
 mockZCanvas();
 
 let mockUpdateFn: ( fnName: string, ...args: any[]) => void;
-vi.mock( "@/factories/renderer-factory", () => ({
+vi.mock( "@/model/factories/renderer-factory", () => ({
     flushLayerRenderers: vi.fn(( ...args: any[]) => mockUpdateFn?.( "flushLayerRenderers", ...args )),
     runRendererFn: vi.fn(( ...args: any[]) => mockUpdateFn?.( "runRendererFn", ...args )),
     getRendererForLayer: vi.fn(( ...args: any[]) => mockUpdateFn?.( "getRendererForLayer", ...args )),

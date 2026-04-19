@@ -1,0 +1,61 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Igor Zinken 2026 - https://www.igorski.nl
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+import { type Store } from "vuex";
+import type { Document } from "@/model/types/document";
+import { enqueueState } from "@/model/factories/history-state-factory";
+import LayerFactory from "@/model/factories/layer-factory";
+import { flushTileForGroup } from "@/rendering/cache/tile-cache";
+import { type BitMapperyState } from "@/store";
+import { getIndexOfLastLayerInTileGroup } from "@/utils/timeline-util";
+
+export const addTile = ( store: Store<BitMapperyState>, activeDocument: Document ): void => {
+    const { groups } = activeDocument;
+
+    const currentlyActiveGroup = store.getters.activeGroup;
+    const insertIndex = getIndexOfLastLayerInTileGroup( activeDocument, groups[ groups.length - 1 ]) + 1;
+    const nextGroup = groups.length;
+    
+    const layer = LayerFactory.create({
+        width: activeDocument.width,
+        height: activeDocument.height,
+        rel: {
+            type: "tile",
+            id: nextGroup,
+        }
+    });
+
+    const commit = (): void => {
+        store.commit( "insertLayerAtIndex", { index: insertIndex, layer });
+        store.commit( "setActiveGroup", nextGroup );
+    };
+    commit();
+
+    enqueueState( `tileAdd_${layer.id}`, {
+        undo(): void {
+            flushTileForGroup( nextGroup );
+            store.commit( "removeLayer", insertIndex );
+            store.commit( "setActiveGroup", currentlyActiveGroup );
+        },
+        redo: commit,
+    });
+};

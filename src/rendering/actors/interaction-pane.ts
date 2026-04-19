@@ -22,10 +22,12 @@
  */
 import { sprite } from "zcanvas";
 import type { Point, Size, Viewport } from "zcanvas";
-import type { Document, Layer, Shape, Selection } from "@/definitions/document";
+import type { Document } from "@/model/types/document";
+import type { Layer } from "@/model/types/layer";
+import type { Shape, Selection } from "@/model/types/selection";
 import ToolTypes, { SELECTION_TOOLS } from "@/definitions/tool-types";
 import { isPixelArt } from "@/definitions/editor-properties";
-import { getRendererForLayer } from "@/factories/renderer-factory";
+import { getRendererForLayer } from "@/model/factories/renderer-factory";
 import { isPointInRange, translatePoints, snapToAngle, rectToCoordinateList } from "@/math/point-math";
 import { rotateRectangleToCoordinates, scaleRectangle } from "@/math/rectangle-math";
 import { selectByColor } from "@/math/selection-math";
@@ -34,9 +36,9 @@ import LayerRenderer from "@/rendering/actors/layer-renderer";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import { getCanvasInstance } from "@/services/canvas-service";
 import KeyboardService from "@/services/keyboard-service";
-import { zoomIn, zoomOut } from "@/store/actions/canvas-zoom";
-import { invertSelection } from "@/store/actions/selection-invert";
-import { applySelection } from "@/store/actions/selection-apply";
+import { zoomIn, zoomOut } from "@/model/actions/canvas-zoom";
+import { invertSelection } from "@/model/actions/selection-invert";
+import { applySelection } from "@/model/actions/selection-apply";
 import { getPixelRatio, isInsideTransparentArea } from "@/utils/canvas-util";
 import { createDocumentSnapshot, createLayerSnapshot } from "@/utils/document-util";
 import { getLastShape, roundSelection, syncSelection } from "@/utils/selection-util";

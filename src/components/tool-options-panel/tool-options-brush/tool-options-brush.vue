@@ -87,7 +87,7 @@
 import { mapGetters, mapMutations }  from "vuex";
 import ToolTypes, { MAX_BRUSH_SIZE, canDraw } from "@/definitions/tool-types";
 import BrushTypes from "@/definitions/brush-types";
-import type { Document } from "@/definitions/document";
+import type { Document } from "@/model/types/document";
 import { isPixelArt } from "@/definitions/editor-properties";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";

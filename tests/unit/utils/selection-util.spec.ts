@@ -3,9 +3,9 @@ import { createMockSelection, createStore, createMockZoomableCanvas, mockZCanvas
 
 mockZCanvas();
 
-import DocumentFactory from "@/factories/document-factory";
-import LayerFactory from "@/factories/layer-factory";
-import { createRendererForLayer, flushRendererCache } from "@/factories/renderer-factory";
+import DocumentFactory from "@/model/factories/document-factory";
+import LayerFactory from "@/model/factories/layer-factory";
+import { createRendererForLayer, flushRendererCache } from "@/model/factories/renderer-factory";
 import { getLastShape, roundSelection, scaleSelection, selectionToRectangle, syncSelection } from "@/utils/selection-util";
 
 describe( "Selection utilities", () => {
