@@ -53,7 +53,7 @@ export const mergeLayerDown = async (
         layers = [ activeDocument.layers[ layerIndices[ 0 ]], activeLayer ];
     }
     const { width, height } = activeDocument;
-    const mergeIndex = allLayers && !hasTimeline ? 0 : layerIndices[ 0 ];
+    const mergeIndex = layerIndices[ 0 ];
     const newLayer = LayerFactory.create({
         name,
         source: await resizeImage( createSyncSnapshot( activeDocument, layerIndices ), width, height ),
@@ -61,7 +61,7 @@ export const mergeLayerDown = async (
         height,
         rel: hasTimeline ? {
             type: "tile",
-            id: store.getters.activeGroup,
+            id: activeGroup,
         } : undefined,
     });
     

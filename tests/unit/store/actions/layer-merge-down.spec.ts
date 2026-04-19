@@ -194,6 +194,18 @@ describe( "layer merge action", () => {
                 expect( layer.name ).toEqual( "foo" );
             });
 
+            it( "should insert a new Layer with the appropriate Tile group relation", async () => {
+                await mergeLayerDown( store, activeDocument, activeLayer, activeLayerIndex, "foo", false );
+
+                // @ts-expect-error TS2339 Property 'mock' does not exist on type 'Commit'.
+                const { layer } = store.commit.mock.calls[ 2 ][ 1 ];
+
+                expect( layer.rel ).toEqual({
+                    type: "tile",
+                    id: store.getters.activeGroup,
+                });
+            });
+
             it( "should store the action in state history", async () => {
                 await mergeLayerDown( store, activeDocument, activeLayer, activeLayerIndex, "foo", false );
         
