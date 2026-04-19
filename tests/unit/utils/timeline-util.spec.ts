@@ -11,6 +11,8 @@ import {
     getIndexOfFirstLayerInTileGroup,
     getIndexOfLastLayerInTileGroup,
     getTileByLayer,
+    getPreviousTile,
+    getNextTile,
 } from "@/utils/timeline-util";
 
 describe( "Timeline utilities", () => {
@@ -69,5 +71,27 @@ describe( "Timeline utilities", () => {
         expect(
             getTileByLayer( activeDocument, tile2Layer2.id )
         ).toEqual( 1 );
+    });
+
+    it( "should be able to get the previous tile by Layer order", () => {
+        const shuffledDocument = DocumentFactory.create({
+            layers: [
+                tile1Layer1, tile1Layer2, // tile 0
+                tile3Layer1, // tile 2
+                tile2Layer1, tile2Layer2, tile2Layer3, // tile 1
+            ]
+        });
+        expect( getPreviousTile( shuffledDocument, 2 )).toEqual( 0 );
+    });
+
+    it( "should be able to get the next tile by Layer order", () => {
+        const shuffledDocument = DocumentFactory.create({
+            layers: [
+                tile1Layer1, tile1Layer2, // tile 0
+                tile3Layer1, // tile 2
+                tile2Layer1, tile2Layer2, tile2Layer3, // tile 1
+            ]
+        });
+        expect( getNextTile( shuffledDocument, 0 )).toEqual( 2 );
     });
 });

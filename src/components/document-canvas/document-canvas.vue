@@ -92,6 +92,7 @@ import { unblockedWait, rafCallback } from "@/utils/debounce-util";
 import { createGroupSnapshot, getAlignableObjects } from "@/utils/document-util";
 import { isMobile } from "@/utils/environment-util";
 import { hasBlend } from "@/utils/layer-util";
+import { getPreviousTile } from "@/utils/timeline-util";
 import { fitInWindow } from "@/utils/zoom-util";
 import Scrollbars from "./scrollbars/scrollbars.vue";
 import TouchDecorator from "./decorators/touch-decorator";
@@ -292,7 +293,7 @@ export default {
         pixelGrid(): void {
             this.updateGuideModes();
         },
-        showTrace( value: boolean ): void {
+        showTrace( _value: boolean ): void {
             this.handleTrace();
         },
     },
@@ -446,8 +447,12 @@ export default {
             }
         },
         handleTrace(): void {
-            if ( this.showTrace && this.activeGroup > 0 ) {
-                createGroupSnapshot( this.activeDocument, this.activeGroup - 1, true ).then( snapshot => {
+            if ( this.showTrace && this.hasTimeline ) {
+                const prevTile = getPreviousTile( this.activeDocument, this.activeGroup );
+                if ( prevTile === -1 ) {
+                    return;
+                }
+                createGroupSnapshot( this.activeDocument, prevTile, true ).then( snapshot => {
                     guideRenderer.setTrace( snapshot );
                 }).catch(( e: Error ) => {
                     console.error( `Error during creation of group snapshot: ${e.message}` );

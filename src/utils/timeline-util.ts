@@ -62,3 +62,35 @@ export const getAllTileGroupsInDocument = ( activeDocument: Document ): RelId[] 
     }
     return [ ...out ];
 };
+
+/**
+ * Retrieves the previous tile relative to provided tile.
+ * Tile group order is determined by layer index (allowing easier reshuffling of tiles)
+ */
+export const getPreviousTile = ( activeDocument: Document, tile: RelId ): RelId => {
+    const allGroups = getAllTileGroupsInDocument( activeDocument );
+    for ( let i = 0, l = allGroups.length; i < l; ++i ) {
+        const compare = allGroups[ i ];
+        if ( compare === tile ) {
+            return i > 0 ? allGroups[ i - 1 ] : -1;
+        }
+    }
+    return -1;
+};
+
+/**
+ * Retrieves the next tile relative to provided tile.
+ * Tile group order is determined by layer index (allowing easier reshuffling of tiles)
+ */
+export const getNextTile = ( activeDocument: Document, tile: RelId ): RelId => {
+    const allGroups = getAllTileGroupsInDocument( activeDocument );
+    const last = allGroups.length - 1;
+    let i = last;
+    do {
+        const compare = allGroups[ i ];
+        if ( compare === tile ) {
+            return i < last ? allGroups[ i + 1 ] : -1;
+        }
+    } while ( i-- );
+    return -1;
+};
