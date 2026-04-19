@@ -327,13 +327,38 @@ export default {
     created(): void {
         this.canCreateGIF = supportsGIF();
 
+        const { meta } = this.activeDocument;
+
         if ( this.canCreateGIF && this.hasTimeline && this.canAnimate ) {
             this.type = GIF.mime; // auto select animated GIF
             this.contentToAnimation = true;
         }
 
-        if ( this.activeDocument.meta.fps ) {
-            this.frameDurationMs = Math.round( 1000 / this.activeDocument.meta.fps );
+        if ( meta.fps ) {
+            this.frameDurationMs = Math.round( 1000 / meta.fps );
+        }
+
+        if ( meta.export ) {
+            this.type = meta.export.mime;
+            this.quality = meta.export.quality;
+            this.sheetCols = meta.export.sheetCols;
+
+            switch ( meta.export.type ) {
+                default:
+                    break;
+                case "default":
+                    this.contentToAnimation = false;
+                    this.contentToSpriteSheet = false;
+                    break;
+                case "animation":
+                    this.contentToAnimation = true;
+                    this.contentToSpriteSheet = false;
+                    break;
+                case "spritesheet":
+                    this.contentToAnimation = false;
+                    this.contentToSpriteSheet = true;
+                    break;
+            }
         }
 
         if ( this.showOriginal ) {
@@ -348,7 +373,6 @@ export default {
                 this.renderPreview();
             });
         });
-
         this.snapshots = [] as HTMLCanvasElement[];
         this.renderPreview();
     },
@@ -357,12 +381,30 @@ export default {
         this.previewBlob = null;
         this.snapshots.length = 0;
         this.snapshot = null;
+
+        let type = "default";
+        if ( this.contentToSpriteSheet ) {
+            type = "spritesheet";
+        } else if ( this.contentToAnimation ) {
+            type = "animation";
+        }
+
+        this.updateMeta({
+            ...this.activeDocument.meta,
+            export: {
+                mime: this.type,
+                quality: this.quality,
+                sheetCols: this.sheetCols,
+                type,
+            }
+        });
     },
     methods: {
         ...mapMutations([
             "closeModal",
             "setLoading",
             "unsetLoading",
+            "updateMeta",
         ]),
         async exportImage(): Promise<void> {
             this.setLoading( "exp" );

@@ -148,10 +148,40 @@ describe( "Document factory", () => {
 
             const deserialized = await DocumentFactory.deserialize( serialized );
 
-            expect( deserialized.meta ).toEqual( {
+            expect( deserialized.meta ).toEqual({
                 dpi: DEFAULT_DPI,
                 unit: DEFAULT_UNIT,
                 swatches: [],
+            });
+        });
+
+        it( "should be able to serialize and deserialize export options for the Document", async () => {
+            const document = DocumentFactory.create({
+                meta: {
+                    dpi: DEFAULT_DPI,
+                    unit: DEFAULT_UNIT,
+                    export: {
+                        mime: "image/webp",
+                        quality: 50,
+                        sheetCols: 8,
+                        type: "spritesheet"
+                    },
+                },
+            });
+
+            const serialized = DocumentFactory.serialize( document );
+            const deserialized = await DocumentFactory.deserialize( serialized );
+
+            expect( deserialized.meta ).toEqual({
+                dpi: DEFAULT_DPI,
+                unit: DEFAULT_UNIT,
+                swatches: [],
+                export: {
+                    mime: "image/webp",
+                    quality: 50,
+                    sheetCols: 8,
+                    type: "spritesheet"
+                },
             });
         });
     });

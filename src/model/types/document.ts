@@ -32,6 +32,12 @@ export type DocumentMeta = {
     bgColor?: string; // transparent when empty
     smoothing?: boolean; // unserialized property to propagate application anti alias setting to render paths
     swatches?: string[]; // array of color strings
+    export?: {
+        mime: string;
+        quality: number;
+        type: "default" | "animation" | "spritesheet";
+        sheetCols: number;
+    };
 };
 
 export type Document = {

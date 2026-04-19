@@ -36,9 +36,7 @@ const DocumentFactory = {
      * all layers and image content)
      */
     create({
-        name = "New document", width = 1000, height = 1000, layers = [], selections = {}, type = "default", meta = {
-            dpi: DEFAULT_DPI, unit: DEFAULT_UNIT,
-        },
+        name = "New document", width = 1000, height = 1000, layers = [], selections = {}, type = "default", meta,
     }: DocumentProps = {}): Document {
         if ( !layers.length ) {
             layers = [ LayerFactory.create({ width, height }) ];
@@ -52,8 +50,10 @@ const DocumentFactory = {
             selections,
             type,
             meta: {
+                dpi: DEFAULT_DPI,
                 swatches: [],
-                ...meta,
+                unit: DEFAULT_UNIT,
+                ...( meta ?? {} ),
             },
             // only during runtime, will not be serialized
             activeSelection: [],
@@ -81,6 +81,12 @@ const DocumentFactory = {
                 d: document.meta.dpi,
                 u: document.meta.unit,
                 s: [ ...document.meta.swatches ],
+                e: document.meta.export ? {
+                    m: document.meta.export.mime,
+                    q: document.meta.export.quality,
+                    t: document.meta.export.type,
+                    c: document.meta.export.sheetCols,
+                } : undefined,
             },
         };
     },
@@ -106,6 +112,12 @@ const DocumentFactory = {
                 dpi: serialized.m?.d ?? DEFAULT_DPI,
                 unit: serialized.m?.u ?? DEFAULT_UNIT,
                 swatches: [ ...( serialized.m?.s ?? []) ],
+                export: serialized.m?.e ? {
+                    mime: serialized.m.e.m,
+                    quality: serialized.m.e.q,
+                    type: serialized.m.e.t,
+                    sheetCols: serialized.m.e.c,
+                } : undefined,
             },
         });
     },
