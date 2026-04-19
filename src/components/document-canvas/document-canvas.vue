@@ -450,6 +450,7 @@ export default {
             if ( this.showTrace && this.hasTimeline ) {
                 const prevTile = getPreviousTile( this.activeDocument, this.activeGroup );
                 if ( prevTile === -1 ) {
+                    guideRenderer.setTrace( null );
                     return;
                 }
                 createGroupSnapshot( this.activeDocument, prevTile, true ).then( snapshot => {
