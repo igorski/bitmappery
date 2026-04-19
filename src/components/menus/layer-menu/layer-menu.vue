@@ -88,12 +88,12 @@
 <script lang="ts">
 import { mapGetters, mapMutations } from "vuex";
 import { LayerTypes } from "@/definitions/layer-types";
-import { hasFilters } from "@/factories/filters-factory";
-import { commitLayerEffectsAndTransforms } from "@/store/actions/layer-commit-effects-and-transforms";
-import { duplicateLayer } from "@/store/actions/layer-duplicate";
-import { mergeLayerDown } from "@/store/actions/layer-merge-down";
-import { pasteLayerFilters } from "@/store/actions/layer-paste-filters";
-import { toggleLayerFilters } from "@/store/actions/layer-toggle-filters";
+import { hasFilters } from "@/model/factories/filters-factory";
+import { commitLayerEffectsAndTransforms } from "@/model/actions/layer-commit-effects-and-transforms";
+import { duplicateLayer } from "@/model/actions/layer-duplicate";
+import { mergeLayerDown } from "@/model/actions/layer-merge-down";
+import { pasteLayerFilters } from "@/model/actions/layer-paste-filters";
+import { toggleLayerFilters } from "@/model/actions/layer-toggle-filters";
 import { hasTransform } from "@/utils/layer-util";
 import { getIndexOfFirstLayerInTileGroup, getLayersByTile } from "@/utils/timeline-util";
 

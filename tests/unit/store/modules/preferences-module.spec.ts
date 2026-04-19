@@ -1,6 +1,6 @@
 import { it, afterEach, describe, expect, vi } from "vitest";
 import { mockZCanvas } from "../../mocks";
-import DocumentFactory from "@/factories/document-factory";
+import DocumentFactory from "@/model/factories/document-factory";
 import storeModule, { createPreferencesState, type Preferences } from "@/store/modules/preferences-module";
 
 const { getters, mutations, actions } = storeModule;

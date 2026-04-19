@@ -21,20 +21,20 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Store, Commit, Dispatch } from "vuex";
-import type { Shape } from "@/definitions/document";
+import type { Shape } from "@/model/types/selection";
 import { LayerTypes } from "@/definitions/layer-types";
 import { ALL_PANELS } from "@/definitions/panel-types";
 import ToolTypes, { canDraw, MAX_BRUSH_SIZE, SELECTION_TOOLS } from "@/definitions/tool-types";
 import {
     CREATE_DOCUMENT, ADD_LAYER, SAVE_DOCUMENT, DROPBOX_FILE_SELECTOR,
 } from "@/definitions/modal-windows";
-import { zoomIn, zoomOut } from "@/store/actions/canvas-zoom";
-import { pasteCopiedContent } from "@/store/actions/content-paste";
-import { addTextLayer } from "@/store/actions/layer-add-text-layer";
-import { toggleLayerFilters } from "@/store/actions/layer-toggle-filters";
-import { toggleLayerVisibility } from "@/store/actions/layer-toggle-visibility";
-import { deleteSelection } from "@/store/actions/selection-delete";
-import { getRendererForLayer } from "@/factories/renderer-factory";
+import { zoomIn, zoomOut } from "@/model/actions/canvas-zoom";
+import { pasteCopiedContent } from "@/model/actions/content-paste";
+import { addTextLayer } from "@/model/actions/layer-add-text-layer";
+import { toggleLayerFilters } from "@/model/actions/layer-toggle-filters";
+import { toggleLayerVisibility } from "@/model/actions/layer-toggle-visibility";
+import { deleteSelection } from "@/model/actions/selection-delete";
+import { getRendererForLayer } from "@/model/factories/renderer-factory";
 import { translatePoints } from "@/math/point-math";
 import { getCanvasInstance } from "@/services/canvas-service";
 import type { BitMapperyState } from "@/store";

@@ -405,9 +405,9 @@ import {
 import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { getCanvasInstance } from "@/services/canvas-service";
-import { cropToSelection } from "@/store/actions/crop-to-selection";
-import { pasteCopiedContent } from "@/store/actions/content-paste";
-import { deleteSelection } from "@/store/actions/selection-delete";
+import { cropToSelection } from "@/model/actions/crop-to-selection";
+import { pasteCopiedContent } from "@/model/actions/content-paste";
+import { deleteSelection } from "@/model/actions/selection-delete";
 import { supportsFullscreen, setToggleButton } from "@/utils/environment-util";
 import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector

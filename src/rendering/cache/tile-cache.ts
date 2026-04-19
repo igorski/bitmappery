@@ -20,7 +20,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Document, RelId } from "@/definitions/document";
+import type { Document } from "@/model/types/document";
+import type { RelId } from "@/model/types/layer";
 import { scaleToFixedHeight } from "@/math/image-math";
 import { getPixelRatio, resizeImage } from "@/utils/canvas-util";
 import { createGroupSnapshot } from "@/utils/document-util";

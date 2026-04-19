@@ -21,14 +21,16 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { ActionContext, Module } from "vuex";
-import type { Document, Filters, RelId } from "@/definitions/document";
+import type { Document } from "@/model/types/document";
+import type { Filters } from "@/model/types/filters";
+import type { RelId } from "@/model/types/layer";
 import type {
     ZoomToolOptions, BrushToolOptions, EraserToolOptions, CloneToolOptions,
     SelectionToolOptions, FillToolOptions, WandToolOptions
 } from "@/definitions/editor";
 import ToolTypes, { TOOL_SRC_MERGED } from "@/definitions/tool-types";
 import BrushTypes from "@/definitions/brush-types";
-import { runRendererFn } from "@/factories/renderer-factory";
+import { runRendererFn } from "@/model/factories/renderer-factory";
 
 export interface EditorState {
     activeTool: ToolTypes;

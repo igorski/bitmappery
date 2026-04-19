@@ -73,12 +73,13 @@ import type { Viewport } from "zcanvas";
 import ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import GuideRenderer from "@/rendering/actors/guide-renderer";
 import FileImport from "@/components/file-import/file-import.vue";
-import type { Document, Layer, RelId } from "@/definitions/document";
+import type { Document } from "@/model/types/document";
+import type { Layer, RelId } from "@/model/types/layer";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import ToolTypes, { SELECTION_TOOLS, MAX_ZOOM, calculateMaxScaling, usesInteractionPane } from "@/definitions/tool-types";
 import {
     createRendererForLayer, getRendererForLayer, flushLayerRenderers, flushRendererCache,
-} from "@/factories/renderer-factory";
+} from "@/model/factories/renderer-factory";
 import { InteractionModes } from "@/rendering/actors/interaction-pane";
 import { flushBitmapCache } from "@/rendering/cache/bitmap-cache";
 import { flushBlendedLayerCache, setBlendCaching } from "@/rendering/cache/blended-layer-cache";

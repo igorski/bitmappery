@@ -6,9 +6,9 @@ mockZCanvas();
 import { type Store } from "vuex";
 import { BlendModes } from "@/definitions/blend-modes";
 import { LayerTypes } from "@/definitions/layer-types";
-import TransformFactory from "@/factories/transform-factory";
-import FiltersFactory from "@/factories/filters-factory";
-import LayerFactory from "@/factories/layer-factory";
+import TransformFactory from "@/model/factories/transform-factory";
+import FiltersFactory from "@/model/factories/filters-factory";
+import LayerFactory from "@/model/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
 import { cropLayerContent, hasBlend, hasTransform, isDrawable, isMaskable, isMirrored, isRotated, isScaled } from "@/utils/layer-util";
 

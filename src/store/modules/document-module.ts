@@ -22,10 +22,13 @@
  */
 import type { ActionContext, Module } from "vuex";
 import type { Rectangle, Size } from "zcanvas";
-import type { Document, DocumentMeta, Layer, Transform, Selection } from "@/definitions/document";
-import DocumentFactory from "@/factories/document-factory";
-import LayerFactory from "@/factories/layer-factory";
-import { createRendererForLayer, flushLayerRenderers, runRendererFn, getRendererForLayer } from "@/factories/renderer-factory";
+import type { Document, DocumentMeta } from "@/model/types/document";
+import type { Layer } from "@/model/types/layer";
+import type { Selection } from "@/model/types/selection";
+import type { Transform } from "@/model/types/transform";
+import DocumentFactory from "@/model/factories/document-factory";
+import LayerFactory from "@/model/factories/layer-factory";
+import { createRendererForLayer, flushLayerRenderers, runRendererFn, getRendererForLayer } from "@/model/factories/renderer-factory";
 import { flushBlendedLayerCache } from "@/rendering/cache/blended-layer-cache";
 import { createLayerThumbnail, flushThumbnailCache, flushThumbnailForLayer } from "@/rendering/cache/thumbnail-cache";
 import { flushTileCache } from "@/rendering/cache/tile-cache";

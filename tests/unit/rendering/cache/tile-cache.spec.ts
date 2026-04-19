@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mockZCanvas } from "../../mocks";
 mockZCanvas();
 
-import DocumentFactory from "@/factories/document-factory";
-import LayerFactory from "@/factories/layer-factory";
+import DocumentFactory from "@/model/factories/document-factory";
+import LayerFactory from "@/model/factories/layer-factory";
 import {
     createGroupTile,
     hasTile,

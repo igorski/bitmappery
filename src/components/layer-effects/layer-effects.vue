@@ -187,12 +187,13 @@ import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleBu
 import ColorPicker from "@/components/ui/color-picker/color-picker.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
-import { Layer, Filters } from "@/definitions/document";
+import { Layer } from "@/model/types/layer";
+import { Filters } from "@/model/types/filters";
 import { BlendModes } from "@/definitions/blend-modes";
-import FiltersFactory from "@/factories/filters-factory";
+import FiltersFactory from "@/model/factories/filters-factory";
 import { MAX_BLUR } from "@/rendering/filters/blur";
 import KeyboardService from "@/services/keyboard-service";
-import { updateLayerFilters } from "@/store/actions/layer-update-filters";
+import { updateLayerFilters } from "@/model/actions/layer-update-filters";
 import { clone } from "@/utils/object-util";
 
 import messages from "./messages.json";

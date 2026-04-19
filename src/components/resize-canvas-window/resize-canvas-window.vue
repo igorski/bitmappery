@@ -76,7 +76,7 @@ import { mapGetters, mapMutations } from "vuex";
 import { focus } from "@/utils/environment-util";
 import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
-import { resizeCanvas } from "@/store/actions/canvas-resize";
+import { resizeCanvas } from "@/model/actions/canvas-resize";
 import messages from "./messages.json";
 
 const TOP_LEFT      = "TL";

@@ -79,7 +79,7 @@ import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { STORAGE_TYPES } from "@/definitions/storage-types";
-import DocumentFactory from "@/factories/document-factory";
+import DocumentFactory from "@/model/factories/document-factory";
 import { supportsDropbox, supportsGoogleDrive, supportsS3 } from "@/utils/cloud-service-loader";
 import { focus } from "@/utils/environment-util";
 

@@ -21,11 +21,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { reactive } from "vue";
-import type { Layer } from "@/definitions/document";
+import type { Layer } from "@/model/types/layer";
 import { LayerTypes } from "@/definitions/layer-types";
-import { getRendererForLayer } from "@/factories/renderer-factory";
-import { hasFilters, isEqual as isFiltersEqual } from "@/factories/filters-factory";
-import { isEqual as isTextEqual } from "@/factories/text-factory";
+import { getRendererForLayer } from "@/model/factories/renderer-factory";
+import { hasFilters, isEqual as isFiltersEqual } from "@/model/factories/filters-factory";
+import { isEqual as isTextEqual } from "@/model/factories/text-factory";
 import { createCanvas, cloneCanvas, matchDimensions } from "@/utils/canvas-util";
 import { replaceLayerSource } from "@/utils/layer-util";
 import { clone } from "@/utils/object-util";

@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Point, Size } from "zcanvas";
-import type { Layer } from "@/definitions/document";
+import type { Layer } from "@/model/types/layer";
 import type { CanvasContextPairing, Brush } from "@/definitions/editor";
 import { reverseTransformation } from "@/rendering/operations/transforming";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";

@@ -1,9 +1,10 @@
 import { it, describe, expect, beforeEach, vi } from "vitest";
 import { createMockCanvasElement, mockZCanvas } from "../mocks";
-import type { Document, Layer } from "@/definitions/document";
-import DocumentFactory from "@/factories/document-factory";
-import LayerFactory from "@/factories/layer-factory";
-import TextFactory from "@/factories/text-factory";
+import type { Document } from "@/model/types/document";
+import type { Layer } from "@/model/types/layer";
+import DocumentFactory from "@/model/factories/document-factory";
+import LayerFactory from "@/model/factories/layer-factory";
+import TextFactory from "@/model/factories/text-factory";
 import { cloneLayers, getAlignableObjects, restoreFromClone } from "@/utils/document-util";
 
 mockZCanvas();

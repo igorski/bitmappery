@@ -2,8 +2,8 @@ import { it, describe, expect, vi } from "vitest";
 import { mockZCanvas } from "../../mocks";
 import BrushTypes from "@/definitions/brush-types";
 import ToolTypes, { TOOL_SRC_MERGED } from "@/definitions/tool-types";
-import DocumentFactory from "@/factories/document-factory";
-import FiltersFactory from "@/factories/filters-factory";
+import DocumentFactory from "@/model/factories/document-factory";
+import FiltersFactory from "@/model/factories/filters-factory";
 import storeModule, { createEditorState } from "@/store/modules/editor-module";
 
 const { actions, getters, mutations } = storeModule;

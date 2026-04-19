@@ -21,7 +21,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Size } from "zcanvas";
-import type { Document, Layer } from "@/definitions/document";
+import type { Document } from "@/model/types/document";
+import type { Layer } from "@/model/types/layer";
 import { getPixelRatio, imageToBase64, resizeImage } from "@/utils/canvas-util";
 import { SmartExecutor } from "@/utils/debounce-util";
 import { createLayerSnapshot } from "@/utils/document-util";

@@ -3,9 +3,9 @@ import {
     getLayerCache, setLayerCache, hasLayerCache, clearCacheProperty,
     flushLayerCache, flushBitmapCache
 } from "@/rendering/cache/bitmap-cache";
-import FiltersFactory from "@/factories/filters-factory";
-import LayerFactory from "@/factories/layer-factory";
-import TextFactory from "@/factories/text-factory";
+import FiltersFactory from "@/model/factories/filters-factory";
+import LayerFactory from "@/model/factories/layer-factory";
+import TextFactory from "@/model/factories/text-factory";
 
 vi.mock( "@/utils/canvas-util", () => ({}));
 

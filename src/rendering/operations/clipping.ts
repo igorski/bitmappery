@@ -21,7 +21,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Point, Rectangle, Viewport } from "zcanvas";
-import type { Layer, Selection, Shape } from "@/definitions/document";
+import type { Layer } from "@/model/types/layer";
+import type { Selection, Shape } from "@/model/types/selection";
 import { rotateRectangleToCoordinates, scaleRectangle } from "@/math/rectangle-math";
 import type { OverrideConfig } from "@/rendering/utils/drawable-canvas-utils";
 import { isShapeRectangular } from "@/utils/shape-util";

@@ -5,9 +5,9 @@ mockZCanvas();
 
 import { LayerTypes } from "@/definitions/layer-types";
 import ToolTypes, { canDraw, canDragMask, PANE_TYPES, usesInteractionPane } from "@/definitions/tool-types";
-import DocumentFactory from "@/factories/document-factory";
-import TransformFactory from "@/factories/transform-factory";
-import LayerFactory from "@/factories/layer-factory";
+import DocumentFactory from "@/model/factories/document-factory";
+import TransformFactory from "@/model/factories/transform-factory";
+import LayerFactory from "@/model/factories/layer-factory";
 
 describe( "tool types", () => {
     it.each(

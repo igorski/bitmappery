@@ -1,0 +1,50 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+import type { Unit } from "@/definitions/document-presets";
+import type { Layer, RelId } from "@/model/types/layer";
+import type { Selection } from "@/model/types/selection";
+
+export type DocumentType = "default" | "timeline";
+export type DocumentMeta = {
+    dpi: number;
+    unit: Unit;
+    fps?: number; // for timeline DocumentType
+    bgColor?: string; // transparent when empty
+    smoothing?: boolean; // unserialized property to propagate application anti alias setting to render paths
+    swatches?: string[]; // array of color strings
+};
+
+export type Document = {
+    id: string;
+    name: string;
+    layers: Layer[];
+    width: number;
+    height: number;
+    selections: Record<string, Selection>;
+    type: DocumentType;
+    meta: DocumentMeta;
+    // the below are only used at runtime, will not be serialized
+    activeSelection: Selection;
+    invertSelection: boolean;
+    groups: RelId[]; // derived from Layer rels
+};

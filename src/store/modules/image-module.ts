@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { ActionContext, Module } from "vuex";
-import type { Document } from "@/definitions/document";
+import type { Document } from "@/model/types/document";
 import { disposeResource } from "@/utils/resource-manager";
 
 type FileTarget = "document" | "layer";
