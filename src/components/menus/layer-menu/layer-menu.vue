@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -70,7 +70,7 @@
             <button
                 v-t="'mergeDown'"
                 type="button"
-                :disabled="!activeLayer || activeLayerIndex === 0"
+                :disabled="!canMergeDown"
                 @click="requestMergeLayerDown()"
             ></button>
         </li>
@@ -78,7 +78,7 @@
             <button
                 v-t="'flattenImage'"
                 type="button"
-                :disabled="!activeLayer || activeDocument.layers.length < 2"
+                :disabled="!canFlatten"
                 @click="requestMergeLayerDown( true )"
             ></button>
         </li>
@@ -95,6 +95,7 @@ import { mergeLayerDown } from "@/store/actions/layer-merge-down";
 import { pasteLayerFilters } from "@/store/actions/layer-paste-filters";
 import { toggleLayerFilters } from "@/store/actions/layer-toggle-filters";
 import { hasTransform } from "@/utils/layer-util";
+import { getIndexOfFirstLayerInTileGroup, getLayersByTile } from "@/utils/timeline-util";
 
 import messages from "./messages.json";
 
@@ -109,6 +110,7 @@ export default {
     computed: {
         ...mapGetters([
             "activeDocument",
+            "activeGroup",
             "activeLayer",
             "activeLayerIndex",
             "clonedFilters",
@@ -118,6 +120,27 @@ export default {
         },
         activeLayerHasFiltersEnabled(): boolean {
             return this.activeLayer?.filters?.enabled;
+        },
+        canMergeDown(): boolean {
+            if ( !this.activeLayer ) {
+                return false;
+            }
+            if ( this.hasTimeline ) {
+                return this.activeLayerIndex > getIndexOfFirstLayerInTileGroup( this.activeDocument, this.activeGroup );
+            }
+            return this.activeLayerIndex > 0;
+        },
+        canFlatten(): boolean {
+            if ( !this.activeLayer ) {
+                return false;
+            }
+            if ( this.hasTimeline ) {
+                return getLayersByTile( this.activeDocument, this.activeGroup ).length >= 2;
+            }
+            return this.activeDocument.layers.length >= 2;
+        },
+        hasTimeline(): boolean {
+            return this.activeDocument?.type === "timeline";
         },
     },
     methods: {

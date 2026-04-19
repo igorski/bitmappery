@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -27,30 +27,44 @@ import LayerFactory from "@/factories/layer-factory";
 import type { BitMapperyState } from "@/store";
 import { resizeImage } from "@/utils/canvas-util";
 import { createSyncSnapshot } from "@/utils/document-util";
+import { getLayersByTile } from "@/utils/timeline-util";
 
 export const mergeLayerDown = async (
     store: Store<BitMapperyState>, activeDocument: Document, activeLayer: Layer, activeLayerIndex: number, name: string, allLayers = false,
 ): Promise<void> => {
+    const hasTimeline = activeDocument.type === "timeline";
+    const { activeGroup } = store.getters;
+
     let layers: Layer[] = [];
     let layerIndices: number[] = [];
     // collect the layers in ascending order
     if ( allLayers ) {
-        activeDocument.layers.forEach(( layer, index ) => {
-            layers.push( layer );
-            layerIndices.push( index );
-        });
+        if ( hasTimeline ) {
+            layers = getLayersByTile( activeDocument, activeGroup );
+            layerIndices = layers.map( layer => activeDocument.layers.findIndex( compare => compare.id === layer.id  ));
+        } else {
+            activeDocument.layers.forEach(( layer, index ) => {
+                layers.push( layer );
+                layerIndices.push( index );
+            });
+        }
     } else {
         layerIndices = [ activeLayerIndex - 1, activeLayerIndex ];
         layers = [ activeDocument.layers[ layerIndices[ 0 ]], activeLayer ];
     }
     const { width, height } = activeDocument;
-    const mergeIndex = allLayers ? 0 : layerIndices[ 0 ];
+    const mergeIndex = allLayers && !hasTimeline ? 0 : layerIndices[ 0 ];
     const newLayer = LayerFactory.create({
         name,
         source: await resizeImage( createSyncSnapshot( activeDocument, layerIndices ), width, height ),
         width,
         height,
+        rel: hasTimeline ? {
+            type: "tile",
+            id: store.getters.activeGroup,
+        } : undefined,
     });
+    
     const commit = (): void => {
         let i = layerIndices.length;
         while ( i-- ) {
