@@ -53,8 +53,10 @@ import {
     getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, sliceBrushPointers, createOverrideConfig
 } from "@/rendering/utils/drawable-canvas-utils";
 import { renderEffectsForLayer } from "@/services/render-service";
-import { replaceLayerSource } from "@/model/actions/layer-source-replace";
+import { startLayerDrag } from "@/model/actions/layer-drag-start";
+import { stopLayerDrag } from "@/model/actions/layer-drag-stop";
 import { positionLayer } from "@/model/actions/layer-position";
+import { replaceLayerSource } from "@/model/actions/layer-source-replace";
 import { positionMask } from "@/model/actions/mask-position";
 import { createCanvas, canvasToBlob, cloneCanvas, globalToLocal, getPixelRatio, setSmoothing } from "@/utils/canvas-util";
 import { createSyncSnapshot } from "@/utils/document-util";
@@ -549,8 +551,8 @@ export default class LayerRenderer extends ZoomableSprite {
             this.storeBrushPointer( x, y );
             this._lastBrushIndex = 1;
         } else if ( this._isDragMode ) {
-            this.canvas.draggingSprite = this;
-
+            startLayerDrag( this.getStore(), this.layer, x, y );
+            
             if ( this.actionTarget === "mask" && canDragMask( this.layer, this.layer.mask )) {
                 this._draggingMask = {
                     x: this._dragStartOffset.x + (( x - this._bounds.left ) - this._dragStartEventCoordinates.x ),
@@ -623,7 +625,7 @@ export default class LayerRenderer extends ZoomableSprite {
             } else if ( getters.snapAlign ) {
                 snapToGuide( this, this.canvas.guides ); // snap to guide
             }
-            this.canvas.draggingSprite = null;
+            stopLayerDrag( this.getStore(), this.layer );
             createLayerThumbnail( this.layer, this.canvas.getActiveDocument(), true );
         }
     }

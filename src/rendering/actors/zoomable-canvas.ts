@@ -41,7 +41,6 @@ class ZoomableCanvas extends canvas {
     public locked: boolean;
     public draggingSprite: LayerRenderer | null; // reference to Sprite that is being dragged (see LayerRenderer)
 
-    private _bounds: DOMRect;
     private _interactionBlocked: boolean;
     private _frMul: number;
 

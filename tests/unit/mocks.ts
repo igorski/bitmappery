@@ -60,6 +60,7 @@ export function mockZCanvas() {
 export function createMockZoomableCanvas(): ZoomableCanvas {
     const canvas = createMockCanvasElement();
     return {
+        draggingSprite: null,
         width: 300,
         height: 200,
         fps: 60,
