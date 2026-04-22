@@ -7,6 +7,7 @@
         "height": "Height",
         "layerVisibilityExpl": "Enable if all sliced layers should by default be visible (not recommended for transparent content). When disabled, only the last new layer will be visible.",
         "allLayersVisible": "All layers visible",
+        "convertToTimeline": "Convert to timeline",
         "slice": "Slice",
         "cancel": "Cancel"
     }

@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2022-2025 - https://www.igorski.nl
+ * Igor Zinken 2022-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -29,7 +29,8 @@ import { resizeImage } from "@/utils/canvas-util";
 import { createSyncSnapshot, sliceTiles } from "@/utils/document-util";
 
 export const sliceGridToLayers = async (
-    store: Store<BitMapperyState>, activeDocument: Document, tileWidth: number, tileHeight: number, allVisible: boolean, sliceName: string
+    store: Store<BitMapperyState>, activeDocument: Document,
+    tileWidth: number, tileHeight: number, allVisible: boolean, sliceName: string, toTimeline = false,
 ): Promise<void> => {
     // collect existing layers
     const originalLayers = [ ...activeDocument.layers ];
@@ -44,6 +45,8 @@ export const sliceGridToLayers = async (
     // create layers from slices created from the flattened document
     const slicedTiles  = await sliceTiles( flattenedLayer, tileWidth, tileHeight );
 
+    const orgType = activeDocument.type;
+
     const slicedLayers = slicedTiles.map(( bitmap, index ) => {
         return LayerFactory.create({
             name    : `${sliceName} #${index + 1}`,
@@ -51,11 +54,18 @@ export const sliceGridToLayers = async (
             visible : allVisible ? true : index === slicedTiles.length - 1,
             width   : tileWidth,
             height  : tileHeight,
+            rel: toTimeline ? {
+                type: "tile",
+                id: index,
+            } : undefined,
         });
     });
 
     // commit changes, add to state history
     const commit = async (): Promise<void> => {
+        if ( toTimeline ) {
+            activeDocument.type = "timeline";
+        }
         store.commit( "replaceLayers", slicedLayers );
         store.commit( "setActiveDocumentSize", { width: tileWidth, height: tileHeight });
     };
@@ -63,6 +73,9 @@ export const sliceGridToLayers = async (
     
     enqueueState( "slice-to-layers", {
         undo(): void {
+            if ( toTimeline ) {
+                activeDocument.type = orgType;
+            }
             store.commit( "replaceLayers", originalLayers );
             store.commit( "setActiveDocumentSize", { width: originalWidth, height: originalHeight });
         },

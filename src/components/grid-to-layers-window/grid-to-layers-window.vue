@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2022-2025 - https://www.igorski.nl
+ * Igor Zinken 2022-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -56,6 +56,14 @@
                         name="allVisible"
                     />
                 </div>
+                <div class="wrapper wrapper--toggle">
+                    <label v-t="'convertToTimeline'"></label>
+                    <toggle-button
+                        v-model="toTimeline"
+                        name="toTimeline"
+                        :disabled="!canConvertToTimeline"
+                    />
+                </div>
             </div>
         </template>
         <template #actions>
@@ -80,6 +88,7 @@
 import { mapGetters, mapMutations } from "vuex";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import Modal from "@/components/modal/modal.vue";
+import { canExportAsAnimation } from "@/definitions/editor-properties";
 import { sliceGridToLayers } from "@/model/actions/slice-grid-to-layers";
 import { focus } from "@/utils/environment-util";
 
@@ -95,6 +104,7 @@ export default {
         width      : 0,
         height     : 0,
         allVisible : true,
+        toTimeline : false,
     }),
     computed: {
         ...mapGetters([
@@ -104,6 +114,9 @@ export default {
         isValid(): boolean {
             return this.width > 0 && this.height > 0 &&
                    ( this.width !== this.activeDocument.width || this.height !== this.activeDocument.height );
+        },
+        canConvertToTimeline(): boolean {
+            return canExportAsAnimation({ width: this.width, height: this.height });
         },
     },
     created(): void {
@@ -121,7 +134,9 @@ export default {
         ]),
         async requestSlice(): Promise<void> {
             this.setLoading( "slice" );
-            await sliceGridToLayers( this.$store, this.activeDocument, this.width, this.height, this.allVisible, this.$t( "slice" ));
+            await sliceGridToLayers(
+                this.$store, this.activeDocument, this.width, this.height, this.allVisible, this.$t( "slice" ), this.toTimeline,
+            );
             this.unsetLoading( "slice" );
             this.closeModal();
         },
