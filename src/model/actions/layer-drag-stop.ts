@@ -27,7 +27,7 @@ import { getCanvasInstance } from "@/services/canvas-service";
 import { type BitMapperyState } from "@/store";
 import { pointerUp } from "@/utils/renderer-util";
 
-export async function stopLayerDrag( _store: Store<BitMapperyState>, layer: Layer ): Promise<void> {
+export function stopLayerDrag( _store: Store<BitMapperyState>, layer: Layer ): void {
     const renderer = getRendererForLayer( layer );
 
     if ( renderer ) {
