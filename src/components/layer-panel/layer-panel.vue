@@ -25,6 +25,7 @@
         class="layer-panel-wrapper"
         :class="{ collapsed }"
         @blur="handleBlur()"
+        @focusout="handleBlur()"
     >
         <div class="component__header">
             <h2
@@ -33,7 +34,7 @@
             <button
                 type="button"
                 class="component__header-button"
-                @click.stop="collapsed = !collapsed"
+                @click="collapsed = !collapsed"
             >{{ collapsed ? '+' : '-' }}</button>
         </div>
         <template v-if="!collapsed">
@@ -387,6 +388,7 @@ export default {
         handleLayerDrag( dragEvent: { moved: { element: Layer, newIndex: number, oldIndex: number }}): void {
             const layer = dragEvent.moved.element;
             this.setActiveLayerIndex( this.layers.findIndex(({ id }) => id === layer.id ));
+            this.handleFocus();
         },
         handleFocus(): void {
             KeyboardService.setListener( this.handleKeyboard.bind( this ));
