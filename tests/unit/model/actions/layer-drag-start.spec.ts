@@ -117,6 +117,25 @@ describe( "layer drag start action", () => {
             expect( insertedLayer.source ).toEqual( mockSelectionContent );
         });
 
+        it( "should reuse the same Layer rel as the source Layer to support timeline Documents", async () => {
+            const timelineLayer = { ...layer };
+            timelineLayer.rel = {
+                type: "tile",
+                id: 1,
+            };
+            startLayerDrag( store, timelineLayer, 10, 10, true );
+
+            await flushPromises();
+
+            // @ts-expect-error TS2339 Property 'mock' does not exist on type 'Commit'.
+            const insertedLayer = store.commit.mock.calls[ 0 ][ 1 ].layer;
+
+            expect( insertedLayer.rel ).toEqual({
+                type: "tile",
+                id: 1,
+            });
+        });
+
         it( "should update the source of the existing Layer renderer with the cut content", async () => {
             startLayerDrag( store, layer, 10, 10, true );
 

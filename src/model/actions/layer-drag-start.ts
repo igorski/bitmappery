@@ -36,7 +36,7 @@ import { pointerUp, pointerDown } from "@/utils/renderer-util";
 import { selectionToRectangle } from "@/utils/selection-util";
 
 export function startLayerDrag( store: Store<BitMapperyState>, layer: Layer, x: number, y: number, isPointerDrag = true ): boolean {
-    const { activeDocument, activeLayerMask, activeTool, hasSelection } = store.getters;
+    const { activeDocument, hasSelection } = store.getters;
 
     const renderer = getRendererForLayer( layer );
     if ( renderer ) {
@@ -44,12 +44,12 @@ export function startLayerDrag( store: Store<BitMapperyState>, layer: Layer, x: 
     }
 
     // calling sites should already guard for DRAG type tool
-    if ( /* activeTool !== ToolTypes.DRAG ||*/ !hasSelection ) {
+    if ( /* store.getters.activeTool !== ToolTypes.DRAG ||*/ !hasSelection ) {
         return false;
     }
 
-    // we don't support mask drag yet
-    const hasMask = false; // !!layer.mask && activeLayerMask === layer.mask;
+    // we don't support mask dragging out of selections
+    const hasMask = false; // !!layer.mask && store.getters.activeLayerMask === layer.mask;
     const orgContent = cloneCanvas( hasMask ? layer.mask : layer.source );
     const orgSelection = clone( activeDocument.activeSelection );
     const selectionBoundingBox = selectionToRectangle( activeDocument.activeSelection );
@@ -66,6 +66,9 @@ export function startLayerDrag( store: Store<BitMapperyState>, layer: Layer, x: 
                 width: selectionBitmap.width,
                 height: selectionBitmap.height,
                 source: selectionBitmap,
+                rel: {
+                    ...layer.rel,
+                },
             });
             const insertIndex = activeDocument.layers.indexOf( layer ) + 1;
 
