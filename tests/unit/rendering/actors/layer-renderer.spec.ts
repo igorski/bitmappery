@@ -1,8 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-import { createMockCanvasElement, createMockSelection, createMockZoomableCanvas, mockCanvasConstructor, mockZCanvas } from "../../mocks";
-mockZCanvas();
-
+import { createMockCanvasElement, createMockSelection, createMockZoomableCanvas, mockCanvasConstructor } from "../../mocks";
 import { type Store } from "vuex";
 import { BlendModes } from "@/definitions/blend-modes";
 import { type Layer } from "@/model/types/layer";
@@ -36,6 +33,16 @@ const mockRenderOperation = vi.fn();
 vi.mock( "@/rendering/operations/clipping", () => ({
     clipLayer: vi.fn(( ...args: any[] ) => mockRenderOperation( "clipLayer", ...args )),
 }))
+
+const mockLayerDragStart = vi.fn();
+vi.mock( "@/model/actions/layer-drag-start", () => ({
+    startLayerDrag: vi.fn(() => mockLayerDragStart() ),
+}));
+
+const mockLayerDragStop = vi.fn();
+vi.mock( "@/model/actions/layer-drag-stop", () => ({
+    stopLayerDrag: vi.fn(() => mockLayerDragStop() ),
+}));
 
 const mockRenderEffectsForLayer = vi.fn();
 vi.mock( "@/services/render-service", () => ({
@@ -380,7 +387,6 @@ describe( "LayerRenderer", () => {
         });
 
         it( "should invoke snapping when a releasing a Layer drag, when snapping is enabled", () => {
-            renderer.setInteractive( true );
             mockStore.getters.snapAlign = true;
             
             renderer.handlePress( 5, 5, new MouseEvent( "mousedown" ));
@@ -391,7 +397,6 @@ describe( "LayerRenderer", () => {
         });
 
         it( "should not invoke snapping when a releasing a Layer drag, when snapping is disabled", () => {
-            renderer.setInteractive( true );
             mockStore.getters.snapAlign = false;
             
             renderer.handlePress( 5, 5, new MouseEvent( "mousedown" ));
@@ -411,6 +416,19 @@ describe( "LayerRenderer", () => {
 
             expect( mockAction ).toHaveBeenCalledWith( "positionMask", layer, 5, 5 );
             expect( mockAction ).not.toHaveBeenCalledWith( "snapToGuide", renderer, renderer.canvas.guides );
+        });
+
+        it( "should trigger the Layer drag start action on press", () => {
+            renderer.handlePress( 5, 5, new MouseEvent( "mousedown" ));
+
+            expect( mockLayerDragStart ).toHaveBeenCalled();
+        });
+
+         it( "should trigger the Layer drag stop action on release", () => {
+            renderer.handlePress( 5, 5, new MouseEvent( "mousedown" ));
+            renderer.handleRelease( 10, 10 );
+
+            expect( mockLayerDragStop ).toHaveBeenCalled();
         });
     });
 

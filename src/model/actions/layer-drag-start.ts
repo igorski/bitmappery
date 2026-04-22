@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { type Store } from "vuex";
-import ToolTypes from "@/definitions/tool-types";
+import { type CopiedImage } from "@/definitions/editor";
 import { type Layer } from "@/model/types/layer";
 import { enqueueState } from "@/model/factories/history-state-factory";
 import LayerFactory from "@/model/factories/layer-factory";
@@ -32,68 +32,76 @@ import { cloneCanvas } from "@/utils/canvas-util";
 import { copySelection, deleteSelectionContent } from "@/utils/document-util";
 import { replaceLayerSource } from "@/utils/layer-util";
 import { clone } from "@/utils/object-util";
+import { pointerUp, pointerDown } from "@/utils/renderer-util";
 import { selectionToRectangle } from "@/utils/selection-util";
 
-export async function startLayerDrag( store: Store<BitMapperyState>, layer: Layer, x: number, y: number ): Promise<void> {
+export function startLayerDrag( store: Store<BitMapperyState>, layer: Layer, x: number, y: number, isPointerDrag = true ): boolean {
     const { activeDocument, activeLayerMask, activeTool, hasSelection } = store.getters;
 
     const renderer = getRendererForLayer( layer );
-
     if ( renderer ) {
         getCanvasInstance().draggingSprite = renderer;
     }
 
-    if ( activeTool === ToolTypes.DRAG && hasSelection ) {
-        console.info( "DRAGGING A SELECTION!!");
-
-        const hasMask = !!layer.mask && activeLayerMask === layer.mask;
-        const orgContent = cloneCanvas( hasMask ? layer.mask : layer.source );
-        const orgSelection = clone( activeDocument.activeSelection );
-        const selectionContent = await copySelection( activeDocument, layer )
-        const bitmapWithoutSelection = deleteSelectionContent( activeDocument, layer );
-
-        const selectionBitmap = selectionContent.content.bitmap;
-        const selectionBoundingBox = selectionToRectangle( activeDocument.activeSelection );
-        const newLayer = LayerFactory.create({
-            left: x - selectionBoundingBox.width / 2,
-            top: y - selectionBoundingBox.height / 2,
-            width: selectionBitmap.width,
-            height: selectionBitmap.height,
-            source: selectionBitmap,
-        });
-        const insertIndex = activeDocument.layers.indexOf( layer ) + 1;
-
-        const replaceSource = ( newSource: HTMLCanvasElement ): void => {
-            replaceLayerSource( layer, newSource, hasMask );
-            renderer?.resetFilterAndRecache();
-        };
-
-        const commit = () => {
-            replaceSource( bitmapWithoutSelection );
-            store.commit( "insertLayerAtIndex", { index: insertIndex, layer: newLayer });
-                
-            queueMicrotask(() => {
-                store.commit( "setActiveSelection", [] );
-                renderer.handleInteraction( x, y, { type: "mouseup" });
-            
-                const renderer2 = getRendererForLayer( newLayer );
-                renderer2.setInteractive( true );
-                renderer2.handleInteraction( x, y, { type: "mousedown" });
-            });
-        };
-        commit();
-
-        enqueueState( `startLayerDrag_${layer.id}`, {
-            undo(): void {
-                replaceSource( orgContent );
-                store.commit( "removeLayer", insertIndex );
-
-                queueMicrotask(() => {
-                    getRendererForLayer( layer )?.handleInteraction( x, y, { type: "mouseup" });
-                    store.commit( "setActiveSelection", orgSelection );
-                });
-            },
-            redo: commit,
-        });
+    // calling sites should already guard for DRAG type tool
+    if ( /* activeTool !== ToolTypes.DRAG ||*/ !hasSelection ) {
+        return false;
     }
+
+    // we don't support mask drag yet
+    const hasMask = false; // !!layer.mask && activeLayerMask === layer.mask;
+    const orgContent = cloneCanvas( hasMask ? layer.mask : layer.source );
+    const orgSelection = clone( activeDocument.activeSelection );
+    const selectionBoundingBox = selectionToRectangle( activeDocument.activeSelection );
+
+    copySelection( activeDocument, layer )
+        .then( selectionContent => {
+            const bitmapWithoutSelection = deleteSelectionContent( activeDocument, layer );
+            const selectionBitmap = ( selectionContent.content as CopiedImage ).bitmap;
+            const { left, top } = selectionBoundingBox;
+
+            const newLayer = LayerFactory.create({
+                left: isPointerDrag ? left : left + renderer.getX() + x,
+                top: isPointerDrag ? top : top + renderer.getY() + y,
+                width: selectionBitmap.width,
+                height: selectionBitmap.height,
+                source: selectionBitmap,
+            });
+            const insertIndex = activeDocument.layers.indexOf( layer ) + 1;
+
+            const replaceSource = ( newSource: HTMLCanvasElement ): void => {
+                replaceLayerSource( layer, newSource, hasMask );
+                renderer?.resetFilterAndRecache();
+            };
+
+            const commit = (): void => {
+                replaceSource( bitmapWithoutSelection );
+                store.commit( "insertLayerAtIndex", { index: insertIndex, layer: newLayer });
+                    
+                queueMicrotask(() => {
+                    store.commit( "setActiveSelection", [] );
+                    if ( isPointerDrag ) {
+                        pointerUp( renderer, x, y );
+                        pointerDown( getRendererForLayer( newLayer ), x, y );
+                    }
+                });
+            };
+            commit();
+
+            enqueueState( `startLayerDrag_${layer.id}`, {
+                undo(): void {
+                    replaceSource( orgContent );
+                    store.commit( "removeLayer", insertIndex );
+
+                    queueMicrotask(() => {
+                        isPointerDrag && pointerUp( getRendererForLayer( layer ), x, y );
+                        store.commit( "setActiveSelection", orgSelection );
+                    });
+                },
+                redo: commit,
+            });
+        })
+        .catch(() => {});
+
+    return true;
 }

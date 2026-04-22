@@ -20,18 +20,19 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { type Store } from "vuex";
-import { type Layer } from "@/model/types/layer";
-import { getRendererForLayer } from "@/model/factories/renderer-factory";
-import { getCanvasInstance } from "@/services/canvas-service";
-import { type BitMapperyState } from "@/store";
-import { pointerUp } from "@/utils/renderer-util";
+import { type sprite } from "zcanvas";
 
-export async function stopLayerDrag( _store: Store<BitMapperyState>, layer: Layer ): Promise<void> {
-    const renderer = getRendererForLayer( layer );
+/**
+ * Programmatically force a pointer down event on the provided renderer
+ */
+export const pointerDown = ( renderer?: sprite, x = 0, y = 0 ): void => {
+    renderer?.setInteractive( true );
+    renderer?.handleInteraction( x, y, new PointerEvent( "mousedown" ));
+};
 
-    if ( renderer ) {
-        pointerUp( renderer, 0, 0 );
-    }
-    getCanvasInstance().draggingSprite = null;
-}
+/**
+ * Programmatically force a pointer up event on the provided renderer
+ */
+export const pointerUp = ( renderer?: sprite, x = 0, y = 0 ): void => {
+    renderer?.handleInteraction( x, y, new PointerEvent( "mouseup" ));
+};

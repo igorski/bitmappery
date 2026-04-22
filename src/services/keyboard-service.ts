@@ -31,6 +31,8 @@ import {
 import { zoomIn, zoomOut } from "@/model/actions/canvas-zoom";
 import { pasteCopiedContent } from "@/model/actions/content-paste";
 import { addTextLayer } from "@/model/actions/layer-add-text-layer";
+import { startLayerDrag } from "@/model/actions/layer-drag-start";
+import { stopLayerDrag } from "@/model/actions/layer-drag-stop";
 import { toggleLayerFilters } from "@/model/actions/layer-toggle-filters";
 import { toggleLayerVisibility } from "@/model/actions/layer-toggle-visibility";
 import { deleteSelection } from "@/model/actions/selection-delete";
@@ -51,6 +53,7 @@ let listener: ListenerRef;
 let suspended = false, blockDefaults = true, optionDown = false, altDown = false, shiftDown = false, listenerCapturesAll = true;
 let lastKeyDown = 0;
 let lastKeyCode = -1;
+let isMovingObject = false;
 
 const DEFAULT_BLOCKED    = [ 8, 32, 37, 38, 39, 40 ];
 const MOVABLE_TOOL_TYPES = [ ToolTypes.DRAG, ToolTypes.SELECTION, ToolTypes.LASSO, ToolTypes.WAND ];
@@ -498,6 +501,15 @@ function handleKeyUp( event: KeyboardEvent ): void {
                 commit( "setPanMode", false );
             }
             break;
+        case 38:
+        case 40:
+        case 39:
+        case 37:
+            if ( MOVABLE_TOOL_TYPES.includes( getters.activeTool )) {
+                stopLayerDrag( store, getters.activeLayer );
+                isMovingObject = false;
+            }
+            break;
     }
 
     if ( !suspended ) {
@@ -556,7 +568,14 @@ function moveObject( axis = 0, dir = 0, activeTool: ToolTypes ): void {
             } else {
                 y = dir === 0 ? y - speed : y + speed;
             }
-            renderer.setBounds( x, y );
+            let setBounds = true;
+            if ( !isMovingObject ) {
+                setBounds = !startLayerDrag( store, renderer.layer, x, y, false );
+                isMovingObject = true;
+            }
+            if ( setBounds ) {
+                renderer.setBounds( x, y );
+            }
             break;
         case ToolTypes.SELECTION:
         case ToolTypes.LASSO:

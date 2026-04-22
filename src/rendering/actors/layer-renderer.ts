@@ -625,7 +625,7 @@ export default class LayerRenderer extends ZoomableSprite {
             } else if ( getters.snapAlign ) {
                 snapToGuide( this, this.canvas.guides ); // snap to guide
             }
-            stopLayerDrag( this.getStore(), this );
+            stopLayerDrag( this.getStore(), this.layer );
             createLayerThumbnail( this.layer, this.canvas.getActiveDocument(), true );
         }
     }
