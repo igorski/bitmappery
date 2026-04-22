@@ -180,16 +180,6 @@ function handleKeyDown( event: KeyboardEvent ): void {
             }
             break;
 
-        case 9: // tab
-            commit( "setToolboxOpened", !state.toolboxOpened );
-            if ( state.openedPanels.length > 0 ) {
-                commit( "closeOpenedPanels" );
-            } else {
-                ALL_PANELS.forEach( panel => commit( "setOpenedPanel", panel ));
-            }
-            event.preventDefault();
-            break;
-
         case 17: // Ctrl
             optionDown = true;
             // prevent context menu from opening in this mode
@@ -207,7 +197,17 @@ function handleKeyDown( event: KeyboardEvent ): void {
             break;
 
         case 32: // spacebar
-            commit( "setPanMode", true );
+            if ( altDown ) {
+                commit( "setToolboxOpened", !state.toolboxOpened );
+                if ( state.openedPanels.length > 0 ) {
+                    commit( "closeOpenedPanels" );
+                } else {
+                    ALL_PANELS.forEach( panel => commit( "setOpenedPanel", panel ));
+                }
+                preventDefault( event );
+            } else {
+                commit( "setPanMode", true );
+            }
             break;
 
         case 38: // up
@@ -500,11 +500,11 @@ function handleKeyUp( event: KeyboardEvent ): void {
                 commit( "setPanMode", false );
             }
             break;
-        case 38:
-        case 40:
-        case 39:
-        case 37:
-            if ( MOVABLE_TOOL_TYPES.includes( getters.activeTool )) {
+        case 38: // up
+        case 40: // down
+        case 37: // left
+        case 39: // right
+            if ( MOVABLE_TOOL_TYPES.includes( getters.activeTool ) && getters.activeLayer ) {
                 stopLayerDrag( store, getters.activeLayer );
                 isMovingObject = false;
             }

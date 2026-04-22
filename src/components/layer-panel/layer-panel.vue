@@ -22,12 +22,8 @@
  */
 <template>
     <div
-        tabindex="1"
         class="layer-panel-wrapper"
         :class="{ collapsed }"
-        @click="handleFocus()"
-        @focus="handleFocus()"
-        @focusout="handleBlur()"
         @blur="handleBlur()"
     >
         <div class="component__header">
@@ -48,6 +44,7 @@
             <div
                 v-else
                 class="component__content form"
+                @click="handleFocus()"
             >
                 <div
                     v-if="reverseLayers.length"
@@ -66,6 +63,8 @@
                                     'layer--has-thumb': renderThumbnails,
                                 }"
                                 @contextmenu.stop.prevent="showContextMenu( $event, element )"
+                                @keyup.enter="handleFocus()"
+                                tabindex="0"
                             >
                                 <!-- thumbnail -->
                                 <div
@@ -97,7 +96,7 @@
                                         'layer--selected': isSelectedLayer( element ),
                                     }"
                                     @dblclick="handleLayerDoubleClick( element )"
-                                    @click.stop="handleLayerClick( element, $event )"
+                                    @click="handleLayerClick( element, $event )"
                                 >{{ element.name }}</span>
                                 <div class="layer__actions">
                                     <!-- optional layer mask -->
@@ -108,26 +107,26 @@
                                         :class="{
                                             'layer__actions-button--highlight': element.maskSelected
                                         }"
-                                        @click.stop="handleLayerMaskClick( element )"
+                                        @click="handleLayerMaskClick( element )"
                                     ><img src="@/assets-inline/images/icon-mask.svg" /></button>
                                     <button
                                         v-tooltip="$t('toggleVisibility')"
                                         type="button"
                                         class="layer__actions-button button--ghost"
-                                        @click.stop="handleToggleLayerVisibility( element.index )"
+                                        @click="handleToggleLayerVisibility( element.index )"
                                         :class="{ 'layer__actions-button--disabled': !element.visible }"
                                     ><img src="@/assets-inline/images/icon-eye.svg" /></button>
                                     <button
                                         v-tooltip="$t('effectsAndFilters')"
                                         type="button"
                                         class="layer__actions-button button--ghost"
-                                        @click.stop="handleEffectsClick( element.index )"
+                                        @click="handleEffectsClick( element.index )"
                                     ><img src="@/assets-inline/images/icon-settings.svg" /></button>
                                     <button
                                         v-tooltip="$t( element.mask ? 'deleteMask' : 'deleteLayer' )"
                                         type="button"
                                         class="layer__actions-button button--ghost"
-                                        @click.stop="handleRemoveClick( element.index )"
+                                        @click="handleRemoveClick( element.index )"
                                         :class="{ 'layer__actions-button--disabled': !canDelete }"
                                     ><img src="@/assets-inline/images/icon-trashcan.svg" /></button>
                                 </div>
@@ -147,14 +146,14 @@
                     type="button"
                     class="button button--small"
                     :disabled="!activeDocument"
-                    @click.stop="requestLayerAdd()"
+                    @click="requestLayerAdd()"
                 ></button>
                 <button
                     v-t="'addMask'"
                     type="button"
                     class="button button--small"
                     :disabled="!activeLayer || currentLayerHasMask"
-                    @click.stop="requestMaskAdd()"
+                    @click="requestMaskAdd()"
                 ></button>
             </div>
             <context-menu
@@ -278,6 +277,9 @@ export default {
         },
     },
     watch: {
+        activeTool(): void {
+            this.handleBlur();
+        },
         layers( _value: Layer[] ): void {
             this.resetSelectedLayers();
         },
@@ -302,7 +304,6 @@ export default {
             "removeLayer",
             "setActiveLayerIndex",
             "setActiveLayerMask",
-            "setActiveTool",
             "setOpenedPanel",
             "openDialog",
         ]),
@@ -392,6 +393,7 @@ export default {
         },
         handleBlur(): void {
             KeyboardService.setListener( null );
+            this.resetSelectedLayers();
         },
         handleKeyboard( type: string, keyCode: number, event: KeyboardEvent ): boolean {
             if ( type !== "down" ) {
@@ -455,6 +457,9 @@ export default {
                         this.resetSelectedLayers();
                     }
                     this.setActiveLayerIndex( nextDown );
+                    break;
+                case 37: // left
+                case 39: // right
                     break;
                 case 67: // C
                     if ( !KeyboardService.hasOption( event )) {
