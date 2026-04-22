@@ -25,7 +25,9 @@
         tabindex="1"
         class="layer-panel-wrapper"
         :class="{ collapsed }"
+        @click="handleFocus()"
         @focus="handleFocus()"
+        @focusout="handleBlur()"
         @blur="handleBlur()"
     >
         <div class="component__header">
@@ -35,7 +37,7 @@
             <button
                 type="button"
                 class="component__header-button"
-                @click="collapsed = !collapsed"
+                @click.stop="collapsed = !collapsed"
             >{{ collapsed ? '+' : '-' }}</button>
         </div>
         <template v-if="!collapsed">
@@ -95,7 +97,7 @@
                                         'layer--selected': isSelectedLayer( element ),
                                     }"
                                     @dblclick="handleLayerDoubleClick( element )"
-                                    @click="handleLayerClick( element, $event )"
+                                    @click.stop="handleLayerClick( element, $event )"
                                 >{{ element.name }}</span>
                                 <div class="layer__actions">
                                     <!-- optional layer mask -->
@@ -106,26 +108,26 @@
                                         :class="{
                                             'layer__actions-button--highlight': element.maskSelected
                                         }"
-                                        @click="handleLayerMaskClick( element )"
+                                        @click.stop="handleLayerMaskClick( element )"
                                     ><img src="@/assets-inline/images/icon-mask.svg" /></button>
                                     <button
                                         v-tooltip="$t('toggleVisibility')"
                                         type="button"
                                         class="layer__actions-button button--ghost"
-                                        @click="handleToggleLayerVisibility( element.index )"
+                                        @click.stop="handleToggleLayerVisibility( element.index )"
                                         :class="{ 'layer__actions-button--disabled': !element.visible }"
                                     ><img src="@/assets-inline/images/icon-eye.svg" /></button>
                                     <button
                                         v-tooltip="$t('effectsAndFilters')"
                                         type="button"
                                         class="layer__actions-button button--ghost"
-                                        @click="handleEffectsClick( element.index )"
+                                        @click.stop="handleEffectsClick( element.index )"
                                     ><img src="@/assets-inline/images/icon-settings.svg" /></button>
                                     <button
                                         v-tooltip="$t( element.mask ? 'deleteMask' : 'deleteLayer' )"
                                         type="button"
                                         class="layer__actions-button button--ghost"
-                                        @click="handleRemoveClick( element.index )"
+                                        @click.stop="handleRemoveClick( element.index )"
                                         :class="{ 'layer__actions-button--disabled': !canDelete }"
                                     ><img src="@/assets-inline/images/icon-trashcan.svg" /></button>
                                 </div>
@@ -145,14 +147,14 @@
                     type="button"
                     class="button button--small"
                     :disabled="!activeDocument"
-                    @click="requestLayerAdd()"
+                    @click.stop="requestLayerAdd()"
                 ></button>
                 <button
                     v-t="'addMask'"
                     type="button"
                     class="button button--small"
                     :disabled="!activeLayer || currentLayerHasMask"
-                    @click="requestMaskAdd()"
+                    @click.stop="requestMaskAdd()"
                 ></button>
             </div>
             <context-menu
@@ -172,7 +174,6 @@ import { defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { ADD_LAYER } from "@/definitions/modal-windows";
 import { PANEL_LAYERS } from "@/definitions/panel-types";
-import ToolTypes from "@/definitions/tool-types";
 import type { Layer } from "@/definitions/types/document";
 import { cutLayerContent } from "@/model/actions/content-cut-layers";
 import { removeLayer } from "@/model/actions/layer-remove";
@@ -387,7 +388,7 @@ export default {
             this.setActiveLayerIndex( this.layers.findIndex(({ id }) => id === layer.id ));
         },
         handleFocus(): void {
-            KeyboardService.setListener( this.handleKeyboard.bind( this ), false );
+            KeyboardService.setListener( this.handleKeyboard.bind( this ));
         },
         handleBlur(): void {
             KeyboardService.setListener( null );
@@ -406,9 +407,15 @@ export default {
                 case 13: // enter
                     this.handleEffectsClick( this.activeLayerIndex );
                     break;
+                case 9: // tab
+                    this.handleBlur();
+                    break;
                 case 27: // escape
-                    this.setEditable( false );
-                    this.showEffects = false;
+                    if ( this.showEffects ) {
+                        this.showEffects = false;
+                    } else {
+                        this.handleBlur();
+                    }
                     break;
                 case 32: // spacebar
                     this.handleToggleLayerVisibility( this.activeLayerIndex );
@@ -475,6 +482,8 @@ export default {
                 await this.$nextTick(); // allow component to update with input field
                 focus( this.$refs.nameInput );
                 this.$refs.nameInput?.select();
+            } else if ( !value ) {
+                this.handleFocus();
             }
         },
         showContextMenu( event: PointerEvent, layer: IndexedLayer ): void {

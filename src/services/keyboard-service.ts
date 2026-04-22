@@ -158,8 +158,7 @@ function handleKeyDown( event: KeyboardEvent ): void {
         const handled = listener( "down", keyCode, event );
 
         if ( handled ) {
-            event.preventDefault();
-            return;
+            return preventDefault( event );
         }
     }
     const hasOption = KeyboardService.hasOption( event );
