@@ -52,7 +52,7 @@ export function startLayerDrag( store: Store<BitMapperyState>, layer: Layer, x: 
     const hasMask = false; // !!layer.mask && store.getters.activeLayerMask === layer.mask;
     const orgContent = cloneCanvas( hasMask ? layer.mask : layer.source );
     const orgSelection = clone( activeDocument.activeSelection );
-    const selectionBoundingBox = selectionToRectangle( activeDocument.activeSelection );
+    const selectionBoundingBox = selectionToRectangle( orgSelection );
 
     copySelection( activeDocument, layer )
         .then( selectionContent => {

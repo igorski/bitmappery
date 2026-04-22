@@ -48,7 +48,7 @@ describe( "layer drag start action", () => {
     const layerSource = createMockCanvasElement();
     const layer = LayerFactory.create();
     const activeDocument = DocumentFactory.create({ layers: [ LayerFactory.create(), layer ]});
-    activeDocument.activeSelection = [[ { x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 } ]];
+    activeDocument.activeSelection = [[ { x: 30, y: 20 }, { x: 40, y: 20 }, { x: 40, y: 30 } ]];
     const layerRenderer = new LayerRenderer( layer );
     const store = createStore();
 
@@ -98,7 +98,7 @@ describe( "layer drag start action", () => {
             store.getters.hasSelection = true;
         });
 
-        it( "should return true to indicate a action was handled", () => {
+        it( "should return true to indicate an action was handled", () => {
             const result = startLayerDrag( store, layer, 10, 10, true );
 
             expect( result ).toBe( true );
@@ -115,6 +115,20 @@ describe( "layer drag start action", () => {
             const insertedLayer = store.commit.mock.calls[ 0 ][ 1 ].layer;
 
             expect( insertedLayer.source ).toEqual( mockSelectionContent );
+        });
+
+        it( "should position the new Layer to the top-left Selection coordinate", async () => {
+            startLayerDrag( store, layer, 10, 10, true );
+
+            await flushPromises();
+
+            expect( store.commit ).toHaveBeenCalledWith( "insertLayerAtIndex", { index: 2, layer: expect.any( Object )});
+
+            // @ts-expect-error TS2339 Property 'mock' does not exist on type 'Commit'.
+            const insertedLayer = store.commit.mock.calls[ 0 ][ 1 ].layer;
+
+            expect( insertedLayer.left ).toEqual( 30 );
+            expect( insertedLayer.top ).toEqual( 20 );
         });
 
         it( "should reuse the same Layer rel as the source Layer to support timeline Documents", async () => {
