@@ -192,7 +192,6 @@ import { Filters } from "@/model/types/filters";
 import { BlendModes } from "@/definitions/blend-modes";
 import FiltersFactory from "@/model/factories/filters-factory";
 import { MAX_BLUR } from "@/rendering/filters/blur";
-import KeyboardService from "@/services/keyboard-service";
 import { updateLayerFilters } from "@/model/actions/layer-update-filters";
 import { clone } from "@/utils/object-util";
 
