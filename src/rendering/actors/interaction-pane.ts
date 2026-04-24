@@ -281,8 +281,14 @@ export default class InteractionPane extends sprite {
 
     /* zCanvas.sprite overrides */
 
-    async handlePress( x: number, y: number ): Promise<void> {
+    async handlePress( x: number, y: number, event?: Event ): Promise<void> {
         this._pointerDown = true;
+
+        if ( event?.type?.startsWith( "touch" )) {
+            this._pointer.x = x;
+            this._pointer.y = y;
+        }
+
         switch ( this.mode ) {
             default:
                 if ( this.isDragging ) {
@@ -342,6 +348,7 @@ export default class InteractionPane extends sprite {
                     }
                     // selection mode, set the click coordinate as the first point in the selection
                     const firstPoint = selectionShape[ 0 ];
+                    
                     if ( firstPoint ) {
                         if ( isShiftKeyDown ) {
                             ({ x, y } = snapToAngle( x, y, selectionShape.at( -1 ) ));
@@ -362,13 +369,10 @@ export default class InteractionPane extends sprite {
         }
     }
 
-    handleMove( x: number, y: number, { type }: Event ): void {
-        // store reference to current pointer position (relative to canvas)
-        // note that for touch events this is handled in handlePress() instead
-        if ( !type.startsWith( "touch" )) {
-            this._pointer.x = x;
-            this._pointer.y = y;
-        }
+    handleMove( x: number, y: number, _event: Event ): void {
+        this._pointer.x = x;
+        this._pointer.y = y;
+
         switch ( this.mode ) {
             default:
                 return;
