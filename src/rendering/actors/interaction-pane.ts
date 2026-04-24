@@ -32,17 +32,20 @@ import { isPointInRange, translatePoints, snapToAngle, rectToCoordinateList } fr
 import { rotateRectangleToCoordinates, scaleRectangle } from "@/math/rectangle-math";
 import { selectByColor } from "@/math/selection-math";
 import { fastRound } from "@/math/unit-math";
+import { zoomIn, zoomOut } from "@/model/actions/canvas-zoom";
+import { invertSelection } from "@/model/actions/selection-invert";
+import { applySelection } from "@/model/actions/selection-apply";
+import CornerHandle, { HandleTypes } from "@/rendering/actors/corner-handle";
 import LayerRenderer from "@/rendering/actors/layer-renderer";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import { getCanvasInstance } from "@/services/canvas-service";
 import KeyboardService from "@/services/keyboard-service";
-import { zoomIn, zoomOut } from "@/model/actions/canvas-zoom";
-import { invertSelection } from "@/model/actions/selection-invert";
-import { applySelection } from "@/model/actions/selection-apply";
 import { getPixelRatio, isInsideTransparentArea } from "@/utils/canvas-util";
 import { createDocumentSnapshot, createLayerSnapshot } from "@/utils/document-util";
 import { getLastShape, roundSelection, syncSelection } from "@/utils/selection-util";
-import { isShapeClosed, isOverlappingShape, mergeShapes, rectangleToShape, subtractShapes } from "@/utils/shape-util";
+import {
+    isShapeClosed, isShapeRectangular, isOverlappingShape, mergeShapes, rectangleToShape, sortShape, subtractShapes
+} from "@/utils/shape-util";
 
 export enum InteractionModes {
     MODE_PAN = 0,
@@ -76,6 +79,8 @@ export default class InteractionPane extends sprite {
     private _vpStart: Point;
     private _lastRelease: number;
     private _enabled: boolean;
+    private _handles: CornerHandle[];
+    private _drawHandles = false;
 
     constructor() {
         // dimensions will be synced when canvas on setState()
@@ -86,6 +91,13 @@ export default class InteractionPane extends sprite {
 
         this._lastRelease = 0;
         this._dashOffset  = 0;
+
+        this._handles = [
+            new CornerHandle( HandleTypes.TOP_LEFT ),
+            new CornerHandle( HandleTypes.TOP_RIGHT ),
+            new CornerHandle( HandleTypes.BOTTOM_RIGHT ),
+            new CornerHandle( HandleTypes.BOTTOM_LEFT ),
+        ];
     }
 
     setState( enabled: boolean, mode: InteractionModes, activeTool: ToolTypes, activeToolOptions: any ): void {
@@ -110,19 +122,27 @@ export default class InteractionPane extends sprite {
             zCanvas.getHeight() / zCanvas.zoomFactor
         );
 
-        const document = this.getActiveDocument();
+        const activeDocument = this.getActiveDocument();
 
-        if ( document && mode === InteractionModes.MODE_SELECTION ) {
+        if ( activeDocument && mode === InteractionModes.MODE_SELECTION ) {
             // create empty selection (or reset to empty selection when switching between
             // rectangle selection tool modes)
-            if ( !document.activeSelection ) {
+            if ( !activeDocument.activeSelection ) {
                 this.setSelection( [] );
             } else if ( this._activeTool !== activeTool && !SELECTION_TOOLS.includes( activeTool )) {
                 this.resetSelection();
             }
-            this._selectionClosed = isShapeClosed( getLastShape( document.activeSelection ));
+            this._selectionClosed = isShapeClosed( getLastShape( activeDocument.activeSelection ));
             // we distinguish between the rectangular and lasso selection tool
             this._isRectangleSelect = activeTool === ToolTypes.SELECTION;
+            
+            for ( const handle of this._handles ) {
+                if ( this._isRectangleSelect ) {
+                    this.addChild( handle );
+                } else {
+                    this.removeChild( handle );
+                }
+            }
             // selection mode has an always active move listener
             this.forceMoveListener();
         } else {
@@ -131,6 +151,7 @@ export default class InteractionPane extends sprite {
         }
         this._toolOptions = activeToolOptions;
         this._activeTool  = activeTool;
+        this.syncHandles();
     }
 
     handleActiveTool( tool: ToolTypes, remainInteractive: boolean ): void {
@@ -159,38 +180,39 @@ export default class InteractionPane extends sprite {
     }
 
     resetSelection(): void {
-        const document = this.getActiveDocument();
-        const currentSelection = document.activeSelection || [];
+        const activeDocument = this.getActiveDocument();
+        const currentSelection = activeDocument.activeSelection || [];
         if ( this.mode === InteractionModes.MODE_SELECTION ) {
             this.setSelection( [] );
             if ( isShapeClosed( getLastShape( currentSelection ))) {
-                applySelection( getCanvasInstance().store, document, currentSelection, "reset" );
+                applySelection( getCanvasInstance().store, activeDocument, currentSelection, "reset" );
             }
         } else {
-            document.activeSelection = [];
+            activeDocument.activeSelection = [];
         }
-        document.invertSelection = false;
+        activeDocument.invertSelection = false;
         this._selectionClosed = false;
         syncSelection( getCanvasInstance().store );
         this.invalidate();
     }
 
     setSelection( value: Selection, optStoreState = false ): void {
-        const document = this.getActiveDocument();
-        const currentSelection = document.activeSelection || [];
-        document.activeSelection = value;
+        const activeDocument = this.getActiveDocument();
+        const currentSelection = activeDocument.activeSelection || [];
+        activeDocument.activeSelection = value;
         if ( optStoreState ) {
-            applySelection( getCanvasInstance().store, document, currentSelection );
+            applySelection( getCanvasInstance().store, activeDocument, currentSelection );
         }
         this._selectionClosed = isShapeClosed( getLastShape( value ));
         this._dashOffset = 0;
+        this.syncHandles();
         this.invalidate();
     }
 
     invertSelection(): void {
-        const document = this.getActiveDocument();
-        if ( document.activeSelection?.length > 0 ) {
-            invertSelection( getCanvasInstance().store, document );
+        const activeDocument = this.getActiveDocument();
+        if ( activeDocument.activeSelection?.length > 0 ) {
+            invertSelection( getCanvasInstance().store, activeDocument );
         }
     }
 
@@ -239,13 +261,22 @@ export default class InteractionPane extends sprite {
             this._selectionOperation = "merge";
         } else {
             selectionToSet = activeSelection; // no overlap handling necessary, we can commit the whole active selection to history
+            this.syncHandles();
+            if ( this._drawHandles ) {
+                selectionToSet = selectionToSet.map( sortShape ); // ensure clockwise order
+            }
         }
         if ( isPixelArt( this.getActiveDocument() )) {
             selectionToSet = roundSelection( selectionToSet );
         }
         this._selectionClosed = true;
-        this.canvas.store.commit( "setActiveSelection", [ ...selectionToSet ]);
+        this.canvas.store.commit( "setActiveSelection", selectionToSet );
         applySelection( getCanvasInstance().store, this.getActiveDocument(), currentSelection );
+    }
+
+    private syncHandles(): void {
+        const selection = this.getActiveDocument().activeSelection;
+        this._drawHandles = this._activeTool === ToolTypes.SELECTION && selection.length === 1 && isShapeRectangular( selection[ 0 ]);
     }
 
     /* zCanvas.sprite overrides */
@@ -427,11 +458,12 @@ export default class InteractionPane extends sprite {
     }
 
     draw( ctx: CanvasRenderingContext2D, viewport: Viewport ): void {
-        const document = this.getActiveDocument();
-        if ( !document ) {
+        const activeDocument = this.getActiveDocument();
+        if ( !activeDocument ) {
             return; // pane was active prior to Document closing
         }
-        let { activeSelection, invertSelection, width, height } = document;
+        const { zoomFactor } = this.canvas;
+        let { activeSelection, invertSelection, width, height } = activeDocument;
         // render selection outline
         if ( /*this.mode === InteractionModes.MODE_SELECTION && */ activeSelection?.length > 0 ) {
             for ( let shape of activeSelection ) {
@@ -474,12 +506,19 @@ export default class InteractionPane extends sprite {
                 }
                 ctx.restore();
             }
+
+            if ( this._drawHandles ) {
+                for ( const handle of this._handles ) {
+                    handle.setShape( activeSelection[ 0 ], zoomFactor );
+                    handle.draw( ctx, viewport );
+                }
+            }
         } else {
             // show bounding box around active layer
             const activeLayer = this.getActiveLayer();
             if ( activeLayer ) {
                 ctx.save();
-                ctx.lineWidth   = 1 / this.canvas.zoomFactor;
+                ctx.lineWidth   = 1 / zoomFactor;
                 ctx.strokeStyle = "#0db0bc";
                 const { mirrorY, scale, rotation } = activeLayer.transform;
                 const { left, top, width, height } = ( scale !== 1 ) ? scaleRectangle( activeLayer, scale ) : activeLayer;

@@ -20,7 +20,12 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { type sprite } from "zcanvas";
+import type { sprite, Rectangle, Viewport } from "zcanvas";
+
+export const isInsideViewport = ({ left, top, width, height }: Rectangle, viewport: Viewport ): boolean => {
+    return ( left + width )  >= viewport.left && left <= viewport.right &&
+           ( top  + height ) >= viewport.top  && top  <= viewport.bottom;
+};
 
 /**
  * Programmatically force a pointer down event on the provided renderer

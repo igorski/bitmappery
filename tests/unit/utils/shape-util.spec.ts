@@ -2,7 +2,7 @@ import { it, describe, expect } from "vitest";
 import {
     mergeShapes,
     rectangleToShape, roundShape, scaleShape, shapeToRectangle, subtractShapes,
-    isOverlappingShape, isShapeRectangular, isShapeClosed
+    isOverlappingShape, isShapeRectangular, isShapeClosed, sortShape,
 } from "@/utils/shape-util";
 
 describe( "Shape utilities", () => {
@@ -223,5 +223,15 @@ describe( "Shape utilities", () => {
                 ],
             ]);
         });
+    });
+
+    it( "should be able to sort a Shapes coordinates in clockwise order", () => {
+        const shape = [
+            { x: 10, y: 10 }, { x: 0, y: 10 }, { x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 },
+        ];
+
+        expect( sortShape( shape )).toEqual([
+            { x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }, { x: 0, y: 0 },
+        ]);
     });
 })

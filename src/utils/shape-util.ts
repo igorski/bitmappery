@@ -89,6 +89,21 @@ export const isShapeClosed = ( shape: Shape ): boolean => {
     return firstPoint.x === lastPoint.x && firstPoint.y === lastPoint.y;
 };
 
+export const sortShape = ( shape: Shape ): Shape => {
+    const uniquePoints = shape.slice(0, -1);
+
+    const center = uniquePoints.reduce(( acc, p ) => (
+        { x: acc.x + p.x / uniquePoints.length, y: acc.y + p.y / uniquePoints.length }
+    ),{ x: 0, y: 0 });
+
+    const sorted = uniquePoints.sort(( a, b ) => {
+        const angleA = Math.atan2( a.y - center.y, a.x - center.x );
+        const angleB = Math.atan2( b.y - center.y, b.x - center.x );
+
+        return angleA - angleB;
+    });
+    return [...sorted, sorted[ 0 ]];
+};
 
 export const isOverlappingShape = ( shapeList: Shape[], shapeB: Shape ): boolean => {
     const polyA = shapeList.map( shape => shape.map( pointToMartinez ));

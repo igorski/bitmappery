@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -26,6 +26,7 @@ import { type Selection } from "@/model/types/selection";
 import { enqueueState } from "@/model/factories/history-state-factory";
 import { getCanvasInstance } from "@/services/canvas-service";
 import { type BitMapperyState } from "@/store";
+import { clone } from "@/utils/object-util";
 import { syncSelection } from "@/utils/selection-util";
 
 /**
@@ -34,7 +35,7 @@ import { syncSelection } from "@/utils/selection-util";
 export const applySelection = (
     store: Store<BitMapperyState>, activeDocument: Document, optPreviousSelection: Selection = [], optType = ""
 ): void => {
-    const selection = [ ...activeDocument.activeSelection ];
+    const selection = clone( activeDocument.activeSelection );
 
     enqueueState( `selection_${activeDocument.name}${optType}`, {
         undo(): void {

@@ -29,7 +29,8 @@ import { createCanvas, getPixelRatio } from "@/utils/canvas-util";
 
 const AMOUNT_OF_PIXELS = 1; // currently only 1 pixel grid supported
 
-class GuideRenderer extends sprite  {
+class GuideRenderer extends sprite
+{
     private drawGuides: boolean;
     private drawPixelGrid: boolean;
     private trace: HTMLCanvasElement | null;
