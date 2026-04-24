@@ -34,7 +34,7 @@
         />
         <ul class="menu-list">
             <!-- file menu -->
-            <li>
+            <li tabindex="0">
                 <a v-t="'file'" class="title" @click.prevent="openSubMenu('file')"></a>
                 <ul class="submenu"
                     :class="{ 'submenu--opened': activeSubMenu === 'file' }"
@@ -114,7 +114,7 @@
                 </ul>
             </li>
             <!-- edit menu -->
-            <li>
+            <li tabindex="0">
                 <a v-t="'edit'" class="title" @click.prevent="openSubMenu('edit')"></a>
                 <ul class="submenu"
                     :class="{ 'submenu--opened': activeSubMenu === 'edit' }"
@@ -191,7 +191,7 @@
                 </ul>
             </li>
             <!-- document menu -->
-            <li>
+            <li tabindex="0">
                 <a v-t="'document'" class="title" @click.prevent="openSubMenu('document')"></a>
                 <ul class="submenu"
                     :class="{ 'submenu--opened': activeSubMenu === 'document' }"
@@ -240,7 +240,7 @@
                 </ul>
             </li>
             <!-- layer menu -->
-            <li>
+            <li tabindex="0">
                 <a v-t="'layer'" class="title" @click.prevent="openSubMenu('layer')"></a>
                 <layer-menu
                     :opened="activeSubMenu === 'layer'"
@@ -248,7 +248,7 @@
                 />
             </li>
             <!-- selection menu -->
-            <li>
+            <li tabindex="0">
                 <a v-t="'selection'" class="title" @click.prevent="openSubMenu('selection')"></a>
                 <ul class="submenu"
                     :class="{ 'submenu--opened': activeSubMenu === 'selection' }"
@@ -298,7 +298,7 @@
                 </ul>
             </li>
             <!-- preferences -->
-            <li>
+            <li tabindex="0">
                 <a
                     v-t="'preferences'"
                     class="title"
@@ -306,7 +306,7 @@
                 ></a>
             </li>
             <!-- view menu -->
-            <li>
+            <li tabindex="0">
                 <a v-t="'view'" class="title" @click.prevent="openSubMenu('view')"></a>
                 <ul class="submenu"
                     :class="{ 'submenu--opened': activeSubMenu === 'view' }"
@@ -349,7 +349,7 @@
                 </ul>
             </li>
             <!-- window menu -->
-            <li>
+            <li tabindex="0">
                 <a v-t="'window'" class="title" @click.prevent="openSubMenu('window')"></a>
                 <ul class="submenu"
                     :class="{ 'submenu--opened': activeSubMenu === 'window' }"
