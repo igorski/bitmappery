@@ -61,8 +61,8 @@ export function startLayerDrag( store: Store<BitMapperyState>, layer: Layer, x: 
             const { left, top } = selectionBoundingBox;
 
             const newLayer = LayerFactory.create({
-                left: isPointerDrag ? left : left + renderer.getX() + x,
-                top: isPointerDrag ? top : top + renderer.getY() + y,
+                left: isPointerDrag ? left : left + x - renderer.getX(),
+                top: isPointerDrag ? top : top + y - renderer.getY(),
                 width: selectionBitmap.width,
                 height: selectionBitmap.height,
                 source: selectionBitmap,
