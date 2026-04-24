@@ -52,6 +52,8 @@ export default {
         ]),
     },
     mounted(): void {
+        this.focusedElement = document.activeElement;
+
         focus( this.$refs.content );
         this.escListener = ({ key }: KeyboardEvent ) => {
             if ( key === "Escape" ) {
@@ -62,6 +64,10 @@ export default {
     },
     unmounted(): void {
         window.removeEventListener( "keyup", this.escListener );
+
+        if ( this.focusedElement ) {
+            focus( this.focusedElement ); // restore focus on last interacted element
+        }
     },
 };
 </script>

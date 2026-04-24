@@ -42,7 +42,7 @@ import { getCanvasInstance } from "@/services/canvas-service";
 import type { BitMapperyState } from "@/store";
 import { supportsFullscreen, toggleFullscreen } from "@/utils/environment-util";
 
-type ListenerRef = ( type: "up" | "down", keyCode: number, event: KeyboardEvent ) => void;
+export type ListenerRef = ( type: "up" | "down", keyCode: number, event: KeyboardEvent ) => boolean;
 
 let store: Store<BitMapperyState>;
 let state: BitMapperyState;
@@ -50,7 +50,7 @@ let getters: any;
 let commit: Commit;
 let dispatch: Dispatch;
 let listener: ListenerRef;
-let suspended = false, blockDefaults = true, optionDown = false, altDown = false, shiftDown = false, listenerCapturesAll = true;
+let suspended = false, blockDefaults = true, optionDown = false, altDown = false, shiftDown = false;
 let lastKeyDown = 0;
 let lastKeyCode = -1;
 let isMovingObject = false;
@@ -103,12 +103,11 @@ const KeyboardService =
     },
     /**
      * attach a listener to receive updates whenever a key
-     * has been released. When captureAll is true the listener will capture all
-     * keyboard actions (meaning the internal handlers here are omitted)
+     * has been released. When the listener returns true, it indicates
+     * the event is handled and all subsequent handling in this service can be omitted
      */
-    setListener( listenerRef: ListenerRef, captureAll = true ): void {
+    setListener( listenerRef: ListenerRef ): void {
         listener = listenerRef;
-        listenerCapturesAll = captureAll;
     },
     /**
      * the KeyboardService can be suspended so it
@@ -156,10 +155,10 @@ function handleKeyDown( event: KeyboardEvent ): void {
         preventDefault( event );
     }
     if ( typeof listener === "function" ) {
-        listener( "down", keyCode, event );
+        const handled = listener( "down", keyCode, event );
 
-        if ( listenerCapturesAll && keyCode !== 90 ) {
-            return; // unless "Z" is pressed (for undo/redo actions, skip remaining handling functions)
+        if ( handled ) {
+            return preventDefault( event );
         }
     }
     const hasOption = KeyboardService.hasOption( event );
@@ -181,16 +180,6 @@ function handleKeyDown( event: KeyboardEvent ): void {
             }
             break;
 
-        case 9: // tab
-            commit( "setToolboxOpened", !state.toolboxOpened );
-            if ( state.openedPanels.length > 0 ) {
-                commit( "closeOpenedPanels" );
-            } else {
-                ALL_PANELS.forEach( panel => commit( "setOpenedPanel", panel ));
-            }
-            event.preventDefault();
-            break;
-
         case 17: // Ctrl
             optionDown = true;
             // prevent context menu from opening in this mode
@@ -208,7 +197,17 @@ function handleKeyDown( event: KeyboardEvent ): void {
             break;
 
         case 32: // spacebar
-            commit( "setPanMode", true );
+            if ( altDown ) {
+                commit( "setToolboxOpened", !state.toolboxOpened );
+                if ( state.openedPanels.length > 0 ) {
+                    commit( "closeOpenedPanels" );
+                } else {
+                    ALL_PANELS.forEach( panel => commit( "setOpenedPanel", panel ));
+                }
+                preventDefault( event );
+            } else {
+                commit( "setPanMode", true );
+            }
             break;
 
         case 38: // up
@@ -501,11 +500,11 @@ function handleKeyUp( event: KeyboardEvent ): void {
                 commit( "setPanMode", false );
             }
             break;
-        case 38:
-        case 40:
-        case 39:
-        case 37:
-            if ( MOVABLE_TOOL_TYPES.includes( getters.activeTool )) {
+        case 38: // up
+        case 40: // down
+        case 37: // left
+        case 39: // right
+            if ( MOVABLE_TOOL_TYPES.includes( getters.activeTool ) && getters.activeLayer ) {
                 stopLayerDrag( store, getters.activeLayer );
                 isMovingObject = false;
             }

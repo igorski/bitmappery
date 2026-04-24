@@ -22,11 +22,10 @@
  */
 <template>
     <div
-        tabindex="1"
         class="layer-panel-wrapper"
         :class="{ collapsed }"
-        @focus="handleFocus()"
         @blur="handleBlur()"
+        @focusout="handleBlur()"
     >
         <div class="component__header">
             <h2
@@ -46,6 +45,7 @@
             <div
                 v-else
                 class="component__content form"
+                @click="handleFocus()"
             >
                 <div
                     v-if="reverseLayers.length"
@@ -64,6 +64,8 @@
                                     'layer--has-thumb': renderThumbnails,
                                 }"
                                 @contextmenu.stop.prevent="showContextMenu( $event, element )"
+                                @keyup.enter="handleFocus()"
+                                tabindex="0"
                             >
                                 <!-- thumbnail -->
                                 <div
@@ -172,7 +174,6 @@ import { defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { ADD_LAYER } from "@/definitions/modal-windows";
 import { PANEL_LAYERS } from "@/definitions/panel-types";
-import ToolTypes from "@/definitions/tool-types";
 import type { Layer } from "@/definitions/types/document";
 import { cutLayerContent } from "@/model/actions/content-cut-layers";
 import { removeLayer } from "@/model/actions/layer-remove";
@@ -188,8 +189,6 @@ import KeyboardService from "@/services/keyboard-service";
 import { focus } from "@/utils/environment-util";
 import { getLayersByTile } from "@/utils/timeline-util";
 import messages from "./messages.json";
-
-const NON_OVERRIDABLE_TOOLS = [ ToolTypes.MOVE, ToolTypes.DRAG ];
 
 type IndexedLayer = Layer & { index: number, maskSelected: boolean };
 
@@ -259,9 +258,6 @@ export default {
         currentLayerHasMask(): boolean {
             return !!this.activeLayer?.mask;
         },
-        overrideCustomKeyHandler(): boolean {
-            return this.hasSelection || NON_OVERRIDABLE_TOOLS.includes( this.activeTool );
-        },
         renderThumbnails(): boolean {
             return this.preferences.thumbnails;
         },
@@ -282,6 +278,9 @@ export default {
         },
     },
     watch: {
+        activeTool(): void {
+            this.handleBlur();
+        },
         layers( _value: Layer[] ): void {
             this.resetSelectedLayers();
         },
@@ -306,7 +305,6 @@ export default {
             "removeLayer",
             "setActiveLayerIndex",
             "setActiveLayerMask",
-            "setActiveTool",
             "setOpenedPanel",
             "openDialog",
         ]),
@@ -390,20 +388,22 @@ export default {
         handleLayerDrag( dragEvent: { moved: { element: Layer, newIndex: number, oldIndex: number }}): void {
             const layer = dragEvent.moved.element;
             this.setActiveLayerIndex( this.layers.findIndex(({ id }) => id === layer.id ));
+            this.handleFocus();
         },
         handleFocus(): void {
-            KeyboardService.setListener( this.handleKeyboard.bind( this ), false );
+            KeyboardService.setListener( this.handleKeyboard.bind( this ));
         },
         handleBlur(): void {
             KeyboardService.setListener( null );
+            this.resetSelectedLayers();
         },
-        handleKeyboard( type: string, keyCode: number, event: KeyboardEvent ): void {
-            if ( type !== "down" || this.overrideCustomKeyHandler ) {
-                return;
+        handleKeyboard( type: string, keyCode: number, event: KeyboardEvent ): boolean {
+            if ( type !== "down" ) {
+                return false;
             }
             switch ( keyCode ) {
                 default:
-                    return;
+                    return false;
                 case 8:  // backspace
                 case 46: // delete
                     this.requestLayerRemove( this.activeLayerIndex );
@@ -411,9 +411,15 @@ export default {
                 case 13: // enter
                     this.handleEffectsClick( this.activeLayerIndex );
                     break;
+                case 9: // tab
+                    this.handleBlur();
+                    break;
                 case 27: // escape
-                    this.setEditable( false );
-                    this.showEffects = false;
+                    if ( this.showEffects ) {
+                        this.showEffects = false;
+                    } else {
+                        this.handleBlur();
+                    }
                     break;
                 case 32: // spacebar
                     this.handleToggleLayerVisibility( this.activeLayerIndex );
@@ -454,21 +460,24 @@ export default {
                     }
                     this.setActiveLayerIndex( nextDown );
                     break;
+                case 37: // left
+                case 39: // right
+                    break;
                 case 67: // C
                     if ( !KeyboardService.hasOption( event )) {
-                        return;
+                        return false;
                     }
                     this.requestLayerCopy( this.reverseLayers.filter( layer => this.isSelectedLayer( layer )).reverse());
                     break;
                 case 88: // X
                     if ( !KeyboardService.hasOption( event )) {
-                        return;
+                        return false;
                     }
                     cutLayerContent( this.$store, this.reverseLayers.filter( layer => this.isSelectedLayer( layer )).reverse());
                     this.resetSelectedLayers();
                     break;
             }
-            event.preventDefault();
+            return true;
         },
         async setEditable( value: boolean ): Promise<void> {
             const isEditable = this.editable;
@@ -480,6 +489,8 @@ export default {
                 await this.$nextTick(); // allow component to update with input field
                 focus( this.$refs.nameInput );
                 this.$refs.nameInput?.select();
+            } else if ( !value ) {
+                this.handleFocus();
             }
         },
         showContextMenu( event: PointerEvent, layer: IndexedLayer ): void {

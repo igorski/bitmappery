@@ -192,7 +192,6 @@ import { Filters } from "@/model/types/filters";
 import { BlendModes } from "@/definitions/blend-modes";
 import FiltersFactory from "@/model/factories/filters-factory";
 import { MAX_BLUR } from "@/rendering/filters/blur";
-import KeyboardService from "@/services/keyboard-service";
 import { updateLayerFilters } from "@/model/actions/layer-update-filters";
 import { clone } from "@/utils/object-util";
 
@@ -313,7 +312,6 @@ export default {
         this.orgFilters = clone( this.filters );
         this.internalValue = clone( this.filters );
         this.maxBlur = MAX_BLUR;
-        KeyboardService.setListener( this.handleKeyUp.bind( this ), false );
     },
     mounted(): void {
         const { scrollHeight } = this.$refs.effectsList;
@@ -321,20 +319,12 @@ export default {
             this.setLayersMaximized( true );
         }
     },
-    beforeUnmount(): void {
-        KeyboardService.setListener( null );
-    },
     methods: {
         ...mapMutations([
             "closeModal",
             "setLayersMaximized",
             "updateLayer",
         ]),
-        handleKeyUp( _type: string, keyCode: number ): void {
-            if ( keyCode === 27 ) {
-                this.cancel();
-            }
-        },
         save(): void {
             const filters = this.internalValue;
             if ( isEqual( filters, this.orgFilters )) {
