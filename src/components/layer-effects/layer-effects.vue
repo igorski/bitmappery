@@ -313,7 +313,6 @@ export default {
         this.orgFilters = clone( this.filters );
         this.internalValue = clone( this.filters );
         this.maxBlur = MAX_BLUR;
-        KeyboardService.setListener( this.handleKeyUp.bind( this ));
     },
     mounted(): void {
         const { scrollHeight } = this.$refs.effectsList;
@@ -321,22 +320,12 @@ export default {
             this.setLayersMaximized( true );
         }
     },
-    beforeUnmount(): void {
-        KeyboardService.setListener( null );
-    },
     methods: {
         ...mapMutations([
             "closeModal",
             "setLayersMaximized",
             "updateLayer",
         ]),
-        handleKeyUp( _type: string, keyCode: number ): boolean {
-            if ( keyCode === 27 ) {
-                this.cancel();
-                return true;
-            }
-            return false;
-        },
         save(): void {
             const filters = this.internalValue;
             if ( isEqual( filters, this.orgFilters )) {
