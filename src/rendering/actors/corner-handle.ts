@@ -56,10 +56,10 @@ class CornerHandle extends sprite
 
     public setShape( shape: Shape, zoomFactor: number ): void {
         this._shape = shape;
-        this._render = shape?.length > 3;
+        this._render = shape?.length === 5;
         
         if ( !this._render ) {
-            return; // selection still drawing
+            return; // selection still being created / unclosed
         }
         const { width, height } = this._bounds;
         switch ( this._type ) {
@@ -173,10 +173,8 @@ class CornerHandle extends sprite
         this._shape[ otherX ].x = this._orgShape[ otherX ].x + deltaX;
         this._shape[ otherY ].y = this._orgShape[ otherY ].y + deltaY;
 
-        this.keepInBounds();
-    }
+        // keep selection within bounds
 
-    private keepInBounds(): void {
         const minX = this._orgShape[ 0 ].x + this._bounds.width;
         const maxX = this._orgShape[ 1 ].x - this._bounds.width;
         const minY = this._orgShape[ 0 ].y + this._bounds.height;
