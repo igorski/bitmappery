@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -65,21 +65,29 @@
                 <img src="@/assets-inline/images/icon-history.svg" class="mirrored" />
             </button>
             <!-- tools -->
-            <button
-                v-for="tool in tools"
-                :key="tool.type"
-                type="button"
-                v-tooltip.right="`${$t( tool.i18n )} (${tool.key})`"
-                :title="$t( tool.i18n )"
-                class="tool-button"
-                :class="{
-                    'active': activeTool === tool.type
-                }"
-                :disabled="tool.disabled"
-                @click="handleToolClick( tool )"
-            >
-                <img :src="`./assets/icons/tool-${tool.icon}.svg`" />
-            </button>
+            <div class="tool-groups">
+                <div
+                    v-for="group in tools"
+                    :key="group.name"
+                    class="tool-group"
+                >
+                    <button
+                        v-for="tool in group.tools"
+                        :key="tool.type"
+                        type="button"
+                        v-tooltip.right="`${$t( tool.i18n )} (${tool.key})`"
+                        :title="$t( tool.i18n )"
+                        class="tool-button"
+                        :class="{
+                            'active': activeTool === tool.type,
+                        }"
+                        :disabled="tool.disabled"
+                        @click="handleToolClick( tool )"
+                    >
+                        <img :src="`./assets/icons/tool-${tool.icon}.svg`" />
+                    </button>
+                </div>
+            </div>
             <div class="wrapper input color-panel">
                 <label v-t="'color'" class="color-panel__label"></label>
                 <component
@@ -103,6 +111,11 @@ import { addTextLayer } from "@/model/actions/layer-add-text-layer";
 import { isMobile } from "@/utils/environment-util";
 import ToolTypes, { canDraw } from "@/definitions/tool-types";
 import messages  from "./messages.json";
+
+type ToolGroups = {
+    name: string;
+    tools: ToolDef[];
+};
 
 type ToolDef = {
     type: ToolTypes;
@@ -145,86 +158,129 @@ export default {
                 this.setToolboxOpened( !value );
             }
         },
-        tools(): ToolDef[] {
+        tools(): ToolGroups[] {
             const drawable = !!this.activeLayer && canDraw( this.activeDocument, this.activeLayer, this.activeLayerMask );
-            
-            return [
+            const groups = [
                 {
-                    type: ToolTypes.MOVE,
-                    i18n: "panViewport", icon: "move", key: "P / Space + Drag",
-                    disabled: !this.activeDocument, hasOptions: false
-                },
-                {
-                    type: ToolTypes.DRAG,
-                    i18n: "dragLayer", icon: "drag", key: "V",
-                    disabled: !this.activeDocument, hasOptions: false
-                },
-                {
-                    type: ToolTypes.SELECTION,
-                    i18n: "rectangularSelection", icon: "selection", key: "M",
-                    disabled: !this.activeDocument, hasOptions: false
-                },
-                {
-                    type: ToolTypes.LASSO,
-                    i18n: "polygonalLasso", icon: "lasso", key: "L",
-                    disabled: !this.activeDocument, hasOptions: false
-                },
-                {
-                    type: ToolTypes.WAND,
-                    i18n: "magicWand", icon: "wand", key: "W",
-                    disabled: !this.activeDocument, hasOptions: false
-                },
-                {
-                    type: ToolTypes.FILL,
-                    i18n: "paintBucket", icon: "fill", key: "G",
-                    disabled: !drawable, hasOptions: false
-                },
-                {
-                    type: ToolTypes.BRUSH,
-                    i18n: "brush", icon: "paintbrush", key: "B",
-                    disabled: !drawable, hasOptions: true
-                },
-                {
-                    type: ToolTypes.ERASER,
-                    i18n: "eraser", icon: "eraser", key: "E",
-                    disabled: !drawable, hasOptions: true
-                },
-                {
-                    type: ToolTypes.CLONE,
-                    i18n: "cloneStamp", icon: "stamp", key: "S",
-                    disabled: !drawable, hasOptions: true
-                },
-                {
-                    type: ToolTypes.SCALE,
-                    i18n: "scaleLayer", icon: "resize", key: "D",
-                    disabled: !this.activeLayer, hasOptions: true,
-                },
-                {
-                    type: ToolTypes.EYEDROPPER,
-                    i18n: "eyedropper", icon: "eyedropper", key: "I",
-                    disabled: !this.activeLayer, hasOptions: false
-                },
-                {
-                    type: ToolTypes.MIRROR,
-                    i18n: "mirrorLayer", icon: "mirror", key: "F",
-                    disabled: !this.activeLayer, hasOptions: true
-                },
-                {
-                    type: ToolTypes.ROTATE,
-                    i18n: "rotateLayer", icon: "rotate", key: "R",
-                    disabled: !this.activeLayer, hasOptions: true
-                },
-                {
-                    type: ToolTypes.TEXT,
-                    i18n: "text", icon: "text", key: "T",
-                    disabled: !this.activeDocument, hasOptions: true
-                },
-                {
-                    type: ToolTypes.ZOOM,
-                    i18n: "zoom", icon: "zoom", key: "Z",
-                    disabled: !this.activeDocument, hasOptions: true
+                    name: "pan",
+                    tools: [
+                        {
+                            type: ToolTypes.MOVE,
+                            i18n: "panViewport", icon: "move", key: "P / Space + Drag",
+                            disabled: !this.activeDocument, hasOptions: false
+                        },
+                        {
+                            type: ToolTypes.DRAG,
+                            i18n: "dragLayer", icon: "drag", key: "V",
+                            disabled: !this.activeDocument, hasOptions: false
+                        }
+                    ],
+                }, {
+                    name: "selection",
+                    tools: [
+                        {
+                            type: ToolTypes.SELECTION,
+                            i18n: "rectangularSelection", icon: "selection", key: "M",
+                            disabled: !this.activeDocument, hasOptions: false,
+                        },
+                        {
+                            type: ToolTypes.LASSO,
+                            i18n: "polygonalLasso", icon: "lasso", key: "L",
+                            disabled: !this.activeDocument, hasOptions: false,
+                        },
+                        {
+                            type: ToolTypes.WAND,
+                            i18n: "magicWand", icon: "wand", key: "W",
+                            disabled: !this.activeDocument, hasOptions: false,
+                        }
+                    ],
+                }, {
+                    name: "draw",
+                    tools: [
+                        {
+                            type: ToolTypes.FILL,
+                            i18n: "paintBucket", icon: "fill", key: "G",
+                            disabled: !drawable, hasOptions: false,
+                        },
+                        {
+                            type: ToolTypes.BRUSH,
+                            i18n: "brush", icon: "paintbrush", key: "B",
+                            disabled: !drawable, hasOptions: true,
+                        },
+                        {
+                            type: ToolTypes.ERASER,
+                            i18n: "eraser", icon: "eraser", key: "E",
+                            disabled: !drawable, hasOptions: true,
+                        },
+                        {
+                            type: ToolTypes.CLONE,
+                            i18n: "cloneStamp", icon: "stamp", key: "S",
+                            disabled: !drawable, hasOptions: true,
+                        },
+                    ],
+                }, {
+                    name: "transform",
+                    tools: [
+                        {
+                            type: ToolTypes.SCALE,
+                            i18n: "scaleLayer", icon: "resize", key: "D",
+                            disabled: !this.activeLayer, hasOptions: true,
+                        },
+                        {
+                            type: ToolTypes.MIRROR,
+                            i18n: "mirrorLayer", icon: "mirror", key: "F",
+                            disabled: !this.activeLayer, hasOptions: true,
+                        },
+                        {
+                            type: ToolTypes.ROTATE,
+                            i18n: "rotateLayer", icon: "rotate", key: "R",
+                            disabled: !this.activeLayer, hasOptions: true,
+                        },
+                    ],
+                }, {
+                    name: "text",
+                    tools: [
+                        {
+                            type: ToolTypes.TEXT,
+                            i18n: "text", icon: "text", key: "T",
+                            disabled: !this.activeDocument, hasOptions: true
+                        },
+                    ],
+                }, {
+                    name: "utilities",
+                        tools: [
+                        {
+                            type: ToolTypes.EYEDROPPER,
+                            i18n: "eyedropper", icon: "eyedropper", key: "I",
+                            disabled: !this.activeLayer, hasOptions: false,
+                        },
+                        {
+                            type: ToolTypes.ZOOM,
+                            i18n: "zoom", icon: "zoom", key: "Z",
+                            disabled: !this.activeDocument, hasOptions: true,
+                        },
+                    ],
                 },
             ]
+
+            // on mobile we sort the groups so the active item appears on top (e.g. is always visible in collapsed menu)
+
+            if ( isMobile() ) {
+                return groups.map( group => {
+                    return {
+                        ...group,
+                        tools: group.tools.sort(( a, b ) => {
+                            if ( a.type === this.activeTool ) {
+                                return -1;
+                            } else if ( b.type === this.activeTool ) {
+                                return 1;
+                            }
+                            return 0;
+                        }),
+                    };
+            });
+            }
+            return groups;
         },
         color: {
             get(): string {
@@ -289,6 +345,8 @@ export default {
 @use "@/styles/ui";
 
 $toolButtonWidth: variables.$spacing-large;
+$toolButtonPadding: variables.$spacing-xxsmall;
+$toolGroupHeight: $toolButtonWidth + variables.$spacing-xsmall * 2;
 
 .toolbox-wrapper {
     @include component.component();
@@ -311,7 +369,97 @@ $toolButtonWidth: variables.$spacing-large;
         }
     }
 
-    @include mixins.mobile() {
+    // tall screens
+
+    @media screen and (min-height: variables.$ideal-height) {
+        @include mixins.large() {
+            width: 52px !important;
+        }
+
+        .component__title {
+            display: none;
+        }
+
+        .component__header-button {
+            top: variables.$spacing-small;
+            right: #{variables.$spacing-medium - variables.$spacing-xxsmall} !important;
+        }
+
+        .color-panel {
+            &__label {
+                display: none;
+            }
+            .color-picker {
+                text-indent: variables.$spacing-xsmall;
+            }
+        }
+    }
+}
+
+.tool-group {
+    display: initial;
+}
+
+.tool-button {
+    cursor: pointer;
+    border: none;
+    padding: variables.$spacing-xxsmall variables.$spacing-xsmall;
+    font-weight: bold;
+    background-color: colors.$color-bg;
+    @include typography.customFont();
+
+    img {
+        width: $toolButtonWidth;
+        height: $toolButtonWidth;
+        vertical-align: middle;
+        padding: $toolButtonPadding 0;
+
+        &.mirrored {
+            transform: scale(-1, 1);
+            transform-origin: center;
+        }
+    }
+
+    &:hover,
+    &.active {
+        background-color: colors.$color-1;
+        color: #FFF;
+    }
+
+    &:disabled {
+        background-color: transparent;
+        color: colors.$color-bg;
+        cursor: default;
+    }
+
+    @include mixins.large() {
+        margin: 0 variables.$spacing-xsmall variables.$spacing-xsmall 0;
+        display: inline-block;
+    }
+}
+
+.color-panel {
+    vertical-align: middle;
+    display: inline-flex;
+
+    @include mixins.large() {
+        border-top: 1px solid #444;
+        margin-top: variables.$spacing-small;
+        padding-top: variables.$spacing-medium - variables.$spacing-xsmall;
+    }
+
+    &__label {
+        margin: variables.$spacing-xxsmall variables.$spacing-small 0 variables.$spacing-xxsmall;
+        @include typography.customFont();
+        color: #FFF;
+    }
+}
+
+// mobile overrides
+
+@include mixins.mobile() {
+    .toolbox-wrapper {
+        z-index: 1;
         // always expanded in mobile view (is small horizontal strip)
         overflow-y: hidden;
         overflow-x: auto;
@@ -348,71 +496,36 @@ $toolButtonWidth: variables.$spacing-large;
         }
     }
 
-    // tall screens
+    .tool-groups {
+        display: flex;
+        flex-direction: row;
+        position: fixed;
+        overflow-x: auto;
+        overflow-y: hidden;
+        width: stretch; // allows horizontal scroll when items exceed available width
+    }
 
-    @media screen and (min-height: variables.$ideal-height) {
-        @include mixins.large() {
-            width: 52px !important;
-        }
+    .tool-group {
+        display: inline-flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        height: $toolGroupHeight;
+        overflow-y: hidden;
 
-        .component__title {
-            display: none;
-        }
+        &:focus-within {
+            height: auto;
 
-        .component__header-button {
-            top: variables.$spacing-small;
-            right: #{variables.$spacing-medium - variables.$spacing-xxsmall} !important;
-        }
+            .tool-button {
+                padding-bottom: variables.$spacing-small;
 
-        .color-panel {
-            &__label {
-                display: none;
+                &:first-child {
+                    padding-bottom: variables.$spacing-xxsmall;
+                }
             }
-            .color-picker {
-                text-indent: variables.$spacing-xsmall;
-            }
-        }
-    }
-}
-
-.tool-button {
-    cursor: pointer;
-    border: none;
-    padding: variables.$spacing-xxsmall variables.$spacing-xsmall;
-    font-weight: bold;
-    background-color: colors.$color-bg;
-    @include typography.customFont();
-
-    img {
-        width: $toolButtonWidth;
-        height: $toolButtonWidth;
-        vertical-align: middle;
-        padding: variables.$spacing-xxsmall 0;
-
-        &.mirrored {
-            transform: scale(-1, 1);
-            transform-origin: center;
         }
     }
 
-    &:hover,
-    &.active {
-        background-color: colors.$color-1;
-        color: #FFF;
-    }
-
-    &:disabled {
-        background-color: transparent;
-        color: colors.$color-bg;
-        cursor: default;
-    }
-
-    @include mixins.large() {
-        margin: 0 variables.$spacing-xsmall variables.$spacing-xsmall 0;
-        display: inline-block;
-    }
-
-    @include mixins.mobile() {
+    .tool-button {
         margin: 0 variables.$spacing-small 0 0;
         display: inline;
 
@@ -433,22 +546,9 @@ $toolButtonWidth: variables.$spacing-large;
             }
         }
     }
-}
 
-.color-panel {
-    vertical-align: middle;
-    display: inline-flex;
-
-    @include mixins.large() {
-        border-top: 1px solid #444;
-        margin-top: variables.$spacing-small;
-        padding-top: variables.$spacing-medium - variables.$spacing-xsmall;
-    }
-
-    &__label {
-        margin: variables.$spacing-xxsmall variables.$spacing-small 0 variables.$spacing-xxsmall;
-        @include typography.customFont();
-        color: #FFF;
+    .color-panel {
+        margin-top: variables.$spacing-medium;
     }
 }
 </style>

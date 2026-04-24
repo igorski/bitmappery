@@ -645,6 +645,15 @@ export default {
                 width: 18px;
                 vertical-align: middle;
             }
+
+            @include mixins.mobile() {
+                width: variables.$spacing-xlarge;
+                height: 40px; // ensure we can use touch pointer for interaction
+
+                img {
+                    width: 24px;
+                }
+            }
         }
     }
 
