@@ -95,7 +95,7 @@ export default class LayerRenderer extends ZoomableSprite {
     protected _invertSelection: boolean;
     protected _toolType: ToolTypes;
     protected _orgSourceToStore: HTMLCanvasElement | undefined;
-    protected _pendingPaintState: number | undefined; // ReturnType<typeof setTimeout>;
+    protected _pendingPaintState: ReturnType<typeof setTimeout>;
     protected _pendingEffectsRender: boolean;
     protected _unmaskedBitmap: HTMLCanvasElement | undefined; // a reference to the effected source w/out mask applied
     protected _draggingMask: Point | undefined;
@@ -308,9 +308,9 @@ export default class LayerRenderer extends ZoomableSprite {
 
     paint( optAction: BrushAction = null ): void {
         // most drawing operations operate directly onto a temporary Canvas
-        const usePaintCanvas = this.usePaintCanvas() || ( optAction?.type === "stroke" );
+        const usePaintCanvas = this.usePaintCanvas() || optAction?.type === "stroke";
         
-        if ( !this._pendingPaintState ) {
+        if ( !this._pendingPaintState || ( usePaintCanvas && !this._paintCanvas )) {
             this.preparePendingPaintState( usePaintCanvas );
         }
         const isCloneStamp = this._toolType === ToolTypes.CLONE;
@@ -389,7 +389,8 @@ export default class LayerRenderer extends ZoomableSprite {
      * not delay to history state UI from updating more than necessary.
      */
     preparePendingPaintState( preparePaintCanvas = false ): void {
-        this._orgSourceToStore = cloneCanvas( this.getPaintSource() ); // must be sync (otherwise single click paints lead to race conditions)
+        // nullish coalescing check because in lowMemory mode we have less states saved
+        this._orgSourceToStore = this._orgSourceToStore ?? cloneCanvas( this.getPaintSource() ); // must be sync (otherwise single click paints lead to race conditions)
         this._pixelArt = isPixelArt( this.canvas.getActiveDocument() );
 
         // drawing is handled on a temporary, drawable Canvas
@@ -401,7 +402,7 @@ export default class LayerRenderer extends ZoomableSprite {
     }
 
     debouncePaintStore( timeout: number = 5000 ): void {
-        this._pendingPaintState = window.setTimeout( this.storePaintState.bind( this ), timeout );
+        this._pendingPaintState = setTimeout( this.storePaintState.bind( this ), timeout );
     }
 
     usePaintCanvas(): boolean {
@@ -550,6 +551,7 @@ export default class LayerRenderer extends ZoomableSprite {
             // for any other brush mode state, set the brush application to true (will be applied in handleMove())
             this.storeBrushPointer( x, y );
             this._lastBrushIndex = 1;
+
         } else if ( this._isDragMode ) {
             startLayerDrag( this.getStore(), this.layer, x, y );
             
@@ -581,7 +583,7 @@ export default class LayerRenderer extends ZoomableSprite {
             }
         } else if ( this.isDrawing() ) {
             if ( !this._pressed ) {
-                return this.handleRelease( x, y ); // prevent conflict with document-canvas#handleOutsideMove
+                return this.handleRelease( x, y, event ); // prevent conflict with document-canvas#handleOutsideMove
             }
             // enqueue current pointer position, painting of all enqueued pointers will be deferred
             // to the update()-hook, this prevents multiple renders on each move event
@@ -589,7 +591,7 @@ export default class LayerRenderer extends ZoomableSprite {
         }
     }
 
-    override handleRelease( _x: number, _y: number ): void {
+    override handleRelease( _x: number, _y: number, _event?: Event ): void {
         pauseBlendCaching( this.layerIndex, false );
 
         const { getters } = this.getStore();
