@@ -90,11 +90,11 @@ export const isShapeClosed = ( shape: Shape ): boolean => {
 };
 
 export const sortShape = ( shape: Shape ): Shape => {
-    const uniquePoints = shape.slice(0, -1);
+    const uniquePoints = shape.slice( 0, -1 );
 
     const center = uniquePoints.reduce(( acc, p ) => (
         { x: acc.x + p.x / uniquePoints.length, y: acc.y + p.y / uniquePoints.length }
-    ),{ x: 0, y: 0 });
+    ), { x: 0, y: 0 });
 
     const sorted = uniquePoints.sort(( a, b ) => {
         const angleA = Math.atan2( a.y - center.y, a.x - center.x );
