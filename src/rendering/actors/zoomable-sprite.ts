@@ -22,6 +22,7 @@
  */
 import { sprite } from "zcanvas";
 import type { Rectangle, TransformedDrawBounds, Viewport } from "zcanvas";
+import { isInsideViewport } from "@/utils/renderer-util";
 
 const { min } = Math;
 const HALF    = 0.5;
@@ -69,11 +70,6 @@ class ZoomableSprite extends sprite {
 export default ZoomableSprite;
 
 /* internal methods */
-
-export const isInsideViewport = ({ left, top, width, height }: Rectangle, viewport: Viewport ): boolean => {
-    return ( left + width )  >= viewport.left && left <= viewport.right &&
-           ( top  + height ) >= viewport.top  && top  <= viewport.bottom;
-};
 
 /**
  * If the full zCanvas "document" is represented inside a smaller, pannable viewport
