@@ -33,8 +33,8 @@ import { rotateRectangleToCoordinates, scaleRectangle } from "@/math/rectangle-m
 import { selectByColor } from "@/math/selection-math";
 import { fastRound } from "@/math/unit-math";
 import { zoomIn, zoomOut } from "@/model/actions/canvas-zoom";
-import { invertSelection } from "@/model/actions/selection-invert";
 import { applySelection } from "@/model/actions/selection-apply";
+import { invertSelection } from "@/model/actions/selection-invert";
 import CornerHandle, { HandleTypes } from "@/rendering/actors/corner-handle";
 import LayerRenderer from "@/rendering/actors/layer-renderer";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
