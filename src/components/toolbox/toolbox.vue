@@ -219,6 +219,15 @@ export default {
                         },
                     ],
                 }, {
+                    name: "text",
+                    tools: [
+                        {
+                            type: ToolTypes.TEXT,
+                            i18n: "text", icon: "text", key: "T",
+                            disabled: !this.activeDocument, hasOptions: true
+                        },
+                    ],
+                }, {
                     name: "transform",
                     tools: [
                         {
@@ -235,15 +244,6 @@ export default {
                             type: ToolTypes.ROTATE,
                             i18n: "rotateLayer", icon: "rotate", key: "R",
                             disabled: !this.activeLayer, hasOptions: true,
-                        },
-                    ],
-                }, {
-                    name: "text",
-                    tools: [
-                        {
-                            type: ToolTypes.TEXT,
-                            i18n: "text", icon: "text", key: "T",
-                            disabled: !this.activeDocument, hasOptions: true
                         },
                     ],
                 }, {

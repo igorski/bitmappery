@@ -363,8 +363,8 @@ export default {
         },
         handleLayerClick( layer: IndexedLayer, e?: PointerEvent ): void {
             if ( e?.shiftKey ) {
-                this.selected.first = Math.min( this.selected.first, layer.index );
-                this.selected.last  = Math.max( this.selected.last, layer.index );
+                this.selected.first = Math.min( this.selected.first ?? this.activeLayerIndex, layer.index );
+                this.selected.last  = Math.max( this.selected.last ?? this.activeLayerIndex, layer.index );
                 return;
             } else {
                 this.selected.first = this.selected.last = layer.index;

@@ -109,7 +109,7 @@ class CornerHandle extends sprite
         const localHeight = this._bounds.height;
 
         ctx.lineWidth = 4 / this.canvas.zoomFactor;
-        ctx.fillStyle = "red";
+        ctx.strokeStyle = "#000";
 
         ctx.beginPath();
         
