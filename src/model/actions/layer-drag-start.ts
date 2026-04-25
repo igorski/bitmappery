@@ -54,6 +54,10 @@ export function startLayerDrag( store: Store<BitMapperyState>, layer: Layer, x: 
     const orgSelection = clone( activeDocument.activeSelection );
     const selectionBoundingBox = selectionToRectangle( orgSelection );
 
+    if ( isPointerDrag ) {
+        pointerUp( renderer, x, y );
+    }
+
     copySelection( activeDocument, layer )
         .then( selectionContent => {
             const bitmapWithoutSelection = deleteSelectionContent( activeDocument, layer );
@@ -77,19 +81,18 @@ export function startLayerDrag( store: Store<BitMapperyState>, layer: Layer, x: 
                 renderer?.resetFilterAndRecache();
             };
 
-            const commit = (): void => {
+            const commit = ( maintainDrag = false ): void => {
                 replaceSource( bitmapWithoutSelection );
                 store.commit( "insertLayerAtIndex", { index: insertIndex, layer: newLayer });
                     
                 queueMicrotask(() => {
                     store.commit( "setActiveSelection", [] );
-                    if ( isPointerDrag ) {
-                        pointerUp( renderer, x, y );
+                    if ( isPointerDrag && maintainDrag ) {
                         pointerDown( getRendererForLayer( newLayer ), x, y );
                     }
                 });
             };
-            commit();
+            commit( true );
 
             enqueueState( `startLayerDrag_${layer.id}`, {
                 undo(): void {

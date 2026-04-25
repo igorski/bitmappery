@@ -268,5 +268,24 @@ describe( "layer drag start action", () => {
                 expect( mockPointerUp ).not.toHaveBeenCalled();
             });
         });
+
+        describe( "and redo-ing the action", () => {
+            it( "should not invoke the pointer down event on the recreated Layer", async () => {
+                startLayerDrag( store, layer, 10, 10, true );
+
+                await flushPromises();
+
+                const { undo, redo } = mockEnqueueState.mock.calls[ 0 ][ 1 ];
+
+                undo();
+                vi.resetAllMocks();
+                
+                redo();
+
+                await flushPromises();
+
+                expect( mockPointerDown ).not.toHaveBeenCalled();
+            });
+        });
     });
 });
