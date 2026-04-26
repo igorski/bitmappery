@@ -386,7 +386,7 @@ export default {
         width: 100%;
         height: 100%;
         background-color: rgba(0,0,0,.5);
-        z-index: 400; // below overlays (see _variables.scss)
+        z-index: variables.$z-blind;
     }
 
     .document-container {
@@ -464,6 +464,14 @@ export default {
 
             &.collapsed {
                 height: variables.$menu-height;
+            }
+
+            .tool-options-panel {
+                z-index: 1;
+            }
+
+            .layer-panel {
+                z-index: 2;
             }
         }
         .document-container {

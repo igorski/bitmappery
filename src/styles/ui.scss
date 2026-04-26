@@ -7,7 +7,7 @@
     // mobile first, override in custom inheriting classes
     // what the desktop / tablet views should look like
     position: fixed;
-    z-index: 500;
+    z-index: variables.$z-overlay;
     top: 0;
     left: 0;
     width: 100%;
@@ -228,7 +228,7 @@
                     }
                     .submenu {
                         display: block;
-                        z-index: 2;
+                        z-index: variables.$z-open-menu;
                     }
                 }
 

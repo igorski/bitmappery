@@ -656,7 +656,7 @@ $toggle-width: 50px;
 
     @include mixins.mobile() {
         position: fixed;
-        z-index: 5;
+        z-index: variables.$z-header;
         overflow: hidden;
         width: 100%;
         top: 0;
@@ -665,6 +665,7 @@ $toggle-width: 50px;
         &--opened {
             position: absolute;
             height: 100%;
+            z-index: variables.$z-open-menu;
 
             .menu-list {
                 left: 0;

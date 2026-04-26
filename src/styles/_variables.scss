@@ -17,6 +17,15 @@ $spacing-large: 28px;
 $spacing-xlarge: 32px;
 $spacing-xxlarge: 48px;
 
+/* z-indices */
+
+$z-notifications: 6;
+$z-loader: 5;
+$z-overlay: 4;
+$z-blind: 3;
+$z-open-menu: 2;
+$z-header: 1;
+
 /* document preview variables */
 
 $preview-ideal-width: 1310px;

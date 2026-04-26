@@ -1,6 +1,6 @@
 .tooltip {
   display: block !important;
-  z-index: 10000;
+  z-index: variables.$z-notifications;
 
   .tooltip-inner {
     background: black;

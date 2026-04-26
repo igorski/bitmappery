@@ -74,7 +74,7 @@ $loaderSize: 200px;
     border-radius: 24px;
     border-bottom: #{variables.$spacing-medium - variables.$spacing-xsmall} solid #000;
     transform: scale( 0.33 );
-    z-index: 500;
+    z-index: variables.$z-loader;
 }
 
 .element {
