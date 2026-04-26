@@ -17,7 +17,7 @@ describe( "Vuex editor module", () => {
         [ ToolTypes.ERASER ]: { size: 10, type: BrushTypes.PAINT_BRUSH, opacity: 1, thickness: .5 },
         [ ToolTypes.CLONE ] : { size: 10, type: BrushTypes.PAINT_BRUSH, opacity: 1, thickness: .5, sourceLayerId: TOOL_SRC_MERGED, coords: { x: 10, y: 15 } },
         [ ToolTypes.SELECTION ] : { lockRatio: false, xRatio: 1, yRatio: 1 },
-        [ ToolTypes.FILL ] : { smartFill: true },
+        [ ToolTypes.FILL ] : { smartFill: true, feather: 5, threshold: 0 },
         [ ToolTypes.WAND ] : { threshold: 15, sampleMerged: true },
     };
 

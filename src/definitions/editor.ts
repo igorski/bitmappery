@@ -136,6 +136,8 @@ export type SelectionToolOptions = {
 
 export type FillToolOptions = {
     smartFill: boolean;
+    feather: number;
+    threshold: number;
 };
 
 export type WandToolOptions = {

@@ -355,9 +355,10 @@ export default class LayerRenderer extends ZoomableSprite {
             if ( this.toolOptions.smartFill ) {
                 // we need to translate pointer offset to match the relative, untransformed source layer content
                 const point = rotatePointer( this._pointer, this.layer, width, height );
-                floodFill( ctx, point.x, point.y, color );
+                const { fillOptions } = this.getStore().getters;
+                floodFill( ctx, point.x, point.y, color, fillOptions.feather, fillOptions.threshold );
             } else {
-                ctx.fillStyle = this.getStore().getters.activeColor;
+                ctx.fillStyle = color;
                 if ( selection ) {
                     ctx.fill();
                 } else {

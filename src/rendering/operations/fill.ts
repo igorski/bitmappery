@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2022-2023 - https://www.igorski.nl
+ * Igor Zinken 2022-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -35,10 +35,12 @@ const TWO_PI = Math.PI * 2;
  * @param {Number} sourceY y-coordinate of the fill origin
  * @param {String} fillColor RGBA String value for the fill color
  * @param {Number=} feather optional amount of pixels at edges to fill (less aliased result)
+ * @param {Number=} threshold optional threshold to apply to the color selection
  */
-export const floodFill = ( ctx: CanvasRenderingContext2D, sourceX: number, sourceY: number,
-    fillColor: string, feather = 5 ): void => {
-    const path = selectByColor( ctx.canvas, sourceX, sourceY );
+export const floodFill = (
+    ctx: CanvasRenderingContext2D, sourceX: number, sourceY: number, fillColor: string, feather = 5, threshold = 0,
+): void => {
+    const path = selectByColor( ctx.canvas, sourceX, sourceY, threshold );
 
     ctx.strokeStyle = fillColor;
     ctx.fillStyle   = fillColor;
