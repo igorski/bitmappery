@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2019-2022 - https://www.igorski.nl
+ * Igor Zinken 2019-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -26,15 +26,21 @@
             :options="options"
             :searchable="searchable"
             :disabled="disabled"
+            :calculate-position="withPopper"
             :clearable="false"
             v-model="internalValue"
             class="select"
             append-to-body
-        />
+        >
+            <template #option="{ value }">
+                <slot name="option" :value="value"/>
+            </template>
+        </vue-select>
     </div>
 </template>
 
-<script>
+<script lang="ts">
+import { createPopper } from '@popperjs/core'
 import VueSelect from "vue-select";
 import "vue-select/dist/vue-select.css";
 
@@ -63,14 +69,40 @@ export default {
     },
     computed: {
         internalValue: {
-            get() {
+            get(): string | number {
                 return this.options.find(({ value }) => value === this.modelValue );
             },
-            set({ value }) {
+            set({ value }: { value: string | number }): void {
                 this.$emit( "update:modelValue", value );
             }
         },
-    }
+    },
+    methods: {
+        withPopper( dropdownList, component, { width }): () => void {
+            dropdownList.style.width = width;
+
+            const popper = createPopper( component.$refs.toggle, dropdownList, {
+                placement: "bottom",
+                modifiers: [{
+                    name: "offset",
+                    options: {
+                       offset: [ 0, -1 ],
+                    },
+                },
+                {
+                    name: "toggleClass",
+                    enabled: true,
+                    phase: "write",
+                    fn({ state }) {
+                        component.$el.classList.toggle( "drop-up", state.placement === "top" );
+                    },
+                }],
+            });
+            return (): void => {
+                popper.destroy();
+            }
+        },
+    },
 };
 </script>
 
