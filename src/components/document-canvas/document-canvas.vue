@@ -299,7 +299,7 @@ export default {
         },
     },
     async mounted(): Promise<void> {
-        this.detectTouch();
+        this.detectTouch(); // see touch-decorator mixin
         await this.$nextTick();
         this.cacheContainerSize();
         this.scaleWrapper();

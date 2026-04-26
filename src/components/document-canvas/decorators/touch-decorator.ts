@@ -1,5 +1,5 @@
 import type { GestureEvent, Pan, Pinch, PointerListener, Tap, TwoFingerPan } from "contactjs";
-import { mapGetters, mapMutations } from "vuex";
+// import { mapGetters, mapMutations } from "vuex";
 import ToolTypes, { MAX_ZOOM } from "@/definitions/tool-types";
 import { scale } from "@/math/unit-math";
 import { getCanvasInstance } from "@/services/canvas-service";
@@ -15,16 +15,19 @@ let Contact: {
 };
 
 export default {
+    /*
     computed: {
         ...mapGetters([
             "activeLayerIndex",
-            "zoomOptions",
         ]),
     },
+    */
     methods: {
+        /*
         ...mapMutations([
             "updateLayerTransform",
         ]),
+        */
         detectTouch(): void {
             this.usesTouch = false;
             const handler = () => {
