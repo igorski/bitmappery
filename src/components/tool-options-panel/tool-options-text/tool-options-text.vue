@@ -38,18 +38,17 @@
         </div>
         <div class="wrapper wrapper--select">
             <label v-t="'font'"></label>
-            <vue-select
+            <select-box
                 v-model="font"
                 :options="fonts"
                 :searchable="canSearchFonts"
                 :disabled="disabled"
-                append-to-body
                 class="font-selector"
             >
                 <template #option="{ value }">
                     <font-preview :font="value" />
                 </template>
-            </vue-select>
+            </select-box>
         </div>
         <div class="wrapper wrapper--select">
             <label v-t="'size'"></label>
@@ -103,7 +102,6 @@
 <script lang="ts">
 import { defineAsyncComponent, type IAsyncComponent } from "vue";
 import { mapGetters, mapMutations } from "vuex";
-import VueSelect from "vue-select";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
 import type { Layer } from "@/model/types/layer";
@@ -125,7 +123,6 @@ export default {
     components: {
         FontPreview,
         Slider,
-        VueSelect,
         SelectBox,
     },
     data: () => ({
@@ -228,7 +225,7 @@ export default {
             get(): string {
                 return this.activeLayer?.text?.font;
             },
-            set({ value }: { value: string }): void {
+            set( value: string ): void {
                 this.update({ font: value }, "font" );
             }
         }
