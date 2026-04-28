@@ -29,7 +29,7 @@ import { BlendModes } from "@/definitions/blend-modes";
 import type { Document } from "@/model/types/document";
 import type { Layer } from "@/model/types/layer";
 import type { Selection } from "@/model/types/selection";
-import type { CanvasContextPairing, CanvasDrawable, Brush, BrushToolOptions, BrushAction } from "@/definitions/editor";
+import type { Brush, BrushAction, BrushToolOptions, CanvasContextPairing, CanvasDrawable, PaintProps } from "@/definitions/editor";
 import { isPixelArt } from "@/definitions/editor-properties";
 import { LayerTypes } from "@/definitions/layer-types";
 import ToolTypes, { canDragMask, TOOL_SRC_MERGED } from "@/definitions/tool-types";
@@ -87,15 +87,13 @@ export default class LayerRenderer extends ZoomableSprite {
     protected _pointer: Point;
     protected _brush: Brush;
     protected _lastBrushIndex: number;
-    protected _paintCanvas: CanvasContextPairing; // temporary canvas used during drawing
+    protected _paintProps: PaintProps = {};
     protected _isPaintMode: boolean;
     protected _isDragMode: boolean;
     protected _isColorPicker: boolean;
     protected _selection: Selection;
     protected _invertSelection: boolean;
     protected _toolType: ToolTypes;
-    protected _orgSourceToStore: HTMLCanvasElement | undefined;
-    protected _pendingPaintState: ReturnType<typeof setTimeout>;
     protected _pendingEffectsRender: boolean;
     protected _unmaskedBitmap: HTMLCanvasElement | undefined; // a reference to the effected source w/out mask applied
     protected _draggingMask: Point | undefined;
@@ -310,7 +308,7 @@ export default class LayerRenderer extends ZoomableSprite {
         // most drawing operations operate directly onto a temporary Canvas
         const usePaintCanvas = this.usePaintCanvas() || optAction?.type === "stroke";
         
-        if ( !this._pendingPaintState || ( usePaintCanvas && !this._paintCanvas )) {
+        if ( !this._paintProps.pendingSave || ( usePaintCanvas && !this._paintProps.paintCanvas )) {
             this.preparePendingPaintState( usePaintCanvas );
         }
         const isCloneStamp = this._toolType === ToolTypes.CLONE;
@@ -323,18 +321,20 @@ export default class LayerRenderer extends ZoomableSprite {
 
         // if there is an active selection, painting will be constrained within
         let selection: Selection = optAction?.selection || this._selection;
-
+        // selection fill operations should ignore viewport offset (allow filling of out-of-visual-bounds selection)
+        this._paintProps.useViewport = !( usePaintCanvas && isFillMode && !!selection );
+   
         // get the enqueued pointers which are to be rendered in this paint cycle
         const pointers  = isDrawing ? sliceBrushPointers( this._brush ) : undefined;
-        const overrides = createOverrideConfig( this.canvas, pointers );
+        const overrides = createOverrideConfig( this.canvas, this._paintProps, pointers );
         
-        const doSaveRestore  = !!selection; // selections will apply context clipping which needs to be restored
+        const restoreContext = !!selection; // selections will apply context clipping which needs to be restored
 
         if ( usePaintCanvas ) {
-            ({ ctx } = this._paintCanvas );
+            ({ ctx } = this._paintProps.paintCanvas );
             if ( selection ) {
                 ctx.save();
-                // note no offset is required when drawing on the full-size _paintCanvas
+                // note no offset is required when drawing on the full-size paintCanvas
                 clipContextToSelection( ctx, selection, 0, 0, this._invertSelection, overrides );
             }
         } else if ( selection ) {
@@ -345,7 +345,7 @@ export default class LayerRenderer extends ZoomableSprite {
         if ( optAction ) {
             if ( optAction.type === "stroke" ) {
                 ctx.strokeStyle = optAction.color;
-                ctx.lineWidth   = ( optAction.size ?? 1 ) / this.canvas.documentScale;
+                ctx.lineWidth = ( optAction.size ?? 1 );// / this.canvas.zoomFactor;//documentScale;
                 ctx.stroke();
             }
             this.handleRelease( 0, 0 ); // supplied outside actions are instantly completed actions
@@ -373,7 +373,7 @@ export default class LayerRenderer extends ZoomableSprite {
             }
         }
         
-        if ( doSaveRestore ) {
+        if ( restoreContext ) {
             ctx.restore();
         }
 
@@ -391,19 +391,19 @@ export default class LayerRenderer extends ZoomableSprite {
      */
     preparePendingPaintState( preparePaintCanvas = false ): void {
         // nullish coalescing check because in lowMemory mode we have less states saved
-        this._orgSourceToStore = this._orgSourceToStore ?? cloneCanvas( this.getPaintSource() ); // must be sync (otherwise single click paints lead to race conditions)
+        this._paintProps.orgSource ??= cloneCanvas( this.getPaintSource() ); // must be sync (otherwise single click paints lead to race conditions)
         this._pixelArt = isPixelArt( this.canvas.getActiveDocument() );
 
         // drawing is handled on a temporary, drawable Canvas
         if ( preparePaintCanvas ) {
-            this._paintCanvas = this._paintCanvas || getDrawableCanvas( this.getPaintSize() );
-            setSmoothing( this._paintCanvas.cvs, this._pixelArt );
+            this._paintProps.paintCanvas ??= getDrawableCanvas( this.getPaintSize() );
+            setSmoothing( this._paintProps.paintCanvas.cvs, this._pixelArt );
         }
         this.debouncePaintStore();
     }
 
     debouncePaintStore( timeout: number = 5000 ): void {
-        this._pendingPaintState = setTimeout( this.storePaintState.bind( this ), timeout );
+        this._paintProps.pendingSave = setTimeout( this.storePaintState.bind( this ), timeout );
     }
 
     usePaintCanvas(): boolean {
@@ -414,7 +414,7 @@ export default class LayerRenderer extends ZoomableSprite {
     }
     
     isPainting(): boolean {
-        return !!this._paintCanvas; // while instance is declared, some painting operation is taking place
+        return !!this._paintProps.paintCanvas; // while instance is declared, some painting operation is taking place
     }
 
     getPaintSource(): HTMLCanvasElement {
@@ -435,19 +435,19 @@ export default class LayerRenderer extends ZoomableSprite {
     }
 
     async storePaintState(): Promise<boolean> {
-        if ( !this._pendingPaintState ) {
+        if ( !this._paintProps.pendingSave ) {
             return true;
         }
-        window.clearTimeout( this._pendingPaintState );
+        window.clearTimeout( this._paintProps.pendingSave );
         if ( this.isDrawing() ) {
             // still drawing, debounce again (layer.source only updated on handleRelease())
             this.debouncePaintStore( 1000 );
             return false;
         }
-        this._pendingPaintState = undefined;
+        this._paintProps.pendingSave = undefined;
 
-        const original = this._orgSourceToStore; // grab reference to avoid race conditions while creating Blobs during continued painting
-        this._orgSourceToStore = undefined;
+        const original = this._paintProps.orgSource; // grab reference to avoid race conditions while creating Blobs during continued painting
+        this._paintProps.orgSource = undefined;
 
         const newBlob  = await canvasToBlob( this.getPaintSource() );
         const newState = blobToResource( newBlob );
@@ -600,14 +600,14 @@ export default class LayerRenderer extends ZoomableSprite {
         if ( this.isPainting() ) {
             // commit the drawable canvas content onto the destination source
             renderDrawableCanvas(
-                this.getPaintSource().getContext( "2d" ), this.getPaintSize(), this.canvas, this._brush.options.opacity,
+                this._paintProps, this.getPaintSource().getContext( "2d" ), this.getPaintSize(), this.canvas, this._brush.options.opacity,
                 this._toolType === ToolTypes.ERASER ? "destination-out" : undefined, this.layer, this._pixelArt,
             );
             disposeMaskComposite();
             disposeDrawableCanvas();
             this.resetFilterAndRecache();
 
-            this._paintCanvas = null;
+            this._paintProps.paintCanvas = null;
             this._brush.down  = false;
             this._brush.last  = 0;
             this._brush.pointers.length = 0;
@@ -736,7 +736,7 @@ export default class LayerRenderer extends ZoomableSprite {
             if ( isErasing ) {
                 const maskedSource = cloneCanvas( isDrawingOnMask ? this._unmaskedBitmap : this._bitmap as HTMLCanvasElement );
                 renderDrawableCanvas(
-                    maskedSource.getContext( "2d" )!, this.getPaintSize(), this.canvas,
+                    this._paintProps, maskedSource.getContext( "2d" )!, this.getPaintSize(), this.canvas,
                     this._brush.options.opacity, "destination-out", this.layer, this._pixelArt,
                 );
                 if ( isDrawingOnMask ) {
@@ -763,7 +763,7 @@ export default class LayerRenderer extends ZoomableSprite {
                     clipLayer( documentContext, this.layer, this._bounds, viewport, false );
                 }
                 renderDrawableCanvas(
-                    isDrawingOnMask ? drawContext : documentContext, this.getPaintSize(), this.canvas, this._brush.options.opacity,
+                    this._paintProps, isDrawingOnMask ? drawContext : documentContext, this.getPaintSize(), this.canvas, this._brush.options.opacity,
                     this._toolType === ToolTypes.ERASER || isMaskable( this.layer, this.getStore() ) ? "destination-out" : undefined,
                 );
                 if ( isDrawingOnMask ) {
