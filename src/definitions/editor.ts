@@ -100,6 +100,13 @@ export type BrushAction = {
     selection: Selection;
 };
 
+export type PaintProps = {
+    paintCanvas?: CanvasContextPairing; // temporary canvas used during drawing
+    useViewport?: boolean; // whether to consider Viewport coordinates when applying paint canvas onto source
+    orgSource?: HTMLCanvasElement; // source content before painting started (used for history states)
+    pendingSave?: ReturnType<typeof setTimeout>;
+};
+
 export type ZoomToolOptions = {
     level: number;
 };

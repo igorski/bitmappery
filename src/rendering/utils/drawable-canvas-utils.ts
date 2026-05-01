@@ -22,7 +22,7 @@
  */
 import type { Point, Size } from "zcanvas";
 import type { Layer } from "@/model/types/layer";
-import type { CanvasContextPairing, Brush } from "@/definitions/editor";
+import type { Brush, CanvasContextPairing, PaintProps } from "@/definitions/editor";
 import { reverseTransformation } from "@/rendering/operations/transforming";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import { fastRound } from "@/math/unit-math";
@@ -62,7 +62,7 @@ export const getDrawableCanvas = ( size: Size ): CanvasContextPairing => {
  * effects of the Layer, to be used when committing the effects permanently when drawing has completed.
  */
 export const renderDrawableCanvas = (
-    destinationContext: CanvasRenderingContext2D, destinationSize: Size, zoomableCanvas: ZoomableCanvas,
+    paintProps: PaintProps, destinationContext: CanvasRenderingContext2D, destinationSize: Size, zoomableCanvas: ZoomableCanvas,
     alpha = 1, compositeOperation?: GlobalCompositeOperation, layer?: Layer, roundValues = false,
 ): void => {
     const source = drawableCanvas.cvs;
@@ -83,7 +83,7 @@ export const renderDrawableCanvas = (
         };
         reverseTransformation( destinationContext, layer );
     }
-    const viewport = offset ? zoomableCanvas.getViewport() : undefined;
+    const viewport = paintProps.useViewport && offset ? zoomableCanvas.getViewport() : undefined;
 
     destinationContext.globalAlpha = alpha;
     if ( compositeOperation !== undefined ) {
@@ -127,13 +127,16 @@ export const sliceBrushPointers = ( brush: Brush ): Point[] => {
  * Create override configuration for a render operation, wrapping its source input (e.g. pointers list) with scaling
  * and coordinate space of the drawableCanvas.
  */
-export const createOverrideConfig = ( zoomableCanvas: ZoomableCanvas, pointers: Point[] ): OverrideConfig => ({
-    scale : 1 / zoomableCanvas.documentScale,
-    zoom  : zoomableCanvas.zoomFactor,
-    vpX   : zoomableCanvas.getViewport().left,
-    vpY   : zoomableCanvas.getViewport().top,
-    pointers,
-});
+export const createOverrideConfig = ( zoomableCanvas: ZoomableCanvas, paintProps: PaintProps, pointers: Point[] ): OverrideConfig => {
+    const viewport = paintProps.useViewport ? zoomableCanvas.getViewport() : undefined;
+    return {
+        scale : 1 / zoomableCanvas.documentScale,
+        zoom  : zoomableCanvas.zoomFactor,
+        vpX   : viewport?.left ?? 0,
+        vpY   : viewport?.top ?? 0,
+        pointers,
+    };
+};
 
 /**
  * Apply a override configuration to use given pointers on a drawableCanvas. NOTE: This will mutate the original

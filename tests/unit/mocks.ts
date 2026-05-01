@@ -60,6 +60,8 @@ export function mockZCanvas() {
 export function createMockZoomableCanvas(): ZoomableCanvas {
     const canvas = createMockCanvasElement();
     return {
+        documentScale: 1,
+        zoomFactor: 1,
         draggingSprite: null,
         width: 300,
         height: 200,
@@ -69,7 +71,7 @@ export function createMockZoomableCanvas(): ZoomableCanvas {
         getActiveDocument: vi.fn(),
         getElement: vi.fn().mockReturnValue( canvas ),
         getStore: vi.fn(),
-        getViewport: vi.fn(() => ({ left: 0, top: 0, width: 300, height: 300 })),
+        getViewport: vi.fn().mockReturnValue({ left: 0, top: 0, width: 300, height: 300 }),
         refreshFn: vi.fn(),
         rescaleFn: vi.fn(),
         setDimensions: vi.fn(),
