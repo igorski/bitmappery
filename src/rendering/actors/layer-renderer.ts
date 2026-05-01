@@ -345,7 +345,7 @@ export default class LayerRenderer extends ZoomableSprite {
         if ( optAction ) {
             if ( optAction.type === "stroke" ) {
                 ctx.strokeStyle = optAction.color;
-                ctx.lineWidth = ( optAction.size ?? 1 );// / this.canvas.zoomFactor;//documentScale;
+                ctx.lineWidth = optAction.size ?? 1;
                 ctx.stroke();
             }
             this.handleRelease( 0, 0 ); // supplied outside actions are instantly completed actions
