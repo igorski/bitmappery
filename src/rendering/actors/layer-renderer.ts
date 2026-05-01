@@ -305,24 +305,26 @@ export default class LayerRenderer extends ZoomableSprite {
     // draw onto the source Bitmap (e.g. brushing / fill tool / eraser)
 
     paint( optAction: BrushAction = null ): void {
+        const isCloneStamp = this._toolType === ToolTypes.CLONE;
+        const isFillMode   = this._toolType === ToolTypes.FILL;
+        const isStroking   = optAction?.type === "stroke";
+        const isDrawing    = this.isDrawing();
+
         // most drawing operations operate directly onto a temporary Canvas
-        const usePaintCanvas = this.usePaintCanvas() || optAction?.type === "stroke";
+        const usePaintCanvas = this.usePaintCanvas() || isStroking;
         
         if ( !this._paintProps.pendingSave || ( usePaintCanvas && !this._paintProps.paintCanvas )) {
             this.preparePendingPaintState( usePaintCanvas );
         }
-        const isCloneStamp = this._toolType === ToolTypes.CLONE;
-        const isFillMode   = this._toolType === ToolTypes.FILL;
-        const isDrawing    = this.isDrawing();
-        
+
         // get the drawing context
         let ctx = this.getPaintSource().getContext( "2d" ) as CanvasRenderingContext2D;
         const { width, height } = ctx.canvas;
 
         // if there is an active selection, painting will be constrained within
         let selection: Selection = optAction?.selection || this._selection;
-        // selection fill operations should ignore viewport offset (allow filling of out-of-visual-bounds selection)
-        this._paintProps.useViewport = !( usePaintCanvas && isFillMode && !!selection );
+        // selection fill/stroke operations should ignore viewport offset (allow filling of out-of-visual-bounds selection)
+        this._paintProps.useViewport = !( usePaintCanvas && ( isFillMode || isStroking ) && !!selection );
    
         // get the enqueued pointers which are to be rendered in this paint cycle
         const pointers  = isDrawing ? sliceBrushPointers( this._brush ) : undefined;
@@ -343,7 +345,7 @@ export default class LayerRenderer extends ZoomableSprite {
         }
 
         if ( optAction ) {
-            if ( optAction.type === "stroke" ) {
+            if ( isStroking ) {
                 ctx.strokeStyle = optAction.color;
                 ctx.lineWidth = optAction.size ?? 1;
                 ctx.stroke();
