@@ -9,7 +9,7 @@ WORKDIR /usr/src/app
 COPY --chown=node:node package.json ./
 
 # Install dependencies
-RUN yarn install --frozen-lockfile --production
+RUN yarn install
 
 # Copy the rest of the application code
 COPY --chown=node:node . .
