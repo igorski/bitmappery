@@ -9,7 +9,7 @@ WORKDIR /usr/src/app
 COPY --chown=node:node package.json ./
 
 # Install dependencies
-RUN yarn install
+RUN yarn install --ignore-scripts
 
 # Copy the rest of the application code
 COPY --chown=node:node . .
