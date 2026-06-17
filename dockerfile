@@ -1,9 +1,6 @@
 # Written by Ange Cesari
 # Use official Node.js based on Alpine
-FROM node:20-alpine
-
-# Install Yarn
-RUN apk add --no-cache yarn
+FROM node:24-alpine
 
 # Create dir for application
 WORKDIR /usr/src/app
