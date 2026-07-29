@@ -61,6 +61,10 @@ export const getLastShape = ( selection: Selection ): Shape => {
     return selection[ selection.length - 1 ];
 };
 
+/**
+ * Synchronises an update selection in the store
+ * with any visual layers representing it
+ */
 export const syncSelection = ( store: Store<BitMapperyState> ): void => {
     const { getters } = store;
     if ( getters.activeLayer ) {

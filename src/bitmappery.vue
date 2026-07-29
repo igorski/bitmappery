@@ -90,7 +90,7 @@ import { truncate } from "@/utils/string-util";
 import {
     CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_WINDOW,
     DROPBOX_FILE_SELECTOR, GOOGLE_DRIVE_FILE_SELECTOR, AWS_S3_FILE_SELECTOR,
-    ADD_LAYER, LOAD_SELECTION, SAVE_SELECTION, PREFERENCES, RESIZE_CANVAS,
+    ADD_LAYER, SELECTION_EXPAND, SELECTION_SHRINK, SELECTION_LOAD, SELECTION_SAVE, PREFERENCES, RESIZE_CANVAS,
     GRID_TO_LAYERS, STROKE_SELECTION, ANIMATION_PREVIEW, DOCUMENT_PROPERTIES,
 } from "@/definitions/modal-windows";
 
@@ -175,10 +175,16 @@ export default {
                 case ADD_LAYER:
                     loadFn = () => import( "@/components/new-layer-window/new-layer-window.vue" );
                     break;
-                case LOAD_SELECTION:
+                case SELECTION_EXPAND:
+                    loadFn = () => import( "@/components/selection-menu/expand-selection/expand-selection.vue" );
+                    break;
+                case SELECTION_SHRINK:
+                    loadFn = () => import( "@/components/selection-menu/shrink-selection/shrink-selection.vue" );
+                    break;
+                case SELECTION_LOAD:
                     loadFn = () => import( "@/components/selection-menu/load-selection/load-selection.vue" );
                     break;
-                case SAVE_SELECTION:
+                case SELECTION_SAVE:
                     loadFn = () => import( "@/components/selection-menu/save-selection/save-selection.vue" );
                     break;
                 case PREFERENCES:

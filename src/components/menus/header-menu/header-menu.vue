@@ -282,17 +282,35 @@
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'loadSelection'"
-                                type="button"
-                                :disabled="!hasSavedSelections"
-                                @click="requestSelectionLoad()"
+                        <button
+                            v-t="'expandSelection'"
+                            type="button"
+                            :disabled="!hasSelection"
+                            @click="requestSelectionExpand()"
                         ></button>
                     </li>
                     <li>
-                        <button v-t="'saveSelection'"
-                                type="button"
-                                :disabled="!hasSelection"
-                                @click="requestSelectionSave()"
+                        <button
+                            v-t="'shrinkSelection'"
+                            type="button"
+                            :disabled="!hasSelection"
+                            @click="requestSelectionShrink()"
+                        ></button>
+                    </li>
+                    <li>
+                        <button
+                            v-t="'loadSelection'"
+                            type="button"
+                            :disabled="!hasSavedSelections"
+                            @click="requestSelectionLoad()"
+                        ></button>
+                    </li>
+                    <li>
+                        <button
+                            v-t="'saveSelection'"
+                            type="button"
+                            :disabled="!hasSelection"
+                            @click="requestSelectionSave()"
                         ></button>
                     </li>
                 </ul>
@@ -399,7 +417,8 @@ import { defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { isPixelArt } from "@/definitions/editor-properties";
 import {
-    CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_WINDOW, LOAD_SELECTION, SAVE_SELECTION,
+    CREATE_DOCUMENT, RESIZE_DOCUMENT, SAVE_DOCUMENT, EXPORT_WINDOW,
+    SELECTION_EXPAND, SELECTION_SHRINK, SELECTION_LOAD, SELECTION_SAVE,
     PREFERENCES, RESIZE_CANVAS, GRID_TO_LAYERS, STROKE_SELECTION, DOCUMENT_PROPERTIES,
 } from "@/definitions/modal-windows";
 import CloudServiceConnector from "@/mixins/cloud-service-connector";
@@ -581,14 +600,20 @@ export default {
         requestDocumentExport(): void {
             this.openModal( SAVE_DOCUMENT );
         },
+        requestSelectionExpand(): void {
+            this.openModal( SELECTION_EXPAND );
+        },
+        requestSelectionShrink(): void {
+            this.openModal( SELECTION_SHRINK );
+        },
         requestSelectionLoad(): void {
-            this.openModal( LOAD_SELECTION );
+            this.openModal( SELECTION_LOAD );
         },
         deleteInSelection(): void {
             deleteSelection( this.$store );
         },
         requestSelectionSave(): void {
-            this.openModal( SAVE_SELECTION );
+            this.openModal( SELECTION_SAVE );
         },
         openPreferences(): void {
             this.openModal( PREFERENCES );

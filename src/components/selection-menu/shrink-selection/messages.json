@@ -1,0 +1,9 @@
+{
+    "en-US": {
+        "shrinkSelection": "Shrink selection",
+        "shrinkBy": "Shrink by",
+        "shrinkTooltip": "Provided value is in pixels",
+        "save": "Save",
+        "cancel": "Cancel"
+    }
+}

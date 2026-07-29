@@ -49,16 +49,16 @@ describe( "Shape utilities", () => {
 
     it( "should be able to scale a Shape by given factor", () => {
         const shape = [
-            { x: 100, y: 150 },
-            { x: 50,  y: 899 },
+            { x: 50,  y: 50 },
+            { x: 100, y: 50 },
+            { x: 100, y: 100 },
             { x: 50,  y: 100 },
-            { x: 101, y: 100 }
         ];
         expect( scaleShape( shape, 2 )).toEqual([
-            { x: 200, y: 300 },
-            { x: 100, y: 1798 },
-            { x: 100, y: 200 },
-            { x: 202, y: 200 }
+            { x: 25,  y: 25 },
+            { x: 125, y: 25 },
+            { x: 125, y: 125 },
+            { x: 25,  y: 125 },
         ]);
     });
 

@@ -60,7 +60,25 @@ export const rectangleToShape = ( width: number, height: number, x = 0, y = 0 ):
 ];
 
 export const scaleShape = ( shape: Shape, scale: number ): Shape => {
-    return shape.map(( point: Point ) => ({ x: point.x * scale, y: point.y * scale }));
+    const { length } = shape;
+    if ( length === 0 ) {
+        return [];
+    }
+    let sumX = 0;
+    let sumY = 0;
+
+    for ( const point of shape ) {
+        sumX += point.x;
+        sumY += point.y;
+    }
+
+    const cx = sumX / length;
+    const cy = sumY / length;
+
+    return shape.map(( point: Point ) => ({
+        x: cx + ( point.x - cx ) * scale,
+        y: cy + ( point.y - cy ) * scale
+    }));
 };
 
 export const roundShape = ( shape: Shape ): Shape => {

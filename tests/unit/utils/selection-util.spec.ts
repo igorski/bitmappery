@@ -66,17 +66,17 @@ describe( "Selection utilities", () => {
     });
 
     it( "should be able to scale the Shapes inside a selection", () => {
-        expect( scaleSelection( selection, 1.5 )).toEqual([
+        expect( scaleSelection( selection, 2 )).toEqual([
             [
-                { x: 15, y: 7.5 },
-                { x: 75, y: 7.5 },
-                { x: 75, y: 82.5 },
-                { x: 15, y: 82.5 }
+                { x: -10, y: -20 },
+                { x: 70,  y: -20 },
+                { x: 70,  y: 80 },
+                { x: -10, y: 80 }
             ], [
-                { x: 37.5,  y: 37.5 },
-                { x: 112.5, y: 37.5 },
-                { x: 112.5, y: 112.5 },
-                { x: 37.5,  y: 112.5 }
+                { x: 0,   y: 0 },
+                { x: 100, y: 0 },
+                { x: 100, y: 100 },
+                { x: 0,   y: 100 }
             ]
         ]);
     });
@@ -89,11 +89,11 @@ describe( "Selection utilities", () => {
         const store = createStore();
         // @ts-expect-error getters is readonly
         store.getters = {
-            activeDocument: DocumentFactory.create({
-                activeSelection: createMockSelection(),
-            }),
+            activeDocument: DocumentFactory.create(),
             activeLayer: LayerFactory.create(),
         };
+        store.getters.activeDocument.activeSelection = createMockSelection();
+        
         const renderer = createRendererForLayer( createMockZoomableCanvas(), store.getters.activeLayer, true );
         const setSelectionSpy = vi.spyOn( renderer, "setSelection" );
 

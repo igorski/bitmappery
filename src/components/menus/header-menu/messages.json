@@ -33,6 +33,8 @@
         "selectAllTooltip": "(alt + A)",
         "invertSelection": "Invert selection",
         "invertSelectionTooltip": "(shift + alt + I)",
+        "expandSelection": "Expand selection",
+        "shrinkSelection": "Shrink selection",
         "loadSelection": "Load selection",
         "saveSelection": "Save selection",
         "copy": "Copy",

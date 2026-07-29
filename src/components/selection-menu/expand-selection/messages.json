@@ -1,0 +1,9 @@
+{
+    "en-US": {
+        "expandSelection": "Expand selection",
+        "expandBy": "Expand by",
+        "expandTooltip": "Provided value is in pixels",
+        "save": "Save",
+        "cancel": "Cancel"
+    }
+}
