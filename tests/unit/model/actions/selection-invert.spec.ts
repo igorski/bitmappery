@@ -29,15 +29,14 @@ vi.mock( "@/utils/selection-util", () => ({
 }));
 
 describe( "Selection invert action", () => {
-    let document: Document;
+    let activeDocument: Document;
     let store: Store<BitMapperyState>;
     
     beforeEach(() => {
         store = createStore();
-        document = DocumentFactory.create({
-            activeSelection: createMockSelection(),
-            invertSelection: false,
-        });
+        activeDocument = DocumentFactory.create();
+        activeDocument.activeSelection = createMockSelection(),
+        activeDocument.invertSelection = false;
     });
 
     afterEach(() => {
@@ -45,15 +44,15 @@ describe( "Selection invert action", () => {
     });
 
     it( "should be able to invert the Selection", () => {
-        invertSelection( store, document );
+        invertSelection( store, activeDocument );
 
-        expect( document.invertSelection ).toBe( true );
+        expect( activeDocument.invertSelection ).toBe( true );
         expect( mockSyncSelection ).toHaveBeenCalledOnce();
         expect( mockInteractionPaneInvalidate ).toHaveBeenCalledOnce();
     });
 
     it( "should store the action in state history", () => {
-        invertSelection( store, document );
+        invertSelection( store, activeDocument );
 
         expect( mockEnqueueState ).toHaveBeenCalledWith( 
             `invert`, {
@@ -64,24 +63,24 @@ describe( "Selection invert action", () => {
     });
 
     it( "should revert the inverted Selection when calling undo in state history", () => {
-        invertSelection( store, document );
+        invertSelection( store, activeDocument );
 
         const { undo } = mockEnqueueState.mock.calls[ 0 ][ 1 ];
         undo();
 
-        expect( document.invertSelection ).toBe( false );
+        expect( activeDocument.invertSelection ).toBe( false );
         expect( mockSyncSelection ).toHaveBeenCalledTimes( 2 );
         expect( mockInteractionPaneInvalidate ).toHaveBeenCalledTimes( 2 );
     });
 
     it( "should re-invert the Selection when calling redo in state history", () => {
-        invertSelection( store, document );
+        invertSelection( store, activeDocument );
 
         const { undo, redo } = mockEnqueueState.mock.calls[ 0 ][ 1 ];
         undo();
         redo();
 
-        expect( document.invertSelection ).toBe( true );
+        expect( activeDocument.invertSelection ).toBe( true );
         expect( mockSyncSelection ).toHaveBeenCalledTimes( 3 );
         expect( mockInteractionPaneInvalidate ).toHaveBeenCalledTimes( 3 );
     });

@@ -28,7 +28,7 @@ import { compress, decompress } from "@/services/compression-service";
 
 let UID_COUNTER = 0;
 
-type DocumentProps = Partial<Document>;
+type DocumentProps = Partial<Omit<Document, "activeSelection" | "invertSelection" | "groups">>;
 
 const DocumentFactory = {
     /**

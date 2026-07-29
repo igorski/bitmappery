@@ -30,15 +30,15 @@ vi.mock( "@/utils/selection-util", () => ({
 
 describe( "Selection apply action", () => {
     const previousSelection = [ createMockShape(), createMockShape() ];
-    let document: Document;
+    let activeDocument: Document;
     let store: Store<BitMapperyState>;
     
     beforeEach(() => {
         store = createStore();
-        document = DocumentFactory.create({
+        activeDocument = DocumentFactory.create({
             name: "foo",
-            activeSelection: createMockSelection(),
         });
+        activeDocument.activeSelection = createMockSelection();
     });
 
     afterEach(() => {
@@ -46,14 +46,14 @@ describe( "Selection apply action", () => {
     });
 
     it( "should not apply an update to the Interaction Pane selection (as the invocation site in interaction-pane takes care of it)", () => {
-        applySelection( store, document, previousSelection );
+        applySelection( store, activeDocument, previousSelection );
 
         expect( mockInteractionPaneSetSelection ).not.toHaveBeenCalled();
         expect( mockSyncSelection ).not.toHaveBeenCalled();
     });
 
     it( "should store the action in state history", () => {
-        applySelection( store, document, previousSelection, "Type" );
+        applySelection( store, activeDocument, previousSelection, "Type" );
 
         expect( mockEnqueueState ).toHaveBeenCalledWith( 
             `selection_fooType`, {
@@ -64,7 +64,7 @@ describe( "Selection apply action", () => {
     });
 
     it( "should revert to the provided previous Selection when calling undo in state history", () => {
-        applySelection( store, document, previousSelection );
+        applySelection( store, activeDocument, previousSelection );
 
         const { undo } = mockEnqueueState.mock.calls[ 0 ][ 1 ];
         undo();
@@ -74,7 +74,7 @@ describe( "Selection apply action", () => {
     });
 
     it( "should re-apply the Document Selection when calling redo in state history", () => {
-        applySelection( store, document, previousSelection );
+        applySelection( store, activeDocument, previousSelection );
 
         const { undo, redo } = mockEnqueueState.mock.calls[ 0 ][ 1 ];
         undo();
@@ -82,7 +82,7 @@ describe( "Selection apply action", () => {
 
         expect( mockInteractionPaneSetSelection ).toHaveBeenCalledTimes( 2 );
         expect( mockInteractionPaneSetSelection ).toHaveBeenNthCalledWith( 1, previousSelection );
-        expect( mockInteractionPaneSetSelection ).toHaveBeenNthCalledWith( 2, document.activeSelection );
+        expect( mockInteractionPaneSetSelection ).toHaveBeenNthCalledWith( 2, activeDocument.activeSelection );
         expect( mockSyncSelection ).toHaveBeenCalledTimes( 1 );
     });
 });

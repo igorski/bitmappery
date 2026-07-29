@@ -132,7 +132,7 @@ describe( "Vuex document module", () => {
         });
 
         it( "should know whether the current Document has an active selection", () => {
-            const mockedGetters = { activeDocument: DocumentFactory.create({ activeSelection: [] }) };
+            const mockedGetters = { activeDocument: DocumentFactory.create() };
             expect( getters.hasSelection( createDocumentState(), mockedGetters, {}, {} )).toBe( false );
 
             mockedGetters.activeDocument.activeSelection = [ [] ];
@@ -265,8 +265,8 @@ describe( "Vuex document module", () => {
 
             const state = createDocumentState({
                 documents: [
-                    DocumentFactory.create({ name: "foo", activeSelection: [] }),
-                    DocumentFactory.create({ name: "bar", activeSelection: [] })
+                    DocumentFactory.create({ name: "foo" }),
+                    DocumentFactory.create({ name: "bar" })
                 ],
                 activeIndex: 1
             });
