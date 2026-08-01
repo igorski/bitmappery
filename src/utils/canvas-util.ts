@@ -230,6 +230,15 @@ export const isInsideTransparentArea = ( source: HTMLCanvasElement, x: number, y
     return true;
 };
 
+export const hasTransparentContent = ( data: Uint8Array ): boolean => {
+    for ( let i = 3, l = data.length; i < l; i += 4 ) {
+        if ( data[ i ] < 255 ) {
+            return true;
+        }
+    }
+    return false;
+};
+
 export const cloneCanvas = ( canvasToClone: HTMLCanvasElement ): HTMLCanvasElement => {
     const { cvs, ctx } = createCanvas( canvasToClone.width, canvasToClone.height );
     ctx.drawImage( canvasToClone, 0, 0 );

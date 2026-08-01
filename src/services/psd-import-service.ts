@@ -34,9 +34,19 @@ import FiltersFactory from "@/model/factories/filters-factory";
 import LayerFactory, { type LayerProps } from "@/model/factories/layer-factory";
 import type { TextProps } from "@/model/factories/text-factory";
 import { inverseMask } from "@/rendering/operations/compositing";
-import { createCanvas, base64toCanvas } from "@/utils/canvas-util";
+import { base64toCanvas, createCanvas, hasTransparentContent } from "@/utils/canvas-util";
 import { RGBAtoHex } from "@/utils/color-util";
 import { SmartExecutor } from "@/utils/debounce-util";
+
+type PSDImage = {
+    channelsInfo: { id: number, length: number }[];
+    hasMask: boolean;
+    pixelData: Uint8Array;
+    width: () => number;
+    height: () => number;
+    toBase64: () => string;
+    toPng: () => HTMLImageElement;
+};
 
 type PSDLayer = Rectangle & {
     mask: Rectangle;
@@ -46,10 +56,7 @@ type PSDLayer = Rectangle & {
         blendKey: string;
     },
     image: {
-        hasMask: boolean;
-        width: () => number;
-        height: () => number;
-        toBase64: () => string;
+        obj: PSDImage;
         maskData: {
             buffer: ArrayBuffer;
         }
@@ -77,10 +84,10 @@ type PSDTextData = {
 
 type PSD = {
     tree: () => Size & PSDNode;
-    image: {
-        toPng: () => HTMLImageElement;
-    },
+    image: PSDImage;
 };
+
+const TRANSPARENCY_FLAG = -1;
 
 export const importPSD = async ( psdFileReference: File ): Promise<Document> => {
     try {
@@ -133,7 +140,8 @@ async function psdToBitMapperyDocument( smartExec: SmartExecutor, psd: any, psdF
         name: "[MERGED]",
         width,
         height,
-        source: psd.image.toPng()
+        source: psd.image.toPng(),
+        transparent: isTransparentImage( psd.image ),
     }));
 
     return DocumentFactory.create({
@@ -174,7 +182,7 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
 
     // determine whether layer uses masking
 
-    if ( layer.image.hasMask && layer.mask.width ) {
+    if ( layer.image.obj.hasMask && layer.mask.width ) {
         // note that we position the mask at the 0, 0 coordinate relative to the layer, whereas Photoshop
         // positions the mask relative to the document
         const { cvs, ctx } = createCanvas( layer.mask.width, layer.mask.height );
@@ -191,7 +199,7 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
     // retrieve layer contents
 
     const isText = typeof layer.typeTool === "function";
-    const imageSource = layer.image ? await base64toCanvas( layer.image.toBase64(), layer.image.width(), layer.image.height() ) : null;
+    const imageSource = layer.image ? await base64toCanvas( layer.image.obj.toBase64(), layer.image.obj.width(), layer.image.obj.height() ) : null;
 
     if ( isText ) {
         const textData = layer.typeTool!();
@@ -215,10 +223,18 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
         } as TextProps;
     } else {
         layerProps.source = imageSource;
+        layerProps.transparent = isTransparentImage( layer.image.obj );
     }
     layers.push( createLayer( layerProps ));
 }
 
+function isTransparentImage( image: PSDImage ): boolean {
+    const hasChannelFlag = image.channelsInfo.find(({ id }) => id === TRANSPARENCY_FLAG ) !== undefined;
+    if ( hasChannelFlag ) {
+        return true; // trust the flag (saves expensive content lookup)
+    }
+    return hasTransparentContent( image.pixelData );
+}
 
 function convertBlendMode( blendKey: string ): BlendModes {
     switch ( blendKey ) {
