@@ -25,9 +25,11 @@ import cloneDeep from "lodash.clonedeep";
 import { type Store } from "vuex";
 import { type Rectangle } from "zcanvas";
 import { BlendModes } from "@/definitions/blend-modes";
+import { type Document } from "@/model/types/document";
 import { type Layer } from "@/model/types/layer";
 import { LayerTypes } from "@/definitions/layer-types";
-import LayerFactory from "@/model/factories/layer-factory";
+import { scaleRectangle } from "@/math/rectangle-math";
+import LayerFactory, { layerToRect } from "@/model/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
 import { cloneCanvas, resizeImage } from "@/utils/canvas-util";
 
@@ -120,6 +122,13 @@ export const isMirrored = ( layer: Layer ): boolean => layer.transform.mirrorX |
 
 export const hasTransform = ( layer: Layer ): boolean => isRotated( layer ) || isScaled( layer ) || isMirrored( layer );
 
+export const isTransparent = ( layer: Layer ): boolean => {
+    if ( layer.transparent ) {
+        return true;
+    }
+    return layer.filters.enabled && layer.filters.opacity < 1;
+};
+
 /**
  * Whether provided layer has a blending filter
  */
@@ -134,4 +143,45 @@ export const isDrawable = ( layer: Layer, store: Store<BitMapperyState> ): boole
 
 export const isMaskable = ( layer: Layer, store: Store<BitMapperyState> ): boolean => {
     return !!layer.mask && store.getters.activeLayerMask === layer.mask;
+};
+
+/**
+ * Whether the provided layer covers the FULL visible area of provided reference object
+ * This assumes provided Layer has a higher visibility index than the object describing the area
+ */
+export const occludesObject = ( layer: Layer, reference: Rectangle ): boolean => {
+    // @todo on rotation, we CAN calculate whether there is occlusion by rotation, though its safe to 
+    // assume that for most cases, a rotated layer will have empty pixels
+    if ( !layer.visible || isTransparent( layer ) || hasBlend( layer ) || isRotated( layer )) {
+        return false;
+    }
+    let bounds = layerToRect( layer );
+    
+    if ( isScaled( layer )) {
+        bounds = scaleRectangle( bounds, layer.transform.scale );
+    }
+    
+    if ( bounds.left > reference.left || bounds.top > reference.top ) {
+        return false;
+    }
+    const right  = bounds.left + bounds.width;
+    const bottom = bounds.top + bounds.height;
+
+    const compareRight  = reference.left + reference.width;
+    const compareBottom = reference.top + reference.height;
+
+    return right >= compareRight && bottom >= compareBottom;
+};
+
+export const isOccluded = ( layer: Layer, activeDocument: Document ): boolean => {
+    const layerIndex = activeDocument.layers.indexOf( layer );
+    const scaledBounds = scaleRectangle( layer, layer.transform.scale );
+
+    for ( let i = activeDocument.layers.length - 1; i > layerIndex; --i ) {
+        if ( occludesObject( activeDocument.layers[ i ], scaledBounds )) {
+            // console.info( `${layer.name} is occluded by ${activeDocument.layers[ i ].name}` );
+            return true;
+        }
+    }
+    return false;
 };

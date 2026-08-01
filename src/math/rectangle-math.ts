@@ -107,6 +107,9 @@ export const rotateRectangleToCoordinates = ( rect: Rectangle, angleInRadians: n
 };
 
 export const scaleRectangle = ({ left, top, width, height }: Rectangle, scale = 1, rounded = false ): Rectangle => {
+    if ( scale === 1 && !rounded ) {
+        return { left, top, width, height };
+    }
     const scaledWidth  = width  * scale;
     const scaledHeight = height * scale;
     const out = {
