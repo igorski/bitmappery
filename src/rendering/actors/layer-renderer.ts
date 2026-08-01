@@ -25,7 +25,6 @@ import type { Point, Rectangle, Size } from "zcanvas";
 import type ZoomableCanvas from "./zoomable-canvas";
 import ZoomableSprite from "./zoomable-sprite";
 import type { Viewport, TransformedDrawBounds } from "zcanvas";
-import { BlendModes } from "@/definitions/blend-modes";
 import type { Document } from "@/model/types/document";
 import type { Layer } from "@/model/types/layer";
 import type { Selection } from "@/model/types/selection";
@@ -47,7 +46,10 @@ import { snapToGuide } from "@/rendering/operations/snapping";
 import { applyTransformation } from "@/rendering/operations/transforming";
 import { flushLayerCache, clearCacheProperty } from "@/rendering/cache/bitmap-cache";
 import { createLayerThumbnail } from "@/rendering/cache/thumbnail-cache";
-import { cacheBlendedLayer, flushBlendedLayerCache, getBlendCache, getBlendableLayers, isBlendCached, pauseBlendCaching, useBlendCaching } from "@/rendering/cache/blended-layer-cache";
+import {
+    cacheBlendedLayer, flushBlendedLayerCache,
+    getBlendCache, getBlendableLayers, isBlendCached, pauseBlendCaching, useBlendCaching
+} from "@/rendering/cache/blended-layer-cache";
 import { renderBrushOutline } from "@/rendering/cursors/brush";
 import {
     getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, sliceBrushPointers, createOverrideConfig
@@ -204,9 +206,11 @@ export default class LayerRenderer extends ZoomableSprite {
             await renderEffectsForLayer( this.layer );
             this._pendingEffectsRender = false;
             this.canvas?.setLock( false );
-            this.invalidateBlendCache( true ); // now layer effects are cached, invalidate any existing blend cache
-            if ( this.layer.visible && !!this.canvas ) {
-                createLayerThumbnail( this.layer, this.canvas.getActiveDocument(), true );
+            if ( this.layer.visible) {
+                this.invalidateBlendCache(); // now layer effects are cached, invalidate any existing blend cache
+                if ( !!this.canvas ) {
+                    createLayerThumbnail( this.layer, this.canvas.getActiveDocument(), true );
+                }
             }
         });
     }
@@ -216,9 +220,9 @@ export default class LayerRenderer extends ZoomableSprite {
         this.cacheEffects(); // sync mask and source changes with the renderers Bitmap
     }
 
-    invalidateBlendCache( full = false ): void {
+    invalidateBlendCache(): void {
         if ( hasBlend( this.layer ) || isBlendCached( this.layerIndex )) {
-            flushBlendedLayerCache( full );
+            flushBlendedLayerCache( true );
         }
     }
 
@@ -670,9 +674,9 @@ export default class LayerRenderer extends ZoomableSprite {
             }
             if ( hasBlend( this.layer )) {
                 let bitmap = getBlendCache( layerIndex );
-                const document = this.canvas.getActiveDocument();
+                const activeDocument = this.canvas.getActiveDocument();
                 if ( !bitmap ) {
-                    bitmap = createSyncSnapshot( document, getBlendableLayers());
+                    bitmap = createSyncSnapshot( activeDocument, getBlendableLayers());
                     cacheBlendedLayer( layerIndex, bitmap );
                 }
                 const pixelRatio = getPixelRatio();
@@ -697,7 +701,7 @@ export default class LayerRenderer extends ZoomableSprite {
             const isPainting      = this.isPainting();
             const isErasing       = isPainting && this._toolType === ToolTypes.ERASER;
             const isDrawingOnMask = isPainting && isMaskable( this.layer, this.getStore() );
-            const applyBlending   = enabled && blendMode !== BlendModes.NORMAL && !isDrawingOnMask;
+            const applyBlending   = hasBlend( this.layer ) && !isDrawingOnMask;
 
             if ( applyBlending ) {
                 drawContext = getBlendContext( documentContext.canvas );

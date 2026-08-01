@@ -92,7 +92,7 @@ import { scale } from "@/math/unit-math";
 import { unblockedWait, rafCallback } from "@/utils/debounce-util";
 import { createGroupSnapshot, getAlignableObjects } from "@/utils/document-util";
 import { isMobile } from "@/utils/environment-util";
-import { hasBlend } from "@/utils/layer-util";
+import { hasBlend, isOccluded } from "@/utils/layer-util";
 import { getPreviousTile } from "@/utils/timeline-util";
 import { fitInWindow } from "@/utils/zoom-util";
 import Scrollbars from "./scrollbars/scrollbars.vue";
@@ -549,7 +549,7 @@ export default {
             // @todo can we do this in the loop above?
             let blendLayer = -1;
             this.layers?.forEach(( layer: Layer, index: number ) => {
-                if ( !this.isVisible( layer )) {
+                if ( !this.isVisible( layer, true )) {
                     return;
                 }
                 const renderer = getRendererForLayer( layer );
@@ -628,8 +628,8 @@ export default {
                 getCanvasInstance()?.interactionPane.stopOutsideSelection();
             }
         },
-        isVisible( layer: Layer ): boolean {
-            if ( !layer.visible ) {
+        isVisible( layer: Layer, checkOcclusion = false ): boolean {
+            if ( !layer.visible || ( checkOcclusion && isOccluded( layer, this.activeDocument ))) {
                 return false;
             }
             if ( this.hasTimeline ) {

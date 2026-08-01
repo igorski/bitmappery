@@ -19,9 +19,11 @@ vi.mock( "@/model/factories/renderer-factory", () => ({
     createRendererForLayer: vi.fn(( ...args: any[]) => mockUpdateFn?.( "createRendererForLayer", ...args )),
 }));
 const mockFlushBlendedLayerCache = vi.fn();
+let mockAffectsBlendCache = false;
 vi.mock( "@/rendering/cache/blended-layer-cache", async ( importOriginal ) => {
     return {
         ...await importOriginal(),
+        affectsBlendCache: vi.fn(() => mockAffectsBlendCache ),
         flushBlendedLayerCache: vi.fn(( ...args: any[] ) => mockFlushBlendedLayerCache( ...args )),
     }
 });
@@ -53,6 +55,7 @@ vi.mock( "@/utils/layer-util", async ( importOriginal ) => ({
 describe( "Vuex document module", () => {
     afterEach(() => {
         vi.resetAllMocks();
+        mockAffectsBlendCache = false;
     });
 
     describe( "getters", () => {
@@ -667,10 +670,12 @@ describe( "Vuex document module", () => {
                 expect( resetAndRecacheSpy ).toHaveBeenCalled();
             });
 
-            it( "should not flush the blended layer cache when no filter properties were updated", () => {
+            it( "should not flush the blended layer cache when filter or visibility properties were updated for a Layer not affecting the cache", () => {
                 const index = 0;
-                const opts  = { name: "layer1 updated" };
+                const opts  = { filters: { gamma: 1 }, visible: false };
                 const layerRenderer = new LayerRenderer( layer1 );
+                
+                mockAffectsBlendCache = false;
 
                 mockUpdateFn = vi.fn( fn => {
                     if ( fn === "getRendererForLayer" ) return layerRenderer;
@@ -681,11 +686,13 @@ describe( "Vuex document module", () => {
                 expect( mockFlushBlendedLayerCache ).not.toHaveBeenCalled();
             });
 
-            it( "should flush the blended layer cache fully when filter properties are updated to ensure correct rendering on history state changes", () => {
+            it( "should fully flush the blended layer cache when filter properties were updated for a Layer affecting the cache", () => {
                 const index = 0;
                 const opts  = { filters: { gamma: 1 } };
                 const layerRenderer = new LayerRenderer( layer1 );
-
+                
+                mockAffectsBlendCache = true;
+                
                 mockUpdateFn = vi.fn( fn => {
                     if ( fn === "getRendererForLayer" ) return layerRenderer;
                     return true;
@@ -693,6 +700,38 @@ describe( "Vuex document module", () => {
                 mutations.updateLayer( state, { index, opts });
   
                 expect( mockFlushBlendedLayerCache ).toHaveBeenCalledWith( true );
+            });
+
+            it( "should fully flush the blended layer cache when visibility was updated for a Layer affecting the cache", () => {
+                const index = 0;
+                const opts  = { visible: false };
+                const layerRenderer = new LayerRenderer( layer1 );
+                
+                mockAffectsBlendCache = true;
+                
+                mockUpdateFn = vi.fn( fn => {
+                    if ( fn === "getRendererForLayer" ) return layerRenderer;
+                    return true;
+                });
+                mutations.updateLayer( state, { index, opts });
+  
+                expect( mockFlushBlendedLayerCache ).toHaveBeenCalledWith( true );
+            });
+
+            it( "should not flush the blended layer cache when no filter or visibility properties were updated for a Layer affecting the cache", () => {
+                const index = 0;
+                const opts  = { name: "layer1 updated" };
+                const layerRenderer = new LayerRenderer( layer1 );
+
+                mockAffectsBlendCache = true;
+
+                mockUpdateFn = vi.fn( fn => {
+                    if ( fn === "getRendererForLayer" ) return layerRenderer;
+                    return true;
+                });
+                mutations.updateLayer( state, { index, opts });
+  
+                expect( mockFlushBlendedLayerCache ).not.toHaveBeenCalled();
             });
 
             describe( "when requesting to also recreate the renderer for the specific Layer", () => {

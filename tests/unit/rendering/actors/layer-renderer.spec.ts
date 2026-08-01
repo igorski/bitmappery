@@ -21,7 +21,7 @@ vi.mock( "@/rendering/cache/blended-layer-cache", () => ({
     isBlendCached: vi.fn(() => mockIsBlendCached ),
     useBlendCaching: vi.fn(() => mockUseBlendCaching ),
     pauseBlendCaching: vi.fn(( ...args ) => mockPauseBlendCaching( ...args )),
-    flushBlendedLayerCache: vi.fn(() => mockFlushBlendedLayerCache() ),
+    flushBlendedLayerCache: vi.fn(( ...args ) => mockFlushBlendedLayerCache( ...args )),
 }));
 
 const mockCreateLayerThumbnail = vi.fn();
@@ -325,7 +325,7 @@ describe( "LayerRenderer", () => {
             expect( canvas.setLock ).toHaveBeenCalledTimes( 3 );
         });
 
-        it( "should request a full invalidation of the the blend cache upon render completion", async () => {
+        it( "should request an invalidation of the the blend cache upon render completion", async () => {
             const layerRenderer = createLayerRenderer( LayerFactory.create({
                 filters: FiltersFactory.create({ blendMode: BlendModes.DARKEN })
             }));
@@ -333,7 +333,7 @@ describe( "LayerRenderer", () => {
 
             await mockAsyncRender();
 
-            expect( invalidateSpy ).toHaveBeenCalledWith( true );
+            expect( invalidateSpy ).toHaveBeenCalled();
         });
 
         it( "should request a render of the thumbnail upon render completion", async () => {
@@ -349,7 +349,7 @@ describe( "LayerRenderer", () => {
     describe( "when invalidating the blend cache", () => {
         it( "should not flush the blended layer cache when the layer does not have a blend filter", () => {
             const layerRenderer = createLayerRenderer( LayerFactory.create({
-                filters: FiltersFactory.create({ blendMode: BlendModes.NORMAL })
+                filters: FiltersFactory.create({ enabled: true, blendMode: BlendModes.NORMAL })
             }));
 
             layerRenderer.invalidateBlendCache();
@@ -357,26 +357,26 @@ describe( "LayerRenderer", () => {
             expect( mockFlushBlendedLayerCache ).not.toHaveBeenCalled();
         });
 
-        it( "should flush the blended layer cache when the layer has a blend filter", () => {
+        it( "should fully flush the blended layer cache when the layer has a blend filter", () => {
             const layerRenderer = createLayerRenderer( LayerFactory.create({
-                filters: FiltersFactory.create({ blendMode: BlendModes.DARKEN })
+                filters: FiltersFactory.create({ enabled: true, blendMode: BlendModes.DARKEN })
             }));
 
             layerRenderer.invalidateBlendCache();
 
-            expect( mockFlushBlendedLayerCache ).toHaveBeenCalled();
+            expect( mockFlushBlendedLayerCache ).toHaveBeenCalledWith( true );
         });
 
-        it( "should flush the blended layer cache when the layer does not have a blend filter, but is part of the blended layer cache", () => {
+        it( "should fully flush the blended layer cache when the layer does not have a blend filter, but is part of the blended layer cache", () => {
             mockIsBlendCached = true;
 
             const layerRenderer = createLayerRenderer( LayerFactory.create({
-                filters: FiltersFactory.create({ blendMode: BlendModes.NORMAL })
+                filters: FiltersFactory.create({ enabled: true, blendMode: BlendModes.NORMAL })
             }));
 
             layerRenderer.invalidateBlendCache();
 
-            expect( mockFlushBlendedLayerCache ).toHaveBeenCalled();
+            expect( mockFlushBlendedLayerCache ).toHaveBeenCalledWith( true );
         });
     });
 

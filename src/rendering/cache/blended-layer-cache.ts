@@ -25,7 +25,7 @@ import { type Layer } from "@/model/types/layer";
 interface BlendedLayerCache {
     enabled: boolean;   // whether blend caching is enabled for the current Document
     paused: boolean;    // whether blend caching is paused (for instance during mutations of layers inside the blended content)
-    index: number;      // index of layer containing the blended content
+    index: number;      // index of highest layer containing the blended content
     bitmap?: HTMLCanvasElement; // cached Bitmap
     blendableLayers?: number[]; // indices of all layers to render in the blend (up to and including the layer defined at the cache index)
 };
@@ -62,6 +62,14 @@ export const getBlendableLayers = (): number[] | undefined => {
  */
 export const isBlendCached = ( index: number ): boolean => {
     return index < blendCache.index;
+};
+
+/**
+ * Whether the Layer at provided index affects the state of the blend cache
+ * (similar to isBlendCached() but also includes the highest layer that has the cached blend mode)
+ */
+export const affectsBlendCache = ( index: number ): boolean => {
+    return index <= blendCache.index;
 };
 
 export const pauseBlendCaching = ( index: number, paused: boolean ): void => {

@@ -29,7 +29,7 @@ import type { Transform } from "@/model/types/transform";
 import DocumentFactory from "@/model/factories/document-factory";
 import LayerFactory from "@/model/factories/layer-factory";
 import { createRendererForLayer, flushLayerRenderers, runRendererFn, getRendererForLayer } from "@/model/factories/renderer-factory";
-import { flushBlendedLayerCache } from "@/rendering/cache/blended-layer-cache";
+import { affectsBlendCache, flushBlendedLayerCache } from "@/rendering/cache/blended-layer-cache";
 import { createLayerThumbnail, flushThumbnailCache, flushThumbnailForLayer } from "@/rendering/cache/thumbnail-cache";
 import { flushTileCache } from "@/rendering/cache/tile-cache";
 import { getCanvasInstance } from "@/services/canvas-service";
@@ -216,7 +216,7 @@ const DocumentModule: Module<DocumentState, any> = {
             const renderer = getRendererForLayer( layer );
             if ( renderer ) {
                 renderer.layer = layer;
-                const flushBlendCache = !!opts.filters;
+                const flushBlendCache = ( !!opts.filters || typeof opts.visible === "boolean" ) && affectsBlendCache( index );
                 if ( flushBlendCache ) {
                     flushBlendedLayerCache( true ); // direct to prevent rendering errors on undo
                 }

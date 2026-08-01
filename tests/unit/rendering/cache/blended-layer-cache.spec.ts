@@ -4,7 +4,7 @@ mockZCanvas();
 
 import LayerFactory from "@/model/factories/layer-factory";
 import {
-    cacheBlendedLayer, flushBlendedLayerCache, getBlendCache, getBlendableLayers,
+    affectsBlendCache, cacheBlendedLayer, flushBlendedLayerCache, getBlendCache, getBlendableLayers,
     isBlendCached, pauseBlendCaching, setBlendCaching, useBlendCaching,
 } from "@/rendering/cache/blended-layer-cache";
 
@@ -195,5 +195,15 @@ describe( "Blended layer cache", () => {
 
             expect( getBlendCache( 1 )).toBeUndefined();
         });
+    });
+
+    it( "should know when changes to the appearance of a Layer at a specific index affect the state of the blend cache", () => {
+        cacheBlendedLayer( 4, cachedBitmap );
+
+        expect( affectsBlendCache( 5 )).toBe( false );
+
+        for ( let i = 0; i <= 4; ++i ) {
+            expect( affectsBlendCache( i )).toBe( true );
+        }
     });
 });
