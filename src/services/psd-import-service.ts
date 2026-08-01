@@ -60,7 +60,7 @@ type PSDLayer = Rectangle & {
         maskData: {
             buffer: ArrayBuffer;
         }
-    },
+    } & Pick<PSDImage, "width" | "height" | "toBase64">, // necessary! (image.obj.toBase64() returns data different to image.toBase64())
     typeTool?: () => PSDTextData;
 };
 
@@ -199,7 +199,7 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
     // retrieve layer contents
 
     const isText = typeof layer.typeTool === "function";
-    const imageSource = layer.image ? await base64toCanvas( layer.image.obj.toBase64(), layer.image.obj.width(), layer.image.obj.height() ) : null;
+    const imageSource = layer.image ? await base64toCanvas( layer.image.toBase64(), layer.image.width(), layer.image.height() ) : null;
 
     if ( isText ) {
         const textData = layer.typeTool!();
