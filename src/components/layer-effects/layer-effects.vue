@@ -446,5 +446,9 @@ export default {
 
 .fieldset--duotone {
     padding-bottom: variables.$spacing-small;
+
+    .shared-inputs {
+        justify-content: flex-end;
+    }
 }
 </style>
