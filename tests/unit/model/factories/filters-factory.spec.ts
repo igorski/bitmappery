@@ -22,6 +22,11 @@ describe( "Filters factory", () => {
                     color1: DEFAULT_DUOTONE_1,
                     color2: DEFAULT_DUOTONE_2,
                 },
+                hsl: {
+                    hue: 0,
+                    sat: 0,
+                    lightness: 0,
+                },
                 blur: 0,
             });
         });
@@ -43,6 +48,11 @@ describe( "Filters factory", () => {
                     color1: "#FF9900",
                     color2: "#ABABAB",
                 },
+                hsl: {
+                    hue: 60,
+                    sat: .1,
+                    lightness: .1,
+                },
                 blur: 33,
             });
             expect( filters ).toEqual({
@@ -60,6 +70,11 @@ describe( "Filters factory", () => {
                     enabled: true,
                     color1: "#FF9900",
                     color2: "#ABABAB",
+                },
+                hsl: {
+                    hue: 60,
+                    sat: .1,
+                    lightness: .1,
                 },
                 blur: 33,
             });
@@ -83,6 +98,11 @@ describe( "Filters factory", () => {
                     enabled: true,
                     color1: "#FF9900",
                     color2: "#ABABAB",
+                },
+                hsl: {
+                    hue: 180,
+                    sat: -0.5,
+                    lightness: 0.3,
                 },
                 blur: 50,
             });
@@ -127,19 +147,27 @@ describe( "Filters factory", () => {
             filter = FiltersFactory.create({ invert: true });
             expect( hasFilters( filter )).toBe( true );
 
+            // we don't need to check for duotone colors as the enabled flag for the Object is sufficient
+
             filter = FiltersFactory.create({ duotone: { enabled: true }});
             expect( hasFilters( filter )).toBe( true );
 
-            filter = FiltersFactory.create({ blur: 25 });
+            filter = FiltersFactory.create({ hsl: { hue: 180, sat: 26, lightness: -50 }});
             expect( hasFilters( filter )).toBe( true );
 
-            // we don't need to check for duotone colors as the enabled flag for the Object is sufficient
+            filter = FiltersFactory.create({ blur: 25 });
+            expect( hasFilters( filter )).toBe( true ); 
         });
     });
 
     it( "should know when two filters instances are equal", () => {
         const defaultFilter = FiltersFactory.create();
-        [ "enabled", "blendMode", "opacity", "gamma", "brightness", "contrast", "vibrance", "threshold", "desaturate", "invert", "blur" ]
+        [
+            "enabled", "blendMode", "opacity",
+            "gamma", "brightness", "contrast",
+            "vibrance", "threshold", "desaturate",
+            "invert", "blur"
+        ]
         .forEach( property => {
             const filters = FiltersFactory.create({ [ property ]: .88 });
             expect( isEqual( filters, defaultFilter )).toBe( false );

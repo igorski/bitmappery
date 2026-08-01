@@ -52,6 +52,45 @@
                 </div>
             </fieldset>
             <fieldset class="fieldset">
+                <legend v-t="'colorAdjustments'" />
+                <div class="wrapper wrapper--slider">
+                    <label v-t="'hue'"></label>
+                    <slider
+                        v-model="internalValue.hsl.hue"
+                        :min="-180"
+                        :max="180"
+                        :tooltip="'none'"
+                    />
+                </div>
+                <div class="wrapper wrapper--toggle">
+                    <label v-t="'saturation'"></label>
+                    <slider
+                        v-model="saturation"
+                        :min="-100"
+                        :max="100"
+                        :tooltip="'none'"
+                    />
+                </div>
+                <div class="wrapper wrapper--toggle">
+                    <label v-t="'lightness'"></label>
+                    <slider
+                        v-model="lightness"
+                        :min="-100"
+                        :max="100"
+                        :tooltip="'none'"
+                    />
+                </div>
+                <div class="wrapper wrapper--slider">
+                    <label v-t="'vibrance'"></label>
+                    <slider
+                        v-model="vibrance"
+                        :min="0"
+                        :max="100"
+                        :tooltip="'none'"
+                    />
+                </div>
+            </fieldset>
+            <fieldset class="fieldset">
                 <legend v-t="'toneAdjustments'" />
                 <div class="wrapper wrapper--slider">
                     <label v-t="'gamma'"></label>
@@ -81,17 +120,8 @@
                     />
                 </div>
             </fieldset>
-            <fieldset class="fieldset">
-                <legend v-t="'colorAdjustments'" />
-                <div class="wrapper wrapper--slider">
-                    <label v-t="'vibrance'"></label>
-                    <slider
-                        v-model="vibrance"
-                        :min="0"
-                        :max="100"
-                        :tooltip="'none'"
-                    />
-                </div>
+            <fieldset class="fieldset fieldset--duotone">
+                <legend v-t="'filters'" />
                 <div class="wrapper wrapper--toggle">
                     <label v-t="'invert'"></label>
                     <toggle-button
@@ -101,16 +131,41 @@
                     />
                 </div>
                 <div class="wrapper wrapper--toggle">
-                    <label v-t="'desaturate'"></label>
+                    <label v-t="'grayscale'"></label>
                     <toggle-button
                         v-model="internalValue.desaturate"
                         name="desaturate"
                         sync
                     />
                 </div>
-            </fieldset>
-            <fieldset class="fieldset fieldset--duotone">
-                <legend v-t="'filters'" />
+                <div class="wrapper wrapper--toggle">
+                    <label
+                        for="duotone"
+                        v-t="'duotone'"
+                    ></label>
+                    <toggle-button
+                        v-model="internalValue.duotone.enabled"
+                        name="duotone"
+                        sync
+                    />
+                </div>
+                <div
+                    v-if="internalValue.duotone.enabled"
+                    class="wrapper wrapper--picker"
+                >
+                    <div class="shared-inputs">
+                        <color-picker
+                            id="duotoneColor1"
+                            color-type="HEXA"
+                            v-model="internalValue.duotone.color1"
+                        />
+                        <color-picker
+                            id="duotoneColor2"
+                            color-type="HEXA"
+                            v-model="internalValue.duotone.color2"
+                        />
+                    </div>
+                </div>
                 <div class="wrapper wrapper--slider">
                     <label v-t="'threshold'"></label>
                     <slider
@@ -128,32 +183,6 @@
                         :max="maxBlur"
                         :tooltip="'none'"
                     />
-                </div>
-                <div class="wrapper wrapper--toggle">
-                    <label
-                        for="duotone"
-                        v-t="'duotone'"
-                    ></label>
-                    <toggle-button
-                        v-model="internalValue.duotone.enabled"
-                        name="duotone"
-                        sync
-                    />
-                </div>
-                <div class="wrapper wrapper--picker">
-                    <label></label>
-                    <div class="shared-inputs">
-                        <color-picker
-                            id="duotoneColor1"
-                            color-type="HEXA"
-                            v-model="internalValue.duotone.color1"
-                        />
-                        <color-picker
-                            id="duotoneColor2"
-                            color-type="HEXA"
-                            v-model="internalValue.duotone.color2"
-                        />
-                    </div>
                 </div>
             </fieldset>
         </div>
@@ -281,6 +310,22 @@ export default {
                 this.internalValue.vibrance = value / 100;
             }
         },
+        saturation: {
+            get(): number {
+                return this.internalValue.hsl.sat * 100;
+            },
+            set( value: number ): void {
+                this.internalValue.hsl.sat = value / 100;
+            }
+        },
+        lightness: {
+            get(): number {
+                return this.internalValue.hsl.lightness * 100;
+            },
+            set( value: number ): void {
+                this.internalValue.hsl.lightness = value / 100;
+            }
+        },
     },
     watch: {
         internalValue: {
@@ -382,6 +427,10 @@ export default {
     .component__actions {
         margin-top: variables.$spacing-medium;
     }
+}
+
+.wrapper--picker .shared-inputs {
+    margin-left: 35%;
 }
 
 .fieldset--duotone {

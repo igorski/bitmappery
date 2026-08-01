@@ -1,5 +1,5 @@
 import { it, describe, expect } from "vitest";
-import { hexToRGBA, RGBAtoHex } from "@/utils/color-util";
+import { hexToRGBA, RGBAtoHex, RGBtoHSL, HSLtoRGB } from "@/utils/color-util";
 
 describe( "Color utilities", () => {
    describe( "when converting hex to RGBA", () => { 
@@ -20,5 +20,12 @@ describe( "Color utilities", () => {
         it( "should correctly convert a semi transparent RGBA value to hexa", () => {
             expect( RGBAtoHex([ 255, 153, 0, 119 ])).toEqual( "#FF990077" );
         });
+    });
+    
+    it( "should be able to convert an RGB value to HSL and back", () => {
+        const rgb = { r: 50, g: 44, b: 48 };
+        const hsl = RGBtoHSL( rgb );
+        
+        expect( HSLtoRGB( hsl )).toEqual( rgb );
     });
 });

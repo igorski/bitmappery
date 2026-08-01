@@ -29,7 +29,7 @@ let cacheKey: string = "";
 /**
  * Applies a duo tone effect to provided Uint8ClampedArray list using provided color1 and color2.
  */
-export const applyDuotone = ( data: Uint8ClampedArray, color1: string, color2: string ): void  => {
+export const applyDuotone = ( data: Uint8ClampedArray, color1: string, color2: string ): void => {
     const colorKey = `${color1}_${color2}`;
 
     if ( cacheKey !== colorKey ) {

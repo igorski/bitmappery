@@ -38,5 +38,10 @@ export type Filters = {
         color1?: string;
         color2?: string;
     };
+    hsl: {
+        hue: number, // -180 to +180 range (degrees)
+        sat: number, // -1 to +1 range
+        lightness: number, // -1 to +1 range
+    };
     blur: number;
 };

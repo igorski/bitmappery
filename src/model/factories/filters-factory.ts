@@ -47,6 +47,11 @@ const FiltersFactory = {
             color1: DEFAULT_DUOTONE_1,
             color2: DEFAULT_DUOTONE_2,
         },
+        hsl = {
+            hue: 0,
+            sat: 0,
+            lightness: 0,
+        },
         blur = 0,
     }: FiltersProps = {}): Filters {
         return {
@@ -61,6 +66,7 @@ const FiltersFactory = {
             vibrance,
             threshold,
             duotone,
+            hsl,
             blur,
         };
     },
@@ -70,7 +76,7 @@ const FiltersFactory = {
      * for project storage
      */
     serialize( filters: Filters ): any {
-        const { duotone } = filters;
+        const { duotone, hsl } = filters;
         return {
             e: filters.enabled,
             m: filters.blendMode,
@@ -85,6 +91,9 @@ const FiltersFactory = {
             de: duotone.enabled,
             d1: duotone.color1,
             d2: duotone.color2,
+            hh: hsl.hue,
+            hs: hsl.sat,
+            hl: hsl.lightness,
             bl: filters.blur,
         };
     },
@@ -110,6 +119,11 @@ const FiltersFactory = {
                 enabled: filters.de ?? false,
                 color1: filters.d1 ?? DEFAULT_DUOTONE_1,
                 color2: filters.d2 ?? DEFAULT_DUOTONE_2,
+             },
+             hsl: {
+                hue: filters.hh ?? 0,
+                sat: filters.hs ?? 0,
+                lightness: filters.hl ?? 0,
              },
              blur: filters.bl,
          });
@@ -144,5 +158,8 @@ export const isEqual = ( filters: Filters, filtersToCompareTo?: Filters ): boole
            filters.duotone.enabled === filtersToCompareTo.duotone.enabled &&
            filters.duotone.color1  === filtersToCompareTo.duotone.color1  &&
            filters.duotone.color2  === filtersToCompareTo.duotone.color2 &&
+           filters.hsl.hue         === filtersToCompareTo.hsl.hue &&
+           filters.hsl.sat         === filtersToCompareTo.hsl.sat &&
+           filters.hsl.lightness   === filtersToCompareTo.hsl.lightness &&
            filters.blur === filtersToCompareTo.blur;
 };

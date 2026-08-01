@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2025 - https://www.igorski.nl
+ * Igor Zinken 2021-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -27,6 +27,7 @@ import type { WasmFilterInstance } from "@/utils/wasm-util";
 import { applyAdjustments } from "@/rendering/filters/adjustments";
 import { applyBlur } from "@/rendering/filters/blur";
 import { applyDuotone } from "@/rendering/filters/duotone";
+import { applyHSL } from "@/rendering/filters/hsl";
 import wasmJs from "@/wasm/bin/filters.js";
 
 const defaultFilters = FiltersFactory.create();
@@ -90,6 +91,10 @@ function renderFilters( imageData: ImageData, filters: Filters ): Uint8ClampedAr
     if ( filters.duotone.enabled ) {
         applyDuotone( pixels, filters.duotone.color1, filters.duotone.color2 );
     }
+
+    if ( filters.hsl.hue !== 0 || filters.hsl.sat !== 0 || filters.hsl.lightness !== 0 ) {
+        applyHSL( pixels, filters.hsl.hue, filters.hsl.sat, filters.hsl.lightness );
+    }
     return pixels;
 }
 
@@ -112,6 +117,7 @@ function renderFiltersWasm( imageData: ImageData, filters: any ): Uint8ClampedAr
     const doInvert     = invert    !== defaultFilters.invert;
     const doThreshold  = threshold !== defaultFilters.threshold;
     const doDuotone    = filters.duotone.enabled !== defaultFilters.duotone.enabled;
+    const doHSL = filters.hsl.hue !== 0 || filters.hsl.sat !== 0 || filters.hsl.lightness !== 0;
     const doBlur = filters.blur > 0;
 
     // run WASM operations
@@ -120,7 +126,7 @@ function renderFiltersWasm( imageData: ImageData, filters: any ): Uint8ClampedAr
         wasmInstance._filter(
             memory, length,
             gamma, brightness, contrast, vibrance,/* threshold, duotone.color1, duotone.color2 */
-            doGamma, desaturate, doBrightness, doContrast, doVibrance/*, doThreshold, doDuotone, doBlur*/
+            doGamma, desaturate, doBrightness, doContrast, doVibrance/*, doThreshold, doDuotone, doHSL, doBlur*/
         );
     });
 }
