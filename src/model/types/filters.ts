@@ -22,6 +22,24 @@
  */
 import type { BlendModes } from "@/definitions/blend-modes";
 
+type DuoToneFilter = {
+    enabled: boolean;
+    color1?: string;
+    color2?: string;
+};
+
+type QuickFilter = {
+    desaturate: boolean;
+    invert: boolean;
+    whiteBalance: boolean;
+};
+
+type HSLFilter = {
+    hue: number, // -180 to +180 range (degrees)
+    sat: number, // -1 to +1 range
+    lightness: number, // -1 to +1 range
+};
+
 export type Filters = {
     enabled: boolean;
     blendMode: BlendModes;
@@ -31,17 +49,8 @@ export type Filters = {
     contrast: number;
     vibrance: number;
     threshold: number;
-    desaturate: boolean;
-    invert: boolean;
-    duotone: {
-        enabled: boolean;
-        color1?: string;
-        color2?: string;
-    };
-    hsl: {
-        hue: number, // -180 to +180 range (degrees)
-        sat: number, // -1 to +1 range
-        lightness: number, // -1 to +1 range
-    };
+    quick: QuickFilter;
+    duotone: DuoToneFilter;
+    hsl: HSLFilter;
     blur: number;
 };

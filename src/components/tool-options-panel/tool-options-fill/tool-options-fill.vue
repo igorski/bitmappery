@@ -23,7 +23,7 @@
 <template>
     <div class="tool-option">
         <h3 v-t="'fill'"></h3>
-        <div class="wrapper wrapper--toggle wrapper--full">
+        <div class="wrapper wrapper--toggle">
             <label v-t="'smartFill'"></label>
             <toggle-button
                 v-model="smartFill"

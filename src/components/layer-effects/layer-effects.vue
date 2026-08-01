@@ -52,6 +52,33 @@
                 </div>
             </fieldset>
             <fieldset class="fieldset">
+                <legend v-t="'quickAdjustments'" />
+                <div class="wrapper wrapper--toggle">
+                    <label v-t="'whiteBalance'"></label>
+                    <toggle-button
+                        v-model="internalValue.quick.whiteBalance"
+                        name="invert"
+                        sync
+                    />
+                </div>
+                <div class="wrapper wrapper--toggle">
+                    <label v-t="'invert'"></label>
+                    <toggle-button
+                        v-model="internalValue.quick.invert"
+                        name="invert"
+                        sync
+                    />
+                </div>
+                <div class="wrapper wrapper--toggle">
+                    <label v-t="'grayscale'"></label>
+                    <toggle-button
+                        v-model="internalValue.quick.desaturate"
+                        name="desaturate"
+                        sync
+                    />
+                </div>
+            </fieldset>
+            <fieldset class="fieldset">
                 <legend v-t="'colorAdjustments'" />
                 <div class="wrapper wrapper--slider">
                     <label v-t="'hue'"></label>
@@ -122,22 +149,6 @@
             </fieldset>
             <fieldset class="fieldset fieldset--duotone">
                 <legend v-t="'filters'" />
-                <div class="wrapper wrapper--toggle">
-                    <label v-t="'invert'"></label>
-                    <toggle-button
-                        v-model="internalValue.invert"
-                        name="invert"
-                        sync
-                    />
-                </div>
-                <div class="wrapper wrapper--toggle">
-                    <label v-t="'grayscale'"></label>
-                    <toggle-button
-                        v-model="internalValue.desaturate"
-                        name="desaturate"
-                        sync
-                    />
-                </div>
                 <div class="wrapper wrapper--toggle">
                     <label
                         for="duotone"

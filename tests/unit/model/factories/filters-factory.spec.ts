@@ -15,12 +15,15 @@ describe( "Filters factory", () => {
                 contrast: 0,
                 vibrance: .5,
                 threshold: -1,
-                desaturate: false,
-                invert: false,
                 duotone: {
                     enabled: false,
                     color1: DEFAULT_DUOTONE_1,
                     color2: DEFAULT_DUOTONE_2,
+                },
+                quick: {
+                    desaturate: false,
+                    invert: false,
+                    whiteBalance: false,
                 },
                 hsl: {
                     hue: 0,
@@ -41,8 +44,11 @@ describe( "Filters factory", () => {
                 contrast: .3,
                 vibrance: .2,
                 threshold: 127,
-                desaturate: true,
-                invert: true,
+                quick: {
+                    desaturate: true,
+                    invert: true,
+                    whiteBalance: true,
+                },
                 duotone: {
                     enabled: true,
                     color1: "#FF9900",
@@ -64,8 +70,11 @@ describe( "Filters factory", () => {
                 contrast: .3,
                 vibrance: .2,
                 threshold: 127,
-                desaturate: true,
-                invert: true,
+                quick: {
+                    desaturate: true,
+                    invert: true,
+                    whiteBalance: true,
+                },
                 duotone: {
                     enabled: true,
                     color1: "#FF9900",
@@ -92,8 +101,11 @@ describe( "Filters factory", () => {
                 contrast: .3,
                 vibrance: .2,
                 threshold: 255,
-                desaturate: true,
-                invert: true,
+                quick: {
+                    desaturate: true,
+                    invert: true,
+                    whiteBalance: true,
+                },
                 duotone: {
                     enabled: true,
                     color1: "#FF9900",
@@ -141,10 +153,13 @@ describe( "Filters factory", () => {
             filter = FiltersFactory.create({ threshold: 0 });
             expect( hasFilters( filter )).toBe( true );
 
-            filter = FiltersFactory.create({ desaturate: true });
+            filter = FiltersFactory.create({ quick: { desaturate: true } });
             expect( hasFilters( filter )).toBe( true );
 
-            filter = FiltersFactory.create({ invert: true });
+            filter = FiltersFactory.create({ quick: { invert: true } });
+            expect( hasFilters( filter )).toBe( true );
+
+            filter = FiltersFactory.create({ quick: { whiteBalance: true } });
             expect( hasFilters( filter )).toBe( true );
 
             // we don't need to check for duotone colors as the enabled flag for the Object is sufficient
@@ -152,7 +167,7 @@ describe( "Filters factory", () => {
             filter = FiltersFactory.create({ duotone: { enabled: true }});
             expect( hasFilters( filter )).toBe( true );
 
-            filter = FiltersFactory.create({ hsl: { hue: 180, sat: 26, lightness: -50 }});
+            filter = FiltersFactory.create({ hsl: { hue: 180 }});
             expect( hasFilters( filter )).toBe( true );
 
             filter = FiltersFactory.create({ blur: 25 });
@@ -163,15 +178,34 @@ describe( "Filters factory", () => {
     it( "should know when two filters instances are equal", () => {
         const defaultFilter = FiltersFactory.create();
         [
-            "enabled", "blendMode", "opacity",
-            "gamma", "brightness", "contrast",
-            "vibrance", "threshold", "desaturate",
-            "invert", "blur"
+            "enabled", "blendMode", "opacity", "gamma", "brightness", "contrast",
+            "vibrance", "threshold", "blur"
         ]
         .forEach( property => {
             const filters = FiltersFactory.create({ [ property ]: .88 });
             expect( isEqual( filters, defaultFilter )).toBe( false );
         });
+
+        expect( isEqual(
+            FiltersFactory.create({ quick: { desaturate: true }}), defaultFilter
+        )).toBe( false );
+
+        expect( isEqual(
+            FiltersFactory.create({ quick: { invert: true }}), defaultFilter
+        )).toBe( false );
+
+        expect( isEqual(
+            FiltersFactory.create({ quick: { whiteBalance: true }}), defaultFilter
+        )).toBe( false );
+
+        expect( isEqual(
+            FiltersFactory.create({ duotone: { enabled: true }}), defaultFilter
+        )).toBe( false );
+
+        expect( isEqual(
+            FiltersFactory.create({ hsl: { hue: 90 }}), defaultFilter
+        )).toBe( false );
+
         expect( isEqual( defaultFilter, FiltersFactory.create() )).toBe( true );
     });
 });

@@ -33,6 +33,9 @@ const defaultFilters = FiltersFactory.create();
 /**
  * Apply generic adjustment filters (brightness, contrast, gamma, vibrance, threshold)
  * onto provided RGBA pixel Array.
+ * 
+ * These can be combined in a single function as these filters do not
+ * require an initial pass (for instant to calculate averages, etc.)
  */
 export const applyAdjustments = ( pixels: Uint8ClampedArray, filters: Filters ): void =>
 {
@@ -41,18 +44,19 @@ export const applyAdjustments = ( pixels: Uint8ClampedArray, filters: Filters ):
     const gamma          = filters.gamma * 2; // 0 to 2 range
     const vibrance       = -(( filters.vibrance * 200 ) - 100 ); // -100 to 100 range
 
-    const { desaturate, invert, threshold } = filters;
-
-    let r, g, b, a;
-    let grayScale, max, avg, amt;
-    const gammaSquared = gamma * gamma;
-
     const doBrightness = filters.brightness !== defaultFilters.brightness;
     const doContrast   = filters.contrast   !== defaultFilters.contrast;
     const doGamma      = filters.gamma      !== defaultFilters.gamma;
     const doVibrance   = filters.vibrance   !== defaultFilters.vibrance;
     const doThreshold  = filters.threshold  !== defaultFilters.threshold;
-    const doInvert     = filters.invert     !== defaultFilters.invert;
+    const doInvert     = filters.quick.invert;
+    const doDesaturate = filters.quick.desaturate;
+
+    const { threshold } = filters;
+
+    let r, g, b, a;
+    let grayScale, max, avg, amt;
+    const gammaSquared = gamma * gamma;
 
     // loop through the pixels, note we increment the iterator by four
     // as each pixel is defined by four RGBA channel values : red, green, blue and the alpha channel
@@ -84,7 +88,7 @@ export const applyAdjustments = ( pixels: Uint8ClampedArray, filters: Filters ):
         }
 
         // desaturate
-        if ( desaturate ) {
+        if ( doDesaturate ) {
             grayScale = r * 0.3 + g * 0.59 + b * 0.11;
             r = grayScale;
             g = grayScale;

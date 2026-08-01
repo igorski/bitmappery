@@ -28,6 +28,14 @@ $inputWidth: 65%;
             margin-bottom: variables.$spacing-small;
         }
 
+        &--toggle {
+            justify-content: space-between;
+
+            &.wrapper--full {
+                justify-content: initial;
+            }
+        }
+
         // use where there is no <label> element
         &--full {
             width: 200%;

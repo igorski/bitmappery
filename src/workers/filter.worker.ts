@@ -27,6 +27,7 @@ import type { WasmFilterInstance } from "@/utils/wasm-util";
 import { applyAdjustments } from "@/rendering/filters/adjustments";
 import { applyBlur } from "@/rendering/filters/blur";
 import { applyDuotone } from "@/rendering/filters/duotone";
+import { applyWhiteBalance } from "../rendering/filters/white-balance";
 import { applyHSL } from "@/rendering/filters/hsl";
 import wasmJs from "@/wasm/bin/filters.js";
 
@@ -86,6 +87,9 @@ function renderFilters( imageData: ImageData, filters: Filters ): Uint8ClampedAr
         applyBlur( pixels, imageData.width, imageData.height, filters.blur );
     }
 
+    if ( filters.quick.whiteBalance ) {
+        applyWhiteBalance( pixels );
+    }
     applyAdjustments( pixels, filters );
 
     if ( filters.duotone.enabled ) {
@@ -100,12 +104,12 @@ function renderFilters( imageData: ImageData, filters: Filters ): Uint8ClampedAr
 
 /* internal methods */
 
-function renderFiltersWasm( imageData: ImageData, filters: any ): Uint8ClampedArray {
+function renderFiltersWasm( imageData: ImageData, filters: Filters ): Uint8ClampedArray {
     const brightness     = ( filters.brightness * 2 );//( filters.brightness * 2 ) - 1; // -1 to 1 range
     const contrast       = Math.pow((( filters.contrast * 100 ) + 100 ) / 100, 2 ); // -100 to 100 range
     const gamma          = ( filters.gamma * 2 ); // 0 to 2 range
     const vibrance       = -(( filters.vibrance * 200 ) - 100 ); // -100 to 100 range
-    const { desaturate, invert, threshold } = filters;
+    const { threshold } = filters;
 
     const doBrightness = filters.brightness !== defaultFilters.brightness;
     const doContrast   = filters.contrast   !== defaultFilters.contrast;
@@ -114,8 +118,10 @@ function renderFiltersWasm( imageData: ImageData, filters: any ): Uint8ClampedAr
 
     // @todo these are not supported by the WASM variant yet
 
-    const doInvert     = invert    !== defaultFilters.invert;
+    const doInvert     = filters.quick.invert;
     const doThreshold  = threshold !== defaultFilters.threshold;
+    const doDesaturate = filters.quick.desaturate;
+    const doWhiteBalance = filters.quick.whiteBalance;
     const doDuotone    = filters.duotone.enabled !== defaultFilters.duotone.enabled;
     const doHSL = filters.hsl.hue !== 0 || filters.hsl.sat !== 0 || filters.hsl.lightness !== 0;
     const doBlur = filters.blur > 0;
@@ -126,7 +132,7 @@ function renderFiltersWasm( imageData: ImageData, filters: any ): Uint8ClampedAr
         wasmInstance._filter(
             memory, length,
             gamma, brightness, contrast, vibrance,/* threshold, duotone.color1, duotone.color2 */
-            doGamma, desaturate, doBrightness, doContrast, doVibrance/*, doThreshold, doDuotone, doHSL, doBlur*/
+            doGamma, doDesaturate, doBrightness, doContrast, doVibrance/*, doWhiteBalance, doThreshold, doDuotone, doHSL, doBlur*/
         );
     });
 }

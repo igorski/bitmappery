@@ -32,6 +32,8 @@
         "brightness": "Brightness",
         "vibrance": "Vibrance",
         "invert": "Invert",
+        "whiteBalance": "White balance",
+        "quickAdjustments": "Quick adjustments",
         "threshold": "Threshold",
         "grayscale": "Grayscale",
         "duotone": "Duotone",

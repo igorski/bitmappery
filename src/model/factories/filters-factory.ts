@@ -21,12 +21,31 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { BlendModes } from "@/definitions/blend-modes";
+import { DeepPartial } from "@/model/types/_util";
 import type { Filters } from "@/model/types/filters";
 
-export type FiltersProps = Partial<Filters>;
+export type FiltersProps = DeepPartial<Filters>;
 
 export const DEFAULT_DUOTONE_1 = "#FF0000";
 export const DEFAULT_DUOTONE_2 = "#0099FF";
+
+const DEFAULT_QUICK_SETTINGS = {
+    desaturate   : false,
+    invert       : false,
+    whiteBalance : false,
+};
+
+const DEFAULT_DUOTONE = {
+    enabled: false,
+    color1: DEFAULT_DUOTONE_1,
+    color2: DEFAULT_DUOTONE_2,
+};
+
+const DEFAULT_HSL = {
+    hue: 0,
+    sat: 0,
+    lightness: 0,
+};
 
 let defaultFilters: Filters | null = null;
 
@@ -40,18 +59,9 @@ const FiltersFactory = {
         contrast   = 0,
         vibrance   = .5,
         threshold  = -1, // -1 == off, working range is 0 - 255
-        desaturate = false,
-        invert     = false,
-        duotone = {
-            enabled: false,
-            color1: DEFAULT_DUOTONE_1,
-            color2: DEFAULT_DUOTONE_2,
-        },
-        hsl = {
-            hue: 0,
-            sat: 0,
-            lightness: 0,
-        },
+        quick = DEFAULT_QUICK_SETTINGS,
+        duotone = DEFAULT_DUOTONE,
+        hsl = DEFAULT_HSL,
         blur = 0,
     }: FiltersProps = {}): Filters {
         return {
@@ -61,12 +71,20 @@ const FiltersFactory = {
             gamma,
             brightness,
             contrast,
-            desaturate,
-            invert,
             vibrance,
             threshold,
-            duotone,
-            hsl,
+            quick: {
+                ...DEFAULT_QUICK_SETTINGS,
+                ...quick
+            },
+            hsl: {
+                ...DEFAULT_HSL,
+                ...hsl,
+            },
+            duotone: {
+                ...DEFAULT_DUOTONE,
+                ...duotone,
+            },
             blur,
         };
     },
@@ -76,7 +94,7 @@ const FiltersFactory = {
      * for project storage
      */
     serialize( filters: Filters ): any {
-        const { duotone, hsl } = filters;
+        const { duotone, hsl, quick } = filters;
         return {
             e: filters.enabled,
             m: filters.blendMode,
@@ -84,8 +102,9 @@ const FiltersFactory = {
             g: filters.gamma,
             b: filters.brightness,
             c: filters.contrast,
-            d: filters.desaturate,
-            i: filters.invert,
+            d: quick.desaturate,
+            i: quick.invert,
+            w: quick.whiteBalance,
             v: filters.vibrance,
             t: filters.threshold,
             de: duotone.enabled,
@@ -103,30 +122,33 @@ const FiltersFactory = {
      * inside a stored projects layer
      */
      deserialize( filters: any = {} ): Filters {
-         return FiltersFactory.create({
-             enabled: filters.e,
-             blendMode: filters.m,
-             opacity: filters.o,
-             gamma: filters.g,
-             brightness: filters.b,
-             contrast: filters.c,
-             desaturate: filters.d,
-             vibrance: filters.v,
-             threshold: filters.t,
-             // these can be undefined as these were added in later app versions
-             invert: filters.i ?? false,
-             duotone: {
+        // nullish coalescing fallbacks as some properties were added in later app versions
+        return FiltersFactory.create({
+            enabled: filters.e,
+            blendMode: filters.m,
+            opacity: filters.o,
+            gamma: filters.g,
+            brightness: filters.b,
+            contrast: filters.c,
+            vibrance: filters.v,
+            threshold: filters.t,
+            quick: {
+                desaturate: filters.d,
+                invert: filters.i ?? false,
+                whiteBalance: filters.w ?? false,
+            },
+            duotone: {
                 enabled: filters.de ?? false,
                 color1: filters.d1 ?? DEFAULT_DUOTONE_1,
                 color2: filters.d2 ?? DEFAULT_DUOTONE_2,
-             },
-             hsl: {
+            },
+            hsl: {
                 hue: filters.hh ?? 0,
                 sat: filters.hs ?? 0,
                 lightness: filters.hl ?? 0,
-             },
-             blur: filters.bl,
-         });
+            },
+            blur: filters.bl,
+        });
      }
 };
 export default FiltersFactory;
@@ -151,15 +173,20 @@ export const isEqual = ( filters: Filters, filtersToCompareTo?: Filters ): boole
            filters.gamma      === filtersToCompareTo.gamma      &&
            filters.brightness === filtersToCompareTo.brightness &&
            filters.contrast   === filtersToCompareTo.contrast   &&
-           filters.desaturate === filtersToCompareTo.desaturate &&
-           filters.invert     === filtersToCompareTo.invert     &&
            filters.vibrance   === filtersToCompareTo.vibrance   &&
            filters.threshold  === filtersToCompareTo.threshold  &&
+           // quick filters
+           filters.quick.desaturate   === filtersToCompareTo.quick.desaturate &&
+           filters.quick.invert       === filtersToCompareTo.quick.invert     &&
+           filters.quick.whiteBalance === filtersToCompareTo.quick.whiteBalance &&
+           // duotone
            filters.duotone.enabled === filtersToCompareTo.duotone.enabled &&
            filters.duotone.color1  === filtersToCompareTo.duotone.color1  &&
            filters.duotone.color2  === filtersToCompareTo.duotone.color2 &&
+           // HSL
            filters.hsl.hue         === filtersToCompareTo.hsl.hue &&
            filters.hsl.sat         === filtersToCompareTo.hsl.sat &&
            filters.hsl.lightness   === filtersToCompareTo.hsl.lightness &&
+           // blur
            filters.blur === filtersToCompareTo.blur;
 };

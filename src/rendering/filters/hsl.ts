@@ -22,8 +22,6 @@
  */
 import { RGBtoHSL, HSLtoRGB } from "@/utils/color-util";
 
-const HALF_PI = Math.PI / 2;
-
 /**
  * Applies HSL balancing onto provided data
  * 
