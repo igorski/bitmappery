@@ -36,7 +36,7 @@ import BrushFactory from "@/model/factories/brush-factory";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation, rotatePointer } from "@/math/point-math";
 import { fastRound } from "@/math/unit-math";
-import { getBlendContext, blendLayer } from "@/rendering/operations/blending";
+import { applyBlend, prepareBlend, isNativeBlendMode } from "@/rendering/operations/blending";
 import { clipContextToSelection, clipLayer } from "@/rendering/operations/clipping";
 import { renderClonedStroke, setCloneSource } from "@/rendering/operations/cloning";
 import { renderBrushStroke } from "@/rendering/operations/drawing";
@@ -667,7 +667,10 @@ export default class LayerRenderer extends ZoomableSprite {
 
     override draw( documentContext: CanvasRenderingContext2D, viewport: Viewport, isSnapshotMode = false ): void {
         let renderedFromCache = false;
-        if ( !isSnapshotMode && useBlendCaching() && !this._pendingEffectsRender ) {
+        if (
+            !isSnapshotMode && !this._pendingEffectsRender
+            && useBlendCaching() && !isNativeBlendMode( this.layer.filters.blendMode )
+        ) {
             const { layerIndex } = this;
             if ( isBlendCached( layerIndex )) {
                 return; // render will be executed by higher order layer
@@ -704,10 +707,9 @@ export default class LayerRenderer extends ZoomableSprite {
             const applyBlending   = hasBlend( this.layer ) && !isDrawingOnMask;
 
             if ( applyBlending ) {
-                drawContext = getBlendContext( documentContext.canvas );
-                drawContext.globalAlpha = altOpacity ? opacity : 1;
-                const scaleFactor = isSnapshotMode ? getPixelRatio() : getPixelRatio() * this.canvas.zoomFactor;
-                drawContext.scale( scaleFactor, scaleFactor );
+                drawContext = prepareBlend(
+                    documentContext, blendMode, altOpacity ? opacity : 1, isSnapshotMode, this.canvas.zoomFactor
+                );
             }
 
             let maskComposite: CanvasContextPairing | undefined;
@@ -755,7 +757,7 @@ export default class LayerRenderer extends ZoomableSprite {
             }
 
             if ( applyBlending ) {
-                blendLayer( documentContext, drawContext, blendMode );
+                applyBlend( drawContext, documentContext, blendMode );
             }
             
             drawContext.restore(); // transformation restore()
