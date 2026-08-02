@@ -447,7 +447,7 @@ describe( "LayerRenderer", () => {
             renderer.draw( ctx, viewport );
             
             expect( drawBitmapSpy ).toHaveBeenCalledTimes( 1 );
-            expect( drawBitmapSpy ).toHaveBeenCalledWith( ctx, bitmap, viewport, renderer.getBounds() );
+            expect( drawBitmapSpy ).toHaveBeenCalledWith( ctx, bitmap, renderer.getBounds(), viewport );
         });
 
         describe( "and the layer is in the paint state", () => {
@@ -500,8 +500,8 @@ describe( "LayerRenderer", () => {
                     renderer.draw( ctx, viewport );
 
                     expect( drawBitmapSpy ).toHaveBeenCalledTimes( 1 );
-                    expect( drawBitmapSpy ).not.toHaveBeenCalledWith( ctx, bitmap, viewport, renderer.getBounds() );
-                    expect( drawBitmapSpy ).toHaveBeenCalledWith( ctx, expect.any( Object ), viewport, renderer.getBounds() );
+                    expect( drawBitmapSpy ).not.toHaveBeenCalledWith( ctx, bitmap, renderer.getBounds(), viewport );
+                    expect( drawBitmapSpy ).toHaveBeenCalledWith( ctx, expect.any( Object ), renderer.getBounds(), viewport );
                 });
 
                 it( "draw both the sprites associated Bitmap and a temporary erased mask image on top when erasing from the Mask layer", () => {
@@ -513,8 +513,8 @@ describe( "LayerRenderer", () => {
                     renderer.draw( ctx, viewport );
 
                     expect( drawBitmapSpy ).toHaveBeenCalledTimes( 2 );
-                    expect( drawBitmapSpy ).toHaveBeenCalledWith( ctx, bitmap, viewport, renderer.getBounds() );
-                    expect( drawBitmapSpy ).toHaveBeenCalledWith( ctx, expect.any( Object ), viewport, renderer.getBounds() );
+                    expect( drawBitmapSpy ).toHaveBeenCalledWith( ctx, bitmap, renderer.getBounds(), viewport );
+                    expect( drawBitmapSpy ).toHaveBeenCalledWith( ctx, expect.any( Object ), renderer.getBounds(), viewport );
                 });
             });
         });

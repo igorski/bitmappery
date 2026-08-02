@@ -35,7 +35,7 @@ class ZoomableSprite extends sprite {
     // unlike regular zCanvas Sprites, ZoomableSprites don't function as masks, don't support tile
     // sheets and have no children
     
-    drawBitmap( canvasContext: CanvasRenderingContext2D, bitmap: HTMLCanvasElement, viewport?: Viewport, bounds: Rectangle = this._bounds ): void {
+    drawBitmap( canvasContext: CanvasRenderingContext2D, bitmap: HTMLCanvasElement, bounds: Rectangle = this._bounds, viewport?: Viewport ): void {
         if ( viewport && !isInsideViewport( bounds, viewport )) {
             return;
         }

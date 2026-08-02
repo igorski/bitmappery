@@ -735,10 +735,10 @@ export default class LayerRenderer extends ZoomableSprite {
                     composite.ctx, this._unmaskedBitmap!, this.layer.mask,
                     this._unmaskedBitmap!.width, this._unmaskedBitmap!.height, this._draggingMask.x, this._draggingMask.y
                 );
-                this.drawBitmap( documentContext, composite.cvs, transformCanvas ? undefined : viewport, drawBounds );
+                this.drawBitmap( documentContext, composite.cvs, drawBounds, transformCanvas ? undefined : viewport );
             } else if ( this._bitmapReady && ( !isErasing || isDrawingOnMask )) {
                 // invoke base class behaviour to render bitmap
-                this.drawBitmap( drawContext, this._bitmap as HTMLCanvasElement, transformCanvas ? undefined : viewport, drawBounds );
+                this.drawBitmap( drawContext, this._bitmap as HTMLCanvasElement, drawBounds, transformCanvas ? undefined : viewport );
             }
 
             if ( isErasing ) {
@@ -750,9 +750,9 @@ export default class LayerRenderer extends ZoomableSprite {
                 if ( isDrawingOnMask ) {
                     const tempMask = cloneCanvas( this._bitmap as HTMLCanvasElement );
                     maskImage( tempMask.getContext( "2d" )!, this._unmaskedBitmap, maskedSource, this.layer.source.width, this.layer.source.height, this.layer.maskX, this.layer.maskY );
-                    this.drawBitmap( documentContext, tempMask, transformCanvas ? undefined : viewport, drawBounds );
+                    this.drawBitmap( documentContext, tempMask, drawBounds, transformCanvas ? undefined : viewport );
                 } else {
-                    this.drawBitmap( drawContext, maskedSource, transformCanvas ? undefined : viewport, drawBounds );
+                    this.drawBitmap( drawContext, maskedSource, drawBounds, transformCanvas ? undefined : viewport );
                 }
             }
 
