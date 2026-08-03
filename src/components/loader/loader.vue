@@ -71,7 +71,7 @@ $loaderSize: 200px;
     height: $loaderSize;
     margin-left: -( math.div( $loaderSize, 2 ));
     margin-top: -( math.div( $loaderSize, 2 ));
-    border-radius: 24px;
+    border-radius: 50%;
     border-bottom: #{variables.$spacing-medium - variables.$spacing-xsmall} solid #000;
     transform: scale( 0.33 );
     z-index: variables.$z-loader;
