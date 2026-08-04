@@ -52,10 +52,10 @@
                     v-if="reverseLayers.length"
                     class="layer-list"
                 >
-                    <draggable
+                    <component
+                        :is="layerList"
                         v-model="reverseLayers"
                         itemKey="id"
-                        @change="handleLayerDrag"
                     >
                         <template #item="{element}">
                             <div
@@ -134,7 +134,7 @@
                                 </div>
                             </div>
                         </template>
-                    </draggable>
+                    </component>
                 </div>
                 <p
                     v-else
@@ -171,11 +171,11 @@
 </template>
 
 <script lang="ts">
-import { defineAsyncComponent } from "vue";
+import { type Component, defineAsyncComponent } from "vue";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { ADD_LAYER } from "@/definitions/modal-windows";
 import { PANEL_LAYERS } from "@/definitions/panel-types";
-import type { Layer } from "@/definitions/types/document";
+import { type Layer } from "@/definitions/types/document";
 import { cutLayerContent } from "@/model/actions/content-cut-layers";
 import { removeLayer } from "@/model/actions/layer-remove";
 import { renameLayer } from "@/model/actions/layer-rename";
@@ -187,7 +187,7 @@ import { getRendererForLayer } from "@/model/factories/renderer-factory";
 import { getThumbnailForLayer, subscribe, unsubscribe } from "@/rendering/cache/thumbnail-cache";
 import { getCanvasInstance } from "@/services/canvas-service";
 import KeyboardService from "@/services/keyboard-service";
-import { focus } from "@/utils/environment-util";
+import { focus, isMobile } from "@/utils/environment-util";
 import { getLayersByTile } from "@/utils/timeline-util";
 import messages from "./messages.json";
 
@@ -197,7 +197,6 @@ export default {
     i18n: { messages },
     components: {
         ContextMenu     : defineAsyncComponent({ loader: () => import( "@/components/menus/context-menu/context-menu.vue" ) }),
-        Draggable       : defineAsyncComponent({ loader: () => import( "vuedraggable" ) }),
         LayerEffects    : defineAsyncComponent({ loader: () => import( "@/components/layer-effects/layer-effects.vue" ) }),
         LayerMenu       : defineAsyncComponent({ loader: () => import( "@/components/menus/layer-menu/layer-menu.vue" ) }),
         LayerCompositing: defineAsyncComponent({ loader: () => import( "@/components/layer-compositing/layer-compositing.vue" ) }),
@@ -230,6 +229,14 @@ export default {
             "layers",
             "preferences",
         ]),
+        layerList(): Component {
+            // the draggable interface obscures inner layer actions and list scrolling on mobile
+            // use a dumb-down display-only version of the list (Layer interactions are still supported)
+            if ( isMobile() ) {
+                return defineAsyncComponent({ loader: () => import( "./components/layer-list.vue" )});
+            }
+            return defineAsyncComponent({ loader: () => import( "vuedraggable" ) });
+        },
         collapsed: {
             get(): boolean {
                 return !this.openedPanels.includes( PANEL_LAYERS );
@@ -386,11 +393,6 @@ export default {
             }
             this.setActiveLayerMask( layer.index );
             getRendererForLayer( layer )?.setActionTarget( "mask" );
-        },
-        handleLayerDrag( dragEvent: { moved: { element: Layer, newIndex: number, oldIndex: number }}): void {
-            const layer = dragEvent.moved.element;
-            this.setActiveLayerIndex( this.layers.findIndex(({ id }) => id === layer.id ));
-            this.handleFocus();
         },
         handleFocus(): void {
             KeyboardService.setListener( this.handleKeyboard.bind( this ));
