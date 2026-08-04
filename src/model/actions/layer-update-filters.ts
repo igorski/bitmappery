@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2025 - https://www.igorski.nl
+ * Igor Zinken 2021-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,14 +24,37 @@ import { type Store } from "vuex";
 import { type Filters } from "@/model/types/filters";
 import { enqueueState } from "@/model/factories/history-state-factory";
 import type { BitMapperyState } from "@/store";
+import { clone } from "@/utils/object-util";
 
-export const updateLayerFilters = ( store: Store<BitMapperyState>, index: number, orgFilters: Filters, filters: Filters ): void => {
-    enqueueState( `filters_${index}`, {
+export const updateLayerFilters = (
+    store: Store<BitMapperyState>, layerIndex: number, orgFilters: Filters, filters: Filters, autoApply = true, stateName = "",
+): void => {
+    const act = (): void => {
+        store.commit( "updateLayer", {
+            index: layerIndex,
+            opts: {
+                // as we allow layer-compositing to directly adjust the
+                // filters reference we need to use cloning to preserve history
+                filters: clone( filters ),
+            }
+        });
+    };
+
+    const entryName = `filters_${layerIndex}_${stateName}`;
+
+    enqueueState( entryName, {
         undo(): void {
-            store.commit( "updateLayer", { index, opts: { filters: orgFilters } });
+            store.commit( "updateLayer", {
+                index: layerIndex,
+                opts: {
+                    filters: orgFilters,
+                }
+            });
         },
-        redo(): void {
-            store.commit( "updateLayer", { index, opts: { filters }});
-        },
+        redo: act,
     });
+
+    if ( autoApply ) {
+        act();
+    }
 };

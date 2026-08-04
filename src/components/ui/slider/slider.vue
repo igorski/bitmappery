@@ -27,6 +27,9 @@
             v-model.number="internalValue"
             type="range"
             class="range-slider"
+            :class="{
+                'range-slider--large': large
+            }"
             :min="min"
             :max="max"
             :step="step"
@@ -73,6 +76,10 @@ export default {
         step: {
             type: Number,
             default: 0.1,
+        },
+        large: {
+            type: Boolean,
+            default: true,
         },
         disabled: {
             type: Boolean,
@@ -128,6 +135,7 @@ export default {
 @use "sass:color";
 @use "sass:math";
 
+@use "@/styles/_colors";
 @use "@/styles/_mixins";
 @use "@/styles/_variables";
 
@@ -138,7 +146,7 @@ $thumb-color-disabled: #666;
 
 $thumb-radius: 50%;
 $thumb-height: variables.$spacing-medium;
-$thumb-width: variables.$spacing-medium;
+$thumb-width: $thumb-height;
 $mobile-thumb-height: 40px;
 $mobile-thumb-width: 40px;
 $thumb-shadow-size: 1px;
@@ -148,10 +156,11 @@ $thumb-border-width: 2px;
 $thumb-border-color: color.scale($thumb-color-hover, $lightness: -5%);
 
 $track-width: 100%;
-$track-height: variables.$spacing-medium;
+$track-height: variables.$spacing-small;
+$track-height-large: variables.$spacing-medium;
 $track-shadow-size: 0;
-$track-shadow-blur: 2px;
-$track-shadow-color: #000;
+$track-shadow-blur: 1px;
+$track-shadow-color: colors.$color-lines;
 $track-border-width: 1px;
 $track-border-color: #000;
 
@@ -184,7 +193,7 @@ $contrast: 5%;
 
 input[type=range] {
     -webkit-appearance: none;
-    margin: math.div( $thumb-height, 2 ) 0;
+    margin: #{variables.$spacing-medium - variables.$spacing-xsmall} 0;
     width: $track-width;
     background-color: transparent;
 
@@ -192,18 +201,37 @@ input[type=range] {
         outline: none;
     }
 
+    &.range-slider--large {
+        &::-webkit-slider-runnable-track {
+            height: $track-height-large;
+            @include shadow($track-shadow-size, $track-shadow-blur, $track-shadow-color);
+        }
+
+        &::-moz-range-track {
+            height: $track-height-large;
+            @include shadow($track-shadow-size, $track-shadow-blur, $track-shadow-color);
+        }
+
+        &::-ms-track {
+            height: $track-height-large;
+        }
+
+        &::-webkit-slider-thumb {
+            margin-top: math.div( -$track-border-width * 2 + $track-height-large, 2 ) - math.div( $thumb-height - $thumb-border-width, 2 );
+        }
+    }
+
     &::-webkit-slider-runnable-track {
-        @include track;
-        @include shadow($track-shadow-size, $track-shadow-blur, $track-shadow-color);
+        @include track();
         background: $track-color;
         border-radius: $track-radius;
-        border: $track-border-width solid $track-border-color;
+        // border: $track-border-width solid $track-border-color;
     }
 
     &::-webkit-slider-thumb {
-        @include thumb;;
+        @include thumb();
         -webkit-appearance: none;
-        margin-top: math.div( -$track-border-width * 2 + $track-height, 2 ) - math.div( $thumb-height, 2 );
+        margin-top: math.div( -$track-border-width * 2 + $track-height, 2 ) - math.div( $thumb-height - $thumb-border-width, 2 );
     }
 
     &:focus::-webkit-slider-runnable-track {
@@ -211,18 +239,18 @@ input[type=range] {
     }
 
     &::-moz-range-track {
-        @include track;
-        @include shadow($track-shadow-size, $track-shadow-blur, $track-shadow-color);
+        @include track();
         background: $track-color;
         border-radius: $track-radius;
-        border: $track-border-width solid $track-border-color;
+        // border: $track-border-width solid $track-border-color;
     }
+
     &::-moz-range-thumb {
-        @include thumb;;
+        @include thumb();
     }
 
     &::-ms-track {
-        @include track;
+        @include track();
         background: transparent;
         border-color: transparent;
         border-width: $thumb-width 0;
@@ -233,17 +261,17 @@ input[type=range] {
         background: color.scale($track-color, $lightness: -$contrast);
         border: $track-border-width solid $track-border-color;
         border-radius: $track-radius*2;
-        @include shadow($track-shadow-size, $track-shadow-blur, $track-shadow-color);
     }
     &::-ms-fill-upper {
         background: $track-color;
         border: $track-border-width solid $track-border-color;
         border-radius: $track-radius*2;
-        @include shadow($track-shadow-size, $track-shadow-blur, $track-shadow-color);
     }
+
     &::-ms-thumb {
-        @include thumb;;
+        @include thumb();
     }
+    
     &:focus::-ms-fill-lower {
         background: $track-color;
     }
@@ -274,8 +302,14 @@ input[type=range] {
         &::-webkit-slider-thumb {
             width: $mobile-thumb-width;
             height: $mobile-thumb-height;
-            margin-top: math.div( -$track-border-width * 2 + $track-height, 2 ) - math.div( $mobile-thumb-height, 2 );
+            margin-top: math.div( $track-height, 2 ) - math.div( $mobile-thumb-height, 2 );
             transform: scale(.5);
+        }
+
+        &.range-slider--large {
+            &::-webkit-slider-thumb {
+                margin-top: math.div( $track-height-large, 2 ) - math.div( $mobile-thumb-height, 2 );
+            }
         }
     }
 }

@@ -32,26 +32,6 @@
                 />
             </div>
             <fieldset class="fieldset">
-                <legend v-t="'compositing'" />
-                <div class="wrapper wrapper--select">
-                    <label v-t="'blendMode'"></label>
-                    <select-box
-                        v-model="internalValue.blendMode"
-                        :options="blendModes"
-                        :disabled="activeLayerIndex === 0"
-                    />
-                </div>
-                <div class="wrapper wrapper--slider">
-                    <label v-t="'opacity'"></label>
-                    <slider
-                        v-model="opacity"
-                        :min="0"
-                        :max="100"
-                        :tooltip="'none'"
-                    />
-                </div>
-            </fieldset>
-            <fieldset class="fieldset">
                 <legend v-t="'quickAdjustments'" />
                 <div class="wrapper wrapper--toggle">
                     <label v-t="'whiteBalance'"></label>
@@ -228,8 +208,7 @@ import ColorPicker from "@/components/ui/color-picker/color-picker.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
 import { Layer } from "@/model/types/layer";
-import { Filters } from "@/model/types/filters";
-import { BlendModes } from "@/definitions/blend-modes";
+import { type Filters } from "@/model/types/filters";
 import FiltersFactory from "@/model/factories/filters-factory";
 import { MAX_BLUR } from "@/rendering/filters/blur";
 import { updateLayerFilters } from "@/model/actions/layer-update-filters";
@@ -257,38 +236,7 @@ export default {
         filters(): Filters {
             return this.activeLayer.filters;
         },
-        blendModes(): any {
-            return [
-                { label: this.$t( "normal" ), value: BlendModes.NORMAL },
-                { label: this.$t( "darken" ), value: BlendModes.DARKEN },
-                { label: this.$t( "multiply" ), value: BlendModes.MULTIPLY },
-                { label: this.$t( "colorBurn" ), value: BlendModes.COLOR_BURN },
-                { label: this.$t( "darkerColor" ), value: BlendModes.DARKER_COLOR },
-                { label: this.$t( "lighten" ), value: BlendModes.LIGHTEN },
-                { label: this.$t( "screen" ), value: BlendModes.SCREEN },
-                { label: this.$t( "colorDodge" ), value: BlendModes.COLOR_DODGE },
-                { label: this.$t( "linearDodgeAdd" ), value: BlendModes.LINEAR_DODGE },
-                { label: this.$t( "lighterColor" ), value: BlendModes.LIGHTER_COLOR },
-                { label: this.$t( "overlay" ), value: BlendModes.OVERLAY },
-                { label: this.$t( "softLight" ), value: BlendModes.SOFT_LIGHT },
-                { label: this.$t( "hardLight" ), value: BlendModes.HARD_LIGHT },
-                { label: this.$t( "difference" ), value: BlendModes.DIFFERENCE },
-                { label: this.$t( "exclusion" ), value: BlendModes.EXCLUSION },
-                { label: this.$t( "hue" ), value: BlendModes.HUE },
-                { label: this.$t( "saturation" ), value: BlendModes.SATURATION },
-                { label: this.$t( "color" ), value: BlendModes.COLOR },
-                { label: this.$t( "luminosity" ), value: BlendModes.LUMINOSITY },
-            ];
-        },
         // the effects listed here are computed as we need to map their value
-        opacity: {
-            get(): number {
-                return this.internalValue.opacity * 100;
-            },
-            set( value: number ): void {
-                this.internalValue.opacity = value / 100;
-            }
-        },
         gamma: {
             get(): number {
                 return this.internalValue.gamma * 100;
@@ -377,7 +325,6 @@ export default {
     },
     methods: {
         ...mapMutations([
-            "closeModal",
             "setLayersMaximized",
             "updateLayer",
         ]),
@@ -387,13 +334,19 @@ export default {
                 return;
             }
             // when filter settings were changed, store these in state history
-            updateLayerFilters( this.$store, this.activeLayerIndex, this.orgFilters, this.internalValue );
+            const autoApply = false; // these were already applied through update() method
+            updateLayerFilters( this.$store, this.activeLayerIndex, this.orgFilters, this.internalValue, autoApply );
             
             // no need to call update(), computed setters have triggered model update
             this.close();
         },
         reset(): void {
-            this.internalValue = FiltersFactory.create();
+            this.internalValue = FiltersFactory.create({
+                // these we take from the original state as they
+                // are controlled by layer-compositing.vue
+                blendMode: this.orgFilters.blendMode,
+                opacity: this.orgFilters.opacity,
+            });
             this.update();
         },
         cancel( optLayerIndex?: number ): void {
@@ -410,7 +363,7 @@ export default {
                 index: optLayerIndex ?? this.activeLayerIndex,
                 opts: { filters }
             });
-        }
+        },
     },
 };
 </script>
@@ -433,6 +386,10 @@ export default {
         border-bottom: 1px solid colors.$color-lines-dark;
         overflow-x: hidden;
         overflow-y: auto;
+
+        @include mixins.mobile() {
+            height: variables.$mobile-layer-panel-height;
+        }
     }
 
     .component__actions {

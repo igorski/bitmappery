@@ -54,11 +54,15 @@ $inputWidth: 65%;
         }
 
         .input-field,
-        .input-textarea,
-        .input-slider {
+        .input-textarea {
             width: $inputWidth;
+            background-color: transparent;
+            color: colors.$color-text;
+            outline: 1px solid colors.$color-lines-dark;
+            outline-offset: -1px;
         }
         .input-slider {
+            width: $inputWidth;
             vertical-align: middle;
         }
         .input-field {

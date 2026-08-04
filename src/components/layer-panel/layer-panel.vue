@@ -38,6 +38,7 @@
             >{{ collapsed ? '+' : '-' }}</button>
         </div>
         <template v-if="!collapsed">
+            <layer-compositing v-if="!showEffects" />
             <layer-effects
                 v-if="showEffects"
                 @close="showEffects = false"
@@ -195,10 +196,11 @@ type IndexedLayer = Layer & { index: number, maskSelected: boolean };
 export default {
     i18n: { messages },
     components: {
-        ContextMenu  : defineAsyncComponent({ loader: () => import( "@/components/menus/context-menu/context-menu.vue" ) }),
-        Draggable    : defineAsyncComponent({ loader: () => import( "vuedraggable" ) }),
-        LayerEffects : defineAsyncComponent({ loader: () => import( "@/components/layer-effects/layer-effects.vue" ) }),
-        LayerMenu    : defineAsyncComponent({ loader: () => import( "@/components/menus/layer-menu/layer-menu.vue" ) }),
+        ContextMenu     : defineAsyncComponent({ loader: () => import( "@/components/menus/context-menu/context-menu.vue" ) }),
+        Draggable       : defineAsyncComponent({ loader: () => import( "vuedraggable" ) }),
+        LayerEffects    : defineAsyncComponent({ loader: () => import( "@/components/layer-effects/layer-effects.vue" ) }),
+        LayerMenu       : defineAsyncComponent({ loader: () => import( "@/components/menus/layer-menu/layer-menu.vue" ) }),
+        LayerCompositing: defineAsyncComponent({ loader: () => import( "@/components/layer-compositing/layer-compositing.vue" ) }),
     },
     data: () => ({
         editable: false,
@@ -551,13 +553,15 @@ export default {
         }
 
         @include mixins.mobile() {
+            position: fixed;
+            bottom: 0;
+            height: variables.$mobile-layer-panel-height;
+
             :deep(.component__content) {
-                max-height: 40vh !important;
+                height: 40vh;
             }
 
             &.collapsed {
-                position: fixed;
-                bottom: 0;
                 height: panel.$collapsed-panel-height;
             }
         }

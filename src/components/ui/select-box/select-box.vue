@@ -121,25 +121,15 @@ $dropdownHeight: variables.$spacing-xlarge;
 
 .vs__dropdown-toggle {
     border-radius: variables.$spacing-small;
-    background-color: #FFF;
-    border-color: #FFF;
+    background-color: colors.$color-2;
+    border-color: colors.$color-lines-dark;
     padding: 0;
     height: $dropdownHeight;
 }
 
-.vs--disabled {
-    .vs__dropdown-toggle {
-        background-color: colors.$color-bg;
-        border-color: colors.$color-bg;
-    }
-    input,
-    .vs__actions {
-        display: none;
-    }
-}
-
 .vs__dropdown-menu {
     overflow-x: hidden;
+    background-color: colors.$color-bg-light;
 }
 
 .vs__actions {
@@ -150,9 +140,28 @@ $dropdownHeight: variables.$spacing-xlarge;
 .vs__selected {
     margin: variables.$spacing-xsmall variables.$spacing-small;
     font-size: 95%;
+    color: colors.$color-text;
+}
+
+.vs__open-indicator {
+    fill: colors.$color-lines;
 }
 
 .vs__selected-options {
     @include mixins.truncate();
+}
+
+.vs--disabled {
+    .vs__dropdown-toggle {
+        background-color: transparent;
+        border-color: colors.$color-lines-dark;
+    }
+    .vs__selected {
+        color: colors.$color-bg;
+    }
+    input,
+    .vs__actions {
+        display: none;
+    }
 }
 </style>

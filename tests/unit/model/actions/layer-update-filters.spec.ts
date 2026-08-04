@@ -26,8 +26,14 @@ describe( "paste layer filters action", () => {
         vi.resetAllMocks();
     });
 
-    it( "should not broadcast an update to the Layers Filters (as the invocation site in layer-filters.vue takes care of it)", () => {
+    it( "should by default broadcast an immediate update to the Layers Filters", () => {
         updateLayerFilters( store, 1, orgFilters, filters );
+
+        expect( store.commit ).toHaveBeenCalled();
+    });
+
+    it( "should not broadcast an immediate update to the Layers Filters when requested", () => {
+        updateLayerFilters( store, 1, orgFilters, filters, false );
 
         expect( store.commit ).not.toHaveBeenCalled();
     });
@@ -36,7 +42,18 @@ describe( "paste layer filters action", () => {
         updateLayerFilters( store, 1, orgFilters, filters );
 
         expect( mockEnqueueState ).toHaveBeenCalledWith( 
-            `filters_1`, {
+            `filters_1_`, {
+                undo: expect.any( Function ),
+                redo: expect.any( Function )
+            }
+        );
+    });
+
+    it( "should store the action in state history with a suffix when provided", () => {
+        updateLayerFilters( store, 1, orgFilters, filters, false, "foo" );
+
+        expect( mockEnqueueState ).toHaveBeenCalledWith( 
+            `filters_1_foo`, {
                 undo: expect.any( Function ),
                 redo: expect.any( Function )
             }
@@ -44,7 +61,7 @@ describe( "paste layer filters action", () => {
     });
 
     it( "should restore the original filters when calling undo in state history", () => {
-        updateLayerFilters( store, 1, orgFilters, filters );
+        updateLayerFilters( store, 1, orgFilters, filters, false );
 
         const { undo } = mockEnqueueState.mock.calls[ 0 ][ 1 ];
         undo();
@@ -59,7 +76,7 @@ describe( "paste layer filters action", () => {
     });
 
     it( "should restore to the provided filters when calling redo in state history", () => {
-        updateLayerFilters( store, 1, orgFilters, filters );
+        updateLayerFilters( store, 1, orgFilters, filters, false );
 
         const { undo, redo } = mockEnqueueState.mock.calls[ 0 ][ 1 ];
         undo();
