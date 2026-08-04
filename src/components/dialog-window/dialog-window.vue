@@ -49,7 +49,8 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
+import { type PropType } from "vue";
 import { mapMutations } from "vuex";
 import messages from "./messages.json";
 
@@ -65,12 +66,12 @@ export default {
             required: true
         },
         type: {
-            type: String,
+            type: String as PropType<"info" | "confirm" | "error">,
             required: true,
-            validator: value => /info|confirm|error/.test(value)
+            validator: value => /info|confirm|error/.test( value as string )
         },
         link: {
-            type: Object,
+            type: Object as PropType<{ href: string, title: string }>,
             default: null,
         },
         confirmHandler: {
@@ -86,25 +87,25 @@ export default {
         ...mapMutations([
             'closeDialog',
         ]),
-        handleConfirm( event ) {
+        handleConfirm( event: Event ): void {
             this.confirmHandler?.();
             event?.preventDefault();
             event?.stopPropagation();
             this.close();
         },
-        handleCancel() {
+        handleCancel(): void {
             this.cancelHandler?.();
             this.close();
         },
-        close() {
+        close(): void {
             this.closeDialog();
         }
     },
-    mounted() {
+    mounted(): void {
         this.focusedElement = document.activeElement;
         this.$refs.windowOutline?.focus();
     },
-    beforeUnmount() {
+    beforeUnmount(): void {
         this.focusedElement?.focus();
     },
 };

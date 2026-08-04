@@ -40,7 +40,9 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
+import { type PropType } from "vue";
+import { FileNode } from "@/definitions/storage-types";
 import { getDropboxService } from "@/utils/cloud-service-loader";
 import { disposeResource } from "@/utils/resource-manager";
 
@@ -49,7 +51,7 @@ let getThumbnail;
 export default {
     props: {
         node: {
-            type: Object,
+            type: Object as PropType<FileNode>,
             required: true,
         },
     },
@@ -57,11 +59,11 @@ export default {
         src: null,
     }),
     computed: {
-        isLoading() {
+        isLoading(): boolean {
             return !this.src;
         },
     },
-    async created() {
+    async created(): Promise<void> {
         ({ getThumbnail } = await getDropboxService() );
         getThumbnail( this.node.path, true ).then( blobUrl => {
                 if ( this._destroyed ) {
@@ -71,11 +73,11 @@ export default {
                 }
             });
     },
-    unmounted() {
+    unmounted(): void {
         this._destroyed = true;
     },
     methods: {
-        handleImageLoad() {
+        handleImageLoad(): void {
             // free memory allocated by dropbox-service#getThumbnail()
             disposeResource( this.src );
         },

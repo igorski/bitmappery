@@ -43,7 +43,9 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
+import { type PropType } from "vue";
+import { FileNode } from "@/definitions/storage-types";
 import { getS3Service } from "@/utils/cloud-service-loader";
 import { disposeResource } from "@/utils/resource-manager";
 
@@ -52,7 +54,7 @@ let getThumbnail;
 export default {
     props: {
         node: {
-            type: Object,
+            type: Object as PropType<FileNode>,
             required: true,
         },
     },
@@ -61,11 +63,11 @@ export default {
         hasNoThumb: false,
     }),
     computed: {
-        isLoading() {
+        isLoading(): boolean {
             return !this.src;
         },
     },
-    async created() {
+    async created(): Promise<void> {
         ({ getThumbnail } = await getS3Service() );
         getThumbnail( this.node.key, true ).then( blobUrl => {
             if ( blobUrl === null ) {
@@ -78,11 +80,11 @@ export default {
             }
         });
     },
-    unmounted() {
+    unmounted(): void {
         this._destroyed = true;
     },
     methods: {
-        handleImageLoad() {
+        handleImageLoad(): void {
             // free memory allocated by dropbox-service#getThumbnail()
             disposeResource( this.src );
         },

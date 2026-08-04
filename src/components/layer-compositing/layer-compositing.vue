@@ -47,7 +47,7 @@
 </template>
 
 <script lang="ts">
-import { mapGetters, mapMutations } from "vuex";
+import { mapGetters } from "vuex";
 import { BlendModes } from "@/definitions/blend-modes";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
@@ -155,9 +155,6 @@ export default {
         },
     },
     methods: {
-        ...mapMutations([
-            "updateLayer",
-        ]),
         update( prop: keyof Filters, value: any ): void {
             if ( pendingUpdate.pending ) {
                 clearTimeout( pendingUpdate.timeout );

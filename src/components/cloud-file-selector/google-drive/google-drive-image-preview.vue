@@ -30,11 +30,14 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
+import { type PropType } from "vue";
+import { FileNode } from "@/definitions/storage-types";
+
 export default {
     props: {
         node: {
-            type: Object,
+            type: Object as PropType<FileNode>,
             required: true,
         },
     },

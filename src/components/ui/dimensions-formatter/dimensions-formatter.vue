@@ -64,6 +64,7 @@
 </template>
 
 <script lang="ts">
+import { type PropType } from "vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import { DEFAULT_DPI, DEFAULT_UNIT, DPI, UNITS } from "@/definitions/document-presets";
 import { pixelsToInch, pixelsToCm, pixelsToMm, inchesToPixels, cmToPixels, mmToPixels,  } from "@/math/unit-math";
@@ -79,10 +80,13 @@ export default {
     },
     props: {
         modelValue: {
-            type: Object,
+            type: Object as PropType<{ width: number, height: number, unit: number, dpi?: number }>,
             required: true,
             validator: ({ width, height, dpi, unit }) => {
-                return typeof width === "number" && typeof height === "number" && ( dpi === undefined || typeof dpi === "number" ) && typeof unit === "string";
+                return typeof width === "number"
+                    && typeof height === "number"
+                    && ( dpi === undefined || typeof dpi === "number" )
+                    && typeof unit === "string";
             }
         },
     },

@@ -40,9 +40,15 @@
 </template>
 
 <script lang="ts">
-import { createPopper } from '@popperjs/core'
+import { createPopper } from "@popperjs/core";
+import { type PropType } from "vue";
 import VueSelect from "vue-select";
 import "vue-select/dist/vue-select.css";
+
+type Option = {
+    label: string;
+    value: string | number;
+};
 
 export default {
     emits: [ "update:modelValue" ],
@@ -52,7 +58,7 @@ export default {
             default: null,
         },
         options: {
-            type: Array,
+            type: Array as PropType<Option[]>,
             default: () => ([]),
         },
         searchable: {
@@ -69,7 +75,7 @@ export default {
     },
     computed: {
         internalValue: {
-            get(): string | number {
+            get(): Option | undefined  {
                 return this.options.find(({ value }) => value === this.modelValue );
             },
             set({ value }: { value: string | number }): void {
