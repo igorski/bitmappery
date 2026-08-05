@@ -55,6 +55,7 @@
                     <component
                         :is="layerList"
                         v-model="reverseLayers"
+                        @change="handleLayerDrag"
                         itemKey="id"
                     >
                         <template #item="{element}">
@@ -394,6 +395,11 @@ export default {
             this.setActiveLayerMask( layer.index );
             getRendererForLayer( layer )?.setActionTarget( "mask" );
         },
+        handleLayerDrag( dragEvent: { moved: { element: Layer, newIndex: number, oldIndex: number }}): void {
+            const layer = dragEvent.moved.element;
+            this.setActiveLayerIndex( this.layers.findIndex(({ id }) => id === layer.id ));
+            this.handleFocus();
+        },
         handleFocus(): void {
             KeyboardService.setListener( this.handleKeyboard.bind( this ));
         },
@@ -557,10 +563,10 @@ export default {
         @include mixins.mobile() {
             position: fixed;
             bottom: 0;
-            height: variables.$mobile-layer-panel-height;
+            height: panel.$mobile-layer-panel-height;
 
             :deep(.component__content) {
-                height: 40vh;
+                height: panel.$mobile-layer-panel-list-height;
             }
 
             &.collapsed {

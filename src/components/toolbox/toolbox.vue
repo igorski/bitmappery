@@ -70,6 +70,10 @@
                     v-for="group in tools"
                     :key="group.name"
                     class="tool-group"
+                    :class="{
+                        'tool-group--multiple': group.tools.length > 1,
+                        'tool-group--expanded': mobileFocus === group.name,
+                    }"
                 >
                     <button
                         v-for="tool in group.tools"
@@ -83,8 +87,13 @@
                         }"
                         :disabled="tool.disabled"
                         @click="handleToolClick( tool )"
+                        @touchstart="handleToolTouchStart( $event, group.name )"
+                        @touchend="handleToolTouchEnd( $event, tool, group.name )"
                     >
-                        <img :src="`./assets/icons/tool-${tool.icon}.svg`" />
+                        <img
+                            :src="`./assets/icons/tool-${tool.icon}.svg`"
+                            @contextmenu.prevent
+                        />
                     </button>
                 </div>
             </div>
@@ -126,8 +135,25 @@ type ToolDef = {
     hasOptions: boolean;
 };
 
+type TouchHistory = {
+    dragStartPointerX: number;
+    longPressed: boolean;
+    longPressTimeout?: ReturnType<typeof setTimeout>;
+};
+const LONG_PRESS_THRESHOLD_MS = 500;
+const DRAG_THRESHOLD_PX = 25;
+const touchHistory: TouchHistory = {
+    dragStartPointerX: 0,
+    longPressed: false,
+};
+
+const toolGroupCache = new Map<string, ToolTypes>;
+
 export default {
     i18n: { messages },
+    data: () => ({
+        mobileFocus: "", // which tool group is focused
+    }),
     computed: {
         ...mapState([
             "toolboxOpened",
@@ -267,12 +293,13 @@ export default {
 
             if ( isMobile() ) {
                 return groups.map( group => {
+                    const lastTool = toolGroupCache.get( group.name );
                     return {
                         ...group,
                         tools: group.tools.sort(( a, b ) => {
-                            if ( a.type === this.activeTool ) {
+                            if ( lastTool !== undefined ? lastTool=== a.type : a.type === this.activeTool ) {
                                 return -1;
-                            } else if ( b.type === this.activeTool ) {
+                            } else if ( lastTool !== undefined ? lastTool === b.type : b.type === this.activeTool ) {
                                 return 1;
                             }
                             return 0;
@@ -319,12 +346,36 @@ export default {
             "undo",
             "redo",
         ]),
-        handleToolClick({ type, hasOptions }: { type: ToolTypes, hasOptions: boolean }): void {
+        handleToolClick({ type, hasOptions }: ToolDef ): void {
             this.setTool( type );
             // ensure that the tool options panel opens in case it was collapsed
             if ( isMobile() && hasOptions && !this.openedPanels.includes( PANEL_TOOL_OPTIONS )) {
                 this.setOpenedPanel( PANEL_TOOL_OPTIONS );
             }
+        },
+        handleToolTouchStart( event: TouchEvent, groupName: string ): void {
+            touchHistory.dragStartPointerX = event.touches[ 0 ].clientX;
+
+            clearTimeout( touchHistory.longPressTimeout );
+            touchHistory.longPressTimeout = setTimeout(() => {
+                touchHistory.longPressed = true;
+                this.mobileFocus = groupName;
+            }, LONG_PRESS_THRESHOLD_MS );
+        },
+        handleToolTouchEnd( event: TouchEvent, tool: ToolDef, groupName: string ): void {
+            clearTimeout( touchHistory.longPressTimeout );
+            
+            const dragEndPointerX = event.changedTouches[ 0 ].clientX;
+            const hasRemainedInPosition = Math.abs( touchHistory.dragStartPointerX - dragEndPointerX ) < DRAG_THRESHOLD_PX;
+            
+            if ( !touchHistory.longPressed && !tool.disabled && hasRemainedInPosition ) {
+                this.handleToolClick( tool );
+                toolGroupCache.set( groupName, tool.type );
+                this.mobileFocus = "";
+    
+                event.preventDefault();
+            }
+            touchHistory.longPressed = false;
         },
         setTool( tool: ToolTypes ): void {
             if ( tool === ToolTypes.TEXT && this.activeLayer?.type !== LayerTypes.LAYER_TEXT ) {
@@ -512,7 +563,19 @@ $toolGroupHeight: $toolButtonWidth + variables.$spacing-xsmall * 2;
         height: $toolGroupHeight;
         overflow-y: hidden;
 
-        &:focus-within {
+        &--multiple {
+            position: relative;
+            
+            &::after {
+                position: absolute;
+                right: #{variables.$spacing-small + variables.$spacing-xxsmall};
+                bottom: -( variables.$spacing-xxsmall );
+                content: "+";
+                color: colors.$color-lines-dark;
+            }
+        }
+
+        &--expanded {
             height: auto;
 
             .tool-button {
@@ -521,6 +584,10 @@ $toolGroupHeight: $toolButtonWidth + variables.$spacing-xsmall * 2;
                 &:first-child {
                     padding-bottom: variables.$spacing-xxsmall;
                 }
+            }
+
+            &.tool-group--multiple::after {
+                display: none;
             }
         }
     }

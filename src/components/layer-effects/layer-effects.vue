@@ -326,7 +326,7 @@ export default {
         overflow-y: auto;
 
         @include mixins.mobile() {
-            height: variables.$mobile-layer-panel-height;
+            height: panel.$mobile-layer-panel-height;
         }
     }
 

@@ -241,7 +241,6 @@
 
     .submenu {
         list-style: none;
-        margin-top: variables.$spacing-small;
 
         li {
             padding: variables.$spacing-small 0;
@@ -260,6 +259,7 @@
         @include mixins.large() {
             position: absolute;
             box-shadow: 0 0 5px rgba(0,0,0,.5);
+            margin-top: variables.$spacing-small;
             padding: variables.$spacing-medium variables.$spacing-small;
             background-image: colors.$color-window-bg;
             background-repeat: repeat-x;
