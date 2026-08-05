@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2026 - https://www.igorski.nl
+ * Igor Zinken 2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,43 +20,24 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { BlendModes } from "@/definitions/blend-modes";
+<template>
+    <slider
+        :min="0"
+        :max="1"
+        :step="0.01"
+        :tooltip="'none'"
+    />
+</template>
 
-type DuoToneFilter = {
-    enabled: boolean;
-    color1?: string;
-    color2?: string;
-};
-
-type QuickFilter = {
-    desaturate: boolean;
-    invert: boolean;
-    whiteBalance: boolean;
-};
-
-// all numerical values are in normalised 0 to 1 range with 0.5 being the neutral value
-type HSLFilter = {
-    hue: number,
-    sat: number,
-    lightness: number,
-};
+<script lang="ts">
+import Slider from "./slider.vue";
 
 /**
- * All numerical values are in normalised 0 to 1 range unless noted.
- * For brightness, contrast, exposure, gamma and vibrance the neutral value is 0.5
+ * normalised-slider presents a slider that can manage a
+ * model value in the normalised 0 - 1 range with a neutral
+ * setting at the center value of 0.5 (such as used in Filter props)
  */
-export type Filters = {
-    enabled: boolean;
-    blendMode: BlendModes;
-    opacity: number;
-    gamma: number;
-    brightness: number;
-    contrast: number;
-    exposure: number;
-    vibrance: number;
-    threshold: number; // -1 (off) to +255 range
-    quick: QuickFilter;
-    duotone: DuoToneFilter;
-    hsl: HSLFilter;
-    blur: number;
+export default {
+    components: { Slider },
 };
+</script>

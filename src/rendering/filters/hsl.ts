@@ -20,17 +20,17 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { getHSLValue } from "@/definitions/filter-ranges";
 import { RGBtoHSL, HSLtoRGB } from "@/utils/color-util";
 
 /**
  * Applies HSL balancing onto provided data
- * 
- * @param pixels 
- * @param hue in -180 to 180 range
- * @param saturation in -1 to 1 range
- * @param lightness  in -1 to 1 range
  */
-export const applyHSL = ( pixels: Uint8ClampedArray, hue: number, saturation: number, lightness: number ): void => {
+export const applyHSL = (
+    pixels: Uint8ClampedArray, normalisedHue: number, normalisedSaturation: number, normalisedLightness: number
+): void => {
+    const { hue, saturation, lightness } = getHSLValue( normalisedHue, normalisedSaturation, normalisedLightness );
+
     for ( let i = 0, len = pixels.length; i < len; i += 4 ) {
         let r = pixels[ i ];
         let g = pixels[ i + 1 ];

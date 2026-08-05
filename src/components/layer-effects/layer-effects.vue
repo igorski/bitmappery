@@ -62,38 +62,26 @@
                 <legend v-t="'colorAdjustments'" />
                 <div class="wrapper wrapper--slider">
                     <label v-t="'hue'"></label>
-                    <slider
+                    <normalised-slider
                         v-model="internalValue.hsl.hue"
-                        :min="-180"
-                        :max="180"
-                        :tooltip="'none'"
                     />
                 </div>
                 <div class="wrapper wrapper--toggle">
                     <label v-t="'saturation'"></label>
-                    <slider
-                        v-model="saturation"
-                        :min="-100"
-                        :max="100"
-                        :tooltip="'none'"
+                    <normalised-slider
+                        v-model="internalValue.hsl.sat"
                     />
                 </div>
                 <div class="wrapper wrapper--toggle">
                     <label v-t="'lightness'"></label>
-                    <slider
-                        v-model="lightness"
-                        :min="-100"
-                        :max="100"
-                        :tooltip="'none'"
+                    <normalised-slider
+                        v-model="internalValue.hsl.lightness"
                     />
                 </div>
                 <div class="wrapper wrapper--slider">
                     <label v-t="'vibrance'"></label>
-                    <slider
-                        v-model="vibrance"
-                        :min="0"
-                        :max="100"
-                        :tooltip="'none'"
+                    <normalised-slider
+                        v-model="internalValue.vibrance"
                     />
                 </div>
             </fieldset>
@@ -101,38 +89,26 @@
                 <legend v-t="'toneAdjustments'" />
                 <div class="wrapper wrapper--slider">
                     <label v-t="'exposure'"></label>
-                    <slider
-                        v-model="exposure"
-                        :min="0"
-                        :max="100"
-                        :tooltip="'none'"
+                    <normalised-slider
+                        v-model="internalValue.exposure"
                     />
                 </div>
                 <div class="wrapper wrapper--slider">
                     <label v-t="'gamma'"></label>
-                    <slider
-                        v-model="gamma"
-                        :min="0"
-                        :max="100"
-                        :tooltip="'none'"
+                    <normalised-slider
+                        v-model="internalValue.gamma"
                     />
                 </div>
                 <div class="wrapper wrapper--slider">
                     <label v-t="'brightness'"></label>
-                    <slider
-                        v-model="brightness"
-                        :min="0"
-                        :max="100"
-                        :tooltip="'none'"
+                    <normalised-slider
+                        v-model="internalValue.brightness"
                     />
                 </div>
                 <div class="wrapper wrapper--slider">
                     <label v-t="'contrast'"></label>
-                    <slider
-                        v-model="contrast"
-                        :min="0"
-                        :max="100"
-                        :tooltip="'none'"
+                    <normalised-slider
+                        v-model="internalValue.contrast"
                     />
                 </div>
             </fieldset>
@@ -214,6 +190,7 @@ import { mapGetters, mapMutations } from "vuex";
 import isEqual from "lodash.isequal";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import ColorPicker from "@/components/ui/color-picker/color-picker.vue";
+import NormalisedSlider from "@/components/ui/slider/normalised-slider.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
 import { MAX_BLUR } from "@/definitions/filter-ranges";
@@ -230,6 +207,7 @@ export default {
     i18n: { messages },
     components: {
         ColorPicker,
+        NormalisedSlider,
         SelectBox,
         Slider,
         ToggleButton,
@@ -244,63 +222,6 @@ export default {
         ]),
         filters(): Filters {
             return this.activeLayer.filters;
-        },
-        // the effects listed here are computed as we need to map their value
-        gamma: {
-            get(): number {
-                return this.internalValue.gamma * 100;
-            },
-            set( value: number ): void {
-                this.internalValue.gamma = value / 100;
-            }
-        },
-        brightness: {
-            get(): number {
-                return this.internalValue.brightness * 100;
-            },
-            set( value: number ): void {
-                this.internalValue.brightness = value / 100;
-            }
-        },
-        contrast: {
-            get(): number {
-                return this.internalValue.contrast * 100;
-            },
-            set( value: number ): void {
-                this.internalValue.contrast = value / 100;
-            }
-        },
-        exposure: {
-            get(): number {
-                return this.internalValue.exposure * 100;
-            },
-            set( value: number ): void {
-                this.internalValue.exposure = value / 100;
-            }
-        },
-        vibrance: {
-            get(): number {
-                return this.internalValue.vibrance * 100;
-            },
-            set( value: number ): void {
-                this.internalValue.vibrance = value / 100;
-            }
-        },
-        saturation: {
-            get(): number {
-                return this.internalValue.hsl.sat * 100;
-            },
-            set( value: number ): void {
-                this.internalValue.hsl.sat = value / 100;
-            }
-        },
-        lightness: {
-            get(): number {
-                return this.internalValue.hsl.lightness * 100;
-            },
-            set( value: number ): void {
-                this.internalValue.hsl.lightness = value / 100;
-            }
         },
     },
     watch: {

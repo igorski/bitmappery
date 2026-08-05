@@ -1,6 +1,10 @@
 import { it, describe, expect } from "vitest";
 import { BlendModes } from "@/definitions/blend-modes";
-import FiltersFactory, { DEFAULT_DUOTONE_1, DEFAULT_DUOTONE_2, hasFilters, isEqual } from "@/model/factories/filters-factory";
+import FiltersFactory, {
+    DEFAULT_DUOTONE_1, DEFAULT_DUOTONE_2,
+    FACTORY_VERSION,
+    hasFilters, isEqual,
+} from "@/model/factories/filters-factory";
 
 describe( "Filters factory", () => {
     describe( "when creating a new filter list", () => {
@@ -12,7 +16,7 @@ describe( "Filters factory", () => {
                 opacity: 1,
                 gamma: 0.5,
                 brightness: 0.5,
-                contrast: 0,
+                contrast: 0.5,
                 exposure: 0.5,
                 vibrance: 0.5,
                 threshold: -1,
@@ -27,9 +31,9 @@ describe( "Filters factory", () => {
                     whiteBalance: false,
                 },
                 hsl: {
-                    hue: 0,
-                    sat: 0,
-                    lightness: 0,
+                    hue: 0.5,
+                    sat: 0.5,
+                    lightness: 0.5,
                 },
                 blur: 0,
             });
@@ -126,6 +130,74 @@ describe( "Filters factory", () => {
             const deserialized = FiltersFactory.deserialize( serialized );
 
             expect( deserialized ).toEqual( filters );
+        });
+
+        it( "should serialize the FACTORY_VERSION", () => {
+            const filters = FiltersFactory.create();
+
+            const serialized = FiltersFactory.serialize( filters );
+
+            expect( serialized.fv ).toEqual( FACTORY_VERSION );
+        });
+
+        // MIGRATIONS
+
+        describe( "and determining whether a migration for contrast needs to be applied", () => {
+            it( "should not adjust the contrast value for FACTORY_VERSION >= 2", () => {
+                const filters = FiltersFactory.create({ contrast: 0.5 });
+                
+                const serialized = FiltersFactory.serialize( filters );
+                serialized.fv = 2;
+
+                const deserialized = FiltersFactory.deserialize( serialized );
+
+                expect( deserialized.contrast ).toEqual( filters.contrast );
+            });
+
+            it( "should adjust the contrast value for FACTORY_VERSION < 2", () => {
+                const filters = FiltersFactory.create({ contrast: 0.5 });
+                
+                const serialized = FiltersFactory.serialize( filters );
+                serialized.fv = 1;
+                
+                const deserialized = FiltersFactory.deserialize( serialized );
+
+                expect( deserialized.contrast ).toEqual( 0.8125 );
+            });
+
+            it( "should not adjust the HSL values for FACTORY_VERSION >= 2", () => {
+                const filters = FiltersFactory.create();
+                filters.hsl = {
+                    hue: 0.3,
+                    sat: 0.3,
+                    lightness: 0.3,
+                };
+                const serialized = FiltersFactory.serialize( filters );
+                serialized.fv = 2;
+
+                const deserialized = FiltersFactory.deserialize( serialized );
+
+                expect( deserialized.hsl ).toEqual( filters.hsl );
+            });
+
+            it( "should adjust the HSL values for FACTORY_VERSION < 2", () => {
+                const filters = FiltersFactory.create();
+                filters.hsl = {
+                    hue: 180,
+                    sat: -0.5,
+                    lightness: 0.5,
+                };
+                const serialized = FiltersFactory.serialize( filters );
+                serialized.fv = 1;
+                
+                const deserialized = FiltersFactory.deserialize( serialized );
+
+                expect( deserialized.hsl ).toEqual({
+                    hue: 1,
+                    sat: 0.25,
+                    lightness: 0.75,  
+                });
+            });
         });
     });
 

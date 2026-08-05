@@ -21,10 +21,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { BlendModes } from "@/definitions/blend-modes";
+import { MAX_CONTRAST, MIN_CONTRAST } from "@/definitions/filter-ranges";
+import { mapRange } from "@/math/unit-math";
 import { DeepPartial } from "@/model/types/_util";
 import type { Filters } from "@/model/types/filters";
 
 export type FiltersProps = DeepPartial<Filters>;
+
+export const FACTORY_VERSION = 2;
 
 export const DEFAULT_DUOTONE_1 = "#FF0000";
 export const DEFAULT_DUOTONE_2 = "#0099FF";
@@ -42,9 +46,9 @@ const DEFAULT_DUOTONE = {
 };
 
 const DEFAULT_HSL = {
-    hue: 0,
-    sat: 0,
-    lightness: 0,
+    hue: 0.5,
+    sat: 0.5,
+    lightness: 0.5,
 };
 
 let defaultFilters: Filters | null = null;
@@ -56,7 +60,7 @@ const FiltersFactory = {
         opacity    = 1,
         gamma      = 0.5,
         brightness = 0.5,
-        contrast   = 0,
+        contrast   = 0.5,
         exposure   = 0.5,
         vibrance   = 0.5,
         threshold  = -1,
@@ -117,6 +121,7 @@ const FiltersFactory = {
             hs: hsl.sat,
             hl: hsl.lightness,
             bl: filters.blur,
+            fv: FACTORY_VERSION,
         };
     },
 
@@ -125,6 +130,15 @@ const FiltersFactory = {
      * inside a stored projects layer
      */
      deserialize( filters: any = {} ): Filters {
+        const serializedVersion = filters.fv ?? 1;
+
+        if ( serializedVersion === 1 ) {
+            migrateLegacyContrast( filters ); // contrast did not support half-way neutral position and negative filtering
+            if ( filters.hh !== undefined ) {
+                migrateLegacyHSL( filters ); // HSL values were not in normalised range (note HSL was added later, hence null check)
+            }
+        }
+
         // nullish coalescing fallbacks as some properties were added in later app versions
         return FiltersFactory.create({
             enabled: filters.e,
@@ -195,3 +209,32 @@ export const isEqual = ( filters: Filters, filtersToCompareTo?: Filters ): boole
            // blur
            filters.blur === filtersToCompareTo.blur;
 };
+
+/* internal methods */
+
+// MIGRATIONS transform filter values serialised in a legacy factory format
+// which have since been changed in the application. Migrations aim to keep the
+// visual result of the legacy filter equal to the new format
+
+// prior to FACTORY_VERSION 2, contrast could only increase
+function migrateLegacyContrast( filters: any ): void {
+    const value = filters.c;
+
+    const oldMultiplier = Math.pow( value + 1, 2 );
+    const slope = ( MAX_CONTRAST - MIN_CONTRAST ) / 0.5;
+
+    const newValue = 0.5 + ( oldMultiplier - MIN_CONTRAST ) / slope;
+
+    filters.c = Math.min( 1, Math.max( 0.5, newValue ));
+}
+
+// prior to FACTORY_VERSION 2, HSL values were not in normalised range
+function migrateLegacyHSL( filters: any ): void {
+    const legacyHue = filters.hh;
+    const legacySat = filters.hs;
+    const legacyLightness = filters.hl;
+
+    filters.hh = mapRange( legacyHue, -180, 180, 0, 1 );
+    filters.hs = mapRange( legacySat, -1, 1, 0, 1 );
+    filters.hl = mapRange( legacyLightness, -1, 1, 0, 1 );
+}
