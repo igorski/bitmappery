@@ -4,6 +4,8 @@
 
 $collapsed-panel-width: 40px; // large view
 $collapsed-panel-height: 40px; // mobile view
+$mobile-layer-panel-height: 40vh;
+$mobile-layer-panel-list-height: 25vh;
 
 @mixin panel() {
     @include component.component();

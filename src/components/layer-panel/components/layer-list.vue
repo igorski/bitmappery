@@ -20,13 +20,15 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
- <template>
-    <template
-        v-for="entry in modelValue"
-        :key="entry[ itemKey ]"
-    >
-        <slot name="item" :element="entry"/>
-    </template>
+<template>
+    <div>
+        <template
+            v-for="entry in modelValue"
+            :key="entry[ itemKey ]"
+        >
+            <slot name="item" :element="entry"/>
+        </template>
+    </div>
  </template>
  
  <script lang="ts">

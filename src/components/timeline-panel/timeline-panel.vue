@@ -39,11 +39,12 @@
             ></button>
         </div>
         <div class="component__content">
-            <draggable
+            <component
+                :is="layerList"
                 v-model="timelineTiles"
-                @change="handleTileDrag"
                 class="timeline__tiles"
                 itemKey="id"
+                @change="handleTileDrag"
             >
                 <template #item="{element}">
                     <canvas
@@ -59,7 +60,7 @@
                     >
                     </canvas>
                 </template>
-            </draggable>
+            </component>
         </div>
         <context-menu
             v-if="contextMenu.show"
@@ -88,7 +89,7 @@
 </template>
 
 <script lang="ts">
-import { defineAsyncComponent } from "vue";
+import { type Component, defineAsyncComponent } from "vue";
 import { mapGetters, mapMutations } from "vuex";
 import { type Size } from "zcanvas";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
@@ -106,6 +107,7 @@ import { deleteTile } from "@/model/actions/tile-delete";
 import { reorderTiles } from "@/model/actions/tile-reorder";
 import { getPixelRatio } from "@/utils/canvas-util";
 import { SmartExecutor } from "@/utils/debounce-util";
+import { isMobile } from "@/utils/environment-util";
 import { getAllTileGroupsInDocument, getIndexOfFirstLayerInTileGroup, getTileByLayer } from "@/utils/timeline-util";
 import messages from "./messages.json";
 
@@ -117,7 +119,6 @@ export default {
     i18n: { messages },
     components: {
         ContextMenu : defineAsyncComponent({ loader: () => import( "@/components/menus/context-menu/context-menu.vue" ) }),
-        Draggable : defineAsyncComponent({ loader: () => import( "vuedraggable" ) }),
         ToggleButton,
     },
     data: () => ({
@@ -134,6 +135,14 @@ export default {
             "activeGroup",
             "layers",
         ]),
+        layerList(): Component {
+            // the draggable interface obscures inner layer actions and list scrolling on mobile
+            // use a dumb-down display-only version of the list (Layer interactions are still supported)
+            if ( isMobile() ) {
+                return defineAsyncComponent({ loader: () => import( "@/components/layer-panel/components/layer-list.vue" )});
+            }
+            return defineAsyncComponent({ loader: () => import( "vuedraggable" ) });
+        },
         thumbSize(): Size {
             return scaleToFixedHeight( this.activeDocument?.width, this.activeDocument?.height, THUMB_HEIGHT * getPixelRatio());
         },
