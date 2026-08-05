@@ -10,6 +10,7 @@
         "hue": "Hue",
         "saturation": "Saturation",
         "lightness": "Lightness",
+        "exposure": "Exposure",
         "vibrance": "Vibrance",
         "invert": "Invert",
         "whiteBalance": "White balance",

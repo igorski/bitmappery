@@ -10,10 +10,11 @@ describe( "Filters factory", () => {
                 enabled: true,
                 blendMode: BlendModes.NORMAL,
                 opacity: 1,
-                gamma: .5,
-                brightness: .5,
+                gamma: 0.5,
+                brightness: 0.5,
                 contrast: 0,
-                vibrance: .5,
+                exposure: 0.5,
+                vibrance: 0.5,
                 threshold: -1,
                 duotone: {
                     enabled: false,
@@ -38,11 +39,12 @@ describe( "Filters factory", () => {
             const filters = FiltersFactory.create({
                 enabled: false,
                 blendMode: BlendModes.OVERLAY,
-                opacity: .3,
-                gamma: .7,
-                brightness: .6,
-                contrast: .3,
-                vibrance: .2,
+                opacity: 0.3,
+                gamma: 0.7,
+                brightness: 0.6,
+                contrast: 0.3,
+                exposure: 0.4,
+                vibrance: 0.2,
                 threshold: 127,
                 quick: {
                     desaturate: true,
@@ -56,19 +58,20 @@ describe( "Filters factory", () => {
                 },
                 hsl: {
                     hue: 60,
-                    sat: .1,
-                    lightness: .1,
+                    sat: 0.1,
+                    lightness: 0.1,
                 },
                 blur: 33,
             });
             expect( filters ).toEqual({
                 enabled: false,
                 blendMode: BlendModes.OVERLAY,
-                opacity: .3,
-                gamma: .7,
-                brightness: .6,
-                contrast: .3,
-                vibrance: .2,
+                opacity: 0.3,
+                gamma: 0.7,
+                brightness: 0.6,
+                contrast: 0.3,
+                exposure: 0.4,
+                vibrance: 0.2,
                 threshold: 127,
                 quick: {
                     desaturate: true,
@@ -82,8 +85,8 @@ describe( "Filters factory", () => {
                 },
                 hsl: {
                     hue: 60,
-                    sat: .1,
-                    lightness: .1,
+                    sat: 0.1,
+                    lightness: 0.1,
                 },
                 blur: 33,
             });
@@ -95,11 +98,12 @@ describe( "Filters factory", () => {
             const filters = FiltersFactory.create({
                 enabled: false,
                 blendMode: BlendModes.OVERLAY,
-                opacity: .4,
-                gamma: .7,
-                brightness: .6,
-                contrast: .3,
-                vibrance: .2,
+                opacity: 0.4,
+                gamma: 0.7,
+                brightness: 0.6,
+                contrast: 0.3,
+                exposure: 0.4,
+                vibrance: 0.2,
                 threshold: 255,
                 quick: {
                     desaturate: true,
@@ -132,7 +136,7 @@ describe( "Filters factory", () => {
         });
 
         it( "should consider a configuration where one of the properties deviates from the default as active", () => {
-            let filter = FiltersFactory.create({ opacity: .5 });
+            let filter = FiltersFactory.create({ opacity: 0.5 });
             expect( hasFilters( filter )).toBe( true );
 
             filter = FiltersFactory.create({ blendMode: BlendModes.OVERLAY });
@@ -141,13 +145,13 @@ describe( "Filters factory", () => {
             filter = FiltersFactory.create({ gamma: .7 });
             expect( hasFilters( filter )).toBe( true );
 
-            filter = FiltersFactory.create({ brightness: .3 });
+            filter = FiltersFactory.create({ brightness: 0.3 });
             expect( hasFilters( filter )).toBe( true );
 
-            filter = FiltersFactory.create({ contrast: .6 });
+            filter = FiltersFactory.create({ contrast: 0.6 });
             expect( hasFilters( filter )).toBe( true );
 
-            filter = FiltersFactory.create({ vibrance: .4 });
+            filter = FiltersFactory.create({ vibrance: 0.4 });
             expect( hasFilters( filter )).toBe( true );
 
             filter = FiltersFactory.create({ threshold: 0 });
@@ -182,7 +186,7 @@ describe( "Filters factory", () => {
             "vibrance", "threshold", "blur"
         ]
         .forEach( property => {
-            const filters = FiltersFactory.create({ [ property ]: .88 });
+            const filters = FiltersFactory.create({ [ property ]: 0.88 });
             expect( isEqual( filters, defaultFilter )).toBe( false );
         });
 

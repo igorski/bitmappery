@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2026 - https://www.igorski.nl
+ * Igor Zinken 2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,42 +20,31 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { BlendModes } from "@/definitions/blend-modes";
+import { mapRange } from "@/math/unit-math";
+import { type Filters } from "@/model/types/filters";
 
-type DuoToneFilter = {
-    enabled: boolean;
-    color1?: string;
-    color2?: string;
-};
+export const MAX_BLUR = 50;
 
-type QuickFilter = {
-    desaturate: boolean;
-    invert: boolean;
-    whiteBalance: boolean;
-};
-
-type HSLFilter = {
-    hue: number, // -180 to +180 range (degrees)
-    sat: number, // -1 to +1 range
-    lightness: number, // -1 to +1 range
-};
+export const MIN_EXPOSURE = -3;
+export const MAX_EXPOSURE = 3;
 
 /**
- * All numerical values are in normalised 0 to 1 range
- * unless noted
+ * Maps the normalised values for Filters to scaled
+ * values which can be used by the filter process
  */
-export type Filters = {
-    enabled: boolean;
-    blendMode: BlendModes;
-    opacity: number;
-    gamma: number;
-    brightness: number;
-    contrast: number;
-    exposure: number;
-    vibrance: number;
-    threshold: number; // -1 (off) to +255 range
-    quick: QuickFilter;
-    duotone: DuoToneFilter;
-    hsl: HSLFilter;
-    blur: number;
+export const getValue = ( filters: Filters, prop: keyof Filters ): any => {
+    switch ( prop ) {
+        default:
+            return filters[ prop ];
+        case "brightness":
+            return filters.brightness * 2;
+        case "contrast":
+            return Math.pow((( filters.contrast * 100 ) + 100 ) / 100, 2 );
+        case "exposure":
+            return mapRange( filters.exposure, 0, 1, MIN_EXPOSURE, MAX_EXPOSURE );
+        case "gamma":
+            return filters.gamma * 2;
+        case "vibrance":
+            return -(( filters.vibrance * 200 ) - 100 ); // becomes inversed normalised 100 to -100 range
+    }
 };

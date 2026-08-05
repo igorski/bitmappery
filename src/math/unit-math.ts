@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021 - https://www.igorski.nl
+ * Igor Zinken 2021-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -39,10 +39,23 @@ export const mmToPixels     = ( mms: number, dpi = 72 ): number => inchesToPixel
 // convenience method to scale given value and its expected maxValue against
 // an arbitrary range (defined by maxCompareValue in relation to maxValue)
 
+/**
+ * Scales given value (capped by maxValue) to a different range (capped by maxCompareValue)
+ */
 export const scale = ( value: number, maxValue: number, maxCompareValue : number ): number => {
     return Math.min( maxValue, value ) * ( maxCompareValue / maxValue );
-}
+};
 
-export const randomInRange = ( min: number, max: number ) => {
+/**
+ * Maps given value (capped by given range of min - max) to an alternate range (defined by outMin - outMax)
+ */
+export const mapRange = ( value: number, min: number, max: number, outMin: number, outMax: number ): number => {
+    return outMin + (( value - min ) * ( outMax - outMin )) / ( max - min );
+};
+
+/**
+ * Returns a random value within given range
+ */
+export const randomInRange = ( min: number, max: number ): number => {
     return Math.random() * ( max - min + 1 ) + min;
-}
+};

@@ -54,11 +54,12 @@ const FiltersFactory = {
         enabled    = true,
         blendMode  = BlendModes.NORMAL,
         opacity    = 1,
-        gamma      = .5,
-        brightness = .5,
+        gamma      = 0.5,
+        brightness = 0.5,
         contrast   = 0,
-        vibrance   = .5,
-        threshold  = -1, // -1 == off, working range is 0 - 255
+        exposure   = 0.5,
+        vibrance   = 0.5,
+        threshold  = -1,
         quick = DEFAULT_QUICK_SETTINGS,
         duotone = DEFAULT_DUOTONE,
         hsl = DEFAULT_HSL,
@@ -71,6 +72,7 @@ const FiltersFactory = {
             gamma,
             brightness,
             contrast,
+            exposure,
             vibrance,
             threshold,
             quick: {
@@ -105,6 +107,7 @@ const FiltersFactory = {
             d: quick.desaturate,
             i: quick.invert,
             w: quick.whiteBalance,
+            x: filters.exposure,
             v: filters.vibrance,
             t: filters.threshold,
             de: duotone.enabled,
@@ -130,6 +133,7 @@ const FiltersFactory = {
             gamma: filters.g,
             brightness: filters.b,
             contrast: filters.c,
+            exposure: filters.x,
             vibrance: filters.v,
             threshold: filters.t,
             quick: {
@@ -173,6 +177,7 @@ export const isEqual = ( filters: Filters, filtersToCompareTo?: Filters ): boole
            filters.gamma      === filtersToCompareTo.gamma      &&
            filters.brightness === filtersToCompareTo.brightness &&
            filters.contrast   === filtersToCompareTo.contrast   &&
+           filters.exposure   === filtersToCompareTo.exposure   &&
            filters.vibrance   === filtersToCompareTo.vibrance   &&
            filters.threshold  === filtersToCompareTo.threshold  &&
            // quick filters

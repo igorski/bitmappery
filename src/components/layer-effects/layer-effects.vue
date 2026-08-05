@@ -100,6 +100,15 @@
             <fieldset class="fieldset">
                 <legend v-t="'toneAdjustments'" />
                 <div class="wrapper wrapper--slider">
+                    <label v-t="'exposure'"></label>
+                    <slider
+                        v-model="exposure"
+                        :min="0"
+                        :max="100"
+                        :tooltip="'none'"
+                    />
+                </div>
+                <div class="wrapper wrapper--slider">
                     <label v-t="'gamma'"></label>
                     <slider
                         v-model="gamma"
@@ -207,10 +216,10 @@ import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleBu
 import ColorPicker from "@/components/ui/color-picker/color-picker.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
+import { MAX_BLUR } from "@/definitions/filter-ranges";
 import { Layer } from "@/model/types/layer";
 import { type Filters } from "@/model/types/filters";
 import FiltersFactory from "@/model/factories/filters-factory";
-import { MAX_BLUR } from "@/rendering/filters/blur";
 import { updateLayerFilters } from "@/model/actions/layer-update-filters";
 import { clone } from "@/utils/object-util";
 
@@ -259,6 +268,14 @@ export default {
             },
             set( value: number ): void {
                 this.internalValue.contrast = value / 100;
+            }
+        },
+        exposure: {
+            get(): number {
+                return this.internalValue.exposure * 100;
+            },
+            set( value: number ): void {
+                this.internalValue.exposure = value / 100;
             }
         },
         vibrance: {

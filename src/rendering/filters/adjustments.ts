@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2021-2025 - https://www.igorski.nl
+ * Igor Zinken 2021-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,6 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { getValue } from "@/definitions/filter-ranges";
 import { type Filters } from "@/model/types/filters";
 import FiltersFactory from "@/model/factories/filters-factory";
 
@@ -39,20 +40,32 @@ const defaultFilters = FiltersFactory.create();
  */
 export const applyAdjustments = ( pixels: Uint8ClampedArray, filters: Filters ): void =>
 {
-    const brightness     = filters.brightness * 2;//( filters.brightness * 2 ) - 1; // -1 to 1 range
-    const contrast       = Math.pow((( filters.contrast * 100 ) + 100 ) / 100, 2 ); // -100 to 100 range
-    const gamma          = filters.gamma * 2; // 0 to 2 range
-    const vibrance       = -(( filters.vibrance * 200 ) - 100 ); // -100 to 100 range
-
     const doBrightness = filters.brightness !== defaultFilters.brightness;
     const doContrast   = filters.contrast   !== defaultFilters.contrast;
     const doGamma      = filters.gamma      !== defaultFilters.gamma;
+    const doExposure   = filters.exposure   !== defaultFilters.exposure;
     const doVibrance   = filters.vibrance   !== defaultFilters.vibrance;
     const doThreshold  = filters.threshold  !== defaultFilters.threshold;
     const doInvert     = filters.quick.invert;
     const doDesaturate = filters.quick.desaturate;
 
     const { threshold } = filters;
+
+    const brightness     = getValue( filters, "brightness" );
+    const contrast       = getValue( filters, "contrast" );
+    const gamma          = getValue( filters, "gamma" );
+    const vibrance       = getValue( filters, "vibrance" );
+
+    let lutTable: Uint8Array;
+    
+    if ( doExposure ) {
+        const exposure = Math.pow( 2, getValue( filters, "exposure" ));
+
+        lutTable = new Uint8Array( 256 );
+        for ( let i = 0; i < 256; i++ ) {
+            lutTable[ i ] = Math.min( MAX_8BIT, Math.max( 0, i * exposure ));
+        }
+    }
 
     let r, g, b, a;
     let grayScale, max, avg, amt;
@@ -78,6 +91,13 @@ export const applyAdjustments = ( pixels: Uint8ClampedArray, filters: Filters ):
             r = r * gammaSquared;
             g = g * gammaSquared;
             b = b * gammaSquared;
+        }
+
+        // adjust exposure
+        if ( doExposure ) {
+            r = lutTable![ r ];
+            g = lutTable![ g ];
+            b = lutTable![ b ];
         }
 
         // invert
@@ -140,6 +160,6 @@ export const applyAdjustments = ( pixels: Uint8ClampedArray, filters: Filters ):
         pixels[ i ]     = r;
         pixels[ i + 1 ] = g;
         pixels[ i + 2 ] = b;
-        //pixels[ i + 3 ] = a; // currently no filter uses alpha channel
+        //pixels[ i + 3 ] = a; // currently no filter modifies alpha channel
     }
 };

@@ -20,6 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { getValue } from "@/definitions/filter-ranges";
 import { type Filters } from "@/model/types/filters";
 import FiltersFactory from "@/model/factories/filters-factory";
 import { imageDataAsFloat } from "@/utils/wasm-util";
@@ -27,7 +28,7 @@ import type { WasmFilterInstance } from "@/utils/wasm-util";
 import { applyAdjustments } from "@/rendering/filters/adjustments";
 import { applyBlur } from "@/rendering/filters/blur";
 import { applyDuotone } from "@/rendering/filters/duotone";
-import { applyWhiteBalance } from "../rendering/filters/white-balance";
+import { applyWhiteBalance } from "@/rendering/filters/white-balance";
 import { applyHSL } from "@/rendering/filters/hsl";
 import wasmJs from "@/wasm/bin/filters.js";
 
@@ -105,34 +106,37 @@ function renderFilters( imageData: ImageData, filters: Filters ): Uint8ClampedAr
 /* internal methods */
 
 function renderFiltersWasm( imageData: ImageData, filters: Filters ): Uint8ClampedArray {
-    const brightness     = ( filters.brightness * 2 );//( filters.brightness * 2 ) - 1; // -1 to 1 range
-    const contrast       = Math.pow((( filters.contrast * 100 ) + 100 ) / 100, 2 ); // -100 to 100 range
-    const gamma          = ( filters.gamma * 2 ); // 0 to 2 range
-    const vibrance       = -(( filters.vibrance * 200 ) - 100 ); // -100 to 100 range
-    const { threshold } = filters;
-
     const doBrightness = filters.brightness !== defaultFilters.brightness;
     const doContrast   = filters.contrast   !== defaultFilters.contrast;
     const doGamma      = filters.gamma      !== defaultFilters.gamma;
     const doVibrance   = filters.vibrance   !== defaultFilters.vibrance;
+    const doDesaturate = filters.quick.desaturate;
 
+    const brightness     = getValue( filters, "brightness" );
+    const contrast       = getValue( filters, "contrast" );
+    const gamma          = getValue( filters, "gamma" );
+    const vibrance       = getValue( filters, "vibrance" );
+    const { threshold }  = filters;
+    
     // @todo these are not supported by the WASM variant yet
 
+    const doExposure   = filters.exposure !== defaultFilters.exposure;
     const doInvert     = filters.quick.invert;
     const doThreshold  = threshold !== defaultFilters.threshold;
-    const doDesaturate = filters.quick.desaturate;
     const doWhiteBalance = filters.quick.whiteBalance;
     const doDuotone    = filters.duotone.enabled !== defaultFilters.duotone.enabled;
-    const doHSL = filters.hsl.hue !== 0 || filters.hsl.sat !== 0 || filters.hsl.lightness !== 0;
-    const doBlur = filters.blur > 0;
+    const doHSL        = filters.hsl.hue !== 0 || filters.hsl.sat !== 0 || filters.hsl.lightness !== 0;
+    const doBlur       = filters.blur > 0;
+    
+    const exposure = getValue( filters, "exposure" );
 
     // run WASM operations
 
-    return imageDataAsFloat( imageData, wasmInstance, ( memory, length ) => {
+    return imageDataAsFloat( imageData, wasmInstance, ( memory: number, length: number ): void => {
         wasmInstance._filter(
             memory, length,
-            gamma, brightness, contrast, vibrance,/* threshold, duotone.color1, duotone.color2 */
-            doGamma, doDesaturate, doBrightness, doContrast, doVibrance/*, doWhiteBalance, doThreshold, doDuotone, doHSL, doBlur*/
+            gamma, brightness, contrast, vibrance,/* threshold, exposure, duotone.color1, duotone.color2 */
+            doGamma, doDesaturate, doBrightness, doContrast, doVibrance/*, doExposure, doWhiteBalance, doThreshold, doDuotone, doHSL, doBlur*/
         );
     });
 }
