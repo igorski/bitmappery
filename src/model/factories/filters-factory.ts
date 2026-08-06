@@ -161,9 +161,9 @@ const FiltersFactory = {
                 color2: filters.d2 ?? DEFAULT_DUOTONE_2,
             },
             hsl: {
-                hue: filters.hh ?? 0,
-                sat: filters.hs ?? 0,
-                lightness: filters.hl ?? 0,
+                hue: filters.hh ?? 0.5,
+                sat: filters.hs ?? 0.5,
+                lightness: filters.hl ?? 0.5,
             },
             blur: filters.bl,
         });
