@@ -24,12 +24,14 @@
     <slider
         :min="0"
         :max="1"
-        :step="0.01"
-        :tooltip="'none'"
+        :step="step"
+        :text-getter="denormalise"
+        :text-setter="normalise"
     />
 </template>
 
 <script lang="ts">
+import { type PropType } from "vue";
 import Slider from "./slider.vue";
 
 /**
@@ -39,5 +41,20 @@ import Slider from "./slider.vue";
  */
 export default {
     components: { Slider },
+    props: {
+        step: {
+            type: Number,
+            default: 0.01,
+            validator: ( value: number ) => value > 0 && value <= 1,
+        },
+        denormalise: {
+            type: Function as PropType<( value: number ) => any>,
+            required: false,
+        },
+        normalise: {
+            type: Function as PropType<( value: number ) => any>,
+            required: false,
+        },
+    },
 };
 </script>

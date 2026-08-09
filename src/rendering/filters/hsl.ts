@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { getHSLValue } from "@/definitions/filter-ranges";
+import { denormaliseHue, denormaliseSaturation, denormaliseLightness } from "@/definitions/filter-ranges";
 import { RGBtoHSL, HSLtoRGB } from "@/utils/color-util";
 
 /**
@@ -29,7 +29,9 @@ import { RGBtoHSL, HSLtoRGB } from "@/utils/color-util";
 export const applyHSL = (
     pixels: Uint8ClampedArray, normalisedHue: number, normalisedSaturation: number, normalisedLightness: number
 ): void => {
-    const { hue, saturation, lightness } = getHSLValue( normalisedHue, normalisedSaturation, normalisedLightness );
+    const hue = denormaliseHue( normalisedHue );
+    const saturation = denormaliseSaturation( normalisedSaturation );
+    const lightness = denormaliseLightness( normalisedLightness );
 
     for ( let i = 0, len = pixels.length; i < len; i += 4 ) {
         let r = pixels[ i ];

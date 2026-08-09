@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { getValue } from "@/definitions/filter-ranges";
+import { denormalise } from "@/definitions/filter-ranges";
 import { type Filters } from "@/model/types/filters";
 import FiltersFactory from "@/model/factories/filters-factory";
 
@@ -51,15 +51,15 @@ export const applyAdjustments = ( pixels: Uint8ClampedArray, filters: Filters ):
 
     const { threshold } = filters;
 
-    const brightness     = getValue( filters, "brightness" );
-    const contrast       = getValue( filters, "contrast" );
-    const gamma          = getValue( filters, "gamma" );
-    const vibrance       = getValue( filters, "vibrance" );
+    const brightness     = denormalise( filters, "brightness" );
+    const contrast       = denormalise( filters, "contrast" );
+    const gamma          = denormalise( filters, "gamma" );
+    const vibrance       = denormalise( filters, "vibrance" );
 
     let lutTable: Uint8Array;
     
     if ( doExposure ) {
-        const exposure = Math.pow( 2, getValue( filters, "exposure" ));
+        const exposure = Math.pow( 2, denormalise( filters, "exposure" ));
 
         lutTable = new Uint8Array( 256 );
         for ( let i = 0; i < 256; i++ ) {

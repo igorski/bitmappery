@@ -36,18 +36,21 @@
             :disabled="disabled"
             @keyup.enter="toggleTextInput( true )"
             @dblclick="toggleTextInput( true )"
+            @touchstart="handleTouchStart()"
             @pointerdown="handleDragStart()"
             @pointerup="handleDragEnd()"
+            v-tooltip.top="internalTextValue"
         />
         <input
             v-else
-            v-model.number="internalValue"
             ref="textInput"
             type="number"
-            class="input-field full"
+            class="input-field"
             :min="min"
             :max="max"
             :step="step"
+            :value="internalTextValue"
+            @change="handleTextChange( $event )"
             @focus="handleTextFocus()"
             @blur="handleTextBlur()"
             @keyup.enter="toggleTextInput( false )"
@@ -56,7 +59,11 @@
 </template>
 
 <script lang="ts">
+import { type PropType } from "vue";
 import KeyboardService from "@/services/keyboard-service";
+import { fixedFloat } from "@/utils/string-util";
+
+const DOUBLE_TAP_THRESHOLD = 500;
 
 export default {
     emits: [ "update:modelValue", "dragStart", "dragEnd" ],
@@ -85,6 +92,19 @@ export default {
             type: Boolean,
             default: false,
         },
+        /**
+         * Optional transformation functions that change the textual representation
+         * of the numerical value (for instance for sliders controlling normalised
+         * model values that use a different scaled representation in user terms)
+         */
+        textGetter: {
+            type: Function as PropType<( value: number ) => any>,
+            required: false,
+        },
+        textSetter: {
+            type: Function as PropType<( value: number ) => any>,
+            required: false,
+        },
     },
     data: () => ({
         textInput: false,
@@ -102,6 +122,41 @@ export default {
                 this.$emit( "update:modelValue", numericalValue );
             }
         },
+        internalTextValue: {
+            get(): string {
+                if ( this.textGetter ) {
+                    return fixedFloat( this.textGetter( this.internalValue ), this.digits );
+                }
+                return fixedFloat( this.internalValue, this.digits );
+            },
+            set( value: number ): void {
+                let transformedValue: number;
+                if ( this.textSetter ) {
+                    transformedValue = this.textSetter( value );
+                } else {
+                    transformedValue = value;
+                }
+
+                // keep in range
+                if ( transformedValue < this.min ) {
+                    this.internalValue = this.min;
+                } else if ( transformedValue > this.max ) {
+                    this.internalValue = this.max;
+                } else {
+                    this.internalValue = transformedValue;
+                }
+            },
+        },
+        digits(): number {
+            const strStep = this.step.toString();
+            if ( strStep.includes( "." )) {
+                return strStep.split( "." )[ 1 ].length;
+            }
+            return 0;
+        },
+    },
+    created(): void {
+        this.touchDown = 0;
     },
     methods: {
         toggleTextInput( enabled: boolean ): void {
@@ -120,6 +175,16 @@ export default {
         handleTextBlur(): void {
             KeyboardService.setSuspended( this.wasSuspended );
             this.toggleTextInput( false );
+        },
+        handleTextChange( e: Event ): void {
+            this.internalTextValue = e.target.value;
+        },
+        handleTouchStart(): void {
+            const now = Date.now();
+            if ( now - this.touchDown < DOUBLE_TAP_THRESHOLD ) {
+                this.toggleTextInput( !this.textInput );
+            }
+            this.touchDown = now;
         },
         handleDragStart(): void {
             this.$emit( "dragStart" );
@@ -312,5 +377,14 @@ input[type=range] {
             }
         }
     }
+}
+
+.input-slider {
+    height: variables.$spacing-xlarge;
+}
+
+.input-field {
+    width: 100% !important;
+    text-align: center;
 }
 </style>

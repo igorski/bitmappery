@@ -20,7 +20,7 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { getValue } from "@/definitions/filter-ranges";
+import { denormalise } from "@/definitions/filter-ranges";
 import { type Filters } from "@/model/types/filters";
 import FiltersFactory from "@/model/factories/filters-factory";
 import { imageDataAsFloat } from "@/utils/wasm-util";
@@ -112,10 +112,10 @@ function renderFiltersWasm( imageData: ImageData, filters: Filters ): Uint8Clamp
     const doVibrance   = filters.vibrance   !== defaultFilters.vibrance;
     const doDesaturate = filters.quick.desaturate;
 
-    const brightness     = getValue( filters, "brightness" );
-    const contrast       = getValue( filters, "contrast" );
-    const gamma          = getValue( filters, "gamma" );
-    const vibrance       = getValue( filters, "vibrance" );
+    const brightness     = denormalise( filters, "brightness" );
+    const contrast       = denormalise( filters, "contrast" );
+    const gamma          = denormalise( filters, "gamma" );
+    const vibrance       = denormalise( filters, "vibrance" );
     const { threshold }  = filters;
     
     // @todo these are not supported by the WASM variant yet
@@ -128,7 +128,7 @@ function renderFiltersWasm( imageData: ImageData, filters: Filters ): Uint8Clamp
     const doHSL        = filters.hsl.hue !== 0 || filters.hsl.sat !== 0 || filters.hsl.lightness !== 0;
     const doBlur       = filters.blur > 0;
     
-    const exposure = getValue( filters, "exposure" );
+    const exposure = denormalise( filters, "exposure" );
 
     // run WASM operations
 

@@ -25,12 +25,14 @@ import type { Filters } from "@/model/types/filters";
 
 export const MAX_BLUR = 50;
 
+export const MAX_BRIGHTNESS = 2;
+export const MAX_GAMMA = 2;
+
 export const MIN_CONTRAST = 1;
 export const MAX_CONTRAST = 3;
 
-// these define degrees
-export const MIN_HUE = -180;
-export const MAX_HUE = 180;
+export const MIN_HUE = -180; // in degrees
+export const MAX_HUE = 180; // in degrees
 
 export const MIN_SATURATION = -1;
 export const MAX_SATURATION = 1;
@@ -42,15 +44,15 @@ export const MIN_EXPOSURE = -3;
 export const MAX_EXPOSURE = 3;
 
 /**
- * Maps the normalised values for Filters to scaled
- * values which can be used by the filter process
+ * Maps the normalised model values for Filters to scaled value ranges which
+ * correspond with the parameters used by the respective filter process.
  */
-export const getValue = ( filters: Filters, prop: keyof Filters ): any => {
+export const denormalise = ( filters: Partial<Filters>, prop: keyof Filters ): any => {
     switch ( prop ) {
         default:
             return filters[ prop ];
         case "brightness":
-            return filters.brightness * 2;
+            return filters.brightness * MAX_BRIGHTNESS;
         case "contrast":
             // contrast requires split linear mapping
             if ( filters.contrast <= 0.5 ) {
@@ -60,18 +62,41 @@ export const getValue = ( filters: Filters, prop: keyof Filters ): any => {
         case "exposure":
             return mapRange( filters.exposure, 0, 1, MIN_EXPOSURE, MAX_EXPOSURE );
         case "gamma":
-            return filters.gamma * 2;
+            return filters.gamma * MAX_GAMMA;
         case "vibrance":
             return -(( filters.vibrance * 200 ) - 100 ); // becomes inversed normalised 100 to -100 range
     }
 };
 
-export const getHSLValue = (
-    normalisedHue: number, normalisedSaturation: number, normalisedLightness: number
-): { hue: number, saturation: number, lightness: number } => {
-    return {
-        hue: mapRange( normalisedHue, 0, 1, MIN_HUE, MAX_HUE ),
-        saturation: mapRange( normalisedSaturation, 0, 1, MIN_SATURATION, MAX_SATURATION ),
-        lightness: mapRange( normalisedLightness, 0, 1, MIN_LIGHTNESS, MAX_LIGHTNESS ),
-    };
+/**
+ * Inverse of denormalise(), use when UI values for Filter properties need
+ * to be mapped to their model values
+ */
+export const normalise = ( prop: keyof Filters, value: any ): any => {
+    switch ( prop ) {
+        default:
+            return value;
+        case "brightness":
+        case "gamma":
+            return value / 2;
+        case "contrast":
+            if ( value <= 1 ) {
+                return mapRange( value, 0, 1, 0, 0.5 );
+            }
+            return mapRange( value, MIN_CONTRAST, MAX_CONTRAST, 0.5, 1 );
+        case "exposure":
+            return mapRange( value, MIN_EXPOSURE, MAX_EXPOSURE, 0, 1 );
+        case "vibrance":
+            return ( -value + 100 ) / 200;
+    }
 };
+
+/* HSL is a nested series of props, provide unique methods for these */
+
+export const denormaliseHue = ( normalisedHue: number ): number => mapRange( normalisedHue, 0, 1, MIN_HUE, MAX_HUE );
+export const denormaliseSaturation = ( normalisedSaturation: number ): number => mapRange( normalisedSaturation, 0, 1, MIN_SATURATION, MAX_SATURATION );
+export const denormaliseLightness = ( normalisedLightness: number ): number => mapRange( normalisedLightness, 0, 1, MIN_LIGHTNESS, MAX_LIGHTNESS );
+
+export const normaliseHue = ( value: number ): number => mapRange( value, MIN_HUE, MAX_HUE, 0, 1 );
+export const normaliseSaturation = ( value: number ): number => mapRange( value, MIN_SATURATION, MAX_SATURATION, 0, 1 );
+export const normaliseLightness = ( value: number ): number => mapRange( value, MIN_LIGHTNESS, MAX_LIGHTNESS, 0, 1 );

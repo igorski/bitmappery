@@ -64,24 +64,32 @@
                     <label v-t="'hue'"></label>
                     <normalised-slider
                         v-model="internalValue.hsl.hue"
+                        :denormalise="denormaliseHSLValue('hue')"
+                        :normalise="normaliseHSLValue('hue')"
                     />
                 </div>
-                <div class="wrapper wrapper--toggle">
+                <div class="wrapper wrapper--slider">
                     <label v-t="'saturation'"></label>
                     <normalised-slider
                         v-model="internalValue.hsl.sat"
+                        :denormalise="denormaliseHSLValue('saturation')"
+                        :normalise="normaliseHSLValue('saturation')"
                     />
                 </div>
-                <div class="wrapper wrapper--toggle">
+                <div class="wrapper wrapper--slider">
                     <label v-t="'lightness'"></label>
                     <normalised-slider
                         v-model="internalValue.hsl.lightness"
+                        :denormalise="denormaliseHSLValue('lightness')"
+                        :normalise="normaliseHSLValue('lightness')"
                     />
                 </div>
                 <div class="wrapper wrapper--slider">
                     <label v-t="'vibrance'"></label>
                     <normalised-slider
                         v-model="internalValue.vibrance"
+                        :denormalise="denormaliseValue('vibrance')"
+                        :normalise="normaliseValue('vibrance')"
                     />
                 </div>
             </fieldset>
@@ -91,24 +99,32 @@
                     <label v-t="'exposure'"></label>
                     <normalised-slider
                         v-model="internalValue.exposure"
+                        :denormalise="denormaliseValue('exposure')"
+                        :normalise="normaliseValue('exposure')"
                     />
                 </div>
                 <div class="wrapper wrapper--slider">
                     <label v-t="'gamma'"></label>
                     <normalised-slider
                         v-model="internalValue.gamma"
+                        :denormalise="denormaliseValue('gamma')"
+                        :normalise="normaliseValue('gamma')"
                     />
                 </div>
                 <div class="wrapper wrapper--slider">
                     <label v-t="'brightness'"></label>
                     <normalised-slider
                         v-model="internalValue.brightness"
+                        :denormalise="denormaliseValue('brightness')"
+                        :normalise="normaliseValue('brightness')"
                     />
                 </div>
                 <div class="wrapper wrapper--slider">
                     <label v-t="'contrast'"></label>
                     <normalised-slider
                         v-model="internalValue.contrast"
+                        :denormalise="denormaliseValue('contrast')"
+                        :normalise="normaliseValue('contrast')"
                     />
                 </div>
             </fieldset>
@@ -148,7 +164,7 @@
                         v-model="internalValue.threshold"
                         :min="-1"
                         :max="255"
-                        :tooltip="'none'"
+                        :step="1"
                     />
                 </div>
                 <div class="wrapper wrapper--slider">
@@ -157,7 +173,6 @@
                         v-model="internalValue.blur"
                         :min="0"
                         :max="maxBlur"
-                        :tooltip="'none'"
                     />
                 </div>
             </fieldset>
@@ -193,7 +208,12 @@ import ColorPicker from "@/components/ui/color-picker/color-picker.vue";
 import NormalisedSlider from "@/components/ui/slider/normalised-slider.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import Slider from "@/components/ui/slider/slider.vue";
-import { MAX_BLUR } from "@/definitions/filter-ranges";
+import {
+    MAX_BLUR, MAX_BRIGHTNESS, MIN_CONTRAST, MAX_CONTRAST, denormalise, normalise,
+    normaliseHue, normaliseSaturation, normaliseLightness,
+    denormaliseHue, denormaliseSaturation, denormaliseLightness,
+} from "@/definitions/filter-ranges";
+import { mapRange } from "@/math/unit-math";
 import { Layer } from "@/model/types/layer";
 import { type Filters } from "@/model/types/filters";
 import FiltersFactory from "@/model/factories/filters-factory";
@@ -201,6 +221,8 @@ import { updateLayerFilters } from "@/model/actions/layer-update-filters";
 import { clone } from "@/utils/object-util";
 
 import messages from "./messages.json";
+
+const NON_PERCENTILE_PROPS: ( keyof Filters )[] = [ "brightness", "contrast", "exposure", "gamma", "vibrance" ];
 
 export default {
     emits: [ "close" ],
@@ -301,6 +323,89 @@ export default {
                 index: optLayerIndex ?? this.activeLayerIndex,
                 opts: { filters }
             });
+        },
+        /**
+         * The model values for (most) properties are in normalised 0 - 1 range with a neutral
+         * center at 0.5. This doesn't necessarily feel natural for the user, hence we scale these
+         * values to percentile 0 - 100 ranges (or -100 to 100 to represent neutral as 0) for editing purposes.
+         * 
+         * NOTE: Filter properties that use custom mapping (see NON_PERCENTILE_PROPS) will not use
+         * a percentile range, but display their own custom range.
+         * 
+         * The output of these mappers is reflected in the hover tooltips and the value seen / entered
+         * in the textual representation of the Sliders.
+         */
+        denormaliseValue( prop: keyof Filters ): any {
+            return ( value: number ) => {
+                if ( NON_PERCENTILE_PROPS.includes( prop )) {
+                    const denormalised = denormalise({ [ prop ]: value }, prop );
+                    switch ( prop ) {
+                        default:
+                            return denormalised;
+                        case "vibrance":
+                            return -denormalised; // vibrance is in inverse range
+                        case "brightness":
+                            return mapRange( denormalised, 0, MAX_BRIGHTNESS, -100, 100 );
+                        case "contrast":
+                            // watch the linear split
+                            if ( denormalised > MIN_CONTRAST ) {
+                                return mapRange( denormalised, MIN_CONTRAST, MAX_CONTRAST, 0, 100 );
+                            } else {
+                                return mapRange( denormalised, 0, MIN_CONTRAST, -100, 0 );
+                            }
+                    }
+                }
+                return value * 100; // we want to display normalised values in 0 - 100 range
+            };
+        },
+        normaliseValue( prop: keyof Filters ): any {
+            return ( value: number ) => {
+                if ( NON_PERCENTILE_PROPS.includes( prop )) {
+                    switch ( prop ) {
+                        default:
+                            break;
+                        case "vibrance":
+                            value = -value; // vibrance is in inverse range
+                            break;
+                        case "brightness":
+                            value = mapRange( value, -100, 100, 0, MAX_BRIGHTNESS );
+                            break;
+                        case "contrast":
+                            if ( value > 0 ) {
+                                value = mapRange( value, 0, 100, MIN_CONTRAST, MAX_CONTRAST );
+                            } else {
+                                value = mapRange( value, -100, 0, 0, MIN_CONTRAST );
+                            }
+                            break;
+                    }
+                    return normalise( prop, value );
+                }
+                return value / 100;
+            };
+        },
+        denormaliseHSLValue( prop: keyof Filters.hsl ): any {
+            return ( value: number ) => {
+                switch ( prop ) {
+                    case "hue":
+                        return denormaliseHue( value );
+                    case "saturation":
+                        return denormaliseSaturation( value ) * 100;
+                    case "lightness":
+                        return denormaliseLightness( value ) * 100;
+                }
+            };
+        },
+        normaliseHSLValue( prop: keyof Filters.hsl ): any {
+            return ( value: number ) => {
+                switch ( prop ) {
+                    case "hue":
+                        return normaliseHue( value );
+                    case "saturation":
+                        return normaliseSaturation( value / 100 );
+                    case "lightness":
+                        return normaliseLightness( value / 100 );
+                }
+            };
         },
     },
 };
