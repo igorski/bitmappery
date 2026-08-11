@@ -104,7 +104,7 @@ export const imageToCanvas = ( bitmap: CanvasDrawable, width: number, height: nu
     return cvs;
 };
 
-export const base64toCanvas = async ( base64: string, width: number, height: number ): Promise<HTMLCanvasElement> => {
+export const base64toCanvas = async ( base64: string, width: number, height: number ): Promise<HTMLCanvasElement | null> => {
     if ( !base64 ) {
         return null;
     }

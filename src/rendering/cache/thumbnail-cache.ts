@@ -148,7 +148,7 @@ async function processQueue(): Promise<void> {
 
         // console.info( "creating thumbnail for layer " + layer.id);
 
-        const snapshot = await createLayerSnapshot( layerDef.layer, layerDef.document );
+        const snapshot = await createLayerSnapshot( layerDef.layer, layerDef.document, true );
 
         thumbData.source = imageToBase64(
             await resizeImage( snapshot, width, height ), width, height, true

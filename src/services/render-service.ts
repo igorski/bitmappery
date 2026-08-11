@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,11 +21,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { reactive } from "vue";
-import type { Layer } from "@/model/types/layer";
 import { LayerTypes } from "@/definitions/layer-types";
 import { getRendererForLayer } from "@/model/factories/renderer-factory";
 import { hasFilters, isEqual as isFiltersEqual } from "@/model/factories/filters-factory";
 import { isEqual as isTextEqual } from "@/model/factories/text-factory";
+import { type Filters } from "@/model/types/filters";
+import { type Layer } from "@/model/types/layer";
 import { createCanvas, cloneCanvas, matchDimensions } from "@/utils/canvas-util";
 import { replaceLayerSource } from "@/utils/layer-util";
 import { clone } from "@/utils/object-util";
@@ -69,6 +70,7 @@ export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): 
     }
 
     ++renderState.pending;
+    const DEBUG_PREFIX = `EFFECTS_RENDER for ${layer.id}, at:${window.performance.now().toFixed( 2 )}`;
 
     let { width, height } = layer;
     const { cvs, ctx } = createCanvas( width, height );
@@ -85,12 +87,12 @@ export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): 
     if ( layer.type === LayerTypes.LAYER_TEXT && layer.text.value ) {
         let textBitmap;
         if ( cached?.textBitmap && isTextEqual( layer.text, cached.text )) {
-            //console.info( "reading rendered text from cache" );
+            // console.info( `${DEBUG_PREFIX}: reading rendered text from cache.` );
             textBitmap = cached.textBitmap;
         } else {
             textBitmap = await renderText( layer );
             replaceLayerSource( layer, textBitmap );
-            //console.info( "writing rendered text to cache" );
+            // console.info( `${DEBUG_PREFIX}: writing rendered text to cache.` );
             cacheToSet.text = { ...layer.text };
             cacheToSet.textBitmap = textBitmap;
             hasCachedFilter = false; // new contents need to be refiltered
@@ -100,7 +102,7 @@ export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): 
         // render text onto destination source
         ctx.drawImage( textBitmap, 0, 0 );
     } else if ( !hasCachedFilter ) {
-        //console.info( "draw unfiltered source, will apply filter next: " + applyFilter );
+        // console.info( `${DEBUG_PREFIX}: draw unfiltered source, will apply filter next: ${applyFilter.toString()}.` );
         ctx.drawImage( layer.source, 0, 0 );
     }
 
@@ -109,17 +111,18 @@ export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): 
     if ( applyFilter ) {
         let imageData;
         if ( hasCachedFilter ) {
-            //console.info( "reading filtered content from cache" );
+            // console.info( `${DEBUG_PREFIX}: reading filtered content from cache.` );
             imageData = cached.filterData;
         } else {
             try {
-                imageData = await runFilterJob( cvs, { filters: layer.filters });
-                //console.info( "writing filtered content to cache" );
+                // console.info( `${DEBUG_PREFIX}: start runFilterJob().` );
+                imageData = await runFilterJob( cvs, layer.filters );
+                // console.info( `${DEBUG_PREFIX}: completed runFilterJob(), writing filtered content to cache.` );
                 cacheToSet.filters    = { ...layer.filters };
                 cacheToSet.filterData = imageData;
             } catch ( error ) {
-                // TODO: communicate error ?
-                console.info( `Caught error "${error}" during runFilterJob()` );
+                // TODO: communicate error to user?
+                console.error( `${DEBUG_PREFIX}: Caught error "${error}" during runFilterJob().` );
                 renderState.pending = Math.max( 0, renderState.pending - 1 );
                 return;
             }
@@ -132,7 +135,7 @@ export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): 
     // TODO: hook this into cache as well ? then again this is the last action in an otherwise cached queue...
 
     if ( applyMask ) {
-        //console.info( "apply mask" );
+        // console.info( `${DEBUG_PREFIX}: applying mask.` );
         const unmaskedBitmap = cloneCanvas( cvs );
         renderer.setUnmaskedBitmap( unmaskedBitmap );
         renderMask( layer, ctx, applyFilter ? unmaskedBitmap : layer.source, width, height );
@@ -161,12 +164,11 @@ export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): 
  * Run a image processing job in a dedicated Worker.
  *
  * @param {HTMLCanvasElement} source content to process
- * @param {Object} jobSettings job/cmd-specific properties
+ * @param {Filters} filters to apply
  * @return {Promise<ImageData>} processed source as ImageData (can be stored in cache)
  */
-const runFilterJob = ( source: HTMLCanvasElement, jobSettings: any ): Promise<ImageData> => {
-    const { width, height } = source;
-    const imageData = source.getContext( "2d" )!.getImageData( 0, 0, width, height );
+const runFilterJob = ( source: HTMLCanvasElement, filters: Filters ): Promise<ImageData> => {
+    const imageData = source.getContext( "2d" )!.getImageData( 0, 0, source.width, source.height );
     const wasm      = useWasm && wasmWorker;
 
     return new Promise( async ( resolve, reject ) => {
@@ -195,7 +197,12 @@ const runFilterJob = ( source: HTMLCanvasElement, jobSettings: any ): Promise<Im
                 reject( optError );
             }
         });
-        worker.postMessage({ cmd: wasm ? "filterWasm" : "filter", id, imageData, ...clone( jobSettings ) });
+        worker.postMessage({
+            cmd: wasm ? "filterWasm" : "filter",
+            id,
+            imageData,
+            filters: clone( filters ),
+        });
     })
 };
 

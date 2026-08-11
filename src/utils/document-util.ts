@@ -68,14 +68,18 @@ export const createDocumentSnapshot = async ( activeDocument: Document ): Promis
  * Creates a snapshot of the provided layer. The Documents boundary box will crop the layer.
  * THIS MULTIPLIES FOR THE DEVICE PIXEL RATIO (as it mimics the onscreen presentation of zCanvas)
  */
-export const createLayerSnapshot = async ( layer: Layer, activeDocument: Document ): Promise<HTMLCanvasElement> => {
+export const createLayerSnapshot = async ( layer: Layer, activeDocument: Document, reuseCache = false ): Promise<HTMLCanvasElement> => {
     const { zcvs, cvs, ctx } = createFullSizeZCanvas( activeDocument );
 
-    // if the layer is currently invisible, it has no renderer, create it lazily here.
-    const renderer = !layer.visible ? createRendererForLayer( zcvs, layer, false ) : getRendererForLayer( layer );
+    const hasRenderer = layer.visible;
 
-    // ensure all layer effects are rendered, note we omit caching
-    await renderEffectsForLayer( layer, false );
+    // if the layer is currently invisible, it has no renderer, create it lazily here.
+    const renderer = !hasRenderer ? createRendererForLayer( zcvs, layer, false ) : getRendererForLayer( layer );
+
+    // ensure all layer effects are rendered, note we omit caching unless requested for an existing renderer
+    reuseCache = reuseCache && hasRenderer;
+
+    await renderEffectsForLayer( layer, reuseCache );
 
     // draw existing layers onto temporary canvas at full document scale
     renderer?.draw( ctx, zcvs.getViewport(), true );
