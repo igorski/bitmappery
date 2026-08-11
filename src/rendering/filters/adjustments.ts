@@ -54,16 +54,17 @@ export const applyAdjustments = ( pixels: Uint8ClampedArray, filters: Filters ):
     const brightness     = denormalise( filters, "brightness" );
     const contrast       = denormalise( filters, "contrast" );
     const gamma          = denormalise( filters, "gamma" );
+    const exposure       = denormalise( filters, "exposure" );
     const vibrance       = denormalise( filters, "vibrance" );
 
     let lutTable: Uint8Array;
     
     if ( doExposure ) {
-        const exposure = Math.pow( 2, denormalise( filters, "exposure" ));
+        const expFactor = Math.pow( 2, exposure );
 
         lutTable = new Uint8Array( 256 );
         for ( let i = 0; i < 256; i++ ) {
-            lutTable[ i ] = Math.min( MAX_8BIT, Math.max( 0, i * exposure ));
+            lutTable[ i ] = Math.min( MAX_8BIT, Math.max( 0, i * expFactor ));
         }
     }
 
@@ -86,18 +87,18 @@ export const applyAdjustments = ( pixels: Uint8ClampedArray, filters: Filters ):
         g = pixels[ i + 1 ];
         b = pixels[ i + 2 ];
   
-        // adjust gamma
-        if ( doGamma ) {
-            r = r * gammaSquared;
-            g = g * gammaSquared;
-            b = b * gammaSquared;
-        }
-
         // adjust exposure
         if ( doExposure ) {
             r = lutTable![ r ];
             g = lutTable![ g ];
             b = lutTable![ b ];
+        }
+
+        // adjust gamma
+        if ( doGamma ) {
+            r = r * gammaSquared;
+            g = g * gammaSquared;
+            b = b * gammaSquared;
         }
 
         // invert
