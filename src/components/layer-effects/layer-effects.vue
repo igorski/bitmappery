@@ -214,10 +214,12 @@ import {
     denormaliseHue, denormaliseSaturation, denormaliseLightness,
 } from "@/definitions/filter-ranges";
 import { mapRange } from "@/math/unit-math";
-import { Layer } from "@/model/types/layer";
-import { type Filters } from "@/model/types/filters";
-import FiltersFactory from "@/model/factories/filters-factory";
 import { updateLayerFilters } from "@/model/actions/layer-update-filters";
+import FiltersFactory from "@/model/factories/filters-factory";
+import { type Filters } from "@/model/types/filters";
+import { type Layer } from "@/model/types/layer";
+import { createLayerThumbnail, setPaused } from "@/rendering/cache/thumbnail-cache";
+import { reserveWorker, freeWorker } from "@/services/render-service";
 import { clone } from "@/utils/object-util";
 
 import messages from "./messages.json";
@@ -239,6 +241,7 @@ export default {
     }),
     computed: {
         ...mapGetters([
+            "activeDocument",
             "activeLayer",
             "activeLayerIndex",
         ]),
@@ -276,11 +279,21 @@ export default {
         this.orgFilters = clone( this.filters );
         this.internalValue = clone( this.filters );
         this.maxBlur = MAX_BLUR;
+
+        setPaused( true );
+        this.workerId = reserveWorker( this.activeLayer );
     },
     mounted(): void {
         const { scrollHeight } = this.$refs.effectsList;
         if ( scrollHeight > this.$refs.effectsPanel.getBoundingClientRect().height ) {
             this.setLayersMaximized( true );
+        }
+    },
+    beforeUnmount(): void {
+        freeWorker( this.workerId );
+        setPaused( false );
+        if ( this.activeLayer ) {
+            createLayerThumbnail( this.activeLayer, this.activeDocument, true );
         }
     },
     methods: {

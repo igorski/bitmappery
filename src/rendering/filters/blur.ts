@@ -22,14 +22,14 @@
  */
 import { MAX_BLUR } from "@/definitions/filter-ranges";
 
-export const applyBlur = ( pixels: Uint8ClampedArray, width: number, height: number, radius: number ): void =>
+export const applyBlur = ( input: Uint8ClampedArray, output: Uint8ClampedArray, width: number, height: number, radius: number ): void =>
 {
     const invertedRadius = (( MAX_BLUR - radius ) / MAX_BLUR ) * 100;
     
-    const out = new Uint32Array( pixels.length );
+    const out = new Uint32Array( output.length );
     const tmpLines = new Float32Array( Math.max( width, height ) * 4 );
 
-    const source = new Uint32Array( pixels.buffer );
+    const source = new Uint32Array( input.buffer );
     const coeffs = gaussCoef( width / invertedRadius );
 
     convolve( source, out, tmpLines, coeffs, width, height );

@@ -23,20 +23,29 @@
 import { denormalise } from "@/definitions/filter-ranges";
 import { type Filters } from "@/model/types/filters";
 import FiltersFactory from "@/model/factories/filters-factory";
-import { imageDataAsFloat } from "@/utils/wasm-util";
-import type { WasmFilterInstance } from "@/utils/wasm-util";
+import { type WasmFilterInstance } from "@/utils/wasm-util";
 import { applyAdjustments } from "@/rendering/filters/adjustments";
 import { applyBlur } from "@/rendering/filters/blur";
 import { applyDuotone } from "@/rendering/filters/duotone";
 import { applyWhiteBalance } from "@/rendering/filters/white-balance";
 import { applyHSL } from "@/rendering/filters/hsl";
+import { type FilterWorkerMessageData, type FilterWorkerMessageResult } from "@/rendering/types";
+import { imageDataAsFloat } from "@/utils/wasm-util";
 import wasmJs from "@/wasm/bin/filters.js";
+
+// @todo: should be WorkerGlobalScope
+declare const self: WindowOrWorkerGlobalScope & {
+    postMessage( message: FilterWorkerMessageResult, options?: StructuredSerializeOptions ): void;
+    addEventListener( type: "message", listener: ( event: MessageEvent<FilterWorkerMessageData> ) => void, options?: boolean | AddEventListenerOptions ): void;
+};
 
 const defaultFilters = FiltersFactory.create();
 let wasmInstance: WasmFilterInstance;
 
-self.addEventListener( "message", async ({ data }: MessageEvent ): Promise<void> => {
-    const { id, cmd }: { id: string, cmd: string } = data;
+const persistedSources: Map<string, ImageData> = new Map(); // mapped by source (Layer) id
+
+self.addEventListener( "message", async ({ data }: MessageEvent<FilterWorkerMessageData> ): Promise<void> => {
+    const { id, cmd } = data;
     let pixelData: Uint8ClampedArray;
 
     switch ( cmd ) {
@@ -51,6 +60,12 @@ self.addEventListener( "message", async ({ data }: MessageEvent ): Promise<void>
                 wasmBinary: bytes
             });
             self.postMessage({ cmd: "ready" });
+            break;
+
+        // persist an ImageData Object (saves transport overhead on repeated calls)
+
+        case "reserve":
+            persistedSources.set( data.sourceId, data.imageData );
             break;
 
         // run the filter operation on a {ImageData} object
@@ -70,8 +85,9 @@ self.addEventListener( "message", async ({ data }: MessageEvent ): Promise<void>
 
         case "filter":
             try {
-                pixelData = renderFilters( data.imageData, data.filters );
-                self.postMessage({ cmd: "complete", id, pixelData });
+                const source = data.sourceId ? persistedSources.get( data.sourceId ) : data.imageData;
+                pixelData = renderFilters( source, data.imageData, data.filters );
+                self.postMessage({ cmd: "complete", id, pixelData }, { transfer: [ pixelData.buffer ] });
             } catch ( error ) {
                 self.postMessage({ cmd: "error", id, error });
             }
@@ -81,26 +97,39 @@ self.addEventListener( "message", async ({ data }: MessageEvent ): Promise<void>
 
 /* internal methods */
 
-function renderFilters( imageData: ImageData, filters: Filters ): Uint8ClampedArray {
-    const pixels = imageData.data;
-
-    if ( filters.blur > 0 ) {
-        applyBlur( pixels, imageData.width, imageData.height, filters.blur );
+function renderFilters( inputData: ImageData, outputData: ImageData, filters: Filters ): Uint8ClampedArray {
+    if ( inputData.width !== outputData.width || inputData.height !== outputData.height ) {
+        throw new Error( "Incompatible input and output buffer sizes" );
     }
+    let input = inputData.data;
+    const output = outputData.data;
+
+    // white balance comes first
 
     if ( filters.quick.whiteBalance ) {
-        applyWhiteBalance( pixels );
+        applyWhiteBalance( input, output );
+        input = output; // as a filter has been applied, subsequent filters will use the filtered output as input
     }
-    applyAdjustments( pixels, filters );
+    // adjustments are always executed, even when the filter configurations makes
+    // the effect application a no-op, it will sync the input and output buffers cheaply
+    // without needing a clone operation on filtering start (necessary in case alpha values were adjusted
+    // in a previous run, for instance by the more extreme blur settings)
 
-    if ( filters.duotone.enabled ) {
-        applyDuotone( pixels, filters.duotone.color1, filters.duotone.color2 );
-    }
+    applyAdjustments( input, output, filters );
+    input = output; // from this point on, all filters will take affected output as input
 
     if ( filters.hsl.hue !== 0 || filters.hsl.sat !== 0 || filters.hsl.lightness !== 0 ) {
-        applyHSL( pixels, filters.hsl.hue, filters.hsl.sat, filters.hsl.lightness );
+        applyHSL( input, output, filters.hsl.hue, filters.hsl.sat, filters.hsl.lightness );
     }
-    return pixels;
+
+    if ( filters.duotone.enabled ) {
+        applyDuotone( input, output, filters.duotone.color1, filters.duotone.color2 );
+    }
+    
+    if ( filters.blur > 0 ) {
+        applyBlur( input, output, outputData.width, outputData.height, filters.blur );
+    }
+    return output;
 }
 
 /* internal methods */

@@ -20,16 +20,17 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-export const applyWhiteBalance = ( pixels: Uint8ClampedArray ): void => {
-    const totalPixels = pixels.length / 4;
+export const applyWhiteBalance = ( input: Uint8ClampedArray, output: Uint8ClampedArray ): void => {
+    const { length } = input;
+    const totalPixels = length / 4;
 
     let totalR = 0, totalG = 0, totalB = 0;
 
     // calculate the sum of all RGB values
-    for ( let i = 0, len = pixels.length; i < len; i += 4) {
-        totalR += pixels[ i ];
-        totalG += pixels[ i + 1 ];
-        totalB += pixels[ i + 2 ];
+    for ( let i = 0; i < length; i += 4 ) {
+        totalR += input[ i ];
+        totalG += input[ i + 1 ];
+        totalB += input[ i + 2 ];
     }
 
     // find the average value for each channel
@@ -45,9 +46,13 @@ export const applyWhiteBalance = ( pixels: Uint8ClampedArray ): void => {
     const scaleG = avgGray / avgG;
     const scaleB = avgGray / avgB;
 
-    for ( let i = 0, len = pixels.length; i < len; i += 4 ) {
-        pixels[ i ]     = Math.min( 255, pixels[ i ] * scaleR );
-        pixels[ i + 1 ] = Math.min( 255, pixels[ i + 1 ] * scaleG );
-        pixels[ i + 2 ] = Math.min( 255, pixels[ i + 2 ] * scaleB );
+    for ( let i = 0; i < length; i += 4 ) {
+        if ( input[ i + 3 ] === 0 ) {
+            output[ i + 3 ] = 0;
+            continue; // pixel is transparent
+        }
+        output[ i ]     = Math.min( 255, input[ i ] * scaleR );
+        output[ i + 1 ] = Math.min( 255, input[ i + 1 ] * scaleG );
+        output[ i + 2 ] = Math.min( 255, input[ i + 2 ] * scaleB );
     }
 };

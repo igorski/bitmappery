@@ -41,6 +41,7 @@ const thumbnailCache = new Map<string, Thumbnail>;
 const renderQueue = new Map<string, LayerDef>();
 let timeout: ReturnType<typeof setTimeout>;
 let enabled = false;
+let paused = false;
 
 type SubscriberCallback = ( layerId: string, data: string ) => void;
 const subscribers = new Map<string, SubscriberCallback>;
@@ -72,8 +73,12 @@ export const setEnabled = ( value: boolean ): void => {
 
 export const isEnabled = (): boolean => enabled;
 
+export const setPaused = ( value: boolean ): void => {
+    paused = value;
+};
+
 export const createLayerThumbnail = async ( layer: Layer, document: Document, force = false ): Promise<void> => {
-    if ( !enabled ) {
+    if ( !enabled || paused ) {
         return;
     }
     let delay = ENQUEUE_TIMEOUT;

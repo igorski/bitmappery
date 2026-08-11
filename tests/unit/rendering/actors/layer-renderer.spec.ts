@@ -11,6 +11,7 @@ import LayerFactory from "@/model/factories/layer-factory";
 import { degreesToRadians } from "@/math/unit-math";
 import LayerRenderer from "@/rendering/actors/layer-renderer";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
+import { type RenderResult, type RenderStatus } from "@/rendering/types";
 import { type BitMapperyState } from "@/store";
 
 let mockIsBlendCached = false;
@@ -44,7 +45,8 @@ vi.mock( "@/model/actions/layer-drag-stop", () => ({
     stopLayerDrag: vi.fn(() => mockLayerDragStop() ),
 }));
 
-const mockRenderEffectsForLayer = vi.fn();
+const mockRenderEffectsForLayerResult: RenderResult = { status: "init", start: 0, end: 0, duration: 0 };
+const mockRenderEffectsForLayer = vi.fn(( ..._args: any[] ) => Promise.resolve( mockRenderEffectsForLayerResult ));
 vi.mock( "@/services/render-service", () => ({
     renderEffectsForLayer: vi.fn(( ...args: any[] ) => mockRenderEffectsForLayer( ...args )),
 }));
@@ -255,9 +257,9 @@ describe( "LayerRenderer", () => {
     });
 
     describe( "when caching the Layers effects into a prerendered source image", () => {
-        async function mockAsyncRender(): Promise<void> {
+        async function mockAsyncRender( status: RenderStatus = "init" ): Promise<void> {
+            mockRenderEffectsForLayerResult.status = status;
             vi.runAllTimers();
-            await mockRenderEffectsForLayer.mockResolvedValue( true );
         }
 
         beforeEach( async () => {
@@ -308,6 +310,14 @@ describe( "LayerRenderer", () => {
             expect( canvas.setLock ).toHaveBeenCalledWith( false );
         });
 
+        it( "should not unlock the canvas rendering state when rendering was cancelled", async () => {
+            renderer.cacheEffects();
+
+            await mockAsyncRender( "cancelled" );
+
+            expect( canvas.setLock ).toHaveBeenCalledTimes( 1 );
+        });
+
         it( "should not execute subsequent calls when a render is still pending", () => {
             renderer.cacheEffects();
             renderer.cacheEffects();
@@ -325,13 +335,27 @@ describe( "LayerRenderer", () => {
             expect( canvas.setLock ).toHaveBeenCalledTimes( 3 );
         });
 
+        it( "should not request invalidation of the blend cache or thumbnail re-render on any render result state other than completed", async () => {
+            const layerRenderer = createLayerRenderer( LayerFactory.create({
+                filters: FiltersFactory.create({ blendMode: BlendModes.DARKEN })
+            }));
+            const invalidateSpy = vi.spyOn( layerRenderer, "invalidateBlendCache" );
+
+            for ( const status of [ "init", "cancelled", "errored" ]) {
+                await mockAsyncRender( status as RenderStatus );
+
+                expect( invalidateSpy ).not.toHaveBeenCalled();
+                expect( mockCreateLayerThumbnail ).not.toHaveBeenCalled();
+            }
+        });
+
         it( "should request an invalidation of the the blend cache upon render completion", async () => {
             const layerRenderer = createLayerRenderer( LayerFactory.create({
                 filters: FiltersFactory.create({ blendMode: BlendModes.DARKEN })
             }));
             const invalidateSpy = vi.spyOn( layerRenderer, "invalidateBlendCache" );
 
-            await mockAsyncRender();
+            await mockAsyncRender( "completed" );
 
             expect( invalidateSpy ).toHaveBeenCalled();
         });
@@ -340,7 +364,7 @@ describe( "LayerRenderer", () => {
             const layerRenderer = createLayerRenderer( LayerFactory.create({
                 filters: FiltersFactory.create({ blendMode: BlendModes.DARKEN })
             }));
-            await mockAsyncRender();
+            await mockAsyncRender( "completed" );
 
             expect( mockCreateLayerThumbnail ).toHaveBeenCalledWith( layerRenderer.layer, activeDocument, true );
         });

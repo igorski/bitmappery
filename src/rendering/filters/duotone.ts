@@ -29,7 +29,7 @@ let cacheKey: string = "";
 /**
  * Applies a duo tone effect to provided Uint8ClampedArray list using provided color1 and color2.
  */
-export const applyDuotone = ( data: Uint8ClampedArray, color1: string, color2: string ): void => {
+export const applyDuotone = ( input: Uint8ClampedArray, output: Uint8ClampedArray, color1: string, color2: string ): void => {
     const colorKey = `${color1}_${color2}`;
 
     if ( cacheKey !== colorKey ) {
@@ -37,15 +37,17 @@ export const applyDuotone = ( data: Uint8ClampedArray, color1: string, color2: s
         cacheKey = colorKey;
     }
 
-    applyGrayScale( data );
+    applyGrayScale( input, output );
     
-    for ( let i = 0, l = data.length; i < l; i += 4 ) {
-        if ( data[ i + 3 ] === 0 ) {
+    // note we read directly from the output buffer as it now contains the grayscale input
+
+    for ( let i = 0, l = output.length; i < l; i += 4 ) {
+        if ( output[ i + 3 ] === 0 ) {
             continue; // pixel is transparent
         }
-        data[ i ]     = cachedGradient[ data[ i ] * 4 ];
-        data[ i + 1 ] = cachedGradient[ data[ i + 1 ] * 4 + 1 ];
-        data[ i + 2 ] = cachedGradient[ data[ i + 2 ] * 4 + 2 ];
+        output[ i ]     = cachedGradient[ output[ i ] * 4 ];
+        output[ i + 1 ] = cachedGradient[ output[ i + 1 ] * 4 + 1 ];
+        output[ i + 2 ] = cachedGradient[ output[ i + 2 ] * 4 + 2 ];
     }
 };
 
@@ -65,33 +67,35 @@ function cacheGradient( color1: string, color2: string ): void {
     }
 }
 
-function applyGrayScale( data: Uint8ClampedArray ): void {
+function applyGrayScale( input: Uint8ClampedArray, output: Uint8ClampedArray ): void {
+    const { length } = input;
+
     let max = 0;
     let min = 255;
 
     // apply grayscale by averaging all RGB values in the image
     
-    for ( let i = 0, l = data.length; i < l; i += 4 ) {
-        if ( data[ i ] > max ) {
-            max = data[ i ];
+    for ( let i = 0; i < length; i += 4 ) {
+        if ( input[ i ] > max ) {
+            max = input[ i ];
         }
 
-        if ( data[ i ] < min ) {
-            min = data[ i ];
+        if ( input[ i ] < min ) {
+            min = input[ i ];
         }
 
-        const r = data[ i ];
-        const g = data[ i + 1 ];
-        const b = data[ i + 2 ];
+        const r = input[ i ];
+        const g = input[ i + 1 ];
+        const b = input[ i + 2 ];
         const v = 0.3333 * r + 0.3333 * g + 0.3333 * b;
 
-        data[ i ] = data[ i + 1 ] = data[ i + 2 ] = v;
+        output[ i ] = output[ i + 1 ] = output[ i + 2 ] = v;
     }
 
     // normalize each pixel
     
-    for ( let i = 0, l = data.length; i < l; i += 4 ) {
-        const v = ( data[ i ] - min ) * 255 / ( max - min );
-        data[ i ] = data[ i + 1 ] = data[ i + 2 ] = v;
+    for ( let i = 0; i < length; i += 4 ) {
+        const v = ( output[ i ] - min ) * 255 / ( max - min );
+        output[ i ] = output[ i + 1 ] = output[ i + 2 ] = v;
     }
 }

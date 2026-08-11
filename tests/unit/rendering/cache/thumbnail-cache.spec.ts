@@ -14,6 +14,7 @@ import {
     isEnabled,
     rebuildAllThumbnails,
     setEnabled,
+    setPaused,
     subscribe,
     TRANSPARENT_IMAGE,
     unsubscribe,
@@ -42,6 +43,7 @@ describe( "Thumbnail cache", () => {
     afterEach(() => {
         flushThumbnailCache();
         setEnabled( false );
+        setPaused( false );
         vi.useRealTimers();
     });
 
@@ -181,6 +183,15 @@ describe( "Thumbnail cache", () => {
             await createLayerThumbnail( layer, document, true );
 
             expect( hasThumbnail( layer.id )).toBe( true );
+        });
+
+        it( "should not cache when the thumbnail cache is enabled, but paused", async () => {
+            setEnabled( true );
+            setPaused( true );
+
+            await createLayerThumbnail( layer, document, true );
+
+            expect( hasThumbnail( layer.id )).toBe( false );
         });
 
         it( "should be able to remove the cache for an individual Layer", async () => {

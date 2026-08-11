@@ -27,16 +27,19 @@ import { RGBtoHSL, HSLtoRGB } from "@/utils/color-util";
  * Applies HSL balancing onto provided data
  */
 export const applyHSL = (
-    pixels: Uint8ClampedArray, normalisedHue: number, normalisedSaturation: number, normalisedLightness: number
+    input: Uint8ClampedArray, output: Uint8ClampedArray,
+    normalisedHue: number, normalisedSaturation: number, normalisedLightness: number
 ): void => {
     const hue = denormaliseHue( normalisedHue );
     const saturation = denormaliseSaturation( normalisedSaturation );
     const lightness = denormaliseLightness( normalisedLightness );
 
-    for ( let i = 0, len = pixels.length; i < len; i += 4 ) {
-        let r = pixels[ i ];
-        let g = pixels[ i + 1 ];
-        let b = pixels[ i + 2 ];
+    const { length } = input;
+
+    for ( let i = 0; i < length; i += 4 ) {
+        let r = input[ i ];
+        let g = input[ i + 1 ];
+        let b = input[ i + 2 ];
 
         let { h, s, l } = RGBtoHSL({ r, g, b });
 
@@ -53,8 +56,8 @@ export const applyHSL = (
         
         ({ r, g, b } = HSLtoRGB({ h, s, l }));
 
-        pixels[ i ]     = r;
-        pixels[ i + 1 ] = g;
-        pixels[ i + 2 ] = b;
+        output[ i ]     = r;
+        output[ i + 1 ] = g;
+        output[ i + 2 ] = b;
     }
 };
