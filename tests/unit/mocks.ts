@@ -88,7 +88,7 @@ export function createMockImageElement(): HTMLImageElement {
     } as unknown as HTMLImageElement;
 }
 
-function createMockCanvasRenderingContext2D(): CanvasRenderingContext2D {
+export function createMockCanvasRenderingContext2D(): CanvasRenderingContext2D {
     return {
         arc: vi.fn(),
         beginPath: vi.fn(),
@@ -98,6 +98,10 @@ function createMockCanvasRenderingContext2D(): CanvasRenderingContext2D {
         drawImage: vi.fn(),
         fill: vi.fn(),
         fillRect: vi.fn(),
+        getImageData: vi.fn().mockReturnValue({
+            data: new Uint8ClampedArray(),
+        }),
+        putImageData: vi.fn(),
         rect: vi.fn(),
         rotate: vi.fn(),
         save: vi.fn(),
