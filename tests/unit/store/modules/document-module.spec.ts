@@ -11,6 +11,11 @@ const { getters, mutations, actions } = DocumentModule;
 
 mockZCanvas();
 
+const mockLayerContentChange = vi.fn();
+vi.mock( "@/model/actions/layer-content-change", () => ({
+    layerContentChange: ( ...args: any[] ) => mockLayerContentChange( ...args ),
+}));
+
 let mockUpdateFn: ( fnName: string, ...args: any[]) => void;
 vi.mock( "@/model/factories/renderer-factory", () => ({
     flushLayerRenderers: vi.fn(( ...args: any[]) => mockUpdateFn?.( "flushLayerRenderers", ...args )),
@@ -19,11 +24,9 @@ vi.mock( "@/model/factories/renderer-factory", () => ({
     createRendererForLayer: vi.fn(( ...args: any[]) => mockUpdateFn?.( "createRendererForLayer", ...args )),
 }));
 const mockFlushBlendedLayerCache = vi.fn();
-let mockAffectsBlendCache = false;
 vi.mock( "@/rendering/cache/blended-layer-cache", async ( importOriginal ) => {
     return {
         ...await importOriginal(),
-        affectsBlendCache: vi.fn(() => mockAffectsBlendCache ),
         flushBlendedLayerCache: vi.fn(( ...args: any[] ) => mockFlushBlendedLayerCache( ...args )),
     }
 });
@@ -55,7 +58,6 @@ vi.mock( "@/utils/layer-util", async ( importOriginal ) => ({
 describe( "Vuex document module", () => {
     afterEach(() => {
         vi.resetAllMocks();
-        mockAffectsBlendCache = false;
     });
 
     describe( "getters", () => {
@@ -626,7 +628,7 @@ describe( "Vuex document module", () => {
                 });
             });
 
-            it( "should be able to update the options of a specific Layer within the active Document", () => {
+            it( "should be able to update the options of a specific Layer within the active Document, forwarding the changed properties to the change action", () => {
                 const index = 1;
                 const opts  = {
                     name: "layer2 updated",
@@ -636,102 +638,14 @@ describe( "Vuex document module", () => {
                     height: 150,
                     type: LayerTypes.LAYER_IMAGE
                 };
-                const layerRenderer = new LayerRenderer( layer2 );
-                const cacheEffectsSpy = vi.spyOn( layerRenderer, "cacheEffects" );
 
-                mockUpdateFn = vi.fn( fn => {
-                    if ( fn === "getRendererForLayer" ) return layerRenderer;
-                    return true;
-                });
-                mutations.updateLayer( state, { index, opts });
-                expect( state.documents[ 0 ].layers[ index ] ).toEqual({
+                const expectedLayer = {
                     ...layer2,
                     ...opts
-                });
-                expect( mockUpdateFn ).toHaveBeenCalledWith( "getRendererForLayer", state.documents[ 0 ].layers[ index ] );
-                expect( cacheEffectsSpy ).toHaveBeenCalled();
-            });
-
-            it( "should be able to update the source image of a specific layer within the active Document, invoking a filter recache on the renderer", () => {
-                const index = 1;
-                const opts  = {
-                    name: "layer2 updated",
-                    source: new Image(),
-                    type: LayerTypes.LAYER_IMAGE
                 };
-                const layerRenderer = new LayerRenderer( layer2 );
-                const resetAndRecacheSpy = vi.spyOn( layerRenderer, "resetFilterAndRecache" );
-
-                mockUpdateFn = vi.fn( fn => {
-                    if ( fn === "getRendererForLayer" ) return layerRenderer;
-                    return true;
-                });
                 mutations.updateLayer( state, { index, opts });
-                expect( resetAndRecacheSpy ).toHaveBeenCalled();
-            });
-
-            it( "should not flush the blended layer cache when filter or visibility properties were updated for a Layer not affecting the cache", () => {
-                const index = 0;
-                const opts  = { filters: { gamma: 1 }, visible: false };
-                const layerRenderer = new LayerRenderer( layer1 );
-                
-                mockAffectsBlendCache = false;
-
-                mockUpdateFn = vi.fn( fn => {
-                    if ( fn === "getRendererForLayer" ) return layerRenderer;
-                    return true;
-                });
-                mutations.updateLayer( state, { index, opts });
-  
-                expect( mockFlushBlendedLayerCache ).not.toHaveBeenCalled();
-            });
-
-            it( "should fully flush the blended layer cache when filter properties were updated for a Layer affecting the cache", () => {
-                const index = 0;
-                const opts  = { filters: { gamma: 1 } };
-                const layerRenderer = new LayerRenderer( layer1 );
-                
-                mockAffectsBlendCache = true;
-                
-                mockUpdateFn = vi.fn( fn => {
-                    if ( fn === "getRendererForLayer" ) return layerRenderer;
-                    return true;
-                });
-                mutations.updateLayer( state, { index, opts });
-  
-                expect( mockFlushBlendedLayerCache ).toHaveBeenCalledWith( true );
-            });
-
-            it( "should fully flush the blended layer cache when visibility was updated for a Layer affecting the cache", () => {
-                const index = 0;
-                const opts  = { visible: false };
-                const layerRenderer = new LayerRenderer( layer1 );
-                
-                mockAffectsBlendCache = true;
-                
-                mockUpdateFn = vi.fn( fn => {
-                    if ( fn === "getRendererForLayer" ) return layerRenderer;
-                    return true;
-                });
-                mutations.updateLayer( state, { index, opts });
-  
-                expect( mockFlushBlendedLayerCache ).toHaveBeenCalledWith( true );
-            });
-
-            it( "should not flush the blended layer cache when no filter or visibility properties were updated for a Layer affecting the cache", () => {
-                const index = 0;
-                const opts  = { name: "layer1 updated" };
-                const layerRenderer = new LayerRenderer( layer1 );
-
-                mockAffectsBlendCache = true;
-
-                mockUpdateFn = vi.fn( fn => {
-                    if ( fn === "getRendererForLayer" ) return layerRenderer;
-                    return true;
-                });
-                mutations.updateLayer( state, { index, opts });
-  
-                expect( mockFlushBlendedLayerCache ).not.toHaveBeenCalled();
+                expect( state.documents[ 0 ].layers[ index ] ).toEqual( expectedLayer );
+                expect( mockLayerContentChange ).toHaveBeenCalledWith( expectedLayer, { index: 1, sources: Object.keys( opts ) });
             });
 
             describe( "when requesting to also recreate the renderer for the specific Layer", () => {

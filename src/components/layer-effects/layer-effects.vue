@@ -224,6 +224,7 @@ import { clone } from "@/utils/object-util";
 
 import messages from "./messages.json";
 
+const DEBOUNCE_TIMEOUT = 100;
 const NON_PERCENTILE_PROPS: ( keyof Filters )[] = [ "brightness", "contrast", "exposure", "gamma", "vibrance" ];
 
 export default {
@@ -262,7 +263,7 @@ export default {
                 window.setTimeout(() => {
                     this.renderPending = false;
                     this.update();
-                }, 250 );
+                }, DEBOUNCE_TIMEOUT );
             },
         },
         activeLayer( value?: Layer, oldValue?: Layer ): void {
@@ -270,10 +271,8 @@ export default {
                 this.close(); // document has been closed
             } else if ( oldValue && value.id !== oldValue.id ) {
                 this.cancel( this.orgLayerId ); // layer has switched
-            } else {
-                this.optLayerIndex = this.activeLayerIndex;
             }
-        }
+        },
     },
     created(): void {
         this.orgFilters = clone( this.filters );

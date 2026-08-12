@@ -22,10 +22,11 @@
  */
 import { type Store } from "vuex";
 import { type CopiedImage } from "@/definitions/editor";
-import { type Layer } from "@/model/types/layer";
+import { layerContentChange } from "@/model/actions/layer-content-change";
 import { enqueueState } from "@/model/factories/history-state-factory";
 import LayerFactory from "@/model/factories/layer-factory";
 import { getRendererForLayer } from "@/model/factories/renderer-factory";
+import { type Layer } from "@/model/types/layer";
 import { getCanvasInstance } from "@/services/canvas-service";
 import { type BitMapperyState } from "@/store";
 import { cloneCanvas } from "@/utils/canvas-util";
@@ -78,7 +79,7 @@ export function startLayerDrag( store: Store<BitMapperyState>, layer: Layer, x: 
 
             const replaceSource = ( newSource: HTMLCanvasElement ): void => {
                 replaceLayerSource( layer, newSource, hasMask );
-                renderer?.resetFilterAndRecache();
+                layerContentChange( layer, { sources: [ hasMask ? "mask" : "source" ] });
             };
 
             const commit = ( maintainDrag = false ): void => {

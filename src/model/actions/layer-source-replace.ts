@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { type Layer } from "@/model/types/layer";
-import { getRendererForLayer } from "@/model/factories/renderer-factory";
+import { layerContentChange } from "@/model/actions/layer-content-change";
 import { enqueueState } from "@/model/factories/history-state-factory";
 
 export function replaceLayerSource( layer: Layer, orgSourceBlobURL: string, newSourceBlobURL: string, isMask: boolean ): void {
@@ -45,7 +45,7 @@ function restoreSource( layer: Layer, sourceToRestore: string, isMask: boolean )
     const image  = new Image();
     image.onload = () => {
         ctx.drawImage( image, 0, 0 );
-        getRendererForLayer( layer )?.resetFilterAndRecache();
+        layerContentChange( layer, { sources: [ isMask ? "mask" : "source" ] });
     };
     image.src = sourceToRestore;
 }

@@ -182,14 +182,21 @@ export const reserveWorker = ( layer: Layer ): string => {
     const worker = new FilterWorker();
     worker.onmessage = handleWorkerMessage;
 
-    const imageData = getDataSource( layer.source );
-    const output = cloneImageData( imageData );
-
-    persistedWorkers.set( layer.id, { worker, output });
-
-    worker.postMessage({ cmd: "reserve", sourceId: layer.id, imageData }, [ imageData.data.buffer ]);
+    persistedWorkers.set( layer.id, { worker });
+    updateWorker( layer );
 
     return layer.id;
+};
+
+export const updateWorker = ( layer: Layer ): void => {
+    const persistedWorker = persistedWorkers.get( layer.id );
+    if ( !persistedWorker ) {
+        return;
+    }
+    const imageData = getDataSource( layer.source );
+
+    persistedWorker.output = cloneImageData( imageData );
+    persistedWorker.worker.postMessage({ cmd: "reserve", sourceId: layer.id, imageData }, [ imageData.data.buffer ]);
 };
 
 export const freeWorker = ( id: string ): void => {
@@ -234,7 +241,7 @@ function runFilterJob( result: RenderResult, source: HTMLCanvasElement, layer: L
             worker.onmessage = handleWorkerMessage;
             onComplete = () => worker.terminate();
         }
-
+        
         const filters = clone( layer.filters );
         const job: RenderJob = {
             id,
@@ -365,7 +372,5 @@ function getDataSource( source: CanvasDrawable ): ImageData {
         ctx.drawImage( source, 0, 0 );
         source = cvs;
     }
-    const imageData = source.getContext( "2d" )!.getImageData( 0, 0, source.width, source.height );
-
-    return imageData;
+    return source.getContext( "2d" )!.getImageData( 0, 0, source.width, source.height );
 }

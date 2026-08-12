@@ -22,6 +22,7 @@
  */
 import type { ActionContext, Module } from "vuex";
 import type { Rectangle, Size } from "zcanvas";
+import { layerContentChange } from "@/model/actions/layer-content-change";
 import type { Document, DocumentMeta } from "@/model/types/document";
 import type { Layer } from "@/model/types/layer";
 import type { Selection } from "@/model/types/selection";
@@ -29,7 +30,7 @@ import type { Transform } from "@/model/types/transform";
 import DocumentFactory from "@/model/factories/document-factory";
 import LayerFactory from "@/model/factories/layer-factory";
 import { createRendererForLayer, flushLayerRenderers, runRendererFn, getRendererForLayer } from "@/model/factories/renderer-factory";
-import { affectsBlendCache, flushBlendedLayerCache } from "@/rendering/cache/blended-layer-cache";
+import { flushBlendedLayerCache } from "@/rendering/cache/blended-layer-cache";
 import { createLayerThumbnail, flushThumbnailCache, flushThumbnailForLayer } from "@/rendering/cache/thumbnail-cache";
 import { flushTileCache } from "@/rendering/cache/tile-cache";
 import { getCanvasInstance } from "@/services/canvas-service";
@@ -212,16 +213,7 @@ const DocumentModule: Module<DocumentState, any> = {
                 createRendererForLayer( getCanvasInstance(), layer, index === state.activeLayerIndex );
                 return;
             }
-            // update layer in renderer
-            const renderer = getRendererForLayer( layer );
-            if ( renderer ) {
-                renderer.layer = layer;
-                const flushBlendCache = ( !!opts.filters || typeof opts.visible === "boolean" ) && affectsBlendCache( index );
-                if ( flushBlendCache ) {
-                    flushBlendedLayerCache( true ); // direct to prevent rendering errors on undo
-                }
-                opts.source ? renderer.resetFilterAndRecache() : renderer.cacheEffects();
-            }
+            layerContentChange( layer, { sources: Object.keys( opts ) as ( keyof Layer )[], index });
         },
         updateLayerTransform( state: DocumentState, { index, transform = {} }: { index: number, transform: Partial<Transform> }): void {
             const activeDocument = state.documents[ state.activeIndex ];

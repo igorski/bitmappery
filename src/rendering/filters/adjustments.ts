@@ -79,8 +79,9 @@ export const applyAdjustments = ( input: Uint8ClampedArray, output: Uint8Clamped
 
         a = input[ i + 3 ];
 
+        output[ i + 3 ] = a; // force syncing the alpha of the (pooled) output with the input as a "reset"
+
         if ( a === 0 ) {
-            output[ i + 3 ] = a; // force syncing the alpha of the (pooled) output with the input as a "reset"
             continue; // pixel is transparent
         }
 
@@ -162,6 +163,5 @@ export const applyAdjustments = ( input: Uint8ClampedArray, output: Uint8Clamped
         output[ i ]     = r;
         output[ i + 1 ] = g;
         output[ i + 2 ] = b;
-        // output[ i + 3 ] = a; // none of the above mutate alpha channel
     }
 };
