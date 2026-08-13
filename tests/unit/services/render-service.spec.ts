@@ -93,7 +93,7 @@ describe( "Render service", () => {
         });
 
         describe( "and filtering needs to be applied to the Layer", () => {
-            it( "should request a filter render process for the Layer in the spawned Worker", () => {
+            it( "should request a filter render process for the Layer", () => {
                 const newLayer = createLayer({ filters: activeFilterSettings });
 
                 let receivedMessage;
@@ -132,6 +132,64 @@ describe( "Render service", () => {
                 const result = await renderEffectsForLayer( newLayer );
 
                 expect( result.status ).toEqual( "completed" );
+            });
+
+            describe( "and when managing a cache", () => {
+                it( "should request a filter render process for the Layer on each invocation when re-requesting without cache", async () => {
+                    const newLayer = createLayer({ filters: activeFilterSettings });
+
+                    mockWorkerPostMessage.mockImplementation(( data: FilterWorkerMessageData ) => {
+                        mockWorkerResponse( data.id, true );
+                    });
+
+                    await renderEffectsForLayer( newLayer, true );
+                    await renderEffectsForLayer( newLayer, false );
+
+                    expect( mockWorkerPostMessage ).toHaveBeenCalledTimes( 2 );
+                });
+
+                it( "should request a filter render process for the Layer only once when re-requesting from cache", async () => {
+                    const newLayer = createLayer({ filters: activeFilterSettings });
+
+                    mockWorkerPostMessage.mockImplementation(( data: FilterWorkerMessageData ) => {
+                        mockWorkerResponse( data.id, true );
+                    });
+
+                    await renderEffectsForLayer( newLayer, true );
+                    const lastResult = await renderEffectsForLayer( newLayer, true );
+
+                    expect( mockWorkerPostMessage ).toHaveBeenCalledTimes( 1 );
+                    expect( lastResult.status ).toEqual( "completed" );
+                });
+
+                it( "should request a filter render process for the Layer again when re-requesting from cache with updated filter settings", async () => {
+                    const newLayer = createLayer({ filters: activeFilterSettings });
+
+                    mockWorkerPostMessage.mockImplementation(( data: FilterWorkerMessageData ) => {
+                        mockWorkerResponse( data.id, true );
+                    });
+
+                    await renderEffectsForLayer( newLayer, true );
+
+                    newLayer.filters.gamma = 1; // adjust filter settings (making cache outdated)
+                    const lastResult = await renderEffectsForLayer( newLayer, true );
+
+                    expect( mockWorkerPostMessage ).toHaveBeenCalledTimes( 2 );
+                    expect( lastResult.status ).toEqual( "completed" );
+                });
+
+                it( "should not have written a previous render to the cache when it was deliberately requested to omit caching", async () => {
+                    const newLayer = createLayer({ filters: activeFilterSettings });
+
+                    mockWorkerPostMessage.mockImplementation(( data: FilterWorkerMessageData ) => {
+                        mockWorkerResponse( data.id, true );
+                    });
+
+                    await renderEffectsForLayer( newLayer, false );
+                    await renderEffectsForLayer( newLayer, true );
+
+                    expect( mockWorkerPostMessage ).toHaveBeenCalledTimes( 2 );
+                });
             });
         });
     });
