@@ -78,6 +78,9 @@ The `render-service.ts` only comes into play when more complex operations need t
 Keep in mind that BitMappery is non-destructive, so operations such as tone and color
 adjustments are always applied onto the original source Bitmap. If the source Bitmap changes (e.g. content is cut from an Image layer or content is painted on a Graphic layer), the source is replaced and the filters will need to be re-applied to this new source.
 
+<details>
+<summary><b>Click to expand architecture diagrams</b></summary>
+
 #### Pipeline overview
 
 ```mermaid
@@ -119,10 +122,10 @@ sequenceDiagram
         LayerRenderer->>RenderService: Launch render job
         RenderService->>BitmapCache: Check cache
 
-        alt There is a cached version reflecting the Layer settings
+        alt There is a cached version reflecting the Layer properties
             BitmapCache->>RenderService: return cached version
             RenderService->LayerRenderer: Return rendered content
-        else There is no cached version reflecting the Layer settings
+        else There is no cached version reflecting the Layer properties
             RenderService->>FilterWorker: Request Worker for render job
             FilterWorker->>Filters: Request filtering of input
             Filters->>FilterWorker: Returns filtered output
@@ -139,6 +142,7 @@ sequenceDiagram
 ```
 
 The Workers are created per render request and can be parallelised (for instance when opening a saved Document). Workers can also be reserved (per Layer) and pooled, for instance when the effects panel is open to reduce messaging overhead and memory allocation when repeatedly adjusting Layer filter settings.
+</details>
 
 ## State history
 
