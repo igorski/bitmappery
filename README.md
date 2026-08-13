@@ -127,7 +127,7 @@ sequenceDiagram
 
         alt There is a cached version reflecting the Layer properties
             BitmapCache->>RenderService: return cached version
-            RenderService->LayerRenderer: Return rendered content
+            RenderService->>LayerRenderer: Return rendered content
         else There is no cached version reflecting the Layer properties
             RenderService->>FilterWorker: Request Worker for render job
             FilterWorker->>Filters: Request filtering of input
