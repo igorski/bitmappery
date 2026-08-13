@@ -118,7 +118,7 @@ flowchart TD
 
 ```mermaid
 sequenceDiagram
-    ActiveDocument / Vuex->>onLayerPropertiesChange: Handle change on Layer content
+    ActiveDocument / Vuex->>onLayerPropertiesChange: Handle change in Layer properties
 
     alt Changed properties require effects/filter application
         onLayerPropertiesChange->>LayerRenderer: Update Layer properties and request a content re-render
