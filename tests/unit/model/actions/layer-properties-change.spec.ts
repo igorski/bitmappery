@@ -23,7 +23,7 @@ vi.mock( "@/services/render-service", async ( importOriginal ) => {
     };
 });
 
-describe( "layer content change", () => {
+describe( "on Layer properties change", () => {
     const layer = LayerFactory.create();
     let layerRenderer: LayerRenderer;
 

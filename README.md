@@ -91,6 +91,7 @@ flowchart TD
     zCanvas[zCanvas instance]
     RenderService[render-service.ts]
     BitmapCache[bitmap-cache.ts]
+    ThumbnailCache[thumbnail-cache.ts]
     onLayerPropertiesChange[layer-properties-change.ts]
 
     subgraph LayerRenderers [LayerRenderers for each visible Layer]
@@ -107,6 +108,7 @@ flowchart TD
     DocumentCanvas --> LayerRenderer
     LayerRenderer <--> zCanvas
     LayerRenderer --> RenderService
+    LayerRenderer --> ThumbnailCache
     RenderService --> BitmapCache
     RenderService <--> FilterWorker
     onLayerPropertiesChange --> LayerRenderer
@@ -134,6 +136,7 @@ sequenceDiagram
             RenderService->>FilterWorker: Tear down/pool Worker
             RenderService->>BitmapCache: Store rendered output in cache
             RenderService->>LayerRenderer: Return rendered output
+            LayerRenderer->>ThumbnailCache: Update thumbnail
         end
     else Changed properties do not require effects/filter application
         onLayerPropertiesChange->>LayerRenderer: Update Layer properties
@@ -142,7 +145,10 @@ sequenceDiagram
     LayerRenderer->>zCanvas: Request invalidation and redraw of on-screen content
 ```
 
-The Workers are created per render request and can be parallelised (for instance when opening a saved Document). Workers can also be reserved (per Layer) and pooled, for instance when the effects panel is open to reduce messaging overhead and memory allocation when repeatedly adjusting Layer filter settings.
+The Workers are created per render request and can be parallelised (for instance when opening a saved Document). Workers can also be
+reserved (per Layer) and pooled, for instance when the effects panel is open to reduce messaging overhead and memory allocation when
+repeatedly adjusting Layer filter settings. Note that the LayerRenderer is responsible for updating the ThumbnailCache as its
+draw routine applies the positioning, transformation and compositing of the respective Layers content.
 </details>
 
 ## State history
