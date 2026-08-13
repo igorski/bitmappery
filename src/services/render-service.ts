@@ -21,56 +21,68 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { reactive } from "vue";
+import { type CanvasDrawable } from "@/definitions/editor";
 import { LayerTypes } from "@/definitions/layer-types";
 import { getRendererForLayer } from "@/model/factories/renderer-factory";
 import { hasFilters, isEqual as isFiltersEqual } from "@/model/factories/filters-factory";
 import { isEqual as isTextEqual } from "@/model/factories/text-factory";
-import { type Filters } from "@/model/types/filters";
 import { type Layer } from "@/model/types/layer";
-import { createCanvas, cloneCanvas, matchDimensions } from "@/utils/canvas-util";
+import { createCanvas, cloneCanvas, cloneImageData, matchDimensions } from "@/utils/canvas-util";
 import { replaceLayerSource } from "@/utils/layer-util";
 import { clone } from "@/utils/object-util";
 import { getLayerCache, setLayerCache } from "@/rendering/cache/bitmap-cache";
-import type { RenderCache } from "@/rendering/cache/bitmap-cache";
+import { type RenderCache } from "@/rendering/cache/bitmap-cache";
 import { maskImage } from "@/rendering/operations/masking";
 import { renderMultiLineText } from "@/rendering/operations/text";
+import {
+    type FilterWorkerMessageResult,
+    type IFilterWorker,
+    type RenderResult,
+    type RenderStatus,
+    type RenderJob,
+    RenderCancelError
+} from "@/rendering/types";
 import { loadGoogleFont } from "@/services/font-service";
 import FilterWorker from "@/workers/filter.worker?worker";
 import wasmUrl from "@/wasm/bin/filters.wasm?url";
 
-type RenderJob = {
-    id: number;
-    success: ( data: { pixelData: ArrayLike<number> } ) => void;
-    error: ( error?: any ) => void;
-};
-
 const jobQueue: RenderJob[] = [];
 let UID = 0;
 
+// Workers are spawned and terminated per job, but can be persisted
+// in case of frequently repeating actions on the same sources
+type PersistedWorker = {
+    worker: IFilterWorker;
+    output?: ImageData; // pooled buffer to render filtered output on
+    busy?: boolean; // whether Worker is currently processing
+    dispose?: boolean; // whether to dispose Worker when done (e.g. freeWorker() requested while busy)
+};
+const persistedWorkers: Map<string, PersistedWorker> = new Map();
 let useWasm = false;
-let wasmWorker: Worker;
 
 // expose an Object in which we can keep track of pending render jobs
 export const renderState = reactive({ pending: 0, reset: () => renderState.pending = 0 });
 
 export const setWasmFilters = ( enabled: boolean ): void => {
     useWasm = enabled;
-    if ( enabled && !wasmWorker ) {
-        wasmWorker = new FilterWorker();
-        wasmWorker.onmessage = handleWorkerMessage;
-        wasmWorker.postMessage({ cmd: "initWasm", wasmUrl });
+    if ( enabled && !persistedWorkers.has( "wasm" ) ) {
+        const worker = new FilterWorker();
+        worker.onmessage = handleWorkerMessage;
+        worker.postMessage({ cmd: "initWasm", wasmUrl });
+        persistedWorkers.set( "wasm", { worker });
     }
 };
 
-export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): Promise<void> => {
+export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): Promise<RenderResult> => {
+    ++renderState.pending;
+    
+    const result: RenderResult = { status: "init", start: window.performance.now(), end: 0, duration: 0 };
     const renderer = getRendererForLayer( layer );
 
     if ( !renderer || !layer.source ) {
-        return;
+        return completeTask( result, "cancelled" );
     }
-
-    ++renderState.pending;
-    const DEBUG_PREFIX = `EFFECTS_RENDER for ${layer.id}, at:${window.performance.now().toFixed( 2 )}`;
+    // const DEBUG_PREFIX = `EFFECTS_RENDER for ${layer.id}, at:${result.start.toFixed( 2 )}`;
 
     let { width, height } = layer;
     const { cvs, ctx } = createCanvas( width, height );
@@ -116,19 +128,24 @@ export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): 
         } else {
             try {
                 // console.info( `${DEBUG_PREFIX}: start runFilterJob().` );
-                imageData = await runFilterJob( cvs, layer.filters );
+                imageData = await runFilterJob( result, cvs, layer );
                 // console.info( `${DEBUG_PREFIX}: completed runFilterJob(), writing filtered content to cache.` );
-                cacheToSet.filters    = { ...layer.filters };
+
+                cacheToSet.filters = clone( layer.filters );
                 cacheToSet.filterData = imageData;
-            } catch ( error ) {
+            } catch ( error: any ) {
                 // TODO: communicate error to user?
-                console.error( `${DEBUG_PREFIX}: Caught error "${error}" during runFilterJob().` );
-                renderState.pending = Math.max( 0, renderState.pending - 1 );
-                return;
+                // console.error( `${DEBUG_PREFIX}: Caught error "${error}" during runFilterJob(), filter job id: ${result.jobId}.` );
+
+                return completeTask( result, error instanceof RenderCancelError ? "cancelled" : "errored", error );
             }
         }
-        ctx.clearRect( 0, 0, width, height );
-        ctx.putImageData( imageData, 0, 0 );
+
+        try {
+            ctx.putImageData( imageData, 0, 0 );
+        } catch ( error: any ) {
+            return completeTask( result, "errored", error ); // likely InvalidStateError
+        }
     }
 
     // step 3. apply mask
@@ -149,13 +166,54 @@ export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): 
         setLayerCache( layer, cacheToSet );
     }
 
-    renderState.pending = Math.max( 0, renderState.pending - 1 );
+    const completedTask = completeTask( result, "completed" );
 
     // note that updating the bitmap will also adjust the renderer bounds
     // as appropriate (f.i. if rotation were handled by this service), the
     // Layer model remains unaffected by this
     renderer.setBitmap( cvs, width, height );
     renderer.invalidate();
+    
+    return completedTask;
+};
+
+export const reserveWorker = ( layer: Layer ): string => {
+    if ( persistedWorkers.has( layer.id )) {
+        return layer.id;
+    }
+    const worker = new FilterWorker();
+    worker.onmessage = handleWorkerMessage;
+
+    persistedWorkers.set( layer.id, { worker });
+    updateWorker( layer );
+
+    return layer.id;
+};
+
+export const updateWorker = ( layer: Layer ): void => {
+    const persistedWorker = persistedWorkers.get( layer.id );
+    if ( !persistedWorker ) {
+        return;
+    }
+    const imageData = getDataSource( layer.source );
+
+    persistedWorker.output = cloneImageData( imageData );
+    persistedWorker.worker.postMessage({ cmd: "reserve", sourceId: layer.id, imageData }, [ imageData.data.buffer ]);
+};
+
+export const freeWorker = ( id: string ): boolean => {
+    if ( !persistedWorkers.has( id )) {
+        return true;
+    }
+    const persisted = persistedWorkers.get( id );
+    if ( persisted.busy === true ) {
+        persisted.dispose = true;
+        return false;
+    }
+    persisted!.worker.terminate();
+    persistedWorkers.delete( id );
+
+    return true;
 };
 
 /* internal methods */
@@ -163,50 +221,105 @@ export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): 
 /**
  * Run a image processing job in a dedicated Worker.
  *
+ * @param {RenderResult} result object of the request method
  * @param {HTMLCanvasElement} source content to process
- * @param {Filters} filters to apply
+ * @param {Layer} layer owning the source content
  * @return {Promise<ImageData>} processed source as ImageData (can be stored in cache)
  */
-const runFilterJob = ( source: HTMLCanvasElement, filters: Filters ): Promise<ImageData> => {
-    const imageData = source.getContext( "2d" )!.getImageData( 0, 0, source.width, source.height );
-    const wasm      = useWasm && wasmWorker;
+function runFilterJob( result: RenderResult, source: HTMLCanvasElement, layer: Layer ): Promise<ImageData> {
+    const id = ( ++UID );
+    result.jobId = id;
 
     return new Promise( async ( resolve, reject ) => {
-        const id = ( ++UID );
-        let worker: Worker;
+        let persisted: PersistedWorker;
+        let worker: IFilterWorker;
         let onComplete: () => void;
+        let workerId = layer.id;
 
-        if ( wasm ) {
-            worker = wasmWorker;
+        if ( useWasm ) {
+            workerId = "wasm"; // single Worker for WASM filter job
+        }
+
+        if ( persistedWorkers.has( workerId )) {
+            persisted = persistedWorkers.get( workerId )!;
+            worker = persisted.worker;
+            onComplete = () => {
+                persisted.busy = false;
+                if ( persisted.dispose ) {
+                    freeWorker( workerId ); // disposal requested during render, free now
+                }
+            };
         } else {
-            // when not in WASM mode, Worker is lazily created per process so we can parallelize
+            // when not using as persisted Worker, the Workers are lazily created per job so we can parallelize
             worker = new FilterWorker();
             worker.onmessage = handleWorkerMessage;
             onComplete = () => worker.terminate();
         }
-        jobQueue.push({
+        
+        const filters = clone( layer.filters );
+        const job: RenderJob = {
             id,
-            success: async data => {
-                imageData.data.set( data.pixelData );
+            layerId: layer.id,
+            success: data => {
+                const output = new ImageData( data.pixelData, source.width, source.height );
+                if ( persisted ) {
+                    persisted.output = output; // use as output canvas on next run
+                }
+                resolve( output );
                 onComplete?.();
-                resolve( imageData );
             },
             error: optError => {
-                // TODO: when wasm, disable wasm mode and return to JS worker ?
                 onComplete?.();
                 reject( optError );
             }
-        });
-        worker.postMessage({
-            cmd: wasm ? "filterWasm" : "filter",
-            id,
-            imageData,
-            filters: clone( filters ),
-        });
-    })
-};
+        };
 
-function handleWorkerMessage({ data }: MessageEvent ): void {
+        const executeJob = (): void => {
+            let imageData: ImageData;
+            let sourceId: string | undefined;
+            
+            if ( persisted?.output ) {
+                imageData = persisted.output;
+                sourceId = workerId;
+            } else {
+                imageData = getDataSource( source );
+            }
+
+            if ( persisted ) {
+                persisted.busy = true;
+            }
+
+            worker.postMessage({
+                cmd: useWasm ? "filterWasm" : "filter",
+                id,
+                sourceId,
+                imageData,
+                filters,
+            }, [ imageData.data.buffer ] );
+        };
+
+        const existingJobsForLayer = jobQueue.filter(({ layerId }) => layerId === layer.id );
+        jobQueue.push( job );
+
+        if ( existingJobsForLayer.length > 0 ) {
+            existingJobsForLayer.forEach(( existingJob, index ) => {
+                if ( index === 0 ) {
+                    // after completion of first job (is currently executing one), start execution of this one
+                    existingJob.after = () => window.requestAnimationFrame( executeJob );
+                } else {
+                    // any other job still pending after the first one can be removed and cancelled in favour of this one
+                    getJobFromQueue( existingJob.id )?.error(
+                        new RenderCancelError( `Newer job ${id} enqueued, cancelling this one.` )
+                    );
+                }
+            });
+        } else {
+            executeJob();
+        }
+    });
+}
+
+function handleWorkerMessage({ data }: MessageEvent<FilterWorkerMessageResult> ): void {
     const jobQueueObj = getJobFromQueue( data?.id );
     if ( data?.cmd === "complete" ) {
         jobQueueObj?.success( data );
@@ -214,9 +327,10 @@ function handleWorkerMessage({ data }: MessageEvent ): void {
     if ( data?.cmd === "error" ) {
         jobQueueObj?.error( data?.error );
     }
+    jobQueueObj?.after?.();
 }
 
-const renderText = async ( layer: Layer ): Promise<HTMLCanvasElement> => {
+async function renderText( layer: Layer ): Promise<HTMLCanvasElement> {
     const { text } = layer;
     let font = text.font;
     try {
@@ -232,20 +346,49 @@ const renderText = async ( layer: Layer ): Promise<HTMLCanvasElement> => {
     //ctx.fillRect( 0, 0, cvs.width, cvs.height );
 
     return cvs;
-};
+}
 
-const renderMask = ( layer: Layer, ctx: CanvasRenderingContext2D, sourceBitmap: HTMLCanvasElement, width: number, height: number ): void => {
+function renderMask( layer: Layer, ctx: CanvasRenderingContext2D, sourceBitmap: HTMLCanvasElement, width: number, height: number ): void {
     if ( !layer.mask ) {
         return;
     }
     maskImage( ctx, sourceBitmap, layer.mask, width, height, layer.maskX, layer.maskY );
-};
+}
+
+function completeTask( result: RenderResult, newStatus?: RenderStatus, error?: string ): RenderResult {
+    result.end = window.performance.now();
+    result.duration = result.end - result.start;
+
+    renderState.pending = Math.max( 0, renderState.pending - 1 );
+
+    let logSuffix = result.jobId ? `, filter job id: ${result.jobId}` : "";
+
+    if ( newStatus ) {
+        result.status = newStatus;
+    }
+    if ( error ) {
+        result.error = error;
+        logSuffix += `, error: ${error}`;
+    }
+    // console.info( `Render job completed with status "${result.status}", duration: ${result.duration.toFixed(2)}ms${logSuffix}` );
+
+    return result;
+}
 
 function getJobFromQueue( jobId: number ): RenderJob | undefined {
     const jobQueueObj = jobQueue.find(({ id }) => id === jobId );
     if ( !jobQueueObj ) {
-        return undefined;
+        return;
     }
     jobQueue.splice( jobQueue.indexOf( jobQueueObj ), 1 );
     return jobQueueObj;
+}
+
+function getDataSource( source: CanvasDrawable ): ImageData {
+    if ( !( source instanceof HTMLCanvasElement )) {
+        const { cvs, ctx } = createCanvas( source.width, source.height );
+        ctx.drawImage( source, 0, 0 );
+        source = cvs;
+    }
+    return source.getContext( "2d" )!.getImageData( 0, 0, source.width, source.height );
 }

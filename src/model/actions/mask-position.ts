@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2025 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,16 +21,17 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { type Layer } from "@/model/types/layer";
-import { getRendererForLayer } from "@/model/factories/renderer-factory";
+import { type IChangeSource, onLayerPropertiesChange } from "@/model/actions/layer-properties-change";
 import { enqueueState } from "@/model/factories/history-state-factory";
 
 export function positionMask( layer: Layer, newMaskX: number, newMaskY: number ): void {
     const { maskX, maskY } = layer;
+    const sources = [ "maskX", "maskY" ] as IChangeSource[];
 
     const commit = (): void => {
         layer.maskX = newMaskX;
         layer.maskY = newMaskY;
-        getRendererForLayer( layer )?.resetFilterAndRecache();
+        onLayerPropertiesChange( layer, { sources });
     };
     commit();
     
@@ -38,7 +39,7 @@ export function positionMask( layer: Layer, newMaskX: number, newMaskY: number )
         undo(): void {
             layer.maskX = maskX;
             layer.maskY = maskY;
-            getRendererForLayer( layer )?.resetFilterAndRecache();
+            onLayerPropertiesChange( layer, { sources });
         },
         redo: commit
     });

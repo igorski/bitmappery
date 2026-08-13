@@ -245,6 +245,12 @@ export const cloneCanvas = ( canvasToClone: HTMLCanvasElement ): HTMLCanvasEleme
     return cvs;
 };
 
+export const cloneImageData = ( imageDataToClone: ImageData ): ImageData => {
+    const cloned = new Uint8ClampedArray( imageDataToClone.data.length );
+    cloned.set( imageDataToClone.data );
+    return new ImageData( cloned, imageDataToClone.width, imageDataToClone.height );
+};
+
 export const canvasToBlob = ( cvs: HTMLCanvasElement, type = PNG.mime, quality = .9 ): Promise<Blob> => {
     return new Promise(( resolve, reject ) => {
         try {

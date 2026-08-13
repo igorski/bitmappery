@@ -38,16 +38,15 @@ content (especially as different window size and scaling factor will greatly com
 performed two-way).
 
 All interactions that work across layers (viewport panning, layer selection by clicking on non-transparent
-pixels and drawing of selections) is handled by a single top level Sprite that covers the entire zCanvas area.
+pixels and drawing of selections) are handled by a single top level Sprite that covers the entire zCanvas area.
 This Sprite is `src/rendering/actors/interaction-pane.ts`.
 
 Interactions that start/end from _outside the canvas_ (for instance the opening/closing of a selection or the
 drawing of a brush stroke outside of the canvas area) are handled by `document-canvas.vue` where the global DOM coordinates are translated to coordinates relative to the canvas document before being forwarded to the zCanvas
 event handler. See "Rendering concepts" below for more details on screen-to-document coordinates.
 
-Rendering of transformations, text and filters is an asynchronous operation handled by `src/services/render-service.ts`. The purpose of this service is to perform and cache repeated operations and eventually maintain
-the source bitmap represented by the LayerRenderer. The LayerRenderer invokes the rendering service whenever
-Layer content changes and manages its own cache.
+Rendering of text, filters and masks is an asynchronous operation handled by `src/services/render-service.ts`. The purpose of this service is to perform and cache repeated operations and eventually maintain the source bitmap represented by the LayerRenderer.
+The LayerRenderer invokes the rendering service whenever Layer properties change and manages its own cache, see "Rendering pipeline" below.
 
 All types related to the editor are either defined in `src/definitions/editor.ts` or the more specifically
 named files.
@@ -67,6 +66,90 @@ element must be _translated_ from global DOM coordinates to a point relative to 
 into account the current scaling factor and viewport offset. This is handled automatically by all event handlers
 delegated through zCanvas and the renderers, but needs care when performing rendering operations (such as drawing)
 and translating these to (non-zoomed and non-panned) source bitmaps.
+
+### Rendering pipeline
+
+The `document-canvas.vue` maintains the creation of all layer renderers, removing those that are invisible or occluded by
+higher layers. All rendering happens through the usual zCanvas pipeline, where positioning and transforming (_scaling, mirroring and
+rotating_) of bitmap content is handled on the fly, along with the application of any compositing effects (_blending or opacity_).
+
+The `render-service.ts` only comes into play when more complex operations need to happen on the source content, f.i. because of a masking or effects application / filter operation. As these are costly computations, these are not performed on each render cycle but only when such a change happens after which the result is  cached for instant access. The cached version is keyed against the Layers (content/filter) properties during the render. Once these properties change, the cache is invalidated and a new rendering operation will be performed.
+
+Keep in mind that BitMappery is non-destructive, so operations such as tone and color adjustments are always applied onto a scratch
+image using the original source bitmap. If the source bitmap changes (e.g. content is cut from an Image layer or new content is painted
+on a Graphic layer), the source is replaced and the filters will need to be re-applied to this new source.
+
+<details>
+<summary><b>Click to expand architecture diagrams</b></summary>
+
+#### Pipeline overview
+
+```mermaid
+flowchart TD
+    ActiveDocument[ActiveDocument in Vuex store]
+    DocumentCanvas[document-canvas.vue]
+    zCanvas[zCanvas instance]
+    RenderService[render-service.ts]
+    BitmapCache[bitmap-cache.ts]
+    ThumbnailCache[thumbnail-cache.ts]
+    onLayerPropertiesChange[layer-properties-change.ts]
+
+    subgraph LayerRenderers [LayerRenderers for each visible Layer]
+        LayerRenderer["layer-renderer.ts instance(s)"]
+    end
+
+    subgraph FilterWorkers [Workers per Layer/job]
+        FilterWorker["filter-worker.ts instance(s)"]
+    end
+
+    ActiveDocument --> DocumentCanvas
+    ActiveDocument --> onLayerPropertiesChange
+    DocumentCanvas --> zCanvas
+    DocumentCanvas --> LayerRenderer
+    LayerRenderer <--> zCanvas
+    LayerRenderer --> RenderService
+    LayerRenderer --> ThumbnailCache
+    RenderService --> BitmapCache
+    RenderService <--> FilterWorker
+    onLayerPropertiesChange --> LayerRenderer
+```
+
+#### Render flow
+
+```mermaid
+sequenceDiagram
+    ActiveDocument / Vuex->>onLayerPropertiesChange: Handle change in Layer properties
+
+    alt Changed properties require effects/filter application
+        onLayerPropertiesChange->>LayerRenderer: Update Layer properties and request a content re-render
+        LayerRenderer->>RenderService: Launch render job
+        RenderService->>BitmapCache: Check cache
+
+        alt There is a cached version reflecting the Layer properties
+            BitmapCache->>RenderService: return cached version
+            RenderService->>LayerRenderer: Return rendered content
+        else There is no cached version reflecting the Layer properties
+            RenderService->>FilterWorker: Request Worker for render job
+            FilterWorker->>Filters: Request filtering of input
+            Filters->>FilterWorker: Returns filtered output
+            FilterWorker->>RenderService: Complete job, return rendered output
+            RenderService->>FilterWorker: Tear down/pool Worker
+            RenderService->>BitmapCache: Store rendered output in cache
+            RenderService->>LayerRenderer: Return rendered output
+            LayerRenderer->>ThumbnailCache: Update thumbnail
+        end
+    else Changed properties do not require effects/filter application
+        onLayerPropertiesChange->>LayerRenderer: Update Layer properties
+        end
+
+    LayerRenderer->>zCanvas: Request invalidation and redraw of on-screen content
+```
+
+The Workers are created per render request and can be parallelised (for instance when opening a saved Document). Workers can also be
+reserved (per Layer) and pooled, for instance when the effects panel is open to reduce messaging overhead and memory allocation when
+repeatedly adjusting Layer filter settings. Note that the LayerRenderer is responsible for updating the ThumbnailCache as its
+draw routine applies the positioning, transformation and compositing of the respective Layers content.
+</details>
 
 ## State history
 
@@ -172,9 +255,8 @@ Once the container is started, you can access BitMappery at `http://localhost:51
 
 ## WebAssembly
 
-BitMappery can also use WebAssembly to _potentially_ increase performance of image manipulation.
-WebAssembly filtering is a user controllable feature in the preferences pane, as long as the `.env` file has set
-support for `VITE_ENABLE_WASM_FILTERS` to true.
+BitMappery initially also used WebAssembly to _potentially_ increase performance of image manipulation.
+WebAssembly filtering is a user controllable feature in the preferences pane, as long as `VITE_ENABLE_WASM_FILTERS` is set to true when creating the production build.
 
 The source code is C based and compiled to WASM using [Emscripten](https://github.com/emscripten-core/emscripten). Because this setup is a little more cumbersome, the repository contains precompiled binaries in the `src/wasm/bin`-folder meaning
 you can omit this setup if you don't intend to make changes to these sources.
@@ -198,7 +280,7 @@ npm run wasm
 
 ### Benchmarks
 
-On a particular (deliberately low powered) configuration, running all filters at their heaviest setting on a particular source takes:
+On a particular (deliberately low powered) configuration, running all filters at their heaviest setting on a particular source took:
 
 * 7000+ ms in JavaScript
 * 558 ms in WebAssembly
@@ -207,7 +289,7 @@ On a particular (deliberately low powered) configuration, running all filters at
 
 Note that the WebAssembly Web Worker execution takes a performance hit when compared to its inline operation. This
 is due to messaging overhead when providing image buffers to the WASM memory inside the Worker context. This could benefit from further tweaking
-to see whether it gets closer to the JavaScript Web Worker performance.
+to see whether it gets closer to the JavaScript Web Worker performance. (**NOTE:** _With reserved Workers and pooled images this setup has since improved_).
 
-However, as in the current setup the JS solution alone is performant enough _and you would need to write the
-filter code twice_ (once in TypeScript in `src/rendering/filters` and once in C++ in `src/wasm`), the default for WASM is disabled.
+As in the current setup the JS solution alone is performant enough _and you would need to write the
+filter code twice_ (once in TypeScript in `src/rendering/filters` and once in C++ in `src/wasm`), the default for WASM is disabled until further request.

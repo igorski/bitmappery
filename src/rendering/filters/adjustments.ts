@@ -38,7 +38,7 @@ const defaultFilters = FiltersFactory.create();
  * These can be combined in a single function as these filters do not
  * require an initial pass (for instant to calculate averages, etc.)
  */
-export const applyAdjustments = ( pixels: Uint8ClampedArray, filters: Filters ): void =>
+export const applyAdjustments = ( input: Uint8ClampedArray, output: Uint8ClampedArray, filters: Filters ): void =>
 {
     const doBrightness = filters.brightness !== defaultFilters.brightness;
     const doContrast   = filters.contrast   !== defaultFilters.contrast;
@@ -75,17 +75,19 @@ export const applyAdjustments = ( pixels: Uint8ClampedArray, filters: Filters ):
     // loop through the pixels, note we increment the iterator by four
     // as each pixel is defined by four RGBA channel values : red, green, blue and the alpha channel
 
-    for ( let i = 0, l = pixels.length; i < l; i += 4 ) {
+    for ( let i = 0, l = input.length; i < l; i += 4 ) {
 
-        a = pixels[ i + 3 ];
+        a = input[ i + 3 ];
+
+        output[ i + 3 ] = a; // force syncing the alpha of the (pooled) output with the input as a "reset"
 
         if ( a === 0 ) {
             continue; // pixel is transparent
         }
 
-        r = pixels[ i ];
-        g = pixels[ i + 1 ];
-        b = pixels[ i + 2 ];
+        r = input[ i ];
+        g = input[ i + 1 ];
+        b = input[ i + 2 ];
   
         // adjust exposure
         if ( doExposure ) {
@@ -158,9 +160,8 @@ export const applyAdjustments = ( pixels: Uint8ClampedArray, filters: Filters ):
         }
 
         // commit the changes
-        pixels[ i ]     = r;
-        pixels[ i + 1 ] = g;
-        pixels[ i + 2 ] = b;
-        //pixels[ i + 3 ] = a; // currently no filter modifies alpha channel
+        output[ i ]     = r;
+        output[ i + 1 ] = g;
+        output[ i + 2 ] = b;
     }
 };

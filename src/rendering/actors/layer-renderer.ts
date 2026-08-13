@@ -36,6 +36,7 @@ import BrushFactory from "@/model/factories/brush-factory";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation, rotatePointer } from "@/math/point-math";
 import { fastRound } from "@/math/unit-math";
+import { onLayerPropertiesChange } from "@/model/actions/layer-properties-change";
 import { applyBlend, prepareBlend, isNativeBlendMode } from "@/rendering/operations/blending";
 import { clipContextToSelection, clipLayer } from "@/rendering/operations/clipping";
 import { renderClonedStroke, setCloneSource } from "@/rendering/operations/cloning";
@@ -203,13 +204,15 @@ export default class LayerRenderer extends ZoomableSprite {
         this._pendingEffectsRender = true;
         this.canvas?.setLock( true );
         requestAnimationFrame( async () => {
-            await renderEffectsForLayer( this.layer );
-            this._pendingEffectsRender = false;
-            this.canvas?.setLock( false );
-            if ( this.layer.visible) {
+            const { status } = await renderEffectsForLayer( this.layer );
+            if ( status !== "cancelled" ) {
+                this._pendingEffectsRender = false;
+                this.canvas?.setLock( false );
+            }
+            if ( status === "completed" && this.layer.visible ) {
                 this.invalidateBlendCache(); // now layer effects are cached, invalidate any existing blend cache
                 if ( !!this.canvas ) {
-                    createLayerThumbnail( this.layer, this.canvas.getActiveDocument(), true );
+                    createLayerThumbnail( this.layer, this.canvas.getActiveDocument(), true ); // Layer renderer updates the thumbnail
                 }
             }
         });
@@ -611,7 +614,7 @@ export default class LayerRenderer extends ZoomableSprite {
             );
             disposeMaskComposite();
             disposeDrawableCanvas();
-            this.resetFilterAndRecache();
+            onLayerPropertiesChange( this.layer, { sources: [ isMaskable( this.layer, this.getStore() ) ? "mask" : "source" ] });
 
             this._paintProps.paintCanvas = null;
             this._brush.down  = false;

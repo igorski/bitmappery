@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2022-2025 - https://www.igorski.nl
+ * Igor Zinken 2022-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -68,6 +68,7 @@
 <script lang="ts">
 import { mapGetters } from "vuex";
 import { canDragMask } from "@/definitions/tool-types";
+import { onLayerPropertiesChange } from "@/model/actions/layer-properties-change";
 import { enqueueState } from "@/model/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
 import { getRendererForLayer } from "@/model/factories/renderer-factory";
@@ -161,17 +162,18 @@ export default {
                 const layer = this.activeLayer;
                 const orgX = layer.maskX;
                 const orgY = layer.maskY;
+                const sources = [ "maskX", "maskY" ];
                 const commit = () => {
                     layer.maskX = x;
                     layer.maskY = y;
-                    getRendererForLayer( layer )?.resetFilterAndRecache();
+                    onLayerPropertiesChange( layer, { sources });
                 };
                 commit();
                 enqueueState( `maskPos_${layer.id}`, {
                     undo() {
                         layer.maskX = orgX;
                         layer.maskY = orgY;
-                        getRendererForLayer( layer )?.resetFilterAndRecache();
+                        onLayerPropertiesChange( layer, { sources });
                     },
                     redo: commit
                 }); 
