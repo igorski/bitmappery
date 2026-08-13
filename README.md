@@ -45,8 +45,8 @@ Interactions that start/end from _outside the canvas_ (for instance the opening/
 drawing of a brush stroke outside of the canvas area) are handled by `document-canvas.vue` where the global DOM coordinates are translated to coordinates relative to the canvas document before being forwarded to the zCanvas
 event handler. See "Rendering concepts" below for more details on screen-to-document coordinates.
 
-Rendering of transformations, text and filters is an asynchronous operation handled by `src/services/render-service.ts`. The purpose of this service is to perform and cache repeated operations and eventually maintain the source bitmap represented by the LayerRenderer.
-The LayerRenderer invokes the rendering service whenever Layer content changes and manages its own cache, see "Rendering pipeline" below.
+Rendering of text, filters and masks is an asynchronous operation handled by `src/services/render-service.ts`. The purpose of this service is to perform and cache repeated operations and eventually maintain the source bitmap represented by the LayerRenderer.
+The LayerRenderer invokes the rendering service whenever Layer properties change and manages its own cache, see "Rendering pipeline" below.
 
 All types related to the editor are either defined in `src/definitions/editor.ts` or the more specifically
 named files.
@@ -69,14 +69,15 @@ and translating these to (non-zoomed and non-panned) source bitmaps.
 
 ### Rendering pipeline
 
-The `document-canvas.vue` maintains the creation of all layer-renderers, removing those that are invisible or occluded by
+The `document-canvas.vue` maintains the creation of all layer renderers, removing those that are invisible or occluded by
 higher layers. All rendering happens through the usual zCanvas pipeline, where positioning and transforming (_scaling, mirroring and
 rotating_) of bitmap content is handled on the fly, along with the application of any compositing effects (_blending or opacity_).
 
 The `render-service.ts` only comes into play when more complex operations need to happen on the source content, f.i. because of a masking or effects application / filter operation. As these are costly computations, these are not performed on each render cycle but only when such a change happens after which the result is  cached for instant access. The cached version is keyed against the Layers (content/filter) properties during the render. Once these properties change, the cache is invalidated and a new rendering operation will be performed.
 
-Keep in mind that BitMappery is non-destructive, so operations such as tone and color
-adjustments are always applied onto the original source Bitmap. If the source Bitmap changes (e.g. content is cut from an Image layer or content is painted on a Graphic layer), the source is replaced and the filters will need to be re-applied to this new source.
+Keep in mind that BitMappery is non-destructive, so operations such as tone and color adjustments are always applied onto a scratch
+image using the original source bitmap. If the source bitmap changes (e.g. content is cut from an Image layer or new content is painted
+on a Graphic layer), the source is replaced and the filters will need to be re-applied to this new source.
 
 <details>
 <summary><b>Click to expand architecture diagrams</b></summary>
