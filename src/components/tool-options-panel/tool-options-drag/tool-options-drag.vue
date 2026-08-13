@@ -68,7 +68,7 @@
 <script lang="ts">
 import { mapGetters } from "vuex";
 import { canDragMask } from "@/definitions/tool-types";
-import { layerContentChange } from "@/model/actions/layer-content-change";
+import { onLayerPropertiesChange } from "@/model/actions/layer-properties-change";
 import { enqueueState } from "@/model/factories/history-state-factory";
 import KeyboardService from "@/services/keyboard-service";
 import { getRendererForLayer } from "@/model/factories/renderer-factory";
@@ -166,14 +166,14 @@ export default {
                 const commit = () => {
                     layer.maskX = x;
                     layer.maskY = y;
-                    layerContentChange( layer, { sources });
+                    onLayerPropertiesChange( layer, { sources });
                 };
                 commit();
                 enqueueState( `maskPos_${layer.id}`, {
                     undo() {
                         layer.maskX = orgX;
                         layer.maskY = orgY;
-                        layerContentChange( layer, { sources });
+                        onLayerPropertiesChange( layer, { sources });
                     },
                     redo: commit
                 }); 

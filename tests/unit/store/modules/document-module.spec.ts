@@ -11,9 +11,9 @@ const { getters, mutations, actions } = DocumentModule;
 
 mockZCanvas();
 
-const mockLayerContentChange = vi.fn();
-vi.mock( "@/model/actions/layer-content-change", () => ({
-    layerContentChange: ( ...args: any[] ) => mockLayerContentChange( ...args ),
+const mockOnLayerPropertiesChange = vi.fn();
+vi.mock( "@/model/actions/layer-properties-change", () => ({
+    onLayerPropertiesChange: ( ...args: any[] ) => mockOnLayerPropertiesChange( ...args ),
 }));
 
 let mockUpdateFn: ( fnName: string, ...args: any[]) => void;
@@ -645,7 +645,7 @@ describe( "Vuex document module", () => {
                 };
                 mutations.updateLayer( state, { index, opts });
                 expect( state.documents[ 0 ].layers[ index ] ).toEqual( expectedLayer );
-                expect( mockLayerContentChange ).toHaveBeenCalledWith( expectedLayer, { index: 1, sources: Object.keys( opts ) });
+                expect( mockOnLayerPropertiesChange ).toHaveBeenCalledWith( expectedLayer, { index: 1, sources: Object.keys( opts ) });
             });
 
             describe( "when requesting to also recreate the renderer for the specific Layer", () => {

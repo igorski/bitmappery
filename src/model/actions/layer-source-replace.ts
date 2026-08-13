@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { type Layer } from "@/model/types/layer";
-import { layerContentChange } from "@/model/actions/layer-content-change";
+import { onLayerPropertiesChange } from "@/model/actions/layer-properties-change";
 import { enqueueState } from "@/model/factories/history-state-factory";
 
 export function replaceLayerSource( layer: Layer, orgSourceBlobURL: string, newSourceBlobURL: string, isMask: boolean ): void {
@@ -45,7 +45,7 @@ function restoreSource( layer: Layer, sourceToRestore: string, isMask: boolean )
     const image  = new Image();
     image.onload = () => {
         ctx.drawImage( image, 0, 0 );
-        layerContentChange( layer, { sources: [ isMask ? "mask" : "source" ] });
+        onLayerPropertiesChange( layer, { sources: [ isMask ? "mask" : "source" ] });
     };
     image.src = sourceToRestore;
 }

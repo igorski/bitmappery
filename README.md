@@ -91,7 +91,7 @@ flowchart TD
     zCanvas[zCanvas instance]
     RenderService[render-service.ts]
     BitmapCache[bitmap-cache.ts]
-    LayerContentChange[layer-content-change.ts]
+    onLayerPropertiesChange[layer-properties-change.ts]
 
     subgraph LayerRenderers [LayerRenderers for each visible Layer]
         LayerRenderer["layer-renderer.ts instance(s)"]
@@ -102,24 +102,24 @@ flowchart TD
     end
 
     ActiveDocument --> DocumentCanvas
-    ActiveDocument --> LayerContentChange
+    ActiveDocument --> onLayerPropertiesChange
     DocumentCanvas --> zCanvas
     DocumentCanvas --> LayerRenderer
     LayerRenderer <--> zCanvas
     LayerRenderer --> RenderService
     RenderService --> BitmapCache
     RenderService <--> FilterWorker
-    LayerContentChange --> LayerRenderer
+    onLayerPropertiesChange --> LayerRenderer
 ```
 
 #### Render flow
 
 ```mermaid
 sequenceDiagram
-    ActiveDocument / Vuex->>LayerContentChange: Handle change on Layer content
+    ActiveDocument / Vuex->>onLayerPropertiesChange: Handle change on Layer content
 
     alt Changed properties require effects/filter application
-        LayerContentChange->>LayerRenderer: Update Layer properties and request a content re-render
+        onLayerPropertiesChange->>LayerRenderer: Update Layer properties and request a content re-render
         LayerRenderer->>RenderService: Launch render job
         RenderService->>BitmapCache: Check cache
 
@@ -136,7 +136,7 @@ sequenceDiagram
             RenderService->>LayerRenderer: Return rendered output
         end
     else Changed properties do not require effects/filter application
-        LayerContentChange->>LayerRenderer: Update Layer properties
+        onLayerPropertiesChange->>LayerRenderer: Update Layer properties
         end
 
     LayerRenderer->>zCanvas: Request invalidation and redraw of on-screen content

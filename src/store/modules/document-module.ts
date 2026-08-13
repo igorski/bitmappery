@@ -22,7 +22,7 @@
  */
 import type { ActionContext, Module } from "vuex";
 import type { Rectangle, Size } from "zcanvas";
-import { layerContentChange } from "@/model/actions/layer-content-change";
+import { onLayerPropertiesChange } from "@/model/actions/layer-properties-change";
 import type { Document, DocumentMeta } from "@/model/types/document";
 import type { Layer } from "@/model/types/layer";
 import type { Selection } from "@/model/types/selection";
@@ -213,7 +213,7 @@ const DocumentModule: Module<DocumentState, any> = {
                 createRendererForLayer( getCanvasInstance(), layer, index === state.activeLayerIndex );
                 return;
             }
-            layerContentChange( layer, { sources: Object.keys( opts ) as ( keyof Layer )[], index });
+            onLayerPropertiesChange( layer, { sources: Object.keys( opts ) as ( keyof Layer )[], index });
         },
         updateLayerTransform( state: DocumentState, { index, transform = {} }: { index: number, transform: Partial<Transform> }): void {
             const activeDocument = state.documents[ state.activeIndex ];

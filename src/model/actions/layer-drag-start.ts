@@ -22,7 +22,7 @@
  */
 import { type Store } from "vuex";
 import { type CopiedImage } from "@/definitions/editor";
-import { layerContentChange } from "@/model/actions/layer-content-change";
+import { onLayerPropertiesChange } from "@/model/actions/layer-properties-change";
 import { enqueueState } from "@/model/factories/history-state-factory";
 import LayerFactory from "@/model/factories/layer-factory";
 import { getRendererForLayer } from "@/model/factories/renderer-factory";
@@ -79,7 +79,7 @@ export function startLayerDrag( store: Store<BitMapperyState>, layer: Layer, x: 
 
             const replaceSource = ( newSource: HTMLCanvasElement ): void => {
                 replaceLayerSource( layer, newSource, hasMask );
-                layerContentChange( layer, { sources: [ hasMask ? "mask" : "source" ] });
+                onLayerPropertiesChange( layer, { sources: [ hasMask ? "mask" : "source" ] });
             };
 
             const commit = ( maintainDrag = false ): void => {

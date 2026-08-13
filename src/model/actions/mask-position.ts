@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { type Layer } from "@/model/types/layer";
-import { type IChangeSource, layerContentChange } from "@/model/actions/layer-content-change";
+import { type IChangeSource, onLayerPropertiesChange } from "@/model/actions/layer-properties-change";
 import { enqueueState } from "@/model/factories/history-state-factory";
 
 export function positionMask( layer: Layer, newMaskX: number, newMaskY: number ): void {
@@ -31,7 +31,7 @@ export function positionMask( layer: Layer, newMaskX: number, newMaskY: number )
     const commit = (): void => {
         layer.maskX = newMaskX;
         layer.maskY = newMaskY;
-        layerContentChange( layer, { sources });
+        onLayerPropertiesChange( layer, { sources });
     };
     commit();
     
@@ -39,7 +39,7 @@ export function positionMask( layer: Layer, newMaskX: number, newMaskY: number )
         undo(): void {
             layer.maskX = maskX;
             layer.maskY = maskY;
-            layerContentChange( layer, { sources });
+            onLayerPropertiesChange( layer, { sources });
         },
         redo: commit
     });

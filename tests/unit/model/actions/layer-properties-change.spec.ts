@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMockZoomableCanvas } from "../../mocks";
 import LayerFactory from "@/model/factories/layer-factory";
 import { createRendererForLayer, flushLayerRenderers } from "@/model/factories/renderer-factory";
-import { layerContentChange, type IChangeSource } from "@/model/actions/layer-content-change";
+import { onLayerPropertiesChange, type IChangeSource } from "@/model/actions/layer-properties-change";
 import type LayerRenderer from "@/rendering/actors/layer-renderer";
 
 let mockAffectsBlendCache = false;
@@ -42,7 +42,7 @@ describe( "layer content change", () => {
             ...layer,
             name: "This is now renamed",
         };
-        layerContentChange( layer2, { sources: [ "name" ] });
+        onLayerPropertiesChange( layer2, { sources: [ "name" ] });
 
         expect( layerRenderer.layer ).toEqual( layer2 );
     });
@@ -56,7 +56,7 @@ describe( "layer content change", () => {
             ( `should not flush the blended layer cache for an unsupported "%s" change source, even when the layer affects the blend cache`, source => {
             mockAffectsBlendCache = true;
 
-            layerContentChange( layer, { index: 0, sources: [ source ] });
+            onLayerPropertiesChange( layer, { index: 0, sources: [ source ] });
  
             expect( mockFlushBlendedLayerCache ).not.toHaveBeenCalled();
         });
@@ -65,7 +65,7 @@ describe( "layer content change", () => {
             ( `should not flush the blended layer cache for supported change source "%s" when the layer does not affect the blend cache`, source  => {
             mockAffectsBlendCache = false;
 
-            layerContentChange( layer, { index: 0, sources: [ source ] });
+            onLayerPropertiesChange( layer, { index: 0, sources: [ source ] });
 
             expect( mockFlushBlendedLayerCache ).not.toHaveBeenCalled();
         });
@@ -74,7 +74,7 @@ describe( "layer content change", () => {
             ( `should fully flush the blended layer cache for supported change source "%s" when the layer affects the blend cache`, source => {
             mockAffectsBlendCache = true;
 
-            layerContentChange( layer, { index: 0, sources: [ source ] });
+            onLayerPropertiesChange( layer, { index: 0, sources: [ source ] });
   
             expect( mockFlushBlendedLayerCache ).toHaveBeenCalledWith( true );
         });
@@ -84,7 +84,7 @@ describe( "layer content change", () => {
             mockAffectsBlendCache = true;
 
             expect(() => {
-                layerContentChange( layer, { sources: [ source ] });
+                onLayerPropertiesChange( layer, { sources: [ source ] });
             }).toThrow();
 
             expect( mockFlushBlendedLayerCache ).not.toHaveBeenCalled();
@@ -98,13 +98,13 @@ describe( "layer content change", () => {
 
         it.each( unsupportedSources )
             ( `should not request a sync with any reserved Workers for an unsupported "%s" change source`, source => {
-            layerContentChange( layer, { index: 0, sources: [ source ] });
+            onLayerPropertiesChange( layer, { index: 0, sources: [ source ] });
 
             expect( mockUpdateWorker ).not.toHaveBeenCalled();
         });
 
         it.each( supportedSources )( `should request a sync with any reserved Workers for a supported "%s" change source`, source => {
-            layerContentChange( layer, { sources: [ source ] });
+            onLayerPropertiesChange( layer, { sources: [ source ] });
 
             expect( mockUpdateWorker ).toHaveBeenCalledWith( layer );
         });
@@ -113,7 +113,7 @@ describe( "layer content change", () => {
             ( `should not request a filter recache for an unsupported "%s" change source`, source => {
             const resetSpy = vi.spyOn( layerRenderer, "resetFilterAndRecache" );
 
-            layerContentChange( layer, { index: 0, sources: [ source ] });
+            onLayerPropertiesChange( layer, { index: 0, sources: [ source ] });
 
             expect( resetSpy ).not.toHaveBeenCalled();
         });
@@ -121,7 +121,7 @@ describe( "layer content change", () => {
         it.each( supportedSources )( `should request a filter recache for a supported "%s" change source`, source => {
             const resetSpy = vi.spyOn( layerRenderer, "resetFilterAndRecache" );
 
-            layerContentChange( layer, { sources: [ source ] });
+            onLayerPropertiesChange( layer, { sources: [ source ] });
 
             expect( resetSpy ).toHaveBeenCalled();
         });
@@ -130,7 +130,7 @@ describe( "layer content change", () => {
             ( `should not request an effects cache for a non "filters" change source`, source => {
             const cacheEffectsSpy = vi.spyOn( layerRenderer, "cacheEffects" );
 
-            layerContentChange( layer, { index: 0, sources: [ source ] });
+            onLayerPropertiesChange( layer, { index: 0, sources: [ source ] });
 
             expect( cacheEffectsSpy ).not.toHaveBeenCalled();
         });
@@ -138,7 +138,7 @@ describe( "layer content change", () => {
         it( `should request an effects cache for a "filters" change source`, () => {
             const cacheEffectsSpy = vi.spyOn( layerRenderer, "cacheEffects" );
 
-            layerContentChange( layer, { index: 0, sources: [ "filters" ] });
+            onLayerPropertiesChange( layer, { index: 0, sources: [ "filters" ] });
 
             expect( cacheEffectsSpy ).toHaveBeenCalled();
         });

@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { type Store } from "vuex";
-import { layerContentChange } from "@/model/actions/layer-content-change";
+import { onLayerPropertiesChange } from "@/model/actions/layer-properties-change";
 import { enqueueState } from "@/model/factories/history-state-factory";
 import { type BitMapperyState } from "@/store";
 import { cloneCanvas } from "@/utils/canvas-util";
@@ -40,7 +40,7 @@ export const deleteSelection = ( store: Pick<Store<BitMapperyState>, "getters"> 
 
     const replaceSource = ( newSource: HTMLCanvasElement ) => {
         replaceLayerSource( activeLayer, newSource, hasMask );
-        layerContentChange( activeLayer, { sources: [ hasMask ? "mask" : "source" ] });
+        onLayerPropertiesChange( activeLayer, { sources: [ hasMask ? "mask" : "source" ] });
     };
     replaceSource( updatedBitmap );
     enqueueState( `deleteFromSelection_${activeLayer.id}`, {

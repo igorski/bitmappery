@@ -36,7 +36,7 @@ import BrushFactory from "@/model/factories/brush-factory";
 import { scaleRectangle, rotateRectangle } from "@/math/rectangle-math";
 import { translatePointerRotation, rotatePointer } from "@/math/point-math";
 import { fastRound } from "@/math/unit-math";
-import { layerContentChange } from "@/model/actions/layer-content-change";
+import { onLayerPropertiesChange } from "@/model/actions/layer-properties-change";
 import { applyBlend, prepareBlend, isNativeBlendMode } from "@/rendering/operations/blending";
 import { clipContextToSelection, clipLayer } from "@/rendering/operations/clipping";
 import { renderClonedStroke, setCloneSource } from "@/rendering/operations/cloning";
@@ -614,7 +614,7 @@ export default class LayerRenderer extends ZoomableSprite {
             );
             disposeMaskComposite();
             disposeDrawableCanvas();
-            layerContentChange( this.layer, { sources: [ isMaskable( this.layer, this.getStore() ) ? "mask" : "source" ] });
+            onLayerPropertiesChange( this.layer, { sources: [ isMaskable( this.layer, this.getStore() ) ? "mask" : "source" ] });
 
             this._paintProps.paintCanvas = null;
             this._brush.down  = false;

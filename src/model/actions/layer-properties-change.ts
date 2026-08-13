@@ -39,7 +39,7 @@ const FILTER_RESET_AND_RECACHE_TRIGGERS: IChangeSource[] = [ "source", "mask", "
  * as the reaction to such a change if it affects the Layers state to the extent
  * that the caches of the renderer need to be flushed and rebuilt.
  */
-export const layerContentChange = ( layer: Layer, opts: IContentChangeOpts = { sources: [] }): void => {
+export const onLayerPropertiesChange = ( layer: Layer, opts: IContentChangeOpts = { sources: [] }): void => {
     const { sources } = opts;
 
     const renderer = getRendererForLayer( layer );
@@ -53,9 +53,9 @@ export const layerContentChange = ( layer: Layer, opts: IContentChangeOpts = { s
         if ( typeof opts.index !== "number" ) {
             // @ts-expect-error 'import.meta' property not allowed, not an issue Vite takes care of it
             if ( import.meta.env.MODE !== "production" ) {
-                throw new Error( `onLayerContentChange has blend cache invalidation without index` );
+                throw new Error( `onLayerPropertiesChange has blend cache invalidation without index` );
             }
-            console.error( `onLayerContentChange has blend cache invalidation without index` );
+            console.error( `onLayerPropertiesChange has blend cache invalidation without index` );
         } else if ( affectsBlendCache( opts.index )) {
             flushBlendedLayerCache( true ); // direct to prevent rendering errors on undo
         }
