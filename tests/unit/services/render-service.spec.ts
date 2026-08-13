@@ -1,17 +1,16 @@
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { createMockZoomableCanvas, mockZCanvas } from "../mocks";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { createMockImageData, createMockZoomableCanvas, mockZCanvas } from "../mocks";
 import { type Layer } from "@/model/types/layer";
 import FiltersFactory from "@/model/factories/filters-factory";
 import LayerFactory, { type LayerProps } from "@/model/factories/layer-factory";
 import { createRendererForLayer, flushRendererCache } from "@/model/factories/renderer-factory";
-import type LayerRenderer from "@/rendering/actors/layer-renderer";
-import { type FilterWorkerMessageData, type IFilterWorker } from "@/rendering/types";
+import { type FilterWorkerMessageData, type FilterWorkerMessageResult, type IFilterWorker } from "@/rendering/types";
 import { freeWorker, renderEffectsForLayer, reserveWorker, updateWorker } from "@/services/render-service";
 
 mockZCanvas();
 
 vi.mock( "@/utils/canvas-util", async () => {
-    const { createMockCanvasElement, createMockCanvasRenderingContext2D } = await vi.importActual( "../mocks" );
+    const { createMockCanvasElement, createMockCanvasRenderingContext2D, createMockImageData } = await vi.importActual( "../mocks" );
     return {
         createCanvas: vi.fn(() => {
             return {
@@ -19,7 +18,7 @@ vi.mock( "@/utils/canvas-util", async () => {
                 ctx: ( createMockCanvasRenderingContext2D as Function )(),
             };
         }),
-        cloneImageData: vi.fn(() => {}),
+        cloneImageData: vi.fn(() => ( createMockImageData as Function )() ),
     };
 });
 
@@ -38,20 +37,34 @@ vi.mock( "@/workers/filter.worker?worker", () => ({
 
 describe( "Render service", () => {
     const activeFilterSettings = FiltersFactory.create({ enabled: true, gamma: 2 } );
-    let layerRenderer: LayerRenderer;
 
     function createLayer( props: LayerProps = {} ): Layer {
         const layer = LayerFactory.create( props );
-        layerRenderer = createRendererForLayer( createMockZoomableCanvas(), layer, false, false  );   
+        createRendererForLayer( createMockZoomableCanvas(), layer, false, false  );   
         
         return layer;
     }
 
+    function mockWorkerResponse( id: number, success = true ): void {
+        const response: FilterWorkerMessageResult = { id, cmd: "error" };
+        if ( success ) {
+            response.cmd = "complete";
+            response.pixelData = new Uint8ClampedArray();
+        }
+        const messageResult = { data: response } as MessageEvent<FilterWorkerMessageResult>;
+        // @ts-expect-error TS2684: The 'this' context of type 'IFilterWorker' is not assignable to method's 'this' of type 'Worker'
+        mockWorkerInstance.onmessage( messageResult );
+    }
+
     beforeAll(() => {
-        // @ts-expect-error TS2322 we just need a class instance
-        global.ImageData = function() {};
+        global.ImageData = vi.fn(() => createMockImageData());
+        vi.useFakeTimers();
     });
 
+    afterAll(() => {
+        vi.useRealTimers();
+    });
+    
     afterEach(() => {
         vi.resetAllMocks();
         flushRendererCache();
@@ -101,9 +114,9 @@ describe( "Render service", () => {
                 const newLayer = createLayer({ filters: activeFilterSettings });
 
                 mockWorkerPostMessage.mockImplementationOnce(( data: FilterWorkerMessageData ) => {
-                    // @ts-expect-error TS2684: The 'this' context of type 'IFilterWorker' is not assignable to method's 'this' of type 'Worker'
-                    mockWorkerInstance.onmessage({ data: { id: data.id, cmd: "error" } });
+                    mockWorkerResponse( data.id, false );
                 });
+
                 const result = await renderEffectsForLayer( newLayer );
 
                 expect( result.status ).toEqual( "errored" );
@@ -113,9 +126,9 @@ describe( "Render service", () => {
                 const newLayer = createLayer({ filters: activeFilterSettings });
 
                 mockWorkerPostMessage.mockImplementationOnce(( data: FilterWorkerMessageData ) => {
-                    // @ts-expect-error TS2684: The 'this' context of type 'IFilterWorker' is not assignable to method's 'this' of type 'Worker'
-                    mockWorkerInstance.onmessage({ data: { id: data.id, cmd: "complete" } });
+                    mockWorkerResponse( data.id, true );
                 });
+
                 const result = await renderEffectsForLayer( newLayer );
 
                 expect( result.status ).toEqual( "completed" );
@@ -202,6 +215,82 @@ describe( "Render service", () => {
             }, [ expect.any( Object )]);
 
             freeWorker( worker2id ); // cleanup
+        });
+    });
+
+    describe( "when requesting the rendering of effects for a Layer with filters and a persisted Worker", () => {
+        let layer: Layer;
+        let workerId: string;
+
+        beforeEach(() => {
+            layer = createLayer({ filters: activeFilterSettings });
+            workerId = reserveWorker( layer );
+
+            mockWorkerPostMessage.mockReset();
+        });
+
+        afterEach(() => {
+            freeWorker( workerId );
+        });
+
+        it( "should complete successfully", async () => {
+            mockWorkerPostMessage.mockImplementationOnce(( data: FilterWorkerMessageData ) => {
+                mockWorkerResponse( data.id, true );
+            });
+
+            const result = await renderEffectsForLayer( layer );
+
+            expect( result.status ).toEqual( "completed" );
+        });
+
+        it( "should execute subsequent requests in a queue", async () => {
+            const result1promise = renderEffectsForLayer( layer );
+            const result2promise = renderEffectsForLayer( layer );
+
+            vi.runAllTimers(); // runs RAF between jobs (just sanity checking)
+
+            expect( mockWorkerPostMessage ).toHaveBeenCalledTimes( 1 );
+
+            const job1id = mockWorkerPostMessage.mock.calls[ 0 ][ 0 ].id;
+            mockWorkerResponse( job1id, true );
+
+            expect(( await result1promise ).status ).toEqual( "completed" );
+            
+            vi.runAllTimers(); // runs RAF between jobs
+
+            expect( mockWorkerPostMessage ).toHaveBeenCalledTimes( 2 );
+
+            const job2id = mockWorkerPostMessage.mock.calls[ 1 ][ 0 ].id;
+            mockWorkerResponse( job2id, true );
+
+            expect(( await result2promise ).status ).toEqual( "completed" );
+        });
+
+        it( "should cancel requests in between the currently running and last queued job", async () => {
+            const result1promise = renderEffectsForLayer( layer );
+            const result2promise = renderEffectsForLayer( layer );
+            const result3promise = renderEffectsForLayer( layer );
+            const result4promise = renderEffectsForLayer( layer );
+
+            expect( mockWorkerPostMessage ).toHaveBeenCalledTimes( 1 );
+
+            // inner requests should be instantly cancelled
+            expect(( await result2promise ).status ).toEqual( "cancelled" );
+            expect(( await result3promise ).status ).toEqual( "cancelled" );
+
+            const firstJobId = mockWorkerPostMessage.mock.calls[ 0 ][ 0 ].id;
+            mockWorkerResponse( firstJobId, true );
+
+            expect(( await result1promise ).status ).toEqual( "completed" );
+            
+            vi.runAllTimers(); // runs RAF between jobs
+
+            expect( mockWorkerPostMessage ).toHaveBeenCalledTimes( 2 );
+
+            const lastJobId = mockWorkerPostMessage.mock.calls[ 1 ][ 0 ].id;
+            mockWorkerResponse( lastJobId, true );
+
+            expect(( await result4promise ).status ).toEqual( "completed" );
         });
     });
 });

@@ -88,6 +88,14 @@ export function createMockImageElement(): HTMLImageElement {
     } as unknown as HTMLImageElement;
 }
 
+export function createMockImageData( width = 300, height = 300 ): ImageData {
+    return {
+        data: new Uint8ClampedArray(),
+        width,
+        height,
+    } as unknown as ImageData;
+}
+
 export function createMockCanvasRenderingContext2D(): CanvasRenderingContext2D {
     return {
         arc: vi.fn(),
@@ -98,9 +106,7 @@ export function createMockCanvasRenderingContext2D(): CanvasRenderingContext2D {
         drawImage: vi.fn(),
         fill: vi.fn(),
         fillRect: vi.fn(),
-        getImageData: vi.fn().mockReturnValue({
-            data: new Uint8ClampedArray(),
-        }),
+        getImageData: vi.fn().mockReturnValue( createMockImageData() ),
         putImageData: vi.fn(),
         rect: vi.fn(),
         rotate: vi.fn(),
