@@ -289,9 +289,9 @@ export default {
         }
     },
     beforeUnmount(): void {
-        freeWorker( this.workerId );
+        const freed = freeWorker( this.workerId );
         setPaused( false );
-        if ( this.activeLayer ) {
+        if ( freed && this.activeLayer ) {
             createLayerThumbnail( this.activeLayer, this.activeDocument, true );
         }
     },

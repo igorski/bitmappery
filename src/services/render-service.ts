@@ -54,6 +54,8 @@ let UID = 0;
 type PersistedWorker = {
     worker: IFilterWorker;
     output?: ImageData; // pooled buffer to render filtered output on
+    busy?: boolean; // whether Worker is currently processing
+    dispose?: boolean; // whether to dispose Worker when done (e.g. freeWorker() requested while busy)
 };
 const persistedWorkers: Map<string, PersistedWorker> = new Map();
 let useWasm = false;
@@ -199,13 +201,19 @@ export const updateWorker = ( layer: Layer ): void => {
     persistedWorker.worker.postMessage({ cmd: "reserve", sourceId: layer.id, imageData }, [ imageData.data.buffer ]);
 };
 
-export const freeWorker = ( id: string ): void => {
+export const freeWorker = ( id: string ): boolean => {
     if ( !persistedWorkers.has( id )) {
-        return;
+        return true;
     }
     const persisted = persistedWorkers.get( id );
+    if ( persisted.busy === true ) {
+        persisted.dispose = true;
+        return false;
+    }
     persisted!.worker.terminate();
     persistedWorkers.delete( id );
+
+    return true;
 };
 
 /* internal methods */
@@ -235,6 +243,12 @@ function runFilterJob( result: RenderResult, source: HTMLCanvasElement, layer: L
         if ( persistedWorkers.has( workerId )) {
             persisted = persistedWorkers.get( workerId )!;
             worker = persisted.worker;
+            onComplete = () => {
+                persisted.busy = false;
+                if ( persisted.dispose ) {
+                    freeWorker( workerId ); // disposal requested during render, free now
+                }
+            };
         } else {
             // when not using as persisted Worker, the Workers are lazily created per job so we can parallelize
             worker = new FilterWorker();
@@ -269,6 +283,10 @@ function runFilterJob( result: RenderResult, source: HTMLCanvasElement, layer: L
                 sourceId = workerId;
             } else {
                 imageData = getDataSource( source );
+            }
+
+            if ( persisted ) {
+                persisted.busy = true;
             }
 
             worker.postMessage({

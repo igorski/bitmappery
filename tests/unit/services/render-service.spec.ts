@@ -226,9 +226,34 @@ describe( "Render service", () => {
         it( "should be able to terminate the Worker for the Layer", () => {
             workerId = reserveWorker( layer1 );
 
-            freeWorker( workerId );
+            const freed = freeWorker( workerId );
 
             expect( mockWorkerInstance.terminate ).toHaveBeenCalled();
+            expect( freed ).toBe( true );
+        });
+
+        it( "should delay termination of the Worker when its still processing a job and first complete the current job", async () => {
+            workerId = reserveWorker( layer1 );
+            
+            layer1.filters = activeFilterSettings;
+
+            let jobId: number;
+            mockWorkerPostMessage.mockImplementationOnce(( data: FilterWorkerMessageData ) => {
+                jobId = data.id; // capture job id
+            });
+            
+            const renderPromise = renderEffectsForLayer( layer1 );
+
+            const freed = freeWorker( workerId );
+
+            expect( freed ).toBe( false );
+            expect( mockWorkerInstance.terminate ).not.toHaveBeenCalled();
+
+            mockWorkerResponse( jobId!, true ); // complete render
+            const result = await renderPromise;
+
+            expect( mockWorkerInstance.terminate ).toHaveBeenCalled();
+            expect( result.status ).toEqual( "completed" );
         });
 
         it( "should be able to recreate the Worker for a Layer that has a previously terminated one", () => {
