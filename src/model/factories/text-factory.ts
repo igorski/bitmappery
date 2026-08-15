@@ -130,10 +130,10 @@ export const isEqual = ( text: Text, textToCompare?: Text ): boolean => {
  */
 function migrateLegacySpacingAndLineHeight( text: any ): void {
     if ( text.l === 0 ) {
-        text.l = 0.5; // there were no below neutral values in legacy format, set to neutral value
+        text.l = 0.5; // 0 was the neutral value in the legacy format
     } else {
         // we must approximate how many "heights" the legacy pixels represented for the text size
-        const CORRECTION_FACTOR = 1.8; // ideally this should be 1, but with test data this approximated more nicely
+        const CORRECTION_FACTOR = 1.8; // ideally this should be 1, but during tests this approximated more nicely
         const r = 1 + ( text.l / text.s );
         const newValue = 0.5 + ( r - 1 ) / ( 8 * CORRECTION_FACTOR );
 
@@ -141,7 +141,7 @@ function migrateLegacySpacingAndLineHeight( text: any ): void {
     }
 
     if ( text.p === 0 ) {
-        text.p = 0.5; // there were no below neutral values in legacy format, set to neutral value
+        text.p = 0.5; // 0 was the neutral value in the legacy format
     } else {
         // we must approximate how many "widths" the legacy pixels represented for the text size
         const r = 1 + ( text.p / text.s );
