@@ -5,7 +5,7 @@ import FiltersFactory from "@/model/factories/filters-factory";
 import LayerFactory, { type LayerProps } from "@/model/factories/layer-factory";
 import { createRendererForLayer, flushRendererCache } from "@/model/factories/renderer-factory";
 import { type FilterWorkerMessageData, type FilterWorkerMessageResult, type IFilterWorker } from "@/rendering/types";
-import { freeWorker, renderEffectsForLayer, reserveWorker, updateWorker } from "@/services/render-service";
+import { freeWorker, renderLayerContent, reserveWorker, updateWorker } from "@/services/render-service";
 
 mockZCanvas();
 
@@ -70,12 +70,12 @@ describe( "Render service", () => {
         flushRendererCache();
     });
     
-    describe( "When requesting the rendering of effects for a Layer", () => {
+    describe( "When requesting the rendering of content for a Layer", () => {
         describe( "and no renderer exists for the provided Layer", () => {
             it( "should cancel the task", async () => {
                 const newLayer = LayerFactory.create();
 
-                const result = await renderEffectsForLayer( newLayer );
+                const result = await renderLayerContent( newLayer );
 
                 expect( result.status ).toEqual( "cancelled" );
             });
@@ -85,7 +85,7 @@ describe( "Render service", () => {
             it( "should complete the task and not spawn a Worker to render a filter process", async () => {
                 const newLayer = createLayer();
 
-                const result = await renderEffectsForLayer( newLayer );
+                const result = await renderLayerContent( newLayer );
 
                 expect( result.status ).toEqual( "completed" );
                 expect( mockWorkerPostMessage ).not.toHaveBeenCalled();
@@ -100,7 +100,7 @@ describe( "Render service", () => {
                 mockWorkerPostMessage.mockImplementationOnce(( data: FilterWorkerMessageData ) => {
                     receivedMessage = data;
                 });
-                renderEffectsForLayer( newLayer );
+                renderLayerContent( newLayer );
 
                 expect( receivedMessage ).toEqual({
                     cmd: "filter",
@@ -117,7 +117,7 @@ describe( "Render service", () => {
                     mockWorkerResponse( data.id, false );
                 });
 
-                const result = await renderEffectsForLayer( newLayer );
+                const result = await renderLayerContent( newLayer );
 
                 expect( result.status ).toEqual( "errored" );
             });
@@ -129,7 +129,7 @@ describe( "Render service", () => {
                     mockWorkerResponse( data.id, true );
                 });
 
-                const result = await renderEffectsForLayer( newLayer );
+                const result = await renderLayerContent( newLayer );
 
                 expect( result.status ).toEqual( "completed" );
             });
@@ -142,8 +142,8 @@ describe( "Render service", () => {
                         mockWorkerResponse( data.id, true );
                     });
 
-                    await renderEffectsForLayer( newLayer, true );
-                    await renderEffectsForLayer( newLayer, false );
+                    await renderLayerContent( newLayer, true );
+                    await renderLayerContent( newLayer, false );
 
                     expect( mockWorkerPostMessage ).toHaveBeenCalledTimes( 2 );
                 });
@@ -155,8 +155,8 @@ describe( "Render service", () => {
                         mockWorkerResponse( data.id, true );
                     });
 
-                    await renderEffectsForLayer( newLayer, true );
-                    const lastResult = await renderEffectsForLayer( newLayer, true );
+                    await renderLayerContent( newLayer, true );
+                    const lastResult = await renderLayerContent( newLayer, true );
 
                     expect( mockWorkerPostMessage ).toHaveBeenCalledTimes( 1 );
                     expect( lastResult.status ).toEqual( "completed" );
@@ -169,10 +169,10 @@ describe( "Render service", () => {
                         mockWorkerResponse( data.id, true );
                     });
 
-                    await renderEffectsForLayer( newLayer, true );
+                    await renderLayerContent( newLayer, true );
 
                     newLayer.filters.gamma = 1; // adjust filter settings (making cache outdated)
-                    const lastResult = await renderEffectsForLayer( newLayer, true );
+                    const lastResult = await renderLayerContent( newLayer, true );
 
                     expect( mockWorkerPostMessage ).toHaveBeenCalledTimes( 2 );
                     expect( lastResult.status ).toEqual( "completed" );
@@ -185,8 +185,8 @@ describe( "Render service", () => {
                         mockWorkerResponse( data.id, true );
                     });
 
-                    await renderEffectsForLayer( newLayer, false );
-                    await renderEffectsForLayer( newLayer, true );
+                    await renderLayerContent( newLayer, false );
+                    await renderLayerContent( newLayer, true );
 
                     expect( mockWorkerPostMessage ).toHaveBeenCalledTimes( 2 );
                 });
@@ -242,7 +242,7 @@ describe( "Render service", () => {
                 jobId = data.id; // capture job id
             });
             
-            const renderPromise = renderEffectsForLayer( layer1 );
+            const renderPromise = renderLayerContent( layer1 );
 
             const freed = freeWorker( workerId );
 
@@ -301,7 +301,7 @@ describe( "Render service", () => {
         });
     });
 
-    describe( "when requesting the rendering of effects for a Layer with filters and a persisted Worker", () => {
+    describe( "when requesting the rendering of content for a Layer with filters and a persisted Worker", () => {
         let layer: Layer;
         let workerId: string;
 
@@ -321,14 +321,14 @@ describe( "Render service", () => {
                 mockWorkerResponse( data.id, true );
             });
 
-            const result = await renderEffectsForLayer( layer );
+            const result = await renderLayerContent( layer );
 
             expect( result.status ).toEqual( "completed" );
         });
 
         it( "should execute subsequent requests in a queue", async () => {
-            const result1promise = renderEffectsForLayer( layer );
-            const result2promise = renderEffectsForLayer( layer );
+            const result1promise = renderLayerContent( layer );
+            const result2promise = renderLayerContent( layer );
 
             vi.runAllTimers(); // runs RAF between jobs (just sanity checking)
 
@@ -350,10 +350,10 @@ describe( "Render service", () => {
         });
 
         it( "should cancel requests in between the currently running and last queued job", async () => {
-            const result1promise = renderEffectsForLayer( layer );
-            const result2promise = renderEffectsForLayer( layer );
-            const result3promise = renderEffectsForLayer( layer );
-            const result4promise = renderEffectsForLayer( layer );
+            const result1promise = renderLayerContent( layer );
+            const result2promise = renderLayerContent( layer );
+            const result3promise = renderLayerContent( layer );
+            const result4promise = renderLayerContent( layer );
 
             expect( mockWorkerPostMessage ).toHaveBeenCalledTimes( 1 );
 

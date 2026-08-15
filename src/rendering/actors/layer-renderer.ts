@@ -55,7 +55,7 @@ import { renderBrushOutline } from "@/rendering/cursors/brush";
 import {
     getDrawableCanvas, renderDrawableCanvas, disposeDrawableCanvas, sliceBrushPointers, createOverrideConfig
 } from "@/rendering/utils/drawable-canvas-utils";
-import { renderEffectsForLayer } from "@/services/render-service";
+import { renderLayerContent } from "@/services/render-service";
 import { startLayerDrag } from "@/model/actions/layer-drag-start";
 import { stopLayerDrag } from "@/model/actions/layer-drag-stop";
 import { positionLayer } from "@/model/actions/layer-position";
@@ -124,7 +124,7 @@ export default class LayerRenderer extends ZoomableSprite {
         this.setActionTarget();
         
         if ( cacheOnCreation ) {
-            this.cacheEffects();
+            this.cacheContent();
         }
     }
 
@@ -197,14 +197,14 @@ export default class LayerRenderer extends ZoomableSprite {
         this._brush.pointers.push({ x, y });
     }
 
-    cacheEffects(): void {
+    cacheContent(): void {
         if ( this._pendingEffectsRender ) {
             return; // debounced to only occur once before next render cycle
         }
         this._pendingEffectsRender = true;
         this.canvas?.setLock( true );
         requestAnimationFrame( async () => {
-            const { status } = await renderEffectsForLayer( this.layer );
+            const { status } = await renderLayerContent( this.layer );
             if ( status !== "cancelled" ) {
                 this._pendingEffectsRender = false;
                 this.canvas?.setLock( false );
@@ -220,7 +220,7 @@ export default class LayerRenderer extends ZoomableSprite {
 
     resetFilterAndRecache(): void {
         clearCacheProperty( this.layer, "filterData" ); // filter must be applied to new contents
-        this.cacheEffects(); // sync mask and source changes with the renderers Bitmap
+        this.cacheContent(); // sync mask and source changes with the renderers Bitmap
     }
 
     invalidateBlendCache(): void {

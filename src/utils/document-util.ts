@@ -26,7 +26,7 @@ import type { Layer, RelId } from "@/model/types/layer";
 import type { Shape } from "@/model/types/selection";
 import type { Text } from "@/model/types/text";
 import type { CanvasDrawable, CopiedSelection } from "@/definitions/editor";
-import { renderEffectsForLayer } from "@/services/render-service";
+import { renderLayerContent } from "@/services/render-service";
 import { createRendererForLayer, flushLayerRenderers, getRendererForLayer, hasRendererForLayer } from "@/model/factories/renderer-factory";
 import { rotateRectangle, areEqual } from "@/math/rectangle-math";
 import { fastRound } from "@/math/unit-math";
@@ -53,7 +53,7 @@ export const createDocumentSnapshot = async ( activeDocument: Document ): Promis
     // ensure all layer effects are rendered, note we omit caching
     const { layers } = activeDocument;
     for ( let i = 0, l = layers.length; i < l; ++i ) {
-        await renderEffectsForLayer( layers[ i ], false );
+        await renderLayerContent( layers[ i ], false );
     }
     // draw existing layers onto temporary canvas at full document scale
     layers.forEach( layer => {
@@ -79,7 +79,7 @@ export const createLayerSnapshot = async ( layer: Layer, activeDocument: Documen
     // ensure all layer effects are rendered, note we omit caching unless requested for an existing renderer
     reuseCache = reuseCache && hasRenderer;
 
-    await renderEffectsForLayer( layer, reuseCache );
+    await renderLayerContent( layer, reuseCache );
 
     // draw existing layers onto temporary canvas at full document scale
     renderer?.draw( ctx, zcvs.getViewport(), true );
@@ -107,7 +107,7 @@ export const createGroupSnapshot = async ( activeDocument: Document, group: RelI
         const renderer = hadRenderer ? getRendererForLayer( layer ) : createRendererForLayer( zcvs, layer, false, false );
 
         // similar to createLayerSnapshot
-        await renderEffectsForLayer( layer, false );
+        await renderLayerContent( layer, false );
         renderer?.draw( ctx, zcvs.getViewport(), true );
 
         // free allocated memory

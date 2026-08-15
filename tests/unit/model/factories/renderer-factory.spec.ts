@@ -35,7 +35,7 @@ describe( "Renderer factory", () => {
         });
 
         it( "should by default create a new renderer that immediately caches it contents", () => {
-            const layerRendererCacheSpy = vi.spyOn( LayerRenderer.prototype, "cacheEffects" );
+            const layerRendererCacheSpy = vi.spyOn( LayerRenderer.prototype, "cacheContent" );
 
             layer1renderer = createRendererForLayer( zCanvas, layer1, false );
 
@@ -43,7 +43,7 @@ describe( "Renderer factory", () => {
         });
 
         it( "should not create a new renderer with instant caching when requested", () => {
-            const layerRendererCacheSpy = vi.spyOn( LayerRenderer.prototype, "cacheEffects" );
+            const layerRendererCacheSpy = vi.spyOn( LayerRenderer.prototype, "cacheContent" );
 
             layer1renderer = createRendererForLayer( zCanvas, layer1, false, false );
 

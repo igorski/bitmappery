@@ -73,7 +73,7 @@ export const setWasmFilters = ( enabled: boolean ): void => {
     }
 };
 
-export const renderEffectsForLayer = async ( layer: Layer, useCaching = true ): Promise<RenderResult> => {
+export const renderLayerContent = async ( layer: Layer, useCaching = true ): Promise<RenderResult> => {
     ++renderState.pending;
     
     const result: RenderResult = { status: "init", start: window.performance.now(), end: 0, duration: 0 };

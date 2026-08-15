@@ -45,10 +45,10 @@ vi.mock( "@/model/actions/layer-drag-stop", () => ({
     stopLayerDrag: vi.fn(() => mockLayerDragStop() ),
 }));
 
-const mockRenderEffectsForLayerResult: RenderResult = { status: "init", start: 0, end: 0, duration: 0 };
-const mockRenderEffectsForLayer = vi.fn(( ..._args: any[] ) => Promise.resolve( mockRenderEffectsForLayerResult ));
+const mockRenderLayerContentResult: RenderResult = { status: "init", start: 0, end: 0, duration: 0 };
+const mockRenderLayerContent = vi.fn(( ..._args: any[] ) => Promise.resolve( mockRenderLayerContentResult ));
 vi.mock( "@/services/render-service", () => ({
-    renderEffectsForLayer: vi.fn(( ...args: any[] ) => mockRenderEffectsForLayer( ...args )),
+    renderLayerContent: vi.fn(( ...args: any[] ) => mockRenderLayerContent( ...args )),
 }));
 
 const mockAction = vi.fn();
@@ -258,7 +258,7 @@ describe( "LayerRenderer", () => {
 
     describe( "when caching the Layers effects into a prerendered source image", () => {
         async function mockAsyncRender( status: RenderStatus = "init" ): Promise<void> {
-            mockRenderEffectsForLayerResult.status = status;
+            mockRenderLayerContentResult.status = status;
             vi.runAllTimers();
         }
 
@@ -267,43 +267,43 @@ describe( "LayerRenderer", () => {
             await mockAsyncRender();
             // @ts-expect-error setLock is not typed as a vi Spy function
             canvas.setLock.mockClear();
-            mockRenderEffectsForLayer.mockClear();
+            mockRenderLayerContent.mockClear();
         });
         
         it( "should call the render directly on construction", () => {
-            const cacheSpy = vi.spyOn( LayerRenderer.prototype, "cacheEffects" );
+            const cacheSpy = vi.spyOn( LayerRenderer.prototype, "cacheContent" );
 
             new LayerRenderer( layer );
             
             expect( cacheSpy ).toHaveBeenCalled();
         });
 
-        it( "should lock the canvas rendering state, freezing the current image while the effects cache is being rendered", () => {
-            renderer.cacheEffects();
+        it( "should lock the canvas rendering state, freezing the current image while the contents cache is being rendered", () => {
+            renderer.cacheContent();
 
             expect( canvas.setLock ).toHaveBeenCalledWith( true );
         });
 
         it( "should request a render of the effects for the renderers related Layer", async () => {
-            renderer.cacheEffects();
+            renderer.cacheContent();
             
             await mockAsyncRender();
 
-            expect( mockRenderEffectsForLayer ).toHaveBeenCalledWith( renderer.layer );
+            expect( mockRenderLayerContent ).toHaveBeenCalledWith( renderer.layer );
         });
 
         it( "should defer the render request until the next animation frame", async () => {
-            renderer.cacheEffects();
+            renderer.cacheContent();
 
-            expect( mockRenderEffectsForLayer ).not.toHaveBeenCalled();
+            expect( mockRenderLayerContent ).not.toHaveBeenCalled();
 
             vi.runAllTimers(); // runs RAF
 
-            expect( mockRenderEffectsForLayer ).toHaveBeenCalled();
+            expect( mockRenderLayerContent ).toHaveBeenCalled();
         });
 
         it( "should unlock the canvas rendering state when rendering has completed", async () => {
-            renderer.cacheEffects();
+            renderer.cacheContent();
 
             await mockAsyncRender();
 
@@ -311,7 +311,7 @@ describe( "LayerRenderer", () => {
         });
 
         it( "should not unlock the canvas rendering state when rendering was cancelled", async () => {
-            renderer.cacheEffects();
+            renderer.cacheContent();
 
             await mockAsyncRender( "cancelled" );
 
@@ -319,18 +319,18 @@ describe( "LayerRenderer", () => {
         });
 
         it( "should not execute subsequent calls when a render is still pending", () => {
-            renderer.cacheEffects();
-            renderer.cacheEffects();
+            renderer.cacheContent();
+            renderer.cacheContent();
 
             expect( canvas.setLock ).toHaveBeenCalledTimes( 1 );
         });
 
         it( "should allow requesting a new render after the previous one has finished", async () => {
-            renderer.cacheEffects(); // 1st call : setLock( true )
+            renderer.cacheContent(); // 1st call : setLock( true )
 
             await mockAsyncRender(); // 2nd call : setLock( false )
 
-            renderer.cacheEffects(); // 3rd call: setLock( true )
+            renderer.cacheContent(); // 3rd call: setLock( true )
 
             expect( canvas.setLock ).toHaveBeenCalledTimes( 3 );
         });

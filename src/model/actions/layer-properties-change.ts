@@ -33,6 +33,7 @@ type IContentChangeOpts = {
 
 const FLUSH_BLEND_CACHE_TRIGGERS: IChangeSource[] = [ "filters", "visible" ];
 const FILTER_RESET_AND_RECACHE_TRIGGERS: IChangeSource[] = [ "source", "mask", "maskX", "maskY" ];
+const CONTENT_RENDER_TRIGGERS: IChangeSource[] = [ "filters", "text" ];
 
 /**
  * This action doesn't trigger a state change in the model but should be called
@@ -64,7 +65,7 @@ export const onLayerPropertiesChange = ( layer: Layer, opts: IContentChangeOpts 
     if ( sources.some( source => FILTER_RESET_AND_RECACHE_TRIGGERS.includes( source ))) {
         updateWorker( layer ); // @todo better guard?
         renderer.resetFilterAndRecache();
-    } else if ( sources.includes( "filters" )) {
-        renderer.cacheEffects();
+    } else if ( sources.some( source => CONTENT_RENDER_TRIGGERS.includes( source ))) {
+        renderer.cacheContent();
     }
 };

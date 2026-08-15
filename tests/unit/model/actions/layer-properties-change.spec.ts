@@ -125,22 +125,20 @@ describe( "on Layer properties change", () => {
 
             expect( resetSpy ).toHaveBeenCalled();
         });
+    });
 
-        it.each( unsupportedSources.filter( key => key !== "filters" ))
-            ( `should not request an effects cache for a non "filters" change source`, source => {
-            const cacheEffectsSpy = vi.spyOn( layerRenderer, "cacheEffects" );
+    describe( "when determining whether to cache content directly", () => {
+        const supportedSources: IChangeSource[] = [ "filters", "text" ];
+
+        it.each( supportedSources )
+            ( `should request an effects cache for a "%s" change source, without a filter/recache reset`, source => {
+            const resetSpy = vi.spyOn( layerRenderer, "resetFilterAndRecache" );
+            const cacheContentSpy = vi.spyOn( layerRenderer, "cacheContent" );
 
             onLayerPropertiesChange( layer, { index: 0, sources: [ source ] });
 
-            expect( cacheEffectsSpy ).not.toHaveBeenCalled();
-        });
-
-        it( `should request an effects cache for a "filters" change source`, () => {
-            const cacheEffectsSpy = vi.spyOn( layerRenderer, "cacheEffects" );
-
-            onLayerPropertiesChange( layer, { index: 0, sources: [ "filters" ] });
-
-            expect( cacheEffectsSpy ).toHaveBeenCalled();
+            expect( resetSpy ).not.toHaveBeenCalled();
+            expect( cacheContentSpy ).toHaveBeenCalled();
         });
     });
 });
