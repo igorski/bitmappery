@@ -78,7 +78,7 @@
             <label v-t="'lineHeight'"></label>
             <normalised-slider
                 v-model="lineHeight"
-                :disabled=disabled
+                :disabled="disabled"
                 :denormalise="denormaliseValue('lineHeight')"
                 :normalise="normaliseValue('lineHeight')"
             />

@@ -119,11 +119,15 @@ export const isEqual = ( text: Text, textToCompare?: Text ): boolean => {
 // which have since been changed in the application. Migrations aim to keep the
 // visual result of the legacy properties equal to the new format
 
-// prior to FACTORY_VERSION 2, line height and spacing did not use a normalised scale with a neutral center
-// and used absolute pixel values. Additionally, the bounding boxes were slightly wider and taller as
-// text metrics weren't correctly measured against the spaced offsets. Ideally, the Layer should be
-// repositioned but as the spacings were not relative to the font size, this is hard to measure so
-// we omit this.
+/**
+ * Prior to FACTORY_VERSION 2, line height and spacing did not use a normalised scale with a neutral center
+ * and used absolute pixel values ranging from 0 to 172 (where 0 would mean no alternate spacing/height
+ * would be applied and the 1 value would actually be a negative value when compared to the 0 neutral).
+ *
+ * Additionally, the bounding boxes were slightly wider and taller as text metrics weren't correctly measured
+ * against the spaced offsets. Ideally, the Layer should be repositioned but as the spacings were not relative
+ * to the font size, this is hard to measure so we omit this.
+ */
 function migrateLegacySpacingAndLineHeight( text: any ): void {
     if ( text.l === 0 ) {
         text.l = 0.5; // there were no below neutral values in legacy format, set to neutral value
@@ -141,7 +145,7 @@ function migrateLegacySpacingAndLineHeight( text: any ): void {
     } else {
         // we must approximate how many "widths" the legacy pixels represented for the text size
         const r = 1 + ( text.p / text.s );
-        const newValue = 0.5 + (r - 1) / 8;
+        const newValue = 0.5 + ( r - 1 ) / 8;
         text.p = Math.max( 0, Math.min( 1, newValue ));
     }
 }
