@@ -302,12 +302,9 @@ export default {
             KeyboardService.setSuspended( false );
         },
         /**
-         * The model values for (most) properties are in normalised 0 - 1 range with a neutral
+         * The model values for lineHeight and spacing are in normalised 0 - 1 range with a neutral
          * center at 0.5. This doesn't necessarily feel natural for the user, hence we scale these
-         * values to percentile 0 - 100 ranges (or -100 to 100 to represent neutral as 0) for editing purposes.
-         * 
-         * NOTE: Filter properties that use custom mapping (see NON_PERCENTILE_PROPS) will not use
-         * a percentile range, but display their own custom range.
+         * values to a mapped range as the values are in fact non linear on either side of the neutral point.
          * 
          * The output of these mappers is reflected in the hover tooltips and the value seen / entered
          * in the textual representation of the Sliders.
