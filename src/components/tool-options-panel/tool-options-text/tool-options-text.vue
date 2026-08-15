@@ -174,7 +174,7 @@ export default {
             ];
         },
         alignment: {
-            get(): string {
+            get(): TextAlignment {
                 return this.activeLayer?.text?.alignment;
             },
             set( alignment: TextAlignment ): void {
