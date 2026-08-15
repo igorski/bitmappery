@@ -68,22 +68,20 @@
         </div>
         <div class="wrapper wrapper--slider">
             <label v-t="'lineHeight'"></label>
-            <slider
+            <normalised-slider
                 v-model="lineHeight"
-                :min="0"
-                :max="172"
-                :disabled="disabled"
-                :tooltip="'none'"
+                :disabled=disabled
+                :denormalise="denormaliseValue('lineHeight')"
+                :normalise="normaliseValue('lineHeight')"
             />
         </div>
         <div class="wrapper wrapper--slider">
             <label v-t="'letterSpacing'"></label>
-            <slider
+            <normalised-slider
                 v-model="spacing"
-                :min="0"
-                :max="172"
                 :disabled="disabled"
-                :tooltip="'none'"
+                :denormalise="denormaliseValue('spacing')"
+                :normalise="normaliseValue('spacing')"
             />
         </div>
         <div class="wrapper wrapper--picker">
@@ -103,7 +101,8 @@
 import { defineAsyncComponent, type IAsyncComponent } from "vue";
 import { mapGetters, mapMutations } from "vuex";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
-import Slider from "@/components/ui/slider/slider.vue";
+import NormalisedSlider from "@/components/ui/slider/normalised-slider.vue";
+import { normalise, denormalise } from "@/definitions/text-properties";
 import type { Layer } from "@/model/types/layer";
 import { DEFAULT_LAYER_NAME, LayerTypes } from "@/definitions/layer-types";
 import FontPreview from "./font-preview/font-preview.vue";
@@ -122,7 +121,7 @@ export default {
     i18n: { messages, sharedMessages },
     components: {
         FontPreview,
-        Slider,
+        NormalisedSlider,
         SelectBox,
     },
     data: () => ({
@@ -278,7 +277,27 @@ export default {
         handleBlur(): void {
             KeyboardService.setSuspended( false );
         },
-        update( textOpts = {}, propName = "text" ): void {
+        /**
+         * The model values for (most) properties are in normalised 0 - 1 range with a neutral
+         * center at 0.5. This doesn't necessarily feel natural for the user, hence we scale these
+         * values to percentile 0 - 100 ranges (or -100 to 100 to represent neutral as 0) for editing purposes.
+         * 
+         * NOTE: Filter properties that use custom mapping (see NON_PERCENTILE_PROPS) will not use
+         * a percentile range, but display their own custom range.
+         * 
+         * The output of these mappers is reflected in the hover tooltips and the value seen / entered
+         * in the textual representation of the Sliders.
+         */
+        denormaliseValue( prop: "lineHeight" | "spacing" ): any {
+            return ( value: number ) => denormalise({
+                ...this.activeLayer.text,
+                [ prop ]: value
+            }, prop );
+        },
+        normaliseValue( prop: "lineHeight" | "spacing" ): any {
+            return ( value: number ) => normalise( prop, value );
+        },
+        update( textOpts: Partial<Text> = {}, propName = "text" ): void {
             if ( !this.activeLayer ) {
                 return;
             }

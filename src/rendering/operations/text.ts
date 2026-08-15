@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2022 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,12 +20,24 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { denormalise } from "@/definitions/text-properties";
 import type { Text } from "@/model/types/text";
 import { fastRound } from "@/math/unit-math";
 
-type MeasuredLineDef = {
-    line: string;
+type TextLetterProps = {
+    letter: string;
+    x: number;
+};
+
+type TextLineProps = {
+    letters: TextLetterProps[];
     top: number;
+};
+
+type MeasuredLineDef = {
+    lines: TextLineProps[],
+    width: number;
+    height: number;
 };
 
 /**
@@ -33,7 +45,9 @@ type MeasuredLineDef = {
  */
 export const renderMultiLineText = ( ctx: CanvasRenderingContext2D, text: Text ): void => {
     // calculate bounding box and offsets for all lines in the text
-    const { lines, width, height } = measureLines( text.value.split( "\n" ), text, ctx );
+    const measuredLines = measureLines( text.value.split( "\n" ), text, ctx );
+
+    const { lines, width, height } = measuredLines;
 
     // size canvas to bounding box
     ctx.canvas.width  = width;
@@ -41,17 +55,11 @@ export const renderMultiLineText = ( ctx: CanvasRenderingContext2D, text: Text )
 
     applyTextStyleToContext( text, ctx );
 
-    lines.forEach(({ line, top }) => {
-        if ( !text.spacing ) {
-            // write entire line (0 spacing defaults to font spacing)
-            ctx.fillText( line, 0, top );
-        } else {
-            // write letter by letter (yeah... this is why we cache things)
-            const letters = line.split( "" );
-            letters.forEach(( letter, letterIndex ) => {
-                ctx.fillText( letter, fastRound( letterIndex * text.spacing ), top );
-            });
-        }
+    lines.forEach(({ letters, top }) => {
+        // render letter by letter (yeah... this is why we cache things)
+        letters.forEach(({ letter, x }) => {
+            ctx.fillText( letter, fastRound( x ), fastRound( top ));
+        });
     });
 };
 
@@ -63,41 +71,73 @@ export const renderMultiLineText = ( ctx: CanvasRenderingContext2D, text: Text )
  * @param {string[]} lines of text to render
  * @param {Object} text Layer text Object
  * @param {CanvasRenderingContext2D} ctx
- * @return {{ lines: MeasuredLineDef[], width: Number, height: Number }} bounding box of the rendered text
+ * @return {MeasuredLineDef} bounding box of the rendered text
  */
-function measureLines( lines: string[], text: Text, ctx: CanvasRenderingContext2D ):
-    { lines: MeasuredLineDef[], width: number, height: number } {
+function measureLines( lines: string[], text: Text, ctx: CanvasRenderingContext2D ): MeasuredLineDef {
     applyTextStyleToContext( text, ctx );
 
-    const linesOut: MeasuredLineDef[] = [];
-    let width  = 0;
+    const linesOut: TextLineProps[] = [];
+
+    let width = 0;
     let height = 0;
+    let textMetrics: TextMetrics;
 
-    let lineHeight  = text.lineHeight;
-    let textMetrics = ctx.measureText( "Wq" );
-    // if no custom line height was given, calculate optimal height for font
-    if ( !lineHeight ) {
-        lineHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
-    }
-    const topOffset = textMetrics.actualBoundingBoxAscent;
-    let top = 0;
+    // precalculate horizontal properties
 
-    lines.forEach(( line, lineIndex ) => {
-        top = fastRound( topOffset + ( lineIndex * lineHeight ));
-        if ( !text.spacing ) {
-            textMetrics = ctx.measureText( line );
-            width = Math.max( width, textMetrics.actualBoundingBoxRight );
+    textMetrics = ctx.measureText( "W" );
+    const horizontalSpacing = denormalise( text, "spacing" );
+    
+    // precalculate vertical properties
+
+    textMetrics = ctx.measureText( "Wq" );
+    const fontHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
+    const verticalScale = denormalise( text, "lineHeight" );
+    const lineHeight = fontHeight * ( 1 + verticalScale );
+
+    const naturalTotalHeight = lines.length * fontHeight;
+    const targetBlockHeight = naturalTotalHeight * ( 1 + verticalScale ); 
+    
+    const totalExtraVerticalSpace = targetBlockHeight - naturalTotalHeight;
+    const verticalLineGap = lines.length > 1 ? ( totalExtraVerticalSpace / ( lines.length - 1 )) : 0;
+
+    let top = textMetrics.actualBoundingBoxAscent;
+
+    lines.forEach( line => {
+        let letters: TextLetterProps[];
+
+        const naturalLineMetrics = ctx.measureText( line );
+        const naturalLineWidth = naturalLineMetrics.width;
+
+        if ( !horizontalSpacing || line.length <= 1 ) {
+            letters = [ { letter: line, x: 0 }]; // writes entire string without alternate spacing
+            width = Math.max( width, naturalLineWidth );
         } else {
-            const letters = line.split( "" );
-            width = Math.max( width, letters.length * text.spacing );
+            const targetWidth = naturalLineWidth * ( 1 + horizontalSpacing );
+            width = Math.max( width, targetWidth );
+
+            const totalExtraSpace = targetWidth - naturalLineWidth;
+            const horizontalGapPerLetter = totalExtraSpace / ( line.length - 1 );
+
+            let currentX = 0;
+            
+            letters = line.split( "" ).map( letter => {
+                const x = currentX;
+
+                const letterWidth = ctx.measureText( letter ).width;
+                currentX += letterWidth + horizontalGapPerLetter;
+                     
+                return { letter, x };
+            });
         }
-        linesOut.push({ line, top });
+        linesOut.push({ letters, top });
         height += lineHeight;
+
+        top += fontHeight + verticalLineGap;
     });
     return {
         lines  : linesOut,
-        width  : Math.ceil( width ),
-        height : Math.ceil( height )
+        width  : Math.max( 1, Math.ceil( width )),
+        height : Math.max( 1, Math.ceil( height )),
     };
 }
 

@@ -25,7 +25,7 @@ export type Text = {
     font: string;
     size: number;
     unit: string;
-    lineHeight: number;
-    spacing: number;
+    lineHeight: number; // normalised 0 - 1 range with a neutral center at 0.5
+    spacing: number; // normalised 0 - 1 range with a neutral center at 0.5
     color: string;
 };
