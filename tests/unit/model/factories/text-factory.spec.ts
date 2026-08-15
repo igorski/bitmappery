@@ -1,5 +1,5 @@
 import { it, describe, expect, vi } from "vitest";
-import TextFactory, { isEqual } from "@/model/factories/text-factory";
+import TextFactory, { FACTORY_VERSION, isEqual } from "@/model/factories/text-factory";
 import { googleFonts } from "@/definitions/font-types";
 
 let mockUpdateFn: ( fnName: string, ...args: any[] ) => void;
@@ -14,11 +14,12 @@ describe( "Text factory", () => {
             expect( text ).toEqual({
                 size: expect.any( Number ),
                 unit: "px",
-                lineHeight: expect.any( Number ),
-                spacing: 0,
+                lineHeight: 0.5,
+                spacing: 0.5,
                 value: "",
                 font: googleFonts[ 0 ],
                 color: "red",
+                alignment: "left",
             });
         });
 
@@ -26,20 +27,22 @@ describe( "Text factory", () => {
             const text = TextFactory.create({
                 size: 10,
                 unit: "pt",
-                lineHeight: 30,
-                spacing: 50,
+                lineHeight: 1,
+                spacing: 2,
                 font: "Helvetica",
                 value: "Foo bar baz",
-                color: "#FF00AE"
+                color: "#FF00AE",
+                alignment: "center",
             });
             expect( text ).toEqual({
                 size: 10,
                 unit: "pt",
-                lineHeight: 30,
-                spacing: 50,
+                lineHeight: 1,
+                spacing: 2,
                 font: "Helvetica",
                 value: "Foo bar baz",
-                color: "#FF00AE"
+                color: "#FF00AE",
+                alignment: "center",
             });
         });
     });
@@ -50,11 +53,12 @@ describe( "Text factory", () => {
             const text = TextFactory.create({
                 size: 10,
                 unit: "pt",
-                lineHeight: 40,
-                spacing: 10,
+                lineHeight: 0.75,
+                spacing: 0.25,
                 font: "Helvetica",
                 value: "Foo bar baz",
-                color: "#FFF"
+                color: "#FFF",
+                alignment: "right",
             });
             const serialized   = TextFactory.serialize( text );
             const deserialized = await TextFactory.deserialize( serialized );
@@ -66,10 +70,38 @@ describe( "Text factory", () => {
 
     it( "should know when two text instances are equal", () => {
         const defaultText = TextFactory.create();
-        [ "size", "lineHeight", "spacing", "font", "unit", "value", "color" ].forEach( property => {
+        [ "size", "lineHeight", "spacing", "font", "unit", "value", "color", "alignment" ].forEach( property => {
             const text = TextFactory.create({ [ property ]: 1 });
             expect( isEqual( text, defaultText )).toBe( false );
         });
         expect( isEqual( defaultText, TextFactory.create() )).toBe( true );
+    });
+
+    // MIGRATIONS
+
+    describe( "and determining whether a migration needs to be applied", () => {
+        it( "should not adjust the line height and spacing values for FACTORY_VERSION >= 2", async () => {
+            const text = TextFactory.create({ lineHeight: 0.25, spacing: 0.75 });
+            
+            const serialized = TextFactory.serialize( text );
+            serialized.fv = 2;
+
+            const deserialized = await TextFactory.deserialize( serialized );
+
+            expect( deserialized.lineHeight ).toEqual( text.lineHeight );
+            expect( deserialized.spacing ).toEqual( text.spacing );
+        });
+
+        it( "should adjust the line height and spacing values for FACTORY_VERSION < 2", async () => {
+            const text = TextFactory.create({ lineHeight: 86, spacing: 172 });
+            
+            const serialized = TextFactory.serialize( text );
+            serialized.fv = 1;
+            
+            const deserialized = await TextFactory.deserialize( serialized );
+
+            expect( deserialized.lineHeight.toFixed( 2 )).toEqual( "0.75" );
+            expect( deserialized.spacing.toFixed( 2 )).toEqual( "1.00" );
+        });
     });
 });

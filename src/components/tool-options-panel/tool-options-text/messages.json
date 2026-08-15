@@ -10,6 +10,10 @@
         "pixels": "Px",
         "points": "Pts",
         "millis": "Mm",
-        "centis": "Cm"
+        "centis": "Cm",
+        "alignment": "Alignment",
+        "left": "Left",
+        "center": "Center",
+        "right": "Right"
     }
 }

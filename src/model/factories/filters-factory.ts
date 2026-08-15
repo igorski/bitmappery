@@ -214,7 +214,7 @@ export const isEqual = ( filters: Filters, filtersToCompareTo?: Filters ): boole
 
 // MIGRATIONS transform filter values serialised in a legacy factory format
 // which have since been changed in the application. Migrations aim to keep the
-// visual result of the legacy filter equal to the new format
+// visual result of the legacy properties equal to the new format
 
 // prior to FACTORY_VERSION 2, contrast could only increase
 function migrateLegacyContrast( filters: any ): void {

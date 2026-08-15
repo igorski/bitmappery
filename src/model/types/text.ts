@@ -20,12 +20,15 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+export type TextAlignment = "left" | "center" | "right";
+
 export type Text = {
     value: string;
     font: string;
     size: number;
     unit: string;
-    lineHeight: number;
-    spacing: number;
+    lineHeight: number; // normalised 0 - 1 range with a neutral center at 0.5
+    spacing: number; // normalised 0 - 1 range with a neutral center at 0.5
     color: string;
+    alignment: TextAlignment;
 };

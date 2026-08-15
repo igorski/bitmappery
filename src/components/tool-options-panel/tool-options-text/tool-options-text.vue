@@ -51,6 +51,14 @@
             </select-box>
         </div>
         <div class="wrapper wrapper--select">
+            <label v-t="'alignment'"></label>
+            <select-box
+                v-model="alignment"
+                :options="alignments"
+                :disabled="disabled"
+            />
+        </div>
+        <div class="wrapper wrapper--select">
             <label v-t="'size'"></label>
             <div class="shared-inputs">
                 <input
@@ -68,22 +76,20 @@
         </div>
         <div class="wrapper wrapper--slider">
             <label v-t="'lineHeight'"></label>
-            <slider
+            <normalised-slider
                 v-model="lineHeight"
-                :min="0"
-                :max="172"
                 :disabled="disabled"
-                :tooltip="'none'"
+                :denormalise="denormaliseValue('lineHeight')"
+                :normalise="normaliseValue('lineHeight')"
             />
         </div>
         <div class="wrapper wrapper--slider">
             <label v-t="'letterSpacing'"></label>
-            <slider
+            <normalised-slider
                 v-model="spacing"
-                :min="0"
-                :max="172"
                 :disabled="disabled"
-                :tooltip="'none'"
+                :denormalise="denormaliseValue('spacing')"
+                :normalise="normaliseValue('spacing')"
             />
         </div>
         <div class="wrapper wrapper--picker">
@@ -103,8 +109,10 @@
 import { defineAsyncComponent, type IAsyncComponent } from "vue";
 import { mapGetters, mapMutations } from "vuex";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
-import Slider from "@/components/ui/slider/slider.vue";
-import type { Layer } from "@/model/types/layer";
+import NormalisedSlider from "@/components/ui/slider/normalised-slider.vue";
+import { normalise, denormalise } from "@/definitions/text-properties";
+import { type Layer } from "@/model/types/layer";
+import { type TextAlignment } from "@/model/types/text";
 import { DEFAULT_LAYER_NAME, LayerTypes } from "@/definitions/layer-types";
 import FontPreview from "./font-preview/font-preview.vue";
 import { mapSelectOptions, type SelectOption } from "@/utils/search-select-util";
@@ -122,7 +130,7 @@ export default {
     i18n: { messages, sharedMessages },
     components: {
         FontPreview,
-        Slider,
+        NormalisedSlider,
         SelectBox,
     },
     data: () => ({
@@ -150,6 +158,13 @@ export default {
         fonts(): SelectOption[] {
             return mapSelectOptions( [ ...googleFonts ].sort() );
         },
+        alignments(): { label: string, value: TextAlignment }[] {
+            return [
+                { label: this.$t( "left" ), value: "left" },
+                { label: this.$t( "center" ), value: "center" },
+                { label: this.$t( "right" ), value: "right" },
+            ];
+        },
         unitOptions(): { label: string, value: string }[] {
             return [
                 { label: this.$t( "pixels" ), value: "px" },
@@ -157,6 +172,14 @@ export default {
                 { label: this.$t( "millis" ), value: "mm" },
                 { label: this.$t( "centis" ), value: "cm" },
             ];
+        },
+        alignment: {
+            get(): TextAlignment {
+                return this.activeLayer?.text?.alignment;
+            },
+            set( alignment: TextAlignment ): void {
+                this.update({ alignment }, "alignment" );
+            }
         },
         text: {
             get(): string {
@@ -278,7 +301,21 @@ export default {
         handleBlur(): void {
             KeyboardService.setSuspended( false );
         },
-        update( textOpts = {}, propName = "text" ): void {
+        /**
+         * The model values for lineHeight and spacing are in normalised 0 - 1 range with a neutral
+         * center at 0.5. This doesn't necessarily feel natural for the user, hence we scale these
+         * values to a mapped range as the values are in fact non linear on either side of the neutral point.
+         * 
+         * The output of these mappers is reflected in the hover tooltips and the value seen / entered
+         * in the textual representation of the Sliders.
+         */
+        denormaliseValue( prop: "lineHeight" | "spacing" ): any {
+            return ( value: number ) => denormalise({ [ prop ]: value }, prop );
+        },
+        normaliseValue( prop: "lineHeight" | "spacing" ): any {
+            return ( value: number ) => normalise( prop, value );
+        },
+        update( textOpts: Partial<Text> = {}, propName = "text" ): void {
             if ( !this.activeLayer ) {
                 return;
             }
@@ -292,6 +329,7 @@ export default {
                 spacing    : this.spacing,
                 font       : this.font,
                 color      : this.color,
+                alignment  : this.alignment,
             };
             const newOpts = {
                 ...orgOpts,

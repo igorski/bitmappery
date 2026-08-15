@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2021 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,12 +20,13 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Text } from "@/model/types/text";
-
-import { loadGoogleFont } from "@/services/font-service";
 import { googleFonts } from "@/definitions/font-types";
+import type { Text } from "@/model/types/text";
+import { loadGoogleFont } from "@/services/font-service";
 
 export type TextProps = Partial<Text>;
+
+export const FACTORY_VERSION = 2;
 
 const TextFactory = {
     create({
@@ -33,9 +34,10 @@ const TextFactory = {
         font = googleFonts[ 0 ],
         size = 24,
         unit = "px",
-        lineHeight = 0,
-        spacing = 0,
-        color = "red"
+        lineHeight = 0.5,
+        spacing = 0.5,
+        color = "red",
+        alignment = "left",
     }: TextProps = {}): Text {
         return {
             value,
@@ -45,6 +47,7 @@ const TextFactory = {
             lineHeight,
             spacing,
             color,
+            alignment,
         };
     },
 
@@ -61,6 +64,8 @@ const TextFactory = {
             l: text.lineHeight,
             p: text.spacing,
             c: text.color,
+            a: text.alignment,
+            fv: FACTORY_VERSION,
         };
     },
 
@@ -69,6 +74,11 @@ const TextFactory = {
      * inside a stored projects layer
      */
      async deserialize( text: any = {} ): Promise<Text> {
+        const serializedVersion = text.fv ?? 1;
+
+        if ( serializedVersion === 1 ) {
+            migrateLegacySpacingAndLineHeight( text );
+        }
          const font = text.f;
          try {
              await loadGoogleFont( font ); // ensure font is loaded and ready
@@ -83,6 +93,7 @@ const TextFactory = {
              lineHeight: text.l,
              spacing: text.p,
              color: text.c,
+             alignment: text.a,
          });
      }
 };
@@ -98,5 +109,43 @@ export const isEqual = ( text: Text, textToCompare?: Text ): boolean => {
            text.unit       === textToCompare.unit &&
            text.lineHeight === textToCompare.lineHeight &&
            text.spacing    === textToCompare.spacing &&
-           text.color      === textToCompare.color;
+           text.color      === textToCompare.color &&
+           text.alignment  === textToCompare.alignment;
 };
+
+/* internal methods */
+
+// MIGRATIONS transform text values serialised in a legacy factory format
+// which have since been changed in the application. Migrations aim to keep the
+// visual result of the legacy properties equal to the new format
+
+/**
+ * Prior to FACTORY_VERSION 2, line height and spacing did not use a normalised scale with a neutral center
+ * and used absolute pixel values ranging from 0 to 172 (where 0 would mean no alternate spacing/height
+ * would be applied and the 1 value would actually be a negative value when compared to the 0 neutral).
+ *
+ * Additionally, the bounding boxes were slightly wider and taller as text metrics weren't correctly measured
+ * against the spaced offsets. Ideally, the Layer should be repositioned but as the spacings were not relative
+ * to the font size, this is hard to measure so we omit this.
+ */
+function migrateLegacySpacingAndLineHeight( text: any ): void {
+    if ( text.l === 0 ) {
+        text.l = 0.5; // 0 was the neutral value in the legacy format
+    } else {
+        // we must approximate how many "heights" the legacy pixels represented for the text size
+        const CORRECTION_FACTOR = 1.8; // ideally this should be 1, but during tests this approximated more nicely
+        const r = 1 + ( text.l / text.s );
+        const newValue = 0.5 + ( r - 1 ) / ( 8 * CORRECTION_FACTOR );
+
+        text.l = Math.max( 0, Math.min( 1, newValue ));
+    }
+
+    if ( text.p === 0 ) {
+        text.p = 0.5; // 0 was the neutral value in the legacy format
+    } else {
+        // we must approximate how many "widths" the legacy pixels represented for the text size
+        const r = 1 + ( text.p / text.s );
+        const newValue = 0.5 + ( r - 1 ) / 8;
+        text.p = Math.max( 0, Math.min( 1, newValue ));
+    }
+}
