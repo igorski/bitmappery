@@ -14,11 +14,12 @@ describe( "Text factory", () => {
             expect( text ).toEqual({
                 size: expect.any( Number ),
                 unit: "px",
-                lineHeight: expect.any( Number ),
-                spacing: 0,
+                lineHeight: 0.5,
+                spacing: 0.5,
                 value: "",
                 font: googleFonts[ 0 ],
                 color: "red",
+                alignment: "left",
             });
         });
 
@@ -26,20 +27,22 @@ describe( "Text factory", () => {
             const text = TextFactory.create({
                 size: 10,
                 unit: "pt",
-                lineHeight: 30,
-                spacing: 50,
+                lineHeight: 1,
+                spacing: 2,
                 font: "Helvetica",
                 value: "Foo bar baz",
-                color: "#FF00AE"
+                color: "#FF00AE",
+                alignment: "center",
             });
             expect( text ).toEqual({
                 size: 10,
                 unit: "pt",
-                lineHeight: 30,
-                spacing: 50,
+                lineHeight: 1,
+                spacing: 2,
                 font: "Helvetica",
                 value: "Foo bar baz",
-                color: "#FF00AE"
+                color: "#FF00AE",
+                alignment: "center",
             });
         });
     });
@@ -50,11 +53,12 @@ describe( "Text factory", () => {
             const text = TextFactory.create({
                 size: 10,
                 unit: "pt",
-                lineHeight: 40,
-                spacing: 10,
+                lineHeight: 0.75,
+                spacing: 0.25,
                 font: "Helvetica",
                 value: "Foo bar baz",
-                color: "#FFF"
+                color: "#FFF",
+                alignment: "right",
             });
             const serialized   = TextFactory.serialize( text );
             const deserialized = await TextFactory.deserialize( serialized );
@@ -66,7 +70,7 @@ describe( "Text factory", () => {
 
     it( "should know when two text instances are equal", () => {
         const defaultText = TextFactory.create();
-        [ "size", "lineHeight", "spacing", "font", "unit", "value", "color" ].forEach( property => {
+        [ "size", "lineHeight", "spacing", "font", "unit", "value", "color", "alignment" ].forEach( property => {
             const text = TextFactory.create({ [ property ]: 1 });
             expect( isEqual( text, defaultText )).toBe( false );
         });

@@ -51,6 +51,14 @@
             </select-box>
         </div>
         <div class="wrapper wrapper--select">
+            <label v-t="'alignment'"></label>
+            <select-box
+                v-model="alignment"
+                :options="alignments"
+                :disabled="disabled"
+            />
+        </div>
+        <div class="wrapper wrapper--select">
             <label v-t="'size'"></label>
             <div class="shared-inputs">
                 <input
@@ -103,7 +111,8 @@ import { mapGetters, mapMutations } from "vuex";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import NormalisedSlider from "@/components/ui/slider/normalised-slider.vue";
 import { normalise, denormalise } from "@/definitions/text-properties";
-import type { Layer } from "@/model/types/layer";
+import { type Layer } from "@/model/types/layer";
+import { type TextAlignment } from "@/model/types/text";
 import { DEFAULT_LAYER_NAME, LayerTypes } from "@/definitions/layer-types";
 import FontPreview from "./font-preview/font-preview.vue";
 import { mapSelectOptions, type SelectOption } from "@/utils/search-select-util";
@@ -149,6 +158,13 @@ export default {
         fonts(): SelectOption[] {
             return mapSelectOptions( [ ...googleFonts ].sort() );
         },
+        alignments(): { label: string, value: TextAlignment }[] {
+            return [
+                { label: this.$t( "left" ), value: "left" },
+                { label: this.$t( "center" ), value: "center" },
+                { label: this.$t( "right" ), value: "right" },
+            ];
+        },
         unitOptions(): { label: string, value: string }[] {
             return [
                 { label: this.$t( "pixels" ), value: "px" },
@@ -156,6 +172,14 @@ export default {
                 { label: this.$t( "millis" ), value: "mm" },
                 { label: this.$t( "centis" ), value: "cm" },
             ];
+        },
+        alignment: {
+            get(): string {
+                return this.activeLayer?.text?.alignment;
+            },
+            set( alignment: TextAlignment ): void {
+                this.update({ alignment }, "alignment" );
+            }
         },
         text: {
             get(): string {
@@ -289,10 +313,7 @@ export default {
          * in the textual representation of the Sliders.
          */
         denormaliseValue( prop: "lineHeight" | "spacing" ): any {
-            return ( value: number ) => denormalise({
-                ...this.activeLayer.text,
-                [ prop ]: value
-            }, prop );
+            return ( value: number ) => denormalise({ [ prop ]: value }, prop );
         },
         normaliseValue( prop: "lineHeight" | "spacing" ): any {
             return ( value: number ) => normalise( prop, value );
@@ -311,6 +332,7 @@ export default {
                 spacing    : this.spacing,
                 font       : this.font,
                 color      : this.color,
+                alignment  : this.alignment,
             };
             const newOpts = {
                 ...orgOpts,

@@ -31,6 +31,7 @@ type TextLetterProps = {
 
 type TextLineProps = {
     letters: TextLetterProps[];
+    width: number;
     top: number;
 };
 
@@ -85,17 +86,17 @@ function measureLines( lines: string[], text: Text, ctx: CanvasRenderingContext2
     // precalculate horizontal properties
 
     textMetrics = ctx.measureText( "W" );
-    const horizontalSpacing = denormalise( text, "spacing" );
+    const horizontalLetterGapScaling = denormalise( text, "spacing" );
     
     // precalculate vertical properties
 
     textMetrics = ctx.measureText( "Wq" );
     const fontHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
-    const verticalScale = denormalise( text, "lineHeight" );
-    const lineHeight = fontHeight * ( 1 + verticalScale );
+    const verticalLineGapScaling = denormalise( text, "lineHeight" );
+    const lineHeight = fontHeight * verticalLineGapScaling;
 
     const naturalTotalHeight = lines.length * fontHeight;
-    const targetBlockHeight = naturalTotalHeight * ( 1 + verticalScale ); 
+    const targetBlockHeight = naturalTotalHeight * verticalLineGapScaling; 
     
     const totalExtraVerticalSpace = targetBlockHeight - naturalTotalHeight;
     const verticalLineGap = lines.length > 1 ? ( totalExtraVerticalSpace / ( lines.length - 1 )) : 0;
@@ -104,18 +105,18 @@ function measureLines( lines: string[], text: Text, ctx: CanvasRenderingContext2
 
     lines.forEach( line => {
         let letters: TextLetterProps[];
+        let currentLineWidth = 0;
 
         const naturalLineMetrics = ctx.measureText( line );
         const naturalLineWidth = naturalLineMetrics.width;
 
-        if ( !horizontalSpacing || line.length <= 1 ) {
+        if ( horizontalLetterGapScaling === 1 || line.length <= 1 ) {
             letters = [ { letter: line, x: 0 }]; // writes entire string without alternate spacing
-            width = Math.max( width, naturalLineWidth );
+            currentLineWidth = naturalLineWidth;
         } else {
-            const targetWidth = naturalLineWidth * ( 1 + horizontalSpacing );
-            width = Math.max( width, targetWidth );
+            currentLineWidth = naturalLineWidth * horizontalLetterGapScaling;
 
-            const totalExtraSpace = targetWidth - naturalLineWidth;
+            const totalExtraSpace = currentLineWidth - naturalLineWidth;
             const horizontalGapPerLetter = totalExtraSpace / ( line.length - 1 );
 
             let currentX = 0;
@@ -129,11 +130,36 @@ function measureLines( lines: string[], text: Text, ctx: CanvasRenderingContext2
                 return { letter, x };
             });
         }
-        linesOut.push({ letters, top });
+        linesOut.push({ letters, top, width: currentLineWidth });
+
+        width = Math.max( width, currentLineWidth );
         height += lineHeight;
 
         top += fontHeight + verticalLineGap;
     });
+
+    // apply alignment
+
+    const { alignment } = text;
+
+    if ( alignment !== "left" ) {
+        linesOut.forEach( line => {
+            let alignOffset = 0;
+            if ( text.alignment === "center" ) {
+                alignOffset = ( width - line.width ) / 2;
+            } else if ( text.alignment === "right" ) {
+                alignOffset = width - line.width;
+            }
+
+            if ( alignOffset > 0 ) {
+                line.letters = line.letters.map( letter => ({
+                    ...letter,
+                    x: letter.x + alignOffset
+                }));
+            }
+        });
+    }
+    
     return {
         lines  : linesOut,
         width  : Math.max( 1, Math.ceil( width )),

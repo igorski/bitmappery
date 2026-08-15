@@ -20,10 +20,10 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import type { Text } from "@/model/types/text";
-
-import { loadGoogleFont } from "@/services/font-service";
 import { googleFonts } from "@/definitions/font-types";
+import { MIN_LINE_HEIGHT_FACTOR, MIN_SPACING_FACTOR } from "@/definitions/text-properties"
+import type { Text } from "@/model/types/text";
+import { loadGoogleFont } from "@/services/font-service";
 
 export type TextProps = Partial<Text>;
 
@@ -37,7 +37,8 @@ const TextFactory = {
         unit = "px",
         lineHeight = 0.5,
         spacing = 0.5,
-        color = "red"
+        color = "red",
+        alignment = "left",
     }: TextProps = {}): Text {
         return {
             value,
@@ -47,6 +48,7 @@ const TextFactory = {
             lineHeight,
             spacing,
             color,
+            alignment,
         };
     },
 
@@ -63,6 +65,7 @@ const TextFactory = {
             l: text.lineHeight,
             p: text.spacing,
             c: text.color,
+            a: text.alignment,
             fv: FACTORY_VERSION,
         };
     },
@@ -74,7 +77,7 @@ const TextFactory = {
      async deserialize( text: any = {} ): Promise<Text> {
         const serializedVersion = text.fv ?? 1;
 
-        if ( serializedVersion === 2 ) { // @todo should be 1
+        if ( serializedVersion <= 2 ) { // @todo should be < 2
             migrateLegacySpacingAndLineHeight( text );
         }
          const font = text.f;
@@ -91,6 +94,7 @@ const TextFactory = {
              lineHeight: text.l,
              spacing: text.p,
              color: text.c,
+             alignment: text.a,
          });
      }
 };
@@ -106,7 +110,8 @@ export const isEqual = ( text: Text, textToCompare?: Text ): boolean => {
            text.unit       === textToCompare.unit &&
            text.lineHeight === textToCompare.lineHeight &&
            text.spacing    === textToCompare.spacing &&
-           text.color      === textToCompare.color;
+           text.color      === textToCompare.color &&
+           text.alignment  === textToCompare.alignment;
 };
 
 /* internal methods */
@@ -118,17 +123,27 @@ export const isEqual = ( text: Text, textToCompare?: Text ): boolean => {
 // prior to FACTORY_VERSION 2, line height and spacing did not use a normalised scale with a neutral center
 function migrateLegacySpacingAndLineHeight( text: any ): void {
     // 172 were the max values for spacing and lineHeight
-    console.info("--- migrate text legacyy");
+    console.info("--- migrate text legacyy, lineheight:"+text.l+", spacing:"+text.p);
 
     if ( text.l === 0 ) {
-        text.l = 0.5;
+        text.l = 0.5; // there were no below neutral values in legacy format, set to neutral value
     } else {
-console.info('need to transform lineHeight:'+text.l);text.l = 0.5;
+        // we must approximate how many "heights" the legacy pixels represented for the text size
+        const CORRECTION_FACTOR = 1.8; // ideally 1
+        const r = 1 + ( text.l / text.s );
+        const newValue = 0.5 + ( r - 1 ) / ( 8 * CORRECTION_FACTOR );
+
+        text.l = Math.max( 0, Math.min( 1, newValue ));
+console.info('transformed line height to ' + text.l);
     }
 
     if ( text.p === 0 ) {
-        text.p = 0;
+        text.p = 0.5; // there were no below neutral values in legacy format, set to neutral value
     } else {
-console.info('need to transform spacing:'+text.p);text.p = 0.5;
+        // we must approximate how many "widths" the legacy pixels represented for the text size
+        const r = 1 + ( text.p / text.s );
+        const newValue = 0.5 + (r - 1) / 8;
+        text.p = Math.max( 0, Math.min( 1, newValue ));
+console.info('transform edspacing to:'+text.p);
     }
 }

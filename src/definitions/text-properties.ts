@@ -23,23 +23,32 @@
 import { mapRange } from "@/math/unit-math";
 import { type Text } from "@/model/types/text";
 
-const MIN_LINE_HEIGHT_FACTOR = -4;
-const MAX_LINE_HEIGHT_FACTOR = 4;
-const MIN_SPACING_FACTOR = -4;
-const MAX_SPACING_FACTOR = 4;
+export const MIN_LINE_HEIGHT_FACTOR = 0.5;
+export const MAX_LINE_HEIGHT_FACTOR = 5;
+
+export const MIN_SPACING_FACTOR = 0;
+export const MAX_SPACING_FACTOR = 5;
 
 /**
  * Maps the normalised model values for Text to scaled value ranges which
  * correspond with the parameters used by the respective text process.
  */
-export const denormalise = ( text: Text, prop: keyof Text ): any => {
+export const denormalise = ( text: Partial<Text>, prop: keyof Text ): any => {
+    const value = text[ prop ] as number;
     switch ( prop ) {
         default:
-            return text[ prop ];
+            return value;
+        // these require split linear mapping
         case "lineHeight":
-            return mapRange( text[ prop ], 0, 1, MIN_LINE_HEIGHT_FACTOR, MAX_LINE_HEIGHT_FACTOR );
+            if ( value <= 0.5 ) {
+                return mapRange( value, 0, 0.5, MIN_LINE_HEIGHT_FACTOR, 1 );
+            }
+            return mapRange( value, 0.5, 1, 1, MAX_LINE_HEIGHT_FACTOR );
         case "spacing":
-            return mapRange( text[ prop ], 0, 1, MIN_SPACING_FACTOR, MAX_SPACING_FACTOR );
+            if ( value <= 0.5 ) {
+                return mapRange( value, 0, 0.5, MIN_SPACING_FACTOR, 1 );
+            }
+            return mapRange( value, 0.5, 1, 1, MAX_SPACING_FACTOR );
     }
 };
 
@@ -52,8 +61,14 @@ export const normalise = ( prop: keyof Text, value: any ): any => {
         default:
             return value;
         case "lineHeight":
-            return mapRange( value, MIN_LINE_HEIGHT_FACTOR, MAX_LINE_HEIGHT_FACTOR, 0, 1 );
+            if ( value <= 1 ) {
+                return mapRange( value, MIN_LINE_HEIGHT_FACTOR, 1, 0, 0.5 );
+            }
+            return mapRange( value, 1, MAX_LINE_HEIGHT_FACTOR, 0.5, 1 );
         case "spacing":
-            return mapRange( value, MIN_SPACING_FACTOR, MAX_SPACING_FACTOR, 0, 1 );
+            if ( value <= 1 ) {
+                return mapRange( value, MIN_SPACING_FACTOR, 1, 0, 0.5 );
+            }
+            return mapRange( value, 1, MAX_SPACING_FACTOR, 0.5, 1 );
     }
 };
