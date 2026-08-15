@@ -342,8 +342,8 @@ async function renderText( layer: Layer ): Promise<HTMLCanvasElement> {
     renderMultiLineText( ctx, text );
 
     // render outlines to debug cropped bounding box
-    ctx.fillStyle = "rgba(255,0,0,.5)";
-    ctx.fillRect( 0, 0, cvs.width, cvs.height );
+    // ctx.fillStyle = "rgba(255,0,0,.5)";
+    // ctx.fillRect( 0, 0, cvs.width, cvs.height );
 
     return cvs;
 }

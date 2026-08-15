@@ -1,5 +1,5 @@
 import { it, describe, expect, vi } from "vitest";
-import TextFactory, { isEqual } from "@/model/factories/text-factory";
+import TextFactory, { FACTORY_VERSION, isEqual } from "@/model/factories/text-factory";
 import { googleFonts } from "@/definitions/font-types";
 
 let mockUpdateFn: ( fnName: string, ...args: any[] ) => void;
@@ -75,5 +75,33 @@ describe( "Text factory", () => {
             expect( isEqual( text, defaultText )).toBe( false );
         });
         expect( isEqual( defaultText, TextFactory.create() )).toBe( true );
+    });
+
+    // MIGRATIONS
+
+    describe( "and determining whether a migration needs to be applied", () => {
+        it( "should not adjust the line height and spacing values for FACTORY_VERSION >= 2", async () => {
+            const text = TextFactory.create({ lineHeight: 0.25, spacing: 0.75 });
+            
+            const serialized = TextFactory.serialize( text );
+            serialized.fv = 2;
+
+            const deserialized = await TextFactory.deserialize( serialized );
+
+            expect( deserialized.lineHeight ).toEqual( text.lineHeight );
+            expect( deserialized.spacing ).toEqual( text.spacing );
+        });
+
+        it( "should adjust the line height and spacing values for FACTORY_VERSION < 2", async () => {
+            const text = TextFactory.create({ lineHeight: 86, spacing: 172 });
+            
+            const serialized = TextFactory.serialize( text );
+            serialized.fv = 1;
+            
+            const deserialized = await TextFactory.deserialize( serialized );
+
+            expect( deserialized.lineHeight.toFixed( 2 )).toEqual( "0.75" );
+            expect( deserialized.spacing.toFixed( 2 )).toEqual( "1.00" );
+        });
     });
 });

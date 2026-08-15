@@ -21,7 +21,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { googleFonts } from "@/definitions/font-types";
-import { MIN_LINE_HEIGHT_FACTOR, MIN_SPACING_FACTOR } from "@/definitions/text-properties"
 import type { Text } from "@/model/types/text";
 import { loadGoogleFont } from "@/services/font-service";
 
@@ -77,7 +76,7 @@ const TextFactory = {
      async deserialize( text: any = {} ): Promise<Text> {
         const serializedVersion = text.fv ?? 1;
 
-        if ( serializedVersion <= 2 ) { // @todo should be < 2
+        if ( serializedVersion === 1 ) {
             migrateLegacySpacingAndLineHeight( text );
         }
          const font = text.f;
@@ -121,20 +120,20 @@ export const isEqual = ( text: Text, textToCompare?: Text ): boolean => {
 // visual result of the legacy properties equal to the new format
 
 // prior to FACTORY_VERSION 2, line height and spacing did not use a normalised scale with a neutral center
+// and used absolute pixel values. Additionally, the bounding boxes were slightly wider and taller as
+// text metrics weren't correctly measured against the spaced offsets. Ideally, the Layer should be
+// repositioned but as the spacings were not relative to the font size, this is hard to measure so
+// we omit this.
 function migrateLegacySpacingAndLineHeight( text: any ): void {
-    // 172 were the max values for spacing and lineHeight
-    console.info("--- migrate text legacyy, lineheight:"+text.l+", spacing:"+text.p);
-
     if ( text.l === 0 ) {
         text.l = 0.5; // there were no below neutral values in legacy format, set to neutral value
     } else {
         // we must approximate how many "heights" the legacy pixels represented for the text size
-        const CORRECTION_FACTOR = 1.8; // ideally 1
+        const CORRECTION_FACTOR = 1.8; // ideally this should be 1, but with test data this approximated more nicely
         const r = 1 + ( text.l / text.s );
         const newValue = 0.5 + ( r - 1 ) / ( 8 * CORRECTION_FACTOR );
 
         text.l = Math.max( 0, Math.min( 1, newValue ));
-console.info('transformed line height to ' + text.l);
     }
 
     if ( text.p === 0 ) {
@@ -144,6 +143,5 @@ console.info('transformed line height to ' + text.l);
         const r = 1 + ( text.p / text.s );
         const newValue = 0.5 + (r - 1) / 8;
         text.p = Math.max( 0, Math.min( 1, newValue ));
-console.info('transform edspacing to:'+text.p);
     }
 }
