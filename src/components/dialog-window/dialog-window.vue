@@ -33,18 +33,16 @@
         <a v-if="link" class="dialog-window__link" target="_blank" rel="noopener noreferrer" :href="link.href">{{ link.title }}</a>
         <div class="dialog-window__actions">
             <button
-                v-t="'ok'"
                 type="button"
                 class="button"
                 @click="handleConfirm()"
-            ></button>
+            >{{ $t( "ok" ) }}</button>
             <button
-                v-t="'cancel'"
                 v-if="type === 'confirm'"
                 type="button"
                 class="button"
                 @click="handleCancel()"
-            ></button>
+            >{{ $t( "cancel" ) }}</button>
         </div>
     </div>
 </template>

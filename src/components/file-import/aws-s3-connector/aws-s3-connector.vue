@@ -22,11 +22,10 @@
  */
 <template>
     <button
-        v-t="'importFromS3'"
         type="button"
         class="button button--block button--third-party s3"
         @click="openFileBrowserS3()"
-    ></button>
+    >{{ $t( "importFromS3" ) }}</button>
 </template>
 
 <script lang="ts">

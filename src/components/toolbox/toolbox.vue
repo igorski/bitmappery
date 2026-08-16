@@ -25,10 +25,9 @@
         <div class="component__header">
             <h2
                 v-if="!collapsed"
-                v-t="'tools'"
                 v-tooltip="'(Tab)'"
                 class="component__title"
-            ></h2>
+            >{{ $t( "tools" ) }}</h2>
             <button
                 type="button"
                 class="component__header-button"
@@ -98,7 +97,7 @@
                 </div>
             </div>
             <div class="wrapper input color-panel">
-                <label v-t="'color'" class="color-panel__label"></label>
+                <label class="color-panel__label">{{ $t( "color" ) }}</label>
                 <component
                     :is="colorPicker"
                     v-model="color"

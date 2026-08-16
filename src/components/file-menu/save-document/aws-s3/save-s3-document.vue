@@ -23,14 +23,14 @@
 <template>
     <div class="save-s3-document">
         <div class="wrapper wrapper--input">
-            <label v-t="'folder'"></label>
+            <label>{{ $t( "folder" ) }}</label>
             <input
                 type="text"
                 v-model="folder"
                 class="input-field"
             />
         </div>
-        <p v-t="'folderExpl'" class="expl"></p>
+        <p class="expl">{{ $t( "folderExpl" ) }}</p>
     </div>
 </template>
 

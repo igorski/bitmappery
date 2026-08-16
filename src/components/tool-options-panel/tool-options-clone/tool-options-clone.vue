@@ -22,9 +22,9 @@
  */
 <template>
     <div class="tool-option">
-        <h3 v-t="'cloneBrush'"></h3>
+        <h3>{{ $t( "cloneBrush" ) }}</h3>
         <div class="wrapper wrapper--select">
-            <label v-t="'sourceLayer'"></label>
+            <label>{{ $t( "sourceLayer" ) }}</label>
             <select-box
                 v-model="sourceLayer"
                 :options="selectableLayers"
@@ -32,7 +32,7 @@
             />
         </div>
         <div class="wrapper wrapper--slider">
-            <label v-t="'brushSize'"></label>
+            <label>{{ $t( "brushSize" ) }}</label>
             <slider
                 v-model="brushSize"
                 :min="1"
@@ -41,7 +41,7 @@
             />
         </div>
         <!-- <div class="wrapper wrapper--slider">
-            <label v-t="'thickness'"></label>
+            <label>{{ $t( "thickness" ) }}</label>
             <slider
                 v-model="thickness"
                 :min="0"
@@ -50,7 +50,7 @@
             />
         </div> -->
         <div class="wrapper wrapper--slider">
-            <label v-t="'opacity'"></label>
+            <label>{{ $t( "opacity" ) }}</label>
             <slider
                 v-model="opacity"
                 :min="0"
@@ -60,13 +60,12 @@
         </div>
         <div class="wrapper">
             <button
-                v-t="'selectSourceCoordinate'"
                 v-tooltip="'(Alt + Click)'"
                 type="button"
                 class="button button--small full"
                 :disabled="disabled"
                 @click="resetSourceCoordinate()"
-            ></button>
+            >{{ $t( "selectSourceCoordinate" ) }}</button>
         </div>
     </div>
 </template>

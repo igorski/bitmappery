@@ -26,10 +26,10 @@
         @focusin="handleFocus"
         @focusout="handleBlur"
     >
-        <h3 v-t="'magicWand'"></h3>
-        <p v-t="'wandDescr'"></p>
+        <h3>{{ $t( "magicWand" ) }}</h3>
+        <p>{{ $t( "wandDescr" ) }}</p>
         <div class="wrapper wrapper--toggle wrapper--full">
-            <label v-t="'sampleMerged'"></label>
+            <label>{{ $t( "sampleMerged" ) }}</label>
             <toggle-button
                 v-model="sampleMerged"
                 name="sampleMerged"
@@ -38,7 +38,7 @@
             />
         </div>
         <div class="wrapper wrapper--input wrapper--full">
-            <label v-t="'threshold'"></label>
+            <label>{{ $t( "threshold" ) }}</label>
             <input
                 type="number"
                 v-model.number="threshold"

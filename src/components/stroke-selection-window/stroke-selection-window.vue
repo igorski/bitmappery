@@ -23,12 +23,12 @@
 <template>
     <modal class="stroke-selection">
         <template #header>
-            <h2 v-t="'strokeSelection'" class="component__title"></h2>
+            <h2 class="component__title">{{ $t( "strokeSelection" ) }}</h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="stroke()">
                 <div class="wrapper wrapper--input">
-                    <label v-t="'strokeSize'"></label>
+                    <label>{{ $t( "strokeSize" ) }}</label>
                     <input
                         ref="sizeInput"
                         v-model.number="size"
@@ -39,7 +39,7 @@
                     />
                 </div>
                 <div class="wrapper wrapper--picker">
-                    <label v-t="'strokeColor'"></label>
+                    <label>{{ $t( "strokeColor" ) }}</label>
                     <color-picker
                         v-model="color"
                         class="color-picker"
@@ -49,18 +49,16 @@
         </template>
         <template #actions>
             <button
-                v-t="'stroke'"
                 type="button"
                 class="button"
                 :disabled="!isValid"
                 @click="stroke()"
-            ></button>
+            >{{ $t( "stroke" ) }}</button>
             <button
-                v-t="'cancel'"
                 type="button"
                 class="button"
                 @click="closeModal()"
-            ></button>
+            >{{ $t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>

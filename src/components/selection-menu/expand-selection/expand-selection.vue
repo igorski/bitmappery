@@ -23,15 +23,12 @@
 <template>
     <modal class="selection-size">
         <template #header>
-            <h2 v-t="'expandSelection'" class="component__title"></h2>
+            <h2 class="component__title">{{ $t( "expandSelection" ) }}</h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="requestSave()">
                 <div class="wrapper wrapper--input">
-                    <label
-                        v-t="'expandBy'"
-                        v-tooltip.left="$t('expandTooltip')"
-                    ></label>
+                    <label v-tooltip.left="$t('expandTooltip')">{{ $t( "expandBy" ) }}</label>
                     <input
                         ref="sizeInput"
                         type="number"
@@ -45,18 +42,16 @@
         </template>
         <template #actions>
             <button
-                v-t="'save'"
                 type="button"
                 class="button"
                 :disabled="!isValid"
                 @click="requestSave()"
-            ></button>
+            >{{ $t( "save" ) }}</button>
             <button
-                v-t="'cancel'"
                 type="button"
                 class="button"
                 @click="closeModal()"
-            ></button>
+            >{{ $t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>

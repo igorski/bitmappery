@@ -23,7 +23,7 @@
 <template>
     <div class="timeline">
         <div class="component__header">
-            <div class="component__title" v-t="'timeline'"></div>
+            <div class="component__title">{{ $t( "timeline" ) }}</div>
             <button
                 type="button"
                 :title="$t('add')"
@@ -32,11 +32,10 @@
             >+</button>
             <button
                 type="button"
-                v-t="'play'"
                 :title="$t('previewAnimation')"
                 @click="handlePlay()"
                 class="button button--small"
-            ></button>
+            >{{ $t( "play" ) }}</button>
         </div>
         <div class="component__content">
             <component
@@ -72,16 +71,14 @@
                 <li>
                     <button
                         type="button"
-                        v-t="'clone'"
                         @click.prevent="handleClone()"
-                    ></button>
+                    >{{ $t( "clone" ) }}</button>
                 </li>
                 <li>
                     <button
                         type="button"
-                        v-t="'delete'"
                         @click.prevent="handleDelete()"
-                    ></button>
+                    >{{ $t( "delete" ) }}</button>
                 </li>
             </ul>
         </context-menu>

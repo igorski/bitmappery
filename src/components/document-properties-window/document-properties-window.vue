@@ -23,28 +23,28 @@
 <template>
     <modal>
         <template #header>
-            <h2 v-t="'documentProperties'" class="component__title"></h2>
+            <h2 class="component__title">{{ $t( "documentProperties" ) }}</h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="save()">
-                <h3 v-t="'options'" class="title"></h3>
+                <h3 class="title">{{ $t( "options" ) }}</h3>
                 <div class="wrapper wrapper--picker">
-                    <label v-t="'backgroundColor'"></label>
+                    <label>{{ $t( "backgroundColor" ) }}</label>
                     <color-picker
                         v-model="backgroundColor"
                         v-tooltip="$t('color')"
                         color-type="HEXA"
                     />
                 </div>
-                <h3 v-t="'swatches'" class="title"></h3>
+                <h3 class="title">{{ $t( "swatches" ) }}</h3>
                 <div
                     v-if="hasSwatches"
                     class="wrapper wrapper--picker-list"
                 >
-                    <label v-t="'availableSwatches'"></label>
+                    <label>{{ $t( "availableSwatches" ) }}</label>
                     <div class="wrapper--picker-list__container">
                         <color-picker
-                            v-for="( swatch, index ) in swatches"
+                            v-for="( _swatch, index ) in swatches"
                             v-model="swatches[ index ]"
                             color-type="HEXA"
                         />
@@ -52,11 +52,10 @@
                 </div>
                 <p
                     v-else
-                    v-t="'noSwatchesAvailable'"
                     class="expl"
-                ></p>
+                >{{ $t( "noSwatchesAvailable" ) }}</p>
                 <div class="wrapper wrapper--picker">
-                    <label v-t="'newSwatch'"></label>
+                    <label>{{ $t( "newSwatch" ) }}</label>
                     <color-picker
                         v-model="newSwatchColor"
                         v-tooltip="$t('color')"
@@ -64,27 +63,24 @@
                     />
                     <button
                         type="button"
-                        v-t="'addSwatch'"
                         class="button button--small button__add-swatch"
                         @click="addSwatch()"
-                    ></button>
+                    >{{ $t( "addSwatch" ) }}</button>
                 </div>
             </div>
         </template>
         <template #actions>
             <button
-                v-t="'save'"
                 type="button"
                 class="button"
                 :disabled="!isValid"
                 @click="save()"
-            ></button>
+            >{{ $t( "save" ) }}</button>
             <button
-                v-t="'cancel'"
                 type="button"
                 class="button"
                 @click="closeModal()"
-            ></button>
+            >{{ $t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>

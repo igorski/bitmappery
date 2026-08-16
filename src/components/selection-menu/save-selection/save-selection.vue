@@ -23,34 +23,33 @@
 <template>
     <modal>
         <template #header>
-            <h2 v-t="'saveSelection'" class="component__title"></h2>
+            <h2 class="component__title">{{ $t( "saveSelection" ) }}</h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="requestSave()">
                 <div class="wrapper wrapper--input">
-                    <label v-t="'name'"></label>
-                    <input ref="nameInput"
-                           type="text"
-                           v-model="name"
-                           class="input-field"
+                    <label>{{ $t( "name" ) }}</label>
+                    <input
+                        ref="nameInput"
+                        type="text"
+                        v-model="name"
+                        class="input-field"
                     />
                 </div>
             </div>
         </template>
         <template #actions>
             <button
-                v-t="'save'"
                 type="button"
                 class="button"
                 :disabled="!isValid"
                 @click="requestSave()"
-            ></button>
+            >{{ $t( "save" ) }}</button>
             <button
-                v-t="'cancel'"
                 type="button"
                 class="button"
                 @click="closeModal()"
-            ></button>
+            >{{ $t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>

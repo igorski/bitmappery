@@ -25,20 +25,18 @@
         <template v-if="!authenticated">
             <button
                 v-if="authUrl"
-                v-t="'loginToDropbox'"
                 type="button"
                 class="button dropbox"
                 @click="loginDropbox()"
-            ></button>
+            >{{ $t( "loginToDropbox" ) }}</button>
         </template>
         <template v-if="authenticated || awaitingConnection">
             <button
-                v-t="authenticated ? 'importFromDropbox' : 'connectingToDropbox'"
                 type="button"
                 class="button dropbox"
                 :disabled="awaitingConnection"
                 @click="openFileBrowserDropbox()"
-            ></button>
+            >{{ $t( authenticated ? "importFromDropbox" : "connectingToDropbox" ) }}</button>
         </template>
     </div>
 </template>

@@ -23,12 +23,12 @@
 <template>
     <modal>
         <template #header>
-            <h2 v-t="'addNewLayer'" class="component__title"></h2>
+            <h2 class="component__title">{{ $t( "addNewLayer" ) }}</h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="requestLayerAdd()">
                 <div class="wrapper wrapper--input">
-                    <label v-t="'layerName'"></label>
+                    <label>{{ $t( "layerName" ) }}</label>
                     <input
                         ref="nameInput"
                         type="text"
@@ -37,7 +37,7 @@
                     />
                 </div>
                 <div class="wrapper wrapper--select">
-                    <label v-t="'layerType'"></label>
+                    <label>{{ $t( "layerType" ) }}</label>
                     <select-box
                         :options="layerTypes"
                         v-model="type"
@@ -47,18 +47,16 @@
         </template>
         <template #actions>
             <button
-                v-t="'add'"
                 type="button"
                 class="button"
                 :disabled="!isValid"
                 @click="requestLayerAdd()"
-            ></button>
+            >{{ $t( "add" ) }}</button>
             <button
-                v-t="'cancel'"
                 type="button"
                 class="button"
                 @click="closeModal()"
-            ></button>
+            >{{ $t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>

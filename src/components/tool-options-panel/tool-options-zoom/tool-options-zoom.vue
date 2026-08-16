@@ -22,7 +22,7 @@
  */
 <template>
     <div class="tool-option">
-        <h3 v-t="'zoomLevel'"></h3>
+        <h3>{{ $t( "zoomLevel" ) }}</h3>
         <div class="wrapper wrapper--slider wrapper--full">
             <slider
                 v-model="zoomLevel"
@@ -34,26 +34,23 @@
         </div>
         <div class="actions">
             <button
-                v-t="'bestFit'"
                 type="button"
                 class="button button--small"
                 :disabled="!activeDocument"
                 @click="setBestFit()"
-            ></button>
+            >{{ $t( "bestFit" ) }}</button>
             <button
-                v-t="'fitWindow'"
                 type="button"
                 class="button button--small"
                 :disabled="!activeDocument"
                 @click="setFitWindow()"
-            ></button>
+            >{{ $t( "fitWindow" ) }}</button>
             <button
-                v-t="'original'"
                 type="button"
                 class="button button--small"
                 :disabled="!activeDocument"
                 @click="setOriginalSize()"
-            ></button>
+            >{{ $t( "original" ) }}</button>
         </div>
     </div>
 </template>

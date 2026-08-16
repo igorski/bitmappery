@@ -23,7 +23,7 @@
 <template>
     <modal class="animation-preview-modal">
         <template #header>
-            <h2 v-t="'title'" class="component__title"></h2>
+            <h2 class="component__title">{{ $t( "title" ) }}</h2>
         </template>
         <template #content>
             <div class="animation-preview">
@@ -35,7 +35,7 @@
         </template>
         <template #actions>
             <div class="animation-preview__controls">
-                <h2 v-t="'frameRate'"></h2>
+                <h2>{{ $t( "frameRate" ) }}</h2>
                 <slider
                     v-model="fps"
                     :min="1"

@@ -27,60 +27,53 @@
     >
         <li>
             <button
-                v-t="'duplicateLayer'"
                 type="button"
                 :disabled="!activeLayer"
                 @click="requestDuplicateLayer()"
-            ></button>
+            >{{ $t( "duplicateLayer" ) }}</button>
         </li>
         <li>
             <button
-                v-t="'commitEffects'"
                 type="button"
                 :disabled="!activeLayerCanBeCommitted"
                 @click="commitLayerEffects()"
-            ></button>
+            >{{ $t( "commitEffects" ) }}</button>
         </li>
         <li>
             <button
-                v-t="'copyLayerFilters'"
                 type="button"
                 :disabled="!activeLayer"
                 @click="copyLayerFilters()"
-            ></button>
+            >{{ $t( "copyLayerFilters" ) }}</button>
         </li>
         <li>
             <button
-                v-t="'pasteLayerFilters'"
                 type="button"
                 :disabled="!activeLayer || !clonedFilters"
                 @click="requestPasteLayerFilters()"
-            ></button>
+            >{{ $t( "pasteLayerFilters" ) }}</button>
         </li>
         <li>
             <button
-                v-t="activeLayerHasFiltersEnabled ? 'disableLayerFilters' : 'enableLayerFilters'"
                 v-tooltip.right="$t('toggleLayerFiltersTooltip')"
                 type="button"
                 :disabled="!activeLayer"
                 @click="requestToggleLayerFilters()"
-            ></button>
+            >{{ $t( activeLayerHasFiltersEnabled ? "disableLayerFilters" : "enableLayerFilters" ) }}</button>
         </li>
         <li>
             <button
-                v-t="'mergeDown'"
                 type="button"
                 :disabled="!canMergeDown"
                 @click="requestMergeLayerDown()"
-            ></button>
+            >{{ $t( "mergeDown" ) }}</button>
         </li>
         <li>
             <button
-                v-t="'flattenImage'"
                 type="button"
                 :disabled="!canFlatten"
                 @click="requestMergeLayerDown( true )"
-            ></button>
+            >{{ $t( "flattenImage" ) }}</button>
         </li>
     </ul>
  </template>

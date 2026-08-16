@@ -22,9 +22,9 @@
 */
 <template>
     <div>
-        <h3 v-t="'dimensions'" class="title"></h3>
+        <h3 class="title">{{ $t( "dimensions" ) }}</h3>
         <div class="wrapper wrapper--select">
-            <label v-t="'unit'"></label>
+            <label>{{ $t( "unit" ) }}</label>
             <div class="select-combo">
                 <select-box
                     :options="units"
@@ -39,7 +39,7 @@
             </div>
         </div>
         <div class="wrapper wrapper--input wrapper--small">
-            <label v-t="'width'"></label>
+            <label>{{ $t( "width" ) }}</label>
             <input
                 v-model.number="translatedWidth"
                 type="number"
@@ -50,7 +50,7 @@
             />
         </div>
         <div class="wrapper wrapper--input wrapper--small">
-            <label v-t="'height'"></label>
+            <label>{{ $t( "height" ) }}</label>
             <input
                 v-model.number="translatedHeight"
                 type="number"

@@ -22,7 +22,7 @@
  */
 <template>
     <div class="tool-option">
-        <h3 v-t="'scale'"></h3>
+        <h3>{{ $t( "scale" ) }}</h3>
         <div class="wrapper wrapper--slider wrapper--full">
             <slider
                 v-model="scale"
@@ -36,20 +36,18 @@
         </div>
         <div class="actions">
             <button
-                v-t="'reset'"
                 type="button"
                 class="button button--small"
                 :disabled="!activeLayer || !isScaled"
                 @click="reset()"
-            ></button>
+            >{{ $t( "reset" ) }}</button>
             <button
                 v-if="isSaveable"
-                v-t="'save'"
                 type="button"
                 class="button button--small"
                 :disabled="!isScaled"
                 @click="save()"
-            ></button>
+            >{{ $t( "save" ) }}</button>
         </div>
     </div>
 </template>

@@ -24,19 +24,17 @@
     <div class="form">
         <button
             v-if="!initialized && !authenticated"
-            v-t="'loginToDrive'"
             type="button"
             class="button drive"
             @click="loginDrive()"
-        ></button>
+        >{{ $t( "loginToDrive" ) }}</button>
         <button
             v-if="authenticated || awaitingConnection"
-            v-t="authenticated ? 'importFromDrive' : 'connectingToDrive'"
             type="button"
             class="button drive"
             :disabled="awaitingConnection"
             @click="openFileBrowserDrive()"
-        ></button>
+        >{{ $t( authenticated ? "importFromDrive" : "connectingToDrive" ) }}</button>
     </div>
 </template>
 

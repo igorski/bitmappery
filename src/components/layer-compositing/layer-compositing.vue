@@ -22,7 +22,7 @@
  */
 <template>
     <fieldset class="layer-compositing">
-        <!-- <legend v-t="'compositing'" /> -->
+        <!-- <legend>{{ $t( "compositing" )</legend> }} -->
         <div class="layer-compositing--blend-mode">
             <select-box
                 v-model="blendMode"

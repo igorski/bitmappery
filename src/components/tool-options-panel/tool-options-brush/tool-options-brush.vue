@@ -22,9 +22,9 @@
  */
 <template>
     <div class="tool-option">
-        <h3 v-t="'brush'"></h3>
+        <h3>{{ $t( "brush" ) }}</h3>
         <div class="wrapper wrapper--select">
-            <label v-t="'brushType'"></label>
+            <label>{{ $t( "brushType" ) }}</label>
             <select-box
                 v-model="brushType"
                 :options="brushTypes"
@@ -32,7 +32,7 @@
             />
         </div>
         <div class="wrapper wrapper--slider">
-            <label v-t="'brushSize'"></label>
+            <label>{{ $t( "brushSize" ) }}</label>
             <slider
                 v-model="brushSize"
                 :min="1"
@@ -44,7 +44,7 @@
             v-if="hasThickness"
             class="wrapper wrapper--slider"
         >
-            <label v-t="'thickness'"></label>
+            <label>{{ $t( "thickness" ) }}</label>
             <slider
                 v-model="thickness"
                 :min="0"
@@ -54,7 +54,7 @@
         </div>
         <template v-if="canStroke">
             <div class="wrapper wrapper--slider">
-                <label v-t="'strokeAmount'"></label>
+                <label>{{ $t( "strokeAmount" ) }}</label>
                 <slider
                     v-model="strokes"
                     :min="1"
@@ -63,7 +63,7 @@
                 />
             </div>
             <div class="wrapper wrapper--toggle">
-                <label v-t="'smoothing'"></label>
+                <label>{{ $t( "smoothing" ) }}</label>
                 <toggle-button
                     v-model="smooth"
                     sync
@@ -72,7 +72,7 @@
             </div>
         </template>
         <div class="wrapper wrapper--slider">
-            <label v-t="'opacity'"></label>
+            <label>{{ $t( "opacity" ) }}</label>
             <slider
                 v-model="opacity"
                 :min="0"

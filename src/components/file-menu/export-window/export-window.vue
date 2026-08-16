@@ -23,13 +23,13 @@
 <template>
     <modal class="export-modal">
         <template #header>
-            <h2 v-t="'exportImage'" class="component__title"></h2>
+            <h2 class="component__title">{{ $t( "exportImage" ) }}</h2>
         </template>
         <template #content>
             <div class="export-ui">
                 <div class="form export-form" @keyup.enter="exportImage">
                     <div class="wrapper wrapper--select">
-                        <label v-t="'imageType'"></label>
+                        <label>{{ $t( "imageType" ) }}</label>
                         <select-box
                             :options="fileTypes"
                             v-model="type"
@@ -39,7 +39,7 @@
                         v-if="hasQualityOptions"
                         class="wrapper slider"
                     >
-                        <label v-t="'imageQuality'"></label>
+                        <label>{{ $t( "imageQuality" ) }}</label>
                         <slider
                             v-model="quality"
                             :min="0"
@@ -47,7 +47,7 @@
                         />
                     </div>
                     <div class="wrapper wrapper--input">
-                        <label v-t="'fileName'"></label>
+                        <label>{{ $t( "fileName" ) }}</label>
                         <input
                             type="text"
                             v-model="name"
@@ -56,27 +56,27 @@
                     </div>
                     <template v-if="canCreateAnimatedGIF">
                         <div class="wrapper wrapper--toggle">
-                            <label v-t="'toAnimation'"></label>
+                            <label>{{ $t( "toAnimation" ) }}</label>
                             <toggle-button
                                 v-model="contentToAnimation"
                                 name="createAnimatedGIF"
                             />
                         </div>
                         <div v-if="contentToAnimation" class="wrapper wrapper--input wrapper--small">
-                            <label v-t="'frameDuration'"></label>
+                            <label>{{ $t( "frameDuration" ) }}</label>
                             <input
                                 type="number"
                                 v-model="frameDurationMs"
                                 class="input-field"
                             />
-                            <span v-t="'millis'" class="input-suffix"></span>
+                            <span class="input-suffix">{{ $t( "millis" ) }}</span>
                         </div>
                     </template>
                     <div
                         v-if="hasCloudStorage"
                         class="wrapper wrapper--select"
                     >
-                        <label v-t="'storageLocation'"></label>
+                        <label>{{ $t( "storageLocation" ) }}</label>
                         <select-box
                             :options="storageLocations"
                             v-model="storageLocation"
@@ -86,9 +86,9 @@
                     <component :is="driveSaveComponent"   ref="driveComponent" />
                     <component :is="s3SaveComponent"      ref="s3Component" />
                     <template v-if="canCreateSpriteSheet">
-                        <p v-t="'toSheetExpl'" class="expl"></p>
+                        <p class="expl">{{ $t( "toSheetExpl" ) }}</p>
                         <div class="wrapper wrapper--toggle">
-                            <label v-t="'toSpriteSheet'"></label>
+                            <label>{{ $t( "toSpriteSheet" ) }}</label>
                             <toggle-button
                                 v-model="contentToSpriteSheet"
                                 name="contentToSpriteSheet"
@@ -96,7 +96,7 @@
                         </div>
                         <template v-if="contentToSpriteSheet">
                             <div class="wrapper wrapper--input wrapper--small">
-                                <label v-t="'columnAmount'"></label>
+                                <label>{{ $t( "columnAmount" ) }}</label>
                                 <input
                                     type="number"
                                     v-model.number="sheetCols"
@@ -136,29 +136,27 @@
             <div class="export-actions">
                 <div class="export-actions__group">
                     <button
-                        v-t="'export'"
                         type="button"
                         class="button"
                         :disabled="isLoading"
                         @click="exportImage()"
-                    ></button>
+                    >{{ $t( "export" ) }}</button>
                     <button
-                        v-t="'cancel'"
                         type="button"
                         class="button"
                         @click="closeModal()"
-                    ></button>
+                    >{{ $t( "cancel" ) }}</button>
                 </div>
                 <div class="export-actions__group export-options">
                     <div v-if="showOriginal" class="wrapper wrapper--toggle option-button">
-                        <label v-t="'syncScroll'"></label>
+                        <label>{{ $t( "syncScroll" ) }}</label>
                         <toggle-button
                             v-model="syncPreviews"
                             name="syncPreviews"
                         />
                     </div>
                     <div v-if="canChooseSize" class="wrapper wrapper--toggle option-button">
-                        <label v-t="'viewActualSize'"></label>
+                        <label>{{ $t( "viewActualSize" ) }}</label>
                         <toggle-button
                             v-model="actualSize"
                             name="actualSize"

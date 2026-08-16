@@ -26,7 +26,7 @@
         @focusin="handleFocus"
         @focusout="handleBlur"
     >
-        <h3 v-t="'text'"></h3>
+        <h3>{{ $t( "text" ) }}</h3>
         <div class="wrapper wrapper--textarea">
             <textarea
                 ref="textInput"
@@ -37,7 +37,7 @@
             />
         </div>
         <div class="wrapper wrapper--select">
-            <label v-t="'font'"></label>
+            <label>{{ $t( "font" ) }}</label>
             <select-box
                 v-model="font"
                 :options="fonts"
@@ -51,7 +51,7 @@
             </select-box>
         </div>
         <div class="wrapper wrapper--select">
-            <label v-t="'alignment'"></label>
+            <label>{{ $t( "alignment" ) }}</label>
             <select-box
                 v-model="alignment"
                 :options="alignments"
@@ -59,7 +59,7 @@
             />
         </div>
         <div class="wrapper wrapper--select">
-            <label v-t="'size'"></label>
+            <label>{{ $t( "size" ) }}</label>
             <div class="shared-inputs">
                 <input
                     v-model="size"
@@ -75,7 +75,7 @@
             </div>
         </div>
         <div class="wrapper wrapper--slider">
-            <label v-t="'lineHeight'"></label>
+            <label>{{ $t( "lineHeight" ) }}</label>
             <normalised-slider
                 v-model="lineHeight"
                 :disabled="disabled"
@@ -84,7 +84,7 @@
             />
         </div>
         <div class="wrapper wrapper--slider">
-            <label v-t="'letterSpacing'"></label>
+            <label>{{ $t( "letterSpacing" ) }}</label>
             <normalised-slider
                 v-model="spacing"
                 :disabled="disabled"
@@ -93,7 +93,7 @@
             />
         </div>
         <div class="wrapper wrapper--picker">
-            <label v-t="'color'"></label>
+            <label>{{ $t( "color" ) }}</label>
             <component
                 :is="colorPicker"
                 v-model="color"

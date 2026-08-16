@@ -23,12 +23,12 @@
 <template>
     <modal>
         <template #header>
-            <h2 v-t="'loadSelection'" class="component__title"></h2>
+            <h2 class="component__title">{{ $t( "loadSelection" ) }}</h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="requestLoad()">
                 <div class="wrapper wrapper--select">
-                    <label v-t="'availableSelections'"></label>
+                    <label>{{ $t( "availableSelections" ) }}</label>
                     <select-box
                         :options="selections"
                         v-model="name"
@@ -38,18 +38,16 @@
         </template>
         <template #actions>
             <button
-                v-t="'load'"
                 type="button"
                 class="button"
                 :disabled="!isValid"
                 @click="requestLoad()"
-            ></button>
+            >{{ $t( "load" ) }}</button>
             <button
-                v-t="'cancel'"
                 type="button"
                 class="button"
                 @click="closeModal()"
-            ></button>
+            >{{ $t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>

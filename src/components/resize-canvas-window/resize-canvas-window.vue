@@ -23,12 +23,12 @@
 <template>
     <modal class="resize-canvas">
         <template #header>
-            <h2 v-t="'resizeCanvas'" class="component__title"></h2>
+            <h2 class="component__title">{{ $t( "resizeCanvas" ) }}</h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="resize()">
                 <div class="wrapper wrapper--input wrapper--small">
-                    <label v-t="'width'"></label>
+                    <label>{{ $t( "width" ) }}</label>
                     <input
                         v-model.number="width"
                         ref="widthInput"
@@ -38,7 +38,7 @@
                     />
                 </div>
                 <div class="wrapper wrapper--input wrapper--small">
-                    <label v-t="'height'"></label>
+                    <label>{{ $t( "height" ) }}</label>
                     <input
                         v-model.number="height"
                         type="number"
@@ -47,26 +47,25 @@
                     />
                 </div>
                 <div class="wrapper wrapper--select wrapper--small">
-                    <label v-t="'contentAlignment'"></label>
-                    <select-box :options="alignmentOptions"
-                                 v-model="alignment"
+                    <label>{{ $t( "contentAlignment" ) }}</label>
+                    <select-box
+                        :options="alignmentOptions"
+                        v-model="alignment"
                     />
                 </div>
             </div>
         </template>
         <template #actions>
             <button
-                v-t="'resize'"
                 type="button"
                 class="button"
                 @click="resize()"
-            ></button>
+            >{{ $t( "resize" ) }}</button>
             <button
-                v-t="'cancel'"
                 type="button"
                 class="button"
                 @click="closeModal()"
-            ></button>
+            >{{ $t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>

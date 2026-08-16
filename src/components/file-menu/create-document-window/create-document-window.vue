@@ -23,12 +23,12 @@
 <template>
     <modal class="create-document">
         <template #header>
-            <h2 v-t="'newDocument'" class="component__title"></h2>
+            <h2 class="component__title">{{ $t( "newDocument" ) }}</h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="save()">
                 <div class="wrapper wrapper--input">
-                    <label v-t="'name'"></label>
+                    <label>{{ $t( "name" ) }}</label>
                     <input
                         ref="first"
                         v-model="name"
@@ -37,14 +37,14 @@
                     />
                 </div>
                 <div class="wrapper wrapper--select wrapper--small">
-                    <label v-t="'documentType'"></label>
+                    <label>{{ $t( "documentType" ) }}</label>
                     <select-box
                         :options="types"
                         v-model="type"
                     />
                 </div>
                 <div class="wrapper wrapper--select wrapper--small">
-                    <label v-t="'preset'"></label>
+                    <label>{{ $t( "preset" ) }}</label>
                     <select-box
                         :options="presets"
                         v-model="preset"
@@ -53,9 +53,9 @@
                 <dimensions-formatter
                     v-model="dimensions"
                 />
-                <h3 v-t="'options'" class="title"></h3>
+                <h3 class="title">{{ $t( "options" ) }}</h3>
                 <div class="wrapper wrapper--picker">
-                    <label v-t="'backgroundColor'"></label>
+                    <label>{{ $t( "backgroundColor" ) }}</label>
                     <color-picker
                         v-model="backgroundColor"
                         v-tooltip="$t('color')"
@@ -66,17 +66,15 @@
         </template>
         <template #actions>
             <button
-                v-t="'create'"
                 type="button"
                 class="button"
                 @click="save()"
-            ></button>
+            >{{ $t( "create" ) }}</button>
             <button
-                v-t="'cancel'"
                 type="button"
                 class="button"
                 @click="closeModal()"
-            ></button>
+            >{{ $t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>

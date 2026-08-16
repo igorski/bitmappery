@@ -23,7 +23,7 @@
 <template>
     <modal>
         <template #header>
-            <h2 v-t="'saveDocument'" class="component__title"></h2>
+            <h2 class="component__title">{{ $t( "saveDocument" ) }}</h2>
         </template>
         <template #content>
             <div
@@ -31,7 +31,7 @@
                 @keyup.enter="requestSave()"
             >
                 <div class="wrapper wrapper--input">
-                    <label v-t="'documentTitle'"></label>
+                    <label>{{ $t( "documentTitle" ) }}</label>
                     <input
                         ref="nameInput"
                         type="text"
@@ -43,7 +43,7 @@
                     v-if="hasCloudStorage"
                     class="wrapper wrapper--select"
                 >
-                    <label v-t="'storageLocation'"></label>
+                    <label>{{ $t( "storageLocation" ) }}</label>
                     <select-box
                         :options="storageLocations"
                         v-model="storageLocation"
@@ -56,18 +56,16 @@
         </template>
         <template #actions>
             <button
-                v-t="'save'"
                 type="button"
                 class="button"
                 :disabled="!isValid"
                 @click="requestSave()"
-            ></button>
+            >{{ $t( "save" ) }}</button>
             <button
-                v-t="'cancel'"
                 type="button"
                 class="button"
                 @click="closeModal()"
-            ></button>
+            >{{ $t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>
