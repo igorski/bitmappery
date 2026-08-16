@@ -1,6 +1,6 @@
 <div class="cloud-file-modal">
     <div class="component__header">
-        <h2 class="component__title">{{ $t( "files" ) }}</h2>
+        <h2 class="component__title">{{ t( "files" ) }}</h2>
         <button
             type="button"
             class="component__header-button"
@@ -28,7 +28,7 @@
             </div>
             <div v-if="!loading" class="content__folders">
                 <!-- files and folders within current leaf -->
-                <p v-if="!filesAndFolders.length">{{ $t( "noImageFiles" ) }} </p>
+                <p v-if="!filesAndFolders.length">{{ t( "noImageFiles" ) }} </p>
                 <template v-else>
                     <div
                         v-for="node in filesAndFolders"
