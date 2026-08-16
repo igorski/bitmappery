@@ -23,43 +23,43 @@
 <template>
     <modal class="preferences">
         <template #header>
-            <h2 class="component__title">{{ $t( "preferences" ) }}</h2>
+            <h2 class="component__title">{{ t( "preferences" ) }}</h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="save()">
                 <div class="wrapper wrapper--toggle">
-                    <label>{{ $t( "lowMemoryMode" ) }}</label>
+                    <label>{{ t( "lowMemoryMode" ) }}</label>
                     <toggle-button
                         v-model="internalValue.lowMemory"
                         sync
                     />
                 </div>
-                <p class="expl">{{ $t( "lowMemoryExpl" ) }}</p>
+                <p class="expl">{{ t( "lowMemoryExpl" ) }}</p>
                 <div class="wrapper wrapper--toggle">
-                    <label>{{ $t( "layerThumbnails" ) }}</label>
+                    <label>{{ t( "layerThumbnails" ) }}</label>
                     <toggle-button
                         v-model="internalValue.thumbnails"
                         sync
                     />
                 </div>
-                <p class="expl">{{ $t( "layerThumbnailsExpl" ) }}</p>
+                <p class="expl">{{ t( "layerThumbnailsExpl" ) }}</p>
                 <div class="wrapper wrapper--toggle">
-                    <label>{{ $t( "autoAlias" ) }}</label>
+                    <label>{{ t( "autoAlias" ) }}</label>
                     <toggle-button
                         v-model="internalValue.autoAlias"
                         sync
                     />
                 </div>
-                <p class="expl">{{ $t( "autoAliasExpl" ) }}</p>
+                <p class="expl">{{ t( "autoAliasExpl" ) }}</p>
                 <template v-if="hasWebAssembly">
                     <div class="wrapper wrapper--toggle">
-                        <label>{{ $t( "wasmFilters" ) }}</label>
+                        <label>{{ t( "wasmFilters" ) }}</label>
                         <toggle-button
                             v-model="internalValue.wasmFilters"
                             sync
                         />
                     </div>
-                    <p class="expl">{{ $t( "wasmFiltersExpl" ) }}</p>
+                    <p class="expl">{{ t( "wasmFiltersExpl" ) }}</p>
                 </template>
             </div>
         </template>
@@ -68,24 +68,24 @@
                 type="button"
                 class="button"
                 @click="save()"
-            >{{ $t( "save" ) }}</button>
+            >{{ t( "save" ) }}</button>
             <button
                 type="button"
                 class="button"
                 @click="closeModal()"
-            >{{ $t( "cancel" ) }}</button>
+            >{{ t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations, mapActions } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages },
     components: {
         Modal,
         ToggleButton,
@@ -93,6 +93,10 @@ export default {
     data: () => ({
         internalValue: null,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "preferences",

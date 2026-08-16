@@ -35,7 +35,7 @@
         <ul class="menu-list">
             <!-- file menu -->
             <li tabindex="0">
-                <a class="title" @click.prevent="openSubMenu('file')">{{ $t( "file" ) }}</a>
+                <a class="title" @click.prevent="openSubMenu('file')">{{ t( "file" ) }}</a>
                 <ul class="submenu"
                     :class="{ 'submenu--opened': activeSubMenu === 'file' }"
                     @click="close()"
@@ -43,57 +43,57 @@
                     <li>
                         <button
                             type="button"
-                            v-tooltip.right="$t('newDocumentTooltip')"
+                            v-tooltip.right="t('newDocumentTooltip')"
                             @click="requestNewDocument()"
-                        >{{ $t( "new" ) }}</button>
+                        >{{ t( "new" ) }}</button>
                     </li>
                     <li>
                         <button
                             type="button"
                             @click="openFileSelector()"
-                        >{{ $t( "open" ) }}</button>
+                        >{{ t( "open" ) }}</button>
                     </li>
                     <li v-if="hasDropbox">
                         <button
                             type="button"
                             @click="initDropbox()"
-                        >{{ $t( "openDropboxDocument" ) }}</button>
+                        >{{ t( "openDropboxDocument" ) }}</button>
                     </li>
                     <li v-if="hasDrive">
                         <button
                             type="button"
                             @click="initDrive()"
-                        >{{ $t( "openDriveDocument" ) }}</button>
+                        >{{ t( "openDriveDocument" ) }}</button>
                     </li>
                     <li v-if="hasS3">
                         <button
                             type="button"
                             @click="initS3()"
-                        >{{ $t( "openS3Document" ) }}</button>
+                        >{{ t( "openS3Document" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-tooltip.right="$t('closeDocumentTooltip')"
+                            v-tooltip.right="t('closeDocumentTooltip')"
                             type="button"
                             :disabled="noDocumentsAvailable"
                             @click="requestDocumentClose()"
-                        >{{ $t( "close" ) }}</button>
+                        >{{ t( "close" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-tooltip.right="$t('saveDocumentTooltip')"
+                            v-tooltip.right="t('saveDocumentTooltip')"
                             type="button"
                             :disabled="noDocumentsAvailable"
                             @click="requestDocumentExport()"
-                        >{{ $t( "save" ) }}</button>
+                        >{{ t( "save" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-tooltip.right="$t('exportImageTooltip')"
+                            v-tooltip.right="t('exportImageTooltip')"
                             type="button"
                             :disabled="noDocumentsAvailable"
                             @click="requestImageExport()"
-                        >{{ $t( "exportImage" ) }}</button>
+                        >{{ t( "exportImage" ) }}</button>
                     </li>
                     <input
                         ref="fileSelector"
@@ -107,76 +107,76 @@
             </li>
             <!-- edit menu -->
             <li tabindex="0">
-                <a class="title" @click.prevent="openSubMenu('edit')">{{ $t( "edit" ) }}</a>
+                <a class="title" @click.prevent="openSubMenu('edit')">{{ t( "edit" ) }}</a>
                 <ul class="submenu"
                     :class="{ 'submenu--opened': activeSubMenu === 'edit' }"
                     @click="close()"
                 >
                     <li>
                         <button
-                            v-tooltip.right="$t('undoTooltip')"
+                            v-tooltip.right="t('undoTooltip')"
                             type="button"
                             :disabled="!canUndo"
                             @click="navigateHistory('undo')"
-                        >{{ $t( "undo" ) }}</button>
+                        >{{ t( "undo" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-tooltip.right="$t('redoTooltip')"
+                            v-tooltip.right="t('redoTooltip')"
                             type="button"
                             :disabled="!canRedo"
                             @click="navigateHistory('redo')"
-                        >{{ $t( "redo" ) }}</button>
+                        >{{ t( "redo" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-tooltip.right="$t('cutTooltip')"
+                            v-tooltip.right="t('cutTooltip')"
                             type="button"
                             :disabled="!hasSelection"
                             @click="requestSelectionCut()"
-                        >{{ $t( "cut" ) }}</button>
+                        >{{ t( "cut" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-tooltip.right="$t('copyTooltip')"
+                            v-tooltip.right="t('copyTooltip')"
                             type="button"
                             :disabled="!hasSelection"
                             @click="requestSelectionCopy({ merged: false })"
-                        >{{ $t( "copy" ) }}</button>
+                        >{{ t( "copy" ) }}</button>
                     </li>
                     <li>
                         <button
                             type="button"
                             :disabled="!hasSelection"
                             @click="requestSelectionCopy({ merged: true })"
-                        >{{ $t( "copyMerged" ) }}</button>
+                        >{{ t( "copyMerged" ) }}</button>
                     </li>
                     <li>
                         <button
                             type="button"
                             :disabled="!hasClipboard || !activeDocument"
                             @click="pasteSelection()"
-                        >{{ $t( "pasteAsNewLayer" ) }}</button>
+                        >{{ t( "pasteAsNewLayer" ) }}</button>
                     </li>
                     <li>
                         <button
                             type="button"
                             :disabled="!hasSelection || !activeLayer"
                             @click="deleteInSelection()"
-                        >{{ $t( "clear" ) }}</button>
+                        >{{ t( "clear" ) }}</button>
                     </li>
                     <li>
                         <button
                             type="button"
                             :disabled="!hasSelection || !activeLayer"
                             @click="strokeSelection()"
-                        >{{ $t( "stroke" ) }}</button>
+                        >{{ t( "stroke" ) }}</button>
                     </li>
                 </ul>
             </li>
             <!-- document menu -->
             <li tabindex="0">
-                <a class="title" @click.prevent="openSubMenu('document')">{{ $t( "document" ) }}</a>
+                <a class="title" @click.prevent="openSubMenu('document')">{{ t( "document" ) }}</a>
                 <ul class="submenu"
                     :class="{ 'submenu--opened': activeSubMenu === 'document' }"
                     @click="close()"
@@ -186,41 +186,41 @@
                             type="button"
                             :disabled="noDocumentsAvailable"
                             @click="requestDocumentResize()"
-                        >{{ $t( "resizeDocument" ) }}</button>
+                        >{{ t( "resizeDocument" ) }}</button>
                     </li>
                     <li>
                         <button
                             type="button"
                             :disabled="noDocumentsAvailable"
                             @click="requestCanvasResize()"
-                        >{{ $t( "canvasSize" ) }}</button>
+                        >{{ t( "canvasSize" ) }}</button>
                     </li>
                     <li>
                         <button
                             type="button"
                             :disabled="!hasSelection"
                             @click="requestCropToSelection()"
-                        >{{ $t( "cropToSelection" ) }}</button>
+                        >{{ t( "cropToSelection" ) }}</button>
                     </li>
                     <li>
                         <button
                             type="button"
                             :disabled="noDocumentsAvailable"
                             @click="requestGridToLayers()"
-                        >{{ $t( "sliceGridToLayers" ) }}</button>
+                        >{{ t( "sliceGridToLayers" ) }}</button>
                     </li>
                     <li>
                         <button
                             type="button"
                             :disabled="noDocumentsAvailable"
                             @click="requestPropertiesEdit()"
-                        >{{ $t( "properties" ) }}</button>
+                        >{{ t( "properties" ) }}</button>
                     </li>
                 </ul>
             </li>
             <!-- layer menu -->
             <li tabindex="0">
-                <a class="title" @click.prevent="openSubMenu('layer')">{{ $t( "layer" ) }}</a>
+                <a class="title" @click.prevent="openSubMenu('layer')">{{ t( "layer" ) }}</a>
                 <layer-menu
                     :opened="activeSubMenu === 'layer'"
                     @click="close()"
@@ -228,62 +228,62 @@
             </li>
             <!-- selection menu -->
             <li tabindex="0">
-                <a class="title" @click.prevent="openSubMenu('selection')">{{ $t( "selection" ) }}</a>
+                <a class="title" @click.prevent="openSubMenu('selection')">{{ t( "selection" ) }}</a>
                 <ul class="submenu"
                     :class="{ 'submenu--opened': activeSubMenu === 'selection' }"
                     @click="close()"
                 >
                     <li>
                         <button
-                            v-tooltip.right="$t('selectAllTooltip')"
+                            v-tooltip.right="t('selectAllTooltip')"
                             type="button"
                             :disabled="!activeLayer"
                             @click="selectAll()"
-                        >{{ $t( "selectAll" ) }}</button>
+                        >{{ t( "selectAll" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-tooltip.right="$t('deselectAllTooltip')"
+                            v-tooltip.right="t('deselectAllTooltip')"
                             type="button"
                             :disabled="!hasSelection"
                             @click="clearSelection()"
-                        >{{ $t( "deselectAll" ) }}</button>
+                        >{{ t( "deselectAll" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-tooltip.right="$t('invertSelectionTooltip')"
+                            v-tooltip.right="t('invertSelectionTooltip')"
                             type="button"
                             :disabled="!hasSelection"
                             @click="invertSelection()"
-                        >{{ $t( "invertSelection" ) }}</button>
+                        >{{ t( "invertSelection" ) }}</button>
                     </li>
                     <li>
                         <button
                             type="button"
                             :disabled="!hasSelection"
                             @click="requestSelectionExpand()"
-                        >{{ $t( "expandSelection" ) }}</button>
+                        >{{ t( "expandSelection" ) }}</button>
                     </li>
                     <li>
                         <button
                             type="button"
                             :disabled="!hasSelection"
                             @click="requestSelectionShrink()"
-                        >{{ $t( "shrinkSelection" ) }}</button>
+                        >{{ t( "shrinkSelection" ) }}</button>
                     </li>
                     <li>
                         <button
                             type="button"
                             :disabled="!hasSavedSelections"
                             @click="requestSelectionLoad()"
-                        >{{ $t( "loadSelection" ) }}</button>
+                        >{{ t( "loadSelection" ) }}</button>
                     </li>
                     <li>
                         <button
                             type="button"
                             :disabled="!hasSelection"
                             @click="requestSelectionSave()"
-                        >{{ $t( "saveSelection" ) }}</button>
+                        >{{ t( "saveSelection" ) }}</button>
                     </li>
                 </ul>
             </li>
@@ -292,11 +292,11 @@
                 <a
                     class="title"
                     @click.prevent="openPreferences()"
-                >{{ $t( "preferences" ) }}</a>
+                >{{ t( "preferences" ) }}</a>
             </li>
             <!-- view menu -->
             <li tabindex="0">
-                <a class="title" @click.prevent="openSubMenu('view')">{{ $t( "view" ) }}</a>
+                <a class="title" @click.prevent="openSubMenu('view')">{{ t( "view" ) }}</a>
                 <ul class="submenu"
                     :class="{ 'submenu--opened': activeSubMenu === 'view' }"
                     @click="close()"
@@ -306,14 +306,14 @@
                             type="button"
                             :class="{ checked: snapAlign }"
                             @click="canSnapAndAlign = !canSnapAndAlign"
-                        >{{ $t( "snapAlign" ) }}</button>
+                        >{{ t( "snapAlign" ) }}</button>
                     </li>
                     <li>
                         <button
                             type="button"
                             :class="{ checked: antiAlias }"
                             @click="useAntiAlias = !useAntiAlias"
-                        >{{ $t( "antiAlias" ) }}</button>
+                        >{{ t( "antiAlias" ) }}</button>
                     </li>
                     <li>
                         <button
@@ -321,7 +321,7 @@
                             :class="{ checked: useTracing }"
                             :disabled="!canUseTracing"
                             @click="useTracing = !useTracing"
-                        >{{ $t( "useTracing" ) }}</button>
+                        >{{ t( "useTracing" ) }}</button>
                     </li>
                     <li>
                         <button
@@ -329,13 +329,13 @@
                             :class="{ checked: pixelGrid }"
                             :disabled="!canUsePixelGrid"
                             @click="usePixelGrid = !usePixelGrid"
-                        >{{ $t( "pixelGrid" ) }}</button>
+                        >{{ t( "pixelGrid" ) }}</button>
                     </li>
                 </ul>
             </li>
             <!-- window menu -->
             <li tabindex="0">
-                <a class="title" @click.prevent="openSubMenu('window')">{{ $t( "window" ) }}</a>
+                <a class="title" @click.prevent="openSubMenu('window')">{{ t( "window" ) }}</a>
                 <ul class="submenu"
                     :class="{ 'submenu--opened': activeSubMenu === 'window' }"
                     @click="close()"
@@ -345,16 +345,16 @@
                             :key="`doc_${index}`"
                         >
                             <button @click="setActiveDocument( index )">
-                                {{ $t( "windowNumName", { num: index + 1, name: doc.name }) }}
+                                {{ t( "windowNumName", { num: index + 1, name: doc.name }) }}
                             </button>
                         </li>
                     </template>
-                    <li v-else><span class="menu-text">{{ $t( "noDocumentsOpen" ) }}</span></li>
+                    <li v-else><span class="menu-text">{{ t( "noDocumentsOpen" ) }}</span></li>
                 </ul>
             </li>
             <!-- help menu -->
             <li>
-                <a href="https://www.igorski.nl/bitmappery/help" target="_blank" class="title" @click="close()">{{ $t( "help" ) }}</a>
+                <a href="https://www.igorski.nl/bitmappery/help" target="_blank" class="title" @click="close()">{{ t( "help" ) }}</a>
             </li>
         </ul>
         <!-- fullscreen button -->
@@ -363,17 +363,17 @@
             v-tooltip.left="fullscreenTooltip"
             ref="fullscreenBtn"
             class="fullscreen-button"
-            :title="$t( isFullscreen ? 'minimize' : 'maximize' )"
+            :title="t( isFullscreen ? 'minimize' : 'maximize' )"
         >
             <img
                 v-if="isFullscreen"
                 src="@/assets-inline/images/icon-minimize.svg"
-                :alt="$t( 'minimize' )"
+                :alt="t( 'minimize' )"
             />
             <img
                 v-else
                 src="@/assets-inline/images/icon-maximize.svg"
-                :alt="$t( 'maximize' )"
+                :alt="t( 'maximize' )"
             />
         </button>
     </nav>
@@ -381,6 +381,7 @@
 
 <script lang="ts">
 import { defineAsyncComponent } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { isPixelArt } from "@/definitions/editor-properties";
 import {
@@ -401,7 +402,6 @@ import messages from "./messages.json";
 
 export default {
     emits: [ "rescale" ],
-    i18n: { messages, sharedMessages },
     mixins: [ CloudServiceConnector, ImageToDocumentManager ],
     components: {
         LayerMenu : defineAsyncComponent({ loader: () => import( "@/components/menus/layer-menu/layer-menu.vue" ) }),
@@ -413,6 +413,10 @@ export default {
         hasDrive: supportsGoogleDrive(),
         hasS3: supportsS3(),
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages, sharedMessages });
+        return { t };
+    },
     computed: {
         ...mapState([
             "menuOpened",
@@ -480,7 +484,7 @@ export default {
             },
         },
         fullscreenTooltip(): string {
-            return `${this.isFullscreen ? this.$t( "minimize" ) : this.$t( "maximize" )} (Shift + F)`;
+            return `${this.isFullscreen ? this.t( "minimize" ) : this.t( "maximize" )} (Shift + F)`;
         },
         canUsePixelGrid(): boolean {
             if ( !this.activeDocument ) {

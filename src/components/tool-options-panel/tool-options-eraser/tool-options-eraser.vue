@@ -22,9 +22,9 @@
  */
 <template>
     <div class="tool-option">
-        <h3>{{ $t( "eraser" ) }}</h3>
+        <h3>{{ t( "eraser" ) }}</h3>
         <div class="wrapper slider">
-            <label>{{ $t( "eraserSize" ) }}</label>
+            <label>{{ t( "eraserSize" ) }}</label>
             <slider
                 v-model="eraserSize"
                 :min="1"
@@ -33,7 +33,7 @@
             />
         </div>
         <div class="wrapper slider">
-            <label>{{ $t( "thickness" ) }}</label>
+            <label>{{ t( "thickness" ) }}</label>
             <slider
                 v-model="thickness"
                 :min="0"
@@ -42,7 +42,7 @@
             />
         </div>
         <div class="wrapper slider">
-            <label>{{ $t( "opacity" ) }}</label>
+            <label>{{ t( "opacity" ) }}</label>
             <slider
                 v-model="opacity"
                 :min="0"
@@ -54,19 +54,23 @@
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations }  from "vuex";
 import ToolTypes, { MAX_BRUSH_SIZE, canDraw } from "@/definitions/tool-types";
 import Slider from "@/components/ui/slider/slider.vue";
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages },
     components: {
         Slider,
     },
     data: () => ({
         MAX_BRUSH_SIZE,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeDocument",

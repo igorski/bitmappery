@@ -14,7 +14,10 @@ import "floating-vue/dist/style.css"; // required for tooltips
 globalThis.Buffer = Buffer;
 
 // Create VueI18n instance
-const i18n = createI18n({ messages });
+const i18n = createI18n({
+    legacy: false,
+    messages,
+});
 
 const app = Vue.createApp( BitMappery );
 app.use( createStore( store ));

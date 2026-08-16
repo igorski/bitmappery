@@ -65,10 +65,10 @@ export default {
         openAuth( message: string, confirm: () => void, cancel = () => true ): void {
             this.openDialog({
                 type: "confirm",
-                title: this.$t( "cloud.establishConnection" ),
+                title: this.t( "cloud.establishConnection" ),
                 link: {
                     href  : PRIVACY_POLICY_URL,
-                    title : this.$t( "cloud.privacyPolicy" )
+                    title : this.t( "cloud.privacyPolicy" )
                 },
                 message,
                 confirm,
@@ -87,7 +87,7 @@ export default {
                     i18n = "cloud.connectedToDrive";
                     break;
             }
-            this.showNotification({ message: this.$t( i18n ) });
+            this.showNotification({ message: this.t( i18n ) });
         },
         /* 1. Dropbox */
         async initDropbox( openFileBrowserOnSuccess = true ): Promise<void> {
@@ -109,7 +109,7 @@ export default {
                 }
             } else {
                 this.authUrl = await requestLogin();
-                this.openAuth( this.$t( "cloud.connectionExplDropbox" ), this.loginDropbox.bind( this ));
+                this.openAuth( this.t( "cloud.connectionExplDropbox" ), this.loginDropbox.bind( this ));
             }
         },
         loginDropbox(): void {
@@ -149,7 +149,7 @@ export default {
             if ( !this.initialized ) {
                 this.openDialog({
                     type: "error",
-                    message: this.$t( "cloud.errorLoadingDrive" )
+                    message: this.t( "cloud.errorLoadingDrive" )
                 });
                 return;
             }
@@ -164,7 +164,7 @@ export default {
                 }
             } else {
                 this.openAuth(
-                    this.$t( "cloud.connectionExplDrive" ),
+                    this.t( "cloud.connectionExplDrive" ),
                     this.loginDrive.bind( this ),
                     this.cancelLoginDrive.bind( this )
                 );
@@ -201,7 +201,7 @@ export default {
 
             if ( result?.scope && !validateScopes( result.scope )) {
                 this.cancelLoginDrive();
-                this.openDialog({ type: "error", message: this.$t( "cloud.notAllPermissionsGrantedDrive" )});
+                this.openDialog({ type: "error", message: this.t( "cloud.notAllPermissionsGrantedDrive" )});
                 window.setTimeout( disconnect, TIMEOUT );
                 return;
             }
@@ -234,7 +234,7 @@ export default {
             } else {
                 this.openDialog({
                     type: "error",
-                    message: this.$t( "cloud.errorConnectingS3" )
+                    message: this.t( "cloud.errorConnectingS3" )
                 });
             }
         },

@@ -23,18 +23,18 @@
 <template>
     <div class="file-import">
         <div class="component__header">
-            <h2 class="component__title component__title--no-action">{{ $t( "letsGetStarted" ) }}</h2>
+            <h2 class="component__title component__title--no-action">{{ t( "letsGetStarted" ) }}</h2>
         </div>
         <div class="file-import__body">
             <div class="form import-form">
-                <p>{{ $t( "chooseContentCreationMethod" ) }}</p>
+                <p>{{ t( "chooseContentCreationMethod" ) }}</p>
                 <button
                     type="button"
                     class="button button--primary button--block new-document-button"
                     @click="requestNewDocument()"
-                >{{ $t( "createNewDocument" ) }}</button>
+                >{{ t( "createNewDocument" ) }}</button>
                 <div class="file-fieldset">
-                    <p>{{ $t( "orImportFile" ) }}</p>
+                    <p>{{ t( "orImportFile" ) }}</p>
                     <!-- Local -->
                     <file-selector />
                     <!-- Dropbox -->
@@ -44,7 +44,7 @@
                             type="button"
                             class="button button--block button--third-party dropbox"
                             @click="dropbox = true"
-                        >{{ $t( "importFromDropbox" ) }}</button>
+                        >{{ t( "importFromDropbox" ) }}</button>
                         <component :is="dropboxImportType" />
                     </template>
                     <!-- Google Drive -->
@@ -54,7 +54,7 @@
                             type="button"
                             class="button button--block button--third-party drive"
                             @click="drive = true"
-                        >{{ $t( "importFromGoogleDrive" ) }}</button>
+                        >{{ t( "importFromGoogleDrive" ) }}</button>
                         <component :is="driveImportType" />
                     </template>
                     <!-- (AWS) S3 -->
@@ -64,11 +64,11 @@
                             type="button"
                             class="button button--block button--third-party s3"
                             @click="s3 = true"
-                        >{{ $t( "importFromAwsS3" ) }}</button>
+                        >{{ t( "importFromAwsS3" ) }}</button>
                         <component :is="s3ImportType" />
                     </template>
                     <div class="wrapper wrapper--select">
-                        <label class="file-target-label">{{ $t( "openImageAsNew" ) }}</label>
+                        <label class="file-target-label">{{ t( "openImageAsNew" ) }}</label>
                         <select-box
                             :options="fileTargetOptions"
                             v-model="importTarget"
@@ -76,7 +76,7 @@
                         />
                     </div>
                 </div>
-                <p>{{ $t( "fileAndHelpExpl" ) }}</p>
+                <p>{{ t( "fileAndHelpExpl" ) }}</p>
             </div>
         </div>
     </div>
@@ -84,6 +84,7 @@
 
 <script lang="ts">
 import { type Component, defineAsyncComponent } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import { CREATE_DOCUMENT } from "@/definitions/modal-windows";
 import FileSelector from "./file-selector/file-selector.vue";
@@ -93,10 +94,13 @@ import { mapSelectOptions } from "@/utils/search-select-util"
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages },
     components: {
         FileSelector,
         SelectBox,
+    },
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
     },
     data: () => ({
         dropbox: false,

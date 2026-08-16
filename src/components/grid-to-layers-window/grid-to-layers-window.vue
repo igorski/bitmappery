@@ -23,14 +23,14 @@
 <template>
     <modal class="grid-to-layers">
         <template #header>
-            <h2 class="component__title">{{ $t( "sliceGridToLayers" ) }}</h2>
+            <h2 class="component__title">{{ t( "sliceGridToLayers" ) }}</h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="requestSlice()">
-                <p class="expl">{{ $t( "gridSliceExpl" ) }}</p>
-                <p>{{ $t( "currentDocumentSize", { width: Math.round( activeDocument.width ), height: Math.round( activeDocument.height ) }) }}</p>
+                <p class="expl">{{ t( "gridSliceExpl" ) }}</p>
+                <p>{{ t( "currentDocumentSize", { width: Math.round( activeDocument.width ), height: Math.round( activeDocument.height ) }) }}</p>
                 <div class="wrapper wrapper--input wrapper--small">
-                    <label>{{ $t( "width" ) }}</label>
+                    <label>{{ t( "width" ) }}</label>
                     <input
                         ref="widthInput"
                         v-model.number="width"
@@ -40,7 +40,7 @@
                     />
                 </div>
                 <div class="wrapper wrapper--input wrapper--small">
-                    <label>{{ $t( "height" ) }}</label>
+                    <label>{{ t( "height" ) }}</label>
                     <input
                         v-model.number="height"
                         type="number"
@@ -48,16 +48,16 @@
                         class="input-field"
                     />
                 </div>
-                <p class="expl">{{ $t( "layerVisibilityExpl" ) }}</p>
+                <p class="expl">{{ t( "layerVisibilityExpl" ) }}</p>
                 <div class="wrapper wrapper--toggle">
-                    <label>{{ $t( "allLayersVisible" ) }}</label>
+                    <label>{{ t( "allLayersVisible" ) }}</label>
                     <toggle-button
                         v-model="allVisible"
                         name="allVisible"
                     />
                 </div>
                 <div class="wrapper wrapper--toggle">
-                    <label>{{ $t( "convertToTimeline" ) }}</label>
+                    <label>{{ t( "convertToTimeline" ) }}</label>
                     <toggle-button
                         v-model="toTimeline"
                         name="toTimeline"
@@ -72,17 +72,18 @@
                 class="button"
                 :disabled="!isValid"
                 @click="requestSlice()"
-            >{{ $t( "slice" ) }}</button>
+            >{{ t( "slice" ) }}</button>
             <button
                 type="button"
                 class="button"
                 @click="closeModal()"
-            >{{ $t( "cancel" ) }}</button>
+            >{{ t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import Modal from "@/components/modal/modal.vue";
@@ -93,7 +94,6 @@ import { focus } from "@/utils/environment-util";
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages },
     components: {
         Modal,
         ToggleButton,
@@ -104,6 +104,10 @@ export default {
         allVisible : true,
         toTimeline : false,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeDocument",
@@ -133,7 +137,7 @@ export default {
         async requestSlice(): Promise<void> {
             this.setLoading( "slice" );
             await sliceGridToLayers(
-                this.$store, this.activeDocument, this.width, this.height, this.allVisible, this.$t( "slice" ), this.toTimeline,
+                this.$store, this.activeDocument, this.width, this.height, this.allVisible, this.t( "slice" ), this.toTimeline,
             );
             this.unsetLoading( "slice" );
             this.closeModal();

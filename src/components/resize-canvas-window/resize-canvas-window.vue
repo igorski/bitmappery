@@ -23,12 +23,12 @@
 <template>
     <modal class="resize-canvas">
         <template #header>
-            <h2 class="component__title">{{ $t( "resizeCanvas" ) }}</h2>
+            <h2 class="component__title">{{ t( "resizeCanvas" ) }}</h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="resize()">
                 <div class="wrapper wrapper--input wrapper--small">
-                    <label>{{ $t( "width" ) }}</label>
+                    <label>{{ t( "width" ) }}</label>
                     <input
                         v-model.number="width"
                         ref="widthInput"
@@ -38,7 +38,7 @@
                     />
                 </div>
                 <div class="wrapper wrapper--input wrapper--small">
-                    <label>{{ $t( "height" ) }}</label>
+                    <label>{{ t( "height" ) }}</label>
                     <input
                         v-model.number="height"
                         type="number"
@@ -47,7 +47,7 @@
                     />
                 </div>
                 <div class="wrapper wrapper--select wrapper--small">
-                    <label>{{ $t( "contentAlignment" ) }}</label>
+                    <label>{{ t( "contentAlignment" ) }}</label>
                     <select-box
                         :options="alignmentOptions"
                         v-model="alignment"
@@ -60,17 +60,18 @@
                 type="button"
                 class="button"
                 @click="resize()"
-            >{{ $t( "resize" ) }}</button>
+            >{{ t( "resize" ) }}</button>
             <button
                 type="button"
                 class="button"
                 @click="closeModal()"
-            >{{ $t( "cancel" ) }}</button>
+            >{{ t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import { focus } from "@/utils/environment-util";
 import Modal from "@/components/modal/modal.vue";
@@ -89,7 +90,6 @@ const BOTTOM_CENTER = "BC";
 const BOTTOM_RIGHT  = "BR";
 
 export default {
-    i18n: { messages },
     components: {
         Modal,
         SelectBox,
@@ -99,21 +99,25 @@ export default {
         height: 0,
         alignment: CENTER,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeDocument",
         ]),
         alignmentOptions(): { label: string, value: string }[] {
             return [
-                { label: this.$t( "topLeft" ),      value: TOP_LEFT },
-                { label: this.$t( "topCenter" ),    value: TOP_CENTER },
-                { label: this.$t( "topRight" ),     value: TOP_RIGHT },
-                { label: this.$t( "centerLeft" ),   value: CENTER_LEFT },
-                { label: this.$t( "centered" ),     value: CENTER },
-                { label: this.$t( "centerRight" ),  value: CENTER_RIGHT },
-                { label: this.$t( "bottomLeft" ),   value: BOTTOM_LEFT },
-                { label: this.$t( "bottomCenter" ), value: BOTTOM_CENTER },
-                { label: this.$t( "bottomRight" ),  value: BOTTOM_RIGHT }
+                { label: this.t( "topLeft" ),      value: TOP_LEFT },
+                { label: this.t( "topCenter" ),    value: TOP_CENTER },
+                { label: this.t( "topRight" ),     value: TOP_RIGHT },
+                { label: this.t( "centerLeft" ),   value: CENTER_LEFT },
+                { label: this.t( "centered" ),     value: CENTER },
+                { label: this.t( "centerRight" ),  value: CENTER_RIGHT },
+                { label: this.t( "bottomLeft" ),   value: BOTTOM_LEFT },
+                { label: this.t( "bottomCenter" ), value: BOTTOM_CENTER },
+                { label: this.t( "bottomRight" ),  value: BOTTOM_RIGHT }
             ];
         },
     },

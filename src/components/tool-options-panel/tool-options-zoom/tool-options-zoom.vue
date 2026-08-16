@@ -22,7 +22,7 @@
  */
 <template>
     <div class="tool-option">
-        <h3>{{ $t( "zoomLevel" ) }}</h3>
+        <h3>{{ t( "zoomLevel" ) }}</h3>
         <div class="wrapper wrapper--slider wrapper--full">
             <slider
                 v-model="zoomLevel"
@@ -38,24 +38,25 @@
                 class="button button--small"
                 :disabled="!activeDocument"
                 @click="setBestFit()"
-            >{{ $t( "bestFit" ) }}</button>
+            >{{ t( "bestFit" ) }}</button>
             <button
                 type="button"
                 class="button button--small"
                 :disabled="!activeDocument"
                 @click="setFitWindow()"
-            >{{ $t( "fitWindow" ) }}</button>
+            >{{ t( "fitWindow" ) }}</button>
             <button
                 type="button"
                 class="button button--small"
                 :disabled="!activeDocument"
                 @click="setOriginalSize()"
-            >{{ $t( "original" ) }}</button>
+            >{{ t( "original" ) }}</button>
         </div>
     </div>
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import Slider from "@/components/ui/slider/slider.vue";
 import ToolTypes, { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
@@ -63,7 +64,6 @@ import { fitInWindow, displayOriginalSize } from "@/utils/zoom-util";
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages },
     components: {
         Slider,
     },
@@ -71,6 +71,10 @@ export default {
         min: MIN_ZOOM,
         max: MAX_ZOOM,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeDocument",

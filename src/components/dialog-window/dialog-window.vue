@@ -36,24 +36,24 @@
                 type="button"
                 class="button"
                 @click="handleConfirm()"
-            >{{ $t( "ok" ) }}</button>
+            >{{ t( "ok" ) }}</button>
             <button
                 v-if="type === 'confirm'"
                 type="button"
                 class="button"
                 @click="handleCancel()"
-            >{{ $t( "cancel" ) }}</button>
+            >{{ t( "cancel" ) }}</button>
         </div>
     </div>
 </template>
 
 <script lang="ts">
 import { type PropType } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapMutations } from "vuex";
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages },
     props: {
         title: {
             type: String,
@@ -80,6 +80,10 @@ export default {
             type: Function,
             default: null,
         }
+    },
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
     },
     methods: {
         ...mapMutations([

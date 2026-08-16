@@ -26,18 +26,18 @@
         @focusin="handleFocus"
         @focusout="handleBlur"
     >
-        <h3>{{ $t( "text" ) }}</h3>
+        <h3>{{ t( "text" ) }}</h3>
         <div class="wrapper wrapper--textarea">
             <textarea
                 ref="textInput"
                 v-model="text"
-                :placeholder="$t('typeYourTextHere')"
+                :placeholder="t('typeYourTextHere')"
                 :disabled="disabled"
                 class="input-textarea input-full"
             />
         </div>
         <div class="wrapper wrapper--select">
-            <label>{{ $t( "font" ) }}</label>
+            <label>{{ t( "font" ) }}</label>
             <select-box
                 v-model="font"
                 :options="fonts"
@@ -51,7 +51,7 @@
             </select-box>
         </div>
         <div class="wrapper wrapper--select">
-            <label>{{ $t( "alignment" ) }}</label>
+            <label>{{ t( "alignment" ) }}</label>
             <select-box
                 v-model="alignment"
                 :options="alignments"
@@ -59,7 +59,7 @@
             />
         </div>
         <div class="wrapper wrapper--select">
-            <label>{{ $t( "size" ) }}</label>
+            <label>{{ t( "size" ) }}</label>
             <div class="shared-inputs">
                 <input
                     v-model="size"
@@ -75,7 +75,7 @@
             </div>
         </div>
         <div class="wrapper wrapper--slider">
-            <label>{{ $t( "lineHeight" ) }}</label>
+            <label>{{ t( "lineHeight" ) }}</label>
             <normalised-slider
                 v-model="lineHeight"
                 :disabled="disabled"
@@ -84,7 +84,7 @@
             />
         </div>
         <div class="wrapper wrapper--slider">
-            <label>{{ $t( "letterSpacing" ) }}</label>
+            <label>{{ t( "letterSpacing" ) }}</label>
             <normalised-slider
                 v-model="spacing"
                 :disabled="disabled"
@@ -93,11 +93,11 @@
             />
         </div>
         <div class="wrapper wrapper--picker">
-            <label>{{ $t( "color" ) }}</label>
+            <label>{{ t( "color" ) }}</label>
             <component
                 :is="colorPicker"
                 v-model="color"
-                v-tooltip="$t('color')"
+                v-tooltip="t('color')"
                 :disabled="disabled"
                 class="color-picker"
             />
@@ -107,6 +107,7 @@
 
 <script lang="ts">
 import { defineAsyncComponent, type IAsyncComponent } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import NormalisedSlider from "@/components/ui/slider/normalised-slider.vue";
@@ -127,7 +128,6 @@ import messages from "./messages.json";
 import sharedMessages from "@/messages.json";
 
 export default {
-    i18n: { messages, sharedMessages },
     components: {
         FontPreview,
         NormalisedSlider,
@@ -138,6 +138,10 @@ export default {
         renderPending: false,
         layerId: null,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeLayerIndex",
@@ -160,17 +164,17 @@ export default {
         },
         alignments(): { label: string, value: TextAlignment }[] {
             return [
-                { label: this.$t( "left" ), value: "left" },
-                { label: this.$t( "center" ), value: "center" },
-                { label: this.$t( "right" ), value: "right" },
+                { label: this.t( "left" ), value: "left" },
+                { label: this.t( "center" ), value: "center" },
+                { label: this.t( "right" ), value: "right" },
             ];
         },
         unitOptions(): { label: string, value: string }[] {
             return [
-                { label: this.$t( "pixels" ), value: "px" },
-                { label: this.$t( "points" ), value: "pt" },
-                { label: this.$t( "millis" ), value: "mm" },
-                { label: this.$t( "centis" ), value: "cm" },
+                { label: this.t( "pixels" ), value: "px" },
+                { label: this.t( "points" ), value: "pt" },
+                { label: this.t( "millis" ), value: "mm" },
+                { label: this.t( "centis" ), value: "cm" },
             ];
         },
         alignment: {
@@ -272,8 +276,8 @@ export default {
         if ( !fontsConsented() ) {
             this.openDialog({
                 type: "confirm",
-                title: this.$t( "fonts.consentRequired" ),
-                message: this.$t( "fonts.consentExpl" ),
+                title: this.t( "fonts.consentRequired" ),
+                message: this.t( "fonts.consentExpl" ),
                 confirm: () => {
                     consentFonts();
                 },

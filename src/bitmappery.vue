@@ -227,7 +227,7 @@ export default {
                         this.updateAntiAlias( useAntiAlias );
                         this.showNotification({
                             title: "",
-                            message: this.$t( useAntiAlias ? "antiAliasingEnabled" : "antiAliasingDisabled" )
+                            message: this.t( useAntiAlias ? "antiAliasingEnabled" : "antiAliasingDisabled" )
                         });
                     } else {
                         this.updateMeta({ smoothing: this.antiAlias });
@@ -244,7 +244,7 @@ export default {
         },
     },
     async created(): Promise<void> {
-        await this.setupServices( this.$t );
+        await this.setupServices( this.t );
         // no need to remove the below as we will require it throughout the application lifetime
         window.addEventListener( "resize", this.handleResize.bind( this ));
         this.$refs.app.addEventListener( "wheel", ( e: WheelEvent ) => {
@@ -263,7 +263,7 @@ export default {
             window.onbeforeunload = e => {
                 if ( !!this.activeDocument ) {
                     e.preventDefault();
-                    return this.$t( "warningUnload" );
+                    return this.t( "warningUnload" );
                 }
             };
         }
@@ -287,7 +287,7 @@ export default {
                     } catch {
                         this.openDialog({
                             type: "error",
-                            message: this.$t( "corsError", { file: truncate( decodeURIComponent( url ).split( "/" ).at( -1 ), 40 ) })
+                            message: this.t( "corsError", { file: truncate( decodeURIComponent( url ).split( "/" ).at( -1 ), 40 ) })
                         });
                     }
                 }

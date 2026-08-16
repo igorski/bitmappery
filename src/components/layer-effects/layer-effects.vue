@@ -24,7 +24,7 @@
     <div class="layer-effects" ref="effectsPanel">
         <div class="component__content form" ref="effectsList">
             <div class="wrapper wrapper--toggle">
-                <label>{{ $t( "enabled" ) }}</label>
+                <label>{{ t( "enabled" ) }}</label>
                 <toggle-button
                     v-model="internalValue.enabled"
                     name="enabled"
@@ -32,9 +32,9 @@
                 />
             </div>
             <fieldset class="fieldset">
-                <legend>{{ $t( "quickAdjustments" ) }}</legend>
+                <legend>{{ t( "quickAdjustments" ) }}</legend>
                 <div class="wrapper wrapper--toggle">
-                    <label>{{ $t( "whiteBalance" ) }}</label>
+                    <label>{{ t( "whiteBalance" ) }}</label>
                     <toggle-button
                         v-model="internalValue.quick.whiteBalance"
                         name="invert"
@@ -42,7 +42,7 @@
                     />
                 </div>
                 <div class="wrapper wrapper--toggle">
-                    <label>{{ $t( "invert" ) }}</label>
+                    <label>{{ t( "invert" ) }}</label>
                     <toggle-button
                         v-model="internalValue.quick.invert"
                         name="invert"
@@ -50,7 +50,7 @@
                     />
                 </div>
                 <div class="wrapper wrapper--toggle">
-                    <label>{{ $t( "grayscale" ) }}</label>
+                    <label>{{ t( "grayscale" ) }}</label>
                     <toggle-button
                         v-model="internalValue.quick.desaturate"
                         name="desaturate"
@@ -59,9 +59,9 @@
                 </div>
             </fieldset>
             <fieldset class="fieldset">
-                <legend>{{ $t( "colorAdjustments" ) }}</legend>
+                <legend>{{ t( "colorAdjustments" ) }}</legend>
                 <div class="wrapper wrapper--slider">
-                    <label>{{ $t( "hue" ) }}</label>
+                    <label>{{ t( "hue" ) }}</label>
                     <normalised-slider
                         v-model="internalValue.hsl.hue"
                         :denormalise="denormaliseHSLValue('hue')"
@@ -69,7 +69,7 @@
                     />
                 </div>
                 <div class="wrapper wrapper--slider">
-                    <label>{{ $t( "saturation" ) }}</label>
+                    <label>{{ t( "saturation" ) }}</label>
                     <normalised-slider
                         v-model="internalValue.hsl.sat"
                         :denormalise="denormaliseHSLValue('saturation')"
@@ -77,7 +77,7 @@
                     />
                 </div>
                 <div class="wrapper wrapper--slider">
-                    <label>{{ $t( "lightness" ) }}</label>
+                    <label>{{ t( "lightness" ) }}</label>
                     <normalised-slider
                         v-model="internalValue.hsl.lightness"
                         :denormalise="denormaliseHSLValue('lightness')"
@@ -85,7 +85,7 @@
                     />
                 </div>
                 <div class="wrapper wrapper--slider">
-                    <label>{{ $t( "vibrance" ) }}</label>
+                    <label>{{ t( "vibrance" ) }}</label>
                     <normalised-slider
                         v-model="internalValue.vibrance"
                         :denormalise="denormaliseValue('vibrance')"
@@ -94,9 +94,9 @@
                 </div>
             </fieldset>
             <fieldset class="fieldset">
-                <legend>{{ $t( "toneAdjustments" ) }}</legend>
+                <legend>{{ t( "toneAdjustments" ) }}</legend>
                 <div class="wrapper wrapper--slider">
-                    <label>{{ $t( "exposure" ) }}</label>
+                    <label>{{ t( "exposure" ) }}</label>
                     <normalised-slider
                         v-model="internalValue.exposure"
                         :denormalise="denormaliseValue('exposure')"
@@ -104,7 +104,7 @@
                     />
                 </div>
                 <div class="wrapper wrapper--slider">
-                    <label>{{ $t( "gamma" ) }}</label>
+                    <label>{{ t( "gamma" ) }}</label>
                     <normalised-slider
                         v-model="internalValue.gamma"
                         :denormalise="denormaliseValue('gamma')"
@@ -112,7 +112,7 @@
                     />
                 </div>
                 <div class="wrapper wrapper--slider">
-                    <label>{{ $t( "brightness" ) }}</label>
+                    <label>{{ t( "brightness" ) }}</label>
                     <normalised-slider
                         v-model="internalValue.brightness"
                         :denormalise="denormaliseValue('brightness')"
@@ -120,7 +120,7 @@
                     />
                 </div>
                 <div class="wrapper wrapper--slider">
-                    <label>{{ $t( "contrast" ) }}</label>
+                    <label>{{ t( "contrast" ) }}</label>
                     <normalised-slider
                         v-model="internalValue.contrast"
                         :denormalise="denormaliseValue('contrast')"
@@ -129,9 +129,9 @@
                 </div>
             </fieldset>
             <fieldset class="fieldset fieldset--duotone">
-                <legend>{{ $t( "filters" ) }}</legend>
+                <legend>{{ t( "filters" ) }}</legend>
                 <div class="wrapper wrapper--toggle">
-                    <label for="duotone">{{ $t( "duotone" ) }}</label>
+                    <label for="duotone">{{ t( "duotone" ) }}</label>
                     <toggle-button
                         v-model="internalValue.duotone.enabled"
                         name="duotone"
@@ -156,7 +156,7 @@
                     </div>
                 </div>
                 <div class="wrapper wrapper--slider">
-                    <label>{{ $t( "threshold") }}</label>
+                    <label>{{ t( "threshold") }}</label>
                     <slider
                         v-model="internalValue.threshold"
                         :min="-1"
@@ -165,7 +165,7 @@
                     />
                 </div>
                 <div class="wrapper wrapper--slider">
-                    <label>{{ $t( "blur" ) }}</label>
+                    <label>{{ t( "blur" ) }}</label>
                     <slider
                         v-model="internalValue.blur"
                         :min="0"
@@ -179,22 +179,23 @@
                 type="button"
                 class="button button--small"
                 @click="reset()"
-            >{{ $t( "reset" ) }}</button>
+            >{{ t( "reset" ) }}</button>
             <button
                 type="button"
                 class="button button--small"
                 @click="cancel()"
-            >{{ $t( "cancel" ) }}</button>
+            >{{ t( "cancel" ) }}</button>
             <button
                 type="button"
                 class="button button--small"
                 @click="save()"
-            >{{ $t( "save" ) }}</button>
+            >{{ t( "save" ) }}</button>
         </div>
     </div>
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import isEqual from "lodash.isequal";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
@@ -223,7 +224,6 @@ const NON_PERCENTILE_PROPS: ( keyof Filters )[] = [ "brightness", "contrast", "e
 
 export default {
     emits: [ "close" ],
-    i18n: { messages },
     components: {
         ColorPicker,
         NormalisedSlider,
@@ -234,6 +234,10 @@ export default {
     data: () => ({
         internalValue: {} as Partial<Filters>,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeDocument",

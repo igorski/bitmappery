@@ -23,12 +23,12 @@
 <template>
     <modal>
         <template #header>
-            <h2 class="component__title">{{ $t( "loadSelection" ) }}</h2>
+            <h2 class="component__title">{{ t( "loadSelection" ) }}</h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="requestLoad()">
                 <div class="wrapper wrapper--select">
-                    <label>{{ $t( "availableSelections" ) }}</label>
+                    <label>{{ t( "availableSelections" ) }}</label>
                     <select-box
                         :options="selections"
                         v-model="name"
@@ -42,27 +42,27 @@
                 class="button"
                 :disabled="!isValid"
                 @click="requestLoad()"
-            >{{ $t( "load" ) }}</button>
+            >{{ t( "load" ) }}</button>
             <button
                 type="button"
                 class="button"
                 @click="closeModal()"
-            >{{ $t( "cancel" ) }}</button>
+            >{{ t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>
 
-<script>
+<script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import ToolTypes from "@/definitions/tool-types";
-import SelectBox  from "@/components/ui/select-box/select-box.vue";
+import SelectBox from "@/components/ui/select-box/select-box.vue";
 import { getCanvasInstance } from "@/services/canvas-service";
-import { mapSelectOptions }  from "@/utils/search-select-util";
+import { mapSelectOptions, type SelectionOption }  from "@/utils/search-select-util";
 import Modal from "@/components/modal/modal.vue";
 
 import messages from "./messages.json";
 export default {
-    i18n: { messages },
     components: {
         Modal,
         SelectBox,
@@ -70,18 +70,22 @@ export default {
     data: () => ({
         name: "",
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeDocument",
         ]),
-        selections() {
+        selections(): SelectionOption[] {
             return mapSelectOptions( Object.keys( this.activeDocument.selections ));
         },
-        isValid() {
+        isValid(): boolean {
             return this.name.length > 0;
         },
     },
-    created() {
+    created(): void {
         this.name = this.selections[ 0 ].value;
     },
     methods: {
@@ -89,7 +93,7 @@ export default {
             "closeModal",
             "setActiveTool",
         ]),
-        async requestLoad() {
+        async requestLoad(): Promise<void> {
             if ( !this.isValid ) {
                 return;
             }

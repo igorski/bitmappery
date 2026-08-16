@@ -23,13 +23,13 @@
 <template>
     <modal class="export-modal">
         <template #header>
-            <h2 class="component__title">{{ $t( "exportImage" ) }}</h2>
+            <h2 class="component__title">{{ t( "exportImage" ) }}</h2>
         </template>
         <template #content>
             <div class="export-ui">
                 <div class="form export-form" @keyup.enter="exportImage">
                     <div class="wrapper wrapper--select">
-                        <label>{{ $t( "imageType" ) }}</label>
+                        <label>{{ t( "imageType" ) }}</label>
                         <select-box
                             :options="fileTypes"
                             v-model="type"
@@ -39,7 +39,7 @@
                         v-if="hasQualityOptions"
                         class="wrapper slider"
                     >
-                        <label>{{ $t( "imageQuality" ) }}</label>
+                        <label>{{ t( "imageQuality" ) }}</label>
                         <slider
                             v-model="quality"
                             :min="0"
@@ -47,7 +47,7 @@
                         />
                     </div>
                     <div class="wrapper wrapper--input">
-                        <label>{{ $t( "fileName" ) }}</label>
+                        <label>{{ t( "fileName" ) }}</label>
                         <input
                             type="text"
                             v-model="name"
@@ -56,27 +56,27 @@
                     </div>
                     <template v-if="canCreateAnimatedGIF">
                         <div class="wrapper wrapper--toggle">
-                            <label>{{ $t( "toAnimation" ) }}</label>
+                            <label>{{ t( "toAnimation" ) }}</label>
                             <toggle-button
                                 v-model="contentToAnimation"
                                 name="createAnimatedGIF"
                             />
                         </div>
                         <div v-if="contentToAnimation" class="wrapper wrapper--input wrapper--small">
-                            <label>{{ $t( "frameDuration" ) }}</label>
+                            <label>{{ t( "frameDuration" ) }}</label>
                             <input
                                 type="number"
                                 v-model="frameDurationMs"
                                 class="input-field"
                             />
-                            <span class="input-suffix">{{ $t( "millis" ) }}</span>
+                            <span class="input-suffix">{{ t( "millis" ) }}</span>
                         </div>
                     </template>
                     <div
                         v-if="hasCloudStorage"
                         class="wrapper wrapper--select"
                     >
-                        <label>{{ $t( "storageLocation" ) }}</label>
+                        <label>{{ t( "storageLocation" ) }}</label>
                         <select-box
                             :options="storageLocations"
                             v-model="storageLocation"
@@ -86,9 +86,9 @@
                     <component :is="driveSaveComponent"   ref="driveComponent" />
                     <component :is="s3SaveComponent"      ref="s3Component" />
                     <template v-if="canCreateSpriteSheet">
-                        <p class="expl">{{ $t( "toSheetExpl" ) }}</p>
+                        <p class="expl">{{ t( "toSheetExpl" ) }}</p>
                         <div class="wrapper wrapper--toggle">
-                            <label>{{ $t( "toSpriteSheet" ) }}</label>
+                            <label>{{ t( "toSpriteSheet" ) }}</label>
                             <toggle-button
                                 v-model="contentToSpriteSheet"
                                 name="contentToSpriteSheet"
@@ -96,7 +96,7 @@
                         </div>
                         <template v-if="contentToSpriteSheet">
                             <div class="wrapper wrapper--input wrapper--small">
-                                <label>{{ $t( "columnAmount" ) }}</label>
+                                <label>{{ t( "columnAmount" ) }}</label>
                                 <input
                                     type="number"
                                     v-model.number="sheetCols"
@@ -112,7 +112,7 @@
                     v-if="showOriginal && previewOriginalBlob"
                     class="document-preview"
                     ref="previewOriginal"
-                    :title="$t('original')"
+                    :title="t('original')"
                     :src="previewOriginalBlob"
                     :is-actual-size="actualSize && !isSmallSize"
                     :is-landscape="isLandscape"
@@ -123,7 +123,7 @@
                     v-if="previewBlob"
                     class="document-preview"
                     ref="previewExport"
-                    :title="$t('exported', { type: selectedType, quality: hasQualityOptions ? quality : 100 })"
+                    :title="t('exported', { type: selectedType, quality: hasQualityOptions ? quality : 100 })"
                     :src="previewBlob"
                     :is-actual-size="actualSize && !isSmallSize"
                     :is-landscape="isLandscape"
@@ -140,23 +140,23 @@
                         class="button"
                         :disabled="isLoading"
                         @click="exportImage()"
-                    >{{ $t( "export" ) }}</button>
+                    >{{ t( "export" ) }}</button>
                     <button
                         type="button"
                         class="button"
                         @click="closeModal()"
-                    >{{ $t( "cancel" ) }}</button>
+                    >{{ t( "cancel" ) }}</button>
                 </div>
                 <div class="export-actions__group export-options">
                     <div v-if="showOriginal" class="wrapper wrapper--toggle option-button">
-                        <label>{{ $t( "syncScroll" ) }}</label>
+                        <label>{{ t( "syncScroll" ) }}</label>
                         <toggle-button
                             v-model="syncPreviews"
                             name="syncPreviews"
                         />
                     </div>
                     <div v-if="canChooseSize" class="wrapper wrapper--toggle option-button">
-                        <label>{{ $t( "viewActualSize" ) }}</label>
+                        <label>{{ t( "viewActualSize" ) }}</label>
                         <toggle-button
                             v-model="actualSize"
                             name="actualSize"
@@ -170,6 +170,7 @@
 
 <script lang="ts">
 import { type Component, defineAsyncComponent } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import DocumentPreview, { type PreviewScrollPos } from "@/components/document-preview/document-preview.vue"
 import Modal from "@/components/modal/modal.vue";
@@ -193,7 +194,6 @@ import messages from "./messages.json";
 const SMALL_IMAGE_SIZE_PX = 400;
 
 export default {
-    i18n: { messages },
     components: {
         DocumentPreview,
         Modal,
@@ -219,6 +219,10 @@ export default {
         storageLocation : STORAGE_TYPES.LOCAL,
         hasCloudStorage : supportsDropbox() || supportsGoogleDrive() || supportsS3(),
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapState([
             "loadingStates",
@@ -268,15 +272,15 @@ export default {
             return canExportAsAnimation( this.activeDocument );
         },
         storageLocations(): { label: string, value: STORAGE_TYPES }[] {
-            const out = [{ label: this.$t( "local" ), value: STORAGE_TYPES.LOCAL }];
+            const out = [{ label: this.t( "local" ), value: STORAGE_TYPES.LOCAL }];
             if ( supportsDropbox() ) {
-                out.push({ label: this.$t( "dropbox" ), value: STORAGE_TYPES.DROPBOX });
+                out.push({ label: this.t( "dropbox" ), value: STORAGE_TYPES.DROPBOX });
             }
             if ( supportsGoogleDrive() ) {
-                out.push({ label: this.$t( "drive" ), value: STORAGE_TYPES.DRIVE });
+                out.push({ label: this.t( "drive" ), value: STORAGE_TYPES.DRIVE });
             }
             if ( supportsS3() ) {
-                out.push({ label: this.$t( "s3" ), value: STORAGE_TYPES.S3 });
+                out.push({ label: this.t( "s3" ), value: STORAGE_TYPES.S3 });
             }
             return out;
         },

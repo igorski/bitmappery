@@ -23,25 +23,25 @@
 <template>
     <modal>
         <template #header>
-            <h2 class="component__title">{{ $t( "documentProperties" ) }}</h2>
+            <h2 class="component__title">{{ t( "documentProperties" ) }}</h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="save()">
-                <h3 class="title">{{ $t( "options" ) }}</h3>
+                <h3 class="title">{{ t( "options" ) }}</h3>
                 <div class="wrapper wrapper--picker">
-                    <label>{{ $t( "backgroundColor" ) }}</label>
+                    <label>{{ t( "backgroundColor" ) }}</label>
                     <color-picker
                         v-model="backgroundColor"
-                        v-tooltip="$t('color')"
+                        v-tooltip="t('color')"
                         color-type="HEXA"
                     />
                 </div>
-                <h3 class="title">{{ $t( "swatches" ) }}</h3>
+                <h3 class="title">{{ t( "swatches" ) }}</h3>
                 <div
                     v-if="hasSwatches"
                     class="wrapper wrapper--picker-list"
                 >
-                    <label>{{ $t( "availableSwatches" ) }}</label>
+                    <label>{{ t( "availableSwatches" ) }}</label>
                     <div class="wrapper--picker-list__container">
                         <color-picker
                             v-for="( _swatch, index ) in swatches"
@@ -53,19 +53,19 @@
                 <p
                     v-else
                     class="expl"
-                >{{ $t( "noSwatchesAvailable" ) }}</p>
+                >{{ t( "noSwatchesAvailable" ) }}</p>
                 <div class="wrapper wrapper--picker">
-                    <label>{{ $t( "newSwatch" ) }}</label>
+                    <label>{{ t( "newSwatch" ) }}</label>
                     <color-picker
                         v-model="newSwatchColor"
-                        v-tooltip="$t('color')"
+                        v-tooltip="t('color')"
                         color-type="HEXA"
                     />
                     <button
                         type="button"
                         class="button button--small button__add-swatch"
                         @click="addSwatch()"
-                    >{{ $t( "addSwatch" ) }}</button>
+                    >{{ t( "addSwatch" ) }}</button>
                 </div>
             </div>
         </template>
@@ -75,17 +75,18 @@
                 class="button"
                 :disabled="!isValid"
                 @click="save()"
-            >{{ $t( "save" ) }}</button>
+            >{{ t( "save" ) }}</button>
             <button
                 type="button"
                 class="button"
                 @click="closeModal()"
-            >{{ $t( "cancel" ) }}</button>
+            >{{ t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import ColorPicker from "@/components/ui/color-picker/color-picker.vue";
@@ -93,7 +94,6 @@ import { editDocumentProperties, TRANSPARENT_COLOR } from "@/model/actions/docum
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages },
     components: {
         ColorPicker,
         Modal,
@@ -103,6 +103,10 @@ export default {
         newSwatchColor: "",
         swatches: [],
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeColor",
@@ -141,7 +145,7 @@ export default {
         },
         addSwatch(): void {
             if ( this.swatches.includes( this.newSwatchColor )) {
-                this.showNotification({ title: "", message: this.$t( "duplicateColor" )});
+                this.showNotification({ title: "", message: this.t( "duplicateColor" )});
                 return;
             }
             this.swatches.push( this.newSwatchColor );

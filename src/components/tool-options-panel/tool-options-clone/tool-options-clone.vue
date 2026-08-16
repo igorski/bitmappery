@@ -22,9 +22,9 @@
  */
 <template>
     <div class="tool-option">
-        <h3>{{ $t( "cloneBrush" ) }}</h3>
+        <h3>{{ t( "cloneBrush" ) }}</h3>
         <div class="wrapper wrapper--select">
-            <label>{{ $t( "sourceLayer" ) }}</label>
+            <label>{{ t( "sourceLayer" ) }}</label>
             <select-box
                 v-model="sourceLayer"
                 :options="selectableLayers"
@@ -32,7 +32,7 @@
             />
         </div>
         <div class="wrapper wrapper--slider">
-            <label>{{ $t( "brushSize" ) }}</label>
+            <label>{{ t( "brushSize" ) }}</label>
             <slider
                 v-model="brushSize"
                 :min="1"
@@ -41,7 +41,7 @@
             />
         </div>
         <!-- <div class="wrapper wrapper--slider">
-            <label>{{ $t( "thickness" ) }}</label>
+            <label>{{ t( "thickness" ) }}</label>
             <slider
                 v-model="thickness"
                 :min="0"
@@ -50,7 +50,7 @@
             />
         </div> -->
         <div class="wrapper wrapper--slider">
-            <label>{{ $t( "opacity" ) }}</label>
+            <label>{{ t( "opacity" ) }}</label>
             <slider
                 v-model="opacity"
                 :min="0"
@@ -65,12 +65,13 @@
                 class="button button--small full"
                 :disabled="disabled"
                 @click="resetSourceCoordinate()"
-            >{{ $t( "selectSourceCoordinate" ) }}</button>
+            >{{ t( "selectSourceCoordinate" ) }}</button>
         </div>
     </div>
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import ToolTypes, { MAX_BRUSH_SIZE, TOOL_SRC_MERGED, canDraw } from "@/definitions/tool-types";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
@@ -80,7 +81,6 @@ import messages from "./messages.json";
 let orgCoords = null;
 
 export default {
-    i18n: { messages },
     components: {
         SelectBox,
         Slider,
@@ -88,6 +88,10 @@ export default {
     data: () => ({
         MAX_BRUSH_SIZE,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeDocument",
@@ -102,7 +106,7 @@ export default {
         selectableLayers(): { label: string, value: string }[] {
             return [
                 ...( this.layers || [] ).filter(({ visible }) => visible ),
-                { name: this.$t( "merged" ), id: TOOL_SRC_MERGED }
+                { name: this.t( "merged" ), id: TOOL_SRC_MERGED }
             ]
             .map( layer => ({ label: layer.name, value: layer.id }))
             .reverse();

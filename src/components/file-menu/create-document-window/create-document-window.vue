@@ -23,12 +23,12 @@
 <template>
     <modal class="create-document">
         <template #header>
-            <h2 class="component__title">{{ $t( "newDocument" ) }}</h2>
+            <h2 class="component__title">{{ t( "newDocument" ) }}</h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="save()">
                 <div class="wrapper wrapper--input">
-                    <label>{{ $t( "name" ) }}</label>
+                    <label>{{ t( "name" ) }}</label>
                     <input
                         ref="first"
                         v-model="name"
@@ -37,14 +37,14 @@
                     />
                 </div>
                 <div class="wrapper wrapper--select wrapper--small">
-                    <label>{{ $t( "documentType" ) }}</label>
+                    <label>{{ t( "documentType" ) }}</label>
                     <select-box
                         :options="types"
                         v-model="type"
                     />
                 </div>
                 <div class="wrapper wrapper--select wrapper--small">
-                    <label>{{ $t( "preset" ) }}</label>
+                    <label>{{ t( "preset" ) }}</label>
                     <select-box
                         :options="presets"
                         v-model="preset"
@@ -53,12 +53,12 @@
                 <dimensions-formatter
                     v-model="dimensions"
                 />
-                <h3 class="title">{{ $t( "options" ) }}</h3>
+                <h3 class="title">{{ t( "options" ) }}</h3>
                 <div class="wrapper wrapper--picker">
-                    <label>{{ $t( "backgroundColor" ) }}</label>
+                    <label>{{ t( "backgroundColor" ) }}</label>
                     <color-picker
                         v-model="backgroundColor"
-                        v-tooltip="$t('color')"
+                        v-tooltip="t('color')"
                         color-type="HEXA"
                     />
                 </div>
@@ -69,17 +69,18 @@
                 type="button"
                 class="button"
                 @click="save()"
-            >{{ $t( "create" ) }}</button>
+            >{{ t( "create" ) }}</button>
             <button
                 type="button"
                 class="button"
                 @click="closeModal()"
-            >{{ $t( "cancel" ) }}</button>
+            >{{ t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
@@ -94,7 +95,6 @@ import messages from "./messages.json";
 const TRANSPARENT_COLOR = "#FFFFFF00"; 
 
 export default {
-    i18n: { messages },
     components: {
         ColorPicker,
         DimensionsFormatter,
@@ -113,25 +113,29 @@ export default {
         },
         backgroundColor: TRANSPARENT_COLOR,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "documents",
         ]),
         types(): { label: string, value: DocumentType }[] {
             return [
-                { label: this.$t( "default" ), value: "default" },
-                { label: this.$t( "timeline" ), value: "timeline" }
+                { label: this.t( "default" ), value: "default" },
+                { label: this.t( "timeline" ), value: "timeline" }
             ];
         },
         presets(): { label: string, value: PresetValue }[] {
             if ( this.type === "timeline" ) {
                 return Object.keys( TimelinePresets ).map(( name: string ) => {
-                    return { label: this.$t( name ), value: name };
+                    return { label: this.t( name ), value: name };
                 });
             }
 
             return Object.keys( DefaultPresets ).map(( name: string ) => {
-                return { label: this.$t( name ), value: name };
+                return { label: this.t( name ), value: name };
             });
         },
     },
@@ -156,7 +160,7 @@ export default {
         },
     },
     mounted(): void {
-        this.name = this.$t( "newDocumentNum", { num: this.documents.length + 1 });
+        this.name = this.t( "newDocumentNum", { num: this.documents.length + 1 });
         focus( this.$refs.first );
     },
     methods: {
