@@ -60,7 +60,7 @@
                         <button
                             type="button"
                             class="entry__delete-button"
-                            :title="$t('delete')"
+                            :title="t('delete')"
                             @click="handleDeleteClick( node )"
                         >x</button>
                     </div>
@@ -74,7 +74,7 @@
                 <div class="wrapper wrapper--input">
                     <input
                         v-model="newFolderName"
-                        :placeholder="$t('newFolderName')"
+                        :placeholder="t('newFolderName')"
                         :disabled="disabled"
                         type="text"
                         class="input-field full"
@@ -86,7 +86,7 @@
                 class="button"
                 :disabled="!newFolderName || disabled"
                 @click="handleCreateFolderClick()"
-            >{{ $t( "createFolder" ) }}</button>
+            >{{ t( "createFolder" ) }}</button>
         </div>
     </div>
 </div>

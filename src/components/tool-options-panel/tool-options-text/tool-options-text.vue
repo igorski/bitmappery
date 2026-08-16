@@ -139,7 +139,7 @@ export default {
         layerId: null,
     }),
     setup(): { t: ComposerTranslation } {
-        const { t } = useI18n({ messages });
+        const { t } = useI18n({ messages, sharedMessages });
         return { t };
     },
     computed: {
