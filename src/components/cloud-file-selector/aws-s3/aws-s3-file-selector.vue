@@ -24,11 +24,13 @@
 
 <script lang="ts">
 import type { Component } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import CloudFileSelector from "../cloud-file-selector";
 import S3ImagePreview from "./aws-s3-image-preview.vue";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { type FileNode, STORAGE_TYPES } from "@/definitions/storage-types";
 import { getS3Service } from "@/utils/cloud-service-loader";
+import messages from "../messages.json";
 
 let listFolder, createFolder, downloadFileAsBlob, deleteEntry;
 
@@ -38,6 +40,10 @@ export default {
         LAST_FOLDER_STORAGE_KEY: "bpy_s3Db",
         STORAGE_PROVIDER: STORAGE_TYPES.S3,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         imagePreviewComponent(): Component {
             return S3ImagePreview;

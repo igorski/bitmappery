@@ -24,12 +24,14 @@
 
 <script lang="ts">
 import { type Component } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapMutations } from "vuex";
 import CloudFileSelector from "../cloud-file-selector";
 import DropboxImagePreview from "./dropbox-image-preview.vue";
 import { type FileNode, STORAGE_TYPES } from "@/definitions/storage-types";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { getDropboxService } from "@/utils/cloud-service-loader";
+import messages from "../messages.json";
 
 let listFolder, createFolder, downloadFileAsBlob, deleteEntry;
 
@@ -42,6 +44,10 @@ export default {
         LAST_FOLDER_STORAGE_KEY: "bpy_dropboxDb",
         STORAGE_PROVIDER : STORAGE_TYPES.DROPBOX,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         imagePreviewComponent(): Component {
             return DropboxImagePreview;

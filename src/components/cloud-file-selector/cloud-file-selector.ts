@@ -21,7 +21,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Component } from "vue";
-import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapState, mapMutations, mapActions } from "vuex";
 import { loader } from "zcanvas";
 import { ACCEPTED_FILE_EXTENSIONS, isThirdPartyDocument, getMimeForThirdPartyDocument } from "@/definitions/file-types";
@@ -30,8 +29,6 @@ import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import { focus } from "@/utils/environment-util";
 import { disposeResource } from "@/utils/resource-manager";
 import { truncate } from "@/utils/string-util";
-
-import messages from "./messages.json";
 
 const RETRIEVAL_LOAD_KEY = "cld_r";
 const ACTION_LOAD_KEY    = "cld_a";
@@ -89,10 +86,6 @@ export default {
         leaf: null,
         newFolderName: "",
     }),
-    setup(): { t: ComposerTranslation } {
-        const { t } = useI18n({ messages });
-        return { t };
-    },
     computed: {
         ...mapState([
             "loadingStates",

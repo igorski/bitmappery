@@ -139,7 +139,10 @@ export default {
         layerId: null,
     }),
     setup(): { t: ComposerTranslation } {
-        const { t } = useI18n({ messages, sharedMessages });
+        const { t, mergeLocaleMessage } = useI18n({ messages });
+        Object.keys( sharedMessages ).forEach( locale => {
+            mergeLocaleMessage( locale, sharedMessages[ locale ]);
+        });
         return { t };
     },
     computed: {

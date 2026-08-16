@@ -24,12 +24,14 @@
 
 <script lang="ts">
 import { type Component } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapMutations } from "vuex";
 import CloudFileSelector from "../cloud-file-selector";
 import GoogleDriveImagePreview from "./google-drive-image-preview.vue";
 import { PROJECT_FILE_EXTENSION } from "@/definitions/file-types";
 import { type FileNode, STORAGE_TYPES } from "@/definitions/storage-types";
 import { getGoogleDriveService } from "@/utils/cloud-service-loader";
+import messages from "../messages.json";
 
 let ROOT_FOLDER, listFolder, createFolder, downloadFileAsBlob, deleteEntry;
 
@@ -39,6 +41,10 @@ export default {
         LAST_FOLDER_STORAGE_KEY: "bpy_driveDb",
         STORAGE_PROVIDER: STORAGE_TYPES.DRIVE,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         imagePreviewComponent(): Component {
             return GoogleDriveImagePreview;
