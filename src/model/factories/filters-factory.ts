@@ -30,8 +30,8 @@ export type FiltersProps = DeepPartial<Filters>;
 
 export const FACTORY_VERSION = 2;
 
-export const DEFAULT_DUOTONE_1 = "#FF0000";
-export const DEFAULT_DUOTONE_2 = "#0099FF";
+export const DEFAULT_DUOTONE_1 = "#9C27B0";
+export const DEFAULT_DUOTONE_2 = "#FFEE00";
 
 const DEFAULT_QUICK_SETTINGS = {
     desaturate   : false,
