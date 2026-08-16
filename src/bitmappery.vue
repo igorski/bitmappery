@@ -69,6 +69,7 @@
 
 <script lang="ts">
 import { type Component, defineAsyncComponent } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import HeaderMenu from "@/components/menus/header-menu/header-menu.vue";
 import ToolOptionsPanel from "@/components/tool-options-panel/tool-options-panel.vue";
@@ -93,6 +94,7 @@ import {
     ADD_LAYER, SELECTION_EXPAND, SELECTION_SHRINK, SELECTION_LOAD, SELECTION_SAVE, PREFERENCES, RESIZE_CANVAS,
     GRID_TO_LAYERS, STROKE_SELECTION, ANIMATION_PREVIEW, DOCUMENT_PROPERTIES,
 } from "@/definitions/modal-windows";
+import messages from "./messages.json";
 
 let lastDocumentId: string | undefined;
 
@@ -128,6 +130,10 @@ export default {
     data: () => ({
         docWidth: "100%",
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapState([
             "blindActive",

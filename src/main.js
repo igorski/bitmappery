@@ -4,7 +4,6 @@ import * as Vue from "vue";
 import { createStore } from "vuex";
 import { createI18n } from "vue-i18n";
 import BitMappery from "./bitmappery.vue";
-import messages from "./messages.json";
 import store from "./store";
 
 FloatingVue.options.themes.tooltip.delay.show = 500;
@@ -16,7 +15,6 @@ globalThis.Buffer = Buffer;
 // Create VueI18n instance
 const i18n = createI18n({
     legacy: false,
-    messages,
 });
 
 const app = Vue.createApp( BitMappery );

@@ -77,7 +77,7 @@ export interface BitMapperyState {
 let translator: ( key: string, ...opts: unknown[] ) => string;
 const translate = ( key: string, optArgs?: any ): string => {
     return typeof translator === "function" ? translator?.( key, optArgs ) as string : key;
-}
+};
 
 export default {
     modules: {
