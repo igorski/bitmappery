@@ -23,7 +23,7 @@
 <template>
     <div class="save-drive-document">
         <div class="wrapper wrapper--input">
-            <label v-t="'folder'"></label>
+            <label>{{ t( "folder" ) }}</label>
             <input
                 type="text"
                 v-model="folder"
@@ -31,11 +31,12 @@
                 class="input-field"
             />
         </div>
-        <p v-t="'folderExpl'" class="expl"></p>
+        <p class="expl">{{ t( "folderExpl" ) }}</p>
     </div>
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapMutations } from "vuex";
 import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import { getGoogleDriveService } from "@/utils/cloud-service-loader";
@@ -46,13 +47,16 @@ import messages from "./messages.json";
 let getCurrentFolder, setCurrentFolder, getFolderHierarchy, createFolder, uploadBlob;
 
 export default {
-    i18n: { sharedMessages, messages },
     mixins: [ CloudServiceConnector ],
     data: () => ({
         loading   : true,
         folder    : "",
         hierarchy : [],
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages, sharedMessages });
+        return { t };
+    },
     computed: {
         isValid(): boolean {
             return this.name.length > 0;
@@ -102,9 +106,9 @@ export default {
                     throw new Error();
                 }
                 setCurrentFolder( folderId );
-                this.showNotification({ message: this.$t( "fileSavedInDrive", { file: fileName }) });
+                this.showNotification({ message: this.t( "fileSavedInDrive", { file: fileName }) });
             } catch ( e ) {
-                this.openDialog({ type: "error", message: this.$t( "errorOccurred" ) });
+                this.openDialog({ type: "error", message: this.t( "errorOccurred" ) });
             }
             this.unsetLoading( "save" );
         },

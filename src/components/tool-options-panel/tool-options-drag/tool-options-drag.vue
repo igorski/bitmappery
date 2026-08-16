@@ -26,9 +26,9 @@
         @focusin="handleFocus()"
         @focusout="handleBlur()"
     >
-        <h3 v-t="isMask ? 'maskPosition' : 'layerPosition'"></h3>
+        <h3>{{ t( isMask ? "maskPosition" : "layerPosition" ) }}</h3>
         <div class="wrapper wrapper--input">
-            <label v-t="'coordinates'"></label>
+            <label>{{ t( "coordinates" ) }}</label>
             <input
                 type="number"
                 v-model.number="left"
@@ -48,24 +48,23 @@
         </div>
         <div class="actions">
             <button
-                v-t="'reset'"
                 type="button"
                 class="button button--small"
                 :disabled="disabled || !hasCustomOffset"
                 @click="reset()"
-            ></button>
+            >{{ t( "reset" ) }}</button>
             <button
-                v-t="'center'"
                 type="button"
                 class="button button--small"
                 :disabled="disabled || !canCenter"
                 @click="center()"
-            ></button>
+            >{{ t( "center" ) }}</button>
         </div>
     </div>
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters } from "vuex";
 import { canDragMask } from "@/definitions/tool-types";
 import { onLayerPropertiesChange } from "@/model/actions/layer-properties-change";
@@ -76,12 +75,15 @@ import { getRendererForLayer } from "@/model/factories/renderer-factory";
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages },
     data: () => ({
         internalText: "",
         renderPending: false,
         layerId: null,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeDocument",

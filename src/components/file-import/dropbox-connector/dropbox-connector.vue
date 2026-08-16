@@ -25,41 +25,43 @@
         <template v-if="!authenticated">
             <button
                 v-if="authUrl"
-                v-t="'loginToDropbox'"
                 type="button"
                 class="button dropbox"
                 @click="loginDropbox()"
-            ></button>
+            >{{ t( "loginToDropbox" ) }}</button>
         </template>
         <template v-if="authenticated || awaitingConnection">
             <button
-                v-t="authenticated ? 'importFromDropbox' : 'connectingToDropbox'"
                 type="button"
                 class="button dropbox"
                 :disabled="awaitingConnection"
                 @click="openFileBrowserDropbox()"
-            ></button>
+            >{{ t( authenticated ? "importFromDropbox" : "connectingToDropbox" ) }}</button>
         </template>
     </div>
 </template>
 
-<script>
+<script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages, sharedMessages },
     mixins: [ CloudServiceConnector ],
     data: () => ({
         loading: true,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages, sharedMessages });
+        return { t };
+    },
     computed: {
-        awaitingConnection() {
+        awaitingConnection(): boolean {
             return !this.authenticated && !this.authUrl;
         },
     },
-    async created() {
+    async created(): Promise<void> {
         this.loading = true;
         await this.initDropbox();
         this.loading = false;

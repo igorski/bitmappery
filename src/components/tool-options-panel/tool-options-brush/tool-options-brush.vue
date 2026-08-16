@@ -22,9 +22,9 @@
  */
 <template>
     <div class="tool-option">
-        <h3 v-t="'brush'"></h3>
+        <h3>{{ t( "brush" ) }}</h3>
         <div class="wrapper wrapper--select">
-            <label v-t="'brushType'"></label>
+            <label>{{ t( "brushType" ) }}</label>
             <select-box
                 v-model="brushType"
                 :options="brushTypes"
@@ -32,7 +32,7 @@
             />
         </div>
         <div class="wrapper wrapper--slider">
-            <label v-t="'brushSize'"></label>
+            <label>{{ t( "brushSize" ) }}</label>
             <slider
                 v-model="brushSize"
                 :min="1"
@@ -44,7 +44,7 @@
             v-if="hasThickness"
             class="wrapper wrapper--slider"
         >
-            <label v-t="'thickness'"></label>
+            <label>{{ t( "thickness" ) }}</label>
             <slider
                 v-model="thickness"
                 :min="0"
@@ -54,7 +54,7 @@
         </div>
         <template v-if="canStroke">
             <div class="wrapper wrapper--slider">
-                <label v-t="'strokeAmount'"></label>
+                <label>{{ t( "strokeAmount" ) }}</label>
                 <slider
                     v-model="strokes"
                     :min="1"
@@ -63,7 +63,7 @@
                 />
             </div>
             <div class="wrapper wrapper--toggle">
-                <label v-t="'smoothing'"></label>
+                <label>{{ t( "smoothing" ) }}</label>
                 <toggle-button
                     v-model="smooth"
                     sync
@@ -72,7 +72,7 @@
             </div>
         </template>
         <div class="wrapper wrapper--slider">
-            <label v-t="'opacity'"></label>
+            <label>{{ t( "opacity" ) }}</label>
             <slider
                 v-model="opacity"
                 :min="0"
@@ -84,6 +84,7 @@
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations }  from "vuex";
 import ToolTypes, { MAX_BRUSH_SIZE, canDraw } from "@/definitions/tool-types";
 import BrushTypes from "@/definitions/brush-types";
@@ -95,7 +96,6 @@ import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleBu
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages },
     components: {
         Slider,
         SelectBox,
@@ -104,6 +104,10 @@ export default {
     data: () => ({
         MAX_BRUSH_SIZE,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeDocument",
@@ -122,16 +126,16 @@ export default {
         },
         brushTypes(): { label: string, value: BrushTypes }[] {
             if ( this.isPixelArt ) {
-                return [{ label: this.$t( "pixel" ), value: BrushTypes.PIXEL }];
+                return [{ label: this.t( "pixel" ), value: BrushTypes.PIXEL }];
             }
             return [
-                { label: this.$t( "line" ),             value: BrushTypes.LINE },
-                { label: this.$t( "paintBrush" ),       value: BrushTypes.PAINT_BRUSH },
-                { label: this.$t( "pen" ),              value: BrushTypes.PEN },
-                { label: this.$t( "calligraphic" ),     value: BrushTypes.CALLIGRAPHIC },
-                { label: this.$t( "connectedPoints" ),  value: BrushTypes.CONNECTED },
-            //    { label: this.$t( "nearestNeighbour" ), value: BrushTypes.NEAREST },
-                { label: this.$t( "sprayCan" ),         value: BrushTypes.SPRAY }
+                { label: this.t( "line" ),             value: BrushTypes.LINE },
+                { label: this.t( "paintBrush" ),       value: BrushTypes.PAINT_BRUSH },
+                { label: this.t( "pen" ),              value: BrushTypes.PEN },
+                { label: this.t( "calligraphic" ),     value: BrushTypes.CALLIGRAPHIC },
+                { label: this.t( "connectedPoints" ),  value: BrushTypes.CONNECTED },
+            //    { label: this.t( "nearestNeighbour" ), value: BrushTypes.NEAREST },
+                { label: this.t( "sprayCan" ),         value: BrushTypes.SPRAY }
             ];
         },
         brushType: {

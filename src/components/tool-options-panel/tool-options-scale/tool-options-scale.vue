@@ -22,7 +22,7 @@
  */
 <template>
     <div class="tool-option">
-        <h3 v-t="'scale'"></h3>
+        <h3>{{ t( "scale" ) }}</h3>
         <div class="wrapper wrapper--slider wrapper--full">
             <slider
                 v-model="scale"
@@ -36,25 +36,24 @@
         </div>
         <div class="actions">
             <button
-                v-t="'reset'"
                 type="button"
                 class="button button--small"
                 :disabled="!activeLayer || !isScaled"
                 @click="reset()"
-            ></button>
+            >{{ t( "reset" ) }}</button>
             <button
                 v-if="isSaveable"
-                v-t="'save'"
                 type="button"
                 class="button button--small"
                 :disabled="!isScaled"
                 @click="save()"
-            ></button>
+            >{{ t( "save" ) }}</button>
         </div>
     </div>
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters } from "vuex";
 import { MIN_ZOOM, MAX_ZOOM } from "@/definitions/tool-types";
 import { LayerTypes } from "@/definitions/layer-types";
@@ -69,7 +68,6 @@ import messages  from "./messages.json";
 const SAVEABLE_TYPES = [ LayerTypes.LAYER_GRAPHIC, LayerTypes.LAYER_IMAGE ];
 
 export default {
-    i18n: { messages },
     components: {
         Slider,
     },
@@ -77,6 +75,10 @@ export default {
         min: MIN_ZOOM,
         max: MAX_ZOOM,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeLayer",

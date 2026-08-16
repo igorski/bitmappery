@@ -23,61 +23,64 @@
 <template>
     <modal>
         <template #header>
-            <h2 v-t="'saveSelection'" class="component__title"></h2>
+            <h2 class="component__title">{{ t( "saveSelection" ) }}</h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="requestSave()">
                 <div class="wrapper wrapper--input">
-                    <label v-t="'name'"></label>
-                    <input ref="nameInput"
-                           type="text"
-                           v-model="name"
-                           class="input-field"
+                    <label>{{ t( "name" ) }}</label>
+                    <input
+                        ref="nameInput"
+                        type="text"
+                        v-model="name"
+                        class="input-field"
                     />
                 </div>
             </div>
         </template>
         <template #actions>
             <button
-                v-t="'save'"
                 type="button"
                 class="button"
                 :disabled="!isValid"
                 @click="requestSave()"
-            ></button>
+            >{{ t( "save" ) }}</button>
             <button
-                v-t="'cancel'"
                 type="button"
                 class="button"
                 @click="closeModal()"
-            ></button>
+            >{{ t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>
 
-<script>
+<script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import { focus } from "@/utils/environment-util";
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages },
     components: {
         Modal,
     },
     data: () => ({
         name: "",
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeDocument",
         ]),
-        isValid() {
+        isValid(): boolean {
             return this.name.length > 0;
         },
     },
-    mounted() {
+    mounted(): void {
         focus( this.$refs.nameInput );
     },
     methods: {
@@ -85,7 +88,7 @@ export default {
             "closeModal",
             "saveSelection",
         ]),
-        requestSave() {
+        requestSave(): void {
             if ( !this.isValid ) {
                 return;
             }

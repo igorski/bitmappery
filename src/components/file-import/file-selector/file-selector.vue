@@ -23,10 +23,9 @@
 <template>
     <div class="form">
         <label
-            v-t="'importLocalFile'"
             for="file"
             class="file-label button button--secondary button--block"
-        ></label>
+        >{{ t( "importLocalFile" ) }}</label>
         <input
             type="file"
             id="file"
@@ -37,13 +36,17 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import ImageToDocumentManager from "@/mixins/image-to-document-manager";
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages },
     mixins: [ ImageToDocumentManager ],
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
 };
 </script>
 

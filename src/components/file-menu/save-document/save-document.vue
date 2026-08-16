@@ -23,7 +23,7 @@
 <template>
     <modal>
         <template #header>
-            <h2 v-t="'saveDocument'" class="component__title"></h2>
+            <h2 class="component__title">{{ t( "saveDocument" ) }}</h2>
         </template>
         <template #content>
             <div
@@ -31,7 +31,7 @@
                 @keyup.enter="requestSave()"
             >
                 <div class="wrapper wrapper--input">
-                    <label v-t="'documentTitle'"></label>
+                    <label>{{ t( "documentTitle" ) }}</label>
                     <input
                         ref="nameInput"
                         type="text"
@@ -43,7 +43,7 @@
                     v-if="hasCloudStorage"
                     class="wrapper wrapper--select"
                 >
-                    <label v-t="'storageLocation'"></label>
+                    <label>{{ t( "storageLocation" ) }}</label>
                     <select-box
                         :options="storageLocations"
                         v-model="storageLocation"
@@ -56,24 +56,23 @@
         </template>
         <template #actions>
             <button
-                v-t="'save'"
                 type="button"
                 class="button"
                 :disabled="!isValid"
                 @click="requestSave()"
-            ></button>
+            >{{ t( "save" ) }}</button>
             <button
-                v-t="'cancel'"
                 type="button"
                 class="button"
                 @click="closeModal()"
-            ></button>
+            >{{ t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>
 
 <script lang="ts">
 import { type Component, defineAsyncComponent } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
@@ -85,7 +84,6 @@ import { focus } from "@/utils/environment-util";
 
 import messages from "./messages.json";
 export default {
-    i18n: { messages },
     components: {
         Modal,
         SelectBox,
@@ -95,6 +93,10 @@ export default {
         storageLocation : STORAGE_TYPES.LOCAL,
         hasCloudStorage : supportsDropbox() || supportsGoogleDrive() || supportsS3(),
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapState([
             "storageType",
@@ -106,15 +108,15 @@ export default {
             return this.name.length > 0;
         },
         storageLocations(): { label: string, value: STORAGE_TYPES }[] {
-            const out = [{ label: this.$t( "local" ), value: STORAGE_TYPES.LOCAL }];
+            const out = [{ label: this.t( "local" ), value: STORAGE_TYPES.LOCAL }];
             if ( supportsDropbox() ) {
-                out.push({ label: this.$t( "dropbox" ), value: STORAGE_TYPES.DROPBOX });
+                out.push({ label: this.t( "dropbox" ), value: STORAGE_TYPES.DROPBOX });
             }
             if ( supportsGoogleDrive() ) {
-                out.push({ label: this.$t( "drive" ), value: STORAGE_TYPES.DRIVE });
+                out.push({ label: this.t( "drive" ), value: STORAGE_TYPES.DRIVE });
             }
             if ( supportsS3() ) {
-                out.push({ label: this.$t( "s3" ), value: STORAGE_TYPES.S3 });
+                out.push({ label: this.t( "s3" ), value: STORAGE_TYPES.S3 });
             }
             return out;
         },

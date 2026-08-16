@@ -23,12 +23,12 @@
 <template>
     <modal>
         <template #header>
-            <h2 v-t="'addNewLayer'" class="component__title"></h2>
+            <h2 class="component__title">{{ t( "addNewLayer" ) }}</h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="requestLayerAdd()">
                 <div class="wrapper wrapper--input">
-                    <label v-t="'layerName'"></label>
+                    <label>{{ t( "layerName" ) }}</label>
                     <input
                         ref="nameInput"
                         type="text"
@@ -37,7 +37,7 @@
                     />
                 </div>
                 <div class="wrapper wrapper--select">
-                    <label v-t="'layerType'"></label>
+                    <label>{{ t( "layerType" ) }}</label>
                     <select-box
                         :options="layerTypes"
                         v-model="type"
@@ -47,23 +47,22 @@
         </template>
         <template #actions>
             <button
-                v-t="'add'"
                 type="button"
                 class="button"
                 :disabled="!isValid"
                 @click="requestLayerAdd()"
-            ></button>
+            >{{ t( "add" ) }}</button>
             <button
-                v-t="'cancel'"
                 type="button"
                 class="button"
                 @click="closeModal()"
-            ></button>
+            >{{ t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
@@ -74,7 +73,6 @@ import { focus } from "@/utils/environment-util";
 
 import messages from "./messages.json";
 export default {
-    i18n: { messages },
     components: {
         Modal,
         SelectBox,
@@ -83,6 +81,10 @@ export default {
         name: "",
         type: LayerTypes.LAYER_GRAPHIC,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeDocument",
@@ -92,8 +94,8 @@ export default {
         ]),
         layerTypes(): { label: string, value: LayerTypes }[] {
             return [
-                { label: this.$t( "graphic" ), value: LayerTypes.LAYER_GRAPHIC },
-                { label: this.$t( "text" ), value: LayerTypes.LAYER_TEXT },
+                { label: this.t( "graphic" ), value: LayerTypes.LAYER_GRAPHIC },
+                { label: this.t( "text" ), value: LayerTypes.LAYER_TEXT },
             ];
         },
         isValid(): boolean {
@@ -102,7 +104,7 @@ export default {
     },
     created(): void {
         if ( !this.name ) {
-            this.name = this.$t( "newLayerNum", { num: this.layers.length + 1 });
+            this.name = this.t( "newLayerNum", { num: this.layers.length + 1 });
         }
     },
     mounted(): void {

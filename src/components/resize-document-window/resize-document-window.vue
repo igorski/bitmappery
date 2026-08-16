@@ -23,12 +23,12 @@
 <template>
     <modal class="resize-document">
         <template #header>
-            <h2 v-t="'resizeDocument'" class="component__title"></h2>
+            <h2 class="component__title">{{ t( "resizeDocument" ) }}</h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="save()">
                 <div class="wrapper wrapper--toggle">
-                    <label v-t="'maintainAspectRatio'"></label>
+                    <label>{{ t( "maintainAspectRatio" ) }}</label>
                     <toggle-button
                         v-model="maintainRatio"
                         name="ratio"
@@ -41,22 +41,21 @@
         </template>
         <template #actions>
             <button
-                v-t="'save'"
                 type="button"
                 class="button"
                 @click="save()"
-            ></button>
+            >{{ t( "save" ) }}</button>
             <button
-                v-t="'cancel'"
                 type="button"
                 class="button"
                 @click="closeModal()"
-            ></button>
+            >{{ t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import Modal from "@/components/modal/modal.vue";
@@ -66,7 +65,6 @@ import { resizeDocument } from "@/model/actions/document-resize";
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages },
     components: {
         Modal,
         ToggleButton,
@@ -83,6 +81,10 @@ export default {
         syncLock: false,
         maintainRatio: true,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeDocument",

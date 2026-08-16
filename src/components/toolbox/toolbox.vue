@@ -25,10 +25,9 @@
         <div class="component__header">
             <h2
                 v-if="!collapsed"
-                v-t="'tools'"
                 v-tooltip="'(Tab)'"
                 class="component__title"
-            ></h2>
+            >{{ t( "tools" ) }}</h2>
             <button
                 type="button"
                 class="component__header-button"
@@ -46,9 +45,9 @@
             <!-- history states -->
             <button
                 type="button"
-                v-tooltip="$t('undo')"
+                v-tooltip="t('undo')"
                 class="tool-button tool-button--docked"
-                :title="$t('undo')"
+                :title="t('undo')"
                 :disabled="!canUndo"
                 @click="undo()"
             >
@@ -56,9 +55,9 @@
             </button>
             <button
                 type="button"
-                v-tooltip="$t('redo')"
+                v-tooltip="t('redo')"
                 class="tool-button tool-button--docked tool-button--docked-second"
-                :title="$t('redo')"
+                :title="t('redo')"
                 :disabled="!canRedo"
                 @click="redo()"
             >
@@ -79,8 +78,8 @@
                         v-for="tool in group.tools"
                         :key="tool.type"
                         type="button"
-                        v-tooltip.right="`${$t( tool.i18n )} (${tool.key})`"
-                        :title="$t( tool.i18n )"
+                        v-tooltip.right="`${t( tool.i18n )} (${tool.key})`"
+                        :title="t( tool.i18n )"
                         class="tool-button"
                         :class="{
                             'active': activeTool === tool.type,
@@ -98,11 +97,11 @@
                 </div>
             </div>
             <div class="wrapper input color-panel">
-                <label v-t="'color'" class="color-panel__label"></label>
+                <label class="color-panel__label">{{ t( "color" ) }}</label>
                 <component
                     :is="colorPicker"
                     v-model="color"
-                    v-tooltip="`${$t('color')} (C)`"
+                    v-tooltip="`${t('color')} (C)`"
                     class="color-picker tool-button--docked tool-button--docked-color"
                 />
             </div>
@@ -112,6 +111,7 @@
 
 <script lang="ts">
 import { type Component, defineAsyncComponent } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { type Layer } from "@/model/types/layer";
 import { LayerTypes } from "@/definitions/layer-types";
@@ -150,10 +150,13 @@ const touchHistory: TouchHistory = {
 const toolGroupCache = new Map<string, ToolTypes>;
 
 export default {
-    i18n: { messages },
     data: () => ({
         mobileFocus: "", // which tool group is focused
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapState([
             "toolboxOpened",

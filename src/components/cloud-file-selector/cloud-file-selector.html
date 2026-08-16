@@ -1,6 +1,6 @@
 <div class="cloud-file-modal">
     <div class="component__header">
-        <h2 v-t="'files'" class="component__title"></h2>
+        <h2 class="component__title">{{ t( "files" ) }}</h2>
         <button
             type="button"
             class="component__header-button"
@@ -28,7 +28,7 @@
             </div>
             <div v-if="!loading" class="content__folders">
                 <!-- files and folders within current leaf -->
-                <p v-if="!filesAndFolders.length" v-t="'noImageFiles'"></p>
+                <p v-if="!filesAndFolders.length">{{ t( "noImageFiles" ) }} </p>
                 <template v-else>
                     <div
                         v-for="node in filesAndFolders"
@@ -60,7 +60,7 @@
                         <button
                             type="button"
                             class="entry__delete-button"
-                            :title="$t('delete')"
+                            :title="t('delete')"
                             @click="handleDeleteClick( node )"
                         >x</button>
                     </div>
@@ -74,7 +74,7 @@
                 <div class="wrapper wrapper--input">
                     <input
                         v-model="newFolderName"
-                        :placeholder="$t('newFolderName')"
+                        :placeholder="t('newFolderName')"
                         :disabled="disabled"
                         type="text"
                         class="input-field full"
@@ -82,12 +82,11 @@
                 </div>
             </div>
             <button
-                v-t="'createFolder'"
                 type="button"
                 class="button"
                 :disabled="!newFolderName || disabled"
                 @click="handleCreateFolderClick()"
-            ></button>
+            >{{ t( "createFolder" ) }}</button>
         </div>
     </div>
 </div>

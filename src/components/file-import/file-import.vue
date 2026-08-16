@@ -23,56 +23,52 @@
 <template>
     <div class="file-import">
         <div class="component__header">
-            <h2 v-t="'letsGetStarted'" class="component__title component__title--no-action"></h2>
+            <h2 class="component__title component__title--no-action">{{ t( "letsGetStarted" ) }}</h2>
         </div>
         <div class="file-import__body">
             <div class="form import-form">
-                <p v-t="'chooseContentCreationMethod'"></p>
+                <p>{{ t( "chooseContentCreationMethod" ) }}</p>
                 <button
-                    v-t="'createNewDocument'"
                     type="button"
                     class="button button--primary button--block new-document-button"
                     @click="requestNewDocument()"
-                ></button>
+                >{{ t( "createNewDocument" ) }}</button>
                 <div class="file-fieldset">
-                    <p v-t="'orImportFile'"></p>
+                    <p>{{ t( "orImportFile" ) }}</p>
                     <!-- Local -->
                     <file-selector />
                     <!-- Dropbox -->
                     <template v-if="hasDropbox">
                         <button
                             v-if="!dropbox"
-                            v-t="'importFromDropbox'"
                             type="button"
                             class="button button--block button--third-party dropbox"
                             @click="dropbox = true"
-                        ></button>
+                        >{{ t( "importFromDropbox" ) }}</button>
                         <component :is="dropboxImportType" />
                     </template>
                     <!-- Google Drive -->
                     <template v-if="hasDrive">
                         <button
                             v-if="!drive"
-                            v-t="'importFromGoogleDrive'"
                             type="button"
                             class="button button--block button--third-party drive"
                             @click="drive = true"
-                        ></button>
+                        >{{ t( "importFromGoogleDrive" ) }}</button>
                         <component :is="driveImportType" />
                     </template>
                     <!-- (AWS) S3 -->
                     <template v-if="hasS3">
                         <button
                             v-if="!s3"
-                            v-t="'importFromAwsS3'"
                             type="button"
                             class="button button--block button--third-party s3"
                             @click="s3 = true"
-                        ></button>
+                        >{{ t( "importFromAwsS3" ) }}</button>
                         <component :is="s3ImportType" />
                     </template>
                     <div class="wrapper wrapper--select">
-                        <label v-t="'openImageAsNew'" class="file-target-label"></label>
+                        <label class="file-target-label">{{ t( "openImageAsNew" ) }}</label>
                         <select-box
                             :options="fileTargetOptions"
                             v-model="importTarget"
@@ -80,7 +76,7 @@
                         />
                     </div>
                 </div>
-                <p v-t="'fileAndHelpExpl'"></p>
+                <p>{{ t( "fileAndHelpExpl" ) }}</p>
             </div>
         </div>
     </div>
@@ -88,6 +84,7 @@
 
 <script lang="ts">
 import { type Component, defineAsyncComponent } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import { CREATE_DOCUMENT } from "@/definitions/modal-windows";
 import FileSelector from "./file-selector/file-selector.vue";
@@ -97,10 +94,13 @@ import { mapSelectOptions } from "@/utils/search-select-util"
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages },
     components: {
         FileSelector,
         SelectBox,
+    },
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
     },
     data: () => ({
         dropbox: false,

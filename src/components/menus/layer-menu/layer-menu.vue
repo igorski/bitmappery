@@ -27,65 +27,59 @@
     >
         <li>
             <button
-                v-t="'duplicateLayer'"
                 type="button"
                 :disabled="!activeLayer"
                 @click="requestDuplicateLayer()"
-            ></button>
+            >{{ t( "duplicateLayer" ) }}</button>
         </li>
         <li>
             <button
-                v-t="'commitEffects'"
                 type="button"
                 :disabled="!activeLayerCanBeCommitted"
                 @click="commitLayerEffects()"
-            ></button>
+            >{{ t( "commitEffects" ) }}</button>
         </li>
         <li>
             <button
-                v-t="'copyLayerFilters'"
                 type="button"
                 :disabled="!activeLayer"
                 @click="copyLayerFilters()"
-            ></button>
+            >{{ t( "copyLayerFilters" ) }}</button>
         </li>
         <li>
             <button
-                v-t="'pasteLayerFilters'"
                 type="button"
                 :disabled="!activeLayer || !clonedFilters"
                 @click="requestPasteLayerFilters()"
-            ></button>
+            >{{ t( "pasteLayerFilters" ) }}</button>
         </li>
         <li>
             <button
-                v-t="activeLayerHasFiltersEnabled ? 'disableLayerFilters' : 'enableLayerFilters'"
-                v-tooltip.right="$t('toggleLayerFiltersTooltip')"
+                v-tooltip.right="t('toggleLayerFiltersTooltip')"
                 type="button"
                 :disabled="!activeLayer"
                 @click="requestToggleLayerFilters()"
-            ></button>
+            >{{ t( activeLayerHasFiltersEnabled ? "disableLayerFilters" : "enableLayerFilters" ) }}</button>
         </li>
         <li>
             <button
-                v-t="'mergeDown'"
                 type="button"
                 :disabled="!canMergeDown"
                 @click="requestMergeLayerDown()"
-            ></button>
+            >{{ t( "mergeDown" ) }}</button>
         </li>
         <li>
             <button
-                v-t="'flattenImage'"
                 type="button"
                 :disabled="!canFlatten"
                 @click="requestMergeLayerDown( true )"
-            ></button>
+            >{{ t( "flattenImage" ) }}</button>
         </li>
     </ul>
  </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import { LayerTypes } from "@/definitions/layer-types";
 import { hasFilters } from "@/model/factories/filters-factory";
@@ -100,12 +94,15 @@ import { getIndexOfFirstLayerInTileGroup, getLayersByTile } from "@/utils/timeli
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages },
     props: {
         opened: {
             type: Boolean,
             default: true,
         },
+    },
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
     },
     computed: {
         ...mapGetters([
@@ -155,11 +152,11 @@ export default {
             commitLayerEffectsAndTransforms( this.$store, this.activeDocument, this.activeLayer, this.activeLayerIndex );
         },
         async requestMergeLayerDown( allLayers = false ): Promise<void> {
-            await mergeLayerDown( this.$store, this.activeDocument, this.activeLayer, this.activeLayerIndex, this.$t( "mergedLayer" ), allLayers );
+            await mergeLayerDown( this.$store, this.activeDocument, this.activeLayer, this.activeLayerIndex, this.t( "mergedLayer" ), allLayers );
         },
         copyLayerFilters(): void {
             this.setClonedFilters({ ...this.activeLayer.filters });
-            this.showNotification({ message: this.$t( "filtersCopied" ) });
+            this.showNotification({ message: this.t( "filtersCopied" ) });
         },
         requestPasteLayerFilters(): void {
             pasteLayerFilters( this.$store, this.clonedFilters, this.activeLayer, this.activeLayerIndex );

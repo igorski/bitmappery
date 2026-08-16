@@ -23,15 +23,12 @@
 <template>
     <modal class="selection-size">
         <template #header>
-            <h2 v-t="'shrinkSelection'" class="component__title"></h2>
+            <h2 class="component__title">{{ t( "shrinkSelection" ) }}</h2>
         </template>
         <template #content>
             <div class="form" @keyup.enter="requestSave()">
                 <div class="wrapper wrapper--input">
-                    <label
-                        v-t="'shrinkBy'"
-                        v-tooltip.left="$t('shrinkTooltip')"
-                    ></label>
+                    <label v-tooltip.left="t('shrinkTooltip')">{{ t( "shrinkBy" ) }}</label>
                     <input
                         ref="sizeInput"
                         type="number"
@@ -45,23 +42,22 @@
         </template>
         <template #actions>
             <button
-                v-t="'save'"
                 type="button"
                 class="button"
                 :disabled="!isValid"
                 @click="requestSave()"
-            ></button>
+            >{{ t( "save" ) }}</button>
             <button
-                v-t="'cancel'"
                 type="button"
                 class="button"
                 @click="closeModal()"
-            ></button>
+            >{{ t( "cancel" ) }}</button>
         </template>
     </modal>
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import { applyScaleToSelection } from "@/model/actions/selection-scale";
@@ -73,13 +69,16 @@ const MIN_SHRINK = 0;
 const MAX_SHRINK = 2000;
 
 export default {
-    i18n: { messages },
     components: {
         Modal,
     },
     data: () => ({
         size: 10,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeDocument",

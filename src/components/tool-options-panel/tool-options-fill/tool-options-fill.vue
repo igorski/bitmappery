@@ -22,18 +22,18 @@
  */
 <template>
     <div class="tool-option">
-        <h3 v-t="'fill'"></h3>
+        <h3>{{ t( "fill" ) }}</h3>
         <div class="wrapper wrapper--toggle">
-            <label v-t="'smartFill'"></label>
+            <label>{{ t( "smartFill" ) }}</label>
             <toggle-button
                 v-model="smartFill"
                 name="smartFill"
                 :disabled="disabled"
             />
         </div>
-        <p v-t="'smartFillExpl'" class="expl"></p>
+        <p class="expl">{{ t( "smartFillExpl" ) }}</p>
         <div class="wrapper wrapper--slider">
-            <label v-t="'feather'"></label>
+            <label>{{ t( "feather" ) }}</label>
             <slider
                 v-model="feather"
                 :min="0"
@@ -43,7 +43,7 @@
             />
         </div>
         <div class="wrapper wrapper--slider">
-            <label v-t="'threshold'"></label>
+            <label>{{ t( "threshold" ) }}</label>
             <slider
                 v-model="threshold"
                 :min="0"
@@ -56,6 +56,7 @@
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
 import Slider from "@/components/ui/slider/slider.vue";
@@ -64,10 +65,13 @@ import ToolTypes, { canDraw } from "@/definitions/tool-types";
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages },
     components: {
         Slider,
         ToggleButton,
+    },
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
     },
     computed: {
         ...mapGetters([

@@ -22,7 +22,7 @@
  */
 <template>
     <div class="tool-option">
-        <h3 v-t="'rotation'"></h3>
+        <h3>{{ t( "rotation" ) }}</h3>
         <div class="wrapper wrapper--slider wrapper--full">
             <slider
                 v-model="rotation"
@@ -36,38 +36,35 @@
         </div>
         <div class="actions">
             <button
-                v-t="'reset'"
                 type="button"
                 class="button button--small"
                 :disabled="!activeLayer || rotation === 0"
                 @click="reset()"
-            ></button>
+            >{{ t( "reset" ) }}</button>
             <button
-                v-t="'90degLeft'"
                 type="button"
                 class="button button--small"
                 :disabled="!activeLayer"
                 @click="rotate(270)"
-            ></button>
+            >{{ t( "90degLeft" ) }}</button>
             <button
-                v-t="'flip'"
                 type="button"
                 class="button button--small"
                 :disabled="!activeLayer"
                 @click="rotate(180)"
-            ></button>
+            >{{ t( "flip" ) }}</button>
             <button
-                v-t="'90degRight'"
                 type="button"
                 class="button button--small"
                 :disabled="!activeLayer"
                 @click="rotate(90)"
-            ></button>
+            >{{ t( "90degRight" ) }}</button>
         </div>
     </div>
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import Slider from "@/components/ui/slider/slider.vue";
 import { pauseBlendCaching } from "@/rendering/cache/blended-layer-cache";
@@ -76,7 +73,6 @@ import messages from "./messages.json";
 import { degreesToRadians, radiansToDegrees } from "@/math/unit-math";
 
 export default {
-    i18n: { messages },
     components: {
         Slider,
     },
@@ -84,6 +80,10 @@ export default {
         min: 0,
         max: 360,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeLayer",

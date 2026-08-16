@@ -26,11 +26,11 @@
         @focusin="handleFocus"
         @focusout="handleBlur"
     >
-        <h3 v-t="'selection'"></h3>
-        <p v-if="isLassoSelection" v-t="'lassoExpl'"></p>
+        <h3>{{ t( "selection" ) }}</h3>
+        <p v-if="isLassoSelection">{{ t( "lassoExpl" ) }}</p>
         <template v-else>
             <div class="wrapper wrapper--toggle">
-                <label v-t="'lockRatio'" v-tooltip="$t('shiftKey')"></label>
+                <label v-tooltip="t('shiftKey')">{{ t( "lockRatio" ) }}</label>
                 <toggle-button
                     v-model="maintainRatio"
                     name="ratio"
@@ -39,7 +39,7 @@
                 />
             </div>
             <div class="wrapper wrapper--input">
-                <label v-t="'widthToHeight'"></label>
+                <label>{{ t( "widthToHeight" ) }}</label>
                 <input
                     type="number"
                     v-model.number="xRatio"
@@ -54,9 +54,9 @@
                 />
             </div>
         </template>
-        <h4 v-t="'existingSelection'"></h4>
+        <h4>{{ t( "existingSelection" ) }}</h4>
         <div class="wrapper wrapper--input">
-            <label v-t="'coordinates'"></label>
+            <label>{{ t( "coordinates" ) }}</label>
             <input
                 type="number"
                 v-model.number="x"
@@ -76,7 +76,7 @@
         </div>
         <template v-if="!isLassoSelection">
             <div class="wrapper wrapper--input">
-                <label v-t="'dimensions'"></label>
+                <label>{{ t( "dimensions" ) }}</label>
                 <input
                     type="number"
                     v-model.number="width"
@@ -99,6 +99,7 @@
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import { type Rectangle } from "zcanvas";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
@@ -111,7 +112,6 @@ import { selectionToRectangle } from "@/utils/selection-util";
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages },
     components: {
         ToggleButton,
     },
@@ -120,6 +120,10 @@ export default {
         renderPending: false,
         layerId: null,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeDocument",

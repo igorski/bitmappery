@@ -72,7 +72,7 @@
                                 <!-- thumbnail -->
                                 <div
                                     v-if="renderThumbnails"
-                                    v-tooltip.left="$t('dragToAdjustOrder')"
+                                    v-tooltip.left="t('dragToAdjustOrder')"
                                     class="layer__thumbnail"
                                 >
                                     <img
@@ -93,7 +93,7 @@
                                 />
                                 <span
                                     v-else
-                                    v-tooltip.left="$t( element.maskSelected ? 'clickToEditLayer' : 'dblClickToRename')"
+                                    v-tooltip.left="t( element.maskSelected ? 'clickToEditLayer' : 'dblClickToRename')"
                                     class="layer__name"
                                     :class="{
                                         'layer--selected': isSelectedLayer( element ),
@@ -105,7 +105,7 @@
                                     <!-- optional layer mask -->
                                     <button
                                         v-if="element.mask"
-                                        v-tooltip="$t( element.maskSelected ? 'clickToEditLayer' : 'clickToEditMask' )"
+                                        v-tooltip="t( element.maskSelected ? 'clickToEditLayer' : 'clickToEditMask' )"
                                         class="layer__actions-button button--ghost"
                                         :class="{
                                             'layer__actions-button--highlight': element.maskSelected
@@ -113,20 +113,20 @@
                                         @click="handleLayerMaskClick( element )"
                                     ><img src="@/assets-inline/images/icon-mask.svg" /></button>
                                     <button
-                                        v-tooltip="$t('toggleVisibility')"
+                                        v-tooltip="t('toggleVisibility')"
                                         type="button"
                                         class="layer__actions-button button--ghost"
                                         @click="handleToggleLayerVisibility( element.index )"
                                         :class="{ 'layer__actions-button--disabled': !element.visible }"
                                     ><img src="@/assets-inline/images/icon-eye.svg" /></button>
                                     <button
-                                        v-tooltip="$t('effectsAndFilters')"
+                                        v-tooltip="t('effectsAndFilters')"
                                         type="button"
                                         class="layer__actions-button button--ghost"
                                         @click="handleEffectsClick( element.index )"
                                     ><img src="@/assets-inline/images/icon-settings.svg" /></button>
                                     <button
-                                        v-tooltip="$t( element.mask ? 'deleteMask' : 'deleteLayer' )"
+                                        v-tooltip="t( element.mask ? 'deleteMask' : 'deleteLayer' )"
                                         type="button"
                                         class="layer__actions-button button--ghost"
                                         @click="handleRemoveClick( element.index )"
@@ -139,25 +139,22 @@
                 </div>
                 <p
                     v-else
-                    v-t="'noLayers'"
                     class="no-layers-text"
-                ></p>
+                >{{ t( "noLayers" ) }}</p>
             </div>
             <div v-if="!showEffects" class="component__actions">
                 <button
-                    v-t="'addLayer'"
                     type="button"
                     class="button button--small"
                     :disabled="!activeDocument"
                     @click="requestLayerAdd()"
-                ></button>
+                >{{ t( "addLayer" ) }}</button>
                 <button
-                    v-t="'addMask'"
                     type="button"
                     class="button button--small"
                     :disabled="!activeLayer || currentLayerHasMask"
                     @click="requestMaskAdd()"
-                ></button>
+                >{{ t( "addMask" ) }}</button>
             </div>
             <context-menu
                 v-if="contextMenu.show"
@@ -173,6 +170,7 @@
 
 <script lang="ts">
 import { type Component, defineAsyncComponent } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { ADD_LAYER } from "@/definitions/modal-windows";
 import { PANEL_LAYERS } from "@/definitions/panel-types";
@@ -195,7 +193,6 @@ import messages from "./messages.json";
 type IndexedLayer = Layer & { index: number, maskSelected: boolean };
 
 export default {
-    i18n: { messages },
     components: {
         ContextMenu     : defineAsyncComponent({ loader: () => import( "@/components/menus/context-menu/context-menu.vue" ) }),
         LayerEffects    : defineAsyncComponent({ loader: () => import( "@/components/layer-effects/layer-effects.vue" ) }),
@@ -215,6 +212,10 @@ export default {
             last: undefined,
         },
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapState([
             "openedPanels",
@@ -273,12 +274,12 @@ export default {
         },
         title(): string {
             if ( this.hasTimeline ) {
-                return this.$t( "layersForTile", { id: this.activeGroup + 1 });
+                return this.t( "layersForTile", { id: this.activeGroup + 1 });
             }
             if ( this.showEffects && this.activeLayer ) {
-                return this.$t( "effectsForLayer", { name: this.activeLayer.name });
+                return this.t( "effectsForLayer", { name: this.activeLayer.name });
             }
-            return this.$t( "layers" );
+            return this.t( "layers" );
         },
         hasTimeline(): boolean {
             return this.activeDocument?.type === "timeline"
@@ -347,8 +348,8 @@ export default {
             const layer = this.layers[ index ];
             this.openDialog({
                 type: "confirm",
-                title: this.$t( "areYouSure" ),
-                message: this.$t( "doYouWantToRemoveLayerName", { name: layer.name }),
+                title: this.t( "areYouSure" ),
+                message: this.t( "doYouWantToRemoveLayerName", { name: layer.name }),
                 confirm: () => {
                     removeLayer( this.$store, layer, index );
                 }
@@ -360,8 +361,8 @@ export default {
         requestMaskRemove( index: number ): void {
             this.openDialog({
                 type: "confirm",
-                title: this.$t( "areYouSure" ),
-                message: this.$t( "doYouWantToRemoveMaskName", { name: this.layers[ index ]?.name }),
+                title: this.t( "areYouSure" ),
+                message: this.t( "doYouWantToRemoveMaskName", { name: this.layers[ index ]?.name }),
                 confirm: () => {
                     removeMask( this.$store, this.layers[ index ], index );
                 },

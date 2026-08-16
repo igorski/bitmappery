@@ -33,29 +33,27 @@
         <a v-if="link" class="dialog-window__link" target="_blank" rel="noopener noreferrer" :href="link.href">{{ link.title }}</a>
         <div class="dialog-window__actions">
             <button
-                v-t="'ok'"
                 type="button"
                 class="button"
                 @click="handleConfirm()"
-            ></button>
+            >{{ t( "ok" ) }}</button>
             <button
-                v-t="'cancel'"
                 v-if="type === 'confirm'"
                 type="button"
                 class="button"
                 @click="handleCancel()"
-            ></button>
+            >{{ t( "cancel" ) }}</button>
         </div>
     </div>
 </template>
 
 <script lang="ts">
 import { type PropType } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapMutations } from "vuex";
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages },
     props: {
         title: {
             type: String,
@@ -82,6 +80,10 @@ export default {
             type: Function,
             default: null,
         }
+    },
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
     },
     methods: {
         ...mapMutations([

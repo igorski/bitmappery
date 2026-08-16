@@ -35,73 +35,65 @@
         <ul class="menu-list">
             <!-- file menu -->
             <li tabindex="0">
-                <a v-t="'file'" class="title" @click.prevent="openSubMenu('file')"></a>
+                <a class="title" @click.prevent="openSubMenu('file')">{{ t( "file" ) }}</a>
                 <ul class="submenu"
                     :class="{ 'submenu--opened': activeSubMenu === 'file' }"
                     @click="close()"
                 >
                     <li>
                         <button
-                            v-t="'new'"
                             type="button"
-                            v-tooltip.right="$t('newDocumentTooltip')"
+                            v-tooltip.right="t('newDocumentTooltip')"
                             @click="requestNewDocument()"
-                        ></button>
+                        >{{ t( "new" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'open'"
                             type="button"
                             @click="openFileSelector()"
-                        ></button>
+                        >{{ t( "open" ) }}</button>
                     </li>
                     <li v-if="hasDropbox">
                         <button
-                            v-t="'openDropboxDocument'"
                             type="button"
                             @click="initDropbox()"
-                        ></button>
+                        >{{ t( "openDropboxDocument" ) }}</button>
                     </li>
                     <li v-if="hasDrive">
                         <button
-                            v-t="'openDriveDocument'"
                             type="button"
                             @click="initDrive()"
-                        ></button>
+                        >{{ t( "openDriveDocument" ) }}</button>
                     </li>
                     <li v-if="hasS3">
                         <button
-                            v-t="'openS3Document'"
                             type="button"
                             @click="initS3()"
-                        ></button>
+                        >{{ t( "openS3Document" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'close'"
-                            v-tooltip.right="$t('closeDocumentTooltip')"
+                            v-tooltip.right="t('closeDocumentTooltip')"
                             type="button"
                             :disabled="noDocumentsAvailable"
                             @click="requestDocumentClose()"
-                        ></button>
+                        >{{ t( "close" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'save'"
-                            v-tooltip.right="$t('saveDocumentTooltip')"
+                            v-tooltip.right="t('saveDocumentTooltip')"
                             type="button"
                             :disabled="noDocumentsAvailable"
                             @click="requestDocumentExport()"
-                        ></button>
+                        >{{ t( "save" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'exportImage'"
-                            v-tooltip.right="$t('exportImageTooltip')"
+                            v-tooltip.right="t('exportImageTooltip')"
                             type="button"
                             :disabled="noDocumentsAvailable"
                             @click="requestImageExport()"
-                        ></button>
+                        >{{ t( "exportImage" ) }}</button>
                     </li>
                     <input
                         ref="fileSelector"
@@ -115,133 +107,120 @@
             </li>
             <!-- edit menu -->
             <li tabindex="0">
-                <a v-t="'edit'" class="title" @click.prevent="openSubMenu('edit')"></a>
+                <a class="title" @click.prevent="openSubMenu('edit')">{{ t( "edit" ) }}</a>
                 <ul class="submenu"
                     :class="{ 'submenu--opened': activeSubMenu === 'edit' }"
                     @click="close()"
                 >
                     <li>
                         <button
-                            v-t="'undo'"
-                            v-tooltip.right="$t('undoTooltip')"
+                            v-tooltip.right="t('undoTooltip')"
                             type="button"
                             :disabled="!canUndo"
                             @click="navigateHistory('undo')"
-                        ></button>
+                        >{{ t( "undo" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'redo'"
-                            v-tooltip.right="$t('redoTooltip')"
+                            v-tooltip.right="t('redoTooltip')"
                             type="button"
                             :disabled="!canRedo"
                             @click="navigateHistory('redo')"
-                        ></button>
+                        >{{ t( "redo" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'cut'"
-                            v-tooltip.right="$t('cutTooltip')"
+                            v-tooltip.right="t('cutTooltip')"
                             type="button"
                             :disabled="!hasSelection"
                             @click="requestSelectionCut()"
-                        ></button>
+                        >{{ t( "cut" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'copy'"
-                            v-tooltip.right="$t('copyTooltip')"
+                            v-tooltip.right="t('copyTooltip')"
                             type="button"
                             :disabled="!hasSelection"
                             @click="requestSelectionCopy({ merged: false })"
-                        ></button>
+                        >{{ t( "copy" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'copyMerged'"
                             type="button"
                             :disabled="!hasSelection"
                             @click="requestSelectionCopy({ merged: true })"
-                        ></button>
+                        >{{ t( "copyMerged" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'pasteAsNewLayer'"
                             type="button"
                             :disabled="!hasClipboard || !activeDocument"
                             @click="pasteSelection()"
-                        ></button>
+                        >{{ t( "pasteAsNewLayer" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'clear'"
                             type="button"
                             :disabled="!hasSelection || !activeLayer"
                             @click="deleteInSelection()"
-                        ></button>
+                        >{{ t( "clear" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'stroke'"
                             type="button"
                             :disabled="!hasSelection || !activeLayer"
                             @click="strokeSelection()"
-                        ></button>
+                        >{{ t( "stroke" ) }}</button>
                     </li>
                 </ul>
             </li>
             <!-- document menu -->
             <li tabindex="0">
-                <a v-t="'document'" class="title" @click.prevent="openSubMenu('document')"></a>
+                <a class="title" @click.prevent="openSubMenu('document')">{{ t( "document" ) }}</a>
                 <ul class="submenu"
                     :class="{ 'submenu--opened': activeSubMenu === 'document' }"
                     @click="close()"
                 >
                     <li>
                         <button
-                            v-t="'resizeDocument'"
                             type="button"
                             :disabled="noDocumentsAvailable"
                             @click="requestDocumentResize()"
-                        ></button>
+                        >{{ t( "resizeDocument" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'canvasSize'"
                             type="button"
                             :disabled="noDocumentsAvailable"
                             @click="requestCanvasResize()"
-                        ></button>
+                        >{{ t( "canvasSize" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'cropToSelection'"
                             type="button"
                             :disabled="!hasSelection"
                             @click="requestCropToSelection()"
-                        ></button>
+                        >{{ t( "cropToSelection" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'sliceGridToLayers'"
                             type="button"
                             :disabled="noDocumentsAvailable"
                             @click="requestGridToLayers()"
-                        ></button>
+                        >{{ t( "sliceGridToLayers" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'properties'"
                             type="button"
                             :disabled="noDocumentsAvailable"
                             @click="requestPropertiesEdit()"
-                        ></button>
+                        >{{ t( "properties" ) }}</button>
                     </li>
                 </ul>
             </li>
             <!-- layer menu -->
             <li tabindex="0">
-                <a v-t="'layer'" class="title" @click.prevent="openSubMenu('layer')"></a>
+                <a class="title" @click.prevent="openSubMenu('layer')">{{ t( "layer" ) }}</a>
                 <layer-menu
                     :opened="activeSubMenu === 'layer'"
                     @click="close()"
@@ -249,126 +228,114 @@
             </li>
             <!-- selection menu -->
             <li tabindex="0">
-                <a v-t="'selection'" class="title" @click.prevent="openSubMenu('selection')"></a>
+                <a class="title" @click.prevent="openSubMenu('selection')">{{ t( "selection" ) }}</a>
                 <ul class="submenu"
                     :class="{ 'submenu--opened': activeSubMenu === 'selection' }"
                     @click="close()"
                 >
                     <li>
                         <button
-                            v-t="'selectAll'"
-                            v-tooltip.right="$t('selectAllTooltip')"
+                            v-tooltip.right="t('selectAllTooltip')"
                             type="button"
                             :disabled="!activeLayer"
                             @click="selectAll()"
-                        ></button>
+                        >{{ t( "selectAll" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'deselectAll'"
-                            v-tooltip.right="$t('deselectAllTooltip')"
+                            v-tooltip.right="t('deselectAllTooltip')"
                             type="button"
                             :disabled="!hasSelection"
                             @click="clearSelection()"
-                        ></button>
+                        >{{ t( "deselectAll" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'invertSelection'"
-                            v-tooltip.right="$t('invertSelectionTooltip')"
+                            v-tooltip.right="t('invertSelectionTooltip')"
                             type="button"
                             :disabled="!hasSelection"
                             @click="invertSelection()"
-                        ></button>
+                        >{{ t( "invertSelection" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'expandSelection'"
                             type="button"
                             :disabled="!hasSelection"
                             @click="requestSelectionExpand()"
-                        ></button>
+                        >{{ t( "expandSelection" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'shrinkSelection'"
                             type="button"
                             :disabled="!hasSelection"
                             @click="requestSelectionShrink()"
-                        ></button>
+                        >{{ t( "shrinkSelection" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'loadSelection'"
                             type="button"
                             :disabled="!hasSavedSelections"
                             @click="requestSelectionLoad()"
-                        ></button>
+                        >{{ t( "loadSelection" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'saveSelection'"
                             type="button"
                             :disabled="!hasSelection"
                             @click="requestSelectionSave()"
-                        ></button>
+                        >{{ t( "saveSelection" ) }}</button>
                     </li>
                 </ul>
             </li>
             <!-- preferences -->
             <li tabindex="0">
                 <a
-                    v-t="'preferences'"
                     class="title"
                     @click.prevent="openPreferences()"
-                ></a>
+                >{{ t( "preferences" ) }}</a>
             </li>
             <!-- view menu -->
             <li tabindex="0">
-                <a v-t="'view'" class="title" @click.prevent="openSubMenu('view')"></a>
+                <a class="title" @click.prevent="openSubMenu('view')">{{ t( "view" ) }}</a>
                 <ul class="submenu"
                     :class="{ 'submenu--opened': activeSubMenu === 'view' }"
                     @click="close()"
                 >
                     <li>
                         <button
-                            v-t="'snapAlign'"
                             type="button"
                             :class="{ checked: snapAlign }"
                             @click="canSnapAndAlign = !canSnapAndAlign"
-                        ></button>
+                        >{{ t( "snapAlign" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'antiAlias'"
                             type="button"
                             :class="{ checked: antiAlias }"
                             @click="useAntiAlias = !useAntiAlias"
-                        ></button>
+                        >{{ t( "antiAlias" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'useTracing'"
                             type="button"
                             :class="{ checked: useTracing }"
                             :disabled="!canUseTracing"
                             @click="useTracing = !useTracing"
-                        ></button>
+                        >{{ t( "useTracing" ) }}</button>
                     </li>
                     <li>
                         <button
-                            v-t="'pixelGrid'"
                             type="button"
                             :class="{ checked: pixelGrid }"
                             :disabled="!canUsePixelGrid"
                             @click="usePixelGrid = !usePixelGrid"
-                        ></button>
+                        >{{ t( "pixelGrid" ) }}</button>
                     </li>
                 </ul>
             </li>
             <!-- window menu -->
             <li tabindex="0">
-                <a v-t="'window'" class="title" @click.prevent="openSubMenu('window')"></a>
+                <a class="title" @click.prevent="openSubMenu('window')">{{ t( "window" ) }}</a>
                 <ul class="submenu"
                     :class="{ 'submenu--opened': activeSubMenu === 'window' }"
                     @click="close()"
@@ -378,16 +345,16 @@
                             :key="`doc_${index}`"
                         >
                             <button @click="setActiveDocument( index )">
-                                {{ $t( "windowNumName", { num: index + 1, name: doc.name }) }}
+                                {{ t( "windowNumName", { num: index + 1, name: doc.name }) }}
                             </button>
                         </li>
                     </template>
-                    <li v-else><span v-t="'noDocumentsOpen'" class="menu-text"></span></li>
+                    <li v-else><span class="menu-text">{{ t( "noDocumentsOpen" ) }}</span></li>
                 </ul>
             </li>
             <!-- help menu -->
             <li>
-                <a v-t="'help'" href="https://www.igorski.nl/bitmappery/help" target="_blank" class="title" @click="close()"></a>
+                <a href="https://www.igorski.nl/bitmappery/help" target="_blank" class="title" @click="close()">{{ t( "help" ) }}</a>
             </li>
         </ul>
         <!-- fullscreen button -->
@@ -396,17 +363,17 @@
             v-tooltip.left="fullscreenTooltip"
             ref="fullscreenBtn"
             class="fullscreen-button"
-            :title="$t( isFullscreen ? 'minimize' : 'maximize' )"
+            :title="t( isFullscreen ? 'minimize' : 'maximize' )"
         >
             <img
                 v-if="isFullscreen"
                 src="@/assets-inline/images/icon-minimize.svg"
-                :alt="$t( 'minimize' )"
+                :alt="t( 'minimize' )"
             />
             <img
                 v-else
                 src="@/assets-inline/images/icon-maximize.svg"
-                :alt="$t( 'maximize' )"
+                :alt="t( 'maximize' )"
             />
         </button>
     </nav>
@@ -414,6 +381,7 @@
 
 <script lang="ts">
 import { defineAsyncComponent } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import { isPixelArt } from "@/definitions/editor-properties";
 import {
@@ -434,7 +402,6 @@ import messages from "./messages.json";
 
 export default {
     emits: [ "rescale" ],
-    i18n: { messages, sharedMessages },
     mixins: [ CloudServiceConnector, ImageToDocumentManager ],
     components: {
         LayerMenu : defineAsyncComponent({ loader: () => import( "@/components/menus/layer-menu/layer-menu.vue" ) }),
@@ -446,6 +413,10 @@ export default {
         hasDrive: supportsGoogleDrive(),
         hasS3: supportsS3(),
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages, sharedMessages });
+        return { t };
+    },
     computed: {
         ...mapState([
             "menuOpened",
@@ -513,7 +484,7 @@ export default {
             },
         },
         fullscreenTooltip(): string {
-            return `${this.isFullscreen ? this.$t( "minimize" ) : this.$t( "maximize" )} (Shift + F)`;
+            return `${this.isFullscreen ? this.t( "minimize" ) : this.t( "maximize" )} (Shift + F)`;
         },
         canUsePixelGrid(): boolean {
             if ( !this.activeDocument ) {

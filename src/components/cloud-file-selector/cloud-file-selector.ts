@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import type { Component } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapState, mapMutations, mapActions } from "vuex";
 import { loader } from "zcanvas";
 import { ACCEPTED_FILE_EXTENSIONS, isThirdPartyDocument, getMimeForThirdPartyDocument } from "@/definitions/file-types";
@@ -75,7 +76,6 @@ interface ICloudFileSelectorProps {
 };
 
 export default {
-    i18n: { messages },
     mixins: [ ImageToDocumentManager ],
     data: (): ICloudFileSelectorProps => ({
         LAST_FOLDER_STORAGE_KEY : "x", // define in inheriting component
@@ -89,6 +89,10 @@ export default {
         leaf: null,
         newFolderName: "",
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapState([
             "loadingStates",
@@ -170,7 +174,7 @@ export default {
                     });
                 this.leaf = leaf;
             } catch ( e: any ) {
-                this.openDialog({ type: "error", message: this.$t( "couldNotRetrieveFilesForPath", { path } ) });
+                this.openDialog({ type: "error", message: this.t( "couldNotRetrieveFilesForPath", { path } ) });
                 sessionStorage.removeItem( this.LAST_FOLDER_STORAGE_KEY );
             }
             this.unsetLoading( RETRIEVAL_LOAD_KEY );
@@ -186,11 +190,11 @@ export default {
                 this.retrieveFiles( this._getServicePathForNode( this.leaf ));
                 this.newFolderName = "";
                 this.showNotification({
-                    message: this.$t( "folderCreatedSuccessfully", { folder })
+                    message: this.t( "folderCreatedSuccessfully", { folder })
                 });
             } catch {
                 this.showNotification({
-                    message: this.$t( "couldNotCreateFolder", { folder })
+                    message: this.t( "couldNotCreateFolder", { folder })
                 });
             }
             this.unsetLoading( ACTION_LOAD_KEY );
@@ -228,13 +232,13 @@ export default {
                         }
                         disposeResource( url ); // Blob has been converted to internal resource, free memory.
                         this.showNotification({
-                            message: this.$t( "importedFileSuccessfully", { file: truncate( node.name, 35 ) })
+                            message: this.t( "importedFileSuccessfully", { file: truncate( node.name, 35 ) })
                         });
                         this.closeModal();
                     } catch {
                         this.openDialog({
                             type: "error",
-                            message: this.$t( "errorImportingFile", { file: truncate( node.name, 35 ) })
+                            message: this.t( "errorImportingFile", { file: truncate( node.name, 35 ) })
                         });
                     }
                     break;
@@ -245,19 +249,19 @@ export default {
             const { name } = node;
             this.openDialog({
                 type: "confirm",
-                message: this.$t( "deleteEntryWarning", { entry: name }),
+                message: this.t( "deleteEntryWarning", { entry: name }),
                 confirm: async () => {
                     this.setLoading( ACTION_LOAD_KEY );
                     const success = await this._deleteEntry( node );
                     if ( success ) {
                         this.showNotification({
-                            message: this.$t( "entryDeletedSuccessfully", { entry: name })
+                            message: this.t( "entryDeletedSuccessfully", { entry: name })
                         });
                         this.retrieveFiles( this._getServicePathForNode( this.leaf ));
                     } else {
                         this.openDialog({
                             type: "error",
-                            message: this.$t( "couldNotDeleteEntry", { entry: name })
+                            message: this.t( "couldNotDeleteEntry", { entry: name })
                         });
                     }
                     this.unsetLoading( ACTION_LOAD_KEY );

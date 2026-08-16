@@ -147,7 +147,7 @@ export default {
                 const serviceImport = await getServiceForThirdPartyFile( optMime || file.type );
                 const document = await serviceImport( file );
                 if ( document === null ) {
-                    this.showNotification({ title: this.$t( "title.error" ), message: this.$t( "importError", { file: file.name }) });
+                    this.showNotification({ title: this.t( "title.error" ), message: this.t( "importError", { file: file.name }) });
                 } else {
                     this.addNewDocument( document );
                 }

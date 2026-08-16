@@ -22,21 +22,24 @@
  */
 <template>
     <button
-        v-t="'importFromS3'"
         type="button"
         class="button button--block button--third-party s3"
         @click="openFileBrowserS3()"
-    ></button>
+    >{{ t( "importFromS3" ) }}</button>
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages, sharedMessages },
     mixins: [ CloudServiceConnector ],
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages, sharedMessages });
+        return { t };
+    },
     async created(): Promise<void> {
         await this.initS3();
     },

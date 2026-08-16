@@ -24,39 +24,41 @@
     <div class="form">
         <button
             v-if="!initialized && !authenticated"
-            v-t="'loginToDrive'"
             type="button"
             class="button drive"
             @click="loginDrive()"
-        ></button>
+        >{{ t( "loginToDrive" ) }}</button>
         <button
             v-if="authenticated || awaitingConnection"
-            v-t="authenticated ? 'importFromDrive' : 'connectingToDrive'"
             type="button"
             class="button drive"
             :disabled="awaitingConnection"
             @click="openFileBrowserDrive()"
-        ></button>
+        >{{ t( authenticated ? "importFromDrive" : "connectingToDrive" ) }}</button>
     </div>
 </template>
 
-<script>
+<script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import CloudServiceConnector from "@/mixins/cloud-service-connector";
 import sharedMessages from "@/messages.json"; // for CloudServiceConnector
 import messages from "./messages.json";
 
 export default {
-    i18n: { messages, sharedMessages },
     mixins: [ CloudServiceConnector ],
     data: () => ({
         loading: true,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages, sharedMessages });
+        return { t };
+    },
     computed: {
-        awaitingConnection() {
+        awaitingConnection(): boolean {
             return this.initialized && !this.authenticated;
         },
     },
-    async created() {
+    async created(): Promise<void> {
         this.loading = true;
         await this.initDrive();
         this.loading = false;

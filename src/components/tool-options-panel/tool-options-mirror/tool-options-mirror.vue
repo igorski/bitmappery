@@ -22,42 +22,43 @@
  */
 <template>
     <div class="tool-option">
-        <h3 v-t="'mirror'"></h3>
-        <p v-t="'mirrorLayers'"></p>
+        <h3>{{ t( "mirror" ) }}</h3>
+        <p>{{ t( "mirrorLayers" ) }}</p>
         <div class="actions">
             <button
-                v-t="'reset'"
                 type="button"
                 class="button button--small"
                 :disabled="!activeLayer || !canReset"
                 @click="resetFlip"
-            ></button>
+            >{{ t( "reset" ) }}</button>
             <button
-                v-t="'horizontal'"
                 type="button"
                 class="button button--small"
                 :disabled="!activeLayer"
                 @click="flipHorizontal"
-            ></button>
+            >{{ t( "horizontal" ) }}</button>
             <button
-                v-t="'vertical'"
                 type="button"
                 class="button button--small"
                 :disabled="!activeLayer"
                 @click="flipVertical"
-            ></button>
+            >{{ t( "vertical" ) }}</button>
         </div>
     </div>
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters } from "vuex";
 import type { Transform } from "@/model/types/transform";
 import { enqueueState } from "@/model/factories/history-state-factory";
 import messages  from "./messages.json";
 
 export default {
-    i18n: { messages },
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeLayer",

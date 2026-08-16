@@ -27,10 +27,9 @@
     >
         <div class="component__header">
             <h2
-                v-t="'toolOptions'"
                 v-tooltip="'(Tab)'"
                 class="component__title"
-            ></h2>
+            >{{ t( "toolOptions" ) }}</h2>
             <button
                 type="button"
                 class="component__header-button"
@@ -44,9 +43,8 @@
             <!-- active tool section -->
             <p
                 v-if="!activeToolOptions"
-                v-t="'noToolOptions'"
                 class="no-tools-text"
-            ></p>
+            >{{ t( "noToolOptions" ) }}</p>
             <component v-else :is="activeToolOptions" />
         </div>
     </div>
@@ -54,16 +52,20 @@
 
 <script lang="ts">
 import { type Component, defineAsyncComponent } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { PANEL_TOOL_OPTIONS } from "@/definitions/panel-types";
 import ToolTypes from "@/definitions/tool-types";
 import messages  from "./messages.json";
 
 export default {
-    i18n: { messages },
     data: () => ({
         restoreCollapse: false,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapState([
             "layersMaximized",

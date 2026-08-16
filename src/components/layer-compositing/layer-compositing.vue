@@ -22,11 +22,11 @@
  */
 <template>
     <fieldset class="layer-compositing">
-        <!-- <legend v-t="'compositing'" /> -->
+        <!-- <legend>{{ t( "compositing" )</legend> }} -->
         <div class="layer-compositing--blend-mode">
             <select-box
                 v-model="blendMode"
-                v-tooltip.top="$t('blendMode')"
+                v-tooltip.top="t('blendMode')"
                 :options="blendModes"
                 :disabled="!canBlend"
                 class="blend-select"
@@ -35,7 +35,7 @@
         <div class="layer-compositing--opacity">
             <slider
                 v-model="opacity"
-                v-tooltip.top="$t('opacity')"
+                v-tooltip.top="t('opacity')"
                 :min="0"
                 :max="100"
                 :tooltip="'none'"
@@ -47,6 +47,7 @@
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters } from "vuex";
 import { BlendModes } from "@/definitions/blend-modes";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
@@ -75,7 +76,6 @@ const HIDDEN_MODES = [ BlendModes.LIGHTER_COLOR, BlendModes.DARKER_COLOR ];
 const UPDATE_DELAY = 250;
 
 export default {
-    i18n: { messages },
     components: {
         SelectBox,
         Slider,
@@ -83,6 +83,10 @@ export default {
     data: () => ({
         internalValue: {} as Partial<Filters>,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeDocument",
@@ -95,25 +99,25 @@ export default {
         },
         blendModes(): { label: string, value: BlendModes }[] {
             const modes = [
-                { label: this.$t( "normal" ), value: BlendModes.NORMAL },
-                { label: this.$t( "darken" ), value: BlendModes.DARKEN },
-                { label: this.$t( "multiply" ), value: BlendModes.MULTIPLY },
-                { label: this.$t( "colorBurn" ), value: BlendModes.COLOR_BURN },
-                { label: this.$t( "darkerColor" ), value: BlendModes.DARKER_COLOR },
-                { label: this.$t( "lighten" ), value: BlendModes.LIGHTEN },
-                { label: this.$t( "screen" ), value: BlendModes.SCREEN },
-                { label: this.$t( "colorDodge" ), value: BlendModes.COLOR_DODGE },
-                { label: this.$t( "linearDodge" ), value: BlendModes.LINEAR_DODGE },
-                { label: this.$t( "lighterColor" ), value: BlendModes.LIGHTER_COLOR },
-                { label: this.$t( "overlay" ), value: BlendModes.OVERLAY },
-                { label: this.$t( "softLight" ), value: BlendModes.SOFT_LIGHT },
-                { label: this.$t( "hardLight" ), value: BlendModes.HARD_LIGHT },
-                { label: this.$t( "difference" ), value: BlendModes.DIFFERENCE },
-                { label: this.$t( "exclusion" ), value: BlendModes.EXCLUSION },
-                { label: this.$t( "hue" ), value: BlendModes.HUE },
-                { label: this.$t( "saturation" ), value: BlendModes.SATURATION },
-                { label: this.$t( "color" ), value: BlendModes.COLOR },
-                { label: this.$t( "luminosity" ), value: BlendModes.LUMINOSITY },
+                { label: this.t( "normal" ), value: BlendModes.NORMAL },
+                { label: this.t( "darken" ), value: BlendModes.DARKEN },
+                { label: this.t( "multiply" ), value: BlendModes.MULTIPLY },
+                { label: this.t( "colorBurn" ), value: BlendModes.COLOR_BURN },
+                { label: this.t( "darkerColor" ), value: BlendModes.DARKER_COLOR },
+                { label: this.t( "lighten" ), value: BlendModes.LIGHTEN },
+                { label: this.t( "screen" ), value: BlendModes.SCREEN },
+                { label: this.t( "colorDodge" ), value: BlendModes.COLOR_DODGE },
+                { label: this.t( "linearDodge" ), value: BlendModes.LINEAR_DODGE },
+                { label: this.t( "lighterColor" ), value: BlendModes.LIGHTER_COLOR },
+                { label: this.t( "overlay" ), value: BlendModes.OVERLAY },
+                { label: this.t( "softLight" ), value: BlendModes.SOFT_LIGHT },
+                { label: this.t( "hardLight" ), value: BlendModes.HARD_LIGHT },
+                { label: this.t( "difference" ), value: BlendModes.DIFFERENCE },
+                { label: this.t( "exclusion" ), value: BlendModes.EXCLUSION },
+                { label: this.t( "hue" ), value: BlendModes.HUE },
+                { label: this.t( "saturation" ), value: BlendModes.SATURATION },
+                { label: this.t( "color" ), value: BlendModes.COLOR },
+                { label: this.t( "luminosity" ), value: BlendModes.LUMINOSITY },
             ];
             // only show lighter color and darker color modes when already set (e.g. from import) as these aren't too performant.
             if ( HIDDEN_MODES.includes( this.blendMode )) {

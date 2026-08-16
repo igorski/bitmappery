@@ -23,7 +23,7 @@
 <template>
     <modal class="animation-preview-modal">
         <template #header>
-            <h2 v-t="'title'" class="component__title"></h2>
+            <h2 class="component__title">{{ t( "title" ) }}</h2>
         </template>
         <template #content>
             <div class="animation-preview">
@@ -35,7 +35,7 @@
         </template>
         <template #actions>
             <div class="animation-preview__controls">
-                <h2 v-t="'frameRate'"></h2>
+                <h2>{{ t( "frameRate" ) }}</h2>
                 <slider
                     v-model="fps"
                     :min="1"
@@ -48,6 +48,7 @@
 </template>
 
 <script lang="ts">
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import Modal from "@/components/modal/modal.vue";
 import Slider from "@/components/ui/slider/slider.vue";
@@ -59,7 +60,6 @@ import messages from "./messages.json";
 const ANIMATION_WIDTH = 300;
 
 export default {
-    i18n: { messages },
     components: {
         Modal,
         Slider,
@@ -67,6 +67,10 @@ export default {
     data: () => ({
         fps: 10,
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeDocument",

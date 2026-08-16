@@ -23,20 +23,19 @@
 <template>
     <div class="timeline">
         <div class="component__header">
-            <div class="component__title" v-t="'timeline'"></div>
+            <div class="component__title">{{ t( "timeline" ) }}</div>
             <button
                 type="button"
-                :title="$t('add')"
+                :title="t('add')"
                 @click="handleAdd()"
                 class="button button--small timeline__button-add"
             >+</button>
             <button
                 type="button"
-                v-t="'play'"
-                :title="$t('previewAnimation')"
+                :title="t('previewAnimation')"
                 @click="handlePlay()"
                 class="button button--small"
-            ></button>
+            >{{ t( "play" ) }}</button>
         </div>
         <div class="component__content">
             <component
@@ -72,16 +71,14 @@
                 <li>
                     <button
                         type="button"
-                        v-t="'clone'"
                         @click.prevent="handleClone()"
-                    ></button>
+                    >{{ t( "clone" ) }}</button>
                 </li>
                 <li>
                     <button
                         type="button"
-                        v-t="'delete'"
                         @click.prevent="handleDelete()"
-                    ></button>
+                    >{{ t( "delete" ) }}</button>
                 </li>
             </ul>
         </context-menu>
@@ -90,6 +87,7 @@
 
 <script lang="ts">
 import { type Component, defineAsyncComponent } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters, mapMutations } from "vuex";
 import { type Size } from "zcanvas";
 import ToggleButton from "@/components/third-party/vue-js-toggle-button/ToggleButton.vue";
@@ -116,7 +114,6 @@ const pending: Map<RelId, Tile> = new Map();
 let pendingTimeout: ReturnType<typeof setTimeout>;
 
 export default {
-    i18n: { messages },
     components: {
         ContextMenu : defineAsyncComponent({ loader: () => import( "@/components/menus/context-menu/context-menu.vue" ) }),
         ToggleButton,
@@ -129,6 +126,10 @@ export default {
             y: 0,
         },
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         ...mapGetters([
             "activeDocument",

@@ -22,9 +22,9 @@
 */
 <template>
     <div>
-        <h3 v-t="'dimensions'" class="title"></h3>
+        <h3 class="title">{{ t( "dimensions" ) }}</h3>
         <div class="wrapper wrapper--select">
-            <label v-t="'unit'"></label>
+            <label>{{ t( "unit" ) }}</label>
             <div class="select-combo">
                 <select-box
                     :options="units"
@@ -39,7 +39,7 @@
             </div>
         </div>
         <div class="wrapper wrapper--input wrapper--small">
-            <label v-t="'width'"></label>
+            <label>{{ t( "width" ) }}</label>
             <input
                 v-model.number="translatedWidth"
                 type="number"
@@ -50,7 +50,7 @@
             />
         </div>
         <div class="wrapper wrapper--input wrapper--small">
-            <label v-t="'height'"></label>
+            <label>{{ t( "height" ) }}</label>
             <input
                 v-model.number="translatedHeight"
                 type="number"
@@ -65,6 +65,7 @@
 
 <script lang="ts">
 import { type PropType } from "vue";
+import { type ComposerTranslation, useI18n } from "vue-i18n";
 import SelectBox from "@/components/ui/select-box/select-box.vue";
 import { DEFAULT_DPI, DEFAULT_UNIT, DPI, UNITS } from "@/definitions/document-presets";
 import { pixelsToInch, pixelsToCm, pixelsToMm, inchesToPixels, cmToPixels, mmToPixels,  } from "@/math/unit-math";
@@ -74,7 +75,6 @@ const toFixedFloat = ( value: number, exp = 2 ): number => parseFloat( value.toF
 
 export default {
     emits: [ "update:modelValue" ],
-    i18n: { messages },
     components: {
         SelectBox,
     },
@@ -98,6 +98,10 @@ export default {
             unit: DEFAULT_UNIT,
         },
     }),
+    setup(): { t: ComposerTranslation } {
+        const { t } = useI18n({ messages });
+        return { t };
+    },
     computed: {
         showDPI(): boolean {
             return this.internalValue.unit !== "px";
@@ -106,7 +110,7 @@ export default {
             return DPI.map( dpi => ({ label: `${dpi} DPI`, value: dpi }));
         },
         units(): { label: string, value: string }[] {
-            return UNITS.map( unit => ({ label: this.$t( unit ), value: unit }));
+            return UNITS.map( unit => ({ label: this.t( unit ), value: unit }));
         },
         translatedWidth: {
             get(): number {
