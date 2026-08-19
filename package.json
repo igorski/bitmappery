@@ -30,7 +30,7 @@
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.315.0",
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
-    "@vitejs/plugin-vue": "^5.2.1",
+    "@vitejs/plugin-vue": "^6.0.8",
     "bowser": "^2.11.0",
     "eslint": "^9.39.2",
     "eslint-plugin-vue": "^10.7.0",
@@ -43,9 +43,9 @@
     "sass": "^1.51.0",
     "typescript": "~4.7.4",
     "undo-manager": "^1.0.5",
-    "vite": "^6.4.2",
-    "vite-plugin-static-copy": "^2.3.2",
-    "vitest": "^3.0.7",
+    "vite": "^8.2.1",
+    "vite-plugin-static-copy": "^4.1.1",
+    "vitest": "^4.1.11",
     "vue-i18n": "^11.1.10",
     "zcanvas": "^5.1.8"
   }
