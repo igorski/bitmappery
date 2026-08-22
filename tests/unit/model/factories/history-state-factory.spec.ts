@@ -25,8 +25,8 @@ describe( "History state factory", () => {
         initHistory( store );
 
         vi.useFakeTimers();
-        setTimeoutSpy = vi.spyOn( global, "setTimeout" );
-        clearTimeoutSpy = vi.spyOn( global, "clearTimeout" );
+        setTimeoutSpy = vi.spyOn( globalThis, "setTimeout" );
+        clearTimeoutSpy = vi.spyOn( globalThis, "clearTimeout" );
     });
 
     afterEach(() => {
