@@ -36,8 +36,8 @@ describe( "Thumbnail cache", () => {
 
     beforeEach(() => {
         vi.useFakeTimers();
-        vi.spyOn( global, "setTimeout" );
-        vi.spyOn( global, "clearTimeout" );
+        vi.spyOn( globalThis, "setTimeout" );
+        vi.spyOn( globalThis, "clearTimeout" );
     });
 
     afterEach(() => {
