@@ -2,6 +2,8 @@
 # Use official Node.js based on Alpine
 FROM node:24-alpine
 
+RUN mkdir -p /usr/src/app && chown -p node:node /usr/src/app
+
 # Create dir for application
 WORKDIR /usr/src/app
 
