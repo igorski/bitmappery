@@ -29,7 +29,6 @@
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.315.0",
-    "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@vitejs/plugin-vue": "^6.0.8",
     "bowser": "^2.11.0",
     "eslint": "^9.39.2",
