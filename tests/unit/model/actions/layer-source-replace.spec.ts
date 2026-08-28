@@ -63,7 +63,7 @@ describe( "Layer source replacement action", () => {
                     ({ undo, redo } = mockEnqueueState.mock.calls[ 0 ][ 1 ]);
 
                     // instantly load an image on src assignment
-                    setSourceSpy = vi.spyOn( global.Image.prototype, "src", "set" ).mockImplementation( function( _source: string ): void {
+                    setSourceSpy = vi.spyOn( globalThis.Image.prototype, "src", "set" ).mockImplementation( function( _source: string ): void {
                         loadedSource = _source;
                         this.onload();
                     });
@@ -78,7 +78,7 @@ describe( "Layer source replacement action", () => {
         
                     expect( getMaskContextSpy ).not.toHaveBeenCalled();
         
-                    expect( layer.source.getContext( "2d" ).drawImage ).toHaveBeenCalledWith( expect.any( global.Image ), 0, 0 );
+                    expect( layer.source.getContext( "2d" ).drawImage ).toHaveBeenCalledWith( expect.any( globalThis.Image ), 0, 0 );
                     
                     expect( loadedSource ).toEqual( action === "undo" ? MOCK_ORG_SOURCE : MOCK_NEW_SOURCE );
                 });
@@ -100,7 +100,7 @@ describe( "Layer source replacement action", () => {
                     ({ undo, redo } = mockEnqueueState.mock.calls[ 0 ][ 1 ]);
 
                     // instantly load an image on src assignment
-                    setSourceSpy = vi.spyOn( global.Image.prototype, "src", "set" ).mockImplementation( function( _source: string ): void {
+                    setSourceSpy = vi.spyOn( globalThis.Image.prototype, "src", "set" ).mockImplementation( function( _source: string ): void {
                         loadedSource = _source;
                         this.onload();
                     });
@@ -115,7 +115,7 @@ describe( "Layer source replacement action", () => {
         
                     expect( getSourceContextSpy ).not.toHaveBeenCalled();
                     
-                    expect( layer.mask.getContext( "2d" ).drawImage ).toHaveBeenCalledWith( expect.any( global.Image ), 0, 0 );
+                    expect( layer.mask.getContext( "2d" ).drawImage ).toHaveBeenCalledWith( expect.any( globalThis.Image ), 0, 0 );
 
                     expect( loadedSource ).toEqual( action === "undo" ? MOCK_ORG_SOURCE : MOCK_NEW_SOURCE );
                 });

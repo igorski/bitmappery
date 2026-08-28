@@ -57,7 +57,7 @@ describe( "Render service", () => {
     }
 
     beforeAll(() => {
-        global.ImageData = vi.fn(() => createMockImageData());
+        globalThis.ImageData = vi.fn(() => createMockImageData());
         vi.useFakeTimers();
     });
 
