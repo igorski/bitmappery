@@ -14,7 +14,7 @@ COPY --chown=node:node package.json ./
 RUN yarn install --ignore-scripts
 
 # A bit verbose but solves permission issue on Windows hosts
-RUN mkdir -p /usr/src/app/node_modules/.vite && chown -R node:node /usr/src/app/node_modules
+RUN mkdir -p /usr/src/app/node_modules/.vite && chown -R node:node /usr/src/app/node_modules/.vite
 
 # Copy the rest of the application code
 COPY --chown=node:node . .
