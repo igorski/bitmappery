@@ -1,6 +1,5 @@
 {
     "include": [ "env.d.ts", "src/**/*", "src/**/*.vue" ],
-    "exclude": [],
     "compilerOptions": {
         "target": "ES2022",
         "lib": [ "DOM", "DOM.Iterable", "ES2022" ],
