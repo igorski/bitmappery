@@ -92,7 +92,7 @@ export const cropLayerContent = async ( layer: Layer, cropRectangle: Rectangle )
     if ( replaceSource ) {
         layer.source = await resizeImage( layer.source, width, height, left, top, width, height );
         if ( layer.mask ) {
-            layer.mask = await resizeImage( layer.mask.source, width, height, left, top, width, height );
+            layer.mask.source = await resizeImage( layer.mask.source, width, height, left, top, width, height );
         }
 
         if ( isLargerThanCrop ) {

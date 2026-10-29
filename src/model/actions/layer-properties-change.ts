@@ -25,7 +25,9 @@ import { getRendererForLayer } from "@/model/factories/renderer-factory";
 import { affectsBlendCache, flushBlendedLayerCache } from "@/rendering/cache/blended-layer-cache";
 import { updateWorker } from "@/services/render-service";
 
-export type IChangeSource = keyof Layer;
+// note we add mask position to the source (as tracked mask position changes
+// are handled differently to mask source changes - the latter being more expensive)
+export type IChangeSource = keyof ( Layer & { maskX: number, maskY: number });
 type IContentChangeOpts = {
     sources: IChangeSource[]; // which Layer properties have changed
     index?: number; // index of the Layer inside its Document

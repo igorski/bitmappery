@@ -5,6 +5,7 @@ mockZCanvas();
 
 import { type Layer } from "@/model/types/layer";
 import LayerFactory from "@/model/factories/layer-factory";
+import MaskFactory from "@/model/factories/mask-factory";
 import LayerRenderer from "@/rendering/actors/layer-renderer";
 import { replaceLayerSource } from "@/model/actions/layer-source-replace";
 
@@ -25,7 +26,7 @@ describe( "Layer source replacement action", () => {
     beforeEach(() => {
         layer = LayerFactory.create({
             source: createMockCanvasElement(),
-            mask: createMockCanvasElement(),
+            mask: MaskFactory.create({ source: createMockCanvasElement() }),
         });
         layerRenderer = new LayerRenderer( layer );
         mockGetRendererForLayer.mockReturnValue( layerRenderer );

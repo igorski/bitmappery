@@ -25,7 +25,9 @@ import { type IChangeSource, onLayerPropertiesChange } from "@/model/actions/lay
 import { enqueueState } from "@/model/factories/history-state-factory";
 
 export function positionMask( layer: Layer, newMaskX: number, newMaskY: number ): void {
-    const { maskX, maskY } = layer;
+    const maskX = layer.mask.x;
+    const maskY = layer.mask.y;
+    
     const sources = [ "maskX", "maskY" ] as IChangeSource[];
 
     const commit = (): void => {

@@ -8,6 +8,7 @@ import DocumentFactory from "@/model/factories/document-factory";
 import TransformFactory from "@/model/factories/transform-factory";
 import FiltersFactory from "@/model/factories/filters-factory";
 import LayerFactory from "@/model/factories/layer-factory";
+import MaskFactory from "@/model/factories/mask-factory";
 import { degreesToRadians } from "@/math/unit-math";
 import LayerRenderer from "@/rendering/actors/layer-renderer";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
@@ -74,7 +75,7 @@ describe( "LayerRenderer", () => {
     }
 
     function addMaskToLayer( layer: Layer, layerRenderer: LayerRenderer ): void {
-        layer.mask = createMockCanvasElement();
+        layer.mask = MaskFactory.create({ source: createMockCanvasElement() });
         mockStore.getters.activeLayerMask = layer.mask;
         layerRenderer.setUnmaskedBitmap( createMockCanvasElement());
         layerRenderer.setActionTarget( "mask" );

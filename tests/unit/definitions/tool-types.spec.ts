@@ -1,13 +1,14 @@
 import { it, describe, expect } from "vitest";
-import { createMockCanvasElement, mockZCanvas } from "../mocks";
+import { mockZCanvas } from "../mocks";
 
 mockZCanvas();
 
 import { LayerTypes } from "@/definitions/layer-types";
 import ToolTypes, { canDraw, canDragMask, PANE_TYPES, usesInteractionPane } from "@/definitions/tool-types";
 import DocumentFactory from "@/model/factories/document-factory";
-import TransformFactory from "@/model/factories/transform-factory";
 import LayerFactory from "@/model/factories/layer-factory";
+import MaskFactory from "@/model/factories/mask-factory";
+import TransformFactory from "@/model/factories/transform-factory";
 
 describe( "tool types", () => {
     it.each(
@@ -29,14 +30,14 @@ describe( "tool types", () => {
         it.each([
             LayerTypes.LAYER_IMAGE, LayerTypes.LAYER_TEXT,
         ])( `should not consider a "%s"-layer with an unselected mask to be drawable`, ( type: LayerTypes ) => {
-            const layer = LayerFactory.create({ type, mask: createMockCanvasElement() });
+            const layer = LayerFactory.create({ type, mask: MaskFactory.create() });
             expect( canDraw( document, layer, undefined )).toBe( false );
         });
 
         it.each([
             LayerTypes.LAYER_IMAGE, LayerTypes.LAYER_TEXT,
         ])( `should consider a "%s"-layer with a selected mask to be drawable`, ( type: LayerTypes ) => {
-            const layer = LayerFactory.create({ type, mask: createMockCanvasElement() });
+            const layer = LayerFactory.create({ type, mask: MaskFactory.create() });
             expect( canDraw( document, layer, layer.mask )).toBe( true );
         });
 
@@ -53,18 +54,18 @@ describe( "tool types", () => {
         });
 
         it( "should not consider a layer with an unselected mask to have a draggable mask", () => {
-            const layer = LayerFactory.create({ mask: createMockCanvasElement() });
+            const layer = LayerFactory.create({ mask: MaskFactory.create() });
             expect( canDragMask( layer, undefined )).toBe( false );
         });
 
         it( "should consider a layer with a selected mask to have a draggable mask", () => {
-            const layer = LayerFactory.create({ mask: createMockCanvasElement() });
+            const layer = LayerFactory.create({ mask: MaskFactory.create() });
             expect( canDragMask( layer, layer.mask )).toBe( true );
         });
 
         it( "should not consider a layer with a selected mask to have a draggable mask when the layer is rotated because math is hard", () => {
             const layer = LayerFactory.create({
-                mask: createMockCanvasElement(),
+                mask: MaskFactory.create(),
                 transform: TransformFactory.create({ rotation: 1 })
             });
             expect( canDragMask( layer, layer.mask )).toBe( false );

@@ -427,7 +427,7 @@ export default class LayerRenderer extends ZoomableSprite {
     }
 
     getPaintSource(): HTMLCanvasElement {
-        return isMaskable( this.layer, this.getStore() ) ? this.layer.mask.canvas : this.layer.source;
+        return isMaskable( this.layer, this.getStore() ) ? this.layer.mask.source : this.layer.source;
     }
 
     getPaintSize(): Size {

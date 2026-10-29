@@ -31,7 +31,7 @@ const MaskFactory = {
         enabled = true,
         x = 0,
         y = 0,
-    }): Mask {
+    }: MaskProps = {}): Mask {
         return {
             source,
             enabled,
@@ -40,7 +40,9 @@ const MaskFactory = {
         };
     },
 
-    serialize( mask: Mask, width: number, height: number ): any {
+    serialize( mask: Mask ): any {
+        const { width, height } = mask.source;
+
         return {
             s: imageToBase64( mask.source, width, height, true ),
             e: mask.enabled,

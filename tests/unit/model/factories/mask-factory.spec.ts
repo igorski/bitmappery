@@ -1,5 +1,5 @@
 import { it, describe, expect, vi } from "vitest";
-import MaskFactory from "@/model/factories/layer-factory";
+import MaskFactory from "@/model/factories/mask-factory";
 import { createMockCanvasElement } from "../../mocks";
 
 let mockUpdateFn: ( fnName: string, ...args: any[] ) => void;
@@ -40,11 +40,14 @@ describe( "Mask factory", () => {
     describe( "when serializing and deserializing a Mask", () => {
         it( "should do so without data loss", async () => {
             const source = createMockCanvasElement();
+            source.width = 200;
+            source.height = 100;
+            
             const mask = MaskFactory.create({ source, enabled: false, x: 30, y: 20 });
 
             mockUpdateFn = vi.fn(( _fn, data ) => data );
 
-            const serialized = MaskFactory.serialize( mask, 200, 100 );
+            const serialized = MaskFactory.serialize( mask );
 
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "imageToBase64", mask.source, 200, 100, true );
 

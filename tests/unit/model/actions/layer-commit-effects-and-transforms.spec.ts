@@ -7,9 +7,10 @@ mockZCanvas();
 import { BlendModes } from "@/definitions/blend-modes";
 import ToolTypes from "@/definitions/tool-types";
 import DocumentFactory from "@/model/factories/document-factory";
-import TransformFactory from "@/model/factories/transform-factory";
 import FiltersFactory from "@/model/factories/filters-factory";
 import LayerFactory from "@/model/factories/layer-factory";
+import MaskFactory from "@/model/factories/mask-factory";
+import TransformFactory from "@/model/factories/transform-factory";
 import { type BitMapperyState } from "@/store";
 import { commitLayerEffectsAndTransforms } from "@/model/actions/layer-commit-effects-and-transforms";
 
@@ -37,13 +38,11 @@ describe( "commit layer effects and transforms action", () => {
         transform: TransformFactory.create({ rotation: 5, scale: 2 }),
         filters: FiltersFactory.create({ opacity: 0.5 }),
         source: createMockCanvasElement(),
-        mask: createMockCanvasElement(),
+        mask: MaskFactory.create({ source: createMockCanvasElement(), x: 10, y: 10 }),
         left: 100,
         top: 100,
         width: 200,
         height: 200,
-        maskX: 10,
-        maskY: 10,
     });
     let store: Store<BitMapperyState>;
     
@@ -71,8 +70,6 @@ describe( "commit layer effects and transforms action", () => {
                 height: document.height,
                 left: 0,
                 top: 0,
-                maskX: 0,
-                maskY: 0,
             },
             recreateRenderer: true,
         });
@@ -90,7 +87,7 @@ describe( "commit layer effects and transforms action", () => {
     });
 
     it( "should restore the original values when calling undo in state history", async () => {
-        const { transform, filters, width, height, left, top, maskX, maskY } = layer;
+        const { transform, filters, width, height, left, top } = layer;
 
         await commitLayerEffectsAndTransforms( store, document, layer, 0 );
 
@@ -101,7 +98,7 @@ describe( "commit layer effects and transforms action", () => {
         expect( store.commit ).toHaveBeenNthCalledWith( 2, "updateLayer", {
             index: 0,
             opts: {
-                transform, filters, source: expect.any( Object ), mask: expect.any( Object ), width, height, left, top, maskX, maskY
+                transform, filters, source: expect.any( Object ), mask: expect.any( Object ), width, height, left, top,
             },
             recreateRenderer: true,
         });
@@ -126,8 +123,6 @@ describe( "commit layer effects and transforms action", () => {
                 height: document.height,
                 left: 0,
                 top: 0,
-                maskX: 0,
-                maskY: 0,
             },
             recreateRenderer: true,
         });

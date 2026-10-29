@@ -22,14 +22,13 @@
  */
 import type { Rectangle } from "zcanvas";
 import { LayerTypes, DEFAULT_LAYER_NAME, DEFAULT_TEXT_LAYER_NAME } from "@/definitions/layer-types";
+import FiltersFactory, { type FiltersProps } from "@/model/factories/filters-factory";
+import MaskFactory, { type MaskProps } from "@/model/factories/mask-factory";
+import TextFactory, { type TextProps } from "@/model/factories/text-factory";
+import TransformFactory, { type TransformProps } from "@/model/factories/transform-factory";
 import type { Layer, LayerRel } from "@/model/types/layer";
 import { type Mask } from "@/model/types/mask";
 import { imageToBase64, base64toCanvas } from "@/utils/canvas-util";
-import TransformFactory, { type TransformProps } from "@/model/factories/transform-factory";
-import FiltersFactory from "@/model/factories/filters-factory";
-import TextFactory, { type TextProps } from "@/model/factories/text-factory";
-import type { FiltersProps } from "@/model/factories/filters-factory";
-import MaskFactory, { type MaskProps } from "@/model/factories/mask-factory";
 
 export const FACTORY_VERSION = 2;
 
@@ -64,7 +63,7 @@ const LayerFactory = {
             width,
             height,
             visible,
-            mask: mask ?? MaskFactory.create( mask ) : null,
+            mask: mask ? MaskFactory.create( mask ) : null,
             text: TextFactory.create( text ),
             transform: TransformFactory.create( transform ),
             filters: FiltersFactory.create( filters ),
@@ -153,7 +152,7 @@ export const layerToRect = ( layer: Layer ): Rectangle => ({
 /**
  * Prior to FACTORY_VERSION 2, mask properties were direct Layer properties
  */
-async function migrateLegacyMask( layer: any ): Mask {
+async function migrateLegacyMask( layer: any ): Promise<Mask> {
     return MaskFactory.create({
         source: await base64toCanvas( layer.m, layer.w, layer.h ),
         enabled: true,

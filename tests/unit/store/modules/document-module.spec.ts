@@ -598,7 +598,7 @@ describe( "Vuex document module", () => {
                         name: "foo",
                         layers: [
                             LayerFactory.create({ name: "layer1" }),
-                            LayerFactory.create({ name: "layer2", mask: createMockCanvasElement()})
+                            LayerFactory.create({ name: "layer2", mask: MaskFactory.create() })
                         ]
                     })],
                     activeIndex: 0,

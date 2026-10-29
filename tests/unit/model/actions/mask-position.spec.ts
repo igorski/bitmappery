@@ -5,6 +5,7 @@ mockZCanvas();
 
 import { type Layer } from "@/model/types/layer";
 import LayerFactory from "@/model/factories/layer-factory";
+import MaskFactory from "@/model/factories/mask-factory";
 import LayerRenderer from "@/rendering/actors/layer-renderer";
 import { positionMask } from "@/model/actions/mask-position";
 
@@ -30,11 +31,11 @@ describe( "Layer mask positioning action", () => {
     beforeEach(() => {
         layer = LayerFactory.create({
             source: createMockCanvasElement(),
-            mask: {
+            mask: MaskFactory.create({
                 source: createMockCanvasElement(),
                 x: oldMaskX,
                 y: oldMaskY,
-            },
+            }),
         });
         layerRenderer = new LayerRenderer( layer );
         mockGetRendererForLayer.mockReturnValue( layerRenderer );
