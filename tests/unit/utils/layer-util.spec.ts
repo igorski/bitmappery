@@ -13,7 +13,7 @@ import MaskFactory from "@/model/factories/mask-factory";
 import TransformFactory from "@/model/factories/transform-factory";
 import { type BitMapperyState } from "@/store";
 import {
-    occludesObject, cropLayerContent, hasBlend, hasTransform,
+    occludesObject, cloneLayer, cloneMask, cropLayerContent, hasBlend, hasTransform,
     isDrawable, isMaskable, isMirrored, isOccluded, isRotated, isScaled, isTransparent,
 } from "@/utils/layer-util";
 
@@ -21,6 +21,7 @@ const mockResizeImage = vi.fn();
 vi.mock( "@/utils/canvas-util", async ( importOriginal ) => {
     return {
         ...await importOriginal(),
+        cloneCanvas: ( cvs: HTMLCanvasElement ) => createMockCanvasElement( cvs.width, cvs.height ),
         resizeImage: ( ...args: any[] ) => {
             mockResizeImage( ...args );
             return Promise.resolve( createMockCanvasElement() );
@@ -478,6 +479,61 @@ describe( "Layer utilities", () => {
 
             expect( layer.width ).toEqual( 30 );
             expect( layer.height ).toEqual( 40 );
+        });
+    });
+
+    describe( "when cloning Layer content", () => {
+        const layer = LayerFactory.create({
+            left: 0,
+            top: 0,
+            width: 30,
+            height: 40,
+            source: createMockCanvasElement(),
+            mask: MaskFactory.create({ source: createMockCanvasElement() }),
+            name: "Foo Bar",
+        });
+        
+        it( "should be able to clone the original content unchanged except for source Bitmaps, id and name", () => {
+            expect( cloneLayer( layer )).toEqual({
+                ...layer,
+                id: expect.any( String ),
+                name: "Foo Bar #2",
+                source: expect.any( Object ),
+                mask: {
+                    ...layer.mask,
+                    source: expect.any( Object ),
+                },
+            });
+        });
+
+        it( "should be able to clone the original content with kept name by request", () => {
+            expect( cloneLayer( layer, true )).toEqual({
+                ...layer,
+                id: expect.any( String ),
+                name: "Foo Bar",
+                source: expect.any( Object ),
+                mask: {
+                    ...layer.mask,
+                    source: expect.any( Object ),
+                },
+            });
+        });
+    });
+
+    describe( "when cloning Layer Mask content", () => {
+        it( "should be able to return a valid null value for Layers without Masks", () => {
+            const layer = LayerFactory.create();
+
+            expect( cloneMask( layer.mask )).toBeNull();
+        });
+
+        it( "should be able to clone the original content unchanged except for source Bitmap", () => {
+            const layer = LayerFactory.create({ mask: MaskFactory.create({ source: createMockCanvasElement() }) });
+
+            expect( cloneMask( layer.mask )).toEqual({
+                ...layer.mask,
+                source: expect.any( Object ),
+            });
         });
     });
 });

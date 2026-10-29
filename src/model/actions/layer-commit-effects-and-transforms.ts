@@ -32,16 +32,14 @@ import FiltersFactory from "@/model/factories/filters-factory";
 import { enqueueState } from "@/model/factories/history-state-factory";
 import type { BitMapperyState } from "@/store";
 import { cloneCanvas, cloneResized } from "@/utils/canvas-util";
+import { cloneMask } from "@/utils/layer-util";
 import { createLayerSnapshot } from "@/utils/document-util";
 
 export const commitLayerEffectsAndTransforms = async (
     store: Store<BitMapperyState>, document: Document, layer: Layer, layerIndex: number
 ): Promise<void> => {
     const orgSource = cloneCanvas( layer.source );
-    const orgMask = layer.mask ? {
-        ...layer.mask,
-        source: cloneCanvas( layer.mask.source )
-    }: undefined;
+    const orgMask = cloneMask( layer.mask );
     const orgTransform = cloneDeep( layer.transform );
     const orgFilters = cloneDeep( layer.filters );
     

@@ -36,6 +36,7 @@ import ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import { getCanvasInstance } from "@/services/canvas-service";
 import { createCanvas, cloneCanvas, getPixelRatio, setSmoothing } from "@/utils/canvas-util";
 import { SmartExecutor } from "@/utils/debounce-util";
+import { cloneMask } from "@/utils/layer-util";
 import { selectionToRectangle } from "@/utils/selection-util";
 import { getLayersByTile } from "@/utils/timeline-util";
 
@@ -354,10 +355,7 @@ export const cloneLayers = ( document: Document ): Map<string, ClonedSource> => 
     for ( const layer of document.layers ) {
         orgContent.set( layer.id, {
             source: cloneCanvas( layer.source ),
-            mask: layer.mask ? {
-                ...layer.mask,
-                source: cloneCanvas( layer.mask.source ),
-            } : undefined,
+            mask: cloneMask( layer.mask ),
             left: layer.left,
             top: layer.top,
             width: layer.width,

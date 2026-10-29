@@ -27,6 +27,7 @@ import { type Rectangle } from "zcanvas";
 import { BlendModes } from "@/definitions/blend-modes";
 import { type Document } from "@/model/types/document";
 import { type Layer } from "@/model/types/layer";
+import { type Mask } from "@/model/types/mask";
 import { LayerTypes } from "@/definitions/layer-types";
 import { scaleRectangle } from "@/math/rectangle-math";
 import LayerFactory, { layerToRect } from "@/model/factories/layer-factory";
@@ -110,11 +111,18 @@ export const cloneLayer = ( layerToClone: Layer, keepOrgName = false ): Layer =>
         ...cloneDeep( layerToClone ),
         name: keepOrgName ? layerToClone.name : `${layerToClone.name} #2`,
         source: cloneCanvas( layerToClone.source ),
-        mask: layerToClone.mask ? {
-            ...layerToClone.mask,
-            source: cloneCanvas( layerToClone.mask.source ),
-        } : null,
+        mask: cloneMask( layerToClone.mask ),
     });
+};
+
+export const cloneMask = ( mask?: Mask ): Mask | null => {
+    if ( !mask ) {
+        return null;
+    }
+    return {
+        ...mask,
+        source: cloneCanvas( mask.source )
+    };
 };
 
 export const isRotated = ( layer: Layer ): boolean => ( layer.transform.rotation % 360 ) !== 0;
