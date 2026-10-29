@@ -156,7 +156,7 @@ async function migrateLegacyMask( layer: any ): Promise<Mask> {
     return MaskFactory.create({
         source: await base64toCanvas( layer.m, layer.w, layer.h ),
         enabled: true,
-        x: layer.x2,
-        y: layer.y2,
+        left: layer.x2,
+        top: layer.y2,
     });
 }

@@ -352,7 +352,7 @@ function renderMask( layer: Layer, ctx: CanvasRenderingContext2D, sourceBitmap: 
     if ( !layer.mask ) {
         return;
     }
-    maskImage( ctx, sourceBitmap, layer.mask.source, width, height, layer.mask.x, layer.mask.y );
+    maskImage( ctx, sourceBitmap, layer.mask.source, width, height, layer.mask.left, layer.mask.top );
 }
 
 function completeTask( result: RenderResult, newStatus?: RenderStatus, error?: string ): RenderResult {

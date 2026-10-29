@@ -47,8 +47,8 @@ export const replaceLayerSource = ( layer: Layer, newSource: HTMLCanvasElement, 
 
     if ( isMask ) {
         layer.mask.source = newSource;
-        layer.mask.x += xDelta;
-        layer.mask.y += yDelta;
+        layer.mask.left += xDelta;
+        layer.mask.top  += yDelta;
     } else {
         layer.source = newSource;
         layer.left  += xDelta;
@@ -64,8 +64,8 @@ export const resizeLayerContent = async ( layer: Layer, ratioX: number, ratioY: 
     layer.source = await resizeImage( source, source.width * ratioX, source.height * ratioY );
     if ( mask ) {
         layer.mask.source = await resizeImage( mask.source, mask.source.width * ratioX, mask.source.height * ratioY );
-        layer.mask.x *= ratioX;
-        layer.mask.y *= ratioY;
+        layer.mask.left *= ratioX;
+        layer.mask.top  *= ratioY;
     }
     layer.left   *= ratioX;
     layer.top    *= ratioY;

@@ -29,14 +29,14 @@ const MaskFactory = {
     create({
         source = null,
         enabled = true,
-        x = 0,
-        y = 0,
+        left = 0,
+        top = 0,
     }: MaskProps = {}): Mask {
         return {
             source,
             enabled,
-            x,
-            y,
+            left,
+            top,
         };
     },
 
@@ -46,8 +46,8 @@ const MaskFactory = {
         return {
             s: imageToBase64( mask.source, width, height, true ),
             e: mask.enabled,
-            x: mask.x,
-            y: mask.y,
+            x: mask.left,
+            y: mask.top,
             w: width,
             h: height,
         };
@@ -58,8 +58,8 @@ const MaskFactory = {
         return {
             source,
             enabled: mask.e,
-            x: mask.x,
-            y: mask.y,
+            left: mask.x,
+            top: mask.y,
         };
     },
 };

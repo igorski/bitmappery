@@ -196,8 +196,8 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
         layerProps.mask = {
             source: cvs,
             enabled: true, // @todo do we have a flag for this in the PSD Layer ?
-            x: 0,
-            y: 0,
+            left: 0,
+            top: 0,
         };
     }
 

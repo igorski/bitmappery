@@ -20,10 +20,10 @@ vi.mock( "@/model/factories/history-state-factory", () => ({
 }));
 
 describe( "Layer mask positioning action", () => {
-    const oldMaskX = 5;
-    const oldMaskY = 6;
-    const newMaskX = 15;
-    const newMaskY = 16;
+    const oldLeft = 5;
+    const oldTop  = 6;
+    const newLeft = 15;
+    const newTop  = 16;
     
     let layer: Layer;
     let layerRenderer: LayerRenderer;
@@ -33,8 +33,8 @@ describe( "Layer mask positioning action", () => {
             source: createMockCanvasElement(),
             mask: MaskFactory.create({
                 source: createMockCanvasElement(),
-                x: oldMaskX,
-                y: oldMaskY,
+                left: oldLeft,
+                top: oldTop,
             }),
         });
         layerRenderer = new LayerRenderer( layer );
@@ -46,17 +46,17 @@ describe( "Layer mask positioning action", () => {
     });
 
     it( "should update the Layers mask position", () => {
-        positionMask( layer, newMaskX, newMaskY );
+        positionMask( layer, newLeft, newTop );
 
-        expect( layer.mask.x ).toEqual( newMaskX );
-        expect( layer.mask.y ).toEqual( newMaskY );
+        expect( layer.mask.left ).toEqual( newLeft );
+        expect( layer.mask.top ).toEqual( newTop );
     });
 
     it( "should enqueue the state in history", () => {
-        positionMask( layer, newMaskX, newMaskY );
+        positionMask( layer, newLeft, newTop );
 
         expect( mockEnqueueState ).toHaveBeenCalledWith(
-                `maskPos_${layer.id}`, {
+            `maskPos_${layer.id}`, {
                 undo: expect.any( Function ),
                 redo: expect.any( Function )
             }
@@ -68,19 +68,19 @@ describe( "Layer mask positioning action", () => {
         let redo: VoidFunction;
 
         beforeEach(() => {
-            positionMask( layer, newMaskX, newMaskY );
+            positionMask( layer, newLeft, newTop );
             ({ undo, redo } = mockEnqueueState.mock.calls[ 0 ][ 1 ]);
         });
 
         it.each([ "undo", "redo" ])
         ( `should restore the position of the mask for the "%s" action`, ( action: string ) => {
-            layer.mask.x = 1000;
-            layer.mask.y = 1000;
+            layer.mask.left = 1000;
+            layer.mask.top = 1000;
 
             ( action === "undo" ) ? undo() : redo();
 
-            expect( layer.mask.x ).toEqual( action === "undo" ? oldMaskX : newMaskX );
-            expect( layer.mask.y ).toEqual( action === "undo" ? oldMaskY : newMaskY );
+            expect( layer.mask.left ).toEqual( action === "undo" ? oldLeft : newLeft );
+            expect( layer.mask.top ).toEqual( action === "undo" ? oldTop : newTop );
         });
 
         it.each([ "undo", "redo" ])

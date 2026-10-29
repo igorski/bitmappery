@@ -72,8 +72,8 @@ describe( "Layer factory", () => {
                 mask: {
                     source: maskSource,
                     enabled: false,
-                    x: 50,
-                    y: 25,
+                    left: 50,
+                    top: 25,
                 },
                 left: 100,
                 top: 50,
@@ -97,8 +97,8 @@ describe( "Layer factory", () => {
                 mask: {
                     source: maskSource,
                     enabled: false,
-                    x: 50,
-                    y: 25,
+                    left: 50,
+                    top: 25,
                 },
                 left: 100,
                 top: 50,
@@ -146,8 +146,8 @@ describe( "Layer factory", () => {
                 mask: {
                     source: createMockCanvasElement( 150, 100 ),
                     enabled: false,
-                    x: 30,
-                    y: 20,
+                    left: 30,
+                    top: 20,
                 },
                 left: 100,
                 top: 50,
@@ -256,8 +256,8 @@ describe( "Layer factory", () => {
             expect( deserialized.mask ).toEqual({
                 source: expect.any( Object ),
                 enabled: true,
-                x: 20,
-                y: 30,
+                left: 20,
+                top: 30,
             });
         });
     });

@@ -115,7 +115,7 @@ export default {
                 if ( !this.activeLayer ) {
                     return 0;
                 }
-                return Math.round( this.canDragMask ? this.activeLayer.mask.x : this.activeLayer.left );
+                return Math.round( this.canDragMask ? this.activeLayer.mask.left : this.activeLayer.left );
             },
             set( value: number ): void {
                 if ( isNaN( value )) {
@@ -129,7 +129,7 @@ export default {
                 if ( !this.activeLayer ) {
                     return 0;
                 }
-                return Math.round( this.canDragMask ? this.activeLayer.mask.y : this.activeLayer.top );
+                return Math.round( this.canDragMask ? this.activeLayer.mask.top : this.activeLayer.top );
             },
             set( value: number ): void {
                 if ( isNaN( value )) {

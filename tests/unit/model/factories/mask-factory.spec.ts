@@ -19,20 +19,20 @@ describe( "Mask factory", () => {
             expect( mask ).toEqual({
                 source: null,
                 enabled: true,
-                x: 0,
-                y: 0,
+                left: 0,
+                top: 0,
             });
         });
 
         it( "should be able to create a Mask from provided arguments", () => {
             const source = createMockCanvasElement();
-            const mask = MaskFactory.create({ source, enabled: false, x: 30, y: 20 });
+            const mask = MaskFactory.create({ source, enabled: false, left: 30, top: 20 });
 
             expect( mask ).toEqual({
                 source,
                 enabled: false,
-                x: 30,
-                y: 20,
+                left: 30,
+                top: 20,
             });
         });
     });
@@ -41,7 +41,7 @@ describe( "Mask factory", () => {
         it( "should do so without data loss", async () => {
             const source = createMockCanvasElement( 200, 100 );
             
-            const mask = MaskFactory.create({ source, enabled: false, x: 30, y: 20 });
+            const mask = MaskFactory.create({ source, enabled: false, left: 30, top: 20 });
 
             mockUpdateFn = vi.fn(( _fn, data ) => data );
 

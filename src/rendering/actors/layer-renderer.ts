@@ -752,7 +752,7 @@ export default class LayerRenderer extends ZoomableSprite {
                 );
                 if ( isDrawingOnMask ) {
                     const tempMask = cloneCanvas( this._bitmap as HTMLCanvasElement );
-                    maskImage( tempMask.getContext( "2d" )!, this._unmaskedBitmap, maskedSource, this.layer.source.width, this.layer.source.height, this.layer.mask.x, this.layer.mask.y );
+                    maskImage( tempMask.getContext( "2d" )!, this._unmaskedBitmap, maskedSource, this.layer.source.width, this.layer.source.height, this.layer.mask.left, this.layer.mask.top );
                     this.drawBitmap( documentContext, tempMask, drawBounds, transformCanvas ? undefined : viewport );
                 } else {
                     this.drawBitmap( drawContext, maskedSource, drawBounds, transformCanvas ? undefined : viewport );

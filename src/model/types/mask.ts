@@ -23,6 +23,6 @@
 export type Mask = {
     source: HTMLCanvasElement;
     enabled: boolean;
-    x: number;
-    y: number;
+    left: number;
+    top: number;
 };

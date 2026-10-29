@@ -38,7 +38,7 @@ describe( "commit layer effects and transforms action", () => {
         transform: TransformFactory.create({ rotation: 5, scale: 2 }),
         filters: FiltersFactory.create({ opacity: 0.5 }),
         source: createMockCanvasElement(),
-        mask: MaskFactory.create({ source: createMockCanvasElement(), x: 10, y: 10 }),
+        mask: MaskFactory.create({ source: createMockCanvasElement(), left: 10, top: 5 }),
         left: 100,
         top: 100,
         width: 200,
