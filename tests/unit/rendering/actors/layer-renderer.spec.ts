@@ -253,7 +253,7 @@ describe( "LayerRenderer", () => {
         it( "should return the mask layer when the Layer has an active mask", () => {
             addMaskToLayer( layer, renderer );
 
-            expect( renderer.getPaintSource() ).toEqual( layer.mask );
+            expect( renderer.getPaintSource() ).toEqual( layer.mask.source );
         });
     });
 

@@ -39,9 +39,7 @@ describe( "Mask factory", () => {
 
     describe( "when serializing and deserializing a Mask", () => {
         it( "should do so without data loss", async () => {
-            const source = createMockCanvasElement();
-            source.width = 200;
-            source.height = 100;
+            const source = createMockCanvasElement( 200, 100 );
             
             const mask = MaskFactory.create({ source, enabled: false, x: 30, y: 20 });
 
@@ -55,7 +53,7 @@ describe( "Mask factory", () => {
 
             const deserialized = await MaskFactory.deserialize( serialized );
 
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "base64toCanvas", expect.any( Object ), 200, 100 );
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "base64toCanvas", expect.any( Object ), 200, 100 );
             
             // note id's are unique per created session instance and therefor will differ
             expect({

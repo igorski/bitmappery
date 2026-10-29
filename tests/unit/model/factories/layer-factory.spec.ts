@@ -41,8 +41,6 @@ describe( "Layer factory", () => {
                 mask: null,
                 left: 0,
                 top: 0,
-                maskX: 0,
-                maskY: 0,
                 width: 1,
                 height: 1,
                 visible: true,
@@ -61,7 +59,7 @@ describe( "Layer factory", () => {
             vi.spyOn( TextFactory, "create" ).mockImplementation(( args: TextProps ) => args as Text );
             vi.spyOn( TransformFactory, "create" ).mockImplementation(( args: TransformProps ) => args as Transform );
             
-            mockUpdateFn = ( _fn, data ) => data;
+            mockUpdateFn = vi.fn(( _fn, data ) => data );
 
             const source = createMockCanvasElement();
             const maskSource = createMockCanvasElement();
@@ -146,7 +144,7 @@ describe( "Layer factory", () => {
                 transparent: false,
                 source: createMockCanvasElement(),
                 mask: {
-                    source: createMockCanvasElement(),
+                    source: createMockCanvasElement( 150, 100 ),
                     enabled: false,
                     x: 30,
                     y: 20,
@@ -180,7 +178,6 @@ describe( "Layer factory", () => {
 
             const serialized = LayerFactory.serialize( layer );
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "imageToBase64", layer.source, layer.width, layer.height, layer.transparent );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "imageToBase64", layer.mask,   layer.width, layer.height, true );
             expect( serializeFiltersSpy ).toHaveBeenCalledWith( layer.filters );
             expect( serializeMaskSpy ).toHaveBeenCalledWith( layer.mask );
             expect( serializeTextSpy ).toHaveBeenCalledWith( layer.text );
@@ -190,7 +187,6 @@ describe( "Layer factory", () => {
             const deserialized = await LayerFactory.deserialize( serialized );
 
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "base64toCanvas", expect.any( Object ), layer.width, layer.height );
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "base64toCanvas", expect.any( Object ), layer.width, layer.height );
             expect( deserializeFiltersSpy ).toHaveBeenCalledWith( layer.filters );
             expect( deserializeMaskSpy ).toHaveBeenCalledWith( layer.mask );
             expect( deserializeTextSpy ).toHaveBeenCalledWith( layer.text );
@@ -243,13 +239,19 @@ describe( "Layer factory", () => {
             const serialized = LayerFactory.serialize( layer );
             serialized.fv = 1;
 
+            // mimic legacy mask structure
             serialized.m = createMockCanvasElement();
             serialized.x2 = 20;
             serialized.y2 = 30;
+
+            mockUpdateFn = vi.fn(( _fn, data ) => data );
+
+            const deserializeMaskSpy = vi.spyOn( MaskFactory, "deserialize" );
             
             const deserialized = await LayerFactory.deserialize( serialized );
 
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "base64toCanvas", expect.any( Object ), layer.width, layer.height );
+            expect( deserializeMaskSpy ).not.toHaveBeenCalled();
+            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "base64toCanvas", expect.any( Object ), 300, 200 );
 
             expect( deserialized.mask ).toEqual({
                 source: expect.any( Object ),
