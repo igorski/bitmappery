@@ -18,14 +18,14 @@ vi.mock( "@/utils/canvas-util", async () => {
                 ctx: ( createMockCanvasRenderingContext2D as Function )(),
             };
         }),
-        cloneImageData: vi.fn(() => ( createMockImageData as Function )() ),
+        cloneImageData: vi.fn(() => ( createMockImageData as Function )()),
     };
 });
 
 const mockWorkerPostMessage = vi.fn();
 let mockWorkerInstance: IFilterWorker;
 vi.mock( "@/workers/filter.worker?worker", () => ({
-    default: vi.fn(() => {
+    default: vi.fn( function() {
         mockWorkerInstance = {
             postMessage: vi.fn(( ...args ) => mockWorkerPostMessage( ...args )),
             terminate: vi.fn(),
@@ -57,7 +57,9 @@ describe( "Render service", () => {
     }
 
     beforeAll(() => {
-        globalThis.ImageData = vi.fn(() => createMockImageData());
+        globalThis.ImageData = vi.fn( function() {
+            return createMockImageData();
+        });
         vi.useFakeTimers();
     });
 

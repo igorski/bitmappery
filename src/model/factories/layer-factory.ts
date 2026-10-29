@@ -152,7 +152,10 @@ export const layerToRect = ( layer: Layer ): Rectangle => ({
 /**
  * Prior to FACTORY_VERSION 2, mask properties were direct Layer properties
  */
-async function migrateLegacyMask( layer: any ): Promise<Mask> {
+async function migrateLegacyMask( layer: any ): Promise<Mask | null> {
+    if ( !layer.m ) {
+        return null;
+    }
     return MaskFactory.create({
         source: await base64toCanvas( layer.m, layer.w, layer.h ),
         enabled: true,

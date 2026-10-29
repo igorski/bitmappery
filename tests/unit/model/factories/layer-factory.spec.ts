@@ -233,31 +233,46 @@ describe( "Layer factory", () => {
     // MIGRATIONS
 
     describe( "and determining whether a migration needs to be applied", () => {
-        it( "use the legacy inline mask values for FACTORY_VERSION < 2", async () => {
-            const layer = LayerFactory.create({ width: 300, height: 200 });
-            
-            const serialized = LayerFactory.serialize( layer );
-            serialized.fv = 1;
+        describe( "and the version was serialised in FACTORY_VERSION < 2", () => {
+            it( "should deserialise the legacy inline Mask values", async () => {
+                const deserializeMaskSpy = vi.spyOn( MaskFactory, "deserialize" );
+                
+                const layer = LayerFactory.create({ width: 300, height: 200 });
+                
+                const serialized = LayerFactory.serialize( layer );
+                serialized.fv = 1; // force legacy FACTORY_VERSION
 
-            // mimic legacy mask structure
-            serialized.m = createMockCanvasElement();
-            serialized.x2 = 20;
-            serialized.y2 = 30;
+                // mimic legacy mask structure
+                serialized.m = createMockCanvasElement();
+                serialized.x2 = 20;
+                serialized.y2 = 30;
 
-            mockUpdateFn = vi.fn(( _fn, data ) => data );
+                mockUpdateFn = vi.fn(( _fn, data ) => data );
 
-            const deserializeMaskSpy = vi.spyOn( MaskFactory, "deserialize" );
-            
-            const deserialized = await LayerFactory.deserialize( serialized );
+                deserializeMaskSpy.mockReset();
 
-            expect( deserializeMaskSpy ).not.toHaveBeenCalled();
-            expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "base64toCanvas", expect.any( Object ), 300, 200 );
+                const deserialized = await LayerFactory.deserialize( serialized );
 
-            expect( deserialized.mask ).toEqual({
-                source: expect.any( Object ),
-                enabled: true,
-                left: 20,
-                top: 30,
+                expect( deserializeMaskSpy ).not.toHaveBeenCalled();
+                expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "base64toCanvas", expect.any( Object ), 300, 200 );
+
+                expect( deserialized.mask ).toEqual({
+                    source: expect.any( Object ),
+                    enabled: true,
+                    left: 20,
+                    top: 30,
+                });
+            });
+
+            it( "should ignore Layers without a serialised Mask", async () => {
+                const layer = LayerFactory.create({ width: 300, height: 200 });
+
+                const serialized = LayerFactory.serialize( layer );
+                serialized.fv = 1; // force legacy FACTORY_VERSION
+
+                const deserialized = await LayerFactory.deserialize( serialized );
+
+                expect( deserialized.mask ).toBeNull();
             });
         });
     });

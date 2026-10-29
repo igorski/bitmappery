@@ -23,13 +23,15 @@
 import { type Store } from "vuex";
 import { type Layer } from "@/model/types/layer";
 import { enqueueState } from "@/model/factories/history-state-factory";
+import MaskFactory from "@/model/factories/mask-factory";
 import { clipContextToSelection } from "@/rendering/operations/clipping";
 import { getCanvasInstance } from "@/services/canvas-service";
 import { type BitMapperyState } from "@/store";
 import { createCanvas } from "@/utils/canvas-util";
 
 export const addMask = ( store: Store<BitMapperyState>, layer: Layer, index: number ): void => {
-    const { cvs: mask, ctx } = createCanvas( layer.width, layer.height );
+    const { cvs: source, ctx } = createCanvas( layer.width, layer.height );
+    const mask = MaskFactory.create({ source });
 
     const { activeDocument } = store.getters;
     const currentSelection = activeDocument?.activeSelection ?? [];
