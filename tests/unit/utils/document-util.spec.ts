@@ -108,11 +108,9 @@ describe( "Document utilities", () => {
             layer.top    = 10;
             layer.width  = 30;
             layer.height = 40;
-            layer.mask.left = 100;
-            layer.mask.top = 50;
             layer.text   = TextFactory.create({ value: "baz qux" });
             layer.source = createMockCanvasElement();
-            layer.mask   = MaskFactory.create();
+            layer.mask   = MaskFactory.create({ left: 100, top: 50 });
         }
 
         // restore clone

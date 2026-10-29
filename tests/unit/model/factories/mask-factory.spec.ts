@@ -54,13 +54,7 @@ describe( "Mask factory", () => {
             const deserialized = await MaskFactory.deserialize( serialized );
 
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "base64toCanvas", expect.any( Object ), 200, 100 );
-            
-            // note id's are unique per created session instance and therefor will differ
-            expect({
-                ...deserialized,
-            }).toEqual({
-                ...mask,
-            });
+            expect( deserialized ).toEqual( mask );
         });
     });
 });
