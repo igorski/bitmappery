@@ -23,18 +23,22 @@
 import type { Rectangle } from "zcanvas";
 import { LayerTypes, DEFAULT_LAYER_NAME, DEFAULT_TEXT_LAYER_NAME } from "@/definitions/layer-types";
 import type { Layer, LayerRel } from "@/model/types/layer";
+import { type Mask } from "@/model/types/mask";
 import { imageToBase64, base64toCanvas } from "@/utils/canvas-util";
 import TransformFactory, { type TransformProps } from "@/model/factories/transform-factory";
 import FiltersFactory from "@/model/factories/filters-factory";
-import TextFactory from "@/model/factories/text-factory";
+import TextFactory, { type TextProps } from "@/model/factories/text-factory";
 import type { FiltersProps } from "@/model/factories/filters-factory";
-import type { TextProps } from "@/model/factories/text-factory";
+import MaskFactory, { type MaskProps } from "@/model/factories/mask-factory";
+
+export const FACTORY_VERSION = 2;
 
 let UID_COUNTER = 0;
 
 export type LayerProps = Partial<Omit<Layer, "transform" | "filters" | "text" | "rel">> & {
     transform?: TransformProps;
     filters?: FiltersProps;
+    mask?: MaskProps;
     text?: TextProps;
     rel?: Partial<LayerRel>;
 };
@@ -46,7 +50,7 @@ const LayerFactory = {
     create({
         name = DEFAULT_LAYER_NAME,
         type = LayerTypes.LAYER_GRAPHIC, transparent = true, source = null, mask = null,
-        left = 0, top = 0, maskX = 0, maskY = 0, width = 1, height = 1, visible = true,
+        left = 0, top = 0, width = 1, height = 1, visible = true,
         transform = {}, filters = {}, text = {}, rel = {},
     }: LayerProps = {}): Layer {
         return {
@@ -55,14 +59,12 @@ const LayerFactory = {
             type,
             source,
             transparent,
-            mask,
             left,
             top,
-            maskX,
-            maskY,
             width,
             height,
             visible,
+            mask: mask ?? MaskFactory.create( mask ) : null,
             text: TextFactory.create( text ),
             transform: TransformFactory.create( transform ),
             filters: FiltersFactory.create( filters ),
@@ -83,13 +85,11 @@ const LayerFactory = {
             t: layer.type,
             tr: layer.transparent,
             s: imageToBase64( layer.source, layer.width, layer.height, layer.transparent ),
-            m: imageToBase64( layer.mask,   layer.width, layer.height, true ),
             x: layer.left,
             y: layer.top,
-            x2: layer.maskX,
-            y2: layer.maskY,
             w: layer.width,
             h: layer.height,
+            m: MaskFactory.serialize( layer.mask ),
             tx: TextFactory.serialize( layer.text ),
             f: TransformFactory.serialize( layer.transform ),
             fl: FiltersFactory.serialize( layer.filters ),
@@ -98,6 +98,7 @@ const LayerFactory = {
                 t: layer.rel.type,
                 i: layer.rel.id,
             },
+            fv: FACTORY_VERSION,
         };
     },
 
@@ -106,9 +107,13 @@ const LayerFactory = {
      * inside a stored project
      */
     async deserialize( layer: any ): Promise<Layer> {
+        const serializedVersion = layer.fv ?? 1;
+
+        const mask = ( serializedVersion === 1 ) ? await migrateLegacyMask( layer ) : await MaskFactory.deserialize( layer.m );
+
         const source = await base64toCanvas( layer.s, layer.w, layer.h );
-        const mask   = await base64toCanvas( layer.m, layer.w, layer.h );
         const text   = await TextFactory.deserialize( layer.tx );
+
         return LayerFactory.create({
             name: layer.n,
             type: layer.t,
@@ -117,8 +122,6 @@ const LayerFactory = {
             mask,
             left: layer.x,
             top: layer.y,
-            maskX: layer.x2,
-            maskY: layer.y2,
             width: layer.w,
             height: layer.h,
             visible: layer.v,
@@ -140,3 +143,21 @@ export const layerToRect = ( layer: Layer ): Rectangle => ({
     width  : layer.width,
     height : layer.height
 });
+
+/* internal methods */
+
+// MIGRATIONS transform layer values serialised in a legacy factory format
+// which have since been changed in the application. Migrations aim to keep the
+// visual result of the legacy properties equal to the new format
+
+/**
+ * Prior to FACTORY_VERSION 2, mask properties were direct Layer properties
+ */
+async function migrateLegacyMask( layer: any ): Mask {
+    return MaskFactory.create({
+        source: await base64toCanvas( layer.m, layer.w, layer.h ),
+        enabled: true,
+        x: layer.x2,
+        y: layer.y2,
+    });
+}

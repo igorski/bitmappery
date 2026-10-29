@@ -193,7 +193,12 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
         // Photoshop masks use inverted colours compared to our Canvas masking
         inverseMask( cvs );
 
-        layerProps.mask = cvs;
+        layerProps.mask = {
+            source: cvs,
+            enabled: true, // @todo do we have a flag for this in the PSD Layer ?
+            x: 0,
+            y: 0,
+        };
     }
 
     // retrieve layer contents

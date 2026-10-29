@@ -46,9 +46,9 @@ export const replaceLayerSource = ( layer: Layer, newSource: HTMLCanvasElement, 
     const yDelta = ( layer.height - newSource.height ) / 2;
 
     if ( isMask ) {
-        layer.mask   = newSource;
-        layer.maskX += xDelta;
-        layer.maskY += yDelta;
+        layer.mask.source = newSource;
+        layer.mask.x += xDelta;
+        layer.mask.y += yDelta;
     } else {
         layer.source = newSource;
         layer.left  += xDelta;
@@ -63,9 +63,9 @@ export const resizeLayerContent = async ( layer: Layer, ratioX: number, ratioY: 
 
     layer.source = await resizeImage( source, source.width * ratioX, source.height * ratioY );
     if ( mask ) {
-        layer.mask = await resizeImage( mask, mask.width * ratioX, mask.height * ratioY );
-        layer.maskX *= ratioX;
-        layer.maskY *= ratioY;
+        layer.mask.source = await resizeImage( mask.source, mask.source.width * ratioX, mask.source.height * ratioY );
+        layer.mask.x *= ratioX;
+        layer.mask.y *= ratioY;
     }
     layer.left   *= ratioX;
     layer.top    *= ratioY;
@@ -92,7 +92,7 @@ export const cropLayerContent = async ( layer: Layer, cropRectangle: Rectangle )
     if ( replaceSource ) {
         layer.source = await resizeImage( layer.source, width, height, left, top, width, height );
         if ( layer.mask ) {
-            layer.mask = await resizeImage( layer.mask, width, height, left, top, width, height );
+            layer.mask = await resizeImage( layer.mask.source, width, height, left, top, width, height );
         }
 
         if ( isLargerThanCrop ) {
@@ -110,7 +110,10 @@ export const cloneLayer = ( layerToClone: Layer, keepOrgName = false ): Layer =>
         ...cloneDeep( layerToClone ),
         name: keepOrgName ? layerToClone.name : `${layerToClone.name} #2`,
         source: cloneCanvas( layerToClone.source ),
-        mask: layerToClone.mask ? cloneCanvas( layerToClone.mask ) : null
+        mask: layerToClone.mask ? {
+            ...layerToClone.mask,
+            source: cloneCanvas( layerToClone.mask.source ),
+        } : null,
     });
 };
 

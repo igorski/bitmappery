@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2020-2023 - https://www.igorski.nl
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -22,6 +22,7 @@
  */
 import type { Document } from "@/model/types/document";
 import type { Layer } from "@/model/types/layer";
+import type { Mask } from "@/model/types/mask";
 import { constrain, isPortrait } from "@/math/image-math";
 import { MAX_IMAGE_SIZE, MAX_MEGAPIXEL, getMinImageSize } from "@/definitions/editor-properties";
 import { LayerTypes } from "@/definitions/layer-types";
@@ -53,12 +54,12 @@ export const usesInteractionPane = ( tool: ToolTypes ): boolean => PANE_TYPES.in
 
 export const SELECTION_TOOLS = [ ToolTypes.SELECTION, ToolTypes.LASSO, ToolTypes.WAND ];
 
-export const canDraw = ( activeDocument: Document, activeLayer: Layer, activeLayerMask?: HTMLCanvasElement ): boolean => {
+export const canDraw = ( activeDocument: Document, activeLayer: Layer, activeLayerMask?: Mask ): boolean => {
     return activeDocument &&
     (( !!activeLayer?.mask && activeLayer.mask === activeLayerMask ) || activeLayer?.type === LayerTypes.LAYER_GRAPHIC );
 };
 
-export const canDragMask = ( activeLayer?: Layer, activeLayerMask?: HTMLCanvasElement ): boolean => {
+export const canDragMask = ( activeLayer?: Layer, activeLayerMask?: Mask ): boolean => {
     if ( !activeLayer || !activeLayer?.mask || ( activeLayer.mask !== activeLayerMask )) {
         return false;
     }

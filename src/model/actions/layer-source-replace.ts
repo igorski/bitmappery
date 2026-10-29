@@ -39,7 +39,7 @@ export function replaceLayerSource( layer: Layer, orgSourceBlobURL: string, newS
 /* internal methods */
 
 function restoreSource( layer: Layer, sourceToRestore: string, isMask: boolean ): void {
-    const source = isMask ? layer.mask : layer.source;
+    const source = isMask ? layer.mask.source : layer.source;
     const ctx = source.getContext( "2d" ) as CanvasRenderingContext2D;
     ctx.clearRect( 0, 0, source.width, source.height );
     const image  = new Image();

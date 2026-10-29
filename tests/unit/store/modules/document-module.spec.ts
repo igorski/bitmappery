@@ -4,6 +4,7 @@ import { type Layer } from "@/model/types/layer";
 import { LayerTypes } from "@/definitions/layer-types";
 import DocumentFactory from "@/model/factories/document-factory";
 import LayerFactory from "@/model/factories/layer-factory";
+import MaskFactory from "@/model/factories/mask-factory";
 import DocumentModule, { createDocumentState, type DocumentState } from "@/store/modules/document-module";
 import LayerRenderer from "@/rendering/actors/layer-renderer";
 
@@ -127,7 +128,7 @@ describe( "Vuex document module", () => {
             state.maskActive = true;
             // null because layer has no mask drawable
             expect( getters.activeLayerMask( state, mockedGetters, {}, {} )).toBeUndefined();
-            mockedGetters.activeLayer.mask = createMockCanvasElement();
+            mockedGetters.activeLayer.mask = MaskFactory.create();
             expect( getters.activeLayerMask( state, mockedGetters, {}, {} )).toEqual( mockedGetters.activeLayer.mask );
         });
 

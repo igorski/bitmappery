@@ -7,9 +7,10 @@ import { type Store } from "vuex";
 import { BlendModes } from "@/definitions/blend-modes";
 import { LayerTypes } from "@/definitions/layer-types";
 import DocumentFactory from "@/model/factories/document-factory";
-import TransformFactory from "@/model/factories/transform-factory";
 import FiltersFactory from "@/model/factories/filters-factory";
 import LayerFactory from "@/model/factories/layer-factory";
+import MaskFactory from "@/model/factories/mask-factory";
+import TransformFactory from "@/model/factories/transform-factory";
 import { type BitMapperyState } from "@/store";
 import {
     occludesObject, cropLayerContent, hasBlend, hasTransform,
@@ -130,8 +131,8 @@ describe( "Layer utilities", () => {
 
     it( "should consider a Layer drawable when its of the GRAPHIC type or has a mask", () => {
         const graphicLayer = LayerFactory.create({ type: LayerTypes.LAYER_GRAPHIC } );
-        const imageLayer   = LayerFactory.create({ type: LayerTypes.LAYER_IMAGE, mask: createMockCanvasElement() } );
-        const textLayer    = LayerFactory.create({ type: LayerTypes.LAYER_TEXT,  mask: createMockCanvasElement() } );
+        const imageLayer   = LayerFactory.create({ type: LayerTypes.LAYER_IMAGE, mask: MaskFactory.create() });
+        const textLayer    = LayerFactory.create({ type: LayerTypes.LAYER_TEXT,  mask: MaskFactory.create() });
 
         expect( isDrawable( graphicLayer, mockStore )).toBe( true );
         expect( isDrawable( imageLayer,   mockStore )).toBe( false );
@@ -151,7 +152,7 @@ describe( "Layer utilities", () => {
 
         expect( isMaskable( layer, mockStore )).toBe( false );
         
-        layer.mask = createMockCanvasElement();
+        layer.mask = MaskFactory.create();
 
         expect( isMaskable( layer, mockStore )).toBe( false );
 

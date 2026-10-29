@@ -30,9 +30,11 @@ describe( "Layer mask positioning action", () => {
     beforeEach(() => {
         layer = LayerFactory.create({
             source: createMockCanvasElement(),
-            mask: createMockCanvasElement(),
-            maskX: oldMaskX,
-            maskY: oldMaskY,
+            mask: {
+                source: createMockCanvasElement(),
+                x: oldMaskX,
+                y: oldMaskY,
+            },
         });
         layerRenderer = new LayerRenderer( layer );
         mockGetRendererForLayer.mockReturnValue( layerRenderer );
@@ -45,8 +47,8 @@ describe( "Layer mask positioning action", () => {
     it( "should update the Layers mask position", () => {
         positionMask( layer, newMaskX, newMaskY );
 
-        expect( layer.maskX ).toEqual( newMaskX );
-        expect( layer.maskY ).toEqual( newMaskY );
+        expect( layer.mask.x ).toEqual( newMaskX );
+        expect( layer.mask.y ).toEqual( newMaskY );
     });
 
     it( "should enqueue the state in history", () => {
@@ -71,13 +73,13 @@ describe( "Layer mask positioning action", () => {
 
         it.each([ "undo", "redo" ])
         ( `should restore the position of the mask for the "%s" action`, ( action: string ) => {
-            layer.maskX = 1000;
-            layer.maskY = 1000;
+            layer.mask.x = 1000;
+            layer.mask.y = 1000;
 
             ( action === "undo" ) ? undo() : redo();
 
-            expect( layer.maskX ).toEqual( action === "undo" ? oldMaskX : newMaskX );
-            expect( layer.maskY ).toEqual( action === "undo" ? oldMaskY : newMaskY );
+            expect( layer.mask.x ).toEqual( action === "undo" ? oldMaskX : newMaskX );
+            expect( layer.mask.y ).toEqual( action === "undo" ? oldMaskY : newMaskY );
         });
 
         it.each([ "undo", "redo" ])

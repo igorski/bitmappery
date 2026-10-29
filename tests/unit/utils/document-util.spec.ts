@@ -4,6 +4,7 @@ import type { Document } from "@/model/types/document";
 import type { Layer } from "@/model/types/layer";
 import DocumentFactory from "@/model/factories/document-factory";
 import LayerFactory from "@/model/factories/layer-factory";
+import MaskFactory from "@/model/factories/mask-factory";
 import TextFactory from "@/model/factories/text-factory";
 import { cloneLayers, getAlignableObjects, restoreFromClone } from "@/utils/document-util";
 
@@ -80,16 +81,16 @@ describe( "Document utilities", () => {
     });
 
     it( "Should be able to clone and restore a Documents Layers contents", () => {
-        const layer1mask   = createMockCanvasElement();
+        const layer1mask   = { source: createMockCanvasElement(), x: 5, y: 6 };
         const layer1source = createMockCanvasElement();
         const layer1props  = {
-            left: 1, top: 2, width: 3, height: 4, maskX: 5, maskY: 6, mask: layer1mask, source: layer1source,
+            left: 1, top: 2, width: 3, height: 4, mask: layer1mask, source: layer1source,
             text: TextFactory.create({ value: "foo bar" }),
         };
-        const layer2mask  = createMockCanvasElement();
+        const layer2mask  = { source: createMockCanvasElement(), x: 0, y: 0 };
         const layer2source = createMockCanvasElement();
         const layer2props  = {
-            left: -5, top: -5, width: 10, height: 15, maskX: 0, maskY: 0, mask: layer2mask, source: layer2source
+            left: -5, top: -5, width: 10, height: 15, mask: layer2mask, source: layer2source
         };
         
         const layer1 = LayerFactory.create( layer1props );
@@ -107,11 +108,11 @@ describe( "Document utilities", () => {
             layer.top    = 10;
             layer.width  = 30;
             layer.height = 40;
-            layer.maskX  = 100;
-            layer.maskY  = 100;
+            layer.mask.x = 100;
+            layer.mask.y = 100;
             layer.text   = TextFactory.create({ value: "baz qux" });
             layer.source = createMockCanvasElement();
-            layer.mask   = createMockCanvasElement();
+            layer.mask   = MaskFactory.create();
         }
 
         // restore clone

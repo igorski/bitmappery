@@ -25,6 +25,7 @@ import type { Rectangle, Size } from "zcanvas";
 import { onLayerPropertiesChange } from "@/model/actions/layer-properties-change";
 import type { Document, DocumentMeta } from "@/model/types/document";
 import type { Layer } from "@/model/types/layer";
+import type { Mask } from "@/model/types/mask";
 import type { Selection } from "@/model/types/selection";
 import type { Transform } from "@/model/types/transform";
 import DocumentFactory from "@/model/factories/document-factory";
@@ -69,7 +70,7 @@ const DocumentModule: Module<DocumentState, any> = {
         activeLayer: ( state: DocumentState, getters: any ): Layer => {
             return getters.layers?.[ state.activeLayerIndex ];
         },
-        activeLayerMask: ( state: DocumentState, getters: any ): HTMLCanvasElement | undefined => {
+        activeLayerMask: ( state: DocumentState, getters: any ): Mask | undefined => {
             return ( state.maskActive && getters.activeLayer?.mask ) || undefined;
         },
         activeLayerTransform: ( _state: DocumentState, getters: any ): Transform => {

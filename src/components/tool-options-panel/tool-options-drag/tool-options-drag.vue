@@ -67,8 +67,7 @@
 import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters } from "vuex";
 import { canDragMask } from "@/definitions/tool-types";
-import { onLayerPropertiesChange } from "@/model/actions/layer-properties-change";
-import { enqueueState } from "@/model/factories/history-state-factory";
+import { positionMask } from "@/model/actions/mask-position";
 import KeyboardService from "@/services/keyboard-service";
 import { getRendererForLayer } from "@/model/factories/renderer-factory";
 
@@ -116,7 +115,7 @@ export default {
                 if ( !this.activeLayer ) {
                     return 0;
                 }
-                return Math.round( this.canDragMask ? this.activeLayer.maskX : this.activeLayer.left );
+                return Math.round( this.canDragMask ? this.activeLayer.mask.x : this.activeLayer.left );
             },
             set( value: number ): void {
                 if ( isNaN( value )) {
@@ -130,7 +129,7 @@ export default {
                 if ( !this.activeLayer ) {
                     return 0;
                 }
-                return Math.round( this.canDragMask ? this.activeLayer.maskY : this.activeLayer.top );
+                return Math.round( this.canDragMask ? this.activeLayer.mask.y : this.activeLayer.top );
             },
             set( value: number ): void {
                 if ( isNaN( value )) {
@@ -161,24 +160,7 @@ export default {
         },
         setLayerPosition( x = this.top, y = this.left ): void {
             if ( this.canDragMask ) {
-                const layer = this.activeLayer;
-                const orgX = layer.maskX;
-                const orgY = layer.maskY;
-                const sources = [ "maskX", "maskY" ];
-                const commit = () => {
-                    layer.maskX = x;
-                    layer.maskY = y;
-                    onLayerPropertiesChange( layer, { sources });
-                };
-                commit();
-                enqueueState( `maskPos_${layer.id}`, {
-                    undo() {
-                        layer.maskX = orgX;
-                        layer.maskY = orgY;
-                        onLayerPropertiesChange( layer, { sources });
-                    },
-                    redo: commit
-                }); 
+                positionMask( this.activeLayer, x, y );
             } else {
                 getRendererForLayer( this.activeLayer )?.setBounds( x, y );
             }

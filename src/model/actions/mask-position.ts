@@ -29,16 +29,16 @@ export function positionMask( layer: Layer, newMaskX: number, newMaskY: number )
     const sources = [ "maskX", "maskY" ] as IChangeSource[];
 
     const commit = (): void => {
-        layer.maskX = newMaskX;
-        layer.maskY = newMaskY;
+        layer.mask.x = newMaskX;
+        layer.mask.y = newMaskY;
         onLayerPropertiesChange( layer, { sources });
     };
     commit();
     
     enqueueState( `maskPos_${layer.id}`, {
         undo(): void {
-            layer.maskX = maskX;
-            layer.maskY = maskY;
+            layer.mask.x = maskX;
+            layer.mask.y = maskY;
             onLayerPropertiesChange( layer, { sources });
         },
         redo: commit

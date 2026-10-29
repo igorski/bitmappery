@@ -72,7 +72,7 @@ describe( "Layer source replacement action", () => {
                 it.each([ "undo", "redo" ])
                 ( `should set the layer source to the provided source value when restoring outside of the mask for the "%s" action`,
                 ( action: string ) => {
-                    const getMaskContextSpy = vi.spyOn( layer.mask, "getContext" );
+                    const getMaskContextSpy = vi.spyOn( layer.mask.source, "getContext" );
         
                     ( action === "undo" ) ? undo() : redo();
         
@@ -115,7 +115,7 @@ describe( "Layer source replacement action", () => {
         
                     expect( getSourceContextSpy ).not.toHaveBeenCalled();
                     
-                    expect( layer.mask.getContext( "2d" ).drawImage ).toHaveBeenCalledWith( expect.any( globalThis.Image ), 0, 0 );
+                    expect( layer.mask.source.getContext( "2d" ).drawImage ).toHaveBeenCalledWith( expect.any( globalThis.Image ), 0, 0 );
 
                     expect( loadedSource ).toEqual( action === "undo" ? MOCK_ORG_SOURCE : MOCK_NEW_SOURCE );
                 });

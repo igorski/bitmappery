@@ -38,7 +38,10 @@ export const commitLayerEffectsAndTransforms = async (
     store: Store<BitMapperyState>, document: Document, layer: Layer, layerIndex: number
 ): Promise<void> => {
     const orgSource = cloneCanvas( layer.source );
-    const orgMask = layer.mask ? cloneCanvas( layer.mask ) : undefined;
+    const orgMask = layer.mask ? {
+        ...layer.mask,
+        source: cloneCanvas( layer.mask.source )
+    }: undefined;
     const orgTransform = cloneDeep( layer.transform );
     const orgFilters = cloneDeep( layer.filters );
     
@@ -49,8 +52,6 @@ export const commitLayerEffectsAndTransforms = async (
         top: layer.top,
         width: layer.width,
         height: layer.height,
-        maskX: layer.maskX,
-        maskY: layer.maskY
     };
     const snapshot  = await createLayerSnapshot( layer, document );
     const newSource = cloneResized( snapshot, document.width, document.height );
@@ -65,8 +66,6 @@ export const commitLayerEffectsAndTransforms = async (
             top: 0,
             width: newSource.width,
             height: newSource.height,
-            maskX: 0,
-            maskY: 0,
         }, recreateRenderer: true });
 
         if ( store.getters.activeTool === ToolTypes.DRAG ) {

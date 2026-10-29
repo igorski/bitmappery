@@ -35,7 +35,7 @@ export const deleteSelection = ( store: Pick<Store<BitMapperyState>, "getters"> 
         return;
     }
     const hasMask       = !!activeLayer.mask && activeLayerMask === activeLayer.mask;
-    const orgContent    = cloneCanvas( hasMask ? activeLayer.mask : activeLayer.source );
+    const orgContent    = cloneCanvas( hasMask ? activeLayer.mask.source : activeLayer.source );
     const updatedBitmap = deleteSelectionContent( activeDocument, activeLayer );
 
     const replaceSource = ( newSource: HTMLCanvasElement ) => {
