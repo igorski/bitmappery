@@ -25,6 +25,12 @@ import type { Mask } from "@/model/types/mask";
 
 /**
  * Whether the Mask of provided Layer is currently selected in the editor
+ * 
+ * When working with tools, it is likely that provided layer is the activeLayer
+ * (where the activeMask would thus be the same entity as layer.mask).
+ * Certain operations though can take place across the editor where provided
+ * layer's mask and activeMask are different entities, therefor the Layers
+ * mask cannot be considered to be the selected one.
  */
 export const isMaskSelected = ( layer: Layer, activeMask?: Mask ): boolean => {
     if ( !layer?.mask ) {

@@ -98,7 +98,12 @@ describe( "commit layer effects and transforms action", () => {
         expect( store.commit ).toHaveBeenNthCalledWith( 2, "updateLayer", {
             index: 0,
             opts: {
-                transform, filters, source: expect.any( Object ), mask: expect.any( Object ), width, height, left, top,
+                transform,
+                filters,
+                source: expect.any( Object ),
+                mask: expect.any( Object ),
+                width, height,
+                left, top,
             },
             recreateRenderer: true,
         });
