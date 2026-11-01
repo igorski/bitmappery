@@ -26,7 +26,7 @@
         @focusin="handleFocus()"
         @focusout="handleBlur()"
     >
-        <h3>{{ t( isMask ? "maskPosition" : "layerPosition" ) }}</h3>
+        <h3>{{ t( activeMask ? "maskPosition" : "layerPosition" ) }}</h3>
         <div class="wrapper wrapper--input">
             <label>{{ t( "coordinates" ) }}</label>
             <input
@@ -67,8 +67,7 @@
 import { type ComposerTranslation, useI18n } from "vue-i18n";
 import { mapGetters } from "vuex";
 import { canDragMask } from "@/definitions/tool-types";
-import { onLayerPropertiesChange } from "@/model/actions/layer-properties-change";
-import { enqueueState } from "@/model/factories/history-state-factory";
+import { positionMask } from "@/model/actions/mask-position";
 import KeyboardService from "@/services/keyboard-service";
 import { getRendererForLayer } from "@/model/factories/renderer-factory";
 
@@ -88,35 +87,30 @@ export default {
         ...mapGetters([
             "activeDocument",
             "activeLayer",
-            "activeLayerMask",
+            "activeMask",
         ]),
         disabled(): boolean {
             if ( !this.activeLayer ) {
                 return true;
             }
-            if ( !this.isMask ) {
-                return false;
+            if ( this.activeMask ) {
+                return !this.shouldPositionMask;
             }
-            return !this.canDragMask;
+            return false;
         },
-        isMask(): boolean {
-            if ( !this.activeLayer ) {
+        // whether to position the Layers Mask instead of source content position
+        shouldPositionMask(): boolean {
+            if ( !this.activeMask ) {
                 return false;
             }
-            return !!this.activeLayer.mask && this.activeLayer.mask === this.activeLayerMask;
-        },
-        canDragMask(): boolean {
-            if ( !this.isMask ) {
-                return false;
-            }
-            return canDragMask( this.activeLayer, this.activeLayerMask );
+            return canDragMask( this.activeLayer, this.activeMask );
         },
         left: {
             get(): number {
                 if ( !this.activeLayer ) {
                     return 0;
                 }
-                return Math.round( this.canDragMask ? this.activeLayer.maskX : this.activeLayer.left );
+                return Math.round( this.shouldPositionMask ? this.activeMask.left : this.activeLayer.left );
             },
             set( value: number ): void {
                 if ( isNaN( value )) {
@@ -130,7 +124,7 @@ export default {
                 if ( !this.activeLayer ) {
                     return 0;
                 }
-                return Math.round( this.canDragMask ? this.activeLayer.maskY : this.activeLayer.top );
+                return Math.round( this.shouldPositionMask ? this.activeMask.top : this.activeLayer.top );
             },
             set( value: number ): void {
                 if ( isNaN( value )) {
@@ -160,25 +154,8 @@ export default {
             KeyboardService.setSuspended( false );
         },
         setLayerPosition( x = this.top, y = this.left ): void {
-            if ( this.canDragMask ) {
-                const layer = this.activeLayer;
-                const orgX = layer.maskX;
-                const orgY = layer.maskY;
-                const sources = [ "maskX", "maskY" ];
-                const commit = () => {
-                    layer.maskX = x;
-                    layer.maskY = y;
-                    onLayerPropertiesChange( layer, { sources });
-                };
-                commit();
-                enqueueState( `maskPos_${layer.id}`, {
-                    undo() {
-                        layer.maskX = orgX;
-                        layer.maskY = orgY;
-                        onLayerPropertiesChange( layer, { sources });
-                    },
-                    redo: commit
-                }); 
+            if ( this.shouldPositionMask ) {
+                positionMask( this.activeLayer, x, y );
             } else {
                 getRendererForLayer( this.activeLayer )?.setBounds( x, y );
             }

@@ -1,5 +1,3 @@
-import { L } from "vitest/dist/chunks/reporters.d.BFLkQcL6.js";
-
 /**
  * The MIT License (MIT)
  *

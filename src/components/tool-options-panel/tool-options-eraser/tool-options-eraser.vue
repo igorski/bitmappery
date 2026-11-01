@@ -75,11 +75,11 @@ export default {
         ...mapGetters([
             "activeDocument",
             "activeLayer",
-            "activeLayerMask",
+            "activeMask",
             "eraserOptions",
         ]),
         disabled(): boolean {
-            return !canDraw( this.activeDocument, this.activeLayer, this.activeLayerMask );
+            return !canDraw( this.activeDocument, this.activeLayer, this.activeMask );
         },
         thickness: {
             get(): number {

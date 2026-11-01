@@ -8,6 +8,7 @@ import DocumentFactory from "@/model/factories/document-factory";
 import TransformFactory from "@/model/factories/transform-factory";
 import FiltersFactory from "@/model/factories/filters-factory";
 import LayerFactory from "@/model/factories/layer-factory";
+import MaskFactory from "@/model/factories/mask-factory";
 import { degreesToRadians } from "@/math/unit-math";
 import LayerRenderer from "@/rendering/actors/layer-renderer";
 import type ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
@@ -74,8 +75,8 @@ describe( "LayerRenderer", () => {
     }
 
     function addMaskToLayer( layer: Layer, layerRenderer: LayerRenderer ): void {
-        layer.mask = createMockCanvasElement();
-        mockStore.getters.activeLayerMask = layer.mask;
+        layer.mask = MaskFactory.create({ source: createMockCanvasElement() });
+        mockStore.getters.activeMask = layer.mask;
         layerRenderer.setUnmaskedBitmap( createMockCanvasElement());
         layerRenderer.setActionTarget( "mask" );
     }
@@ -92,7 +93,7 @@ describe( "LayerRenderer", () => {
         // @ts-expect-error getters is readonly
         mockStore.getters = {
             activeColor: "#FF0000",
-            activeLayerMask: null,
+            activeMask: undefined,
         };
         // @ts-expect-error mockZoomableCanvas is not typed w/Vitest mocks
         canvas.getActiveDocument.mockReturnValue( activeDocument );
@@ -252,7 +253,7 @@ describe( "LayerRenderer", () => {
         it( "should return the mask layer when the Layer has an active mask", () => {
             addMaskToLayer( layer, renderer );
 
-            expect( renderer.getPaintSource() ).toEqual( layer.mask );
+            expect( renderer.getPaintSource() ).toEqual( layer.mask.source );
         });
     });
 

@@ -5,6 +5,7 @@ mockZCanvas();
 
 import { type Layer } from "@/model/types/layer";
 import LayerFactory from "@/model/factories/layer-factory";
+import MaskFactory from "@/model/factories/mask-factory";
 import LayerRenderer from "@/rendering/actors/layer-renderer";
 import { replaceLayerSource } from "@/model/actions/layer-source-replace";
 
@@ -25,7 +26,7 @@ describe( "Layer source replacement action", () => {
     beforeEach(() => {
         layer = LayerFactory.create({
             source: createMockCanvasElement(),
-            mask: createMockCanvasElement(),
+            mask: MaskFactory.create({ source: createMockCanvasElement() }),
         });
         layerRenderer = new LayerRenderer( layer );
         mockGetRendererForLayer.mockReturnValue( layerRenderer );
@@ -72,7 +73,7 @@ describe( "Layer source replacement action", () => {
                 it.each([ "undo", "redo" ])
                 ( `should set the layer source to the provided source value when restoring outside of the mask for the "%s" action`,
                 ( action: string ) => {
-                    const getMaskContextSpy = vi.spyOn( layer.mask, "getContext" );
+                    const getMaskContextSpy = vi.spyOn( layer.mask.source, "getContext" );
         
                     ( action === "undo" ) ? undo() : redo();
         
@@ -115,7 +116,7 @@ describe( "Layer source replacement action", () => {
         
                     expect( getSourceContextSpy ).not.toHaveBeenCalled();
                     
-                    expect( layer.mask.getContext( "2d" ).drawImage ).toHaveBeenCalledWith( expect.any( globalThis.Image ), 0, 0 );
+                    expect( layer.mask.source.getContext( "2d" ).drawImage ).toHaveBeenCalledWith( expect.any( globalThis.Image ), 0, 0 );
 
                     expect( loadedSource ).toEqual( action === "undo" ? MOCK_ORG_SOURCE : MOCK_NEW_SOURCE );
                 });

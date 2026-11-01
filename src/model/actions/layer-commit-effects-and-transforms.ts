@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Igor Zinken 2025 - https://www.igorski.nl
+ * Igor Zinken 2025-2026 - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -32,13 +32,14 @@ import FiltersFactory from "@/model/factories/filters-factory";
 import { enqueueState } from "@/model/factories/history-state-factory";
 import type { BitMapperyState } from "@/store";
 import { cloneCanvas, cloneResized } from "@/utils/canvas-util";
+import { cloneMask } from "@/utils/layer-util";
 import { createLayerSnapshot } from "@/utils/document-util";
 
 export const commitLayerEffectsAndTransforms = async (
     store: Store<BitMapperyState>, document: Document, layer: Layer, layerIndex: number
 ): Promise<void> => {
     const orgSource = cloneCanvas( layer.source );
-    const orgMask = layer.mask ? cloneCanvas( layer.mask ) : undefined;
+    const orgMask = cloneMask( layer.mask );
     const orgTransform = cloneDeep( layer.transform );
     const orgFilters = cloneDeep( layer.filters );
     
@@ -49,8 +50,6 @@ export const commitLayerEffectsAndTransforms = async (
         top: layer.top,
         width: layer.width,
         height: layer.height,
-        maskX: layer.maskX,
-        maskY: layer.maskY
     };
     const snapshot  = await createLayerSnapshot( layer, document );
     const newSource = cloneResized( snapshot, document.width, document.height );
@@ -65,8 +64,6 @@ export const commitLayerEffectsAndTransforms = async (
             top: 0,
             width: newSource.width,
             height: newSource.height,
-            maskX: 0,
-            maskY: 0,
         }, recreateRenderer: true });
 
         if ( store.getters.activeTool === ToolTypes.DRAG ) {

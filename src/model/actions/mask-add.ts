@@ -23,13 +23,15 @@
 import { type Store } from "vuex";
 import { type Layer } from "@/model/types/layer";
 import { enqueueState } from "@/model/factories/history-state-factory";
+import MaskFactory from "@/model/factories/mask-factory";
 import { clipContextToSelection } from "@/rendering/operations/clipping";
 import { getCanvasInstance } from "@/services/canvas-service";
 import { type BitMapperyState } from "@/store";
 import { createCanvas } from "@/utils/canvas-util";
 
 export const addMask = ( store: Store<BitMapperyState>, layer: Layer, index: number ): void => {
-    const { cvs: mask, ctx } = createCanvas( layer.width, layer.height );
+    const { cvs: source, ctx } = createCanvas( layer.width, layer.height );
+    const mask = MaskFactory.create({ source });
 
     const { activeDocument } = store.getters;
     const currentSelection = activeDocument?.activeSelection ?? [];
@@ -45,7 +47,7 @@ export const addMask = ( store: Store<BitMapperyState>, layer: Layer, index: num
     
     const commit  = () => {
         store.commit( "updateLayer", { index, opts: { mask } });
-        store.commit( "setActiveLayerMask", index );
+        store.commit( "setActiveMask", index );
 
         if ( hasSelection ) {
             getCanvasInstance()?.interactionPane.setSelection( [], false );
@@ -56,7 +58,7 @@ export const addMask = ( store: Store<BitMapperyState>, layer: Layer, index: num
     enqueueState( `maskAdd_${index}`, {
         undo() {
             store.commit( "updateLayer", { index, opts: { mask: null } });
-            store.commit( "setActiveLayerMask", null );
+            store.commit( "setActiveMask", null );
 
             if ( hasSelection ) {
                 getCanvasInstance()?.interactionPane.setSelection( currentSelection, false );

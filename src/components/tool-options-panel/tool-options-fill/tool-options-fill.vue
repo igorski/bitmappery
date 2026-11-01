@@ -77,11 +77,11 @@ export default {
         ...mapGetters([
             "activeDocument",
             "activeLayer",
-            "activeLayerMask",
+            "activeMask",
             "fillOptions",
         ]),
         disabled(): boolean {
-            return !canDraw( this.activeDocument, this.activeLayer, this.activeLayerMask );
+            return !canDraw( this.activeDocument, this.activeLayer, this.activeMask );
         },
         feather: {
             get(): number {

@@ -49,9 +49,9 @@ export function startLayerDrag( store: Store<BitMapperyState>, layer: Layer, x: 
         return false;
     }
 
-    // we don't support mask dragging out of selections
-    const hasMask = false; // !!layer.mask && store.getters.activeLayerMask === layer.mask;
-    const orgContent = cloneCanvas( hasMask ? layer.mask : layer.source );
+    // we don't support mask dragging outside of selections
+    const hasMask = false; // isMaskSelected( layer, store.getters.activeMask );
+    const orgContent = cloneCanvas( hasMask ? layer.mask.source : layer.source );
     const orgSelection = clone( activeDocument.activeSelection );
     const selectionBoundingBox = selectionToRectangle( orgSelection );
 

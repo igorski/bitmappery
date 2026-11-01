@@ -7,19 +7,21 @@ import { type Store } from "vuex";
 import { BlendModes } from "@/definitions/blend-modes";
 import { LayerTypes } from "@/definitions/layer-types";
 import DocumentFactory from "@/model/factories/document-factory";
-import TransformFactory from "@/model/factories/transform-factory";
 import FiltersFactory from "@/model/factories/filters-factory";
 import LayerFactory from "@/model/factories/layer-factory";
+import MaskFactory from "@/model/factories/mask-factory";
+import TransformFactory from "@/model/factories/transform-factory";
 import { type BitMapperyState } from "@/store";
 import {
-    occludesObject, cropLayerContent, hasBlend, hasTransform,
-    isDrawable, isMaskable, isMirrored, isOccluded, isRotated, isScaled, isTransparent,
+    occludesObject, cloneLayer, cloneMask, cropLayerContent, hasBlend, hasTransform,
+    isDrawable, hasDrawableMask, isMirrored, isOccluded, isRotated, isScaled, isTransparent,
 } from "@/utils/layer-util";
 
 const mockResizeImage = vi.fn();
 vi.mock( "@/utils/canvas-util", async ( importOriginal ) => {
     return {
         ...await importOriginal(),
+        cloneCanvas: ( cvs: HTMLCanvasElement ) => createMockCanvasElement( cvs.width, cvs.height ),
         resizeImage: ( ...args: any[] ) => {
             mockResizeImage( ...args );
             return Promise.resolve( createMockCanvasElement() );
@@ -34,7 +36,7 @@ describe( "Layer utilities", () => {
         mockStore = createState() as unknown as Store<BitMapperyState>;
         // @ts-expect-error getters is readonly
         mockStore.getters = {
-            activeLayerMask: null,
+            activeMask: undefined,
         };
     });
 
@@ -130,34 +132,34 @@ describe( "Layer utilities", () => {
 
     it( "should consider a Layer drawable when its of the GRAPHIC type or has a mask", () => {
         const graphicLayer = LayerFactory.create({ type: LayerTypes.LAYER_GRAPHIC } );
-        const imageLayer   = LayerFactory.create({ type: LayerTypes.LAYER_IMAGE, mask: createMockCanvasElement() } );
-        const textLayer    = LayerFactory.create({ type: LayerTypes.LAYER_TEXT,  mask: createMockCanvasElement() } );
+        const imageLayer   = LayerFactory.create({ type: LayerTypes.LAYER_IMAGE, mask: MaskFactory.create() });
+        const textLayer    = LayerFactory.create({ type: LayerTypes.LAYER_TEXT,  mask: MaskFactory.create() });
 
         expect( isDrawable( graphicLayer, mockStore )).toBe( true );
         expect( isDrawable( imageLayer,   mockStore )).toBe( false );
         expect( isDrawable( textLayer,    mockStore )).toBe( false );
         
-        mockStore.getters.activeLayerMask = imageLayer.mask;
+        mockStore.getters.activeMask = imageLayer.mask;
 
         expect( isDrawable( imageLayer, mockStore )).toBe( true );
 
-        mockStore.getters.activeLayerMask = textLayer.mask;
+        mockStore.getters.activeMask = textLayer.mask;
         
         expect( isDrawable( textLayer, mockStore )).toBe( true );
     });
 
-    it( "should consider a Layer maskable when it has a mask which is currently marked as active in the store", () => {
+    it( "should consider a Layers Mask as drawable when its Mask is currently marked as active in the store", () => {
         const layer = LayerFactory.create();
 
-        expect( isMaskable( layer, mockStore )).toBe( false );
+        expect( hasDrawableMask( layer, mockStore )).toBe( false );
         
-        layer.mask = createMockCanvasElement();
+        layer.mask = MaskFactory.create();
 
-        expect( isMaskable( layer, mockStore )).toBe( false );
+        expect( hasDrawableMask( layer, mockStore )).toBe( false );
 
-        mockStore.getters.activeLayerMask = layer.mask;
+        mockStore.getters.activeMask = layer.mask;
 
-        expect( isMaskable( layer, mockStore )).toBe( true );
+        expect( hasDrawableMask( layer, mockStore )).toBe( true );
     });
 
     describe( "when determining whether a Layer occludes the full visible area of a reference Object", () => {
@@ -477,6 +479,64 @@ describe( "Layer utilities", () => {
 
             expect( layer.width ).toEqual( 30 );
             expect( layer.height ).toEqual( 40 );
+        });
+    });
+
+    describe( "when cloning Layer content", () => {
+        const layer = LayerFactory.create({
+            left: 0,
+            top: 0,
+            width: 30,
+            height: 40,
+            source: createMockCanvasElement(),
+            mask: MaskFactory.create({ source: createMockCanvasElement() }),
+            name: "Foo Bar",
+        });
+        
+        it( "should be able to clone the original content unchanged except for source Bitmaps, id and name", () => {
+            expect( cloneLayer( layer )).toEqual({
+                ...layer,
+                id: expect.any( String ),
+                name: "Foo Bar #2",
+                source: expect.any( Object ),
+                mask: {
+                    ...layer.mask,
+                    id: expect.any( String ),
+                    source: expect.any( Object ),
+                },
+            });
+        });
+
+        it( "should be able to clone the original content with kept name by request", () => {
+            expect( cloneLayer( layer, true )).toEqual({
+                ...layer,
+                id: expect.any( String ),
+                name: "Foo Bar",
+                source: expect.any( Object ),
+                mask: {
+                    ...layer.mask,
+                    id: expect.any( String ),
+                    source: expect.any( Object ),
+                },
+            });
+        });
+    });
+
+    describe( "when cloning Layer Mask content", () => {
+        it( "should be able to return a valid null value for Layers without Masks", () => {
+            const layer = LayerFactory.create();
+
+            expect( cloneMask( layer.mask )).toBeNull();
+        });
+
+        it( "should be able to clone the original content unchanged except for source Bitmap", () => {
+            const layer = LayerFactory.create({ mask: MaskFactory.create({ source: createMockCanvasElement() }) });
+
+            expect( cloneMask( layer.mask )).toEqual({
+                ...layer.mask,
+                id: expect.any( String ),
+                source: expect.any( Object ),
+            });
         });
     });
 });

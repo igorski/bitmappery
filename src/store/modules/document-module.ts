@@ -25,6 +25,7 @@ import type { Rectangle, Size } from "zcanvas";
 import { onLayerPropertiesChange } from "@/model/actions/layer-properties-change";
 import type { Document, DocumentMeta } from "@/model/types/document";
 import type { Layer } from "@/model/types/layer";
+import type { Mask } from "@/model/types/mask";
 import type { Selection } from "@/model/types/selection";
 import type { Transform } from "@/model/types/transform";
 import DocumentFactory from "@/model/factories/document-factory";
@@ -37,17 +38,21 @@ import { getCanvasInstance } from "@/services/canvas-service";
 import { resizeLayerContent, cropLayerContent } from "@/utils/layer-util";
 
 export interface DocumentState {
-    documents : Document[]; // opened documents
-    activeIndex: number; // the currently active document
-    activeLayerIndex: number; // the currently active layer within the currently active document
-    maskActive: boolean;
+    documents: Document[]; // opened Documents
+    // "active" entities indicate whether these are currently
+    // selected in the editor, implying the user is operating on their contents
+    // ---
+    activeIndex: number; // the currently active Document
+    activeLayerIndex: number; // the currently active Layer (within the currently active Document)
+    maskSelected?: boolean; // whether the currently active Layer is working on its Mask source
+    // --- e.o. "active" entities
 };
 
 export const createDocumentState = ( props?: Partial<DocumentState> ): DocumentState => ({
     documents : [],
     activeIndex: 0,
     activeLayerIndex: 0,
-    maskActive: false,
+    maskSelected: false,
     ...props,
 });
 
@@ -69,8 +74,11 @@ const DocumentModule: Module<DocumentState, any> = {
         activeLayer: ( state: DocumentState, getters: any ): Layer => {
             return getters.layers?.[ state.activeLayerIndex ];
         },
-        activeLayerMask: ( state: DocumentState, getters: any ): HTMLCanvasElement | undefined => {
-            return ( state.maskActive && getters.activeLayer?.mask ) || undefined;
+        activeMask: ( state: DocumentState, getters: any ): Mask | undefined => {
+            if ( state.maskSelected === false ) {
+                return;
+            }
+            return getters.activeLayer?.mask;
         },
         activeLayerTransform: ( _state: DocumentState, getters: any ): Transform => {
             return getters.activeLayer?.transform || {};
@@ -185,17 +193,15 @@ const DocumentModule: Module<DocumentState, any> = {
         },
         setActiveLayerIndex( state: DocumentState, layerIndex: number ): void {
             state.activeLayerIndex = layerIndex;
-            state.maskActive = false;
+            state.maskSelected = false;
         },
-        setActiveLayer( state: DocumentState, layer: Layer ): void {
-            const index = state.documents[ state.activeIndex ]?.layers.indexOf( layer );
-            if ( index > -1 ) {
-                state.activeLayerIndex = index;
-            }
-        },
-        setActiveLayerMask( state: DocumentState, layerIndex: number ): void {
+        setActiveMask( state: DocumentState, layerIndex: number ): void {
             state.activeLayerIndex = layerIndex;
-            state.maskActive = !!state.documents[ state.activeIndex ]?.layers[ layerIndex ]?.mask;
+            const activeLayer = state.documents[ state.activeIndex ]?.layers[ layerIndex ];
+            state.maskSelected = !!activeLayer?.mask;
+            if ( activeLayer ) {
+                getRendererForLayer( activeLayer )?.setActionTarget( state.maskSelected ? "mask" : "source" );
+            }
         },
         updateLayer( state: DocumentState, { index, opts = {}, recreateRenderer = false }: { index: number, opts: Partial<Layer>, recreateRenderer?: boolean }): void {
             let layer = state.documents[ state.activeIndex ]?.layers[ index ];

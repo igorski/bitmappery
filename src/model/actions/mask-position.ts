@@ -24,21 +24,23 @@ import { type Layer } from "@/model/types/layer";
 import { type IChangeSource, onLayerPropertiesChange } from "@/model/actions/layer-properties-change";
 import { enqueueState } from "@/model/factories/history-state-factory";
 
-export function positionMask( layer: Layer, newMaskX: number, newMaskY: number ): void {
-    const { maskX, maskY } = layer;
+export function positionMask( layer: Layer, newLeft: number, newTop: number ): void {
+    const oldLeft = layer.mask.left;
+    const oldTop  = layer.mask.top;
+    
     const sources = [ "maskX", "maskY" ] as IChangeSource[];
 
     const commit = (): void => {
-        layer.maskX = newMaskX;
-        layer.maskY = newMaskY;
+        layer.mask.left = newLeft;
+        layer.mask.top = newTop;
         onLayerPropertiesChange( layer, { sources });
     };
     commit();
     
     enqueueState( `maskPos_${layer.id}`, {
         undo(): void {
-            layer.maskX = maskX;
-            layer.maskY = maskY;
+            layer.mask.left = oldLeft;
+            layer.mask.top = oldTop;
             onLayerPropertiesChange( layer, { sources });
         },
         redo: commit

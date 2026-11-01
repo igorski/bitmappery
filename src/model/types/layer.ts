@@ -22,6 +22,7 @@
  */
 import type { LayerTypes } from "@/definitions/layer-types";
 import type { Filters } from "@/model/types/filters";
+import type { Mask } from "@/model/types/mask";
 import type { Text } from "@/model/types/text";
 import type { Transform } from "@/model/types/transform";
 
@@ -49,14 +50,12 @@ export type Layer = {
     type: LayerTypes;
     left: number;
     top: number;
-    maskX: number;
-    maskY: number;
     width: number;
     height: number;
     visible: boolean;
     transparent: boolean;
     source?: HTMLCanvasElement;
-    mask?: HTMLCanvasElement;
+    mask?: Mask;
     transform: Transform;
     filters: Filters;
     text: Text;

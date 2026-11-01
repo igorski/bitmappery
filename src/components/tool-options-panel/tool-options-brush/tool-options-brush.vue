@@ -112,11 +112,11 @@ export default {
         ...mapGetters([
             "activeDocument",
             "activeLayer",
-            "activeLayerMask",
+            "activeMask",
             "brushOptions",
         ]),
         disabled(): boolean {
-            return !canDraw( this.activeDocument, this.activeLayer, this.activeLayerMask );
+            return !canDraw( this.activeDocument, this.activeLayer, this.activeMask );
         },
         hasThickness(): boolean {
             return this.brushType === BrushTypes.PAINT_BRUSH;

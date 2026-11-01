@@ -2,8 +2,10 @@ import { it, describe, expect, beforeEach, vi } from "vitest";
 import { createMockCanvasElement, mockZCanvas } from "../mocks";
 import type { Document } from "@/model/types/document";
 import type { Layer } from "@/model/types/layer";
+import type { Mask } from "@/model/types/mask";
 import DocumentFactory from "@/model/factories/document-factory";
 import LayerFactory from "@/model/factories/layer-factory";
+import MaskFactory from "@/model/factories/mask-factory";
 import TextFactory from "@/model/factories/text-factory";
 import { cloneLayers, getAlignableObjects, restoreFromClone } from "@/utils/document-util";
 
@@ -80,16 +82,16 @@ describe( "Document utilities", () => {
     });
 
     it( "Should be able to clone and restore a Documents Layers contents", () => {
-        const layer1mask   = createMockCanvasElement();
+        const layer1mask   = MaskFactory.create({ source: createMockCanvasElement(), left: 5, top: 6 });
         const layer1source = createMockCanvasElement();
         const layer1props  = {
-            left: 1, top: 2, width: 3, height: 4, maskX: 5, maskY: 6, mask: layer1mask, source: layer1source,
+            left: 1, top: 2, width: 3, height: 4, mask: layer1mask, source: layer1source,
             text: TextFactory.create({ value: "foo bar" }),
         };
-        const layer2mask  = createMockCanvasElement();
+        const layer2mask  = MaskFactory.create({ source: createMockCanvasElement(), left: 0, top: 0 });
         const layer2source = createMockCanvasElement();
         const layer2props  = {
-            left: -5, top: -5, width: 10, height: 15, maskX: 0, maskY: 0, mask: layer2mask, source: layer2source
+            left: -5, top: -5, width: 10, height: 15, mask: layer2mask, source: layer2source
         };
         
         const layer1 = LayerFactory.create( layer1props );
@@ -107,11 +109,9 @@ describe( "Document utilities", () => {
             layer.top    = 10;
             layer.width  = 30;
             layer.height = 40;
-            layer.maskX  = 100;
-            layer.maskY  = 100;
             layer.text   = TextFactory.create({ value: "baz qux" });
             layer.source = createMockCanvasElement();
-            layer.mask   = createMockCanvasElement();
+            layer.mask   = MaskFactory.create({ left: 100, top: 50 });
         }
 
         // restore clone
@@ -120,11 +120,25 @@ describe( "Document utilities", () => {
         // assert properties have been restored
 
         Object.entries( layer1props ).forEach(([ key, value ]) => {
-            expect( layer1[ key as keyof Layer ]).toEqual( value );
+            if ( key === "mask" ) {
+                expect( layer1.mask ).toEqual({
+                    ...( value as Mask ),
+                    id: expect.any( String ),
+                });
+            } else {
+                expect( layer1[ key as keyof Layer ]).toEqual( value );
+            }
         });
 
         Object.entries( layer2props ).forEach(([ key, value ]) => {
-            expect( layer2[ key as keyof Layer ]).toEqual( value );
+            if ( key === "mask" ) {
+                expect( layer2.mask ).toEqual({
+                    ...( value as Mask ),
+                    id: expect.any( String ),
+                });
+            } else {
+                expect( layer2[ key as keyof Layer ]).toEqual( value );
+            }
         });
     });
 });

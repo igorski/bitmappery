@@ -64,7 +64,7 @@ describe( "add mask action", () => {
                 mask: expect.any( Object ),
             },
         });
-        expect( store.commit ).toHaveBeenCalledWith( "setActiveLayerMask", 2 );
+        expect( store.commit ).toHaveBeenCalledWith( "setActiveMask", 2 );
         expect( mockClipContext ).not.toHaveBeenCalled();
     });
 
@@ -92,7 +92,7 @@ describe( "add mask action", () => {
                 mask: null,
             },
         });
-        expect( store.commit ).toHaveBeenNthCalledWith( 4, "setActiveLayerMask", null );
+        expect( store.commit ).toHaveBeenNthCalledWith( 4, "setActiveMask", null );
     });
 
     it( "should restore the previously added mask when calling redo in state history", () => {
@@ -109,7 +109,7 @@ describe( "add mask action", () => {
                 mask: expect.any( Object ),
             },
         });
-        expect( store.commit ).toHaveBeenNthCalledWith( 6, "setActiveLayerMask", 2 );
+        expect( store.commit ).toHaveBeenNthCalledWith( 6, "setActiveMask", 2 );
     });
 
     describe( "when there is an active selection while adding a mask", () => {

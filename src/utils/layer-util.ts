@@ -27,11 +27,13 @@ import { type Rectangle } from "zcanvas";
 import { BlendModes } from "@/definitions/blend-modes";
 import { type Document } from "@/model/types/document";
 import { type Layer } from "@/model/types/layer";
+import { type Mask } from "@/model/types/mask";
 import { LayerTypes } from "@/definitions/layer-types";
 import { scaleRectangle } from "@/math/rectangle-math";
 import LayerFactory, { layerToRect } from "@/model/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
 import { cloneCanvas, resizeImage } from "@/utils/canvas-util";
+import { isMaskSelected } from "@/utils/editor-util";
 
 /**
  * Replace the source / mask contents of given layer, updating its
@@ -46,9 +48,9 @@ export const replaceLayerSource = ( layer: Layer, newSource: HTMLCanvasElement, 
     const yDelta = ( layer.height - newSource.height ) / 2;
 
     if ( isMask ) {
-        layer.mask   = newSource;
-        layer.maskX += xDelta;
-        layer.maskY += yDelta;
+        layer.mask.source = newSource;
+        layer.mask.left += xDelta;
+        layer.mask.top  += yDelta;
     } else {
         layer.source = newSource;
         layer.left  += xDelta;
@@ -63,9 +65,9 @@ export const resizeLayerContent = async ( layer: Layer, ratioX: number, ratioY: 
 
     layer.source = await resizeImage( source, source.width * ratioX, source.height * ratioY );
     if ( mask ) {
-        layer.mask = await resizeImage( mask, mask.width * ratioX, mask.height * ratioY );
-        layer.maskX *= ratioX;
-        layer.maskY *= ratioY;
+        layer.mask.source = await resizeImage( mask.source, mask.source.width * ratioX, mask.source.height * ratioY );
+        layer.mask.left *= ratioX;
+        layer.mask.top  *= ratioY;
     }
     layer.left   *= ratioX;
     layer.top    *= ratioY;
@@ -92,7 +94,7 @@ export const cropLayerContent = async ( layer: Layer, cropRectangle: Rectangle )
     if ( replaceSource ) {
         layer.source = await resizeImage( layer.source, width, height, left, top, width, height );
         if ( layer.mask ) {
-            layer.mask = await resizeImage( layer.mask, width, height, left, top, width, height );
+            layer.mask.source = await resizeImage( layer.mask.source, width, height, left, top, width, height );
         }
 
         if ( isLargerThanCrop ) {
@@ -110,8 +112,18 @@ export const cloneLayer = ( layerToClone: Layer, keepOrgName = false ): Layer =>
         ...cloneDeep( layerToClone ),
         name: keepOrgName ? layerToClone.name : `${layerToClone.name} #2`,
         source: cloneCanvas( layerToClone.source ),
-        mask: layerToClone.mask ? cloneCanvas( layerToClone.mask ) : null
+        mask: cloneMask( layerToClone.mask ),
     });
+};
+
+export const cloneMask = ( mask?: Mask ): Mask | null => {
+    if ( !mask ) {
+        return null;
+    }
+    return {
+        ...mask,
+        source: cloneCanvas( mask.source )
+    };
 };
 
 export const isRotated = ( layer: Layer ): boolean => ( layer.transform.rotation % 360 ) !== 0;
@@ -137,12 +149,12 @@ export const hasBlend = ( layer: Layer ): boolean => {
     return enabled && blendMode !== BlendModes.NORMAL;
 };
 
-export const isDrawable = ( layer: Layer, store: Store<BitMapperyState> ): boolean => {
-    return layer.type === LayerTypes.LAYER_GRAPHIC || isMaskable( layer, store );
+export const hasDrawableMask = ( layer: Layer, store: Store<BitMapperyState> ): boolean => {
+    return isMaskSelected( layer, store.getters.activeMask );
 };
 
-export const isMaskable = ( layer: Layer, store: Store<BitMapperyState> ): boolean => {
-    return !!layer.mask && store.getters.activeLayerMask === layer.mask;
+export const isDrawable = ( layer: Layer, store: Store<BitMapperyState> ): boolean => {
+    return layer.type === LayerTypes.LAYER_GRAPHIC || hasDrawableMask( layer, store );
 };
 
 /**

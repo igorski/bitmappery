@@ -55,6 +55,13 @@
         </li>
         <li>
             <button
+                type="button"
+                :disabled="!activeLayer || !hasMask"
+                @click="requestToggleMaskVisibility()"
+            >{{ t( isMaskEnabled ? "disableLayerMask" : "enableLayerMask" ) }}</button>
+        </li>
+        <li>
+            <button
                 v-tooltip.right="t('toggleLayerFiltersTooltip')"
                 type="button"
                 :disabled="!activeLayer"
@@ -88,6 +95,7 @@ import { duplicateLayer } from "@/model/actions/layer-duplicate";
 import { mergeLayerDown } from "@/model/actions/layer-merge-down";
 import { pasteLayerFilters } from "@/model/actions/layer-paste-filters";
 import { toggleLayerFilters } from "@/model/actions/layer-toggle-filters";
+import { toggleLayerMaskVisibility } from "@/model/actions/mask-visibility";
 import { hasTransform } from "@/utils/layer-util";
 import { getIndexOfFirstLayerInTileGroup, getLayersByTile } from "@/utils/timeline-util";
 
@@ -110,6 +118,7 @@ export default {
             "activeGroup",
             "activeLayer",
             "activeLayerIndex",
+            "activeMask",
             "clonedFilters",
         ]),
         activeLayerCanBeCommitted(): boolean {
@@ -136,8 +145,14 @@ export default {
             }
             return this.activeDocument.layers.length >= 2;
         },
+        hasMask(): boolean {
+            return !!this.activeLayer?.mask;
+        },
         hasTimeline(): boolean {
             return this.activeDocument?.type === "timeline";
+        },
+        isMaskEnabled(): boolean {
+            return this.hasMask && this.activeLayer.mask.enabled;
         },
     },
     methods: {
@@ -163,6 +178,9 @@ export default {
         },
         requestToggleLayerFilters(): void {
             toggleLayerFilters( this.$store, this.activeLayer, this.activeLayerIndex );
+        },
+        requestToggleMaskVisibility(): void {
+            toggleLayerMaskVisibility( this.$store, this.activeLayer, this.activeLayerIndex );
         },
     },
 }

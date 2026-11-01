@@ -110,7 +110,7 @@
                                         :class="{
                                             'layer__actions-button--highlight': element.maskSelected
                                         }"
-                                        @click="handleLayerMaskClick( element )"
+                                        @click="handleLayerMaskClick( element, $event )"
                                     ><img src="@/assets-inline/images/icon-mask.svg" /></button>
                                     <button
                                         v-tooltip="t('toggleVisibility')"
@@ -181,11 +181,13 @@ import { renameLayer } from "@/model/actions/layer-rename";
 import { reorderLayers } from "@/model/actions/layer-reorder";
 import { addMask } from "@/model/actions/mask-add";
 import { removeMask } from "@/model/actions/mask-remove";
+import { toggleLayerMaskVisibility } from "@/model/actions/mask-visibility";
 import { toggleLayerVisibility } from "@/model/actions/layer-toggle-visibility";
 import { getRendererForLayer } from "@/model/factories/renderer-factory";
 import { getThumbnailForLayer, subscribe, unsubscribe } from "@/rendering/cache/thumbnail-cache";
 import { getCanvasInstance } from "@/services/canvas-service";
 import KeyboardService from "@/services/keyboard-service";
+import { isMaskSelected } from "@/utils/editor-util";
 import { focus, isMobile } from "@/utils/environment-util";
 import { getLayersByTile } from "@/utils/timeline-util";
 import messages from "./messages.json";
@@ -224,7 +226,7 @@ export default {
             "activeDocument",
             "activeLayer",
             "activeLayerIndex",
-            "activeLayerMask",
+            "activeMask",
             "activeGroup",
             "activeTool",
             "hasSelection",
@@ -257,7 +259,7 @@ export default {
                 return layers.map(( layer: Layer, index: number ) => ({
                     ...layer,
                     index: this.hasTimeline ? this.layers.indexOf( layer ): index,
-                    maskSelected: layer.mask ? layer.mask === this.activeLayerMask : false,
+                    maskSelected: isMaskSelected( layer, this.activeMask ),
                 })).reverse();
             },
             set( value: Layer[] ): void {
@@ -315,7 +317,7 @@ export default {
             "openModal",
             "removeLayer",
             "setActiveLayerIndex",
-            "setActiveLayerMask",
+            "setActiveMask",
             "setOpenedPanel",
             "openDialog",
         ]),
@@ -388,12 +390,16 @@ export default {
                 });
             }
         },
-        handleLayerMaskClick( layer: IndexedLayer ): void {
+        handleLayerMaskClick( layer: IndexedLayer, e?: PointerEvent ): void {
+            if ( e?.shiftKey ) {
+                toggleLayerMaskVisibility( this.$store, layer, layer.index );
+                return;
+            }
             if ( layer.maskSelected ) {
                 this.handleLayerClick( layer ); // unsetting of mask
                 return;
             }
-            this.setActiveLayerMask( layer.index );
+            this.setActiveMask( layer.index );
             getRendererForLayer( layer )?.setActionTarget( "mask" );
         },
         handleLayerDrag( dragEvent: { moved: { element: Layer, newIndex: number, oldIndex: number }}): void {

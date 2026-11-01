@@ -90,7 +90,7 @@ export const renderLayerContent = async ( layer: Layer, useCaching = true ): Pro
     const cached = useCaching ? getLayerCache( layer ) : null;
     const cacheToSet: RenderCache = {};
 
-    const applyMask     = !!layer.mask;
+    const applyMask     = layer.mask?.enabled ?? false;
     const applyFilter   = hasFilters( layer.filters );
     let hasCachedFilter = applyFilter && cached?.filterData && isFiltersEqual( layer.filters, cached.filters );
 
@@ -352,7 +352,7 @@ function renderMask( layer: Layer, ctx: CanvasRenderingContext2D, sourceBitmap: 
     if ( !layer.mask ) {
         return;
     }
-    maskImage( ctx, sourceBitmap, layer.mask, width, height, layer.maskX, layer.maskY );
+    maskImage( ctx, sourceBitmap, layer.mask.source, width, height, layer.mask.left, layer.mask.top );
 }
 
 function completeTask( result: RenderResult, newStatus?: RenderStatus, error?: string ): RenderResult {

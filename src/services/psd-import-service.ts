@@ -32,6 +32,7 @@ import { LayerTypes } from "@/definitions/layer-types";
 import DocumentFactory from "@/model/factories/document-factory";
 import FiltersFactory from "@/model/factories/filters-factory";
 import LayerFactory, { type LayerProps } from "@/model/factories/layer-factory";
+import MaskFactory from "@/model/factories/mask-factory";
 import type { TextProps } from "@/model/factories/text-factory";
 import { inverseMask } from "@/rendering/operations/compositing";
 import { base64toCanvas, createCanvas, hasTransparentContent } from "@/utils/canvas-util";
@@ -49,7 +50,7 @@ type PSDImage = {
 };
 
 type PSDLayer = Rectangle & {
-    mask: Rectangle;
+    mask: Rectangle & { isEnabled: boolean };
     opacity: number;
     visible: boolean;
     blendMode: {
@@ -188,12 +189,17 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
         const { cvs, ctx } = createCanvas( layer.mask.width, layer.mask.height );
         ctx.putImageData( new ImageData(
             new Uint8ClampedArray( layer.image.maskData.buffer ), layer.mask.width, layer.mask.height
-        ), layer.mask.left - layerX, layer.mask.top - layerY );
+        ), 0, 0 );
 
         // Photoshop masks use inverted colours compared to our Canvas masking
         inverseMask( cvs );
 
-        layerProps.mask = cvs;
+        layerProps.mask = MaskFactory.create({
+            source: cvs,
+            enabled: layer.mask.isEnabled,
+            left: layer.mask.left - layerX,
+            top: layer.mask.top - layerY,
+        });
     }
 
     // retrieve layer contents

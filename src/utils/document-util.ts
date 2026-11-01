@@ -23,6 +23,7 @@
 import { type Rectangle } from "zcanvas";
 import type { Document } from "@/model/types/document";
 import type { Layer, RelId } from "@/model/types/layer";
+import type { Mask } from "@/model/types/mask";
 import type { Shape } from "@/model/types/selection";
 import type { Text } from "@/model/types/text";
 import type { CanvasDrawable, CopiedSelection } from "@/definitions/editor";
@@ -35,6 +36,7 @@ import ZoomableCanvas from "@/rendering/actors/zoomable-canvas";
 import { getCanvasInstance } from "@/services/canvas-service";
 import { createCanvas, cloneCanvas, getPixelRatio, setSmoothing } from "@/utils/canvas-util";
 import { SmartExecutor } from "@/utils/debounce-util";
+import { cloneMask } from "@/utils/layer-util";
 import { selectionToRectangle } from "@/utils/selection-util";
 import { getLayersByTile } from "@/utils/timeline-util";
 
@@ -262,7 +264,7 @@ export const deleteSelectionContent = ( activeDocument: Document, activeLayer: L
     const hasMask = !!activeLayer.mask;
 
     // draw active layer onto temporary canvas at full document scale
-    ctx.drawImage( hasMask ? activeLayer.mask : activeLayer.source, 0, 0 );
+    ctx.drawImage( hasMask ? activeLayer.mask.source : activeLayer.source, 0, 0 );
 
     // erase content in selection area by filling with transparent pixels
     ctx.save();
@@ -339,13 +341,11 @@ export const getAlignableObjects = ( document: Document, excludeLayer?: Layer ):
 
 type ClonedSource = {
     source: HTMLCanvasElement;
-    mask?: HTMLCanvasElement;
+    mask?: Mask;
     left: number;
     top: number;
     width: number;
     height: number;
-    maskX: number;
-    maskY: number;
     text: Text;
 };
 
@@ -355,13 +355,11 @@ export const cloneLayers = ( document: Document ): Map<string, ClonedSource> => 
     for ( const layer of document.layers ) {
         orgContent.set( layer.id, {
             source: cloneCanvas( layer.source ),
-            mask: layer.mask ? cloneCanvas( layer.mask ) : undefined,
+            mask: cloneMask( layer.mask ),
             left: layer.left,
             top: layer.top,
             width: layer.width,
             height: layer.height,
-            maskX: layer.maskX,
-            maskY: layer.maskY,
             text: { ...layer.text },
         });
     }
@@ -380,8 +378,6 @@ export const restoreFromClone = ( document: Document, clone: Map<string, ClonedS
         layer.top    = orgLayer.top;
         layer.width  = orgLayer.width;
         layer.height = orgLayer.height;
-        layer.maskX  = orgLayer.maskX;
-        layer.maskY  = orgLayer.maskY;
         layer.text   = { ...orgLayer.text };
     }
 };

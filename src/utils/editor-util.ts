@@ -1,0 +1,40 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Igor Zinken 2020-2026 - https://www.igorski.nl
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+import type { Layer } from "@/model/types/layer";
+import type { Mask } from "@/model/types/mask";
+
+/**
+ * Whether the Mask of provided Layer is currently selected in the editor
+ * 
+ * When working with tools, it is likely that provided layer is the activeLayer
+ * (where the activeMask would thus be the same entity as layer.mask).
+ * Certain operations though can take place across the editor where provided
+ * layer's mask and activeMask are different entities, therefor the Layers
+ * mask cannot be considered to be the selected one.
+ */
+export const isMaskSelected = ( layer: Layer, activeMask?: Mask ): boolean => {
+    if ( !layer?.mask ) {
+        return false;
+    }
+    return layer.mask.id === activeMask?.id;
+};

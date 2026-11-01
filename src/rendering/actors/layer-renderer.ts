@@ -63,7 +63,7 @@ import { replaceLayerSource } from "@/model/actions/layer-source-replace";
 import { positionMask } from "@/model/actions/mask-position";
 import { createCanvas, canvasToBlob, cloneCanvas, globalToLocal, getPixelRatio, setSmoothing } from "@/utils/canvas-util";
 import { createSyncSnapshot } from "@/utils/document-util";
-import { hasBlend, isDrawable, isMaskable, isRotated, isScaled } from "@/utils/layer-util";
+import { hasBlend, hasDrawableMask, isDrawable, isRotated, isScaled } from "@/utils/layer-util";
 import { blobToResource } from "@/utils/resource-manager";
 import { getLastShape } from "@/utils/selection-util";
 import { isShapeClosed } from "@/utils/shape-util";
@@ -427,7 +427,7 @@ export default class LayerRenderer extends ZoomableSprite {
     }
 
     getPaintSource(): HTMLCanvasElement {
-        return isMaskable( this.layer, this.getStore() ) ? this.layer.mask : this.layer.source;
+        return hasDrawableMask( this.layer, this.getStore() ) ? this.layer.mask.source : this.layer.source;
     }
 
     getPaintSize(): Size {
@@ -463,7 +463,7 @@ export default class LayerRenderer extends ZoomableSprite {
         const orgBlob  = await canvasToBlob( original );
         const orgState = blobToResource( orgBlob );
         
-        replaceLayerSource( this.layer, orgState, newState, isMaskable( this.layer, this.getStore() ));
+        replaceLayerSource( this.layer, orgState, newState, hasDrawableMask( this.layer, this.getStore() ));
 
         return true;
     }
@@ -564,8 +564,7 @@ export default class LayerRenderer extends ZoomableSprite {
 
         } else if ( this._isDragMode ) {
             startLayerDrag( this.getStore(), this.layer, x, y );
-            
-            if ( this.actionTarget === "mask" && canDragMask( this.layer, this.layer.mask )) {
+            if ( this.actionTarget === "mask" && canDragMask( this.layer, this.getStore().getters.activeMask )) {
                 this._draggingMask = {
                     x: this._dragStartOffset.x + (( x - this._bounds.left ) - this._dragStartEventCoordinates.x ),
                     y: this._dragStartOffset.y + (( y - this._bounds.top )  - this._dragStartEventCoordinates.y ),
@@ -614,7 +613,7 @@ export default class LayerRenderer extends ZoomableSprite {
             );
             disposeMaskComposite();
             disposeDrawableCanvas();
-            onLayerPropertiesChange( this.layer, { sources: [ isMaskable( this.layer, this.getStore() ) ? "mask" : "source" ] });
+            onLayerPropertiesChange( this.layer, { sources: [ hasDrawableMask( this.layer, this.getStore() ) ? "mask" : "source" ] });
 
             this._paintProps.paintCanvas = null;
             this._brush.down  = false;
@@ -706,7 +705,7 @@ export default class LayerRenderer extends ZoomableSprite {
 
             const isPainting      = this.isPainting();
             const isErasing       = isPainting && this._toolType === ToolTypes.ERASER;
-            const isDrawingOnMask = isPainting && isMaskable( this.layer, this.getStore() );
+            const isDrawingOnMask = isPainting && hasDrawableMask( this.layer, this.getStore() );
             const applyBlending   = hasBlend( this.layer ) && !isDrawingOnMask;
 
             if ( applyBlending ) {
@@ -733,9 +732,9 @@ export default class LayerRenderer extends ZoomableSprite {
             }
 
             if ( this._draggingMask ) {
-                const composite = getMaskComposite({ width: this.layer.mask.width, height: this.layer.mask.height });
+                const composite = getMaskComposite({ width: this.layer.mask.source.width, height: this.layer.mask.source.height });
                 maskImage(
-                    composite.ctx, this._unmaskedBitmap!, this.layer.mask,
+                    composite.ctx, this._unmaskedBitmap!, this.layer.mask.source,
                     this._unmaskedBitmap!.width, this._unmaskedBitmap!.height, this._draggingMask.x, this._draggingMask.y
                 );
                 this.drawBitmap( documentContext, composite.cvs, drawBounds, transformCanvas ? undefined : viewport );
@@ -752,7 +751,7 @@ export default class LayerRenderer extends ZoomableSprite {
                 );
                 if ( isDrawingOnMask ) {
                     const tempMask = cloneCanvas( this._bitmap as HTMLCanvasElement );
-                    maskImage( tempMask.getContext( "2d" )!, this._unmaskedBitmap, maskedSource, this.layer.source.width, this.layer.source.height, this.layer.maskX, this.layer.maskY );
+                    maskImage( tempMask.getContext( "2d" )!, this._unmaskedBitmap, maskedSource, this.layer.source.width, this.layer.source.height, this.layer.mask.left, this.layer.mask.top );
                     this.drawBitmap( documentContext, tempMask, drawBounds, transformCanvas ? undefined : viewport );
                 } else {
                     this.drawBitmap( drawContext, maskedSource, drawBounds, transformCanvas ? undefined : viewport );
@@ -775,7 +774,7 @@ export default class LayerRenderer extends ZoomableSprite {
                 }
                 renderDrawableCanvas(
                     this._paintProps, isDrawingOnMask ? drawContext : documentContext, this.getPaintSize(), this.canvas, this._brush.options.opacity,
-                    this._toolType === ToolTypes.ERASER || isMaskable( this.layer, this.getStore() ) ? "destination-out" : undefined,
+                    this._toolType === ToolTypes.ERASER || hasDrawableMask( this.layer, this.getStore() ) ? "destination-out" : undefined,
                 );
                 if ( isDrawingOnMask ) {
                     documentContext.drawImage( maskComposite.cvs, 0, 0 ); // draw temporary masked canvas onto underlying document
