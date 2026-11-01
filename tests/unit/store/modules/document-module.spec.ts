@@ -132,7 +132,6 @@ describe( "Vuex document module", () => {
             // undefined because active Layer Mask has different id
             expect( getters.activeLayerMask( state, mockedGetters, {}, {} )).toBeUndefined();
             
-            
             state.activeLayerMaskId = activeLayer.mask.id;
 
             expect( getters.activeLayerMask( state, mockedGetters, {}, {} )).toEqual( activeLayer.mask );

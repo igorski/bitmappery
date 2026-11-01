@@ -33,6 +33,7 @@ import { scaleRectangle } from "@/math/rectangle-math";
 import LayerFactory, { layerToRect } from "@/model/factories/layer-factory";
 import { type BitMapperyState } from "@/store";
 import { cloneCanvas, resizeImage } from "@/utils/canvas-util";
+import { isMaskSelected } from "@/utils/editor-util";
 
 /**
  * Replace the source / mask contents of given layer, updating its
@@ -148,12 +149,12 @@ export const hasBlend = ( layer: Layer ): boolean => {
     return enabled && blendMode !== BlendModes.NORMAL;
 };
 
-export const isDrawable = ( layer: Layer, store: Store<BitMapperyState> ): boolean => {
-    return layer.type === LayerTypes.LAYER_GRAPHIC || isMaskable( layer, store );
+export const hasDrawableMask = ( layer: Layer, store: Store<BitMapperyState> ): boolean => {
+    return isMaskSelected( layer, store.getters.activeLayerMask );
 };
 
-export const isMaskable = ( layer: Layer, store: Store<BitMapperyState> ): boolean => {
-    return !!layer.mask && store.getters.activeLayerMask?.id === layer.mask.id;
+export const isDrawable = ( layer: Layer, store: Store<BitMapperyState> ): boolean => {
+    return layer.type === LayerTypes.LAYER_GRAPHIC || hasDrawableMask( layer, store );
 };
 
 /**

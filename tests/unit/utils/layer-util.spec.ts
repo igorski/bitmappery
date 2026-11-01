@@ -14,7 +14,7 @@ import TransformFactory from "@/model/factories/transform-factory";
 import { type BitMapperyState } from "@/store";
 import {
     occludesObject, cloneLayer, cloneMask, cropLayerContent, hasBlend, hasTransform,
-    isDrawable, isMaskable, isMirrored, isOccluded, isRotated, isScaled, isTransparent,
+    isDrawable, hasDrawableMask, isMirrored, isOccluded, isRotated, isScaled, isTransparent,
 } from "@/utils/layer-util";
 
 const mockResizeImage = vi.fn();
@@ -148,18 +148,18 @@ describe( "Layer utilities", () => {
         expect( isDrawable( textLayer, mockStore )).toBe( true );
     });
 
-    it( "should consider a Layer maskable when it has a mask which is currently marked as active in the store", () => {
+    it( "should consider a Layers Mask as drawable when its Mask is currently marked as active in the store", () => {
         const layer = LayerFactory.create();
 
-        expect( isMaskable( layer, mockStore )).toBe( false );
+        expect( hasDrawableMask( layer, mockStore )).toBe( false );
         
         layer.mask = MaskFactory.create();
 
-        expect( isMaskable( layer, mockStore )).toBe( false );
+        expect( hasDrawableMask( layer, mockStore )).toBe( false );
 
         mockStore.getters.activeLayerMask = layer.mask;
 
-        expect( isMaskable( layer, mockStore )).toBe( true );
+        expect( hasDrawableMask( layer, mockStore )).toBe( true );
     });
 
     describe( "when determining whether a Layer occludes the full visible area of a reference Object", () => {

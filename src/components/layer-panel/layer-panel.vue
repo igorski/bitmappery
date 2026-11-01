@@ -186,6 +186,7 @@ import { getRendererForLayer } from "@/model/factories/renderer-factory";
 import { getThumbnailForLayer, subscribe, unsubscribe } from "@/rendering/cache/thumbnail-cache";
 import { getCanvasInstance } from "@/services/canvas-service";
 import KeyboardService from "@/services/keyboard-service";
+import { isMaskSelected } from "@/utils/editor-util";
 import { focus, isMobile } from "@/utils/environment-util";
 import { getLayersByTile } from "@/utils/timeline-util";
 import messages from "./messages.json";
@@ -257,7 +258,7 @@ export default {
                 return layers.map(( layer: Layer, index: number ) => ({
                     ...layer,
                     index: this.hasTimeline ? this.layers.indexOf( layer ): index,
-                    maskSelected: layer.mask ? layer.mask.id === this.activeLayerMask?.id : false,
+                    maskSelected: isMaskSelected( layer, this.activeLayerMask ),
                 })).reverse();
             },
             set( value: Layer[] ): void {

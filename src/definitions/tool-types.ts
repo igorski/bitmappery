@@ -27,6 +27,7 @@ import { constrain, isPortrait } from "@/math/image-math";
 import { MAX_IMAGE_SIZE, MAX_MEGAPIXEL, getMinImageSize } from "@/definitions/editor-properties";
 import { LayerTypes } from "@/definitions/layer-types";
 import { getPixelRatio } from "@/utils/canvas-util";
+import { isMaskSelected } from "@/utils/editor-util";
 
 enum ToolTypes {
     MOVE       = "move",  // pans viewport
@@ -56,7 +57,7 @@ export const SELECTION_TOOLS = [ ToolTypes.SELECTION, ToolTypes.LASSO, ToolTypes
 
 export const canDraw = ( activeDocument: Document, activeLayer: Layer, activeLayerMask?: Mask ): boolean => {
     return activeDocument &&
-    (( !!activeLayer?.mask && activeLayer.mask.id === activeLayerMask?.id ) || activeLayer?.type === LayerTypes.LAYER_GRAPHIC );
+    ( activeLayer?.type === LayerTypes.LAYER_GRAPHIC || isMaskSelected( activeLayer, activeLayerMask ));
 };
 
 export const canDragMask = ( activeLayer?: Layer, activeLayerMask?: Mask ): boolean => {

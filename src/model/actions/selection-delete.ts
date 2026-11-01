@@ -26,6 +26,7 @@ import { enqueueState } from "@/model/factories/history-state-factory";
 import { type BitMapperyState } from "@/store";
 import { cloneCanvas } from "@/utils/canvas-util";
 import { deleteSelectionContent } from "@/utils/document-util";
+import { isMaskSelected } from "@/utils/editor-util";
 import { replaceLayerSource } from "@/utils/layer-util";
 
 export const deleteSelection = ( store: Pick<Store<BitMapperyState>, "getters"> ): void => {
@@ -34,7 +35,7 @@ export const deleteSelection = ( store: Pick<Store<BitMapperyState>, "getters"> 
     if ( !activeLayer || !activeDocument?.activeSelection.length ) {
         return;
     }
-    const hasMask       = !!activeLayer.mask && activeLayerMask?.id === activeLayer.mask.id;
+    const hasMask       = isMaskSelected( activeLayer, activeLayerMask );
     const orgContent    = cloneCanvas( hasMask ? activeLayer.mask.source : activeLayer.source );
     const updatedBitmap = deleteSelectionContent( activeDocument, activeLayer );
 

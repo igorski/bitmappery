@@ -70,6 +70,7 @@ import { canDragMask } from "@/definitions/tool-types";
 import { positionMask } from "@/model/actions/mask-position";
 import KeyboardService from "@/services/keyboard-service";
 import { getRendererForLayer } from "@/model/factories/renderer-factory";
+import { isMaskSelected } from "@/utils/editor-util";
 
 import messages from "./messages.json";
 
@@ -102,7 +103,7 @@ export default {
             if ( !this.activeLayer ) {
                 return false;
             }
-            return !!this.activeLayer.mask && this.activeLayer.mask.id === this.activeLayerMask.id;
+            return isMaskSelected( this.activeLayer, this.activeLayerMask );
         },
         canDragMask(): boolean {
             if ( !this.isMask ) {
