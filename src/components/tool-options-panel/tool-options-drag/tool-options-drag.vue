@@ -88,7 +88,7 @@ export default {
         ...mapGetters([
             "activeDocument",
             "activeLayer",
-            "activeLayerMask",
+            "activeMask",
         ]),
         disabled(): boolean {
             if ( !this.activeLayer ) {
@@ -103,13 +103,13 @@ export default {
             if ( !this.activeLayer ) {
                 return false;
             }
-            return isMaskSelected( this.activeLayer, this.activeLayerMask );
+            return isMaskSelected( this.activeLayer, this.activeMask );
         },
         canDragMask(): boolean {
             if ( !this.isMask ) {
                 return false;
             }
-            return canDragMask( this.activeLayer, this.activeLayerMask );
+            return canDragMask( this.activeLayer, this.activeMask );
         },
         left: {
             get(): number {

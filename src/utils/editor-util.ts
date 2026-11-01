@@ -26,9 +26,9 @@ import type { Mask } from "@/model/types/mask";
 /**
  * Whether the Mask of provided Layer is currently selected in the editor
  */
-export const isMaskSelected = ( layer: Layer, activeLayerMask?: Mask ): boolean => {
+export const isMaskSelected = ( layer: Layer, activeMask?: Mask ): boolean => {
     if ( !layer?.mask ) {
         return false;
     }
-    return layer.mask.id === activeLayerMask?.id;
+    return layer.mask.id === activeMask?.id;
 };

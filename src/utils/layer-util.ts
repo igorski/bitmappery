@@ -150,7 +150,7 @@ export const hasBlend = ( layer: Layer ): boolean => {
 };
 
 export const hasDrawableMask = ( layer: Layer, store: Store<BitMapperyState> ): boolean => {
-    return isMaskSelected( layer, store.getters.activeLayerMask );
+    return isMaskSelected( layer, store.getters.activeMask );
 };
 
 export const isDrawable = ( layer: Layer, store: Store<BitMapperyState> ): boolean => {

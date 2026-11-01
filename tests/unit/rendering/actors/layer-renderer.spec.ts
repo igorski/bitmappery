@@ -76,7 +76,7 @@ describe( "LayerRenderer", () => {
 
     function addMaskToLayer( layer: Layer, layerRenderer: LayerRenderer ): void {
         layer.mask = MaskFactory.create({ source: createMockCanvasElement() });
-        mockStore.getters.activeLayerMask = layer.mask;
+        mockStore.getters.activeMask = layer.mask;
         layerRenderer.setUnmaskedBitmap( createMockCanvasElement());
         layerRenderer.setActionTarget( "mask" );
     }
@@ -93,7 +93,7 @@ describe( "LayerRenderer", () => {
         // @ts-expect-error getters is readonly
         mockStore.getters = {
             activeColor: "#FF0000",
-            activeLayerMask: undefined,
+            activeMask: undefined,
         };
         // @ts-expect-error mockZoomableCanvas is not typed w/Vitest mocks
         canvas.getActiveDocument.mockReturnValue( activeDocument );

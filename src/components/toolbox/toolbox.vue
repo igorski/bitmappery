@@ -166,7 +166,7 @@ export default {
             "activeTool",
             "activeDocument",
             "activeLayer",
-            "activeLayerMask",
+            "activeMask",
             "activeColor",
             "activeToolOptions",
             "canUndo",
@@ -188,7 +188,7 @@ export default {
             }
         },
         tools(): ToolGroups[] {
-            const drawable = !!this.activeLayer && canDraw( this.activeDocument, this.activeLayer, this.activeLayerMask );
+            const drawable = !!this.activeLayer && canDraw( this.activeDocument, this.activeLayer, this.activeMask );
             const groups = [
                 {
                     name: "pan",

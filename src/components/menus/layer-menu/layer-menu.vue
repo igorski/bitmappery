@@ -118,7 +118,7 @@ export default {
             "activeGroup",
             "activeLayer",
             "activeLayerIndex",
-            "activeLayerMask",
+            "activeMask",
             "clonedFilters",
         ]),
         activeLayerCanBeCommitted(): boolean {

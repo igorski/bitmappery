@@ -63,7 +63,7 @@ const APPLE_OPTION_KEYS = [ 224 /* Firefox */, 91 /* WebKit left key */, 93 /* W
 
 const defaultBlock = ( e: KeyboardEvent ): void => e.preventDefault();
 
-const canDrawOnActiveLayer = (): boolean => canDraw( getters.activeDocument, getters.activeLayer, getters.activeLayerMask );
+const canDrawOnActiveLayer = (): boolean => canDraw( getters.activeDocument, getters.activeLayer, getters.activeMask );
 
 /**
  * KeyboardService is a dedicated controller that listens to keyboard

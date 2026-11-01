@@ -55,13 +55,13 @@ export const usesInteractionPane = ( tool: ToolTypes ): boolean => PANE_TYPES.in
 
 export const SELECTION_TOOLS = [ ToolTypes.SELECTION, ToolTypes.LASSO, ToolTypes.WAND ];
 
-export const canDraw = ( activeDocument: Document, activeLayer: Layer, activeLayerMask?: Mask ): boolean => {
+export const canDraw = ( activeDocument: Document, activeLayer: Layer, activeMask?: Mask ): boolean => {
     return activeDocument &&
-    ( activeLayer?.type === LayerTypes.LAYER_GRAPHIC || isMaskSelected( activeLayer, activeLayerMask ));
+    ( activeLayer?.type === LayerTypes.LAYER_GRAPHIC || isMaskSelected( activeLayer, activeMask ));
 };
 
-export const canDragMask = ( activeLayer?: Layer, activeLayerMask?: Mask ): boolean => {
-    if ( !activeLayer?.mask || !isMaskSelected( activeLayer, activeLayerMask )) {
+export const canDragMask = ( activeLayer?: Layer, activeMask?: Mask ): boolean => {
+    if ( !activeLayer?.mask || !isMaskSelected( activeLayer, activeMask )) {
         return false;
     }
     return activeLayer.transform.rotation === 0;

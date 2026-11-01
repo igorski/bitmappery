@@ -225,7 +225,7 @@ export default {
             "activeDocument",
             "activeLayer",
             "activeLayerIndex",
-            "activeLayerMask",
+            "activeMask",
             "activeGroup",
             "activeTool",
             "hasSelection",
@@ -258,7 +258,7 @@ export default {
                 return layers.map(( layer: Layer, index: number ) => ({
                     ...layer,
                     index: this.hasTimeline ? this.layers.indexOf( layer ): index,
-                    maskSelected: isMaskSelected( layer, this.activeLayerMask ),
+                    maskSelected: isMaskSelected( layer, this.activeMask ),
                 })).reverse();
             },
             set( value: Layer[] ): void {
@@ -316,7 +316,7 @@ export default {
             "openModal",
             "removeLayer",
             "setActiveLayerIndex",
-            "setActiveLayerMask",
+            "setActiveMask",
             "setOpenedPanel",
             "openDialog",
         ]),
@@ -394,7 +394,7 @@ export default {
                 this.handleLayerClick( layer ); // unsetting of mask
                 return;
             }
-            this.setActiveLayerMask( layer.index );
+            this.setActiveMask( layer.index );
             getRendererForLayer( layer )?.setActionTarget( "mask" );
         },
         handleLayerDrag( dragEvent: { moved: { element: Layer, newIndex: number, oldIndex: number }}): void {

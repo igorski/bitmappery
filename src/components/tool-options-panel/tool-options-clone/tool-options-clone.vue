@@ -96,12 +96,12 @@ export default {
         ...mapGetters([
             "activeDocument",
             "activeLayer",
-            "activeLayerMask",
+            "activeMask",
             "layers",
             "cloneOptions",
         ]),
         disabled(): boolean {
-            return !canDraw( this.activeDocument, this.activeLayer, this.activeLayerMask );
+            return !canDraw( this.activeDocument, this.activeLayer, this.activeMask );
         },
         selectableLayers(): { label: string, value: string }[] {
             return [

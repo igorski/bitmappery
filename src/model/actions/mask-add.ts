@@ -47,7 +47,7 @@ export const addMask = ( store: Store<BitMapperyState>, layer: Layer, index: num
     
     const commit  = () => {
         store.commit( "updateLayer", { index, opts: { mask } });
-        store.commit( "setActiveLayerMask", index );
+        store.commit( "setActiveMask", index );
 
         if ( hasSelection ) {
             getCanvasInstance()?.interactionPane.setSelection( [], false );
@@ -58,7 +58,7 @@ export const addMask = ( store: Store<BitMapperyState>, layer: Layer, index: num
     enqueueState( `maskAdd_${index}`, {
         undo() {
             store.commit( "updateLayer", { index, opts: { mask: null } });
-            store.commit( "setActiveLayerMask", null );
+            store.commit( "setActiveMask", null );
 
             if ( hasSelection ) {
                 getCanvasInstance()?.interactionPane.setSelection( currentSelection, false );

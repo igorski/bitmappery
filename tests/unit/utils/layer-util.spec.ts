@@ -36,7 +36,7 @@ describe( "Layer utilities", () => {
         mockStore = createState() as unknown as Store<BitMapperyState>;
         // @ts-expect-error getters is readonly
         mockStore.getters = {
-            activeLayerMask: undefined,
+            activeMask: undefined,
         };
     });
 
@@ -139,11 +139,11 @@ describe( "Layer utilities", () => {
         expect( isDrawable( imageLayer,   mockStore )).toBe( false );
         expect( isDrawable( textLayer,    mockStore )).toBe( false );
         
-        mockStore.getters.activeLayerMask = imageLayer.mask;
+        mockStore.getters.activeMask = imageLayer.mask;
 
         expect( isDrawable( imageLayer, mockStore )).toBe( true );
 
-        mockStore.getters.activeLayerMask = textLayer.mask;
+        mockStore.getters.activeMask = textLayer.mask;
         
         expect( isDrawable( textLayer, mockStore )).toBe( true );
     });
@@ -157,7 +157,7 @@ describe( "Layer utilities", () => {
 
         expect( hasDrawableMask( layer, mockStore )).toBe( false );
 
-        mockStore.getters.activeLayerMask = layer.mask;
+        mockStore.getters.activeMask = layer.mask;
 
         expect( hasDrawableMask( layer, mockStore )).toBe( true );
     });

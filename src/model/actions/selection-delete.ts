@@ -30,12 +30,12 @@ import { isMaskSelected } from "@/utils/editor-util";
 import { replaceLayerSource } from "@/utils/layer-util";
 
 export const deleteSelection = ( store: Pick<Store<BitMapperyState>, "getters"> ): void => {
-    const { activeLayer, activeLayerMask, activeDocument } = store.getters;
+    const { activeLayer, activeMask, activeDocument } = store.getters;
 
     if ( !activeLayer || !activeDocument?.activeSelection.length ) {
         return;
     }
-    const hasMask       = isMaskSelected( activeLayer, activeLayerMask );
+    const hasMask       = isMaskSelected( activeLayer, activeMask );
     const orgContent    = cloneCanvas( hasMask ? activeLayer.mask.source : activeLayer.source );
     const updatedBitmap = deleteSelectionContent( activeDocument, activeLayer );
 

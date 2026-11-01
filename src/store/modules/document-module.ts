@@ -38,17 +38,21 @@ import { getCanvasInstance } from "@/services/canvas-service";
 import { resizeLayerContent, cropLayerContent } from "@/utils/layer-util";
 
 export interface DocumentState {
-    documents : Document[]; // opened documents
-    activeIndex: number; // the currently active document
-    activeLayerIndex: number; // the currently active layer within the currently active document
-    activeLayerMaskId?: string;
+    documents: Document[]; // opened Documents
+    // "active" entities indicate whether these are currently
+    // selected in the editor, implying the user is operating on their contents
+    // ---
+    activeIndex: number; // the currently active Document
+    activeLayerIndex: number; // the currently active Layer (within the currently active Document)
+    maskSelected?: boolean; // whether the currently active Layer is working on its Mask source
+    // --- e.o. "active" entities
 };
 
 export const createDocumentState = ( props?: Partial<DocumentState> ): DocumentState => ({
     documents : [],
     activeIndex: 0,
     activeLayerIndex: 0,
-    activeLayerMaskId: undefined,
+    maskSelected: false,
     ...props,
 });
 
@@ -70,14 +74,11 @@ const DocumentModule: Module<DocumentState, any> = {
         activeLayer: ( state: DocumentState, getters: any ): Layer => {
             return getters.layers?.[ state.activeLayerIndex ];
         },
-        activeLayerMask: ( state: DocumentState, getters: any ): Mask | undefined => {
-            if ( state.activeLayerMaskId === undefined || !getters.activeLayer?.mask ) {
+        activeMask: ( state: DocumentState, getters: any ): Mask | undefined => {
+            if ( state.maskSelected === false ) {
                 return;
             }
-            if ( state.activeLayerMaskId !== getters.activeLayer.mask.id ) {
-                return;
-            }
-            return getters.activeLayer.mask;
+            return getters.activeLayer?.mask;
         },
         activeLayerTransform: ( _state: DocumentState, getters: any ): Transform => {
             return getters.activeLayer?.transform || {};
@@ -192,7 +193,7 @@ const DocumentModule: Module<DocumentState, any> = {
         },
         setActiveLayerIndex( state: DocumentState, layerIndex: number ): void {
             state.activeLayerIndex = layerIndex;
-            state.activeLayerMaskId = undefined;
+            state.maskSelected = false;
         },
         setActiveLayer( state: DocumentState, layer: Layer ): void {
             const index = state.documents[ state.activeIndex ]?.layers.indexOf( layer );
@@ -200,10 +201,9 @@ const DocumentModule: Module<DocumentState, any> = {
                 state.activeLayerIndex = index;
             }
         },
-        setActiveLayerMask( state: DocumentState, layerIndex: number ): void {
+        setActiveMask( state: DocumentState, layerIndex: number ): void {
             state.activeLayerIndex = layerIndex;
-            const mask = state.documents[ state.activeIndex ]?.layers[ layerIndex ]?.mask
-            state.activeLayerMaskId = mask ? mask.id : undefined;
+            state.maskSelected = !!state.documents[ state.activeIndex ]?.layers[ layerIndex ]?.mask;
         },
         updateLayer( state: DocumentState, { index, opts = {}, recreateRenderer = false }: { index: number, opts: Partial<Layer>, recreateRenderer?: boolean }): void {
             let layer = state.documents[ state.activeIndex ]?.layers[ index ];
