@@ -92,7 +92,7 @@ export default {
                 default:
                     return null;
                 case ToolTypes.DRAG:
-                    loader = () => import( "./tool-options-drag/tool-options-drag.vue" );
+                    loader = () => import( "./tool-options-position/tool-options-position.vue" );
                     break;
                 case ToolTypes.SELECTION:
                 case ToolTypes.LASSO:

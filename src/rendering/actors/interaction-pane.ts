@@ -307,7 +307,7 @@ export default class InteractionPane extends sprite {
                     const renderer = layerRenderers[ i ];
                     // if the renderers Bitmap contents are non-transparent at the given coordinate, make it the active layer
                     if ( !isInsideTransparentArea( renderer.getBitmap() as HTMLCanvasElement, x - renderer.getX(), y - renderer.getY() )) {
-                        this.canvas.store.commit( "setActiveLayer", renderer.layer );
+                        this.canvas.store.commit( "setActiveLayerIndex", this.getActiveDocument().layers.indexOf( renderer.layer ));
                         break;
                     }
                 }

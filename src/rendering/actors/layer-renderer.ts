@@ -564,8 +564,7 @@ export default class LayerRenderer extends ZoomableSprite {
 
         } else if ( this._isDragMode ) {
             startLayerDrag( this.getStore(), this.layer, x, y );
-            
-            if ( this.actionTarget === "mask" && canDragMask( this.layer, this.layer.mask )) {
+            if ( this.actionTarget === "mask" && canDragMask( this.layer, this.getStore().getters.activeMask )) {
                 this._draggingMask = {
                     x: this._dragStartOffset.x + (( x - this._bounds.left ) - this._dragStartEventCoordinates.x ),
                     y: this._dragStartOffset.y + (( y - this._bounds.top )  - this._dragStartEventCoordinates.y ),

@@ -47,23 +47,28 @@ describe( "tool types", () => {
         });
     });
 
-    describe( "when determining whether the currently active mask is draggable", () => {
-        it( "should not consider a layer without a mask to have a draggable mask", () => {
+    describe( "when determining whether the currently active Mask is draggable", () => {
+        it( "should not consider a Layer without a Mask to have a draggable Mask", () => {
             const layer = LayerFactory.create();
             expect( canDragMask( layer, undefined )).toBe( false );
         });
 
-        it( "should not consider a layer with an unselected mask to have a draggable mask", () => {
+        it( "should not consider a Layer with an unselected Mask to have a draggable Mask", () => {
             const layer = LayerFactory.create({ mask: MaskFactory.create() });
             expect( canDragMask( layer, undefined )).toBe( false );
         });
 
-        it( "should consider a layer with a selected mask to have a draggable mask", () => {
+        it( "should consider a Layer with a selected Mask to have a draggable Mask", () => {
             const layer = LayerFactory.create({ mask: MaskFactory.create() });
             expect( canDragMask( layer, layer.mask )).toBe( true );
         });
 
-        it( "should not consider a layer with a selected mask to have a draggable mask when the layer is rotated because math is hard", () => {
+        it( "should not consider a Layer with a Mask to have a draggable Mask when another Layers Mask is selected", () => {
+            const layer = LayerFactory.create({ mask: MaskFactory.create() });
+            expect( canDragMask( layer, MaskFactory.create() )).toBe( false );
+        });
+
+        it( "should not consider a Layer with a selected Mask to have a draggable Mask when the Layer is rotated because math is hard", () => {
             const layer = LayerFactory.create({
                 mask: MaskFactory.create(),
                 transform: TransformFactory.create({ rotation: 1 })

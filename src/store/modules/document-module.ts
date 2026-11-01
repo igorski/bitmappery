@@ -195,15 +195,13 @@ const DocumentModule: Module<DocumentState, any> = {
             state.activeLayerIndex = layerIndex;
             state.maskSelected = false;
         },
-        setActiveLayer( state: DocumentState, layer: Layer ): void {
-            const index = state.documents[ state.activeIndex ]?.layers.indexOf( layer );
-            if ( index > -1 ) {
-                state.activeLayerIndex = index;
-            }
-        },
         setActiveMask( state: DocumentState, layerIndex: number ): void {
             state.activeLayerIndex = layerIndex;
-            state.maskSelected = !!state.documents[ state.activeIndex ]?.layers[ layerIndex ]?.mask;
+            const activeLayer = state.documents[ state.activeIndex ]?.layers[ layerIndex ];
+            state.maskSelected = !!activeLayer?.mask;
+            if ( activeLayer ) {
+                getRendererForLayer( activeLayer )?.setActionTarget( state.maskSelected ? "mask" : "source" );
+            }
         },
         updateLayer( state: DocumentState, { index, opts = {}, recreateRenderer = false }: { index: number, opts: Partial<Layer>, recreateRenderer?: boolean }): void {
             let layer = state.documents[ state.activeIndex ]?.layers[ index ];

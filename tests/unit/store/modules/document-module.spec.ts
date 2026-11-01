@@ -539,8 +539,8 @@ describe( "Vuex document module", () => {
             expect( mockFlushBlendedLayerCache ).toHaveBeenCalledWith( true );
         });
 
-        describe( "when setting the active layer content", () => {
-            it( "should be able to set the active layer by index", () => {
+        describe( "when setting the active Layer content", () => {
+            it( "should be able to set the active Layer by index", () => {
                 const state = createDocumentState({
                     documents: [
                         DocumentFactory.create({
@@ -555,22 +555,6 @@ describe( "Vuex document module", () => {
                     activeLayerIndex: 0
                 });
                 mutations.setActiveLayerIndex( state, 1 );
-                expect( state.activeLayerIndex ).toEqual( 1 );
-            });
-
-            it( "should be able to set the active layer by reference", () => {
-                const state = createDocumentState({
-                    documents: [ DocumentFactory.create({
-                        name: "foo",
-                        layers: [
-                            LayerFactory.create({ name: "layer1" }),
-                            LayerFactory.create({ name: "layer2" })
-                        ]
-                    })],
-                    activeIndex: 0,
-                    activeLayerIndex: 0
-                });
-                mutations.setActiveLayer( state, state.documents[ 0 ].layers[ 1 ] );
                 expect( state.activeLayerIndex ).toEqual( 1 );
             });
 
@@ -591,24 +575,58 @@ describe( "Vuex document module", () => {
                 mutations.setActiveLayerIndex( state, 1 );
                 expect( state.maskSelected ).toBe( false );
             });
+        });
 
-            it( "should be able to mark the active Layer Mask as selected", () => {
-                const layers = [
-                    LayerFactory.create({ name: "layer1" }),
-                    LayerFactory.create({ name: "layer2", mask: MaskFactory.create() })
-                ];
-                const state = createDocumentState({
+        describe( "when setting a Layers Mask as active", () => {
+            let state: DocumentState;
+
+            beforeEach(() => {
+                state = createDocumentState({
                     documents: [ DocumentFactory.create({
                         name: "foo",
-                        layers,
+                        layers: [
+                            LayerFactory.create({ name: "layer1" }),
+                            LayerFactory.create({ name: "layer2", mask: MaskFactory.create() })
+                        ],
                     })],
                     activeIndex: 0,
                     activeLayerIndex: 0,
                     maskSelected: false,
                 });
+            });
+            
+            it( "should be able to mark the active Layer Mask as selected", () => {
                 mutations.setActiveMask( state, 1 );
                 expect( state.activeLayerIndex ).toEqual( 1 );
                 expect( state.maskSelected ).toBe( true );
+            });
+
+            it( "should update the Layer renderer to update its action target to 'mask' when its Mask is selected", () => {
+                const layerRenderer = new LayerRenderer( state.documents[ 0 ].layers[ 1 ] );
+
+                const actionTargetSpy = vi.spyOn( layerRenderer, "setActionTarget" );
+
+                mockUpdateFn = vi.fn( fn => {
+                    if ( fn === "getRendererForLayer" ) return layerRenderer;
+                    return true;
+                });
+                mutations.setActiveMask( state, 1 );
+
+                expect( actionTargetSpy ).toHaveBeenCalledWith( "mask" );
+            });
+
+            it( "should update the Layer renderer to update its action target to 'source' when its Mask is unselected", () => {
+                const layerRenderer = new LayerRenderer( state.documents[ 0 ].layers[ 0 ] );
+
+                const actionTargetSpy = vi.spyOn( layerRenderer, "setActionTarget" );
+
+                mockUpdateFn = vi.fn( fn => {
+                    if ( fn === "getRendererForLayer" ) return layerRenderer;
+                    return true;
+                });
+                mutations.setActiveMask( state, 0 );
+
+                expect( actionTargetSpy ).toHaveBeenCalledWith( "source" );
             });
         });
 
