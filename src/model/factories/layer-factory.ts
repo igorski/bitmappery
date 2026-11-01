@@ -34,7 +34,7 @@ export const FACTORY_VERSION = 2;
 
 let UID_COUNTER = 0;
 
-export type LayerProps = Partial<Omit<Layer, "transform" | "filters" | "text" | "rel">> & {
+export type LayerProps = Partial<Omit<Layer, "id" | "mask" | "transform" | "filters" | "text" | "rel">> & {
     transform?: TransformProps;
     filters?: FiltersProps;
     mask?: MaskProps;
@@ -88,7 +88,7 @@ const LayerFactory = {
             y: layer.top,
             w: layer.width,
             h: layer.height,
-            m: MaskFactory.serialize( layer.mask ),
+            m: layer.mask ? MaskFactory.serialize( layer.mask ) : undefined,
             tx: TextFactory.serialize( layer.text ),
             f: TransformFactory.serialize( layer.transform ),
             fl: FiltersFactory.serialize( layer.filters ),
@@ -108,8 +108,10 @@ const LayerFactory = {
     async deserialize( layer: any ): Promise<Layer> {
         const serializedVersion = layer.fv ?? 1;
 
-        const mask = ( serializedVersion === 1 ) ? await migrateLegacyMask( layer ) : await MaskFactory.deserialize( layer.m );
-
+        let mask;
+        if ( layer.m ) {
+            mask = ( serializedVersion === 1 ) ? await migrateLegacyMask( layer ) : await MaskFactory.deserialize( layer.m );
+        }
         const source = await base64toCanvas( layer.s, layer.w, layer.h );
         const text   = await TextFactory.deserialize( layer.tx );
 
@@ -153,9 +155,6 @@ export const layerToRect = ( layer: Layer ): Rectangle => ({
  * Prior to FACTORY_VERSION 2, mask properties were direct Layer properties
  */
 async function migrateLegacyMask( layer: any ): Promise<Mask | null> {
-    if ( !layer.m ) {
-        return null;
-    }
     return MaskFactory.create({
         source: await base64toCanvas( layer.m, layer.w, layer.h ),
         enabled: true,

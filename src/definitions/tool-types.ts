@@ -56,11 +56,11 @@ export const SELECTION_TOOLS = [ ToolTypes.SELECTION, ToolTypes.LASSO, ToolTypes
 
 export const canDraw = ( activeDocument: Document, activeLayer: Layer, activeLayerMask?: Mask ): boolean => {
     return activeDocument &&
-    (( !!activeLayer?.mask && activeLayer.mask === activeLayerMask ) || activeLayer?.type === LayerTypes.LAYER_GRAPHIC );
+    (( !!activeLayer?.mask && activeLayer.mask.id === activeLayerMask?.id ) || activeLayer?.type === LayerTypes.LAYER_GRAPHIC );
 };
 
 export const canDragMask = ( activeLayer?: Layer, activeLayerMask?: Mask ): boolean => {
-    if ( !activeLayer || !activeLayer?.mask || ( activeLayer.mask !== activeLayerMask )) {
+    if ( !activeLayer || !activeLayer?.mask || ( activeLayer.mask.id !== activeLayerMask?.id )) {
         return false;
     }
     return activeLayer.transform.rotation === 0;

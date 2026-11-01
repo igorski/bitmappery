@@ -34,7 +34,7 @@ export const deleteSelection = ( store: Pick<Store<BitMapperyState>, "getters"> 
     if ( !activeLayer || !activeDocument?.activeSelection.length ) {
         return;
     }
-    const hasMask       = !!activeLayer.mask && activeLayerMask === activeLayer.mask;
+    const hasMask       = !!activeLayer.mask && activeLayerMask?.id === activeLayer.mask.id;
     const orgContent    = cloneCanvas( hasMask ? activeLayer.mask.source : activeLayer.source );
     const updatedBitmap = deleteSelectionContent( activeDocument, activeLayer );
 

@@ -10,6 +10,8 @@
         "mergeDown": "Merge down",
         "flattenImage": "Flatten image",
         "mergedLayer": "Merged layer",
-        "filtersCopied": "Filters copied"
+        "filtersCopied": "Filters copied",
+        "disableLayerMask": "Deactivate mask",
+        "enableLayerMask": "Activate mask"
     }
 }

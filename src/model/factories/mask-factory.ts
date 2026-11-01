@@ -23,7 +23,9 @@
 import { type Mask } from "@/model/types/mask";
 import { imageToBase64, base64toCanvas } from "@/utils/canvas-util";
 
-export type MaskProps = Partial<Mask>;
+let UID_COUNTER = 0;
+
+export type MaskProps = Partial<Omit<Mask, "id">>;
 
 const MaskFactory = {
     create({
@@ -33,6 +35,7 @@ const MaskFactory = {
         top = 0,
     }: MaskProps = {}): Mask {
         return {
+            id: `mask_${( ++UID_COUNTER )}`,
             source,
             enabled,
             left,
@@ -55,12 +58,12 @@ const MaskFactory = {
 
     async deserialize( mask: any ): Promise<Mask> {
         const source = await base64toCanvas( mask.s, mask.w, mask.h );
-        return {
+        return MaskFactory.create({
             source,
             enabled: mask.e,
             left: mask.x,
             top: mask.y,
-        };
+        });
     },
 };
 

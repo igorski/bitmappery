@@ -90,7 +90,7 @@ export const renderLayerContent = async ( layer: Layer, useCaching = true ): Pro
     const cached = useCaching ? getLayerCache( layer ) : null;
     const cacheToSet: RenderCache = {};
 
-    const applyMask     = !!layer.mask;
+    const applyMask     = layer.mask?.enabled ?? false;
     const applyFilter   = hasFilters( layer.filters );
     let hasCachedFilter = applyFilter && cached?.filterData && isFiltersEqual( layer.filters, cached.filters );
 

@@ -32,6 +32,7 @@ import { LayerTypes } from "@/definitions/layer-types";
 import DocumentFactory from "@/model/factories/document-factory";
 import FiltersFactory from "@/model/factories/filters-factory";
 import LayerFactory, { type LayerProps } from "@/model/factories/layer-factory";
+import MaskFactory from "@/model/factories/mask-factory";
 import type { TextProps } from "@/model/factories/text-factory";
 import { inverseMask } from "@/rendering/operations/compositing";
 import { base64toCanvas, createCanvas, hasTransparentContent } from "@/utils/canvas-util";
@@ -193,12 +194,12 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
         // Photoshop masks use inverted colours compared to our Canvas masking
         inverseMask( cvs );
 
-        layerProps.mask = {
+        layerProps.mask = MaskFactory.create({
             source: cvs,
             enabled: true, // @todo do we have a flag for this in the PSD Layer ?
             left: 0,
             top: 0,
-        };
+        });
     }
 
     // retrieve layer contents

@@ -11,8 +11,8 @@ import {
 } from "@/model/factories/renderer-factory";
 
 describe( "Renderer factory", () => {
-    const layer1 = LayerFactory.create({ id: "layer1", width: 10, height: 10 });
-    const layer2 = LayerFactory.create({ id: "layer2", width: 10, height: 10 });
+    const layer1 = LayerFactory.create({ width: 10, height: 10 });
+    const layer2 = LayerFactory.create({ width: 10, height: 10 });
 
     describe( "when lazily creating / caching renderers", () => {
         let zCanvas: ZoomableCanvas;

@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 export type Mask = {
+    id: string;
     source: HTMLCanvasElement;
     enabled: boolean;
     left: number;

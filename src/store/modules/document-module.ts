@@ -41,14 +41,14 @@ export interface DocumentState {
     documents : Document[]; // opened documents
     activeIndex: number; // the currently active document
     activeLayerIndex: number; // the currently active layer within the currently active document
-    maskActive: boolean;
+    activeLayerMaskId?: string;
 };
 
 export const createDocumentState = ( props?: Partial<DocumentState> ): DocumentState => ({
     documents : [],
     activeIndex: 0,
     activeLayerIndex: 0,
-    maskActive: false,
+    activeLayerMaskId: undefined,
     ...props,
 });
 
@@ -71,7 +71,13 @@ const DocumentModule: Module<DocumentState, any> = {
             return getters.layers?.[ state.activeLayerIndex ];
         },
         activeLayerMask: ( state: DocumentState, getters: any ): Mask | undefined => {
-            return ( state.maskActive && getters.activeLayer?.mask ) || undefined;
+            if ( state.activeLayerMaskId === undefined || !getters.activeLayer?.mask ) {
+                return;
+            }
+            if ( state.activeLayerMaskId !== getters.activeLayer.mask.id ) {
+                return;
+            }
+            return getters.activeLayer.mask;
         },
         activeLayerTransform: ( _state: DocumentState, getters: any ): Transform => {
             return getters.activeLayer?.transform || {};
@@ -186,7 +192,7 @@ const DocumentModule: Module<DocumentState, any> = {
         },
         setActiveLayerIndex( state: DocumentState, layerIndex: number ): void {
             state.activeLayerIndex = layerIndex;
-            state.maskActive = false;
+            state.activeLayerMaskId = undefined;
         },
         setActiveLayer( state: DocumentState, layer: Layer ): void {
             const index = state.documents[ state.activeIndex ]?.layers.indexOf( layer );
@@ -196,7 +202,8 @@ const DocumentModule: Module<DocumentState, any> = {
         },
         setActiveLayerMask( state: DocumentState, layerIndex: number ): void {
             state.activeLayerIndex = layerIndex;
-            state.maskActive = !!state.documents[ state.activeIndex ]?.layers[ layerIndex ]?.mask;
+            const mask = state.documents[ state.activeIndex ]?.layers[ layerIndex ]?.mask
+            state.activeLayerMaskId = mask ? mask.id : undefined;
         },
         updateLayer( state: DocumentState, { index, opts = {}, recreateRenderer = false }: { index: number, opts: Partial<Layer>, recreateRenderer?: boolean }): void {
             let layer = state.documents[ state.activeIndex ]?.layers[ index ];

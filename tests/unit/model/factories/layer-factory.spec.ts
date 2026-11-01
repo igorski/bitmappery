@@ -1,12 +1,11 @@
 import { it, describe, expect, vi } from "vitest";
 import type { Filters } from "@/model/types/filters";
-import type { Mask } from "@/model/types/mask";
 import type { Text } from "@/model/types/text";
 import type { Transform } from "@/model/types/transform";
 import { LayerTypes, DEFAULT_LAYER_NAME, DEFAULT_TEXT_LAYER_NAME } from "@/definitions/layer-types";
 import FiltersFactory, { type FiltersProps } from "@/model/factories/filters-factory";
 import LayerFactory, { layerToRect } from "@/model/factories/layer-factory";
-import MaskFactory, { type MaskProps } from "@/model/factories/mask-factory";
+import MaskFactory from "@/model/factories/mask-factory";
 import TextFactory, { type TextProps } from "@/model/factories/text-factory";
 import TransformFactory, { type TransformProps } from "@/model/factories/transform-factory";
 import { createMockCanvasElement } from "../../mocks";
@@ -55,7 +54,6 @@ describe( "Layer factory", () => {
 
         it( "should be able to create a layer from given arguments", () => {
             vi.spyOn( FiltersFactory, "create" ).mockImplementation(( args: FiltersProps ) => args as Filters );
-            vi.spyOn( MaskFactory, "create" ).mockImplementation(( args: MaskProps ) => args as Mask );
             vi.spyOn( TextFactory, "create" ).mockImplementation(( args: TextProps ) => args as Text );
             vi.spyOn( TransformFactory, "create" ).mockImplementation(( args: TransformProps ) => args as Transform );
             
@@ -88,6 +86,7 @@ describe( "Layer factory", () => {
                     id: "Foo",
                 },
             });
+
             expect( layer ).toEqual({
                 id: expect.any( String ),
                 name: "foo",
@@ -95,6 +94,7 @@ describe( "Layer factory", () => {
                 transparent: false,
                 source,
                 mask: {
+                    id: expect.any( String ),
                     source: maskSource,
                     enabled: false,
                     left: 50,
@@ -192,13 +192,21 @@ describe( "Layer factory", () => {
             expect( deserializeTextSpy ).toHaveBeenCalledWith( layer.text );
             expect( deserializeTransformSpy ).toHaveBeenCalledWith( layer.transform );
             
-            // note id's are unique per created session instance and therefor will differ
+            // note id's are unique per created Layer instance and therefor are expected to differ
             expect({
                 ...deserialized,
                 id: expect.any( String ),
+                mask: {
+                    ...deserialized.mask,
+                    id: expect.any( String ),
+                },
             }).toEqual({
                 ...layer,
                 id: expect.any( String ),
+                mask: {
+                    ...layer.mask,
+                    id: expect.any( String ),
+                },
             });
         });
 
@@ -257,6 +265,7 @@ describe( "Layer factory", () => {
                 expect( mockUpdateFn ).toHaveBeenNthCalledWith( 2, "base64toCanvas", expect.any( Object ), 300, 200 );
 
                 expect( deserialized.mask ).toEqual({
+                    id: expect.any( String ),
                     source: expect.any( Object ),
                     enabled: true,
                     left: 20,

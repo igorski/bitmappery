@@ -119,17 +119,23 @@ describe( "Vuex document module", () => {
         });
 
         it( "should be able to retrieve the active Layer mask, when set", () => {
-            const state = createDocumentState({ maskActive: false });
-            const mockedGetters = {
-                activeLayer: LayerFactory.create({ name: "layer1" }),
-            };
-            // null because mask is not active
+            const state = createDocumentState({ activeLayerMaskId: undefined });
+            const activeLayer = LayerFactory.create({ name: "layer1" });
+            const mockedGetters = { activeLayer };
+
+            // undefined because active Mask is not set
             expect( getters.activeLayerMask( state, mockedGetters, {}, {} )).toBeUndefined();
-            state.maskActive = true;
-            // null because layer has no mask drawable
+            
+            activeLayer.mask = MaskFactory.create();
+            state.activeLayerMaskId = "fooBar";
+            
+            // undefined because active Layer Mask has different id
             expect( getters.activeLayerMask( state, mockedGetters, {}, {} )).toBeUndefined();
-            mockedGetters.activeLayer.mask = MaskFactory.create();
-            expect( getters.activeLayerMask( state, mockedGetters, {}, {} )).toEqual( mockedGetters.activeLayer.mask );
+            
+            
+            state.activeLayerMaskId = activeLayer.mask.id;
+
+            expect( getters.activeLayerMask( state, mockedGetters, {}, {} )).toEqual( activeLayer.mask );
         });
 
         it( "should be able to retrieve the active Layer transform", () => {
@@ -574,7 +580,7 @@ describe( "Vuex document module", () => {
                 expect( state.activeLayerIndex ).toEqual( 1 );
             });
 
-            it( "should unset the active layer mask when setting the active layer index", () => {
+            it( "should unset the active Layer Mask id when setting the active layer index", () => {
                 const state = createDocumentState({
                     documents: [
                         DocumentFactory.create({
@@ -586,28 +592,29 @@ describe( "Vuex document module", () => {
                         })
                     ],
                     activeLayerIndex: 0,
-                    maskActive: true,
+                    activeLayerMaskId: "fooBar",
                 });
                 mutations.setActiveLayerIndex( state, 1 );
-                expect( state.maskActive ).toBe( false );
+                expect( state.activeLayerMaskId ).toBeUndefined();
             });
 
-            it( "should be able to set the active layer mask", () => {
+            it( "should be able to set the active Layer Mask id", () => {
+                const layers = [
+                    LayerFactory.create({ name: "layer1" }),
+                    LayerFactory.create({ name: "layer2", mask: MaskFactory.create() })
+                ];
                 const state = createDocumentState({
                     documents: [ DocumentFactory.create({
                         name: "foo",
-                        layers: [
-                            LayerFactory.create({ name: "layer1" }),
-                            LayerFactory.create({ name: "layer2", mask: MaskFactory.create() })
-                        ]
+                        layers,
                     })],
                     activeIndex: 0,
                     activeLayerIndex: 0,
-                    maskActive: false,
+                    activeLayerMaskId: undefined,
                 });
                 mutations.setActiveLayerMask( state, 1 );
                 expect( state.activeLayerIndex ).toEqual( 1 );
-                expect( state.maskActive ).toBe( true );
+                expect( state.activeLayerMaskId ).toBe( layers[ 1 ].mask.id );
             });
         });
 

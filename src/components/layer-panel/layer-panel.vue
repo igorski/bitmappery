@@ -257,7 +257,7 @@ export default {
                 return layers.map(( layer: Layer, index: number ) => ({
                     ...layer,
                     index: this.hasTimeline ? this.layers.indexOf( layer ): index,
-                    maskSelected: layer.mask ? layer.mask === this.activeLayerMask : false,
+                    maskSelected: layer.mask ? layer.mask.id === this.activeLayerMask?.id : false,
                 })).reverse();
             },
             set( value: Layer[] ): void {

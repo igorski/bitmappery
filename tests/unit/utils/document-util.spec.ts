@@ -2,6 +2,7 @@ import { it, describe, expect, beforeEach, vi } from "vitest";
 import { createMockCanvasElement, mockZCanvas } from "../mocks";
 import type { Document } from "@/model/types/document";
 import type { Layer } from "@/model/types/layer";
+import type { Mask } from "@/model/types/mask";
 import DocumentFactory from "@/model/factories/document-factory";
 import LayerFactory from "@/model/factories/layer-factory";
 import MaskFactory from "@/model/factories/mask-factory";
@@ -119,11 +120,25 @@ describe( "Document utilities", () => {
         // assert properties have been restored
 
         Object.entries( layer1props ).forEach(([ key, value ]) => {
-            expect( layer1[ key as keyof Layer ]).toEqual( value );
+            if ( key === "mask" ) {
+                expect( layer1.mask ).toEqual({
+                    ...( value as Mask ),
+                    id: expect.any( String ),
+                });
+            } else {
+                expect( layer1[ key as keyof Layer ]).toEqual( value );
+            }
         });
 
         Object.entries( layer2props ).forEach(([ key, value ]) => {
-            expect( layer2[ key as keyof Layer ]).toEqual( value );
+            if ( key === "mask" ) {
+                expect( layer2.mask ).toEqual({
+                    ...( value as Mask ),
+                    id: expect.any( String ),
+                });
+            } else {
+                expect( layer2[ key as keyof Layer ]).toEqual( value );
+            }
         });
     });
 });

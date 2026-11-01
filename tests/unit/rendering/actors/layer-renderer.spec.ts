@@ -93,7 +93,7 @@ describe( "LayerRenderer", () => {
         // @ts-expect-error getters is readonly
         mockStore.getters = {
             activeColor: "#FF0000",
-            activeLayerMask: null,
+            activeLayerMask: undefined,
         };
         // @ts-expect-error mockZoomableCanvas is not typed w/Vitest mocks
         canvas.getActiveDocument.mockReturnValue( activeDocument );

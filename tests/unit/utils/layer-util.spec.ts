@@ -36,7 +36,7 @@ describe( "Layer utilities", () => {
         mockStore = createState() as unknown as Store<BitMapperyState>;
         // @ts-expect-error getters is readonly
         mockStore.getters = {
-            activeLayerMask: null,
+            activeLayerMask: undefined,
         };
     });
 
@@ -501,6 +501,7 @@ describe( "Layer utilities", () => {
                 source: expect.any( Object ),
                 mask: {
                     ...layer.mask,
+                    id: expect.any( String ),
                     source: expect.any( Object ),
                 },
             });
@@ -514,6 +515,7 @@ describe( "Layer utilities", () => {
                 source: expect.any( Object ),
                 mask: {
                     ...layer.mask,
+                    id: expect.any( String ),
                     source: expect.any( Object ),
                 },
             });
@@ -532,6 +534,7 @@ describe( "Layer utilities", () => {
 
             expect( cloneMask( layer.mask )).toEqual({
                 ...layer.mask,
+                id: expect.any( String ),
                 source: expect.any( Object ),
             });
         });

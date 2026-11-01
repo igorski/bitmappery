@@ -102,7 +102,7 @@ export default {
             if ( !this.activeLayer ) {
                 return false;
             }
-            return !!this.activeLayer.mask && this.activeLayer.mask === this.activeLayerMask;
+            return !!this.activeLayer.mask && this.activeLayer.mask.id === this.activeLayerMask.id;
         },
         canDragMask(): boolean {
             if ( !this.isMask ) {

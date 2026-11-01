@@ -17,6 +17,7 @@ describe( "Mask factory", () => {
             const mask = MaskFactory.create();
 
             expect( mask ).toEqual({
+                id: expect.any( String ),
                 source: null,
                 enabled: true,
                 left: 0,
@@ -29,6 +30,7 @@ describe( "Mask factory", () => {
             const mask = MaskFactory.create({ source, enabled: false, left: 30, top: 20 });
 
             expect( mask ).toEqual({
+                id: expect.any( String ),
                 source,
                 enabled: false,
                 left: 30,
@@ -54,7 +56,15 @@ describe( "Mask factory", () => {
             const deserialized = await MaskFactory.deserialize( serialized );
 
             expect( mockUpdateFn ).toHaveBeenNthCalledWith( 1, "base64toCanvas", expect.any( Object ), 200, 100 );
-            expect( deserialized ).toEqual( mask );
+            
+            // note id's are unique per created Mask instance and therefor are expected to differ
+            expect({
+                ...deserialized,
+                id: expect.any( String ),
+            }).toEqual({
+                ...mask,
+                id: expect.any( String ),
+            });
         });
     });
 });
