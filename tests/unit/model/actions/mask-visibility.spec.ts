@@ -13,7 +13,7 @@ vi.mock( "@/model/factories/history-state-factory", () => ({
 
 describe( "toggle Mask visibility action", () => {
     const layer = LayerFactory.create({
-        mask: MaskFactory.create(),
+        mask: MaskFactory.create({ enabled: true }),
     });
     let store: Store<BitMapperyState>;
     
@@ -25,7 +25,7 @@ describe( "toggle Mask visibility action", () => {
         vi.resetAllMocks();
     });
 
-    it( "should be able to disabale visibility of a Mask from a specific Layer within the Document", () => {
+    it( "should be able to disable visibility of a Mask from a specific Layer within the Document", () => {
         toggleLayerMaskVisibility( store, layer, 2 );
 
         expect( store.commit ).toHaveBeenCalledTimes( 1 );

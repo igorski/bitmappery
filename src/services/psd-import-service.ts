@@ -50,7 +50,7 @@ type PSDImage = {
 };
 
 type PSDLayer = Rectangle & {
-    mask: Rectangle;
+    mask: Rectangle & { isEnabled: boolean };
     opacity: number;
     visible: boolean;
     blendMode: {
@@ -189,16 +189,16 @@ async function createLayer( layer: PSDLayer, layers: Layer[], name = "" ): Promi
         const { cvs, ctx } = createCanvas( layer.mask.width, layer.mask.height );
         ctx.putImageData( new ImageData(
             new Uint8ClampedArray( layer.image.maskData.buffer ), layer.mask.width, layer.mask.height
-        ), layer.mask.left - layerX, layer.mask.top - layerY );
+        ), 0, 0 );
 
         // Photoshop masks use inverted colours compared to our Canvas masking
         inverseMask( cvs );
 
         layerProps.mask = MaskFactory.create({
             source: cvs,
-            enabled: true, // @todo do we have a flag for this in the PSD Layer ?
-            left: 0,
-            top: 0,
+            enabled: layer.mask.isEnabled,
+            left: layer.mask.left - layerX,
+            top: layer.mask.top - layerY,
         });
     }
 

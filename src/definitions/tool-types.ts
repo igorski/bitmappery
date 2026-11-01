@@ -61,7 +61,7 @@ export const canDraw = ( activeDocument: Document, activeLayer: Layer, activeLay
 };
 
 export const canDragMask = ( activeLayer?: Layer, activeLayerMask?: Mask ): boolean => {
-    if ( !activeLayer || !activeLayer?.mask || ( activeLayer.mask.id !== activeLayerMask?.id )) {
+    if ( !activeLayer?.mask || !isMaskSelected( activeLayer, activeLayerMask )) {
         return false;
     }
     return activeLayer.transform.rotation === 0;
