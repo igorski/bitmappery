@@ -50,8 +50,8 @@ export function startLayerDrag( store: Store<BitMapperyState>, layer: Layer, x: 
     }
 
     // we don't support mask dragging outside of selections
-    const hasMask = false; // isMaskSelected( layer, store.getters.activeMask );
-    const orgContent = cloneCanvas( hasMask ? layer.mask.source : layer.source );
+    const dragMask = false; // isMaskSelected( layer, store.getters.activeMask );
+    const orgContent = cloneCanvas( dragMask ? layer.mask.source : layer.source );
     const orgSelection = clone( activeDocument.activeSelection );
     const selectionBoundingBox = selectionToRectangle( orgSelection );
 
@@ -61,7 +61,7 @@ export function startLayerDrag( store: Store<BitMapperyState>, layer: Layer, x: 
 
     copySelection( activeDocument, layer )
         .then( selectionContent => {
-            const bitmapWithoutSelection = deleteSelectionContent( activeDocument, layer );
+            const bitmapWithoutSelection = deleteSelectionContent( activeDocument, layer, dragMask );
             const selectionBitmap = ( selectionContent.content as CopiedImage ).bitmap;
             const { left, top } = selectionBoundingBox;
 
@@ -78,8 +78,8 @@ export function startLayerDrag( store: Store<BitMapperyState>, layer: Layer, x: 
             const insertIndex = activeDocument.layers.indexOf( layer ) + 1;
 
             const replaceSource = ( newSource: HTMLCanvasElement ): void => {
-                replaceLayerSource( layer, newSource, hasMask );
-                onLayerPropertiesChange( layer, { sources: [ hasMask ? "mask" : "source" ] });
+                replaceLayerSource( layer, newSource, dragMask );
+                onLayerPropertiesChange( layer, { sources: [ dragMask ? "mask" : "source" ] });
             };
 
             const commit = ( maintainDrag = false ): void => {

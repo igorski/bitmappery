@@ -35,13 +35,13 @@ export const deleteSelection = ( store: Pick<Store<BitMapperyState>, "getters"> 
     if ( !activeLayer || !activeDocument?.activeSelection.length ) {
         return;
     }
-    const hasMask       = isMaskSelected( activeLayer, activeMask );
-    const orgContent    = cloneCanvas( hasMask ? activeLayer.mask.source : activeLayer.source );
-    const updatedBitmap = deleteSelectionContent( activeDocument, activeLayer );
+    const fromMask      = isMaskSelected( activeLayer, activeMask );
+    const orgContent    = cloneCanvas( fromMask ? activeLayer.mask.source : activeLayer.source );
+    const updatedBitmap = deleteSelectionContent( activeDocument, activeLayer, fromMask );
 
     const replaceSource = ( newSource: HTMLCanvasElement ) => {
-        replaceLayerSource( activeLayer, newSource, hasMask );
-        onLayerPropertiesChange( activeLayer, { sources: [ hasMask ? "mask" : "source" ] });
+        replaceLayerSource( activeLayer, newSource, fromMask );
+        onLayerPropertiesChange( activeLayer, { sources: [ fromMask ? "mask" : "source" ] });
     };
     replaceSource( updatedBitmap );
     enqueueState( `deleteFromSelection_${activeLayer.id}`, {

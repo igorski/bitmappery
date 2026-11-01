@@ -258,13 +258,12 @@ export const copySelection = async ( activeDocument: Document, activeLayer: Laye
  * Deletes the pixel content inside the active selection of the document by
  * returning a new document bitmap without the selection contents
  */
-export const deleteSelectionContent = ( activeDocument: Document, activeLayer: Layer ): HTMLCanvasElement => {
+export const deleteSelectionContent = ( activeDocument: Document, activeLayer: Layer, fromMask: boolean ): HTMLCanvasElement => {
     let { left, top, width, height } = activeLayer;
     const { cvs, ctx } = createCanvas( width, height );
-    const hasMask = !!activeLayer.mask;
 
     // draw active layer onto temporary canvas at full document scale
-    ctx.drawImage( hasMask ? activeLayer.mask.source : activeLayer.source, 0, 0 );
+    ctx.drawImage( fromMask ? activeLayer.mask.source : activeLayer.source, 0, 0 );
 
     // erase content in selection area by filling with transparent pixels
     ctx.save();
