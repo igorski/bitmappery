@@ -110,7 +110,7 @@
                                         :class="{
                                             'layer__actions-button--highlight': element.maskSelected
                                         }"
-                                        @click="handleLayerMaskClick( element )"
+                                        @click="handleLayerMaskClick( element, $event )"
                                     ><img src="@/assets-inline/images/icon-mask.svg" /></button>
                                     <button
                                         v-tooltip="t('toggleVisibility')"
@@ -181,6 +181,7 @@ import { renameLayer } from "@/model/actions/layer-rename";
 import { reorderLayers } from "@/model/actions/layer-reorder";
 import { addMask } from "@/model/actions/mask-add";
 import { removeMask } from "@/model/actions/mask-remove";
+import { toggleLayerMaskVisibility } from "@/model/actions/mask-visibility";
 import { toggleLayerVisibility } from "@/model/actions/layer-toggle-visibility";
 import { getRendererForLayer } from "@/model/factories/renderer-factory";
 import { getThumbnailForLayer, subscribe, unsubscribe } from "@/rendering/cache/thumbnail-cache";
@@ -389,7 +390,11 @@ export default {
                 });
             }
         },
-        handleLayerMaskClick( layer: IndexedLayer ): void {
+        handleLayerMaskClick( layer: IndexedLayer, e?: PointerEvent ): void {
+            if ( e?.shiftKey ) {
+                toggleLayerMaskVisibility( this.$store, layer, layer.index );
+                return;
+            }
             if ( layer.maskSelected ) {
                 this.handleLayerClick( layer ); // unsetting of mask
                 return;
